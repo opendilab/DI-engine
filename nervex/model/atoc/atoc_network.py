@@ -5,8 +5,8 @@ import queue
 import torch
 import torch.nn as nn
 
-from nervex.utils import squeeze
-from ..common import QActorCriticBase, register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
+from ..common import QActorCriticBase
 
 
 class ATOCAttentionUnit(nn.Module):
@@ -363,6 +363,7 @@ class ATOCCriticNet(nn.Module):
         return data
 
 
+@MODEL_REGISTRY.register('atoc')
 class ATOCQAC(QActorCriticBase):
     r"""
     Overview:
@@ -373,17 +374,17 @@ class ATOCQAC(QActorCriticBase):
     """
 
     def __init__(
-        self,
-        obs_dim: int,
-        action_dim: int,
-        thought_dim: int,
-        n_agent: int,
-        use_communication: bool = True,
-        m_group: int = 2,
-        T_initiate: int = 5,
-        actor_1_embedding_dim: Union[int, None] = None,
-        actor_2_embedding_dim: Union[int, None] = None,
-        critic_embedding_dims: List[int] = [128, 64],
+            self,
+            obs_dim: int,
+            action_dim: int,
+            thought_dim: int,
+            n_agent: int,
+            use_communication: bool = True,
+            m_group: int = 2,
+            T_initiate: int = 5,
+            actor_1_embedding_dim: Union[int, None] = None,
+            actor_2_embedding_dim: Union[int, None] = None,
+            critic_embedding_dims: List[int] = [128, 64],
     ) -> None:
         r"""
         Overview:
@@ -569,6 +570,3 @@ class ATOCQAC(QActorCriticBase):
             ]), mode
         f = getattr(self, mode)
         return f(inputs, **kwargs)
-
-
-register_model('atoc', ATOCQAC)

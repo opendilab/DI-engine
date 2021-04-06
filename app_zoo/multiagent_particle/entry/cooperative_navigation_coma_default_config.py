@@ -21,7 +21,6 @@ cooperative_navigation_coma_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='coma',
-        import_names=['nervex.policy.coma'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,
@@ -32,10 +31,10 @@ cooperative_navigation_coma_default_config = dict(
             act_dim=[
                 5,
             ],
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,
@@ -66,23 +65,18 @@ cooperative_navigation_coma_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=64,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=64,
+        max_use=100,
     ),
     actor=dict(
-        n_episode=4,
+        n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=0,
+        stop_value=0,
     ),
     learner=dict(
         hook=dict(

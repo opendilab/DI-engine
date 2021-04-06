@@ -21,7 +21,7 @@ bitflip_dqn_default_config = dict(
             dueling=False,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0,
@@ -32,7 +32,6 @@ bitflip_dqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=50,
             unroll_len=1,
             algo=dict(
                 nstep=1,
@@ -49,23 +48,17 @@ bitflip_dqn_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=5000,
-            min_sample_ratio=5,
-            max_reuse=100,
-        ),
+        replay_buffer_size=5000,
     ),
     actor=dict(
         n_episode=1,
         traj_len=50,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=16,
         eval_freq=100,
-        stop_val=0.9,
+        stop_value=0.9,
     ),
     learner=dict(
         hook=dict(

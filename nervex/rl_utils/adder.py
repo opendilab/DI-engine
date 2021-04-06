@@ -105,7 +105,7 @@ class Adder(object):
             data[i]['adv'] = adv[i]
         return data
 
-    def get_gae_with_default_last_value(self, data: List[Dict[str, Any]], done: bool, gamma: float,
+    def get_gae_with_default_last_value(self, data: deque, done: bool, gamma: float,
                                         gae_lambda: float) -> List[Dict[str, Any]]:
         """
         Overview:
@@ -114,7 +114,7 @@ class Adder(object):
             as ``last_value``, discard the last element in ``data``(i.e. len(data) would decrease by 1), and then call
             ``get_gae``. Otherwise it would make ``last_value`` equal to 0.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict with \
+            - data (:obj:`deque`): transitions list, each element is a transition dict with \
                 at least['value', 'reward']
             - done (:obj:`bool`): whether the transition reaches the end of an episode(i.e. whether the env is done)
             - gamma (:obj:`float`): the future discount factor
@@ -126,36 +126,41 @@ class Adder(object):
         if done:
             last_value = torch.zeros(1)
         else:
-            last_value = data[-1]['value']
-            data = data[:-1]
+            last_data = data.pop()
+            last_value = last_data['value']
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
-    def get_nstep_return_data(self, data: List[Dict[str, Any]], nstep: int, traj_len: int) -> List[Dict[str, Any]]:
+    def get_nstep_return_data(self, data: deque, nstep: int) -> deque:
         """
         Overview:
             Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict
+            - data (:obj:`deque`): transitions list, each element is a transition dict
             - nstep (:obj:`int`): number of steps. If equals to 1, return ``data`` directly; \
                 Otherwise update with nstep value
-            - traj_len (:obj:`int`): expected length of the collected trajectory, 'inf' means collecting will not \
-                end until episode is done
         Returns:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element updated with \
+            - data (:obj:`deque`): transitions list like input one, but each element updated with \
                 nstep value
         """
         if nstep == 1:
             return data
-        if traj_len == float('inf') or len(data) < traj_len:
-            # episode done case, append nstep fake datas
-            fake_data = {'obs': copy.deepcopy(data[-1]['obs']), 'reward': torch.zeros(1), 'done': True}
-            data += [fake_data for _ in range(nstep)]
+        fake_reward = torch.zeros(1)
+        next_obs_flag = 'next_obs' in data[0]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
-            data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+            if next_obs_flag:
+                data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
             data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
             data[i]['done'] = data[i + nstep - 1]['done']
-        return data[:-nstep]
+        for i in range(max(0, len(data) - nstep), len(data)):
+            if next_obs_flag:
+                data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
+            data[i]['reward'] = torch.cat(
+                [data[i + j]['reward']
+                 for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+            )
+            data[i]['done'] = data[-1]['done']
+        return data
 
     def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
@@ -172,6 +177,8 @@ class Adder(object):
         if self._unroll_len == 1:
             return data
         else:
+            if isinstance(data, deque):
+                data = list(data)
             # cut data into pieces whose length is unroll_len
             split_data, residual = list_split(data, step=self._unroll_len)
 

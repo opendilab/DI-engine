@@ -25,7 +25,7 @@ space_ppo_default_config = dict(
             embedding_dim=128,
         ),
         learn=dict(
-            train_step=16,
+            train_iteration=16,
             batch_size=128,
             learning_rate=0.00025,
             weight_decay=0.0,
@@ -46,20 +46,19 @@ space_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=3,
+            max_use=3,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=1024,
         traj_len=128,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=800000,
+        stop_value=800000,
     ),
     learner=dict(
         load_path='',

@@ -28,7 +28,7 @@ ant_sac_default_config = dict(
             use_twin_q=use_twin_q,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=256,
             learning_rate_q=0.0003,
             learning_rate_value=0.0003,
@@ -58,21 +58,20 @@ ant_sac_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=1000000,
-            max_reuse=16,
+            replay_buffer_size=100000,
+            max_use=256,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=64,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=6000,
+        stop_value=6000,
     ),
     learner=dict(
         hook=dict(

@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('ddpg')
 class DDPGPolicy(CommonPolicy):
     r"""
     Overview:
@@ -160,7 +162,6 @@ class DDPGPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
@@ -264,6 +265,3 @@ class DDPGPolicy(CommonPolicy):
         if self._use_twin_critic:
             ret += ['critic_twin_loss']
         return ret
-
-
-register_policy('ddpg', DDPGPolicy)

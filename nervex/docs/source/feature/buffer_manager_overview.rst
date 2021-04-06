@@ -95,9 +95,9 @@ Replay Buffer
             若 ``sample_check`` 结果为True，即通过检查，才会触发后续被调用``sample`` 。
             buffer利用线段树实现了prioritized sample，将priority存储在线段树中以进行采样的原理此处不做详细说明，总之，buffer可以将priority作为概率进行采样。
             首先调用 ``_get_indices`` 得到需要被采样的所有索引值（这一步便用到了上一句中的线段树），然后调用 ``_sample_with_indices`` 实际来取出数据。
-            然后，计算每一条数据的staleness, reuse, importance sampling weight并附加到其域中。
+            然后，计算每一条数据的staleness, use, importance sampling weight并附加到其域中。
             如果发现sample到了相同的数据，则需要deepcopy以保证数据安全性。
-            如果发现该数据的reuse超过一定限度，会将该条数据从buffer中移除。
+            如果发现该数据的use超过一定限度，会将该条数据从buffer中移除。
 
             最后，更新monitor与logger。
 

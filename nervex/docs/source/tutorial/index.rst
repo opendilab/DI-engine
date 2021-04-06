@@ -228,7 +228,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
       - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
-      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_value可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
       - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
 
     .. note::
@@ -293,11 +293,11 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
-    下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
+    下面所示为在slurm集群上的启动脚本，只需要将 ``nervex xxxx``当作一个任务提交到某个计算节点即可，和普通srun提交任务没有区别。
     
     .. code:: bash
 
-        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
+        srun -p x_cerebra --gres=gpu:1 nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
     nervex 命令参数选项:
 
@@ -409,7 +409,13 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+    em_type = cfg.env.env_manager_type
+    if em_type == 'base':
+        env_manager_type = BaseEnvManager
+    elif em_type == 'aynsc_subprocess':
+        env_manager_type = SubprocessEnvManager
+    elif em_type == 'subprocess':
+        env_manager_type = SyncSubprocessEnvManager
 
 其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
 
@@ -437,7 +443,7 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
     # create 4 CartPoleEnv env with default config(set `env_cfg=[{} for _ in range(4)]`)
     env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4)
 
-我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SubprocessEnvManager`` 
+我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SyncSubprocessEnvManager``, ``SubprocessEnvManager``
 还是 ``BaseEnvManager`` 。
 
 .. note::
@@ -578,7 +584,7 @@ Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法�
 
 
     # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
-    cfg = {'meta_maxlen': 10}
+    cfg = {'replay_buffer_size': 10}
     buffer_ = BufferManager(cfg)
 
     # add 10 data

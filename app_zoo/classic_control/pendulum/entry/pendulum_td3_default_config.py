@@ -15,7 +15,6 @@ pendulum_td3_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ddpg',
-        import_names=['nervex.policy.ddpg'],
         on_policy=False,
         use_priority=True,
         model=dict(
@@ -24,7 +23,7 @@ pendulum_td3_default_config = dict(
             use_twin_critic=use_twin_critic,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=128,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,
@@ -51,23 +50,18 @@ pendulum_td3_default_config = dict(
         command=dict(),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=20000,
-            max_reuse=16,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=20000,
+        max_use=16,
     ),
     actor=dict(
         n_sample=48,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=20,
-        stop_val=-250,
+        stop_value=-250,
     ),
     learner=dict(
         hook=dict(

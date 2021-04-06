@@ -22,7 +22,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=256,
+            hidden_dim_list=[128, 128, 256],
             head_kwargs=dict(
                 dueling=True,
                 distribution=True,
@@ -33,7 +33,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
             n_atom=51,
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,
@@ -58,21 +58,20 @@ spaceinvaders_rainbowdqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=400,
         traj_len=(8 + nstep),
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=500,
-        stop_val=700,
+        stop_value=700,
     ),
     learner=dict(
         load_path='',

@@ -24,8 +24,6 @@ cartpole_dqn_default_config.py
             manager=dict(
                 shared_memory=True,
             ),
-            # Must use the absolute path. All the following "import_names" should obey this too.
-            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             # Env register name (refer to function "register_env").
             env_type='cartpole',
             # Env number respectively for actor and evaluator.
@@ -35,9 +33,7 @@ cartpole_dqn_default_config.py
         policy=dict(
             # Whether to use cuda for network.
             use_cuda=False,
-            # RL policy register name (refer to function "register_policy").
             policy_type='dqn',
-            import_names=['nervex.policy.dqn'],
             # Whether the RL algorithm is on-policy or off-policy.
             on_policy=False,
             # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
@@ -50,9 +46,9 @@ cartpole_dqn_default_config.py
             ),
             # learn_mode config
             learn=dict(
-                # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+                # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
                 # collect data -> train fixed steps -> collect data -> ...
-                train_step=3,
+                train_iteration=3,
                 batch_size=64,
                 learning_rate=0.001,
                 # L2 norm weight for network parameters.
@@ -68,8 +64,6 @@ cartpole_dqn_default_config.py
             ),
             # collect_mode config
             collect=dict(
-                # Will collect trajectory with length "traj_len".
-                traj_len=traj_len,
                 # Cut trajectories into pieces with length "unrol_len".
                 unroll_len=1,
                 algo=dict(
@@ -90,12 +84,7 @@ cartpole_dqn_default_config.py
         ),
         # You can refer to "config/buffer_manager_default_config.py" for details.
         replay_buffer=dict(
-            buffer_name=['agent'],
-            agent=dict(
-                meta_maxlen=100000,
-                max_reuse=100,
-                min_sample_ratio=1,
-            ),
+            replay_buffer_size=100000,
         ),
         actor=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -104,7 +93,6 @@ cartpole_dqn_default_config.py
             # Get "n_episode" complete episodic trajectories per collect.
             # n_episode=8,
             traj_len=traj_len,
-            traj_print_freq=100,
             collect_print_freq=100,
         ),
         evaluator=dict(
@@ -112,8 +100,8 @@ cartpole_dqn_default_config.py
             n_episode=5,
             # Evaluate every "eval_freq" training steps.
             eval_freq=200,
-            # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-            stop_val=195,
+            # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+            stop_value=195,
         ),
         # You can refer to "config/serial.py" for details.
         learner=dict(
@@ -141,7 +129,3 @@ cartpole_dqn_default_config.py
         ),
         commander=dict(),
     )
-
-.. note::
-   由于串行版本数据生成和训练是串行、同步执行的，即生成足够数量的数据后训练一定迭代数，使用者可以调节 ``train_step``, ``batch_size``, ``max_reuse``, ``buffer_length`` 这四个量来控制
-   算法的训练数据情况，比如令 ``max_reuse=1``，``buffer_length = train_step * batch_size，train_step=1``，即可对应标准的 on-policy训练过程。

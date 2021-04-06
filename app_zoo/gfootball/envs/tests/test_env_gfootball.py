@@ -1,5 +1,5 @@
 import pytest
-import torch
+import numpy as np
 import pprint
 
 try:
@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 class TestGfootballEnv:
 
     def get_random_action(self, min_value, max_value):
-        action = torch.randint(min_value, max_value + 1, (1, ))
+        action = np.random.randint(min_value, max_value + 1, (1, ))
         return action
 
     def test_naive(self):
@@ -24,10 +24,12 @@ class TestGfootballEnv:
         for i in range(3000):
             action = self.get_random_action(env.info().act_space.value['min'], env.info().act_space.value['max'])
             timestep = env.step(action)
-            reward = timestep.obs
+            reward = timestep.reward
             print('reward:', reward)
             # assert reward.shape == 1
             obs = timestep.obs
+            print("raw_obs = ", obs['raw_obs'])
+            obs = obs['processed_obs']
             assert obs['ball_owned_team'].shape[0] == 3
             assert obs['ball_owned_player'].shape[0] == 12
             assert obs['active_player'].shape[0] == 11

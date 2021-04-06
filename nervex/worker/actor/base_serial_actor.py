@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 
-from .env_manager import BaseEnvManager
+from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
 
@@ -18,7 +18,7 @@ class BaseSerialActor(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         """
         Overview:
             Initialization method.
@@ -33,13 +33,12 @@ class BaseSerialActor(object):
         else:
             self._traj_len = float('inf')
             self._traj_cache_length = None
-        self._traj_print_freq = cfg.traj_print_freq
         self._collect_print_freq = cfg.collect_print_freq
-        self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
-        for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
-                    'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std']:
-            self._tb_logger.register_var('actor/' + var)
+        if tb_logger is not None:
+            self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
+            self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
         self._timer = EasyTimer()
         self._cfg = cfg
 
@@ -67,11 +66,14 @@ class BaseSerialActor(object):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
-        self._total_collect_step_count = 0
-        self._total_step_count = 0
+        self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
+        self._episode_info = []
+        self._total_envstep_count = 0
         self._total_episode_count = 0
-        self._total_sample_count = 0
+        self._total_train_sample_count = 0
         self._total_duration = 0
+        self._last_train_iter = 0
+        self._done_episode = []
 
     @property
     def actor_info(self) -> dict:
@@ -82,66 +84,63 @@ class BaseSerialActor(object):
         Returns:
             - info (:obj:`dict`): Current learner info dict.
         """
-        ret = {'env_step': self._total_step_count, 'sample_step': self._total_sample_count}
+        ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
     def generate_data(self,
-                      iter_count: int,
+                      train_iter: int = -1,
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
            Generate data. Either ``n_episode`` or ``n_sample`` must be None.
         Arguments:
-           - iter_count (:obj:`int`): count of iteration
+           - train_iter (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode
            - n_sample (:obj:`int`): number of sample
         Returns:
            - return_data (:obj:`List`): A list containing training samples.
-           - collect_info (:obj:`dict`): A dict containing sample collection information.
         """
         assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
-            return self._collect_episode(iter_count, n_episode)
+            return self._collect_episode(train_iter, n_episode)
         elif n_sample is not None:
-            return self._collect_sample(iter_count, n_sample)
+            return self._collect_sample(train_iter, n_sample)
         elif self._default_n_episode is not None:
-            return self._collect_episode(iter_count, self._default_n_episode)
+            return self._collect_episode(train_iter, self._default_n_episode)
         elif self._default_n_sample is not None:
-            return self._collect_sample(iter_count, self._default_n_sample)
+            return self._collect_sample(train_iter, self._default_n_sample)
         else:
             raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
     def close(self) -> None:
         self._env_manager.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
 
-    def _collect_episode(self, iter_count: int, n_episode: int) -> Tuple[List[Any], dict]:
-        return self._collect(iter_count, lambda num_episode, num_sample: num_episode >= n_episode)
+    def _collect_episode(self, train_iter: int, n_episode: int) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode)
 
-    def _collect_sample(self, iter_count: int, n_sample: int) -> Tuple[List[Any], dict]:
-        return self._collect(iter_count, lambda num_episode, num_sample: num_sample >= n_sample)
+    def _collect_sample(self, train_iter: int, n_sample: int) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample)
 
-    def _collect(self, iter_count: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+    def _collect(self, train_iter: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
         """
         Overview:
             Real collect method in process of generating data.
             Called by ``self._collect_episode`` and ``self._collect_sample``.
         Arguments:
-            - iter_count (:obj:`int`): count of iteration
+            - train_iter (:obj:`int`): count of iteration
             - collect_end_fn (:obj:`Callable`): end of collect
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
-            - collect_info (:obj:`dict`): A dict containing sample collection information.
         """
-        episode_count = 0
-        step_count = 0
-        train_sample_count = 0
-        episode_reward = []
         return_data = []
-        info = {}
         self._policy.reset()
-        with self._timer:
-            while not collect_end_fn(episode_count, train_sample_count):
+        collected_episode = 0
+        collected_sample = 0
+        while not collect_end_fn(collected_episode, collected_sample):
+            with self._timer:
                 # Get current env obs.
                 obs = self._env_manager.next_obs
                 self._obs_pool.update(obs)
@@ -153,74 +152,110 @@ class BaseSerialActor(object):
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 timesteps = self._env_manager.step(actions)
-                # For each env:
-                # 1) Form a transition and store it in cache;
-                # 2) Get a train sample from cache if cache is full or env is done;
-                # 3) Reset related variables if env is done.
-                for env_id, timestep in timesteps.items():
+            single_env_pre_duration = self._timer.value / len(timesteps)
+            # For each env:
+            # 1) Form a transition and store it in cache;
+            # 2) Get a train sample from cache if cache is full or env is done;
+            # 3) Reset related variables if env is done.
+            for env_id, timestep in timesteps.items():
+                with self._timer:
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
-                        self._traj_cache[env_id].clear()
-                        self._obs_pool.reset(env_id)
-                        self._policy_output_pool.reset(env_id)
-                        self._policy.reset([env_id])
+                        self._var_reset(env_id)
                         print('env_id abnormal step', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    # ``iter_count`` passed in from ``serial_entry``, indicates current collecting model's iteration.
-                    transition['collect_iter'] = iter_count
+                    # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
+                    transition['collect_iter'] = train_iter
                     self._traj_cache[env_id].append(transition)
+                    self._env_info[env_id]['step'] += 1
+                    self._total_envstep_count += 1
+                    # prepare data
                     if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
                         # Episode is done or traj_cache(maxlen=traj_len) is full.
                         train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
                         return_data.extend(train_sample)
-                        train_sample_count += len(train_sample)
-                        self._total_sample_count += len(train_sample)
+                        self._total_train_sample_count += len(train_sample)
+                        self._env_info[env_id]['train_sample'] += len(train_sample)
+                        collected_sample += len(train_sample)
+                        self._traj_cache[env_id].clear()
+                    # Reset if env is done.
                     if timestep.done:
                         # Env reset is done by env_manager automatically
-                        self._traj_cache[env_id].clear()
-                        self._obs_pool.reset(env_id)
-                        self._policy_output_pool.reset(env_id)
-                        self._policy.reset([env_id])
-                        reward = timestep.info['final_eval_reward']
-                        if isinstance(reward, torch.Tensor):
-                            reward = reward.item()
-                        episode_reward.append(reward)
-                        episode_count += 1
+                        self._var_reset(env_id)
                         self._total_episode_count += 1
-                    step_count += 1
-                    self._total_step_count += 1
-        duration = self._timer.value
-        if (self._total_collect_step_count) % self._collect_print_freq == 0:
+                        collected_episode += 1
+                self._env_info[env_id]['time'] += self._timer.value + single_env_pre_duration
+                # If env is done, record episode info and reset env info
+                if timestep.done:
+                    reward = timestep.info['final_eval_reward']
+                    if isinstance(reward, torch.Tensor):
+                        reward = reward.item()
+                    info = {
+                        'reward': reward,
+                        'time': self._env_info[env_id]['time'],
+                        'step': self._env_info[env_id]['step'],
+                        'train_sample': self._env_info[env_id]['train_sample'],
+                    }
+                    self._episode_info.append(info)
+                    self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
+        # log
+        if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(self._episode_info) > 0:
+            self._last_train_iter = train_iter
+            episode_count = len(self._episode_info)
+            envstep_count = sum([d['step'] for d in self._episode_info])
+            train_sample_count = sum([d['train_sample'] for d in self._episode_info])
+            duration = sum([d['time'] for d in self._episode_info])
+            episode_reward = [d['reward'] for d in self._episode_info]
+            self._total_duration += duration
             info = {
                 'episode_count': episode_count,
-                'step_count': step_count,
+                'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
-                'avg_step_per_episode': step_count / max(1, episode_count),
-                'avg_sample_per_epsiode': train_sample_count / max(1, episode_count),
-                'avg_time_per_step': duration / (step_count + 1e-8),
-                'avg_time_per_train_sample': duration / (train_sample_count + 1e-8),
-                'avg_time_per_episode': duration / max(1, episode_count),
-                'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
-                'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
+                'avg_envstep_per_episode': envstep_count / episode_count,
+                'avg_sample_per_epsiode': train_sample_count / episode_count,
+                'avg_envstep_per_sec': envstep_count / duration,
+                'avg_train_sample_per_sec': train_sample_count / duration,
+                'avg_episode_per_sec': episode_count / duration,
+                'collect_time': duration,
+                'reward_mean': np.mean(episode_reward),
+                'reward_std': np.std(episode_reward),
                 'each_reward': episode_reward,
+                'total_envstep_count': self._total_envstep_count,
+                'total_train_sample_count': self._total_train_sample_count,
+                'total_episode_count': self._total_episode_count,
+                'total_duration': self._total_duration,
             }
+            self._episode_info.clear()
+            # self._logger.print_vars(info)
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
-            tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]
-            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-        self._total_collect_step_count += 1
-        self._total_duration += duration
-        collect_info = {
-            'sample_count': train_sample_count,
-            'total_collect_step': self._total_collect_step_count,
-            'total_step': self._total_step_count,
-            'total_sample': self._total_sample_count,
-            'total_episode': self._total_episode_count,
-            'total_duration': self._total_duration,
-        }
-        return return_data, collect_info
+            for k, v in info.items():
+                if k in ['each_reward']:
+                    continue
+                self._tb_logger.add_scalar('actor_iter/' + k, v, train_iter)
+                if k in ['total_envstep_count']:
+                    continue
+                self._tb_logger.add_scalar('actor_step/' + k, v, self._total_envstep_count)
+        return return_data
+
+    def _var_reset(self, env_id: int) -> None:
+        """
+        Overview:
+           When an env is to be reset, e.g. episode is done, abnormal occurs, etc.
+           Reset corresponding vars, e.g. traj_cache, obs_pool, policy_output_pool, policy.
+        Arguments:
+           - env_id (:obj:`int`): Id of the env which is to be reset.
+        """
+        self._traj_cache[env_id].clear()
+        self._obs_pool.reset(env_id)
+        self._policy_output_pool.reset(env_id)
+        self._policy.reset([env_id])
+
+    @property
+    def envstep(self) -> int:
+        return self._total_envstep_count
 
 
 class CachePool(object):

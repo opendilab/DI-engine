@@ -13,7 +13,7 @@ default_collate_err_msg_format = (
 )
 
 
-def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
+def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
@@ -52,7 +52,7 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
             numel = sum([x.numel() for x in batch])
             storage = elem.storage()._new_shared(numel)
             out = elem.new(storage)
-        if elem.shape == (1, ):
+        if elem.shape == (1, ) and cat_1dim:
             # reshape (B, 1) -> (B)
             return torch.cat(batch, 0, out=out)
             # return torch.stack(batch, 0, out=out)
@@ -64,7 +64,7 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
             # array of string classes and object
             if np_str_obj_array_pattern.search(elem.dtype.str) is not None:
                 raise TypeError(default_collate_err_msg_format.format(elem.dtype))
-            return default_collate([torch.as_tensor(b) for b in batch])
+            return default_collate([torch.as_tensor(b) for b in batch], cat_1dim=cat_1dim)
         elif elem.shape == ():  # scalars
             return torch.as_tensor(batch)
     elif isinstance(elem, float):
@@ -75,12 +75,12 @@ def default_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
     elif isinstance(elem, string_classes):
         return batch
     elif isinstance(elem, container_abcs.Mapping):
-        return {key: default_collate([d[key] for d in batch]) for key in elem}
+        return {key: default_collate([d[key] for d in batch], cat_1dim=cat_1dim) for key in elem}
     elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
-        return elem_type(*(default_collate(samples) for samples in zip(*batch)))
+        return elem_type(*(default_collate(samples, cat_1dim=cat_1dim) for samples in zip(*batch)))
     elif isinstance(elem, container_abcs.Sequence):
         transposed = zip(*batch)
-        return [default_collate(samples) for samples in transposed]
+        return [default_collate(samples, cat_1dim=cat_1dim) for samples in transposed]
 
     raise TypeError(default_collate_err_msg_format.format(elem_type))
 

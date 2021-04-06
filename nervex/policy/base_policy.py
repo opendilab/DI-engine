@@ -6,7 +6,7 @@ import torch
 from easydict import EasyDict
 
 from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank
+from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -39,7 +39,7 @@ class Policy(ABC):
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
         self._rank = get_rank() if self._use_distributed else 0
-        self._device = 'cuda:{}'.format(self._rank % 8) if self._use_cuda else 'cpu'
+        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._use_cuda else 'cpu'
         if self._use_cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()
@@ -212,7 +212,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     @abstractmethod
@@ -243,19 +243,7 @@ class Policy(ABC):
         raise NotImplementedError
 
 
-policy_mapping = {}
-
-
 def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
-    import_module(cfg.import_names)
-    if cfg.policy_type not in policy_mapping:
-        raise KeyError("not support policy type: {}".format(cfg.policy_type))
-    else:
-        return policy_mapping[cfg.policy_type](cfg, **kwargs)
-
-
-def register_policy(name: str, policy: type) -> None:
-    assert issubclass(policy, Policy)
-    assert isinstance(name, str)
-    policy_mapping[name] = policy
+    import_module(cfg.get('import_names', []))
+    return POLICY_REGISTRY.build(cfg.policy_type, cfg=cfg, **kwargs)

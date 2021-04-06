@@ -154,13 +154,14 @@ class SaveCkptHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint
         """
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
-            dirname = './ckpt{}'.format(engine.name)
+            dirname = './ckpt_{}'.format(engine.name)
             if not os.path.exists(dirname):
                 try:
                     os.mkdir(dirname)
                 except FileExistsError:
                     pass
-            path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(engine.last_iter.val))
+            ckpt_name = engine.ckpt_name if engine.ckpt_name else 'iteration_{}.pth.tar'.format(engine.last_iter.val)
+            path = os.path.join(dirname, ckpt_name)
             policy_handle = engine.policy.state_dict_handle()
             optimizer = policy_handle.get('optimizer', None)
             engine.checkpoint_manager.save(
@@ -220,18 +221,21 @@ class LogShowHook(LearnerHook):
             text_var_dict, tb_var_dict = {}, {}
             for k in engine.log_buffer['scalar']:
                 for attr in engine.monitor.get_property_attribute(k):
-                    k_attr = 'learner/' + k + '_' + attr
+                    k_attr = k + '_' + attr
                     tb_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
                     if attr != "avg":
                         text_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.print_vars(text_var_dict)
-            engine.tb_logger.print_vars(tb_var_dict, iters, 'scalar')
+            for k, v in tb_var_dict.items():
+                engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
+                engine.tb_logger.add_scalar('learner_step/' + k, v, engine._actor_envstep)
             # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger
             tb_var_dict = {}
             for k in engine.log_buffer['histogram']:
                 new_k = 'learner/' + k
                 tb_var_dict[new_k] = engine.log_buffer['histogram'][k]
-            engine.tb_logger.print_vars(tb_var_dict, iters, 'histogram')
+            for k, v in tb_var_dict.items():
+                engine.tb_logger.add_histogram(k, v, iters)
         for k in engine.log_buffer:
             engine.log_buffer[k].clear()
 

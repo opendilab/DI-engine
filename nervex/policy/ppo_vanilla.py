@@ -10,11 +10,13 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
-class PPOPolicy(CommonPolicy):
+@POLICY_REGISTRY.register('ppo_vanilla')
+class PPOVanillaPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(
@@ -66,11 +68,8 @@ class PPOPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         assert (self._unroll_len == 1)
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
         self._collect_setting_set = {'eps'}
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -153,26 +152,16 @@ class PPOPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
-        data = self._get_traj(traj_cache, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         data = self._gae(data, gamma=self._gamma, gae_lambda=self._gae_lambda)
         return data
 
-    def _get_traj(self, data: deque, traj_len: int, return_num: int = 0) -> list:
-        num = min(traj_len, len(data))  # traj_len can be inf
-        traj = [data.popleft() for _ in range(num)]
-        for i in range(min(return_num, len(data))):
-            data.appendleft(copy.deepcopy(traj[-(i + 1)]))
-        return traj
-
-    def _gae(self, data: List[Dict[str, Any]], gamma: float = 0.99, gae_lambda: float = 0.97) -> List[Dict[str, Any]]:
+    def _gae(self, data: deque, gamma: float = 0.99, gae_lambda: float = 0.97) -> List[Dict[str, Any]]:
         if data[-1]['done']:
             last_value = torch.zeros(1)
         else:
-            last_value = data[-1]['value']
-            data = data[:-1]
+            last_data = data.pop()
+            last_value = last_data['value']
         value = torch.stack([d['value'] for d in data] + [last_value])
         reward = torch.stack([d['reward'] for d in data])
         delta = reward + gamma * value[1:] - value[:-1]
@@ -199,6 +188,3 @@ class PPOPolicy(CommonPolicy):
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
-
-
-register_policy('ppo_vanilla', PPOPolicy)

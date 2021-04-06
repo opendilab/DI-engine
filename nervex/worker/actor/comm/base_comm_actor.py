@@ -4,7 +4,7 @@ from typing import Any
 from easydict import EasyDict
 
 from nervex.policy import create_policy
-from nervex.utils import get_task_uid, import_module
+from nervex.utils import get_task_uid, import_module, COMM_ACTOR_REGISTRY
 from ..base_parallel_actor import create_actor, BaseActor
 
 
@@ -116,38 +116,17 @@ class BaseCommActor(ABC):
         return actor
 
 
-comm_map = {}
-
-
-def register_comm_actor(name: str, actor_type: type) -> None:
-    """
-    Overview:
-        Register a new CommActor class with its name to dict ``comm_map``
-    Arguments:
-        - name (:obj:`str`): Name of the new CommActor
-        - actor_type (:obj:`type`): The new CommActor class, should be subclass of ``BaseCommActor``.
-    """
-    assert isinstance(name, str)
-    assert issubclass(actor_type, BaseCommActor)
-    comm_map[name] = actor_type
-
-
-def create_comm_actor(cfg: dict) -> BaseCommActor:
+def create_comm_actor(cfg: EasyDict) -> BaseCommActor:
     """
     Overview:
         Given the key(comm_actor_name), create a new comm actor instance if in comm_map's values,
         or raise an KeyError. In other words, a derived comm actor must first register,
         then can call ``create_comm_actor`` to get the instance.
     Arguments:
-        - cfg (:obj:`dict`): Actor config. Necessary keys: [import_names, comm_actor_type].
+        - cfg (:obj:`EasyDict`): Actor config. Necessary keys: [import_names, comm_actor_type].
     Returns:
         - actor (:obj:`BaseCommActor`): The created new comm actor, should be an instance of one of \
         comm_map's values.
     """
-    cfg = EasyDict(cfg)
-    import_module(cfg.import_names)
-    comm_actor_type = cfg.comm_actor_type
-    if comm_actor_type not in comm_map.keys():
-        raise KeyError("not support comm actor type: {}".format(comm_actor_type))
-    else:
-        return comm_map[comm_actor_type](cfg)
+    import_module(cfg.get('import_names', []))
+    return COMM_ACTOR_REGISTRY.build(cfg.comm_actor_type, cfg=cfg)

@@ -4,10 +4,12 @@ import numpy as np
 from collections import OrderedDict, namedtuple
 from typing import Any, Dict, Optional, Union, List
 
-from nervex.envs import BaseEnv, register_env, BaseEnvInfo, BaseEnvTimestep
+from nervex.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 
 
+@ENV_REGISTRY.register('bitflip')
 class BitFlipEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -84,6 +86,3 @@ class BitFlipEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX BitFlip Env({})".format('bitflip')
-
-
-register_env('bitflip', BitFlipEnv)

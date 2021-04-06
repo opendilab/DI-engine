@@ -28,7 +28,7 @@ halfcheetah_ddpg_default_config = dict(
             use_twin_critic=use_twin_critic,
         ),
         learn=dict(
-            train_step=2,
+            train_iteration=2,
             batch_size=128,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,
@@ -58,21 +58,20 @@ halfcheetah_ddpg_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=20000,
-            max_reuse=16,
+            replay_buffer_size=20000,
+            max_use=16,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=48,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=11000,
+        stop_value=11000,
     ),
     learner=dict(
         hook=dict(

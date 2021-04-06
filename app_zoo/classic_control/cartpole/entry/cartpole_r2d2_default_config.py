@@ -16,15 +16,14 @@ cartpole_r2d2_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='r2d2',
-        import_names=['nervex.policy.r2d2'],
         on_policy=False,
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=32,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0,
@@ -54,23 +53,17 @@ cartpole_r2d2_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=1000,
     ),
     actor=dict(
         n_sample=32,
         traj_len=14,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

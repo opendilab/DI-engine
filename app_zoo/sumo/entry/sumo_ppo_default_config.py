@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_ppo_default_config = dict(
+sumo_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.sumo.envs.sumo_env'],
@@ -10,8 +10,8 @@ cartpole_ppo_default_config = dict(
     ),
     policy=dict(
         use_cuda=False,
-        policy_type='sumo_ppo',
-        import_names=['app_zoo.sumo.policy.sumo_ppo'],
+        policy_type='md_ppo',
+        import_names=['app_zoo.common.policy.md_ppo'],
         on_policy=False,
         model=dict(
             obs_dim=380,
@@ -19,7 +19,7 @@ cartpole_ppo_default_config = dict(
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,
@@ -43,20 +43,19 @@ cartpole_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=1000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
-        traj_print_freq=100,
+        traj_len=200,  # max episode len
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=1,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',
@@ -72,5 +71,5 @@ cartpole_ppo_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_ppo_default_config = EasyDict(cartpole_ppo_default_config)
-main_config = cartpole_ppo_default_config
+sumo_ppo_default_config = EasyDict(sumo_ppo_default_config)
+main_config = sumo_ppo_default_config

@@ -1,10 +1,12 @@
 from typing import Optional
 import numpy as np
 
-from .player import ActivePlayer, HistoricalPlayer, register_player
+from nervex.utils import PLAYER_REGISTRY
+from .player import ActivePlayer, HistoricalPlayer
 from .algorithm import pfsp
 
 
+@PLAYER_REGISTRY.register('main_player')
 class MainPlayer(ActivePlayer):
     """
     Overview:
@@ -15,7 +17,7 @@ class MainPlayer(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "MainPlayer"
 
@@ -106,6 +108,7 @@ class MainPlayer(ActivePlayer):
         return None
 
 
+@PLAYER_REGISTRY.register('main_exploiter')
 class MainExploiter(ActivePlayer):
     """
     Overview:
@@ -118,7 +121,7 @@ class MainExploiter(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "MainExploiter"
 
@@ -170,6 +173,7 @@ class MainExploiter(ActivePlayer):
         return info['pretrain_checkpoint_path']
 
 
+@PLAYER_REGISTRY.register('league_exploiter')
 class LeagueExploiter(ActivePlayer):
     """
     Overview:
@@ -181,7 +185,7 @@ class LeagueExploiter(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "LeagueExploiter"
 
@@ -228,8 +232,3 @@ class LeagueExploiter(ActivePlayer):
         if p < self.mutate_prob:
             return info['pretrain_checkpoint_path']
         return None
-
-
-register_player('main_player', MainPlayer)
-register_player('main_exploiter', MainExploiter)
-register_player('league_exploiter', LeagueExploiter)

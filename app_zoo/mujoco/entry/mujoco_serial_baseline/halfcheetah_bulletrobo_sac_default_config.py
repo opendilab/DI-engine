@@ -29,7 +29,7 @@ halfcheetah_sac_default_config = dict(
             use_twin_q=True,
         ),
         learn=dict(
-            train_step=4,
+            train_iteration=4,
             batch_size=256,
             learning_rate_q=0.0003,
             learning_rate_value=0.0003,
@@ -60,20 +60,19 @@ halfcheetah_sac_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=1000000,
-            max_reuse=16,
+            max_use=16,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=64,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=11000,
+        stop_value=11000,
     ),
     learner=dict(
         hook=dict(

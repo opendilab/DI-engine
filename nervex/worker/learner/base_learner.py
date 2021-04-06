@@ -6,7 +6,7 @@ Main Function:
 """
 import os
 import time
-from typing import Any, Union, Callable, List, Dict
+from typing import Any, Union, Callable, List, Dict, Optional
 from functools import partial
 from easydict import EasyDict
 import torch
@@ -15,8 +15,8 @@ from collections import namedtuple
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module
-from nervex.utils import deep_merge_dicts, get_rank
+from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module, LEARNER_REGISTRY, \
+    deep_merge_dicts, get_rank
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -86,6 +86,7 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
         return type('SimpleTickMonitor', (TickMonitor, ), attrs)
 
 
+@LEARNER_REGISTRY.register('base')
 class BaseLearner(object):
     r"""
     Overview:
@@ -93,13 +94,13 @@ class BaseLearner(object):
     Interface:
         __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
-        learn_info, priority_info, collect_info, last_iter, name, rank, policy
+        learn_info, priority_info, last_iter, name, rank, policy
         tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
     """
 
     _name = "BaseLearner"  # override this variable for sub-class learner
 
-    def __init__(self, cfg: EasyDict) -> None:
+    def __init__(self, cfg: EasyDict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common learner components,
@@ -114,7 +115,7 @@ class BaseLearner(object):
 
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
-        self._instance_name = self._name + str(time.time())
+        self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
         self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
@@ -129,7 +130,11 @@ class BaseLearner(object):
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         self._timer = EasyTimer()
         rank0 = True if self._rank == 0 else False
-        self._logger, self._tb_logger = build_logger('./log/learner', 'learner', need_tb=rank0)
+        if tb_logger is not None:
+            self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
+            self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -137,10 +142,9 @@ class BaseLearner(object):
         }
         # Checkpoint helper. Used to save model checkpoint.
         self._checkpointer_manager = build_checkpoint_helper(self._cfg)
+        self._ckpt_name = None
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        # Collect info passed from actor. Used in serial entry for message passing.
-        self._collect_info = {}
         # Priority info. Used to update replay buffer according to data's priority.
         self._priority_info = None
         # Last iteration. Used to record current iter.
@@ -206,7 +210,7 @@ class BaseLearner(object):
         """
         add_learner_hook(self._hooks, hook)
 
-    def train(self, data: dict) -> None:
+    def train(self, data: dict, envstep: int = -1) -> None:
         """
         Overview:
             Given training data, implement network update for one iteration and update related variables.
@@ -235,8 +239,6 @@ class BaseLearner(object):
             'priority': priority,
             **data_info,
         }
-        # Add collect info
-        log_vars.update(self.collect_info)
         # Discriminate vars in scalar, scalars and histogram type
         # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
         scalars_vars, histogram_vars = {}, {}
@@ -252,6 +254,7 @@ class BaseLearner(object):
         self._log_buffer['scalars'].update(scalars_vars)
         self._log_buffer['histogram'].update(histogram_vars)
 
+        self._actor_envstep = envstep
         self.call_hook('after_iter')
         self._last_iter.add(1)
 
@@ -323,6 +326,7 @@ class BaseLearner(object):
         self._end_flag = True
         if hasattr(self, '_dataloader'):
             self._dataloader.close()
+        self._tb_logger.flush()
         self._tb_logger.close()
 
     def call_hook(self, name: str) -> None:
@@ -348,7 +352,7 @@ class BaseLearner(object):
     def debug(self, s: str) -> None:
         self._logger.debug(s)
 
-    def save_checkpoint(self) -> None:
+    def save_checkpoint(self, ckpt_name: str = None) -> None:
         """
         Overview:
             Directly call ``save_ckpt_after_run`` hook to save checkpoint.
@@ -361,10 +365,13 @@ class BaseLearner(object):
                 - ``serial_pipeline``(``entry/serial_entry.py``). Used to save checkpoint after convergence or \
                     new highes reward during evaluation.
         """
+        if ckpt_name is not None:
+            self.ckpt_name = ckpt_name
         names = [h.name for h in self._hooks['after_run']]
         assert 'save_ckpt_after_run' in names
         idx = names.index('save_ckpt_after_run')
         self._hooks['after_run'][idx](self)
+        self.ckpt_name = None
 
     @property
     def learn_info(self) -> dict:
@@ -459,31 +466,13 @@ class BaseLearner(object):
     def priority_info(self, _priority_info: dict) -> None:
         self._priority_info = _priority_info
 
-    # ##################### only serial ###########################
     @property
-    def collect_info(self) -> dict:
-        return self._collect_info
+    def ckpt_name(self) -> str:
+        return self._ckpt_name
 
-    @collect_info.setter
-    def collect_info(self, collect_info: dict) -> None:
-        self._collect_info = {k: float(v) for k, v in collect_info.items()}
-
-
-learner_mapping = {'base': BaseLearner}
-
-
-def register_learner(name: str, learner: type) -> None:
-    """
-    Overview:
-        Add a new Learner class with its name to dict learner_mapping, any subclass derived from BaseLearner must
-        use this function to register in nervex system before instantiate.
-    Arguments:
-        - name (:obj:`str`): Name of the new Learner.
-        - learner (:obj:`type`): The new Learner class, should be subclass of ``BaseLearner``.
-    """
-    assert isinstance(name, str)
-    assert issubclass(learner, BaseLearner)
-    learner_mapping[name] = learner
+    @ckpt_name.setter
+    def ckpt_name(self, _ckpt_name: str) -> None:
+        self._ckpt_name = _ckpt_name
 
 
 def create_learner(cfg: EasyDict) -> BaseLearner:
@@ -499,8 +488,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    learner_type = cfg.get('learner_type', 'base')
-    if learner_type not in learner_mapping.keys():
-        raise KeyError("not support learner type: {}".format(learner_type))
-    else:
-        return learner_mapping[learner_type](cfg)
+    return LEARNER_REGISTRY.build(cfg.get('learner_type', 'base'), cfg=cfg)

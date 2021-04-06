@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('r2d2')
 class R2D2Policy(CommonPolicy):
     r"""
     Overview:
@@ -158,9 +160,7 @@ class R2D2Policy(CommonPolicy):
         """
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_burnin_step = self._cfg.collect.algo.burnin_step
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        assert self._traj_len >= self._unroll_len
         assert self._unroll_len == self._collect_burnin_step + 2 * self._collect_nstep
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -209,19 +209,18 @@ class R2D2Policy(CommonPolicy):
         }
         return EasyDict(transition)
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -278,7 +277,3 @@ class R2D2Policy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
-
-
-# regist r2d2 policy in the policy maps
-register_policy('r2d2', R2D2Policy)

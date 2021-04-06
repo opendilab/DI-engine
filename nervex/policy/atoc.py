@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('atoc')
 class ATOCPolicy(CommonPolicy):
     r"""
     Overview:
@@ -163,7 +165,6 @@ class ATOCPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
@@ -228,9 +229,8 @@ class ATOCPolicy(CommonPolicy):
             }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len)
         if self._use_communication:
             delta_q_batch = [d['delta_q'] for d in data]
             delta_min = torch.stack(delta_q_batch).min()
@@ -286,6 +286,3 @@ class ATOCPolicy(CommonPolicy):
             'action'
         ]
         return ret
-
-
-register_policy('atoc', ATOCPolicy)

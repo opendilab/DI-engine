@@ -95,11 +95,12 @@ class HiddenStateHelper(IArmorStatefulPlugin):
 
             def wrapper(data, **kwargs):
                 state_id = kwargs.pop('data_id', None)
+                valid_id = kwargs.pop('valid_id', None)
                 data, state_info = armor._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
                 h = output.pop('next_state', None)
                 if h:
-                    armor._state_manager.after_forward(h, state_info)
+                    armor._state_manager.after_forward(h, state_info, valid_id)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -142,10 +143,14 @@ class HiddenStateHelper(IArmorStatefulPlugin):
         data['prev_state'] = list(state_info.values())
         return data, state_info
 
-    def after_forward(self, h: Any, state_info: dict) -> None:
+    def after_forward(self, h: Any, state_info: dict, valid_id: Optional[list] = None) -> None:
         assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))
         for i, idx in enumerate(state_info.keys()):
-            self._state[idx] = h[i]
+            if valid_id is None:
+                self._state[idx] = h[i]
+            else:
+                if idx in valid_id:
+                    self._state[idx] = h[i]
 
 
 def sample_action(logit=None, prob=None):

@@ -16,7 +16,7 @@ Env Manager
         4. EnvElementInfo: 空间信息template，定义observation等空间的shape、 value极大值和极小值, to_agent_processor和from_agent_processor。
         5. BaseEnvTimestep: 环境产出数据的template，作为step函数的返回值，为policy提供obs、reward、done和info信息。注意rew需要作为一个shape为(1，)的numpy数组返回。
 基类定义：
-    1. BaseEnvManager (nervex/worker/actor/env_manager/base_env_manager.py)
+    1. BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
 
         .. code:: python
 
@@ -142,7 +142,7 @@ Env Manager
 
             具体的使用可以参考测试文件 nervex/worker/actor/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
 
-    2. SubprocessEnvManager (nervex/worker/actor/env_manager/subprocess_env_manager.py)
+    2. SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
 
         .. code:: python
 
@@ -451,4 +451,4 @@ Env Manager
 
 
 .. note::
-    BaseEnvManager和SubprocessEnvManager相关插件的测试可以参见 `nervex/worker/actor/env_manager/tests/test_base_env_manager.py` 和 `nervex/worker/actor/env_manager/tests/test_subprocess_env_manager.py`。
+    BaseEnvManager和SubprocessEnvManager相关插件的测试可以参见 `nervex/envs/env_manager/tests/test_base_env_manager.py` 和 `nervex/envs/env_manager/tests/test_subprocess_env_manager.py`。

@@ -23,22 +23,21 @@ cartpole_sqn_default_config = dict(
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
         policy_type='sqn',
-        import_names=['nervex.policy.sqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 64],
             # Whether to use dueling head.
             dueling=True,
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=update_freq,
+            train_iteration=update_freq,
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
@@ -72,12 +71,7 @@ cartpole_sqn_default_config = dict(
     ),
     # You can refer to "config/buffer_manager_default_config.py" for details.
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=100000,
     ),
     actor=dict(
         # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -86,7 +80,6 @@ cartpole_sqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -94,8 +87,8 @@ cartpole_sqn_default_config = dict(
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=200,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=200,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(

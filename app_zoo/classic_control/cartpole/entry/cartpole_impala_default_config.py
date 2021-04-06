@@ -11,7 +11,6 @@ cartpole_impala_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='impala',
-        import_names=['nervex.policy.impala'],
         on_policy=False,
         model=dict(
             obs_dim=4,
@@ -19,11 +18,10 @@ cartpole_impala_default_config = dict(
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=32,
             learning_rate=0.001,
             weight_decay=0.0001,
-            init_data_count=600,
             unroll_len=64,
             algo=dict(
                 value_weight=0.5,
@@ -44,23 +42,18 @@ cartpole_impala_default_config = dict(
         command=dict(),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=2000,
+        replay_start_size=400,
     ),
     actor=dict(
         n_sample=16,
         traj_len=200,  # cartpole max episode len
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
-        eval_freq=200,
-        stop_val=195,
+        eval_freq=100,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

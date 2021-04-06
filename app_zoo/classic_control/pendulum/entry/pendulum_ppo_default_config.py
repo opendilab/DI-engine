@@ -14,8 +14,7 @@ pendulum_ppo_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='ppo_vanilla',
-        import_names=['nervex.policy.ppo_vanilla'],
-        on_policy=False,
+        on_policy=True,
         use_priority=False,
         model=dict(
             continous=True,
@@ -25,9 +24,9 @@ pendulum_ppo_default_config = dict(
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate=0.0005,
             weight_decay=0.0001,
             algo=dict(
                 value_weight=0.5,
@@ -51,23 +50,18 @@ pendulum_ppo_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=1000,
-            max_reuse=16,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=1000,
+        max_use=16,
     ),
     actor=dict(
         n_episode=16,
         traj_len=200,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
-        eval_freq=20,
-        stop_val=-250,
+        eval_freq=200,
+        stop_value=-250,
     ),
     learner=dict(
         hook=dict(

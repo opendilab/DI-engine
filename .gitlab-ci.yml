@@ -38,6 +38,8 @@ pages:
 
 test_unittest:
   stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
   variables:
     WORKERS: 8 # if you need to change to concurrency, just change here
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
@@ -47,6 +49,8 @@ test_unittest:
 
 test_algotest:
   stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
   variables:
     DURATIONS: 10 # the count of durations
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
@@ -61,6 +65,8 @@ test_algotest:
 
 test_benchmark:
   stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
   variables:
     WORKERS: 8 # if you need to change to concurrency, just change here
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
@@ -70,6 +76,11 @@ test_benchmark:
 
 test_cudatest:
   stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
+  variables:
+    KUBERNETES_RESOURCES_LIMITS_NVIDIA.COM/GPU: "8"
+    KUBERNETES_RESOURCES_REQUESTS_NVIDIA.COM/GPU: "8"
   image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
   script:
     - yum -y install gcc automake autoconf libtool libsm6 make

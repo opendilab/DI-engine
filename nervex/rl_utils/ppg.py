@@ -15,6 +15,9 @@ def ppg_joint_error(
 ) -> Tuple[namedtuple, namedtuple]:
     logit_new, logit_old, action, value_new, value_old, return_, weight = data
 
+    if weight is None:
+        weight = torch.ones_like(return_)
+
     # auxiliary_loss
     if use_value_clip:
         value_clip = value_old + (value_new - value_old).clamp(-clip_ratio, clip_ratio)

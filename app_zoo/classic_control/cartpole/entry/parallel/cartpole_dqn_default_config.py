@@ -4,7 +4,6 @@ from nervex.config import parallel_transform
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
-    import_names=['nervex.policy.dqn'],
     on_policy=False,
     model=dict(
         obs_dim=4,
@@ -78,7 +77,7 @@ __zergling_actor_default_config = dict(
         actor_episode_num=2,
         evaluator_env_num=5,
         evaluator_episode_num=1,
-        eval_stop_val=195,
+        eval_stop_value=195,
     ),
 )
 
@@ -97,11 +96,8 @@ __coordinator_default_config = dict(
         learner_cfg=__base_learner_default_config,
         actor_cfg=__zergling_actor_default_config,
         replay_buffer_cfg=dict(
-            buffer_name=['agent'], agent=dict(
-                meta_maxlen=100000,
-                max_reuse=1100,
-                min_sample_ratio=1,
-            )
+            replay_buffer_size=100000,
+            enable_track_used_data=False,
         ),
         policy=__policy_default_config,
         max_iterations=int(1e9),

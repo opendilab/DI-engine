@@ -21,11 +21,11 @@ pong_sqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=512,
+            hidden_dim_list=[128, 128, 512],
             head_kwargs=dict(dueling=True, ),
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=64,
             learning_rate_q=0.0001,
             learning_rate_alpha=0.0003,
@@ -51,20 +51,19 @@ pong_sqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=10000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=5,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=5000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

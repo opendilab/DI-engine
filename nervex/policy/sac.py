@@ -9,10 +9,12 @@ import torch.nn.functional as F
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.armor import Armor
-from nervex.policy.base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from nervex.policy.base_policy import Policy
 from nervex.policy.common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('sac')
 class SACPolicy(CommonPolicy):
     r"""
     Overview:
@@ -194,7 +196,6 @@ class SACPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Use action noise for exploration.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -299,6 +300,3 @@ class SACPolicy(CommonPolicy):
             return super()._monitor_vars_learn() + [
                 'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
             ] + q_twin
-
-
-register_policy('sac', SACPolicy)

@@ -25,7 +25,7 @@ qbert_a2c_default_config = dict(
             embedding_dim=128,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=80,
             learning_rate=0.0001,
             weight_decay=0.0,
@@ -47,21 +47,20 @@ qbert_a2c_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=10000,
-            max_reuse=1,
+            replay_buffer_size=10000,
+            max_use=1,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
         n_sample=80,
         traj_len=traj_len,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=10000,
-        stop_val=9000,
+        stop_value=9000,
     ),
     learner=dict(
         load_path='',

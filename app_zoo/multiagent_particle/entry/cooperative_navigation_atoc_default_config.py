@@ -26,7 +26,6 @@ cooperative_navigation_atoc_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='atoc',
-        import_names=['nervex.policy.atoc'],
         on_policy=False,
         use_priority=False,
         model=dict(
@@ -39,7 +38,7 @@ cooperative_navigation_atoc_default_config = dict(
             T_initiate=5,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=batch_size,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,
@@ -57,7 +56,6 @@ cooperative_navigation_atoc_default_config = dict(
                     max=0.5,
                 ),
             ),
-            init_data_count=16,
         ),
         collect=dict(
             traj_len=max_step,
@@ -67,24 +65,20 @@ cooperative_navigation_atoc_default_config = dict(
         command=dict(),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=100000,
-            max_reuse=10,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=100000,
+        replay_start_size=1000,
+        max_use=10,
     ),
     actor=dict(
         # n_episode=4,
         n_sample=500,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=4,
     ),
     evaluator=dict(
         n_episode=10,
         eval_freq=2000,
-        stop_val=0,  # We don't have a stop_val yet. The stop_val here is unreachable.
+        stop_value=0,  # We don't have a stop_value yet. The stop_value here is unreachable.
     ),
     learner=dict(
         hook=dict(

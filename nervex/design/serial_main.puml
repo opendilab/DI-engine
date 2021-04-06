@@ -24,7 +24,7 @@ loop
   commander -> commander: step
   alt this iteration needs evaluation
     evaluator -> evaluator: eval_performance
-    alt reach eval stop_val
+    alt reach eval stop_value
       learner -> learner: save checkpoint and exit
     else eval_reward is new highest
       learner -> learner: save checkpoint
@@ -34,7 +34,7 @@ loop
     actor -> actor: generate data (steps or episodes)
     actor -> replay_buffer: push_data
   end
-  loop learner_train_step times
+  loop learner_train_iteration times
     replay_buffer -> learner: sample_data
     learner -> learner: train
     alt replay replay_buffer use prioritization

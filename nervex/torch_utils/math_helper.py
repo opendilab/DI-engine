@@ -10,6 +10,8 @@ def cov(
         aweights: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     """Estimates covariance matrix like numpy.cov"""
+    if x.dim() == 1 and rowvar:
+        raise NotImplementedError
     # ensure at least 2D
     if x.dim() == 1:
         x = x.view(-1, 1)
@@ -38,8 +40,8 @@ def cov(
         fact = x.shape[0] - ddof
     elif ddof == 0:
         fact = w_sum
-    elif aweights is None:
-        fact = w_sum - ddof
+    # elif aweights is None:
+    #     fact = w_sum - ddof
     else:
         fact = w_sum - ddof * torch.sum(w * w) / w_sum
 

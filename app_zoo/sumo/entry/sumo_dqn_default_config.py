@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 nstep = 1
 traj_len = 1
-cartpole_dqn_default_config = dict(
+sumo_dqn_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
@@ -17,8 +17,8 @@ cartpole_dqn_default_config = dict(
         # Whether to use cuda for network.
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
-        policy_type='sumo_dqn',
-        import_names=['app_zoo.sumo.policy.sumo_dqn'],
+        policy_type='md_dqn',
+        import_names=['app_zoo.common.policy.md_dqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
@@ -31,9 +31,9 @@ cartpole_dqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             # L2 norm weight for network parameters.
@@ -72,7 +72,7 @@ cartpole_dqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
@@ -83,7 +83,6 @@ cartpole_dqn_default_config = dict(
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -91,8 +90,8 @@ cartpole_dqn_default_config = dict(
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
         eval_freq=10,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=195,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=195,
     ),
     # You can refer to "config/serial.py" for details.
     learner=dict(
@@ -116,5 +115,5 @@ cartpole_dqn_default_config = dict(
     ),
     commander=dict(),
 )
-cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
-main_config = cartpole_dqn_default_config
+sumo_dqn_default_config = EasyDict(sumo_dqn_default_config)
+main_config = sumo_dqn_default_config

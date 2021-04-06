@@ -9,14 +9,14 @@ import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.envs import get_vec_env_setting
+from nervex.envs import get_vec_env_setting, AsyncSubprocessEnvManager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print
-from .env_manager import SubprocessEnvManager, BaseEnvManager
-from .base_parallel_actor import BaseActor, register_actor
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
+from .base_parallel_actor import BaseActor
 from .base_serial_actor import CachePool
 
 
+@ACTOR_REGISTRY.register('zergling')
 class ZerglingActor(BaseActor):
     """
     Feature:
@@ -52,14 +52,15 @@ class ZerglingActor(BaseActor):
 
     def _setup_env_manager(self) -> BaseEnvManager:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        manager_cfg = self._env_kwargs.get('manager', {})
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num
         else:
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
-        env_manager = SubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
+        env_manager = AsyncSubprocessEnvManager(
+            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num, manager_cfg=manager_cfg
         )
         env_manager.launch()
         self._predefined_episode_count = episode_num * len(env_cfg)
@@ -97,6 +98,7 @@ class ZerglingActor(BaseActor):
 
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
+        send_data_time = []
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
                 # if there is a abnormal timestep, reset all the related variable, also this env has been reset
@@ -118,9 +120,11 @@ class ZerglingActor(BaseActor):
                 for s in train_sample:
                     s = self._compressor(s)
                     self._total_sample += 1
-                    metadata = self._get_metadata(s, env_id)
-                    self.send_stepdata(metadata['data_id'], s)
-                    self.send_metadata(metadata)
+                    with self._timer:
+                        metadata = self._get_metadata(s, env_id)
+                        self.send_stepdata(metadata['data_id'], s)
+                        self.send_metadata(metadata)
+                    send_data_time.append(self._timer.value)
             if t.done:
                 # env reset is done by env_manager automatically
                 self._traj_cache[env_id].clear()
@@ -136,6 +140,12 @@ class ZerglingActor(BaseActor):
                         env_id, reward, len(self._episode_result[env_id])
                     )
                 )
+        self.debug(
+            "send {} train sample with average time: {:.6f}".format(
+                len(send_data_time),
+                sum(send_data_time) / (1e-6 + len(send_data_time))
+            )
+        )
         dones = [t.done for t in timestep.values()]
         if any(dones):
             actor_info = self._get_actor_info()
@@ -229,6 +239,3 @@ class ZerglingActor(BaseActor):
 
     def __repr__(self) -> str:
         return "ZerglingActor"
-
-
-register_actor('zergling', ZerglingActor)

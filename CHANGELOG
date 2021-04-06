@@ -1,3 +1,31 @@
+2021.4.6(v0.1.1rc1)
+ - gfootball IL Policy
+ - polish SQN
+ - Atari Multi-Discrete Env
+ - PPO/Rainbow 支持Multi-Discrete Env
+ - 分离requirements，支持按需安装相关的库
+ - 更新使用自建gitlab CI runner
+ - 添加dist entry(local/slurm)
+ - 添加注册器(registry)机制
+ - 添加replay buffer的保存和加载机制
+ - 添加subprocess env manager reset超时重启机制
+ - 添加sync subprocess env manager并设为默认选择
+ - 添加新的replay buffer数据删除机制
+ - 添加共用tensorboard，四个主模块可只使用一个tb
+ - 添加env step作为tb横轴
+ - 添加计算grad norm的相关函数
+ - 在policy中删除traj_len字段
+ - 修改train_step为train_iteration字段
+ - 修改stop_val为stop_value字段
+ - 修复rainbow取log数值稳定性和分布计算的问题
+ - 修复命令行工具无法设计stdout缓冲区大小的问题
+ - 移到env manager到env文件夹下
+ - 重构replay buffer配置文件字段
+ - 重构actor部分log显示机制
+ - 修改replay buffer中部分变量命名
+ - 添加exploration算法相关文档
+ - 增加若干文档和单元测试
+
 2021.3.12(v0.1.1rc0)
  - League Demo
  - Inverse RL Pipeline

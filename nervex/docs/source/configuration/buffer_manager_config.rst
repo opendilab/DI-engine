@@ -11,9 +11,9 @@ Buffer Manager Config
             # Buffer1 is called "agent". You can regard this as a most general and frequently used buffer config.
             agent=dict(
                 # Max length of the buffer.
-                meta_maxlen=4096,
-                # Max reuse times of one data in the buffer. Data will be removed once reused for too many times.
-                max_reuse=16,
+                replay_buffer_size=4096,
+                # Max use times of one data in the buffer. Data will be removed once used for too many times.
+                max_use=16,
                 # Max staleness time duration of one data in the buffer; Data will be removed if
                 # the duration from collecting to training is too long, i.e. The data is too stale.
                 max_staleness=10000,
@@ -44,8 +44,8 @@ Buffer Manager Config
             # Buffer2 is called "demo". It is a demonstration buffer proposed in R2D3. It shares many common things with
             # common "agent" buffer except loading expert data at the beginning. That's why it has a "load_path" key.
             demo=dict(
-                meta_maxlen=4096,
-                max_reuse=16,
+                replay_buffer_size=4096,
+                max_use=16,
                 max_staleness=10000,
                 min_sample_ratio=1.5,
                 alpha=0.6,

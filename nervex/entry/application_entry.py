@@ -2,11 +2,10 @@ from typing import Union, Optional, List, Any
 import pickle
 import torch
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
-from nervex.worker import BaseEnvManager, SubprocessEnvManager
+from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device
 from .utils import set_pkg_seed
 
@@ -18,7 +17,7 @@ def eval(
         policy_type: Optional[type] = None,  # subclass of Policy
         model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
         state_dict: Optional[dict] = None,  # policy or model state_dict
-) -> None:
+) -> float:
     r"""
     Overview:
         Pure evaluation entry.
@@ -38,9 +37,10 @@ def eval(
         env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
-    evaluator_env = env_manager_type(
-        env_fn,
+    em_type = cfg.env.env_manager_type
+    evaluator_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
         env_cfg=evaluator_env_cfg,
         env_num=len(evaluator_env_cfg),
         manager_cfg=manager_cfg,
@@ -50,6 +50,8 @@ def eval(
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
     # Random seed.
+    if not seed:
+        seed = cfg.get('seed', 0)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
@@ -63,9 +65,11 @@ def eval(
     evaluator.env = evaluator_env
     evaluator.policy = policy.eval_mode
     # Evaluate
-    _, eval_reward = evaluator.eval(0)
+    _, eval_reward = evaluator.eval()
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     evaluator.close()
+
+    return eval_reward
 
 
 def collect_demo_data(
@@ -94,21 +98,18 @@ def collect_demo_data(
     if isinstance(cfg, str):
         cfg = read_config(cfg)
     # Env init.
-    manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
         env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env)
     else:
         env_fn, actor_env_cfg, _ = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
-    actor_env = env_manager_type(
-        env_fn,
+    manager_cfg = cfg.env.get('manager', {})
+    actor_env = create_env_manager(
+        cfg.env.env_manager_type,
+        env_fn=env_fn,
         env_cfg=actor_env_cfg,
         env_num=len(actor_env_cfg),
-        manager_cfg=manager_cfg,
+        manager_cfg=manager_cfg
     )
-    if actor_env_cfg[0].get('replay_path', None):
-        actor_env.enable_save_replay([c['replay_path'] for c in actor_env_cfg])
-        assert cfg.env.env_manager_type == 'base'
     # Random seed.
     actor_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
@@ -123,7 +124,7 @@ def collect_demo_data(
     actor.env = actor_env
     actor.policy = policy.collect_mode
     # let's collect some expert demostrations
-    exp_data, _ = actor.generate_data(n_sample=collect_count, iter_count=-1)
+    exp_data = actor.generate_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:

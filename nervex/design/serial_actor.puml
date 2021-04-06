@@ -40,7 +40,7 @@ repeat
 repeat while (generated traj data is not enough?)
 |actor|
 :actor log statistics;
-:actor return collect_data and collect_info;
+:actor return collect_data;
 stop
 
 @enduml

@@ -8,10 +8,12 @@ from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, A
 from nervex.model import QMix
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('qmix')
 class QMIXPolicy(CommonPolicy):
     r"""
     Overview:
@@ -129,9 +131,6 @@ class QMIXPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == "inf":
-            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -237,20 +236,16 @@ class QMIXPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory from the adder.
         Arguments:
-            - traj (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qmix', ['nervex.model.qmix.qmix']
-
-
-register_policy('qmix', QMIXPolicy)

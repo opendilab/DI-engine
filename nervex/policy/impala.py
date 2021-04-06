@@ -9,10 +9,12 @@ from nervex.torch_utils import Adam, RMSprop
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('impala')
 class IMPALAPolicy(CommonPolicy):
     r"""
     Overview:
@@ -150,12 +152,7 @@ class IMPALAPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # v_trace need v_t+1
-        assert self._traj_len > 1, "IMPALA traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
@@ -234,6 +231,3 @@ class IMPALAPolicy(CommonPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
-
-
-register_policy('impala', IMPALAPolicy)

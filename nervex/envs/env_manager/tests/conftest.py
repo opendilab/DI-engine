@@ -10,7 +10,6 @@ from functools import partial
 from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.worker.actor.env_manager.subprocess_env_manager import SubprocessEnvManager, SyncSubprocessEnvManager
 
 
 class EnvException(Exception):
@@ -25,20 +24,26 @@ def setup_exception():
 class FakeEnv(object):
 
     def __init__(self, cfg):
-        self._target_step = random.randint(4, 8) * 2
+        self._target_step = random.randint(3, 6) * 2
         self._current_step = 0
         self._name = cfg['name']
         self._stat = None
         self._seed = 0
         self._data_count = 0
+        self.timeout_flag = False
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
             raise EnvException("reset error: {}".format(stat))
+        if isinstance(stat, str) and stat == "timeout":
+            if self.timeout_flag:  # after step(), the reset can hall with status of timeout
+                time.sleep(5)
+
         self._current_step = 0
         self._stat = stat
 
     def step(self, action):
+        self.timeout_flag = True  # after one step, enable timeout flag
         if isinstance(action, str) and action == 'error':
             raise EnvException("env error, current step {}".format(self._current_step))
         if isinstance(action, str) and action == 'catched_error':
@@ -46,7 +51,7 @@ class FakeEnv(object):
         obs = to_ndarray(torch.randn(3))
         reward = to_ndarray(torch.randint(0, 2, size=[1]).numpy())
         done = self._current_step >= self._target_step
-        simulation_time = random.uniform(0.5, 1.5)
+        simulation_time = random.uniform(1.0, 1.5)
         info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_step, 'cur': self._current_step}
         time.sleep(simulation_time)
         self._current_step += simulation_time
@@ -90,7 +95,7 @@ class FakeAsyncEnv(FakeEnv):
 
     def reset(self, stat):
         super().reset(stat)
-        time.sleep(random.randint(2, 4))
+        time.sleep(random.randint(1, 3))
         return to_ndarray(torch.randn(3))
 
 
@@ -111,12 +116,10 @@ def setup_model_type():
     return FakeModel
 
 
-def get_manager_cfg(shared_memory: bool):
-    env_num = 4
+def get_manager_cfg(env_num=4):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
-            'shared_memory': shared_memory
         } for i in range(env_num)],
         'env_num': env_num,
         'episode_num': 2,
@@ -129,14 +132,15 @@ def pytest_generate_tests(metafunc):
         manager_cfgs = []
         # for b in [True, False]:
         for b in [False]:
-            manager_cfg = get_manager_cfg(b)
+            manager_cfg = get_manager_cfg()
             manager_cfg['env_fn'] = FakeAsyncEnv
+            manager_cfg['manager_cfg'] = {"shared_memory": b, 'reset_timeout': 4}
             manager_cfgs.append(manager_cfg)
         metafunc.parametrize("setup_async_manager_cfg", manager_cfgs)
 
 
 @pytest.fixture(scope='class')
 def setup_sync_manager_cfg():
-    manager_cfg = get_manager_cfg(False)
+    manager_cfg = get_manager_cfg(4)
     manager_cfg['env_fn'] = FakeEnv
     return manager_cfg

@@ -5,11 +5,12 @@ from collections import defaultdict
 from functools import partial
 
 from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger
+from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from nervex.league import create_league
 from .base_parallel_commander import register_parallel_commander, BaseCommander
 
 
+@COMMANDER_REGISTRY.register('one_vs_one')
 class OneVsOneCommander(BaseCommander):
     r"""
     Overview:
@@ -42,16 +43,6 @@ class OneVsOneCommander(BaseCommander):
         self._last_eval_time = 0
         self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        for tb_var in [
-                'episode_count',
-                'step_count',
-                'avg_step_per_episode',
-                'avg_time_per_step',
-                'avg_time_per_episode',
-                'reward_mean',
-                'reward_std',
-        ]:
-            self._tb_logger.register_var('evaluator/' + tb_var)
         self._eval_step = -1
         self._end_flag = False
 
@@ -197,15 +188,15 @@ class OneVsOneCommander(BaseCommander):
             self._logger.info(
                 "[EVALUATOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
-            tb_vars = [
-                ['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'game_result']
-            ]
-            self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
-            eval_stop_val = self._cfg.actor_cfg.env_kwargs.eval_stop_val
-            if eval_stop_val is not None and finished_task['reward_mean'] >= eval_stop_val and is_hardest:
+            for k, v in info.items():
+                if k in ['train_iter', 'game_result']:
+                    continue
+                self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
+            eval_stop_value = self._cfg.actor_cfg.env_kwargs.eval_stop_value
+            if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
-                    "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_val: {}".
-                    format(finished_task['reward_mean'], eval_stop_val) + ", so the total training program is over."
+                    "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
+                    format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True
                 return True
@@ -258,15 +249,15 @@ class OneVsOneCommander(BaseCommander):
         self._learner_info.append(info)
         player_update_info = {
             'player_id': self._active_player.player_id,
-            'train_step': info['learner_step'],
+            'train_iteration': info['learner_step'],
         }
         self._league.update_active_player(player_update_info)
-        self._logger.info("[LEARNER] Update info at step {}".format(player_update_info['train_step']))
+        self._logger.info("[LEARNER] Update info at step {}".format(player_update_info['train_iteration']))
         snapshot = self._league.judge_snapshot(self._active_player.player_id)  # todo sequence of ckpt and snapshot
         if snapshot:
             self._logger.info(
                 "[LEAGUE] Player {} snapshot at step {}".format(
-                    player_update_info['player_id'], player_update_info['train_step']
+                    player_update_info['player_id'], player_update_info['train_iteration']
                 )
             )
 
@@ -292,6 +283,3 @@ class OneVsOneCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
-
-
-register_parallel_commander('one_vs_one', OneVsOneCommander)

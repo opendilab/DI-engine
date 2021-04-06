@@ -13,7 +13,6 @@ cartpole_ppo_default_loader = dict_(
     policy=item('policy') >> dict_(
         use_cuda=item('use_cuda') >> is_type(bool),
         policy_type=item('policy_type') >> is_type(str),
-        import_names=item('import_names') >> collection(str),
         on_policy=item('on_policy') >> is_type(bool),
         model=item('model') >> dict_(
             obs_dim=item('obs_dim') >> (is_type(int) | collection(int)),
@@ -21,7 +20,7 @@ cartpole_ppo_default_loader = dict_(
             embedding_dim=item('embedding_dim') >> (is_type(int) | collection(int)),
         ),
         learn=item('learn') >> dict_(
-            train_step=item('train_step') >> is_type(int),
+            train_iteration=item('train_iteration') >> is_type(int),
             batch_size=item('batch_size') >> (is_type(int) & interval(1, 128)),
             learning_rate=item('learning_rate') >> interval(0.00001, 0.01),
             weight_decay=item('weight_decay') >> interval(0.0, 0.001),
@@ -42,24 +41,18 @@ cartpole_ppo_default_loader = dict_(
         command=item('command') >> dict_()
     ),
     replay_buffer=item('replay_buffer') >> dict_(
-        buffer_name=item('buffer_name') >> collection(str),
-        agent=item('agent') >> dict_(
-            meta_maxlen=item('meta_maxlen') >> is_type(int) >> interval(1, math.inf),
-            max_reuse=item('max_reuse') >> is_type(int) >> interval(1, math.inf),
-            min_sample_ratio=item('min_sample_ratio') >> interval(1.0, math.inf)
-        ),
+        replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
     ),
     actor=item('actor') >> dict_(
         n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
         traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200))),
-        traj_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
-        collect_print_freq=item('traj_print_freq') >> is_type(int) >> interval(1, 1000),
+        collect_print_freq=item('collect_print_freq') >> is_type(int) >> interval(1, 1000),
     ),
     evaluator=item('evaluator') >> dict_(
         n_episode=item('n_episode') >> is_type(int) >> interval(2, 10),
         eval_freq=item('eval_freq') >> is_type(int) >> interval(1, 500),
         #
-        stop_val=item('stop_val') >> is_type(int),
+        stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
     commander=item('commander') | raw({}),
@@ -67,13 +60,10 @@ cartpole_ppo_default_loader = dict_(
 policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
 policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
 actor_traj_len = item('actor') >> item('traj_len')
-actor_traj_freq = item('actor') >> item('traj_print_freq')
-collect_traj_freq = item('actor') >> item('collect_print_freq')
 relation_loader = check_only(
     dict_(
         unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
         traj_len_check=mcmp(policy_traj_len, ">=", actor_traj_len),
-        freq_print_check=mcmp(actor_traj_freq, "==", collect_traj_freq)
     )
 )
 

@@ -5,14 +5,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-from nervex.utils import squeeze
+from nervex.utils import POLICY_REGISTRY, squeeze
 from nervex.data import default_collate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
@@ -37,6 +37,7 @@ def create_shuffled_dataloader(data, batch_size):
     return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
+@POLICY_REGISTRY.register('ppg')
 class PPGPolicy(CommonPolicy):
     r"""
     Overview:
@@ -68,7 +69,7 @@ class PPGPolicy(CommonPolicy):
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
-        self._train_step = 0
+        self._train_iteration = 0
         self._aux_memories = []
         self._beta_weight = algo_cfg.beta_weight
 
@@ -142,8 +143,8 @@ class PPGPolicy(CommonPolicy):
         data['return_'] = return_.data
         self._aux_memories.append(copy.deepcopy(data))
 
-        self._train_step += 1
-        if self._train_step % self._cfg.learn.algo.aux_freq == 0:
+        self._train_iteration += 1
+        if self._train_iteration % self._cfg.learn.algo.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
                 'policy_cur_lr': self._optimizer_policy.defaults['lr'],
@@ -174,14 +175,9 @@ class PPGPolicy(CommonPolicy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # GAE calculation needs v_t+1
-        assert self._traj_len > 1, "ppg traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         # TODO continuous action space exploration
         self._collect_armor.add_plugin('main', 'multinomial_sample')
@@ -229,19 +225,16 @@ class PPGPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
@@ -385,6 +378,3 @@ class PPGPolicy(CommonPolicy):
         self._aux_memories = []
 
         return auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i
-
-
-register_policy('ppg', PPGPolicy)

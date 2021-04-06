@@ -12,10 +12,6 @@ BaseCommActor
 .. autoclass:: nervex.worker.actor.comm.base_comm_actor.BaseCommActor
     :members: __init__, get_policy_update_info, send_metadata, send_stepdata, start, close, _create_actor
 
-register_comm_actor
-~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.worker.actor.comm.base_comm_actor.register_comm_actor
-
 create_comm_actor
 ~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.worker.actor.comm.base_comm_actor.create_comm_actor

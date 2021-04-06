@@ -6,6 +6,7 @@ from typing import NoReturn, Union
 import torch
 from pathlib import Path
 import io
+import time
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 from .lock_helper import get_rw_lock
@@ -16,7 +17,7 @@ r = None
 rc = None
 
 ceph = try_import_ceph()
-#mc = try_import_mc()
+# mc = try_import_mc()
 mc = None
 redis = try_import_redis()
 rediscluster = try_import_rediscluster()
@@ -31,8 +32,7 @@ def read_from_ceph(path: str) -> object:
     Returns:
         - (:obj`data`): deserialized data
     """
-    s3client = ceph.S3Client()
-    value = s3client.Get(path)
+    value = ceph.Get(path)
     if not value:
         raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
 
@@ -118,16 +118,21 @@ def read_from_mc(path: str, flush=False) -> object:
     """
     global mclient
     _ensure_memcached()
-    value = mc.pyvector()
-    if flush:
-        mclient.Get(path, value, mc.MC_READ_THROUGH)
-    else:
-        mclient.Get(path, value)
-    value_buf = mc.ConvertBuffer(value)
-    value_str = io.BytesIO(value_buf)
-    value_str = torch.load(value_str)
-
-    return value_str
+    while True:
+        try:
+            value = mc.pyvector()
+            if flush:
+                mclient.Get(path, value, mc.MC_READ_THROUGH)
+                return
+            else:
+                mclient.Get(path, value)
+            value_buf = mc.ConvertBuffer(value)
+            value_str = io.BytesIO(value_buf)
+            value_str = torch.load(value_str, map_location='cpu')
+            return value_str
+        except:
+            print('read mc failed, retry...')
+            time.sleep(0.01)
 
 
 def read_from_path(path: str):
@@ -161,8 +166,12 @@ def save_file_ceph(path, data):
     save_path = os.path.dirname(path)
     file_name = os.path.basename(path)
     if ceph is not None:
-        s3client = ceph.S3Client()
-        s3client.save_from_string(save_path, file_name, data)
+        if hasattr(ceph, 'save_from_string'):
+            ceph.save_from_string(save_path, file_name, data)
+        elif hasattr(ceph, 'put'):
+            ceph.put(os.path.join(save_path, file_name), data)
+        else:
+            raise RuntimeError('ceph can not save file, check your ceph installation')
     else:
         import logging
         size = len(data)
