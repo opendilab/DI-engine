@@ -14,7 +14,21 @@ ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
 ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
 
-@hpc_wrapper(shape_fn=lambda args: args[0].logit_new.shape, namedtuple_data=True)
+def shape_fn_ppo(args, kwargs):
+    r"""
+    Overview:
+        Return shape of ppo for hpc
+    Returns:
+        shape: [B, N]
+    """
+    if len(args) <= 0:
+        tmp = kwargs['data'].logit_new.shape
+    else:
+        tmp = args[0].logit_new.shape
+    return tmp
+
+
+@hpc_wrapper(shape_fn=shape_fn_ppo, namedtuple_data=True, include_args=[0,1,2,3], include_kwargs=['data', 'clip_ratio', 'use_value_clip', 'dual_clip'])
 def ppo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,

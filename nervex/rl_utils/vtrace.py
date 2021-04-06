@@ -24,7 +24,21 @@ vtrace_data = namedtuple('vtrace_data', ['target_output', 'behaviour_output', 'a
 vtrace_loss = namedtuple('vtrace_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 
 
-@hpc_wrapper(shape_fn=lambda args: args[0].target_output.shape, namedtuple_data=True)
+def shape_fn_vtrace(args, kwargs):
+    r"""
+    Overview:
+        Return shape of vtrace for hpc
+    Returns:
+        shape: [T, B, N]
+    """
+    if len(args) <= 0:
+        tmp = kwargs['data'].target_output.shape
+    else:
+        tmp = args[0].target_output.shape
+    return tmp
+
+
+@hpc_wrapper(shape_fn=shape_fn_vtrace, namedtuple_data=True, include_args=[0,1,2,3,4,5], include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio'])
 def vtrace_error(
     data: namedtuple,
     gamma: float = 0.99,

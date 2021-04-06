@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 
 from nervex.torch_utils.network.normalization import build_normalization
+from hpc_rl.network.rnn import HPCLSTM
 
 
 def is_sequence(data):
@@ -256,7 +257,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
             return next_state
 
 
-def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', dropout=0.):
+def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', dropout=0., seq_len=None, batch_size=None):
     r"""
     Overview:
         build and return the corresponding LSTM cell
@@ -270,8 +271,11 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', d
     Returns:
         - lstm (:obj:`LSTM` or :obj:`PytorchLSTM`): the corresponding lstm cell
     """
-    assert lstm_type in ['normal', 'pytorch']
+    assert lstm_type in ['normal', 'pytorch', 'hpc']
     if lstm_type == 'normal':
         return LSTM(input_size, hidden_size, num_layers, norm_type, dropout=dropout)
     elif lstm_type == 'pytorch':
         return PytorchLSTM(input_size, hidden_size, num_layers, dropout=dropout)
+    elif lstm_type == 'hpc':
+        return HPCLSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout).cuda()
+

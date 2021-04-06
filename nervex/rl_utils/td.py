@@ -93,19 +93,23 @@ dist_nstep_td_data = namedtuple(
 )
 
 
-def shape_fn_dntd(args):
+def shape_fn_dntd(args, kwargs):
     r"""
     Overview:
         Return dntd shape for hpc
     Returns:
         shape: [T, B, N, n_atom]
     """
-    tmp = [args[0].reward.shape[0]]
-    tmp.extend(args[0].dist.shape)
+    if len(args) <= 0:
+        tmp = [kwargs['data'].reward.shape[0]]
+        tmp.extend(list(kwargs['data'].dist.shape))
+    else:
+        tmp = [args[0].reward.shape[0]]
+        tmp.extend(list(args[0].dist.shape))
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=4, include_kwargs=['data', 'gamma', 'v_min', 'v_max'])
+@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=[0,1,2,3], include_kwargs=['data', 'gamma', 'v_min', 'v_max'])
 def dist_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -200,19 +204,23 @@ q_nstep_td_data = namedtuple(
 )
 
 
-def shape_fn_qntd(args):
+def shape_fn_qntd(args, kwargs):
     r"""
     Overview:
-        Return dntd shape for hpc
+        Return qntd shape for hpc
     Returns:
         shape: [T, B, N]
     """
-    tmp = [args[0].reward.shape[0]]
-    tmp.extend(args[0].q.shape)
+    if len(args) <= 0:
+        tmp = [kwargs['data'].reward.shape[0]]
+        tmp.extend(list(kwargs['data'].q.shape))
+    else:
+        tmp = [args[0].reward.shape[0]]
+        tmp.extend(list(args[0].q.shape))
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=2, include_kwargs=['data', 'gamma'])
+@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0,1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -255,19 +263,23 @@ def q_nstep_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
-def shape_fn_qntd_rescale(args):
+def shape_fn_qntd_rescale(args, kwargs):
     r"""
     Overview:
         Return qntd_rescale shape for hpc
     Returns:
         shape: [T, B, N]
     """
-    tmp = [args[0].reward.shape[0]]
-    tmp.extend(args[0].q.shape)
+    if len(args) <= 0:
+        tmp = [kwargs['data'].reward.shape[0]]
+        tmp.extend(list(kwargs['data'].q.shape))
+    else:
+        tmp = [args[0].reward.shape[0]]
+        tmp.extend(list(args[0].q.shape))
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=2, include_kwargs=['data', 'gamma'])
+@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0,1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
@@ -410,7 +422,21 @@ def iqn_nstep_td_error(
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])
 
 
-@hpc_wrapper(shape_fn=lambda args: args[0].reward.shape, namedtuple_data=True)
+def shape_fn_td_lambda(args, kwargs):
+    r"""
+    Overview:
+        Return td_lambda shape for hpc
+    Returns:
+        shape: [T, B]
+    """
+    if len(args) <= 0:
+        tmp = kwargs['data'].reward.shape[0]
+    else:
+        tmp = args[0].reward.shape
+    return tmp
+
+
+@hpc_wrapper(shape_fn=shape_fn_td_lambda, namedtuple_data=True, include_args=[0,1,2], include_kwargs=['data', 'gamma', 'lambda_'])
 def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) -> torch.Tensor:
     """
     Overview:

@@ -1,4 +1,5 @@
 import importlib
+import warnings
 from functools import wraps
 import nervex
 
@@ -25,36 +26,51 @@ def register_runtime_fn(fn_name, runtime_name, shape):
     return hpc_fn
 
 
-def hpc_wrapper(shape_fn=None, namedtuple_data=False, include_args=None, include_kwargs=[]):
+def hpc_wrapper(shape_fn=None, namedtuple_data=False, include_args=[], include_kwargs=[], is_cls_method=False):
 
     def decorate(fn):
 
         @wraps(fn)
         def wrapper(*args, **kwargs):
             if nervex.enable_hpc_rl:
-                shape = shape_fn(args)
-                runtime_name = '_'.join([fn.__name__] + [str(s) for s in shape])
+                shape = shape_fn(args, kwargs)
+                if is_cls_method:
+                    runtime_name = '_'.join([args[0].__class__.__name__] + [str(s) for s in shape])
+                else:
+                    runtime_name = '_'.join([fn.__name__] + [str(s) for s in shape])
                 if runtime_name not in hpc_fns:
                     # TODO(nyz) buffer release
-                    hpc_fn = register_runtime_fn(fn.__name__, runtime_name, shape)
+                    if is_cls_method:
+                        hpc_fn = register_runtime_fn(args[0].__class__.__name__, runtime_name, shape)
+                    else:
+                        hpc_fn = register_runtime_fn(fn.__name__, runtime_name, shape)
                 else:
                     hpc_fn = hpc_fns[runtime_name]
-                if include_args is None:
-                    end = len(args)
-                else:
-                    end = include_args
+                if is_cls_method:
+                    args = args[1:]
+                clean_args = []
+                for i in include_args:
+                    if i < len(args):
+                        clean_args.append(args[i])
+                nouse_args = list(set(list(range(len(args)))).difference(set(include_args)))
                 clean_kwargs = {}
                 for k, v in kwargs.items():
                     if k in include_kwargs:
+                        if k == 'lambda_':
+                            k = 'lambda'
                         clean_kwargs[k] = v
+                nouse_kwargs = list(set(kwargs.keys()).difference(set(include_kwargs)))
+                if len(nouse_args) > 0 or len(nouse_kwargs) > 0:
+                    warnings.warn('in {}, index {} of args are dropped, and keys {} of kwargs are dropped.'.format(runtime_name, nouse_args, nouse_kwargs), UserWarning)
                 if namedtuple_data:
                     data = args[0]  # args[0] is a namedtuple
-                    return hpc_fn(*data, *args[1:end], **clean_kwargs)
+                    return hpc_fn(*data, *clean_args[1:], **clean_kwargs)
                 else:
-                    return hpc_fn(*args, **clean_kwargs)
+                    return hpc_fn(*clean_args, **clean_kwargs)
             else:
                 return fn(*args, **kwargs)
 
         return wrapper
 
     return decorate
+
