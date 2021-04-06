@@ -5,7 +5,7 @@ from app_zoo.classic_control.cartpole.entry.parallel.cartpole_dqn_default_config
 
 
 @pytest.mark.unittest
-@pytest.mark.execution_timeout(90.0, method='thread')
+@pytest.mark.execution_timeout(120.0, method='thread')
 def test_dqn():
     config = deepcopy(main_config)
     config.coordinator.commander.actor_cfg.env_kwargs.eval_stop_value = 15
