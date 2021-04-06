@@ -23,17 +23,20 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
             td_data = q_nstep_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
                 q_value, target_q_value, data['action'][0], next_act, reward, data['done'], data['weight']
             )
-            loss = q_nstep_td_error(td_data, self._gamma)
+            loss, td_error_per_sample = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
         else:
             tl_num = len(q_value)
-            loss = []
+            loss, td_error_per_sample = [], []
             for i in range(tl_num):
                 td_data = q_nstep_td_data(
                     q_value[i], target_q_value[i], data['action'][i], next_act[i], reward, data['done'],
                     data['weight']
                 )
-                loss.append(q_nstep_td_error(td_data, self._gamma))
+                loss_, td_error_per_sample_ = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
+                loss.append(loss_)
+                td_error_per_sample.append(td_error_per_sample_.abs())
             loss = sum(loss) / (len(loss) + 1e-8)
+            td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
@@ -41,4 +44,5 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
         }
