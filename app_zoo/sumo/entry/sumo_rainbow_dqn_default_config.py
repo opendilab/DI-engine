@@ -26,9 +26,9 @@ sumo_rainbow_dqn_default_config = dict(
         model=dict(obs_dim=380, action_dim=[2, 2, 3], hidden_dim_list=[128, 128, 64], v_max=10, v_min=-10, n_atom=51),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             # L2 norm weight for network parameters.

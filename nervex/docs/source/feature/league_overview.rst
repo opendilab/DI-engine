@@ -369,7 +369,7 @@ League
                         Update an active player's info.
                     Arguments:
                         - player_info (:obj:`dict`): Info dict of the player which is to be updated, \
-                            at least includs ['player_id', 'train_step']
+                            at least includs ['player_id', 'train_iteration']
                     """
                     # ...
 

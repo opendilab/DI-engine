@@ -31,9 +31,9 @@ sumo_dqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             # L2 norm weight for network parameters.

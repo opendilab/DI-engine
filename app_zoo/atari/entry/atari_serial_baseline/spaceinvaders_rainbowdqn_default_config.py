@@ -33,7 +33,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
             n_atom=51,
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,

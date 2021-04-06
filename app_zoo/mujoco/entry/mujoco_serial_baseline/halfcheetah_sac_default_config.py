@@ -29,7 +29,7 @@ halfcheetah_sac_default_config = dict(
             use_twin_q=True,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=256,
             learning_rate_q=0.0003,
             learning_rate_value=0.0003,

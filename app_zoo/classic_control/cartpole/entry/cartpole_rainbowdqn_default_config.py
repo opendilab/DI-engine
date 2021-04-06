@@ -23,7 +23,7 @@ cartpole_rainbowdqn_default_config = dict(
             n_atom=51,
         ),
         learn=dict(
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,

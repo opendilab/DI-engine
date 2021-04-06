@@ -69,7 +69,7 @@ class PPGPolicy(CommonPolicy):
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
-        self._train_step = 0
+        self._train_iteration = 0
         self._aux_memories = []
         self._beta_weight = algo_cfg.beta_weight
 
@@ -143,8 +143,8 @@ class PPGPolicy(CommonPolicy):
         data['return_'] = return_.data
         self._aux_memories.append(copy.deepcopy(data))
 
-        self._train_step += 1
-        if self._train_step % self._cfg.learn.algo.aux_freq == 0:
+        self._train_iteration += 1
+        if self._train_iteration % self._cfg.learn.algo.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
                 'policy_cur_lr': self._optimizer_policy.defaults['lr'],

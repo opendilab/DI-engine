@@ -17,7 +17,7 @@ class MainPlayer(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "MainPlayer"
 
@@ -121,7 +121,7 @@ class MainExploiter(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "MainExploiter"
 
@@ -185,7 +185,7 @@ class LeagueExploiter(ActivePlayer):
     Interface:
         __init__, is_trained_enough, snapshot, mutate, get_job
     Property:
-        race, payoff, checkpoint_path, player_id, train_step
+        race, payoff, checkpoint_path, player_id, train_iteration
     """
     _name = "LeagueExploiter"
 

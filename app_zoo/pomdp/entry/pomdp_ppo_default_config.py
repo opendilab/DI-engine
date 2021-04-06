@@ -31,7 +31,7 @@ pomdp_ppo_default_config = dict(
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,

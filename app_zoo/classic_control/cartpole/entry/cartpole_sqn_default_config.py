@@ -35,9 +35,9 @@ cartpole_sqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=update_freq,
+            train_iteration=update_freq,
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,

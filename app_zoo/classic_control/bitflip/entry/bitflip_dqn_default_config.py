@@ -21,7 +21,7 @@ bitflip_dqn_default_config = dict(
             dueling=False,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0,

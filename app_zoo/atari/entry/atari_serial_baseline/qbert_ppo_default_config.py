@@ -25,7 +25,7 @@ qbert_ppo_default_config = dict(
             embedding_dim=128,
         ),
         learn=dict(
-            train_step=16,
+            train_iteration=16,
             batch_size=128,
             learning_rate=0.0001,
             weight_decay=0.0,

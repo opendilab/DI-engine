@@ -27,7 +27,7 @@ policy:
         action_dim: 6
         use_twin_q: True
     learn:
-        train_step: 2
+        train_iteration: 2
         batch_size: 256
         learning_rate_q: 0.0003
         learning_rate_value: 0.0003

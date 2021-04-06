@@ -20,7 +20,7 @@ cartpole_ppo_default_loader = dict_(
             embedding_dim=item('embedding_dim') >> (is_type(int) | collection(int)),
         ),
         learn=item('learn') >> dict_(
-            train_step=item('train_step') >> is_type(int),
+            train_iteration=item('train_iteration') >> is_type(int),
             batch_size=item('batch_size') >> (is_type(int) & interval(1, 128)),
             learning_rate=item('learning_rate') >> interval(0.00001, 0.01),
             weight_decay=item('weight_decay') >> interval(0.0, 0.001),

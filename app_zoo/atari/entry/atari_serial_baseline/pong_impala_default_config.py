@@ -25,7 +25,7 @@ pong_impala_default_config = dict(
             embedding_dim=512,
         ),
         learn=dict(
-            train_step=4,
+            train_iteration=4,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0001,

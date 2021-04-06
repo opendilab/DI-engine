@@ -267,7 +267,7 @@ Best Practice
             # PPG update
             # =============
             # ...
-            if self._train_step % self._cfg.learn.algo.aux_freq == 0:
+            if self._train_iteration % self._cfg.learn.algo.aux_freq == 0:
                aux_loss, bc_loss, aux_value_loss = self.learn_aux()
                return {
                   # ...

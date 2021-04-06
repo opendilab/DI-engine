@@ -31,7 +31,7 @@ policy:
         action_dim: 1
         use_twin_critic: False
     learn:
-        train_step: 1
+        train_iteration: 1
         batch_size: 100
         learning_rate_actor: 0.001
         learning_rate_critic: 0.001

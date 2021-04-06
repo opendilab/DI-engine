@@ -27,7 +27,7 @@ spaceinvaders_dqn_default_config = dict(
             head_kwargs=dict(dueling=True, ),
         ),
         learn=dict(
-            train_step=10,
+            train_iteration=10,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.00001,

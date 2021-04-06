@@ -94,7 +94,7 @@ def serial_pipeline(
     # Evaluate interval. Will be set to 0 after one evaluation.
     eval_interval = cfg.evaluator.eval_freq
     # How many steps to train in actor's one collection.
-    learner_train_step = cfg.policy.learn.train_step
+    learner_train_iteration = cfg.policy.learn.train_iteration
     # Whether to switch on priority experience replay.
     use_priority = cfg.policy.get('use_priority', False)
     # Learner's before_run hook.
@@ -126,14 +126,14 @@ def serial_pipeline(
         # Collect data by default config n_sample/n_episode
         new_data = actor.generate_data(learner.train_iter)
         replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
-        # TODO whether adjust train_step by the number of the collected data
+        # TODO whether adjust train_iteration by the number of the collected data
         # Learn policy from collected data
-        for i in range(learner_train_step):
-            # Learner will train ``train_step`` times in one iteration.
+        for i in range(learner_train_iteration):
+            # Learner will train ``train_iteration`` times in one iteration.
             # But if replay buffer does not have enough data, program will break and warn.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
-                # It is possible that replay buffer's data count is too few to train ``train_step`` times
+                # It is possible that replay buffer's data count is too few to train ``train_iteration`` times
                 logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."

@@ -25,7 +25,7 @@ pong_sqn_default_config = dict(
             head_kwargs=dict(dueling=True, ),
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=64,
             learning_rate_q=0.0001,
             learning_rate_alpha=0.0003,

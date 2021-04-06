@@ -32,7 +32,7 @@ cooperative_navigation_iql_default_config = dict(
             use_mixer=False,
         ),
         learn=dict(
-            train_step=100,
+            train_iteration=100,
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,

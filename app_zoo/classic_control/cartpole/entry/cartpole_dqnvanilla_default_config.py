@@ -19,7 +19,7 @@ cartpole_dqnvanilla_default_config = dict(
             dueling=True,
         ),
         learn=dict(
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0,

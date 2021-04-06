@@ -30,7 +30,7 @@ smac_collaQ_default_config = dict(
             attention_dim=32,
         ),
         learn=dict(
-            train_step=100,
+            train_iteration=100,
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,

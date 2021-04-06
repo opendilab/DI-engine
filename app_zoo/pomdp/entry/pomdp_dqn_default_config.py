@@ -43,9 +43,9 @@ pomdp_dqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.001,
             # L2 norm weight for network parameters.

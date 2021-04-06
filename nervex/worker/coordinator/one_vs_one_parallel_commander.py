@@ -249,15 +249,15 @@ class OneVsOneCommander(BaseCommander):
         self._learner_info.append(info)
         player_update_info = {
             'player_id': self._active_player.player_id,
-            'train_step': info['learner_step'],
+            'train_iteration': info['learner_step'],
         }
         self._league.update_active_player(player_update_info)
-        self._logger.info("[LEARNER] Update info at step {}".format(player_update_info['train_step']))
+        self._logger.info("[LEARNER] Update info at step {}".format(player_update_info['train_iteration']))
         snapshot = self._league.judge_snapshot(self._active_player.player_id)  # todo sequence of ckpt and snapshot
         if snapshot:
             self._logger.info(
                 "[LEAGUE] Player {} snapshot at step {}".format(
-                    player_update_info['player_id'], player_update_info['train_step']
+                    player_update_info['player_id'], player_update_info['train_iteration']
                 )
             )
 

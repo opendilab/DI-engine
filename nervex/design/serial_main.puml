@@ -34,7 +34,7 @@ loop
     actor -> actor: generate data (steps or episodes)
     actor -> replay_buffer: push_data
   end
-  loop learner_train_step times
+  loop learner_train_iteration times
     replay_buffer -> learner: sample_data
     learner -> learner: train
     alt replay replay_buffer use prioritization

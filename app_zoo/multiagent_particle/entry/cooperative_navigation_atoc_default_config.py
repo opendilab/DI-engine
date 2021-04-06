@@ -38,7 +38,7 @@ cooperative_navigation_atoc_default_config = dict(
             T_initiate=5,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=batch_size,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,

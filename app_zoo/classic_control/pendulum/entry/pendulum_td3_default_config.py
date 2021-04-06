@@ -23,7 +23,7 @@ pendulum_td3_default_config = dict(
             use_twin_critic=use_twin_critic,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=128,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,

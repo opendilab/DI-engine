@@ -25,7 +25,7 @@ pong_a2c_default_config = dict(
             embedding_dim=128,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=80,
             learning_rate=0.0001,
             weight_decay=0.0,

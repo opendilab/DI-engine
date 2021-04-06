@@ -20,7 +20,7 @@ from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_defa
 @pytest.mark.unittest
 def test_dqn():
     config = deepcopy(cartpole_dqn_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -34,7 +34,7 @@ def test_dqn():
 @pytest.mark.unittest
 def test_ddpg():
     config = deepcopy(pendulum_ddpg_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -46,7 +46,7 @@ def test_ddpg():
 @pytest.mark.unittest
 def test_td3():
     config = deepcopy(pendulum_td3_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -58,7 +58,7 @@ def test_td3():
 @pytest.mark.unittest
 def test_a2c():
     config = deepcopy(cartpole_a2c_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -70,7 +70,7 @@ def test_a2c():
 @pytest.mark.unittest
 def test_rainbow_dqn():
     config = deepcopy(cartpole_rainbowdqn_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -82,7 +82,7 @@ def test_rainbow_dqn():
 @pytest.mark.unittest
 def test_iqn():
     config = deepcopy(cartpole_rainbowdqn_iqn_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -94,7 +94,7 @@ def test_iqn():
 @pytest.mark.unittest
 def test_dqn_vanilla():
     config = deepcopy(cartpole_dqnvanilla_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -106,7 +106,7 @@ def test_dqn_vanilla():
 @pytest.mark.unittest
 def test_ppo():
     config = deepcopy(cartpole_ppo_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -118,7 +118,7 @@ def test_ppo():
 @pytest.mark.unittest
 def test_ppo_vanilla():
     config = deepcopy(cartpole_ppovanilla_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -130,7 +130,7 @@ def test_ppo_vanilla():
 @pytest.mark.unittest
 def test_ppo_vanilla_continous():
     config = deepcopy(pendulum_ppo_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -142,7 +142,7 @@ def test_ppo_vanilla_continous():
 @pytest.mark.unittest
 def test_sac():
     config = deepcopy(pendulum_sac_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -154,7 +154,7 @@ def test_sac():
 @pytest.mark.unittest
 def test_sac_auto_alpha():
     config = deepcopy(pendulum_sac_auto_alpha_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -166,7 +166,7 @@ def test_sac_auto_alpha():
 @pytest.mark.unittest
 def test_r2d2():
     config = deepcopy(cartpole_r2d2_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -194,7 +194,7 @@ def test_a2c_with_nstep_return():
 @pytest.mark.unittest
 def test_impala():
     config = deepcopy(cartpole_impala_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -206,7 +206,7 @@ def test_impala():
 @pytest.mark.unittest
 def test_her_dqn():
     config = deepcopy(bitflip_dqn_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -219,7 +219,7 @@ def test_her_dqn():
 def test_collaQ_particle():
     config = deepcopy(cooperative_navigation_collaQ_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -232,7 +232,7 @@ def test_collaQ_particle():
 def test_coma_particle():
     config = deepcopy(cooperative_navigation_coma_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -245,7 +245,7 @@ def test_coma_particle():
 def test_qmix_particle():
     config = deepcopy(cooperative_navigation_qmix_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -260,7 +260,7 @@ def test_qmix_particle():
 def test_atoc_particle():
     config = deepcopy(cooperative_navigation_atoc_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:
@@ -275,7 +275,7 @@ def test_atoc_particle():
 def test_ppg():
     config = deepcopy(cartpole_ppg_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_step = 10
+    config.policy.learn.train_iteration = 10
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 10
     try:
@@ -289,7 +289,7 @@ def test_ppg():
 @pytest.mark.unittest
 def test_sqn():
     config = deepcopy(cartpole_sqn_default_config)
-    config.policy.learn.train_step = 1
+    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:

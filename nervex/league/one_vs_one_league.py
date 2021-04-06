@@ -73,9 +73,9 @@ class OneVsOneLeague(BaseLeague):
             - player_info (:obj:`dict`): An info dict of the active player which is to be updated.
         """
         assert isinstance(player, ActivePlayer)
-        if 'train_step' in player_info:
+        if 'train_iteration' in player_info:
             # Update info from learner
-            player.total_agent_step = player_info['train_step']
+            player.total_agent_step = player_info['train_iteration']
         elif 'eval_win' in player_info and player_info['eval_win']:
             # Update info from evaluator
             increment_eval_difficulty = player.increment_eval_difficulty()

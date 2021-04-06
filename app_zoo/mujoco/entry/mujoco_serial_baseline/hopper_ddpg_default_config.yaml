@@ -27,7 +27,7 @@ policy:
         action_dim: 3
         use_twin_critic: False
     learn:
-        train_step: 4
+        train_iteration: 4
         batch_size: 128
         learning_rate_actor: 0.0005
         learning_rate_critic: 0.001

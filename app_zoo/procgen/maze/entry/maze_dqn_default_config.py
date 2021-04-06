@@ -25,7 +25,7 @@ maze_dqn_default_config = dict(
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,
