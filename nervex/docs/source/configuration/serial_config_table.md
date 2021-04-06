@@ -40,7 +40,7 @@ pong_dqn_default_config = dict(
 )
 ```
 
-除了上述项之外，Atari pong环境中还有``fram_stack``项，表明会将多少帧堆叠在一起作为observation。
+除了上述项之外，Atari pong环境中还有``frame_stack``项，表明会将多少帧堆叠在一起作为observation。
 
 
 
@@ -56,9 +56,9 @@ pong_dqn_default_config = dict(
 | policy.model.obs_dim                 | Union[int, List[int]]                          | 环境反馈的observation的维度。若有多个维度，需使用``list``。  |
 | policy.model.action_dim              | Union[int, List[int]]                          | policy产生的action的维度。若有多个维度，需使用``list``。     |
 | policy.model中其他可能出现的项       | Any                                            | 若使用自定义model，由于model类型过多，很难在此说明清楚，请直接参考``default_model``方法中指明的model所在的类。将在下一部分以例子的形式说明。 |
-| policy.learn                         | Dict[str, Any]                                 | policy的learn模式中需要用到的参数，通常包含以下key：``train_step`` ``batch_size`` ``learning_rate`` ``weight_decay`` ``algo``。 |
-| policy.learn.train_step              | int                                            | 在serial pipeline中，actor和learner交替工作。``train_step``是指，当轮到learner工作时，learner会调用``policy._forward_learn``的次数。必须为正整数。该数值越大，迭代越快，但使用的数据就越off-policy。 |
-| policy.learn.batch_size              | int                                            | learner更新策略时，一次train step所用的batch包含多少个训练样本。 |
+| policy.learn                         | Dict[str, Any]                                 | policy的learn模式中需要用到的参数，通常包含以下key：``train_iteration`` ``batch_size`` ``learning_rate`` ``weight_decay`` ``algo``。 |
+| policy.learn.train_iteration              | int                                            | 在serial pipeline中，actor和learner交替工作。``train_iteration``是指，当轮到learner工作时，learner会调用``policy._forward_learn``的次数。必须为正整数。该数值越大，迭代越快，但使用的数据就越off-policy。 |
+| policy.learn.batch_size              | int                                            | learner更新策略时，一个train iteration所用的batch包含多少个训练样本。 |
 | policy.learn.learning_rate           | float                                          | learner更新网络参数时使用的学习率。                          |
 | policy.learn.weight_decay            | float                                          | learner更新网络参数时使用的正则项系数。                      |
 | policy.learn.algo                    | Dict[str, Any]                                 | policy的learn模式中和算法最直接相关的参数，通常包含以下key：``target_update_freq`` ``discount_factor``  。 |
@@ -66,7 +66,6 @@ pong_dqn_default_config = dict(
 | policy.learn.algo.discount_factor    | float                                          | 计算累计奖励（acummulative reward）时的折扣因子。必须为[0, 1]区间内的浮点数。 |
 | policy.learn.algo中其他可能出现的项  | Dict[str, Any]                                 | 和具体算法强相关，建议直接查看对应policy。将在下一部分以例子的形式说明。 |
 | policy.collect                       | Dict[str, Any]                                 | policy的learn模式中需要用到的参数，通常包含以下key：``traj_len`` ``unroll_len`` ``algo``。 |
-| policy.collect.traj_len              | int                                            | actor在收集数据时，一次与环境交互``traj_len``次，得到一条长度最大为``traj_len``的轨迹（由于可能遇到环境结束，不一定能达到``traj_len``），经过一些处理后得到可用于训练的sample。 |
 | policy.collect.unroll_len            | int                                            | actor将收集到的轨迹切割成多段，每段长度为``unroll_len``，该项通常设置为1即可，除非模型或算法有要求（例如RNN模型）。 |
 | policy.collect.algo                  | Dict[str, Any]                                 | policy的collect模式中和算法最直接相关的参数。                |
 | policy.command                       | Dict[str, Any]                                 | policy的learn模式中需要用到的参数。例如若使用epsilon贪婪算法进行探索，则包含key：``eps`` 。 |
@@ -80,7 +79,6 @@ pong_dqn_default_config = dict(
 	policy=dict(
         use_cuda=True,
         policy_type='dqn',
-        import_names=['nervex.policy.dqn'],
         on_policy=False,
         use_priority=True,
         model=dict(
@@ -91,7 +89,7 @@ pong_dqn_default_config = dict(
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,
@@ -102,7 +100,6 @@ pong_dqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
@@ -126,21 +123,14 @@ pong_dqn_default_config = dict(
 
 | Name                                       | Type           | Description                                                  |
 | ------------------------------------------ | -------------- | ------------------------------------------------------------ |
-| replay_buffer.buffer_name                  | List[str]      | ``replay_buffer``是``BufferManager``的配置项，``BufferManager``是一个或多个``ReplayBuffer``的管理者。故本项``buffer_name``指明了多个``ReplayBuffer``的名字，需为一个``list``。假设为``['agent']``，那么在后续的``replay_buffer.agent``中列出agent buffer的所有配置项。 |
-| replay_buffer.agent                        | Dict[str, Any] | 名为``'agent'``的``ReplayBuffer``的配置项（若在``buffer_name``中有其他命名，记得要修改此项），通常包含以下key：``meta_maxlen`` ``max_reuse`` ``max_staleness`` ``min_sample_ratio`` ``alpha`` ``beta`` ``anneal_step`` ``enable_track_used_data`` ``deepcopy`` ``monitor``。 |
-| replay_buffer.agent.meta_maxlen            | int            | agent buffer的长度。                                         |
-| replay_buffer.agent.max_reuse              | int            | agent buffer中一个数据可以被使用的次数。当一个数据第``max_reuse``次被sample到时，将其从agent buffer中删除。 |
-| replay_buffer.agent.max_staleness          | float          | agent buffer中一个数据最大陈旧度。staleness被定义为actor端采集时的policy和learner端即将被优化的policy，二者iteration的差值。当对agent buffer进行sample时，先调用``sample_check``方法删去所有过于陈旧的数据，然后才能实际调用``sample``进行采样。 |
-| replay_buffer.agent.min_sample_ratio       | float          | agent buffer中“要sample的数据量”，与“总数据量”之间的比值，必须大于该值，才可以进行sample。 |
-| replay_buffer.agent.alpha                  | float          | agent buffer中优先级的使用程度，必须为[0, 1]区间内的浮点数，0代表不使用优先级。（``alpha`` ``beta`` ``anneal_step``三个参数均请参考论文*Prioritized Experience Replay*） |
-| replay_buffer.agent.beta                   | float          | agent buffer中优先级修正的使用程度，必须为[0, 1]区间内的浮点数，0代表不使用修正。 |
-| replay_buffer.agent.anneal_step            | float          | agent buffer中beta需要多少步从初始值退火到1，``float("inf")``代表不退火。 |
-| replay_buffer.agent.enable_track_used_data | bool           | agent buffer中，是否追踪所有被移出的数据。                   |
-| replay_buffer.agent.deepcopy               | bool           | agent buffer中，sample出的数据是否采用深复制，以防止buffer外的操作改变buffer内的数据。 |
-| replay_buffer.agent.monitor                | Dict[str, Any] | agent buffer中autolog monitor的配置项，通常包含以下key：``log_freq`` ``log_path`` ``natural_expire`` ``tick_expire``。 |
-| replay_buffer.agent.monitor.log_freq       | int            | agent buffer中以何种频率对数据的插入与取出相关信息进行记录。 |
-| replay_buffer.agent.monitor.log_path       | str            | agent buffer的text log文件路径。                             |
-| replay_buffer.agent.monitor.natural_expire | int            | agent buffer的autolog monitor的自然时间窗，表示会对``natural_expire``秒内的数据进行一些统计量（如均值、最值等）的计算。更详细的内容请参考``AutoLog Overview``。 |
+| replay_buffer.replay_buffer_size     | int            | replay buffer的长度。                                         |
+| replay_buffer.replay_start_size      | int            | replay buffer初始采样积累数据的数量。                         |
+| replay_buffer.max_reuse              | int            | replay buffer中一个数据可以被使用的次数。当一个数据第``max_reuse``次被sample到时，将其从replay buffer中删除。 |
+| replay_buffer.max_staleness          | int            | replay buffer中一个数据最大陈旧度。staleness被定义为actor端采集时的policy和learner端即将被优化的policy，二者iteration的差值。当对replay buffer进行sample时，先调用``sample_check``方法删去所有过于陈旧的数据，然后才能实际调用``sample``进行采样。 |
+| replay_buffer.alpha                  | float          | replay buffer中优先级的使用程度，必须为[0, 1]区间内的浮点数，0代表不使用优先级。（``alpha`` ``beta`` ``anneal_step``三个参数均请参考论文*Prioritized Experience Replay*） |
+| replay_buffer.beta                   | float          | replay buffer中优先级修正的使用程度，必须为[0, 1]区间内的浮点数，0代表不使用修正。 |
+| replay_buffer.anneal_step            | float          | replay buffer中beta需要多少步从初始值退火到1，``float("inf")``代表不退火。 |
+| replay_buffer.deepcopy               | bool           | replay buffer中，sample出的数据是否采用深拷贝，以防止buffer外的操作改变buffer内的数据。 |
 
 **实例**
 
@@ -165,8 +155,8 @@ pong_dqn_default_config = dict(
 
 | Name                     | Type  | Description                                                  |
 | ------------------------ | ----- | ------------------------------------------------------------ |
-| actor.n_sample           | int   | ``n_sample``与``n_episode``，任选一项填写即可。actor对轨迹数据进行处理后，得到的一条可用于训练的数据称为称为一个sample。``n_sample``表示当actor采集到这么多sample后就会停止，转到learner训练。 |
-| actor.n_episode          | int   | ``n_sample``与``n_episode``，任选一项填写即可。``n_episode``表示当actor与环境互动这么多episode后就会停止，转到learner训练。 |
+| actor.n_sample           | int   | ``n_sample``与``n_episode``，任选一项填写即可。actor对轨迹数据进行处理后，得到的一条可用于训练的数据称为称为一个sample。``n_sample``表示当actor采集到这么多sample后就会暂停，转到learner训练。 |
+| actor.n_episode          | int   | ``n_sample``与``n_episode``，任选一项填写即可。``n_episode``表示当actor与环境互动这么多episode后就会暂停，转到learner训练。 |
 |                          |       | actor在collect任务中，会根据``traj_len``与环境交互得到轨迹，处理后得到一些训练数据，但这些数据不一定能满足``n_sample``或是``n_episode``，故actor可能会与环境按``traj_len``交互多次，直到满足``n_sample``或是``n_episode``。无论是``n_sample``还是``n_episode``，再从learner转回actor工作时，环境都会继续之前的状态运行，而非重启环境。 |
 | actor.traj_len           | float | 请参考``policy.collect.traj_len``。二者的值需要保持相同。    |
 | actor.collect_print_freq | int   | actor端按照``n_sample``或``n_episode``得到一定的数据成为一个collect step。该项便是控制每隔多少个collect step打印一次collect相关的信息。 |
@@ -193,7 +183,7 @@ pong_dqn_default_config = dict(
 | Name                | Type  | Description                                                  |
 | ------------------- | ----- | ------------------------------------------------------------ |
 | evaluator.n_episode | int   | evaluator对policy进行评估时，所有环境加在一起，总共运行多少个episode。 |
-| evaluator.eval_freq | int   | serial entry中，每隔多少个learner的train step，调用evaluator进行一次policy评估。 |
+| evaluator.eval_freq | int   | serial entry中，每隔多少个learner的train iteration，调用evaluator进行一次policy评估。 |
 | evaluator.stop_val  | float | 当某一次评估的平均reward超过该值后，认为算法已经达到目标效果，结束训练过程。 |
 
 **实例**
