@@ -38,7 +38,12 @@ def shape_fn_vtrace(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_vtrace, namedtuple_data=True, include_args=[0,1,2,3,4,5], include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio'])
+@hpc_wrapper(
+    shape_fn=shape_fn_vtrace,
+    namedtuple_data=True,
+    include_args=[0, 1, 2, 3, 4, 5],
+    include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio']
+)
 def vtrace_error(
     data: namedtuple,
     gamma: float = 0.99,

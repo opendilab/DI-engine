@@ -257,7 +257,9 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
             return next_state
 
 
-def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', dropout=0., seq_len=None, batch_size=None):
+def get_lstm(
+    lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', dropout=0., seq_len=None, batch_size=None
+):
     r"""
     Overview:
         build and return the corresponding LSTM cell
@@ -268,6 +270,8 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', d
         - num_layers (:obj:`int`): number of lstm layers
         - norm_type (:obj:`str`): type of the normaliztion, (default: None)
         - dropout (:obj:float):  dropout rate, default set to .0
+        - seq_len (:obj:`int`): seq len, default set to None
+        - batch_size (:obj:`int`): batch_size len, default set to None
     Returns:
         - lstm (:obj:`LSTM` or :obj:`PytorchLSTM`): the corresponding lstm cell
     """
@@ -278,4 +282,3 @@ def get_lstm(lstm_type, input_size, hidden_size, num_layers=1, norm_type='LN', d
         return PytorchLSTM(input_size, hidden_size, num_layers, dropout=dropout)
     elif lstm_type == 'hpc':
         return HPCLSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout).cuda()
-

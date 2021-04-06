@@ -28,7 +28,12 @@ def shape_fn_ppo(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_ppo, namedtuple_data=True, include_args=[0,1,2,3], include_kwargs=['data', 'clip_ratio', 'use_value_clip', 'dual_clip'])
+@hpc_wrapper(
+    shape_fn=shape_fn_ppo,
+    namedtuple_data=True,
+    include_args=[0, 1, 2, 3],
+    include_kwargs=['data', 'clip_ratio', 'use_value_clip', 'dual_clip']
+)
 def ppo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,

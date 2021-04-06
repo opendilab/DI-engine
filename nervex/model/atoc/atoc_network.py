@@ -373,17 +373,17 @@ class ATOCQAC(QActorCriticBase):
     """
 
     def __init__(
-        self,
-        obs_dim: int,
-        action_dim: int,
-        thought_dim: int,
-        n_agent: int,
-        use_communication: bool = True,
-        m_group: int = 2,
-        T_initiate: int = 5,
-        actor_1_embedding_dim: Union[int, None] = None,
-        actor_2_embedding_dim: Union[int, None] = None,
-        critic_embedding_dims: List[int] = [128, 64],
+            self,
+            obs_dim: int,
+            action_dim: int,
+            thought_dim: int,
+            n_agent: int,
+            use_communication: bool = True,
+            m_group: int = 2,
+            T_initiate: int = 5,
+            actor_1_embedding_dim: Union[int, None] = None,
+            actor_2_embedding_dim: Union[int, None] = None,
+            critic_embedding_dims: List[int] = [128, 64],
     ) -> None:
         r"""
         Overview:

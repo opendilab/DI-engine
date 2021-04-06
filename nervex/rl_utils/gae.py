@@ -4,6 +4,7 @@ from nervex.hpc_rl import hpc_wrapper
 
 gae_data = namedtuple('gae_data', ['value', 'reward'])
 
+
 def shape_fn_gae(args, kwargs):
     r"""
     Overview:
@@ -17,7 +18,10 @@ def shape_fn_gae(args, kwargs):
         tmp = args[0].reward.shape
     return tmp
 
-@hpc_wrapper(shape_fn=shape_fn_gae, namedtuple_data=True, include_args=[0,1,2], include_kwargs=['data', 'gamma', 'lambda_'])
+
+@hpc_wrapper(
+    shape_fn=shape_fn_gae, namedtuple_data=True, include_args=[0, 1, 2], include_kwargs=['data', 'gamma', 'lambda_']
+)
 def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.FloatTensor:
     """
     Overview:

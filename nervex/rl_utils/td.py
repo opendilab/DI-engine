@@ -109,7 +109,12 @@ def shape_fn_dntd(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=[0,1,2,3], include_kwargs=['data', 'gamma', 'v_min', 'v_max'])
+@hpc_wrapper(
+    shape_fn=shape_fn_dntd,
+    namedtuple_data=True,
+    include_args=[0, 1, 2, 3],
+    include_kwargs=['data', 'gamma', 'v_min', 'v_max']
+)
 def dist_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -220,7 +225,7 @@ def shape_fn_qntd(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0,1], include_kwargs=['data', 'gamma'])
+@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
@@ -279,7 +284,9 @@ def shape_fn_qntd_rescale(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0,1], include_kwargs=['data', 'gamma'])
+@hpc_wrapper(
+    shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
+)
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
@@ -436,7 +443,12 @@ def shape_fn_td_lambda(args, kwargs):
     return tmp
 
 
-@hpc_wrapper(shape_fn=shape_fn_td_lambda, namedtuple_data=True, include_args=[0,1,2], include_kwargs=['data', 'gamma', 'lambda_'])
+@hpc_wrapper(
+    shape_fn=shape_fn_td_lambda,
+    namedtuple_data=True,
+    include_args=[0, 1, 2],
+    include_kwargs=['data', 'gamma', 'lambda_']
+)
 def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) -> torch.Tensor:
     """
     Overview:
