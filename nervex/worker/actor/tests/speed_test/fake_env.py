@@ -7,19 +7,22 @@ from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
+from nervex.worker.actor.tests.speed_test.utils import random_change
+
 
 class FakeEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._obs_dim = cfg.get('obs_dim', 8)
         self._action_dim = cfg.get('action_dim', 2)
-        self._episode_step = cfg.get('episode_step', 200)
+        self._episode_step_base = cfg.get('episode_step', 200)
         self._reset_time = cfg.get('reset_time', 0.)
         self._step_time = cfg.get('step_time', 0.)
         self.reset()
 
     def reset(self) -> torch.Tensor:
-        time.sleep(self._reset_time)
+        self._episode_step = int(random_change(self._episode_step_base))
+        time.sleep(random_change(self._reset_time))
         self._step_count = 0
         self._final_eval_reward = 0
         obs = np.random.randn(self._obs_dim)
@@ -32,7 +35,7 @@ class FakeEnv(BaseEnv):
         pass
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        time.sleep(self._step_time)
+        time.sleep(random_change(self._step_time))
         self._step_count += 1
         obs = np.random.randn(self._obs_dim)
         rew = np.random.randint(2)
@@ -41,7 +44,6 @@ class FakeEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

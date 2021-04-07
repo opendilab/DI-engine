@@ -1,13 +1,15 @@
 from collections import namedtuple, deque
 from typing import Optional, List, Dict, Any, Tuple, Union
-
 import torch
 from easydict import EasyDict
+import time
 
 from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
 from nervex.policy import Policy, CommonPolicy
 from nervex.rl_utils import Adder
+
+from nervex.worker.actor.tests.speed_test.utils import random_change
 
 
 class FakePolicy(CommonPolicy):
@@ -20,6 +22,7 @@ class FakePolicy(CommonPolicy):
     ) -> None:
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._init_collect()
+        self._forward_time = cfg.get('forward_time', 0.)
 
     def _init_learn(self) -> None:
         pass
@@ -50,6 +53,7 @@ class FakePolicy(CommonPolicy):
     #     raise NotImplementedError
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+        time.sleep(random_change(self._forward_time))
         return {
             'action': torch.ones(data['obs'].shape[0], 2)
         }

@@ -30,9 +30,9 @@ buffer_manager_default_config = dict(
             # Logger's save path
             log_path='./log/buffer/agent_buffer/',
             # Natural time expiration. Used for log data smoothing.
-            natural_expire=100,
+            natural_expire=10,
             # Tick time expiration. Used for log data smoothing.
-            tick_expire=100,
+            tick_expire=10,
         ),
     ),
 )
