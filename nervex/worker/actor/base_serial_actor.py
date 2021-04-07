@@ -18,7 +18,7 @@ class BaseSerialActor(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
+    def __init__(self, cfg: dict, env: BaseEnvManager = None, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         """
         Overview:
             Initialization method.
@@ -34,6 +34,8 @@ class BaseSerialActor(object):
             self._traj_len = float('inf')
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
+        if env is not None:
+            self.env = env
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger

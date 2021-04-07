@@ -75,9 +75,7 @@ class Policy(ABC):
                 model_cfg.import_names = import_names
             return create_model(model_cfg)
         else:
-            if isinstance(model, type):
-                return model(**model_cfg)
-            elif isinstance(model, torch.nn.Module):
+            if isinstance(model, torch.nn.Module):
                 return model
             else:
                 raise RuntimeError("invalid model: {}".format(type(model)))

@@ -121,7 +121,6 @@ def get_manager_cfg(env_num=4):
         'env_cfg': [{
             'name': 'name{}'.format(i),
         } for i in range(env_num)],
-        'env_num': env_num,
         'episode_num': 2,
     }
     return EasyDict(manager_cfg)
@@ -134,7 +133,8 @@ def pytest_generate_tests(metafunc):
         for b in [False]:
             manager_cfg = get_manager_cfg()
             manager_cfg['env_fn'] = FakeAsyncEnv
-            manager_cfg['manager_cfg'] = {"shared_memory": b, 'reset_timeout': 4}
+            manager_cfg['reset_timeout'] = 4
+            manager_cfg['shared_memory'] = b
             manager_cfgs.append(manager_cfg)
         metafunc.parametrize("setup_async_manager_cfg", manager_cfgs)
 

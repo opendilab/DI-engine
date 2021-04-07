@@ -18,7 +18,7 @@ class BaseSerialEvaluator(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
+    def __init__(self, cfg: dict, env: BaseEnvManager = None, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
@@ -29,6 +29,8 @@ class BaseSerialEvaluator(object):
         """
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_value = cfg.stop_value
+        if env is not None:
+            self.env = env
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
             self._tb_logger = tb_logger
