@@ -210,8 +210,7 @@ class ReplayBuffer:
         assert 0 <= beta <= 1, beta
         self._beta = beta
         self._anneal_step = anneal_step
-        if self._anneal_step != 0:
-            self._beta_anneal_step = (1 - self._beta) / self._anneal_step
+        self._beta_anneal_one_step = (1 - self._beta) / self._anneal_step
         self._deepcopy = deepcopy
 
         # Prioritized sample.
@@ -598,9 +597,8 @@ class ReplayBuffer:
         for idx in indices:
             if self._use_count[idx] >= self._max_use:
                 self._remove(idx)
-        # Beta anneal
-        if self._anneal_step != 0:
-            self._beta = min(1.0, self._beta + self._beta_anneal_step)
+        # Beta annealing
+        self._beta = min(1.0, self._beta + self._beta_anneal_one_step)
         return data
 
     def _monitor_update_of_push(self, add_count: int, add_time: float, cur_actor_envstep: int = -1) -> None:
