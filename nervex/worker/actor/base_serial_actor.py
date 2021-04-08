@@ -215,7 +215,7 @@ class BaseSerialActor(object):
                 'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
                 'avg_envstep_per_episode': envstep_count / episode_count,
-                'avg_sample_per_epsiode': train_sample_count / episode_count,
+                'avg_sample_per_episode': train_sample_count / episode_count,
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
