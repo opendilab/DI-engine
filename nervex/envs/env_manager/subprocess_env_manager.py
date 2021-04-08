@@ -446,7 +446,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             timesteps[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] >= self._epsiode_num:
+                if self._env_episode_count[env_id] >= self._episode_num:
                     self._env_states[env_id] = EnvState.DONE
                 else:
                     self._env_states[env_id] = EnvState.RESET

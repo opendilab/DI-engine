@@ -36,7 +36,7 @@ class TestBaseEnvManager:
         print('total step time: {}'.format(end_time - start_time))
         assert all(
             [
-                env_manager._env_episode_count[env_id] >= env_manager._epsiode_num
+                env_manager._env_episode_count[env_id] >= env_manager._episode_num
                 for env_id in range(env_manager.env_num)
             ]
         )

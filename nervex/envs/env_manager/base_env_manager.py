@@ -43,7 +43,7 @@ class BaseEnvManager(object):
         self._env_num = env_num
         if episode_num == "inf":
             episode_num = float("inf")
-        self._epsiode_num = episode_num
+        self._episode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
@@ -68,12 +68,12 @@ class BaseEnvManager(object):
         """
         return self._inv_transform(
             {i: self._next_obs[i]
-             for i in range(self.env_num) if self._env_episode_count[i] < self._epsiode_num}
+             for i in range(self.env_num) if self._env_episode_count[i] < self._episode_num}
         )
 
     @property
     def done(self) -> bool:
-        return all([self._env_episode_count[env_id] >= self._epsiode_num for env_id in range(self.env_num)])
+        return all([self._env_episode_count[env_id] >= self._episode_num for env_id in range(self.env_num)])
 
     @property
     def method_name_list(self) -> list:
@@ -172,7 +172,7 @@ class BaseEnvManager(object):
             timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
             if timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._epsiode_num:
+                if self._env_episode_count[env_id] < self._episode_num:
                     self._reset(env_id)
             else:
                 self._next_obs[env_id] = timesteps[env_id].obs
