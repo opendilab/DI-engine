@@ -103,7 +103,7 @@ def serial_pipeline(
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
         commander.step()
-        new_data = collector.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
+        new_data = collector.collect_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
         replay_buffer.push(new_data, cur_collector_envstep=0)
 
     while True:
@@ -124,7 +124,7 @@ def serial_pipeline(
                     learner.save_checkpoint('ckpt_best.pth.tar')
                     max_eval_reward = eval_reward
         # Collect data by default config n_sample/n_episode
-        new_data = collector.generate_data(learner.train_iter)
+        new_data = collector.collect_data(learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # TODO whether adjust train_iteration by the number of the collected data
         # Learn policy from collected data

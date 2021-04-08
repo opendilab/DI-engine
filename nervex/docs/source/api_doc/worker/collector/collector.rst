@@ -20,7 +20,7 @@ Please Reference nervex/worker/collector/base_serial_collector.py for usage
 BaseSerialCollector
 ~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.collector.base_serial_collector.BaseSerialCollector
-    :members: __init__, generate_data, _collect
+    :members: __init__, collect_data, _collect
 
 CachePool
 ~~~~~~~~~~~~~~~~~~
