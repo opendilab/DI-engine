@@ -13,7 +13,7 @@ class BaseSerialCollector(object):
     Overview:
         Baseclass for serial collector.
     Interfaces:
-        __init__, reset, generate_data, close
+        __init__, reset, collect_data, close
     Property:
         env, policy
     """
@@ -87,7 +87,7 @@ class BaseSerialCollector(object):
         ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
-    def generate_data(self,
+    def collect_data(self,
                       train_iter: int = -1,
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
