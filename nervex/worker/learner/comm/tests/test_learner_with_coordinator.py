@@ -4,11 +4,11 @@ import time
 from multiprocessing import Process
 
 from nervex.worker import Coordinator, create_comm_learner
-from nervex.worker.actor.comm import NaiveActor
+from nervex.worker.collector.comm import NaiveCollector
 from nervex.utils import lists_to_dicts
 from nervex.config import parallel_local_default_config, parallel_transform
 
-DATA_PREFIX = 'SLAVE_ACTOR_DATA_LEARNER_TEST'
+DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_LEARNER_TEST'
 
 
 @pytest.fixture(scope='function')
@@ -17,14 +17,14 @@ def setup_config():
 
 
 @pytest.fixture(scope='function')
-def setup_actor(setup_config):
-    cfg = setup_config.coordinator.interaction.actor
-    actor = {}
+def setup_collector(setup_config):
+    cfg = setup_config.coordinator.interaction.collector
+    collector = {}
     for _, (name, host, port) in cfg.items():
-        actor[name] = NaiveActor(host, port, prefix=DATA_PREFIX)
-        actor[name].start()
-    yield actor
-    for a in actor.values():
+        collector[name] = NaiveCollector(host, port, prefix=DATA_PREFIX)
+        collector[name].start()
+    yield collector
+    for a in collector.values():
         a.close()
 
 
@@ -43,9 +43,9 @@ def setup_learner(setup_config):
 @pytest.mark.unittest(rerun=5)
 class TestLearnerWithCoordinator:
 
-    def test_naive(self, setup_config, setup_actor, setup_learner):
+    def test_naive(self, setup_config, setup_collector, setup_learner):
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
-        assert len(setup_actor) == len(setup_config.coordinator.interaction.actor)
+        assert len(setup_collector) == len(setup_config.coordinator.interaction.collector)
         try:
             coordinator = Coordinator(setup_config.coordinator)
             coordinator.start()
@@ -58,9 +58,9 @@ class TestLearnerWithCoordinator:
             os.popen('rm -rf {}*'.format(DATA_PREFIX))
             assert False, e
 
-        actor_task_ids = [t for t in coordinator._historical_task if 'actor' in t]
+        collector_task_ids = [t for t in coordinator._historical_task if 'collector' in t]
         for i in range(1, 21):
-            for t in actor_task_ids:
+            for t in collector_task_ids:
                 assert os.path.exists('{}_{}_{}'.format(DATA_PREFIX, t, i))
         assert len(coordinator._replay_buffer) == 0
         learner_task_ids = [i for i in coordinator._historical_task if 'learner' in i]

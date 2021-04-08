@@ -9,7 +9,7 @@ from easydict import EasyDict
 
 from nervex.policy import Policy
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, ACTOR_REGISTRY
+from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, COLLECTOR_REGISTRY
 from nervex.torch_utils import build_log_buffer
 
 
@@ -47,10 +47,10 @@ class TickMonitor(LoggedModel):
         self.register_attribute_value('avg', 'norm_env_time', partial(__avg_func, prop_name='norm_env_time'))
 
 
-class BaseActor(ABC):
+class BaseCollector(ABC):
     """
     Overview:
-        Abstract baseclass for actor.
+        Abstract baseclass for collector.
     Interfaces:
         __init__, info, error, debug, get_finish_info, start, close, _setup_timer, _setup_logger, _iter_after_hook,
         _policy_inference, _env_step, _process_timestep, _finish_task, _update_policy, _start_thread, _join_thread
@@ -67,8 +67,8 @@ class BaseActor(ABC):
         """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUATOR' if self._eval_flag else 'ACTOR'
-        self._actor_uid = get_task_uid()
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'Collector'
+        self._collector_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
         self._setup_timer()
@@ -76,18 +76,18 @@ class BaseActor(ABC):
         self.info("\nCFG INFO:\n{}".format(pretty_print(cfg, direct_print=False)))
 
     def info(self, s: str) -> None:
-        self._logger.info("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
+        self._logger.info("[{}({})]: {}".format(self._prefix, self._collector_uid, s))
 
     def debug(self, s: str) -> None:
-        self._logger.debug("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
+        self._logger.debug("[{}({})]: {}".format(self._prefix, self._collector_uid, s))
 
     def error(self, s: str) -> None:
-        self._logger.error("[{}({})]: {}".format(self._prefix, self._actor_uid, s))
+        self._logger.error("[{}({})]: {}".format(self._prefix, self._collector_uid, s))
 
     def _setup_timer(self) -> None:
         """
         Overview:
-            Setup TimeWrapper for base_actor. TimeWrapper is a decent timer wrapper that can be used easily.
+            Setup TimeWrapper for base_collector. TimeWrapper is a decent timer wrapper that can be used easily.
             You can refer to ``nervex/utils/time_helper.py``.
 
         Note:
@@ -125,14 +125,14 @@ class BaseActor(ABC):
     def _setup_logger(self) -> Tuple:
         """
         Overview:
-            Setup logger for base_actor. Logger includes logger, monitor and log buffer dict.
+            Setup logger for base_collector. Logger includes logger, monitor and log buffer dict.
         Returns:
             - logger (:obj:`TextLogger`): logger that displays terminal output
             - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
             - log_buffer (:obj:`LogDict`): log buffer dict
         """
         path = './log/{}'.format(self._prefix.lower())
-        name = '{}'.format(self._actor_uid)
+        name = '{}'.format(self._collector_uid)
         logger, _ = build_logger(path, name, need_tb=False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)
         log_buffer = build_log_buffer()
@@ -216,7 +216,7 @@ class BaseActor(ABC):
             self._policy.set_setting('collect', self._cfg.collect_setting)
 
 
-def create_actor(cfg: dict) -> BaseActor:
+def create_collector(cfg: dict) -> BaseCollector:
     cfg = EasyDict(cfg)
     import_module(cfg.get('import_names', []))
-    return ACTOR_REGISTRY.build(cfg.actor_type, cfg=cfg)
+    return COLLECTOR_REGISTRY.build(cfg.collector_type, cfg=cfg)

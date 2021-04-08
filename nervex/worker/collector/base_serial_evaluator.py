@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from nervex.utils import build_logger, EasyTimer
 from nervex.envs import BaseEnvManager
-from .base_serial_actor import CachePool
+from .base_serial_collector import CachePool
 
 
 class BaseSerialEvaluator(object):

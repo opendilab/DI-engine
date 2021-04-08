@@ -2,11 +2,11 @@ import torch
 from nervex.interaction.slave import Slave, TaskFail
 
 
-class NaiveActor(Slave):
+class NaiveCollector(Slave):
     """
     Overview:
         A slave, whose master is coordinator.
-        Used to pass message between comm actor and coordinator.
+        Used to pass message between comm collector and coordinator.
     Interfaces:
         _process_task, _get_timestep
     """
@@ -19,7 +19,7 @@ class NaiveActor(Slave):
         """
         Overview:
             Process a task according to input task info dict, which is passed in by master coordinator.
-            For each type of task, you can refer to corresponding callback function in comm actor for details.
+            For each type of task, you can refer to corresponding callback function in comm collector for details.
         Arguments:
             - cfg (:obj:`EasyDict`): Task dict. Must contain key "name".
         Returns:
@@ -28,11 +28,11 @@ class NaiveActor(Slave):
         task_name = task['name']
         if task_name == 'resource':
             return {'cpu': '20', 'gpu': '1'}
-        elif task_name == 'actor_start_task':
+        elif task_name == 'collector_start_task':
             self.count = 0
             self.task_info = task['task_info']
-            return {'message': 'actor task has started'}
-        elif task_name == 'actor_data_task':
+            return {'message': 'collector task has started'}
+        elif task_name == 'collector_data_task':
             self.count += 1
             data_id = './{}_{}_{}'.format(self._prefix, self.task_info['task_id'], self.count)
             torch.save(self._get_timestep(), data_id)
@@ -41,7 +41,7 @@ class NaiveActor(Slave):
             if self.count == 20:
                 return {
                     'task_id': self.task_info['task_id'],
-                    'actor_done': True,
+                    'collector_done': True,
                     'cur_episode': 1,
                     'cur_step': 314,
                     'cur_sample': 314,
@@ -49,7 +49,9 @@ class NaiveActor(Slave):
             else:
                 return data
         else:
-            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+            raise TaskFail(
+                result={'message': 'task name error'}, message='illegal collector task <{}>'.format(task_name)
+            )
 
     def _get_timestep(self):
         return [

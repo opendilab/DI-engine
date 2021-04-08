@@ -174,7 +174,7 @@ def test_coma():
 def test_a2c_with_nstep_return():
     config = deepcopy(cartpole_a2c_default_config)
     config.policy.learn.algo.use_nstep_return = True
-    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
+    config.policy.learn.algo.discount_fcollector = config.policy.collect.algo.discount_factor
     config.policy.learn.algo.nstep = 3
     config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
     config.policy.collect.algo.nstep = config.policy.learn.algo.nstep

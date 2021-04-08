@@ -4,7 +4,7 @@ pomdp_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
         env_type='pomdp',
-        actor_env_num=6,
+        collector_env_num=6,
         evaluator_env_num=3,
         env_id='Pong-ramNoFrameskip-v4',
         frame_stack=4,
@@ -59,7 +59,7 @@ pomdp_ppo_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collectorctorctor=dict(
         n_sample=16,
         traj_len=2000,  # cartpole max episode len
         collect_print_freq=100,

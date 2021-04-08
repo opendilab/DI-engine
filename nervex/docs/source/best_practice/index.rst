@@ -70,8 +70,8 @@ Best Practice
             return EasyDict(transition)
 
    
-   -  对于A-pex中的多个Actor使用不同的探索策略，目前仅支持在nervex
-      parallel入口实现，需要给每一个actor task设定相关参数
+   -  对于A-pex中的多个Collector使用不同的探索策略，目前仅支持在nervex
+      parallel入口实现，需要给每一个collector task设定相关参数
 
 5. 更改priority采样的相关参数
 
@@ -166,7 +166,7 @@ Best Practice
       armor.reset(data_id=[0], state=init_state[1])
       output3 = armor.forward(inputs3)
 
-2. actor->learner传递数据
+2. collector->learner传递数据
 
    注册能够返回当前帧输入state的plugin
 
@@ -509,8 +509,8 @@ Best Practice
    - env
    - learner
    - comm_learner
-   - actor
-   - comm_actor
+   - collector
+   - comm_collector
    - commander
    - league
    - player

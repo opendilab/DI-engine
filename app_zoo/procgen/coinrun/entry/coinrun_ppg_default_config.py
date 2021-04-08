@@ -8,7 +8,7 @@ coinrun_ppg_default_config = dict(
         env_type='coinrun',
         # frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=8,
     ),
     policy=dict(
@@ -59,7 +59,7 @@ coinrun_ppg_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collectorctor=dict(
         n_sample=16,
         traj_len=traj_len,
         collect_print_freq=100,

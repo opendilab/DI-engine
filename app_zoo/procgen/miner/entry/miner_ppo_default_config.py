@@ -8,7 +8,7 @@ miner_ppo_default_config = dict(
         env_type='miner',
         # frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=8,
     ),
     policy=dict(
@@ -52,7 +52,7 @@ miner_ppo_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=16,
         traj_len=traj_len,
         collect_print_freq=100,

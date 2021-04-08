@@ -5,7 +5,7 @@ sumo_ppo_default_config = dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.sumo.envs.sumo_env'],
         env_type='sumo_wj3',
-        actor_env_num=4,
+        collector_env_num=4,
         evaluator_env_num=1,
     ),
     policy=dict(
@@ -47,7 +47,7 @@ sumo_ppo_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=16,
         traj_len=200,  # max episode len
         collect_print_freq=100,

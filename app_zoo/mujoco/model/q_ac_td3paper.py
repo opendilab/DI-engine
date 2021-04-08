@@ -79,7 +79,7 @@ class QAC_Td3paper(QActorCriticBase):
         else:
             return self._critic[0](x)
 
-    def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
+    def _collector_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._actor(x)
 
     def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
@@ -91,12 +91,12 @@ class QAC_Td3paper(QActorCriticBase):
         return {'q_value': q}
 
     def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        action = self._actor_forward(inputs['obs'])
+        action = self._collector_forward(inputs['obs'])
         return {'action': action}
 
     def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        action = self._actor_forward(state_input)
+        action = self._collector_forward(state_input)
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
         state_action_input = torch.cat([state_input, action], dim=1)
@@ -109,7 +109,7 @@ class QAC_Td3paper(QActorCriticBase):
         return {'q_value': q}
 
     @property
-    def actor(self) -> torch.nn.Module:
+    def collectorctor(self) -> torch.nn.Module:
         return self._actor
 
     @property

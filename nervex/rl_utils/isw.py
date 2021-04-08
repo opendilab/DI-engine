@@ -9,7 +9,7 @@ def compute_importance_weights(target_output, behaviour_output, action, requires
         - target_output (:obj:`torch.Tensor`): the output taking the action by the current policy network,\
             usually this output is network output logit
         - behaviour_output (:obj:`torch.Tensor`): the output taking the action by the behaviour policy network,\
-            usually this output is network output logit, which is used to produce the trajectory(actor)
+            usually this output is network output logit, which is used to produce the trajectory(collector)
         - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
             i.e.: behaviour_action
         - requires_grad (:obj:`bool`): whether requires grad computation

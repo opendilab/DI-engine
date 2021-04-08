@@ -9,7 +9,7 @@ qbert_ppo_default_config = dict(
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=3,
     ),
     policy=dict(
@@ -50,7 +50,7 @@ qbert_ppo_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=1024,
         traj_len=128,
         collect_print_freq=100,

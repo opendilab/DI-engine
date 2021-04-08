@@ -20,14 +20,14 @@ BaseCommander
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.worker.coordinator.base_parallel_commander.BaseCommander
-    :members: get_actor_task
+    :members: get_collector_task
 
 
 NaiveCommander
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.worker.coordinator.base_parallel_commander.NaiveCommander
-    :members: __init__, get_actor_task, get_learner_task, finish_actor_task, finish_learner_task, notify_fail_actor_task, notify_fail_learner_task, get_learner_info
+    :members: __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task, notify_fail_collector_task, notify_fail_learner_task, get_learner_info
 
 
 create_parallel_commander
@@ -44,4 +44,4 @@ SoloCommander
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.worker.coordinator.solo_parallel_commander.SoloCommander
-    :members: __init__, get_actor_task, get_learner_task, finish_actor_task, finish_learner_task, notify_fail_actor_task, notify_fail_learner_task, get_learner_info
+    :members: __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task, notify_fail_collector_task, notify_fail_learner_task, get_learner_info

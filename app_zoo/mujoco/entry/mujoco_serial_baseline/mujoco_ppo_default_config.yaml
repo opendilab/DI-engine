@@ -38,7 +38,7 @@ learner:
                 freq: 1000
 model:
     embedding_dim: 128
-actor:
+collector:
     env_num: 2
     episode_num: 1
     print_freq: 500

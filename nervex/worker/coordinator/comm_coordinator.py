@@ -14,9 +14,9 @@ from .resource_manager import NaiveResourceManager
 class CommCoordinator(object):
     r"""
     Overview:
-        the communication part of coordinator(coordinator interactor)
+        the communication part of coordinator(coordinator intercollector)
     Interface:
-        __init__ , start, close, __del__, send_actor_task, send_learner_task
+        __init__ , start, close, __del__, send_collector_task, send_learner_task
     """
 
     def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'TextLogger') -> None:  # noqa
@@ -31,12 +31,12 @@ class CommCoordinator(object):
         self._cfg = cfg
         self._callback_fn = callback_fn
         self._logger = logger
-        self._connection_actor = {}
+        self._connection_collector = {}
         self._connection_learner = {}
         self._resource_manager = NaiveResourceManager()
         self._end_flag = True
         self._remain_lock = LockContext(LockContextType.THREAD_LOCK)
-        self._remain_actor_task = set()
+        self._remain_collector_task = set()
         self._remain_learner_task = set()
 
     def start(self) -> None:
@@ -63,17 +63,17 @@ class CommCoordinator(object):
                     else:
                         self._resource_manager.update('learner', learner_id, resource_task.result)
                         self._connection_learner[learner_id] = conn
-                for _, (actor_id, actor_host, actor_port) in self._cfg.actor.items():
-                    conn = self._master.new_connection(actor_id, actor_host, actor_port)
+                for _, (collector_id, collector_host, collector_port) in self._cfg.collector.items():
+                    conn = self._master.new_connection(collector_id, collector_host, collector_port)
                     conn.connect()
                     assert conn.is_connected
                     resource_task = self._get_resource(conn)
                     if resource_task.status != TaskStatus.COMPLETED:
-                        self._logger.error("can't acquire resource for actor({})".format(actor_id))
+                        self._logger.error("can't acquire resource for collector({})".format(collector_id))
                         continue
                     else:
-                        self._resource_manager.update('actor', actor_id, resource_task.result)
-                        self._connection_actor[actor_id] = conn
+                        self._resource_manager.update('collector', collector_id, resource_task.result)
+                        self._connection_collector[collector_id] = conn
                 break
             except Exception as e:
                 self.close()
@@ -97,11 +97,11 @@ class CommCoordinator(object):
         # wait for execute thread
         start_time = time.time()
         while time.time() - start_time <= 60:
-            if len(self._remain_learner_task) == 0 and len(self._remain_actor_task) == 0:
+            if len(self._remain_learner_task) == 0 and len(self._remain_collector_task) == 0:
                 break
             else:
                 time.sleep(1)
-        for actor_id, conn in self._connection_actor.items():
+        for collector_id, conn in self._connection_collector.items():
             conn.disconnect()
             assert not conn.is_connected
         for learner_id, conn in self._connection_learner.items():
@@ -127,57 +127,64 @@ class CommCoordinator(object):
         resource_task.start().join()
         return resource_task
 
-    def send_actor_task(self, actor_task: dict) -> bool:
+    def send_collector_task(self, collector_task: dict) -> bool:
         r"""
         Overview:
-            send the actor_task to actor_task threads and execute
+            send the collector_task to collector_task threads and execute
         Arguments:
-            - actor_task (:obj:`dict`): the actor_task to send
+            - collector_task (:obj:`dict`): the collector_task to send
         """
         # assert not self._end_flag, "please start interaction first"
-        task_id = actor_task['task_id']
-        # according to resource info, assign task to a specific actor and adapt task
-        assigned_actor = self._resource_manager.assign_actor(actor_task)
-        if assigned_actor is None:
-            self._logger.error("actor task({}) doesn't have enough actor to execute".format(task_id))
+        task_id = collector_task['task_id']
+        # according to resource info, assign task to a specific collector and adapt task
+        assigned_collector = self._resource_manager.assign_collector(collector_task)
+        if assigned_collector is None:
+            self._logger.error("collector task({}) doesn't have enough collector to execute".format(task_id))
             return False
-        actor_task.update(assigned_actor)
+        collector_task.update(assigned_collector)
 
-        actor_id = actor_task['actor_id']
-        start_task = self._connection_actor[actor_id].new_task({'name': 'actor_start_task', 'task_info': actor_task})
+        collector_id = collector_task['collector_id']
+        start_task = self._connection_collector[collector_id].new_task(
+            {
+                'name': 'collector_start_task',
+                'task_info': collector_task
+            }
+        )
         start_task.start().join()
         if start_task.status != TaskStatus.COMPLETED:
-            self._resource_manager.update('actor', assigned_actor['actor_id'], assigned_actor['resource_info'])
-            self._logger.error('actor_task({}) start failed: {}'.format(task_id, start_task.result))
+            self._resource_manager.update(
+                'collector', assigned_collector['collector_id'], assigned_collector['resource_info']
+            )
+            self._logger.error('collector_task({}) start failed: {}'.format(task_id, start_task.result))
             return False
         else:
-            self._logger.info('actor task({}) is assigned to actor({})'.format(task_id, actor_id))
+            self._logger.info('collector task({}) is assigned to collector({})'.format(task_id, collector_id))
             with self._remain_lock:
-                self._remain_actor_task.add(task_id)
-            actor_task_thread = Thread(
-                target=self._execute_actor_task, args=(actor_task, ), name='coordinator_actor_task'
+                self._remain_collector_task.add(task_id)
+            collector_task_thread = Thread(
+                target=self._execute_collector_task, args=(collector_task, ), name='coordinator_collector_task'
             )
-            actor_task_thread.start()
+            collector_task_thread.start()
             return True
 
-    def _execute_actor_task(self, actor_task: dict) -> None:
+    def _execute_collector_task(self, collector_task: dict) -> None:
         r"""
         Overview:
-            execute the actor task
+            execute the collector task
         Arguments:
-            - actor_task (:obj:`dict`): the actor task to execute
+            - collector_task (:obj:`dict`): the collector task to execute
         """
-        actor_id = actor_task['actor_id']
+        collector_id = collector_task['collector_id']
         while not self._end_flag:
             try:
                 # data task
-                data_task = self._connection_actor[actor_id].new_task({'name': 'actor_data_task'})
-                self._logger.info('actor data task begin')
+                data_task = self._connection_collector[collector_id].new_task({'name': 'collector_data_task'})
+                self._logger.info('collector data task begin')
                 data_task.start().join()
-                self._logger.info('actor data task end')
+                self._logger.info('collector data task end')
                 if data_task.status != TaskStatus.COMPLETED:
                     # TODO(deal with fail task)
-                    self._logger.error('actor data task is failed')
+                    self._logger.error('collector data task is failed')
                     continue
                 result = data_task.result
                 task_id = result.get('task_id', None)
@@ -185,26 +192,26 @@ class CommCoordinator(object):
                 if 'data_id' in result:
                     buffer_id = result.get('buffer_id', None)
                     data_id = result.get('data_id', None)
-                    self._callback_fn['deal_with_actor_send_data'](task_id, buffer_id, data_id, result)
+                    self._callback_fn['deal_with_collector_send_data'](task_id, buffer_id, data_id, result)
                 # info result
                 else:
-                    is_finished = self._callback_fn['deal_with_actor_judge_finish'](task_id, result)
+                    is_finished = self._callback_fn['deal_with_collector_judge_finish'](task_id, result)
                     if not is_finished:
                         continue
                     # close task
                     self._logger.error('close_task: {}\n{}'.format(task_id, result))
-                    close_task = self._connection_actor[actor_id].new_task({'name': 'actor_close_task'})
+                    close_task = self._connection_collector[collector_id].new_task({'name': 'collector_close_task'})
                     close_task.start().join()
                     if close_task.status != TaskStatus.COMPLETED:
                         # TODO(deal with fail task)
-                        self._logger.error('actor close is failed')
+                        self._logger.error('collector close is failed')
                         break
                     result = close_task.result
                     task_id = result.get('task_id', None)
-                    self._callback_fn['deal_with_actor_finish_task'](task_id, result)
-                    resource_task = self._get_resource(self._connection_actor[actor_id])
+                    self._callback_fn['deal_with_collector_finish_task'](task_id, result)
+                    resource_task = self._get_resource(self._connection_collector[collector_id])
                     if resource_task.status == TaskStatus.COMPLETED:
-                        self._resource_manager.update('actor', actor_id, resource_task.result)
+                        self._resource_manager.update('collector', collector_id, resource_task.result)
                     break
             except requests.exceptions.HTTPError as e:
                 if self._end_flag:
@@ -213,7 +220,7 @@ class CommCoordinator(object):
                     raise e
 
         with self._remain_lock:
-            self._remain_actor_task.remove(task_id)
+            self._remain_collector_task.remove(task_id)
 
     def send_learner_task(self, learner_task: dict) -> bool:
         r"""

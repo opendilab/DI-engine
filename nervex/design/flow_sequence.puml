@@ -5,7 +5,7 @@ autonumber
 
 participant Coordinator
 participant Learner
-participant Actor
+participant Collector
 participant Middleware
 participant Operator
 
@@ -14,9 +14,9 @@ Coordinator->Coordinator: start communication module
 Coordinator->Coordinator: start commander
 Coordinator->Coordinator: start replay buffer
 Coordinator->Operator: connect operator
-Operator->Coordinator: send actor/learner info
+Operator->Coordinator: send collector/learner info
 Coordinator->Learner: create connection
-Coordinator->Actor: create connection
+Coordinator->Collector: create connection
 end
 
 loop
@@ -59,30 +59,30 @@ end
 
 autonumber
 group data collection/evaluation(async)
-Coordinator->Actor: request actor start task
+Coordinator->Collector: request collector start task
 note right
 policy meta
 env config
-actor config
+collector config
 end note
-Actor->Coordinator: return actor start info
-Middleware->Actor: load policy info for init
-group actor loop
-Coordinator->Actor: request get data task
-Actor->Actor: policy interact with env
-Actor->Middleware: send data(stepdata)
-Actor->Coordinator: return data(metadata)
+Collector->Coordinator: return collector start info
+Middleware->Collector: load policy info for init
+group collector loop
+Coordinator->Collector: request get data task
+Collector->Collector: policy interact with env
+Collector->Middleware: send data(stepdata)
+Collector->Coordinator: return data(metadata)
 note right
 data path
 data length(rollout length)
 end note
-Middleware->Actor: load policy info for update
+Middleware->Collector: load policy info for update
 end group
-Coordinator->Actor: request actor close task
-Actor->Coordinator: return actor close info
+Coordinator->Collector: request collector close task
+Collector->Coordinator: return collector close info
 note right
 episode result(cumulative reward)
-actor performance
+collector performance
 end note
 end group
 end
@@ -90,7 +90,7 @@ end
 autonumber
 group close
 Coordinator->Learner: destory connection
-Coordinator->Actor: destory connection
+Coordinator->Collector: destory connection
 Coordinator->Operator: disconnect operator
 Coordinator->Coordinator: close
 end group
