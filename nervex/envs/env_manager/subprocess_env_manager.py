@@ -174,15 +174,15 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     """
 
     def __init__(
-            self,
-            env_fn: Callable,
-            env_cfg: Iterable,
-            episode_num: Optional[Union[int, float]] = float('inf'),
-            shared_memory: bool = True,
-            context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
-            wait_num: int = 2,
-            timeout: float = 0.01,
-            reset_timeout: float = 60,
+        self,
+        env_fn: Callable,
+        env_cfg: Iterable,
+        episode_num: Optional[Union[int, float]] = float('inf'),
+        shared_memory: bool = True,
+        context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
+        wait_num: int = 2,
+        timeout: float = 0.01,
+        reset_timeout: float = 60,
     ) -> None:
         """
         Overview:
