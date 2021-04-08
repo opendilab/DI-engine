@@ -93,7 +93,7 @@ class BaseSerialCollector(object):
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
-           Generate data. Either ``n_episode`` or ``n_sample`` must be None.
+           Collect data. Either ``n_episode`` or ``n_sample`` must be None.
         Arguments:
            - train_iter (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode

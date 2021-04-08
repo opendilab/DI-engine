@@ -124,7 +124,7 @@ def collect_demo_data(
     collector.env = collector_env
     collector.policy = policy.collect_mode
     # let's collect some expert demostrations
-    exp_data = collector.generate_data(n_sample=collect_count)
+    exp_data = collector.collect_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:

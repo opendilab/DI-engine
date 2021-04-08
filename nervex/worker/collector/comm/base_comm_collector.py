@@ -91,9 +91,8 @@ class BaseCommCollector(ABC):
         Returns:
             - collector (:obj:`BaseCollector`): Created base collector.
         Note:
-            Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info'),
-            and policy are set.
-            The reason why they are set here rather than base collector is that, they highly depend on the specific task.
+            Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info'), and policy are set.
+            The reason why they are set here rather than base collector is, they highly depend on the specific task.
             Only after task info is passed from coordinator to comm collector through learner slave, can they be
             clarified and initialized.
         """
