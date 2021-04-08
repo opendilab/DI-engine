@@ -9,7 +9,7 @@ pong_sqn_default_config = dict(
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_tor_tor_env_num=16,
         evaluator_env_num=8,
     ),
     policy=dict(
@@ -55,7 +55,7 @@ pong_sqn_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=100,
         traj_len=traj_len,
         collect_print_freq=5,

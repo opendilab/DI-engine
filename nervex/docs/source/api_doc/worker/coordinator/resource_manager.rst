@@ -8,5 +8,5 @@ NaiveResourceManager
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.worker.coordinator.resource_manager.NaiveResourceManager
-    :members: __init__, assign_actor, assign_learner, update
+    :members: __init__, assign_collector, assign_learner, update
 

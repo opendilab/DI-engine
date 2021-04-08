@@ -16,8 +16,8 @@ class OneVsOneCommander(BaseCommander):
     Overview:
         Parallel commander for battle games.
     Interface:
-        __init__, get_actor_task, get_learner_task, finish_actor_task, finish_learner_task,
-        notify_fail_actor_task, notify_fail_learner_task, get_learner_info
+        __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
+        notify_fail_collector_task, notify_fail_learner_task, get_learner_info
     """
 
     def __init__(self, cfg: dict) -> None:
@@ -28,7 +28,7 @@ class OneVsOneCommander(BaseCommander):
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
-        self._actor_task_space = LimitedSpaceContainer(0, cfg.actor_task_space)
+        self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
         self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
 
         # League
@@ -46,51 +46,54 @@ class OneVsOneCommander(BaseCommander):
         self._eval_step = -1
         self._end_flag = False
 
-    def get_actor_task(self) -> Optional[dict]:
+    def get_collector_task(self) -> Optional[dict]:
         r"""
         Overview:
-            Return the new actor task when there is residual task space; Otherwise return None.
+            Return the new collector task when there is residual task space; Otherwise return None.
         Return:
-            - task (:obj:`Optional[dict]`): New actor task.
+            - task (:obj:`Optional[dict]`): New collector task.
         """
         if self._end_flag:
             return None
-        if self._actor_task_space.acquire_space():
+        if self._collector_task_space.acquire_space():
             if self._current_buffer_id is None or len(self._current_policy_id) == 0:
-                self._actor_task_space.release_space()
+                self._collector_task_space.release_space()
                 return None
             cur_time = time.time()
             if cur_time - self._last_eval_time > self._cfg.eval_interval:
                 eval_flag = True
             else:
                 eval_flag = False
-            actor_cfg = self._cfg.actor_cfg
-            actor_cfg.collect_setting = self._policy.get_setting_collect(self._learner_info[-1])
+            collector_cfg = self._cfg.collector_cfg
+            collector_cfg.collect_setting = self._policy.get_setting_collect(self._learner_info[-1])
             league_job_dict = self._league.get_job_info(self._active_player.player_id, eval_flag)
             self._current_player_id = league_job_dict['player_id']
-            actor_cfg.policy_update_path = league_job_dict['checkpoint_path']
-            actor_cfg.policy_update_flag = league_job_dict['player_active_flag']
-            actor_cfg.eval_flag = eval_flag
+            collector_cfg.policy_update_path = league_job_dict['checkpoint_path']
+            collector_cfg.policy_update_flag = league_job_dict['player_active_flag']
+            collector_cfg.eval_flag = eval_flag
             if eval_flag:
                 policy = [self._cfg.policy]
-                actor_cfg.env_kwargs.eval_opponent = league_job_dict['eval_opponent']
+                collector_cfg.env_kwargs.eval_opponent = league_job_dict['eval_opponent']
             else:
                 policy = [self._cfg.policy for _ in range(2)]
-            actor_command = {
-                'task_id': 'actor_task_{}'.format(get_task_uid()),
+            collector_command = {
+                'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
-                'actor_cfg': actor_cfg,
+                'collector_cfg': collector_cfg,
                 'policy': policy,
             }
-            log_str = "EVALUATOR" if eval_flag else "ACTOR"
+            log_str = "EVALUATOR" if eval_flag else "Collector"
             self._logger.info(
                 "[{}] Task starts:\n{}".format(
                     log_str, '\n'.join(
-                        ['{}: {}'.format(k, v) for k, v in actor_command.items() if k not in ['actor_cfg', 'policy']]
+                        [
+                            '{}: {}'.format(k, v) for k, v in collector_command.items()
+                            if k not in ['collector_cfg', 'policy']
+                        ]
                     )
                 )
             )
-            return actor_command
+            return collector_command
         else:
             # self._logger.info("[{}] Fails to start because of no launch space".format(log_str.upper()))
             return None
@@ -131,27 +134,27 @@ class OneVsOneCommander(BaseCommander):
             # self._logger.info("[LEARNER] Fails to start because of no launch space")
             return None
 
-    def finish_actor_task(self, task_id: str, finished_task: dict) -> bool:
+    def finish_collector_task(self, task_id: str, finished_task: dict) -> bool:
         r"""
         Overview:
-            Get actor's finish_task_info and release actor_task_space.
-            If actor's task is evaluation, judge the convergence and return it.
+            Get collector's finish_task_info and release collector_task_space.
+            If collector's task is evaluation, judge the convergence and return it.
         Arguments:
-            - task_id (:obj:`str`): the actor task_id
+            - task_id (:obj:`str`): the collector task_id
             - finished_task (:obj:`dict`): the finished task
         Returns:
             - convergence (:obj:`bool`): Whether the stop val is reached and the algorithm is converged. \
                 If True, the pipeline can be finished. It is only effective for an evaluator finish task.
         """
-        self._actor_task_space.release_space()
+        self._collector_task_space.release_space()
         if not finished_task['eval_flag']:
-            # If actor task ends, league payoff should be updated.
+            # If collector task ends, league payoff should be updated.
             payoff_update_dict = {
                 'player_id': self._current_player_id,
                 'result': finished_task['game_result'],
             }
             self._league.finish_job(payoff_update_dict)  # issue
-            self._logger.info("[ACTOR] Task ends")
+            self._logger.info("[Collector] Task ends")
         if finished_task['eval_flag']:
             # If evaluator task ends, whether to stop training should be judged.
             self._eval_step += 1
@@ -192,7 +195,7 @@ class OneVsOneCommander(BaseCommander):
                 if k in ['train_iter', 'game_result']:
                     continue
                 self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
-            eval_stop_value = self._cfg.actor_cfg.env_kwargs.eval_stop_value
+            eval_stop_value = self._cfg.collector_cfg.env_kwargs.eval_stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
                     "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
@@ -222,13 +225,13 @@ class OneVsOneCommander(BaseCommander):
         self._logger.info("[LEARNER] Task ends.")
         return buffer_id
 
-    def notify_fail_actor_task(self, task: dict) -> None:
+    def notify_fail_collector_task(self, task: dict) -> None:
         r"""
         Overview:
-            Release task space when actor task fails.
+            Release task space when collector task fails.
         """
-        self._actor_task_space.release_space()
-        self._logger.info("[ACTOR/EVALUATOR] Task fails.")
+        self._collector_task_space.release_space()
+        self._logger.info("[Collector/EVALUATOR] Task fails.")
 
     def notify_fail_learner_task(self, task: dict) -> None:
         r"""

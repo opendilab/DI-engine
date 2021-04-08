@@ -140,7 +140,7 @@ Env Manager
 
         .. note::
 
-            具体的使用可以参考测试文件 nervex/worker/actor/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
+            具体的使用可以参考测试文件 nervex/envs/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
 
     2. SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
 

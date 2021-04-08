@@ -172,7 +172,7 @@ class ArgmaxSampleHelper(IArmorStatelessPlugin):
     Interfaces:
         register
     Examples:
-        >>> ArgmaxSampleHelper.register(actor_armor)
+        >>> ArgmaxSampleHelper.register(collector_armor)
     """
 
     @classmethod
@@ -255,7 +255,7 @@ class MultinomialSampleHelper(IArmorStatelessPlugin):
 class EpsGreedySampleHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        Epsilon greedy sampler used in actor_armor to help balance exploratin and exploitation.
+        Epsilon greedy sampler used in collector_armor to help balance exploratin and exploitation.
     Interfaces:
         register
     """
@@ -311,7 +311,7 @@ class EpsGreedySampleHelper(IArmorStatelessPlugin):
 class ActionNoiseHelper(IArmorStatefulPlugin):
     r"""
     Overview:
-        Add noise to actor's action output; Do clips on both generated noise and action after adding noise.
+        Add noise to collector's action output; Do clips on both generated noise and action after adding noise.
     Interfaces:
         register, __init__, add_noise, reset
     """

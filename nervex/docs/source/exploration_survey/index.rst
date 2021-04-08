@@ -73,7 +73,7 @@ Survey On Exploration
 
 
 2. Measurements on Exploration and Integrating into Reward i.e. the "How to?"
-***********************************
+********************************************************************************
     - Classic Approachs
         - Statistical Approach:
             - Epsilon-greedy; UCB; Boltzmann exploration; Thompson sampling
@@ -103,7 +103,8 @@ Survey On Exploration
                 - Add noise into the observation, action or even parameter space
             - Direct Exploration:
                 - Phase 1 "Go Explore" + Phase 2 "Backward Algorithm"  `(Go-Explore) <https://arxiv.org/abs/2004.12919>`_
-                 .. image:: ./images/policy-based-Go-Explore.png
+                    
+                    .. image:: ./images/policy-based-Go-Explore.png
 
 
 3. Practices of Algo and Env (WIP.)

@@ -9,7 +9,7 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_R
 from nervex.policy import Policy, CommonPolicy
 from nervex.rl_utils import Adder
 
-from nervex.worker.actor.tests.speed_test.utils import random_change
+from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
 class FakePolicy(CommonPolicy):
@@ -41,7 +41,7 @@ class FakePolicy(CommonPolicy):
 
     def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
         pass
-    
+
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         pass
 
@@ -54,9 +54,7 @@ class FakePolicy(CommonPolicy):
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         time.sleep(random_change(self._forward_time))
-        return {
-            'action': torch.ones(data['obs'].shape[0], 2)
-        }
+        return {'action': torch.ones(data['obs'].shape[0], 2)}
         # pass
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -74,7 +72,7 @@ class FakePolicy(CommonPolicy):
 
     # def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
     #     return self._adder.get_train_sample(data)
-    
+
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         pass
 

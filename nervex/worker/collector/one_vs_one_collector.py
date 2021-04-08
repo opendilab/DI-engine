@@ -10,14 +10,14 @@ from easydict import EasyDict
 
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
 from nervex.envs import BaseEnvTimestep, AsyncSubprocessEnvManager, BaseEnvManager
-from .base_parallel_actor import BaseActor
-from .base_serial_actor import CachePool
+from .base_parallel_collector import BaseCollector
+from .base_serial_collector import CachePool
 
 
-@ACTOR_REGISTRY.register('one_vs_one')
-class OneVsOneActor(BaseActor):
+@COLLECTOR_REGISTRY.register('one_vs_one')
+class OneVsOneCollector(BaseCollector):
     """
     Feature:
       - one policy, many envs
@@ -55,13 +55,13 @@ class OneVsOneActor(BaseActor):
         self._first_update_policy = True
 
     def _setup_env_manager(self) -> BaseEnvManager:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num
         else:
-            env_cfg = actor_env_cfg
-            episode_num = self._env_kwargs.actor_episode_num
+            env_cfg = collector_env_cfg
+            episode_num = self._env_kwargs.collector_episode_num
         self._episode_num = episode_num
         env_manager = AsyncSubprocessEnvManager(
             env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
@@ -164,8 +164,8 @@ class OneVsOneActor(BaseActor):
             self._total_step += 1
             dones.append(t[0].done)
         if any(dones):
-            actor_info = self._get_actor_info()
-            self.send_metadata(actor_info)
+            collector_info = self._get_collector_info()
+            self.send_metadata(collector_info)
 
     # override
     def get_finish_info(self) -> dict:
@@ -188,7 +188,7 @@ class OneVsOneActor(BaseActor):
             'episode_num': self._episode_num,
             'env_num': self._env_num,
             'duration': duration,
-            'actor_done': self._env_manager.done,
+            'collector_done': self._env_manager.done,
             'target_episode_count': episode_count,
             'real_episode_count': self._total_episode,
             'step_count': self._total_step,
@@ -261,18 +261,18 @@ class OneVsOneActor(BaseActor):
         }
         return metadata
 
-    def _get_actor_info(self) -> dict:
+    def _get_collector_info(self) -> dict:
         return {
             'eval_flag': self._eval_flag,
             'get_info_time': time.time(),
-            'actor_done': self._env_manager.done,
+            'collector_done': self._env_manager.done,
             'cur_episode': self._total_episode,
             'cur_sample': self._total_sample,
             'cur_step': self._total_step,
         }
 
     def __repr__(self) -> str:
-        return "OneVsOneActor"
+        return "OneVsOneCollector"
 
     @property
     def policy(self) -> List['Policy']:  # noqa

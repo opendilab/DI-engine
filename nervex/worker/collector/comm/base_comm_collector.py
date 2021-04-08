@@ -4,19 +4,19 @@ from typing import Any
 from easydict import EasyDict
 
 from nervex.policy import create_policy
-from nervex.utils import get_task_uid, import_module, COMM_ACTOR_REGISTRY
-from ..base_parallel_actor import create_actor, BaseActor
+from nervex.utils import get_task_uid, import_module, COMM_COLLECTOR_REGISTRY
+from ..base_parallel_collector import create_collector, BaseCollector
 
 
-class BaseCommActor(ABC):
+class BaseCommCollector(ABC):
     """
     Overview:
-        Abstract baseclass for common actor.
+        Abstract baseclass for common collector.
     Interfaces:
         __init__, get_policy_update_info, send_metadata, send_stepdata
-        start, close, _create_actor
+        start, close, _create_collector
     Property:
-        actor_uid
+        collector_uid
     """
 
     def __init__(self, cfg):
@@ -28,14 +28,14 @@ class BaseCommActor(ABC):
         """
         self._cfg = cfg
         self._end_flag = True
-        self._actor_uid = get_task_uid()
+        self._collector_uid = get_task_uid()
 
     @abstractmethod
     def get_policy_update_info(self, path: str) -> Any:
         """
         Overview:
             Get policy information in corresponding path.
-            Will be registered in base actor.
+            Will be registered in base collector.
         Arguments:
             - path (:obj:`str`): path to policy update information.
         """
@@ -45,9 +45,9 @@ class BaseCommActor(ABC):
     def send_metadata(self, metadata: Any) -> None:
         """
         Overview:
-            Store meta data in queue, which will be retrieved by callback function "deal_with_actor_data"
-            in actor slave, then will be sent to coordinator.
-            Will be registered in base actor.
+            Store meta data in queue, which will be retrieved by callback function "deal_with_collector_data"
+            in collector slave, then will be sent to coordinator.
+            Will be registered in base collector.
         Arguments:
             - metadata (:obj:`Any`): meta data.
         """
@@ -58,7 +58,7 @@ class BaseCommActor(ABC):
         """
         Overview:
             Save step data in corresponding path.
-            Will be registered in base actor.
+            Will be registered in base collector.
         Arguments:
             - stepdata (:obj:`Any`): step data.
         """
@@ -67,41 +67,41 @@ class BaseCommActor(ABC):
     def start(self) -> None:
         """
         Overview:
-            Start comm actor.
+            Start comm collector.
         """
         self._end_flag = False
 
     def close(self) -> None:
         """
         Overview:
-            Close comm actor.
+            Close comm collector.
         """
         self._end_flag = True
 
     @property
-    def actor_uid(self) -> str:
-        return self._actor_uid
+    def collector_uid(self) -> str:
+        return self._collector_uid
 
-    def _create_actor(self, task_info: dict) -> BaseActor:
+    def _create_collector(self, task_info: dict) -> BaseCollector:
         """
         Overview:
-            Receive ``task_info`` passed from coordinator and create a actor.
+            Receive ``task_info`` passed from coordinator and create a collector.
         Arguments:
             - task_info (:obj:`dict`): Task info dict from coordinator. Should be like \
         Returns:
-            - actor (:obj:`BaseActor`): Created base actor.
+            - collector (:obj:`BaseCollector`): Created base collector.
         Note:
             Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info'),
             and policy are set.
-            The reason why they are set here rather than base actor is that, they highly depend on the specific task.
-            Only after task info is passed from coordinator to comm actor through learner slave, can they be
+            The reason why they are set here rather than base collector is that, they highly depend on the specific task.
+            Only after task info is passed from coordinator to comm collector through learner slave, can they be
             clarified and initialized.
         """
-        actor_cfg = EasyDict(task_info['actor_cfg'])
-        actor = create_actor(actor_cfg)
+        collector_cfg = EasyDict(task_info['collector_cfg'])
+        collector = create_collector(collector_cfg)
         for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info']:
-            setattr(actor, item, getattr(self, item))
-        eval_flag = actor_cfg.eval_flag
+            setattr(collector, item, getattr(self, item))
+        eval_flag = collector_cfg.eval_flag
         if eval_flag:
             if isinstance(task_info['policy'], list):
                 policy = [create_policy(cfg, enable_field=['eval']).eval_mode for cfg in task_info['policy']]
@@ -112,21 +112,21 @@ class BaseCommActor(ABC):
                 policy = [create_policy(cfg, enable_field=['collect']).collect_mode for cfg in task_info['policy']]
             else:
                 policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
-        actor.policy = policy
-        return actor
+        collector.policy = policy
+        return collector
 
 
-def create_comm_actor(cfg: EasyDict) -> BaseCommActor:
+def create_comm_collector(cfg: EasyDict) -> BaseCommCollector:
     """
     Overview:
-        Given the key(comm_actor_name), create a new comm actor instance if in comm_map's values,
-        or raise an KeyError. In other words, a derived comm actor must first register,
-        then can call ``create_comm_actor`` to get the instance.
+        Given the key(comm_collector_name), create a new comm collector instance if in comm_map's values,
+        or raise an KeyError. In other words, a derived comm collector must first register,
+        then can call ``create_comm_collector`` to get the instance.
     Arguments:
-        - cfg (:obj:`EasyDict`): Actor config. Necessary keys: [import_names, comm_actor_type].
+        - cfg (:obj:`EasyDict`): Collector config. Necessary keys: [import_names, comm_collector_type].
     Returns:
-        - actor (:obj:`BaseCommActor`): The created new comm actor, should be an instance of one of \
+        - collector (:obj:`BaseCommCollector`): The created new comm collector, should be an instance of one of \
         comm_map's values.
     """
     import_module(cfg.get('import_names', []))
-    return COMM_ACTOR_REGISTRY.build(cfg.comm_actor_type, cfg=cfg)
+    return COMM_COLLECTOR_REGISTRY.build(cfg.comm_collector_type, cfg=cfg)

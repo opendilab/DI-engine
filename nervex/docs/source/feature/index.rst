@@ -18,7 +18,7 @@ Feature
     hpc_rl_overview
     armor_overview
     learner_overview
-    actor_overview
+    collector_overview
     league_overview
     dataloader_overview
     autolog_overview

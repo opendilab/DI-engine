@@ -3,7 +3,7 @@ import torch
 import logging
 
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -33,8 +33,8 @@ def serial_pipeline_irl(
     """
     # Disable some parts nervex system log
     if not enable_total_log:
-        actor_log = logging.getLogger('actor_logger')
-        actor_log.disabled = True
+        collector_log = logging.getLogger('collector_logger')
+        collector_log.disabled = True
     if isinstance(cfg, str):
         cfg = read_config(cfg)
     # Default case: Create env_num envs with copies of env cfg.
@@ -42,15 +42,15 @@ def serial_pipeline_irl(
     # Usually, user-defined env must be registered in nervex so that it can be created with config string;
     # Or you can also directly pass in env_fn argument, in some dynamic env class cases.
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
-        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
+        env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     manager_cfg = cfg.env.get('manager', {})
-    actor_env = create_env_manager(
+    collector_env = create_env_manager(
         cfg.env.env_manager_type,
         env_fn=env_fn,
-        env_cfg=actor_env_cfg,
-        env_num=len(actor_env_cfg),
+        env_cfg=collector_env_cfg,
+        env_num=len(collector_env_cfg),
         manager_cfg=manager_cfg
     )
     evaluator_env = create_env_manager(
@@ -63,10 +63,10 @@ def serial_pipeline_irl(
     # Random seed
     if not seed:
         seed = cfg.get('seed', 0)
-    actor_env.seed(seed)
+    collector_env.seed(seed)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
-    # Create components: policy, learner, actor, evaluator, replay buffer, commander.
+    # Create components: policy, learner, collector, evaluator, replay buffer, commander.
     if policy_type is None:
         policy_fn = create_policy
     else:
@@ -75,17 +75,17 @@ def serial_pipeline_irl(
     policy = policy_fn(cfg.policy, model=model)
     _, tb_logger = build_logger(path='./log/', name='serial', need_tb=True, need_text=False)
     learner = BaseLearner(cfg.learner, tb_logger)
-    actor = BaseSerialActor(cfg.actor, tb_logger)
+    collector = BaseSerialCollector(cfg.collector, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.evaluator, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
-    commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer)
+    commander = BaseSerialCommander(cfg.commander, learner, collector, evaluator, replay_buffer)
     reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
     reward_model.start()
     # Set corresponding env and policy mode.
-    actor.env = actor_env
+    collector.env = collector_env
     evaluator.env = evaluator_env
     learner.policy = policy.learn_mode
-    actor.policy = policy.collect_mode
+    collector.policy = policy.collect_mode
     evaluator.policy = policy.eval_mode
     commander.policy = policy.command_mode
     # ==========
@@ -96,7 +96,7 @@ def serial_pipeline_irl(
     max_eval_reward = float("-inf")
     # Evaluate interval. Will be set to 0 after one evaluation.
     eval_interval = cfg.evaluator.eval_freq
-    # How many steps to train in actor's one collection.
+    # How many steps to train in collector's one collection.
     learner_train_iteration = cfg.policy.learn.train_iteration
     # Whether to switch on priority experience replay.
     use_priority = cfg.policy.get('use_priority', False)
@@ -105,14 +105,14 @@ def serial_pipeline_irl(
 
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
-        new_data = actor.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
-        replay_buffer.push(new_data, cur_actor_envstep=0)
+        new_data = collector.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
+        replay_buffer.push(new_data, cur_collector_envstep=0)
 
     while True:
         commander.step()
         # Evaluate at the beginning of training.
         if eval_interval >= cfg.evaluator.eval_freq:
-            stop_flag, eval_reward = evaluator.eval(learner.train_iter, actor.envstep)
+            stop_flag, eval_reward = evaluator.eval(learner.train_iter, collector.envstep)
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
                 # Evaluator's mean episode reward reaches the expected ``stop_value``.
@@ -127,11 +127,11 @@ def serial_pipeline_irl(
                     max_eval_reward = eval_reward
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
-            new_data = actor.generate_data(learner.train_iter)
+            new_data = collector.generate_data(learner.train_iter)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
-            replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
+            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
@@ -149,7 +149,7 @@ def serial_pipeline_irl(
                 break
             # update train_data reward
             reward_model.estimate(train_data)
-            learner.train(train_data, actor.envstep)
+            learner.train(train_data, collector.envstep)
             eval_interval += 1
             if use_priority:
                 replay_buffer.update(learner.priority_info)
@@ -161,6 +161,6 @@ def serial_pipeline_irl(
     # Close all resources.
     replay_buffer.close()
     learner.close()
-    actor.close()
+    collector.close()
     evaluator.close()
     return policy

@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any
 import pickle
 import torch
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
@@ -99,19 +99,19 @@ def collect_demo_data(
         cfg = read_config(cfg)
     # Env init.
     if env_setting is None:
-        env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
     else:
-        env_fn, actor_env_cfg, _ = env_setting
+        env_fn, collector_env_cfg, _ = env_setting
     manager_cfg = cfg.env.get('manager', {})
-    actor_env = create_env_manager(
+    collector_env = create_env_manager(
         cfg.env.env_manager_type,
         env_fn=env_fn,
-        env_cfg=actor_env_cfg,
-        env_num=len(actor_env_cfg),
+        env_cfg=collector_env_cfg,
+        env_num=len(collector_env_cfg),
         manager_cfg=manager_cfg
     )
     # Random seed.
-    actor_env.seed(seed)
+    collector_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
     policy_fn = create_policy if policy_type is None else policy_type
@@ -119,15 +119,15 @@ def collect_demo_data(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    actor = BaseSerialActor(cfg.actor)
+    collector = BaseSerialCollector(cfg.collector)
 
-    actor.env = actor_env
-    actor.policy = policy.collect_mode
+    collector.env = collector_env
+    collector.policy = policy.collect_mode
     # let's collect some expert demostrations
-    exp_data = actor.generate_data(n_sample=collect_count)
+    exp_data = collector.generate_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:
         pickle.dump(exp_data, f)
     print('Collect demo data successfully')
-    actor.close()
+    collector.close()

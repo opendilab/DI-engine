@@ -25,7 +25,7 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
 
     .. note::
         value_{T+1} should be 0 if this trajectory reached a terminal state(done=True), otherwise we use value
-        function, this operation is implemented in actor for packing trajectory.
+        function, this operation is implemented in collector for packing trajectory.
     """
     value, reward = data
     delta = reward + gamma * value[1:] - value[:-1]

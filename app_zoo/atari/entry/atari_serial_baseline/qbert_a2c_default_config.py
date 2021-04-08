@@ -9,7 +9,7 @@ qbert_a2c_default_config = dict(
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_tor_tor_env_num=16,
         evaluator_env_num=8,
     ),
     policy=dict(
@@ -19,7 +19,7 @@ qbert_a2c_default_config = dict(
         on_policy=True,
         model=dict(
             model_type='conv_vac',
-            import_names=['nervex.model.actor_critic'],
+            import_names=['nervex.model.collector_tor_tor_critic'],
             obs_dim=[4, 84, 84],
             action_dim=6,
             embedding_dim=128,
@@ -52,7 +52,7 @@ qbert_a2c_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=80,
         traj_len=traj_len,
         collect_print_freq=1000,

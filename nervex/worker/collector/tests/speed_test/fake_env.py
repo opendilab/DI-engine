@@ -7,7 +7,7 @@ from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 
-from nervex.worker.actor.tests.speed_test.utils import random_change
+from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
 class FakeEnv(BaseEnv):
@@ -51,11 +51,9 @@ class FakeEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T(
-                (self._obs_dim, ), {
-                    'dtype': float,
-                }, None, None
-            ),
+            obs_space=T((self._obs_dim, ), {
+                'dtype': float,
+            }, None, None),
             # [min, max)
             act_space=T((self._action_dim, ), {
                 'min': 0,

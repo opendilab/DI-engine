@@ -8,10 +8,10 @@ from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
 
-class BaseSerialActor(object):
+class BaseSerialCollector(object):
     """
     Overview:
-        Baseclass for serial actor.
+        Baseclass for serial collector.
     Interfaces:
         __init__, reset, generate_data, close
     Property:
@@ -76,7 +76,7 @@ class BaseSerialActor(object):
         self._done_episode = []
 
     @property
-    def actor_info(self) -> dict:
+    def collector_info(self) -> dict:
         """
         Overview:
             Get current info dict, which will be sent to commander, e.g. replay buffer priority update,
@@ -234,10 +234,10 @@ class BaseSerialActor(object):
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue
-                self._tb_logger.add_scalar('actor_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('collector_iter/' + k, v, train_iter)
                 if k in ['total_envstep_count']:
                     continue
-                self._tb_logger.add_scalar('actor_step/' + k, v, self._total_envstep_count)
+                self._tb_logger.add_scalar('collector_step/' + k, v, self._total_envstep_count)
         return return_data
 
     def _var_reset(self, env_id: int) -> None:

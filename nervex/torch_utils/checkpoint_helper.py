@@ -91,7 +91,7 @@ class CheckpointHelper(object):
         last_epoch=None,
         last_frame=None,
         dataset=None,
-        actor_info=None,
+        collector_info=None,
         prefix_op=None,
         prefix=None
     ):
@@ -106,7 +106,7 @@ class CheckpointHelper(object):
             - last_iter (:obj:`CountVar`): iter num, default zero
             - last_epoch (:obj:`CountVar`): epoch num, default zero
             - dataset (:obj:`torch.utils.data.Dataset`): dataset, should be replaydataset
-            - actor_info (:obj:`torch.nn.Module`): attr of checkpoint, save actor info
+            - collector_info (:obj:`torch.nn.Module`): attr of checkpoint, save collector info
             - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
             - prefix (:obj:`str`): prefix to be processed on state_dict
         """
@@ -131,8 +131,8 @@ class CheckpointHelper(object):
 
         if dataset is not None:
             checkpoint['dataset'] = dataset.state_dict()
-        if actor_info is not None:
-            checkpoint['actor_info'] = actor_info.state_dict()
+        if collector_info is not None:
+            checkpoint['collector_info'] = collector_info.state_dict()
         save_file(path, checkpoint)
         logger.info('save checkpoint in {}'.format(path))
 
@@ -182,7 +182,7 @@ class CheckpointHelper(object):
         last_epoch=None,
         lr_schduler=None,
         dataset=None,
-        actor_info=None,
+        collector_info=None,
         prefix_op=None,
         prefix=None,
         strict=True,
@@ -200,7 +200,7 @@ class CheckpointHelper(object):
             - last_epoch (:obj:`CountVar`): epoch num, default zero
             - lr_schduler (:obj:`Schduler`): lr_schduler obj
             - dataset (:obj:`Dataset`): dataset, should be replaydataset
-            - actor_info (:obj:`torch.nn.Module`): attr of checkpoint, save actor info
+            - collector_info (:obj:`torch.nn.Module`): attr of checkpoint, save collector info
             - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
             - prefix (:obj:`str`): prefix to be processed on state_dict
             - strict (:obj:`bool`): args of model.load_state_dict
@@ -261,9 +261,9 @@ class CheckpointHelper(object):
             else:
                 logger.info(logger_prefix + "last_iter not in checkpoint, ignore load procedure")
 
-        if actor_info is not None:
-            actor_info.load_state_dict(checkpoint['actor_info'])
-            logger.info(logger_prefix + 'load actor info in {}'.format(load_path))
+        if collector_info is not None:
+            collector_info.load_state_dict(checkpoint['collector_info'])
+            logger.info(logger_prefix + 'load collector info in {}'.format(load_path))
 
         if lr_schduler is not None:
             assert (last_iter is not None)

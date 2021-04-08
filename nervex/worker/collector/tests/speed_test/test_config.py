@@ -5,7 +5,7 @@ test_config = dict(
     env=dict(
         env_manager_type='subprocess',
         manager=dict(shared_memory=True, ),
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=5,
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
@@ -19,7 +19,7 @@ test_config = dict(
         use_cuda=False,
         forward_time=0.002,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=80,
         # n_episode=8,
         traj_len=1,
