@@ -112,7 +112,8 @@ class FlaskFileSystemCollector(BaseCommCollector):
     def deal_with_collector_start(self, task_info: dict) -> None:
         """
         Overview:
-            Callback function in ``CollectorSlave``. Create an collector and start an collector thread of the created one.
+            Callback function in ``CollectorSlave``.
+            Create a collector and start a collector thread of the created one.
         Arguments:
             - task_info (:obj:`dict`): Task info dict.
         Note:
