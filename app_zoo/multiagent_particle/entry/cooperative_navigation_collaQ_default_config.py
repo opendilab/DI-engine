@@ -66,7 +66,7 @@ cooperative_navigation_collaQ_default_config = dict(
         replay_buffer_size=5000,
         max_use=10,
     ),
-    collectorctor=dict(
+    collector=dict(
         n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
         collect_print_freq=4,

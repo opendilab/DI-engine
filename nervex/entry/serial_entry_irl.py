@@ -105,7 +105,7 @@ def serial_pipeline_irl(
 
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
-        new_data = collector.generate_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
+        new_data = collector.collect_data(learner.train_iter, n_sample=replay_buffer.replay_start_size())
         replay_buffer.push(new_data, cur_collector_envstep=0)
 
     while True:
@@ -127,7 +127,7 @@ def serial_pipeline_irl(
                     max_eval_reward = eval_reward
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
-            new_data = collector.generate_data(learner.train_iter)
+            new_data = collector.collect_data(learner.train_iter)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
