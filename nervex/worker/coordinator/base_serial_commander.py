@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+
 class BaseSerialCommander(object):
     r"""
     Overview:
@@ -14,7 +17,8 @@ class BaseSerialCommander(object):
             learner: 'BaseLearner',  # noqa
             actor: 'BaseSerialActor',  # noqa
             evaluator: 'BaseSerialEvaluator',  # noqa
-            replay_buffer: 'BufferManager'  # noqa
+            replay_buffer: 'BufferManager',  # noqa
+            policy: namedtuple = None,
     ) -> None:
         r"""
         Overview:
@@ -32,6 +36,8 @@ class BaseSerialCommander(object):
         self._evaluator = evaluator
         self._replay_buffer = replay_buffer
         self._info = {}
+        if policy is not None:
+            self.policy = policy
 
     def step(self) -> None:
         r"""

@@ -100,7 +100,12 @@ class BaseLearner(object):
 
     _name = "BaseLearner"  # override this variable for sub-class learner
 
-    def __init__(self, cfg: EasyDict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
+    def __init__(
+            self,
+            cfg: EasyDict,
+            policy: namedtuple = None,
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
+    ) -> None:
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common learner components,
@@ -154,7 +159,8 @@ class BaseLearner(object):
         }, direct_print=False))
         self._end_flag = False
         self._learner_done = False
-        self._policy = None  # set by outside
+        if policy is not None:
+            self.policy = policy
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -328,6 +334,9 @@ class BaseLearner(object):
             self._dataloader.close()
         self._tb_logger.flush()
         self._tb_logger.close()
+
+    def __del__(self) -> None:
+        self.close()
 
     def call_hook(self, name: str) -> None:
         """

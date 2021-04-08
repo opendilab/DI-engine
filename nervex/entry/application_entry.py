@@ -47,13 +47,10 @@ def eval(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env)
-
-    evaluator.policy = policy.eval_mode
+    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode)
     # Evaluate
     _, eval_reward = evaluator.eval()
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
-    evaluator.close()
 
     return eval_reward
 
@@ -95,9 +92,7 @@ def collect_demo_data(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    actor = BaseSerialActor(cfg.actor, actor_env)
-
-    actor.policy = policy.collect_mode
+    actor = BaseSerialActor(cfg.actor, actor_env, policy.collect_mode)
     # let's collect some expert demostrations
     exp_data = actor.generate_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
@@ -105,4 +100,3 @@ def collect_demo_data(
     with open(expert_data_path, 'wb') as f:
         pickle.dump(exp_data, f)
     print('Collect demo data successfully')
-    actor.close()

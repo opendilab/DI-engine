@@ -18,7 +18,13 @@ class BaseSerialActor(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, env: BaseEnvManager = None, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
+    def __init__(
+            self,
+            cfg: dict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None  # noqa
+        ) -> None:
         """
         Overview:
             Initialization method.
@@ -36,6 +42,8 @@ class BaseSerialActor(object):
         self._collect_print_freq = cfg.collect_print_freq
         if env is not None:
             self.env = env
+        if policy is not None:
+            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
@@ -43,6 +51,7 @@ class BaseSerialActor(object):
             self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
         self._timer = EasyTimer()
         self._cfg = cfg
+        self._end_flag = False
 
     @property
     def env(self) -> BaseEnvManager:
@@ -50,6 +59,7 @@ class BaseSerialActor(object):
 
     @env.setter
     def env(self, _env_manager: BaseEnvManager) -> None:
+        self._end_flag = False
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
@@ -116,9 +126,15 @@ class BaseSerialActor(object):
             raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
     def close(self) -> None:
+        if self._end_flag:
+            return
+        self._end_flag = True
         self._env_manager.close()
         self._tb_logger.flush()
         self._tb_logger.close()
+
+    def __del__(self) -> None:
+        self.close()
 
     def _collect_episode(self, train_iter: int, n_episode: int) -> Tuple[List[Any], dict]:
         return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode)
