@@ -68,7 +68,7 @@ cooperative_navigation_coma_default_config = dict(
         replay_buffer_size=64,
         max_use=100,
     ),
-    collectorctor=dict(
+    collector=dict(
         n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
         collect_print_freq=100,

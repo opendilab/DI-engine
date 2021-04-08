@@ -48,7 +48,7 @@ cooperative_navigation_atoc_default_config = dict(
                 target_theta=0.005,
                 discount_factor=0.9,
                 use_communication=use_communication,
-                collector_update_freq=1,
+                actor_update_freq=1,
                 use_noise=True,
                 noise_sigma=0.15,
                 noise_range=dict(
@@ -69,7 +69,7 @@ cooperative_navigation_atoc_default_config = dict(
         replay_start_size=1000,
         max_use=10,
     ),
-    collectorctor=dict(
+    collector=dict(
         # n_episode=4,
         n_sample=500,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
