@@ -60,7 +60,7 @@ class ZerglingActor(BaseActor):
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
         env_manager = AsyncSubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num, manager_cfg=manager_cfg
+            env_fn=env_fn, env_cfg=env_cfg, episode_num=episode_num, **manager_cfg
         )
         env_manager.launch()
         self._predefined_episode_count = episode_num * len(env_cfg)
