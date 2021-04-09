@@ -4,7 +4,6 @@ from nervex.loader import dict_, is_type, to_type, collection, interval, is_posi
 
 cartpole_ppo_default_loader = dict_(
     env=item('env') >> dict_(
-        # env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
         manager=item('manager') >> dict_(
             type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
         ),

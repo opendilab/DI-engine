@@ -11,14 +11,16 @@ from nervex.utils import pretty_print
 def test_real_loader():
     element_loader = dict_(
         env=item('env') >> dict_(
-            env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
-            import_names=item('import_names') >> collection(str),
-            env_type=item('env_type') >> is_type(str),
-            actor_env_num=item('actor_env_num') >> is_type(int) >> interval(1, 32),
-            evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
             manager=item('manager') >> dict_(
-                shared_memory=item('shared_memory') >> is_type(bool),
-                context=item('context') >> enum('fork', 'spawn', 'forkserver') | raw('fork')
+                type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
+                # shared_memory=item('shared_memory') >> is_type(bool),
+                # context=item('context') >> enum('fork', 'spawn', 'forkserver') | raw('fork')
+            ),
+            env_kwargs=item('env_kwargs') >> dict_(
+                import_names=item('import_names') >> collection(str),
+                env_type=item('env_type') >> is_type(str),
+                actor_env_num=item('actor_env_num') >> is_type(int) >> interval(1, 32),
+                evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
             ),
         ),
         policy=item('policy') >> dict_(
@@ -82,4 +84,4 @@ def test_real_loader():
     assert 'context' not in cartpole_dqn_default_config['env']['manager']
     output = cartpole_dqn_loader(cartpole_dqn_default_config)
     pretty_print(output, direct_print=True)
-    assert output['env']['manager']['context'] == 'fork'
+    # assert output['env']['manager']['context'] == 'fork'

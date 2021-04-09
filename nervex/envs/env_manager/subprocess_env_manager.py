@@ -167,8 +167,8 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
 class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
-        Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
-            subprocess.
+        Create an AsyncSubprocessEnvManager to manage multiple environments.
+        Each Environment is run by a seperate subprocess.
     Interfaces:
         seed, launch, next_obs, step, reset, env_info
     """
