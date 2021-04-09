@@ -5,11 +5,12 @@ from functools import wraps
 import nervex
 '''
 Overview:
-    `hpc_wrapper` is the wrapper for functions which are supported by hpc. If a function is wrapped by it, we will search for
-    its hpc type and return the function implemented by hpc.
+    `hpc_wrapper` is the wrapper for functions which are supported by hpc. If a function is wrapped by it, we will
+    search for its hpc type and return the function implemented by hpc.
     We will use the following code as a sample to introduce `hpc_wrapper`:
     ```
-    @hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=[0,1,2,3], include_kwargs=['data', 'gamma', 'v_min', 'v_max'], is_cls_method=False)
+    @hpc_wrapper(shape_fn=shape_fn_dntd, namedtuple_data=True, include_args=[0,1,2,3],
+                 include_kwargs=['data', 'gamma', 'v_min', 'v_max'], is_cls_method=False)
     def dist_nstep_td_error(
             data: namedtuple,
             gamma: float,
@@ -21,18 +22,22 @@ Overview:
     ...
     ```
 Parameters:
-    - shape_fn (:obj:`function`): a function which return the shape needed by hpc function. In fact, it return all args that the hpc function needs.
-    - nametuple_data (:obj:`bool`): If True, when hpc function is called, it will be called as hpc_function(*nametuple). If False, nametuple data will
-        remain its `nametuple` type.
-    - include_args (:obj:`list`): a list of index of the args need to be set in hpc function. As shown in the sample, include_args=[0,1,2,3], which means
-        `data`, `gamma`, `v_min` and `v_max` will be set in hpc function.
-    - include_kwargs (:obj:`list`): a list of key of the kwargs need to be set in hpc function. As shown in the sample, include_kwargs=['data', 'gamma',
-        'v_min', 'v_max'], which means `data`, `gamma`, `v_min` and `v_max` will be set in hpc function.
-    - is_cls_method (:obj:`bool`): If True, it means the function we wrap is a method of a class. `self` will be put into args. We will get rid of `self`
-        in args. Besides, we will use its classname as its fn_name. If False, it means the function is a simple method.
+    - shape_fn (:obj:`function`): a function which return the shape needed by hpc function. In fact, it returns
+        all args that the hpc function needs.
+    - nametuple_data (:obj:`bool`): If True, when hpc function is called, it will be called as hpc_function(*nametuple).
+        If False, nametuple data will remain its `nametuple` type.
+    - include_args (:obj:`list`): a list of index of the args need to be set in hpc function. As shown in the sample,
+        include_args=[0,1,2,3], which means `data`, `gamma`, `v_min` and `v_max` will be set in hpc function.
+    - include_kwargs (:obj:`list`): a list of key of the kwargs need to be set in hpc function. As shown in the sample,
+        include_kwargs=['data', 'gamma', 'v_min', 'v_max'], which means `data`, `gamma`, `v_min` and `v_max` will be
+        set in hpc function.
+    - is_cls_method (:obj:`bool`): If True, it means the function we wrap is a method of a class. `self` will be put
+        into args. We will get rid of `self` in args. Besides, we will use its classname as its fn_name.
+        If False, it means the function is a simple method.
 Q&A:
     - Q: Is `include_args` and `include_kwargs` need to be set at the same time?
-    - A: Yes. `include_args` and `include_kwargs` can deal with all type of input, such as (data, gamma, v_min=v_min, v_max=v_max) and (data, gamma, v_min, v_max).
+    - A: Yes. `include_args` and `include_kwargs` can deal with all type of input, such as (data, gamma, v_min=v_min,
+        v_max=v_max) and (data, gamma, v_min, v_max).
     - Q: What is `hpc_fns`?
     - A: Here we show a normal `hpc_fns`:
          ```
@@ -45,7 +50,8 @@ Q&A:
              ...
          }
          ```
-         Besides, `per_fn_limit` means the max length of `hpc_fns[fn_name]`. When new function comes, the oldest function will be popped from `hpc_fns[fn_name]`.
+         Besides, `per_fn_limit` means the max length of `hpc_fns[fn_name]`. When new function comes, the oldest
+         function will be popped from `hpc_fns[fn_name]`.
 '''
 
 hpc_fns = {}
