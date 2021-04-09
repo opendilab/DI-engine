@@ -4,11 +4,16 @@ from nervex.loader import dict_, is_type, to_type, collection, interval, is_posi
 
 cartpole_ppo_default_loader = dict_(
     env=item('env') >> dict_(
-        env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
-        import_names=item('import_names') >> collection(str),
-        env_type=item('env_type') >> is_type(str),
-        actor_env_num=item('actor_env_num') >> is_type(int) >> interval(1, 32),
-        evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
+        # env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
+        manager=item('manager') >> dict_(
+            type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
+        ),
+        env_kwargs=item('env_kwargs') >> dict_(
+            import_names=item('import_names') >> collection(str),
+            env_type=item('env_type') >> is_type(str),
+            actor_env_num=item('actor_env_num') >> is_type(int) >> interval(1, 32),
+            evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
+        ),
     ),
     policy=item('policy') >> dict_(
         use_cuda=item('use_cuda') >> is_type(bool),

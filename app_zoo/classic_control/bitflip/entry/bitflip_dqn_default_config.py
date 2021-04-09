@@ -2,12 +2,16 @@ from easydict import EasyDict
 
 bitflip_dqn_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
-        env_type='bitflip',
-        actor_env_num=1,
-        evaluator_env_num=8,
-        n_bits=5,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
+            env_type='bitflip',
+            actor_env_num=1,
+            evaluator_env_num=8,
+            n_bits=5,
+        ),
     ),
     policy=dict(
         use_cuda=False,

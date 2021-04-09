@@ -4,19 +4,21 @@ traj_len = 1
 update_freq = 16
 cartpole_sqn_default_config = dict(
     env=dict(
-        # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
-        # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
-        # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
-        env_manager_type='base',
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, ),
-        # Must use the absolute path. All the following "import_names" should obey this too.
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        # Env register name (refer to function "register_env").
-        env_type='cartpole',
-        # Env number respectively for actor and evaluator.
-        actor_env_num=8,
-        evaluator_env_num=5,
+        manager=dict(
+            # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
+            # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
+            # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
+            type='base',
+        ),
+        env_kwargs=dict(
+            # Must use the absolute path. All the following "import_names" should obey this too.
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            # Env register name (refer to function "register_env").
+            env_type='cartpole',
+            # Env number respectively for actor and evaluator.
+            actor_env_num=8,
+            evaluator_env_num=5,
+        )
     ),
     policy=dict(
         # Whether to use cuda for network.

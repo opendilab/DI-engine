@@ -282,8 +282,6 @@ def test_ppg():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
-    finally:
-        os.popen('rm -rf log ckpt*')
 
 
 @pytest.mark.unittest
@@ -296,3 +294,5 @@ def test_sqn():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')

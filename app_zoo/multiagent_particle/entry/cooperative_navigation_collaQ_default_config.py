@@ -8,15 +8,19 @@ evaluator_env_num = 2
 max_step = 100
 cooperative_navigation_collaQ_default_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.multiagent_particle.envs.particle_env'],
-        env_type='cooperative_navigation',
-        num_agents=num_agents,
-        num_landmarks=num_landmarks,
-        max_step=max_step,
-        agent_num=agent_num,
-        actor_env_num=actor_env_num,
-        evaluator_env_num=evaluator_env_num,
+        manager=dict(
+            type='subprocess',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.multiagent_particle.envs.particle_env'],
+            env_type='cooperative_navigation',
+            num_agents=num_agents,
+            num_landmarks=num_landmarks,
+            max_step=max_step,
+            agent_num=agent_num,
+            actor_env_num=actor_env_num,
+            evaluator_env_num=evaluator_env_num,
+        ),
     ),
     policy=dict(
         use_cuda=True,

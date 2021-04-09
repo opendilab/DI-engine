@@ -3,14 +3,18 @@ from easydict import EasyDict
 use_twin_critic = True
 pendulum_td3_default_config = dict(
     env=dict(
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
-        env_type='pendulum',
-        actor_env_num=8,
-        evaluator_env_num=8,
-        use_act_scale=True,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
+            env_type='pendulum',
+            actor_env_num=8,
+            evaluator_env_num=8,
+            use_act_scale=True,
+            norm_obs=dict(use_norm=False, ),
+            norm_reward=dict(use_norm=False,),
+        ),
     ),
     policy=dict(
         use_cuda=False,

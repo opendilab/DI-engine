@@ -7,11 +7,15 @@ actor_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=actor_env_num,
-        evaluator_env_num=evaluator_env_num,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            actor_env_num=actor_env_num,
+            evaluator_env_num=evaluator_env_num,
+        ),
     ),
     policy=dict(
         use_cuda=False,
