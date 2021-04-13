@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any
 
-from nervex.utils import SingletonMetaclass
-
 EnvElementInfo = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
 
@@ -19,7 +17,7 @@ class IEnvElement(ABC):
         raise NotImplementedError
 
 
-class EnvElement(IEnvElement, metaclass=SingletonMetaclass):
+class EnvElement(IEnvElement):
     _instance = None
     _name = 'EnvElement'
 

@@ -4,7 +4,7 @@ import gym
 import torch
 import numpy as np
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.envs.common.env_element import EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from nervex.utils import ENV_REGISTRY
 
@@ -29,9 +29,12 @@ class CartPoleEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._env = gym.make('CartPole-v0')
+        self._init_flag = False
 
     def reset(self) -> torch.Tensor:
+        if not self._init_flag:
+            self._env = gym.make('CartPole-v0')
+            self._init_flag = True
         if hasattr(self, '_seed'):
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
