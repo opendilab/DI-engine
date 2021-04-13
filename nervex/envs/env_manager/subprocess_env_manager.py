@@ -285,10 +285,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
-            logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
-            time.sleep(1)
+            if sleep_count % 1000 == 0:
+                logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
+            time.sleep(0.001)
             sleep_count += 1
-        return self._inv_transform({i: self._next_obs[i] for i in self.ready_env})
+        return {i: self._next_obs[i] for i in self.ready_env}
 
     @property
     def done(self) -> bool:
@@ -365,7 +366,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 obs = self._obs_buffers[env_id].get()
             with self._lock:
                 self._env_states[env_id] = EnvState.RUN
-                self._next_obs[env_id] = obs
+                self._next_obs[env_id] = self._inv_transform(obs)
 
         try:
             reset_fn()
@@ -434,16 +435,18 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             else:
                 self._waiting_env['step'].add(env_id)
 
-        for env_id, timestep in timesteps.items():
+        if self.shared_memory:
+            for i, (env_id, timestep) in enumerate(timesteps.items()):
+                timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
+        timesteps = self._inv_transform(timesteps)
+
+        for i, (env_id, timestep) in enumerate(timesteps.items()):
             if timestep.info.get('abnormal', False):
                 self._env_states[env_id] = EnvState.RESET
                 reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
                 reset_thread.daemon = True
                 reset_thread.start()
                 continue
-            if self.shared_memory:
-                timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-            timesteps[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._epsiode_num:
@@ -456,7 +459,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             else:
                 self._next_obs[env_id] = timestep.obs
 
-        return self._inv_transform(timesteps)
+        return timesteps
 
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
