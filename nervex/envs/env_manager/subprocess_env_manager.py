@@ -198,7 +198,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self.timeout = manager_cfg.get('timeout', 0.01)
         self.wait_num = manager_cfg.get('wait_num', 2)
         self.reset_timeout = manager_cfg.get('reset_timeout', 60)
-        self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
         r"""
@@ -364,19 +363,18 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            with self._lock:
-                self._env_states[env_id] = EnvState.RUN
-                self._next_obs[env_id] = self._inv_transform(obs)
+            # due to each thread update the corresponding env_id value, they won't lead to thread-safe problem
+            self._env_states[env_id] = EnvState.RUN
+            self._next_obs[env_id] = self._inv_transform(obs)
 
         try:
             reset_fn()
         except Exception as e:
-            with self._lock:
-                if self._closed:  # exception cased by main thread closing parent_remote
-                    return
-                else:
-                    self.close()
-                    raise e
+            if self._closed:  # exception cased by main thread closing parent_remote
+                return
+            else:
+                self.close()
+                raise e
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
