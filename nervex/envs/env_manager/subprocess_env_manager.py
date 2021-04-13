@@ -114,28 +114,58 @@ class ShmBufferContainer(object):
             return self._data.get()
 
 
-class CloudpickleWrapper(object):
+# class CloudPickleWrapper(object):
+#     """
+#     Overview:
+#         CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
+#     """
+
+#     def __init__(self, data: Any) -> None:
+#         self.data = data
+#         if isinstance(data, (tuple, list, dict, np.ndarray)) or data is None:
+#             self._pickle_type = 'normal'
+#         else:
+#             self._pickle_type = 'cloud'
+
+#     def __getstate__(self) -> bytes:
+#         if self._pickle_type == 'normal':
+#             return pickle.dumps(self.data)
+#         elif self._pickle_type == 'cloud':
+#             return cloudpickle.dumps(self.data)
+
+#     def __setstate__(self, data: bytes) -> None:
+#         if self._pickle_type == 'normal':
+#             self.data = pickle.loads(data)
+#         elif self._pickle_type == 'cloud':
+#             self.data = cloudpickle.loads(data)
+
+
+class CloudPickleWrapper(object):
     """
     Overview:
-        CloudpickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
+        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
     """
 
     def __init__(self, data: Any) -> None:
         self.data = data
 
     def __getstate__(self) -> bytes:
-        if isinstance(self.data, (tuple, list, dict, None, np.ndarray)):  # pickle is faster
-            return pickle.dumps(self.data)
-        else:
-            print(type(data), data)
-            return cloudpickle.dumps(self.data)
+        return cloudpickle.dumps(self.data)
 
     def __setstate__(self, data: bytes) -> None:
-        if isinstance(data, (tuple, list, dict, None, np.ndarray)):  # pickle is faster
-            self.data = pickle.loads(data)
-        else:
-            print(type(data), data)
-            self.data = cloudpickle.loads(data)
+        self.data = cloudpickle.loads(data)
+
+
+class NormalPickleWrapper(object):
+
+    def __init__(self, data: Any) -> None:
+        self.data = data
+
+    def __getstate__(self) -> bytes:
+        return pickle.dumps(self.data)
+
+    def __setstate__(self, data: bytes) -> None:
+        self.data = pickle.loads(data)
 
 
 def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
@@ -232,7 +262,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._subprocesses[env_id] = ctx.Process(
             target=self.worker_fn,
             args=(
-                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(env_fn),
+                self._pipe_parents[env_id], self._pipe_children[env_id], CloudPickleWrapper(env_fn),
                 self._obs_buffers[env_id], self.method_name_list
             ),
             daemon=True,
@@ -244,7 +274,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         if self._env_replay_path is not None:
             self._pipe_parents[env_id].send(
-                CloudpickleWrapper(['enable_save_replay', [self._env_replay_path[env_id]], {}])
+                NormalPickleWrapper(['enable_save_replay', [self._env_replay_path[env_id]], {}])
             )
             self._pipe_parents[env_id].recv()
 
@@ -286,9 +316,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
-            if sleep_count % 1000 == 0:
-                logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
-            time.sleep(0.001)
+            # logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
+            if sleep_count % 10 == 0:
+                logging.warning(
+                    'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
+                )
+            time.sleep(0.1)
             sleep_count += 1
         return {i: self._next_obs[i] for i in self.ready_env}
 
@@ -328,7 +361,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         # set seed
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
-                self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
+                self._pipe_parents[i].send(NormalPickleWrapper(['seed', [self._env_seed[i]], {}]))
             ret = [p.recv().data for _, p in self._pipe_parents.items()]
             self._check_data(ret)
 
@@ -350,7 +383,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             if self._pipe_parents[env_id].poll():
                 recv_data = self._pipe_parents[env_id].recv().data
                 raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
-            self._pipe_parents[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
+            self._pipe_parents[env_id].send(NormalPickleWrapper(['reset', [], self._reset_param[env_id]]))
 
             if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
                 # terminate the old subprocess
@@ -406,7 +439,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         for env_id, act in actions.items():
             act = self._transform(act)
-            self._pipe_parents[env_id].send(CloudpickleWrapper(['step', [act], {}]))
+            self._pipe_parents[env_id].send(NormalPickleWrapper(['step', [act], {}]))
 
         step_args = self._async_args['step']
         wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
@@ -505,12 +538,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                             ret = getattr(env, cmd)(*args, **kwargs)
                     else:
                         raise KeyError("not support env cmd: {}".format(cmd))
-                    c.send(CloudpickleWrapper(ret))
+                    c.send(NormalPickleWrapper(ret))
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
                     # directly send error to another process will lose the stack trace, so we create a new Exception
                     c.send(
-                        CloudpickleWrapper(
+                        CloudPickleWrapper(
                             e.__class__(
                                 '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
                             )
@@ -540,7 +573,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for _, p in self._pipe_parents.items():
-            p.send(CloudpickleWrapper(['getattr', [key], {}]))
+            p.send(NormalPickleWrapper(['getattr', [key], {}]))
         ret = [p.recv().data for _, p in self._pipe_parents.items()]
         self._check_data(ret)
         return ret
@@ -558,7 +591,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._closed = True
         self._env_ref.close()
         for _, p in self._pipe_parents.items():
-            p.send(CloudpickleWrapper(['close', None, None]))
+            p.send(NormalPickleWrapper(['close', None, None]))
         for _, p in self._pipe_parents.items():
             p.recv()
         # disable process join for avoiding hang

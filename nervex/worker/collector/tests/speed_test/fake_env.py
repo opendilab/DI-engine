@@ -11,7 +11,7 @@ from nervex.torch_utils import to_ndarray
 from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
-def env_sleep(duration: float) -> None:
+def env_sleep(duration) -> None:
     time.sleep(duration)
 
 
@@ -27,7 +27,7 @@ class FakeEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
-            self._env.seed()
+            self.seed()
         self._episode_step = int(random_change(self._episode_step_base))
         env_sleep(random_change(self._reset_time))
         self._step_count = 0

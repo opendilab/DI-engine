@@ -88,9 +88,9 @@ class BaseSerialCollector(object):
         return ret
 
     def collect_data(self,
-                      train_iter: int = -1,
-                      n_episode: Optional[int] = None,
-                      n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+                     train_iter: int = -1,
+                     n_episode: Optional[int] = None,
+                     n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
            Collect data. Either ``n_episode`` or ``n_sample`` must be None.

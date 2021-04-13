@@ -13,7 +13,7 @@ from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
 
-def compare_test(cfg, out_str):
+def compare_test(cfg, out_str, seed):
     duration_list = []
     for i in range(3):
         cfg = deep_merge_dicts(test_config, cfg)
@@ -26,6 +26,7 @@ def compare_test(cfg, out_str):
             env_num=len(collector_env_cfg),
             manager_cfg=manager_cfg
         )
+        collector_env.seed(seed)
 
         policy = FakePolicy(cfg.policy)
         collector = BaseSerialCollector(cfg.collector)
@@ -36,18 +37,17 @@ def compare_test(cfg, out_str):
         start = time.time()
         for iter in range(200):
             if iter % 50 == 0:
-                print(iter)
+                print('\t', iter)
             new_data = collector.collect_data(iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
         print('\tduration: {}'.format(time.time() - start))
-        out_str.append('\tduration: {}'.format(time.time() - start))
 
         collector.close()
         replay_buffer.close()
     print(cfg)
     print('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
-    out_str.append('\tduration: {}'.format(time.time() - start))
+    out_str.append('avg duration: {}'.format(time.time() - start))
 
 
 if __name__ == '__main__':
@@ -60,46 +60,58 @@ if __name__ == '__main__':
     set_pkg_seed(seed, use_cuda=False)
 
     cfgs = [
+        # dict(
+        #     size="small",
+        #     env=dict(
+        #         obs_dim=64,
+        #         action_dim=2,
+        #         episode_step=500,
+        #         reset_time=0.01,
+        #         step_time=0.005,
+        #     ),
+        #     policy=dict(
+        #         forward_time=0.004,
+        #     ),
+        #     actor=dict(
+        #         n_sample=80,
+        #     ),
+        # ),
         dict(
+            size="middle",
             env=dict(
-                obs_dim=64,
-                action_dim=2,
-                episode_step=500,
-                reset_time=0.01,
-                step_time=0.005,
-            ),
-            policy=dict(forward_time=0.004, ),
-            collector=dict(n_sample=80, ),
-        ),
-        dict(
-            env=dict(
-                obs_dim=int(3e4),
+                obs_dim=int(3e2),  # int(3e3),
                 action_dim=2,
                 episode_step=500,
                 reset_time=0.5,
                 step_time=0.01,
             ),
             policy=dict(forward_time=0.008, ),
-            collector=dict(n_sample=80, ),
+            actor=dict(n_sample=80, ),
         ),
-        dict(
-            env=dict(
-                obs_dim=int(3e4),  # int(3e6),
-                action_dim=2,
-                episode_step=500,
-                reset_time=10,
-                step_time=0.1,
-            ),
-            policy=dict(forward_time=0.02, ),
-            collector=dict(n_sample=80, ),
-        ),
+
+        # dict(
+        #     size="big",
+        #     env=dict(
+        #         obs_dim=int(3e3),  # int(3e6),
+        #         action_dim=2,
+        #         episode_step=500,
+        #         reset_time=10,
+        #         step_time=0.1,
+        #     ),
+        #     policy=dict(
+        #         forward_time=0.02,
+        #     ),
+        #     actor=dict(
+        #         n_sample=80,
+        #     ),
+        # ),
     ]
     out_str = []
-    for size, cfg in zip(['small', 'middle', 'big'], cfgs):
-        for envm in ['base', 'async_subprocess', 'subprocess']:
-            print('=={} {}'.format(size, envm))
-            out_str.append('=={} {}'.format(size, envm))
+    for cfg in cfgs:
+        for envm in ['subprocess']:  # ['base', 'async_subprocess', 'subprocess']
             cfg = EasyDict(cfg)
+            print('=={} {}'.format(cfg.size, envm))
+            out_str.append('=={} {}'.format(cfg.size, envm))
             cfg.env.env_manager_type = envm
-            compare_test(cfg, out_str)
+            compare_test(cfg, out_str, seed)
     print('\n'.join(out_str))
