@@ -37,7 +37,7 @@ def compare_test(cfg, out_str):
         for iter in range(200):
             if iter % 50 == 0:
                 print(iter)
-            new_data = collector.generate_data(iter)
+            new_data = collector.collect_data(iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
         print('\tduration: {}'.format(time.time() - start))

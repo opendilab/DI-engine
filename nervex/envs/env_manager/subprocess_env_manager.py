@@ -124,15 +124,17 @@ class CloudpickleWrapper(object):
         self.data = data
 
     def __getstate__(self) -> bytes:
-        if isinstance(self.data, (tuple, list, np.ndarray)):  # pickle is faster
+        if isinstance(self.data, (tuple, list, dict, None, np.ndarray)):  # pickle is faster
             return pickle.dumps(self.data)
         else:
+            print(type(data), data)
             return cloudpickle.dumps(self.data)
 
     def __setstate__(self, data: bytes) -> None:
-        if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
+        if isinstance(data, (tuple, list, dict, None, np.ndarray)):  # pickle is faster
             self.data = pickle.loads(data)
         else:
+            print(type(data), data)
             self.data = cloudpickle.loads(data)
 
 
@@ -363,7 +365,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            # due to each thread update the corresponding env_id value, they won't lead to thread-safe problem
+            # Because each thread updates the corresponding env_id value,
+            # they won't lead to a thread-safe problem.
             self._env_states[env_id] = EnvState.RUN
             self._next_obs[env_id] = self._inv_transform(obs)
 

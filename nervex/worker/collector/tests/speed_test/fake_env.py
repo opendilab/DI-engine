@@ -3,11 +3,16 @@ import time
 import gym
 import torch
 import numpy as np
+
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.torch_utils import to_ndarray
 
 from nervex.worker.collector.tests.speed_test.utils import random_change
+
+
+def env_sleep(duration: float) -> None:
+    time.sleep(duration)
 
 
 class FakeEnv(BaseEnv):
@@ -20,9 +25,11 @@ class FakeEnv(BaseEnv):
         self._step_time = cfg.get('step_time', 0.)
         self.reset()
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
+        if hasattr(self, '_seed'):
+            self._env.seed()
         self._episode_step = int(random_change(self._episode_step_base))
-        time.sleep(random_change(self._reset_time))
+        env_sleep(random_change(self._reset_time))
         self._step_count = 0
         self._final_eval_reward = 0
         obs = np.random.randn(self._obs_dim)
@@ -31,11 +38,13 @@ class FakeEnv(BaseEnv):
     def close(self) -> None:
         pass
 
-    def seed(self, seed: int) -> None:
-        pass
+    def seed(self, seed: Optional[int] = None) -> None:
+        if seed is not None:
+            self._seed = seed
+        np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        time.sleep(random_change(self._step_time))
+        env_sleep(random_change(self._step_time))
         self._step_count += 1
         obs = np.random.randn(self._obs_dim)
         rew = np.random.randint(2)
