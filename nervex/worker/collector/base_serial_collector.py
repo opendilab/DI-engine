@@ -142,7 +142,7 @@ class BaseSerialCollector(object):
         while not collect_end_fn(collected_episode, collected_sample):
             with self._timer:
                 # Get current env obs.
-                obs = self._env_manager.next_obs
+                obs = self._env_manager.ready_obs
                 self._obs_pool.update(obs)
                 # Policy forward.
                 env_id, obs = self._policy.data_preprocess(obs)

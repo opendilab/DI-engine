@@ -11,7 +11,7 @@ BaseEnvManager
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nervex.envs.env_manager.base_env_manager.BaseEnvManager
-    :members: __init__, next_obs, launch, step, seed, close
+    :members: __init__, ready_obs, launch, step, seed, close
 
 subprocess_env_manager
 -------------------------
@@ -31,9 +31,9 @@ ShmBufferContainer
 AsyncSubprocessEnvManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager
-    :members: __init__, next_obs, launch, reset, step, seed, close, _create_state, _setup_async_args
+    :members: __init__, ready_obs, launch, reset, step, seed, close, _create_state, _setup_async_args
 
 SyncSubprocessEnvManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager
-    :members: __init__, next_obs, launch, reset, step, seed, close, _create_state, _setup_async_args
+    :members: __init__, ready_obs, launch, reset, step, seed, close, _create_state, _setup_async_args

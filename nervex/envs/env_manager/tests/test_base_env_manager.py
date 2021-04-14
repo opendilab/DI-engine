@@ -24,7 +24,7 @@ class TestBaseEnvManager:
         count = 1
         start_time = time.time()
         while not env_manager.done:
-            env_id = env_manager.next_obs.keys()
+            env_id = env_manager.ready_obs.keys()
             action = {i: torch.randn(4) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)

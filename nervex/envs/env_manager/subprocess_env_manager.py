@@ -202,7 +202,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
             subprocess.
     Interfaces:
-        seed, launch, next_obs, step, reset, env_info
+        seed, launch, ready_obs, step, reset, env_info
     """
 
     def __init__(
@@ -237,7 +237,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             Fork/spawn sub-processes and create pipes to transfer the data.
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-        self._next_obs = {env_id: None for env_id in range(self.env_num)}
+        self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         if self.shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
@@ -301,7 +301,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         return [i for i in self.active_env if i not in self._waiting_env['step']]
 
     @property
-    def next_obs(self) -> Dict[int, Any]:
+    def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
             Get the next observations.
@@ -310,20 +310,19 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Note:
             The observations are returned in torch.Tensor.
         Example:
-            >>>     obs_dict = env_manager.next_obs
+            >>>     obs_dict = env_manager.ready_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
-            # logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
             if sleep_count % 10 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
             time.sleep(0.1)
             sleep_count += 1
-        return {i: self._next_obs[i] for i in self.ready_env}
+        return {i: self._ready_obs[i] for i in self.ready_env}
 
     @property
     def done(self) -> bool:
@@ -401,7 +400,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             # Because each thread updates the corresponding env_id value,
             # they won't lead to a thread-safe problem.
             self._env_states[env_id] = EnvState.RUN
-            self._next_obs[env_id] = self._inv_transform(obs)
+            self._ready_obs[env_id] = self._inv_transform(obs)
 
         try:
             reset_fn()
@@ -491,7 +490,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     reset_thread.daemon = True
                     reset_thread.start()
             else:
-                self._next_obs[env_id] = timestep.obs
+                self._ready_obs[env_id] = timestep.obs
 
         return timesteps
 
