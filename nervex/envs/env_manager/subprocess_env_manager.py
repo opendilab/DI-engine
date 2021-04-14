@@ -175,8 +175,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def __init__(
         self,
-        env_fn: Callable,
-        env_cfg: Iterable,
+        env_fn: List[Callable],
         episode_num: Optional[Union[int, float]] = float('inf'),
         shared_memory: bool = True,
         context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
@@ -189,10 +188,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
-            - env_cfg (:obj:`list`): the list of environemnt configs
             - episode_num (:obj:`int`): maximum episodes to collect in one environment
         """
-        super().__init__(env_fn, env_cfg, episode_num)
+        super().__init__(env_fn, episode_num)
         self._shared_memory = shared_memory
         self._context = context
         self._timeout = timeout
@@ -207,6 +205,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._next_obs = {env_id: None for env_id in range(self.env_num)}
+        self._env_ref = self._env_fn[0]()
         if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
@@ -225,13 +224,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _create_env_subprocess(self, env_id):
         # start a new one
-        env_fn = partial(self._env_fn, cfg=self._env_cfg[env_id])
         self._pipe_parents[env_id], self._pipe_children[env_id] = Pipe()
         ctx = get_context(self._context)
         self._subprocesses[env_id] = ctx.Process(
             target=self.worker_fn,
             args=(
-                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(env_fn),
+                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(self._env_fn[env_id]),
                 self._obs_buffers[env_id], self.method_name_list
             ),
             daemon=True,

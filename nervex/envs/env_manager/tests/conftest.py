@@ -126,21 +126,19 @@ def get_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
-def pytest_generate_tests(metafunc):
-    if "setup_async_manager_cfg" in metafunc.fixturenames:
-        manager_cfgs = []
-        # for b in [True, False]:
-        for b in [False]:
-            manager_cfg = get_manager_cfg()
-            manager_cfg['env_fn'] = FakeAsyncEnv
-            manager_cfg['reset_timeout'] = 4
-            manager_cfg['shared_memory'] = b
-            manager_cfgs.append(manager_cfg)
-        metafunc.parametrize("setup_async_manager_cfg", manager_cfgs)
-
-
 @pytest.fixture(scope='class')
 def setup_sync_manager_cfg():
     manager_cfg = get_manager_cfg(4)
-    manager_cfg['env_fn'] = FakeEnv
+    env_cfg = manager_cfg.pop('env_cfg')
+    manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
+    return manager_cfg
+
+
+@pytest.fixture(scope='class')
+def setup_async_manager_cfg():
+    manager_cfg = get_manager_cfg(4)
+    env_cfg = manager_cfg.pop('env_cfg')
+    manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
+    manager_cfg['reset_timeout'] = 4
+    manager_cfg['shared_memory'] = False
     return manager_cfg

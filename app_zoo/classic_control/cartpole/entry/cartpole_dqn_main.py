@@ -13,8 +13,8 @@ from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import c
 
 def main(cfg, seed=0):
     actor_env_num, evaluator_env_num = cfg.env.env_kwargs.actor_env_num, cfg.env.env_kwargs.evaluator_env_num
-    actor_env = BaseEnvManager(env_fn=CartPoleEnv, env_cfg=[cfg.env.env_kwargs for _ in range(actor_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=CartPoleEnv, env_cfg=[cfg.env.env_kwargs for _ in range(evaluator_env_num)])
+    actor_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(actor_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(evaluator_env_num)])
 
     actor_env.seed(seed)
     evaluator_env.seed(seed)
@@ -31,13 +31,13 @@ def main(cfg, seed=0):
 
     while True:
         commander.step()
-        iter_ = learner.train_iter
-        if evaluator.should_eval(iter_) and evaluator.eval(learner.save_checkpoint, iter_, actor.envstep)[0]:
-            break
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, actor.envstep)
+            if stop:
+                break
         new_data = actor.generate_data(learner.train_iter)
         replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
         for i in range(cfg.policy.learn.train_iteration):
-            # Learner will train ``train_iteration`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, actor.envstep)

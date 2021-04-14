@@ -2,6 +2,7 @@ from typing import Union, Optional, List, Any, Callable
 import os
 import torch
 import logging
+from functools import partial
 from tensorboardX import SummaryWriter
 
 from nervex.envs import get_vec_env_setting, create_env_manager
@@ -35,8 +36,8 @@ def serial_pipeline_irl(
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
     else:
         env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    actor_env = create_env_manager(cfg.env.manager, env_fn, actor_env_cfg)
-    evaluator_env = create_env_manager(cfg.env.manager, env_fn, evaluator_env_cfg)
+    actor_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in actor_env_cfg])
+    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
     actor_env.seed(seed)
     evaluator_env.seed(seed)
@@ -65,9 +66,10 @@ def serial_pipeline_irl(
     while True:
         commander.step()
         # Evaluate policy performance
-        iter_ = learner.train_iter
-        if evaluator.should_eval(iter_) and evaluator.eval(learner.save_checkpoint, iter_, actor.envstep)[0]:
-            break
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, actor.envstep)
+            if stop:
+                break
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
             new_data = actor.generate_data(learner.train_iter)

@@ -1,6 +1,8 @@
 from typing import Union, Optional, List, Any, Callable
 import pickle
 import torch
+from functools import partial
+
 from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
@@ -35,7 +37,7 @@ def eval(
         env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
-    evaluator_env = create_env_manager(cfg.env.manager, env_fn, evaluator_env_cfg)
+    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     if evaluator_env_cfg[0].get('replay_path', None):
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
@@ -83,7 +85,7 @@ def collect_demo_data(
         env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env.env_kwargs)
     else:
         env_fn, actor_env_cfg, _ = env_setting
-    actor_env = create_env_manager(cfg.env.manager, env_fn, actor_env_cfg)
+    actor_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in actor_env_cfg])
     # Random seed.
     actor_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
