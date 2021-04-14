@@ -89,7 +89,7 @@ example
 
 动态规划(DP)
 ~~~~~~~~~~~~~
-动态规划DP是一类优化方法，在给定一个MDP完备欢迎的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
+动态规划DP是一类优化方法，在给定一个MDP完备环境的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
 
 很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，只不过降低了计算复杂的和对环境模型完备的假设。
 
@@ -188,7 +188,10 @@ Q0: MC、TD、DP分别指什么？这些方法有哪些异同？
  - Answer：MC指蒙特卡洛方法，TD指时序差分学习，DP指动态规划。
 
 Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
- - Answer：蒙特卡洛和TD算法隶属于model-free，而动态规划属于model-based。
+ - Answer：
+   model base算法指该算法会学习环境的转移过程并对环境进行建模，而model free算法则不需要对环境进行建模。
+   蒙特卡洛和TD算法隶属于model-free，因为这两个算法不需要算法建模具体环境。
+   而动态规划属于model-based，因为使用动态规划需要完备的环境模型。
 
 Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
  - Answer：
