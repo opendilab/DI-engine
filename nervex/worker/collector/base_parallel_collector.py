@@ -143,7 +143,7 @@ class BaseCollector(ABC):
         self._update_policy()
         self._start_thread()
         while not self._end_flag:
-            obs = self._env_manager.next_obs
+            obs = self._env_manager.ready_obs
             action = self._policy_inference(obs)
             timestep = self._env_step(action)
             self._process_timestep(timestep)

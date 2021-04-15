@@ -17,7 +17,7 @@ class BaseEnvManager(object):
     Interfaces:
         reset, step, seed, close, enable_save_replay, launch, env_info
     Properties:
-        env_num, next_obs, done, method_name_list
+        env_num, ready_obs, done, method_name_list
     """
 
     def __init__(
@@ -56,18 +56,18 @@ class BaseEnvManager(object):
         return self._env_num
 
     @property
-    def next_obs(self) -> Dict[int, Any]:
+    def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
             Get the next observations(in ``torch.Tensor`` type) and corresponding env id.
         Return:
             A dictionary with observations and their environment IDs.
         Example:
-            >>>     obs_dict = env_manager.next_obs
+            >>>     obs_dict = env_manager.ready_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
         return self._inv_transform(
-            {i: self._next_obs[i]
+            {i: self._ready_obs[i]
              for i in range(self.env_num) if self._env_episode_count[i] < self._episode_num}
         )
 
@@ -113,7 +113,7 @@ class BaseEnvManager(object):
     def _create_state(self) -> None:
         self._closed = False
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
-        self._next_obs = {i: None for i in range(self.env_num)}
+        self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [self._env_fn(c) for c in self._env_cfg]
         assert len(self._envs) == self._env_num
         if self._env_replay_path is not None:
@@ -139,7 +139,7 @@ class BaseEnvManager(object):
 
     def _reset(self, env_id: int) -> None:
         obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
-        self._next_obs[env_id] = obs
+        self._ready_obs[env_id] = obs
 
     def _safe_run(self, fn: Callable) -> Any:
         try:
@@ -175,7 +175,7 @@ class BaseEnvManager(object):
                 if self._env_episode_count[env_id] < self._episode_num:
                     self._reset(env_id)
             else:
-                self._next_obs[env_id] = timesteps[env_id].obs
+                self._ready_obs[env_id] = timesteps[env_id].obs
         return self._inv_transform(timesteps)
 
     def seed(self, seed: Union[List[int], int]) -> None:

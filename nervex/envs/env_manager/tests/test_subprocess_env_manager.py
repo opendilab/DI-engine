@@ -25,7 +25,7 @@ class TestSubprocessEnvManager:
         data_count = 0
         start_time = time.time()
         while not env_manager.done:
-            obs = env_manager.next_obs
+            obs = env_manager.ready_obs
             print('obs', obs.keys(), env_manager._env_states)
             action = model.forward(obs)
             assert 1 <= len(action) <= len(obs)
@@ -76,12 +76,12 @@ class TestSubprocessEnvManager:
         assert timestep[0].info['abnormal']
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
         assert env_manager._env_states[0] == 3  # reset
-        assert len(env_manager.next_obs) == 3
+        assert len(env_manager.ready_obs) == 3
         # wait for reset
-        while not len(env_manager.next_obs) == env_manager.env_num:
+        while not len(env_manager.ready_obs) == env_manager.env_num:
             time.sleep(0.1)
         assert env_manager._env_states[0] == 2  # run
-        assert len(env_manager.next_obs) == 4
+        assert len(env_manager.ready_obs) == 4
         # with pytest.raises(setup_exception):
         with pytest.raises(Exception):
             timestep = env_manager.step({i: 'error' for i in range(env_manager.env_num)})
