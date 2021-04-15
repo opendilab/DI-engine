@@ -1,7 +1,6 @@
 import copy
 import numpy as np
 
-from collections import OrderedDict, namedtuple
 from typing import Any, Dict, Optional, Union, List
 
 from nervex.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep

@@ -30,9 +30,12 @@ class MazeEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._seed = 0
-        self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=1)
+        self._init_flag = False
 
     def reset(self) -> torch.Tensor:
+        if not self._init_flag:
+            self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=1)
+            self._init_flag = True
         if hasattr(self, '_seed'):
             self._env.close()
             self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=1)

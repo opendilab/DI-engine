@@ -11,9 +11,12 @@ class LunarLanderEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._env = gym.make('LunarLander-v2')
+        self._init_flag = False
 
     def reset(self) -> np.ndarray:
+        if not self._init_flag:
+            self._env = gym.make('LunarLander-v2')
+            self._init_flag = True
         if hasattr(self, '_seed'):
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -65,7 +68,7 @@ class LunarLanderEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX CartPole Env"
+        return "nerveX LunarLander Env"
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

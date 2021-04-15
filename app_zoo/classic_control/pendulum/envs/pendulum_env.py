@@ -16,8 +16,12 @@ class PendulumEnv(BaseEnv):
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
         self._env = gym.make('Pendulum-v0')
+        self._init_flag = False
 
     def reset(self) -> torch.Tensor:
+        if not self._init_flag:
+            self._env = gym.make('Pendulum-v0')
+            self._init_flag = True
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()

@@ -97,7 +97,7 @@ class ParticleEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nervex wrapped Multiagent particle Env({})".format(self._cfg.env_id)
+        return "nervex wrapped Multiagent particle Env({})".format(self._cfg.env_name)
 
 
 def disable_gym_view_window():
@@ -231,7 +231,7 @@ class CooperativeNavigation(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nervex wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._cfg.env_id)
+        return "nervex wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

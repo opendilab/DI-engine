@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from typing import Any, List, Tuple
 import logging
 import gym
+from namedlist import namedlist
 from nervex.utils import import_module, ENV_REGISTRY
 
-BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
-BaseEnvInfo = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+BaseEnvTimestep = namedlist('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
+BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 
 class BaseEnv(gym.Env):
@@ -59,7 +59,7 @@ class BaseEnv(gym.Env):
     @abstractmethod
     def info(self) -> 'BaseEnv.info':
         """
-        Overview: Show space in code and return namedtuple.
+        Overview: Show space in code and return namedlist.
         """
         raise NotImplementedError
 
