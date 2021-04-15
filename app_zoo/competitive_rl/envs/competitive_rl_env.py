@@ -30,6 +30,30 @@ cCarRacingDouble-v0: Dict(0:Box(2,), 1:Box(2,))
 cPongTournament-v0
 """
 
+COMPETITIVERL_INFO_DICT = {
+    'cPongDouble-v0': BaseEnvInfo(
+        agent_num=1, 
+        obs_space=EnvElementInfo(
+            shape=(2, 3, 210, 160), 
+            value={'dtype': np.float32}, 
+            to_agent_processor=None, 
+            from_agent_processor=None
+        ), 
+        act_space=EnvElementInfo(
+            shape=None,  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
+            value={'dtype': np.float32}, 
+            to_agent_processor=None, 
+            from_agent_processor=None
+        ), 
+        rew_space=EnvElementInfo(
+            shape=1, 
+            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32},
+            to_agent_processor=None, 
+            from_agent_processor=None
+        )
+    ),
+}
+
 
 @ENV_REGISTRY.register('competitive_rl')
 class CompetitiveRlEnv(BaseEnv):
@@ -44,11 +68,14 @@ class CompetitiveRlEnv(BaseEnv):
         if is_evaluator:
             opponent_type = self._cfg.get("opponent_type", None)
         self._builtin_wrap = self._env_id == "cPongDouble-v0" and is_evaluator and opponent_type == "builtin"
-        opponent = self._cfg.get('eval_opponent', 'RULE_BASED')
+        self._opponent = self._cfg.get('eval_opponent', 'RULE_BASED')
 
-        self._env = wrap_env(self._env_id, self._builtin_wrap, opponent)
+        self._init_flag = False
 
     def reset(self) -> np.ndarray:
+        if not self._init_flag:
+            self._env = wrap_env(self._env_id, self._builtin_wrap, self._opponent)
+            self._init_flag = True
         if hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
@@ -86,32 +113,39 @@ class CompetitiveRlEnv(BaseEnv):
         
         return BaseEnvTimestep(obs, rew, done, info)
 
+    # def info(self) -> BaseEnvInfo:
+    #     reward_range = self._env.reward_range
+    #     observation_space = self._env.observation_space
+    #     action_space = self._env.action_space
+    #     agent_num = len(observation_space) if isinstance(observation_space, gym.spaces.tuple.Tuple) else 1
+    #     if agent_num > 1:
+    #         obs_shape = (len(observation_space), ) + observation_space[0].shape
+    #         act_shape = (len(action_space), ) + action_space[0].shape
+    #     else:
+    #         obs_shape = observation_space.shape
+    #         act_shape = action_space.shape
+    #     T = EnvElementInfo
+    #     return BaseEnvInfo(
+    #         agent_num=agent_num,
+    #         obs_space=T(
+    #             obs_shape, {'dtype': np.float32}, None, None
+    #         ),
+    #         act_space=T(
+    #             act_shape, {'dtype': np.float32}, None, None
+    #         ),
+    #         rew_space=T(1, {
+    #             'min': reward_range[0],
+    #             'max': reward_range[1],
+    #             'dtype': np.float32
+    #         }, None, None),
+    #     )
+
     def info(self) -> BaseEnvInfo:
-        reward_range = self._env.reward_range
-        observation_space = self._env.observation_space
-        action_space = self._env.action_space
-        agent_num = len(observation_space) if isinstance(observation_space, gym.spaces.tuple.Tuple) else 1
-        if agent_num > 1:
-            obs_shape = (len(observation_space), ) + observation_space[0].shape
-            act_shape = (len(action_space), ) + action_space[0].shape
+        if self._env_id in COMPETITIVERL_INFO_DICT:
+            return COMPETITIVERL_INFO_DICT[self._env_id]
         else:
-            obs_shape = observation_space.shape
-            act_shape = action_space.shape
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=agent_num,
-            obs_space=T(
-                obs_shape, {'dtype': np.float32}, None, None
-            ),
-            act_space=T(
-                act_shape, {'dtype': np.float32}, None, None
-            ),
-            rew_space=T(1, {
-                'min': reward_range[0],
-                'max': reward_range[1],
-                'dtype': np.float32
-            }, None, None),
-        )
+            raise NotImplementedError('{} not found in COMPETITIVERL_INFO_DICT [{}]'\
+                .format(self._env_id, COMPETITIVERL_INFO_DICT.keys()))
 
     def __repr__(self) -> str:
         return "nerveX Competitve RL Env({})".format(self._cfg.env_id)
