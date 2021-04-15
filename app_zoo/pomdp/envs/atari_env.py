@@ -12,6 +12,30 @@ from .atari_wrappers import wrap_deepmind
 from pprint import pprint
 
 
+MUJOCO_INFO_DICT = {
+    'Pong-ramNoFrameskip-v4': BaseEnvInfo(
+        agent_num=1, 
+        obs_space=EnvElementInfo(
+            shape=(512,), 
+            value={'dtype': np.float32}, 
+            to_agent_processor=None, 
+            from_agent_processor=None
+        ), 
+        act_space=EnvElementInfo(
+            shape=(6,), 
+            value={'dtype': np.float32}, 
+            to_agent_processor=None,
+            from_agent_processor=None
+        ), 
+        rew_space=EnvElementInfo(
+            shape=1, 
+            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            to_agent_processor=None, 
+            from_agent_processor=None
+        )
+    ),
+}
+
 def PomdpEnv(cfg):
     '''
     For debug purpose, create an env follow openai gym standard so it can be widely test by
@@ -38,18 +62,21 @@ class PomdpAtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._env = wrap_deepmind(
-            cfg.env_id,
-            frame_stack=cfg.frame_stack,
-            episode_life=cfg.is_train,
-            clip_rewards=cfg.is_train,
-            warp_frame=cfg.warp_frame,
-            use_ram=cfg.use_ram,
-            render=cfg.render,
-            pomdp=cfg.pomdp,
-        )
+        self._init_flag = False
 
     def reset(self) -> Sequence:
+        if not self._init_flag:
+            self._env = wrap_deepmind(
+                self._cfg.env_id,
+                frame_stack=self._cfg.frame_stack,
+                episode_life=self._cfg.is_train,
+                clip_rewards=self._cfg.is_train,
+                warp_frame=self._cfg.warp_frame,
+                use_ram=self._cfg.use_ram,
+                render=self._cfg.render,
+                pomdp=self._cfg.pomdp,
+            )
+            self._init_flag = True
         if hasattr(self, '_seed'):
             np.random.seed(self._seed)
             self._env.seed(self._seed)
@@ -75,18 +102,11 @@ class PomdpAtariEnv(BaseEnv):
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
-        rew_range = self._env.reward_range
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(self._env.observation_space.shape, {'dtype': np.float32}, None, None),
-            act_space=T((self._env.action_space.n, ), {'dtype': np.float32}, None, None),
-            rew_space=T(1, {
-                'min': rew_range[0],
-                'max': rew_range[1],
-                'dtype': np.float32
-            }, None, None),
-        )
+        if self._cfg.env_id in MUJOCO_INFO_DICT:
+            return MUJOCO_INFO_DICT[self._cfg.env_id]
+        else:
+            raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\
+                .format(self._cfg.env_id, MUJOCO_INFO_DICT.keys()))
 
     def __repr__(self) -> str:
         return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)
