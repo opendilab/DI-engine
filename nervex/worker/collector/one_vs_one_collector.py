@@ -141,10 +141,10 @@ class OneVsOneCollector(BaseCollector):
                             self.send_stepdata(metadata['data_id'], s)
                             self.send_metadata(metadata)
                         self._total_sample += len(train_sample)
+                    for c in self._traj_cache[env_id]:
+                        c.clear()
             if t[0].done:
                 # env reset is done by env_manager automatically
-                for c in self._traj_cache[env_id]:
-                    c.clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
                 for p in self._policy:

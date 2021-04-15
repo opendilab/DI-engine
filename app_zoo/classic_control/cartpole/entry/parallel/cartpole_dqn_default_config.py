@@ -1,6 +1,7 @@
 from easydict import EasyDict
 from nervex.config import parallel_transform
 
+traj_len=9
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
@@ -16,13 +17,13 @@ __policy_default_config = dict(
         algo=dict(
             target_update_freq=100,
             discount_factor=0.95,
-            nstep=1,
+            nstep=3,
         ),
     ),
     collect=dict(
-        traj_len=1,
+        traj_len=traj_len,
         unroll_len=1,
-        algo=dict(nstep=1),
+        algo=dict(nstep=3),
     ),
     command=dict(eps=dict(
         type='exp',
@@ -67,7 +68,7 @@ __zergling_collector_default_config = dict(
     collector_type='zergling',
     import_names=['nervex.worker.collector.zergling_collector'],
     print_freq=10,
-    traj_len=1,
+    traj_len=traj_len,
     compressor='lz4',
     policy_update_freq=3,
     env_kwargs=dict(
