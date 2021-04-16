@@ -6,6 +6,7 @@ from typing import Union, Optional
 from collections import deque
 from competitive_rl.pong.builtin_policies import get_builtin_agent_names, single_obs_space, single_act_space, get_random_policy, get_rule_based_policy
 from competitive_rl.utils.policy_serving import Policy
+from nervex.envs import ObsTransposeWrapper, WarpFrame, FrameStack
 
 def get_compute_action_function_ours(agent_name, num_envs=1):
     resource_dir = osp.join(osp.dirname(__file__), "resources", "pong")
@@ -77,105 +78,6 @@ class BuiltinOpponentWrapper(gym.Wrapper):
 
     def seed(self, s):
         self.env.seed(s)
-
-
-class FrameStack(gym.Wrapper):
-    """Stack n_frames last frames.
-
-    :param gym.Env env: the environment to wrap.
-    :param int n_frames: the number of frames to stack.
-    """
-
-    def __init__(self, env, n_frames):
-        super().__init__(env)
-        self.n_frames = n_frames
-        self.frames = deque([], maxlen=n_frames)
-        obs_space = env.observation_space
-        if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
-        shape = (n_frames, ) + obs_space[0].shape
-        self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(
-            low=np.min(obs_space[0].low),
-            high=np.max(obs_space[0].high),
-            shape=shape,
-            dtype=obs_space[0].dtype
-        ) for _ in range(len(obs_space))])
-        if len(self.observation_space) == 1:
-            self.observation_space = self.observation_space[0]
-
-    def reset(self):
-        obs = self.env.reset()
-        for _ in range(self.n_frames):
-            self.frames.append(obs)
-        return self._get_ob()
-
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        self.frames.append(obs)
-        return self._get_ob(), reward, done, info
-
-    def _get_ob(self):
-        # the original wrapper use `LazyFrames` but since we use np buffer,
-        # it has no effect
-        return np.stack(self.frames, axis=0)
-
-
-class WarpFrame(gym.ObservationWrapper):
-    """Warp frames to 84x84 as done in the Nature paper and later work.
-
-    :param gym.Env env: the environment to wrap.
-    """
-
-    def __init__(self, env):
-        super().__init__(env)
-        self.size = 84
-        obs_space = env.observation_space
-        if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
-        self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(
-            low=np.min(obs_space[0].low),
-            high=np.max(obs_space[0].high),
-            shape=(self.size, self.size),
-            dtype=obs_space[0].dtype
-        ) for _ in range(len(obs_space))])
-        if len(self.observation_space) == 1:
-            self.observation_space = self.observation_space[0]
-
-    def observation(self, frame):
-        """returns the current observation from a frame"""
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
-
-
-class ObsTransposeWrapper(gym.ObservationWrapper):
-
-    def __init__(self, env):
-        super().__init__(env)
-        obs_space = env.observation_space
-        if isinstance(obs_space, gym.spaces.tuple.Tuple):
-            self.observation_space = gym.spaces.Box(
-                low=np.min(obs_space[0].low),
-                high=np.max(obs_space[0].high),
-                shape=(len(obs_space), obs_space[0].shape[2], obs_space[0].shape[0], obs_space[0].shape[1]),
-                dtype=obs_space[0].dtype
-            )
-        else:
-            self.observation_space = gym.spaces.Box(
-                low=np.min(obs_space.low),
-                high=np.max(obs_space.high),
-                shape=(obs_space.shape[2], obs_space.shape[0], obs_space.shape[1]),
-                dtype=obs_space.dtype
-            )
-
-    def observation(self, obs: Union[tuple, np.ndarray]):
-        if isinstance(obs, tuple):
-            new_obs = []
-            for i in range(len(obs)):
-                new_obs.append(obs[i].transpose(2, 0, 1))
-            obs = np.stack(new_obs)
-        else:
-            obs = obs.transpose(2, 0, 1)
-        return obs
 
 
 # def wrap_env(env_id, builtin_wrap, opponent, frame_stack=4, warp_frame=True):
