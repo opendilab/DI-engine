@@ -8,12 +8,12 @@ Adder
 概述：
     Adder的概念可以参考大规模强化学习训练框架ACME中的定义，有关ACME的介绍可见 `RLwarmup部分 <../rl_warmup/algorithm/large-scale-rl.html>`_ 。
     
-    总的来说，adder的作用是将数据从actor取出加入dataset(buffer)之前进行一些预处理和聚合，将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
+    总的来说，adder的作用是将数据从collector取出加入dataset(buffer)之前进行一些预处理和聚合，将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
 
     通过adder，我们可以方便的实现不同种类的数据预处理和聚合。
 
 代码结构：
-    我们统一将从 ``actor`` 取出的数据在加入buffer前进行预处理和聚合的函数放在 ``Adder`` 类中，代码位于 `rl_utils/adder.py` 。
+    我们统一将从 ``collector`` 取出的数据在加入buffer前进行预处理和聚合的函数放在 ``Adder`` 类中，代码位于 `rl_utils/adder.py` 。
 
 类定义：
     Adder (rl_utils/adder.py)
@@ -24,7 +24,7 @@ Adder
                 """
                 Overview:
                     Adder is a component that handles different transformations and calculations for transitions
-                    in Actor Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
+                    in Collector Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
                 Interface:
                     __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
                 """
@@ -175,7 +175,7 @@ Adder
 
         - 类方法：
             1. __init__: 初始化。
-            2. get_traj: 该方法从 ``BaseSerialActor`` 中的 trajectory cache pool 获得部分trajectory。 
+            2. get_traj: 该方法从 ``BaseSerialCollector`` 中的 trajectory cache pool 获得部分trajectory。 
             3. get_gae: 该方法根据trajectory计算相应的GAE advantage。
             4. get_gae_with_default_last_value: 该方法同样是根据trajectory计算相应的GAE advantage，不过也适用于没有结束的trajectory。
             5. get_nstep_return_data: 该方法获得多步的trajectory数据。
@@ -188,7 +188,7 @@ Adder
 
 
 已经实现的模块:
-    1. ``get_traj`` : 该方法从 ``BaseSerialActor`` 中的 trajectory cache pool 获得traj_len长度的trajectory, 并返回该部分的trajectory。具体实现代码如下:
+    1. ``get_traj`` : 该方法从 ``BaseSerialCollector`` 中的 trajectory cache pool 获得traj_len长度的trajectory, 并返回该部分的trajectory。具体实现代码如下:
         
 
         .. code:: python
@@ -212,13 +212,13 @@ Adder
                 return traj
         
 
-    该方法在 ``BaseSerialActor`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，输入的数据即为 ``actor`` 中的 ``traj_cache``:
+    该方法在 ``BaseSerialCollector`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，输入的数据即为 ``collector`` 中的 ``traj_cache``:
 
         .. code:: python
 
             train_sample = self._policy.get_train_sample(self._traj_cache[env_id]) # traj_cache is the input of the get_traj function
     
-    2. ``get_train_sample`` : 该方法同样在 ``BaseSerialActor`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，接受一个 ``list`` 结构的trajectory输入，返回可以放入buffer的训练数据。具体实现代码如下:
+    2. ``get_train_sample`` : 该方法同样在 ``BaseSerialCollector`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，接受一个 ``list`` 结构的trajectory输入，返回可以放入buffer的训练数据。具体实现代码如下:
 
         .. code:: python
 
@@ -271,11 +271,11 @@ Adder
                     return split_data
     
     
-    对于 ``BaseSerialActor`` 来说，``get_traj`` 方法和 ``get_train_sampler`` 方法对于大部分算法来说都是需要被调用的，因此在如下的 ``CommonPolicy`` 的代码中，两个方法都被调用了:
+    对于 ``BaseSerialCollector`` 来说，``get_traj`` 方法和 ``get_train_sampler`` 方法对于大部分算法来说都是需要被调用的，因此在如下的 ``CommonPolicy`` 的代码中，两个方法都被调用了:
 
         .. code:: python
 
-            # in actor
+            # in collector
 
             train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
 
@@ -286,7 +286,7 @@ Adder
                 data = self._adder.get_traj(traj_cache, self._traj_len)
                 return self._adder.get_train_sample(data)
     
-    3. ``get_nstep_return_data`` : 该方法同样在 ``BaseSerialActor`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，用于需要多个timestep进行计算的，如在 ``r2d2`` 算法中的调用如下：
+    3. ``get_nstep_return_data`` : 该方法同样在 ``BaseSerialCollector`` 中通过 ``Policy`` 类的 ``collect_mode.get_train_sample`` 调用，用于需要多个timestep进行计算的，如在 ``r2d2`` 算法中的调用如下：
 
         .. code:: python
 

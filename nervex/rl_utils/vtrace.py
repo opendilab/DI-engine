@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from collections import namedtuple
 from .isw import compute_importance_weights
+from nervex.hpc_rl import hpc_wrapper
 
 
 def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamma=0.99, lambda_=0.95):
@@ -23,6 +24,26 @@ vtrace_data = namedtuple('vtrace_data', ['target_output', 'behaviour_output', 'a
 vtrace_loss = namedtuple('vtrace_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 
 
+def shape_fn_vtrace(args, kwargs):
+    r"""
+    Overview:
+        Return shape of vtrace for hpc
+    Returns:
+        shape: [T, B, N]
+    """
+    if len(args) <= 0:
+        tmp = kwargs['data'].target_output.shape
+    else:
+        tmp = args[0].target_output.shape
+    return tmp
+
+
+@hpc_wrapper(
+    shape_fn=shape_fn_vtrace,
+    namedtuple_data=True,
+    include_args=[0, 1, 2, 3, 4, 5],
+    include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio']
+)
 def vtrace_error(
     data: namedtuple,
     gamma: float = 0.99,
@@ -40,7 +61,7 @@ def vtrace_error(
             - target_output (:obj:`torch.Tensor`): the output taking the action by the current policy network,\
                 usually this output is network output logit
             - behaviour_output (:obj:`torch.Tensor`): the output taking the action by the behaviour policy network,\
-                usually this output is network output logit, which is used to produce the trajectory(actor)
+                usually this output is network output logit, which is used to produce the trajectory(collector)
             - action (:obj:`torch.Tensor`): the chosen action(index for the discrete action space) in trajectory,\
                 i.e.: behaviour_action
         - gamma: (:obj:`float`): the future discount factor, defaults to 0.95

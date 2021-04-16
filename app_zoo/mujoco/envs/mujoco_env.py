@@ -80,10 +80,10 @@ class MujocoEnv(BaseEnv):
         return "nerveX Mujoco Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_cfg = copy.deepcopy(cfg)
-        actor_env_num = actor_cfg.pop('actor_env_num', 1)
-        return [actor_cfg for _ in range(actor_env_num)]
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_cfg = copy.deepcopy(cfg)
+        collector_env_num = collector_cfg.pop('collector_env_num', 1)
+        return [collector_cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:

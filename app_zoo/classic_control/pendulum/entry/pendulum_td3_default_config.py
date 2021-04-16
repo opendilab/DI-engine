@@ -8,7 +8,7 @@ pendulum_td3_default_config = dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
         env_type='pendulum',
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=8,
         use_act_scale=True,
     ),
@@ -53,7 +53,7 @@ pendulum_td3_default_config = dict(
         replay_buffer_size=20000,
         max_use=16,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=48,
         traj_len=1,
         collect_print_freq=1000,

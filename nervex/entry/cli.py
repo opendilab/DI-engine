@@ -3,7 +3,7 @@ from click.core import Context, Option
 from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .serial_entry import serial_pipeline
 from .parallel_entry import parallel_pipeline
-from .dist_entry import dist_launch_coordinator, dist_launch_actor, dist_launch_learner, dist_prepare_config
+from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config
 from .application_entry import eval
 
 
@@ -71,11 +71,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-p', '--platform', type=click.Choice(['local', 'slurm', 'k8s']), help='local or slurm or k8s', default='local'
 )
-@click.option('--module', type=click.Choice(['config', 'actor', 'learner', 'coordinator']), help='dist module type')
+@click.option('--module', type=click.Choice(['config', 'collector', 'learner', 'coordinator']), help='dist module type')
 @click.option('--module-name', type=str, help='dist module name')
-@click.option('-ch', '--coordinator_host', type=str, help='coordinator host', default='0.0.0.0')
+@click.option('-cdh', '--coordinator_host', type=str, help='coordinator host', default='0.0.0.0')
 @click.option('-lh', '--learner_host', type=str, help='learner host', default='0.0.0.0')
-@click.option('-ah', '--actor_host', type=str, help='actor host', default='0.0.0.0')
+@click.option('-clh', '--collector_host', type=str, help='collector host', default='0.0.0.0')
 def cli(
     mode: str,
     config: str,
@@ -83,7 +83,7 @@ def cli(
     platform: str,
     coordinator_host: str,
     learner_host: str,
-    actor_host: str,
+    collector_host: str,
     enable_total_log: bool,
     disable_flask_log: bool,
     module: str,
@@ -95,11 +95,11 @@ def cli(
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
     elif mode == 'dist':
         if module == 'config':
-            dist_prepare_config(config, seed, platform, coordinator_host, learner_host, actor_host)
+            dist_prepare_config(config, seed, platform, coordinator_host, learner_host, collector_host)
         elif module == 'coordinator':
             dist_launch_coordinator(config, seed, disable_flask_log)
-        elif module == 'actor':
-            dist_launch_actor(config, seed, module_name, disable_flask_log)
+        elif module == 'collector':
+            dist_launch_collector(config, seed, module_name, disable_flask_log)
         elif module == 'learner':
             dist_launch_learner(config, seed, module_name, disable_flask_log)
         else:

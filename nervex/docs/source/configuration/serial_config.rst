@@ -26,8 +26,8 @@ cartpole_dqn_default_config.py
             ),
             # Env register name (refer to function "register_env").
             env_type='cartpole',
-            # Env number respectively for actor and evaluator.
-            actor_env_num=8,
+            # Env number respectively for collector and evaluator.
+            collector_env_num=8,
             evaluator_env_num=5,
         ),
         policy=dict(
@@ -46,7 +46,7 @@ cartpole_dqn_default_config.py
             ),
             # learn_mode config
             learn=dict(
-                # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
+                # How many steps to train after collector's one collection. Bigger "train_iteration" means bigger off-policy.
                 # collect data -> train fixed steps -> collect data -> ...
                 train_iteration=3,
                 batch_size=64,
@@ -57,7 +57,7 @@ cartpole_dqn_default_config.py
                     # Frequence of target network update.
                     target_update_freq=100,
                     # Reward's future discount facotr, aka. gamma.
-                    discount_factor=0.97,
+                    discount_fcollector=0.97,
                     # How many steps in td error.
                     nstep=nstep,
                 ),
@@ -86,8 +86,8 @@ cartpole_dqn_default_config.py
         replay_buffer=dict(
             replay_buffer_size=100000,
         ),
-        actor=dict(
-            # You can use either "n_sample" or "n_episode" in actor.collect.
+        collector=dict(
+            # You can use either "n_sample" or "n_episode" in collector.collect.
             # Get "n_sample" samples per collect.
             n_sample=8,
             # Get "n_episode" complete episodic trajectories per collect.

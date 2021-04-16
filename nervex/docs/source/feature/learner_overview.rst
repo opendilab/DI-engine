@@ -175,9 +175,9 @@ Learner
 
             .. note::
 
-                在 **串行pipeline** 中，learner与actor交替工作（同步），故 ``train`` 方法是从外界传入训练数据，由learner训练一个迭代。
+                在 **串行pipeline** 中，learner与collector交替工作（同步），故 ``train`` 方法是从外界传入训练数据，由learner训练一个迭代。
                 
-                而在 **并行pipeline** 中，learner与actor同一时刻都在工作（异步），故 ``start`` 方法可作为一个线程启动，自行从dataloader获取数据（所以dataloader是并行pipeline特有的，串行没有），根据预先设定的最大迭代数及evaluate收敛情况，训练多个迭代。其中每一个迭代在获取数据后，都调用 ``train`` 进行当前迭代的训练。
+                而在 **并行pipeline** 中，learner与collector同一时刻都在工作（异步），故 ``start`` 方法可作为一个线程启动，自行从dataloader获取数据（所以dataloader是并行pipeline特有的，串行没有），根据预先设定的最大迭代数及evaluate收敛情况，训练多个迭代。其中每一个迭代在获取数据后，都调用 ``train`` 进行当前迭代的训练。
 
 
     2. Hook 与 LearnerHook (worker/learner/learner_hook.py)
@@ -309,7 +309,7 @@ Learner
 
 
 并行模式中的训练流程解析：
-    相对于简单直接的串行模式，并行模式由于涉及到异步运行的learner actor之间的通信问题，更加晦涩难懂。故在这一部分以我们实现的 **FlaskFileSystemLearner(worker/learner/comm/flask_fs_learner.py)** ——这一使用flask及文件系统进行通信的comm learner——为例，来介绍并行模式中从并行pipeline入口部署coordinator, comm learner开始，到二者建立通信连接，再到coordinator启动comm learner并为其一次或多次分配任务，到最终二者关闭通信连接的流程。
+    相对于简单直接的串行模式，并行模式由于涉及到异步运行的learner collector之间的通信问题，更加晦涩难懂。故在这一部分以我们实现的 **FlaskFileSystemLearner(worker/learner/comm/flask_fs_learner.py)** ——这一使用flask及文件系统进行通信的comm learner——为例，来介绍并行模式中从并行pipeline入口部署coordinator, comm learner开始，到二者建立通信连接，再到coordinator启动comm learner并为其一次或多次分配任务，到最终二者关闭通信连接的流程。
 
         .. image:: parallel_learner_sequence.jpg
 

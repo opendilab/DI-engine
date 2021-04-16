@@ -70,8 +70,8 @@ Best Practice
             return EasyDict(transition)
 
    
-   -  对于A-pex中的多个Actor使用不同的探索策略，目前仅支持在nervex
-      parallel入口实现，需要给每一个actor task设定相关参数
+   -  对于A-pex中的多个Collector使用不同的探索策略，目前仅支持在nervex
+      parallel入口实现，需要给每一个collector task设定相关参数
 
 5. 更改priority采样的相关参数
 
@@ -166,7 +166,7 @@ Best Practice
       armor.reset(data_id=[0], state=init_state[1])
       output3 = armor.forward(inputs3)
 
-2. actor->learner传递数据
+2. collector->learner传递数据
 
    注册能够返回当前帧输入state的plugin
 
@@ -509,8 +509,8 @@ Best Practice
    - env
    - learner
    - comm_learner
-   - actor
-   - comm_actor
+   - collector
+   - comm_collector
    - commander
    - league
    - player
@@ -531,8 +531,9 @@ Best Practice
 
    在 ``policy_type`` 中，指明名字。
 
-   在 ``import_names`` 中，指明文件路径。我们要求 ``import_names`` 需为一个 ``list``，其中每个元素是一个python的绝对import路径，
-   即可以在 Python Idle 内执行 ``import name1.name2``，例如：
+   在 ``import_names`` 中，指明文件路径。我们要求 ``import_names`` 需为一个 ``list`` ，其中每个元素是一个python的绝对import路径，
+   即可以在 Python Idle 内执行 ``import name1.name2`` ，例如：
+
       - ``nervex.policy.dqn``
       - ``app_zoo.atari.envs.atari_env``
 
@@ -656,6 +657,7 @@ n-step在强化学习算法是一种常见配置，介于1-step和蒙特卡洛�
       在对应算法Policy中的 ``_forward_learn`` 方法中使用对应n-step td 方法，如使用简单的 ``nstep_return`` ：
 
       .. code:: python
+
          def _forward_learn(self, data: dict) -> Dict[str, Any]:
             r"""
             Overview:

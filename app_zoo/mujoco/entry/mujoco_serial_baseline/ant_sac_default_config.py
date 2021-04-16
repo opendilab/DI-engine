@@ -12,7 +12,7 @@ ant_sac_default_config = dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.mujoco.envs.mujoco_env'],
         env_type='mujoco',
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=8,
         use_act_scale=True,
     ),
@@ -63,7 +63,7 @@ ant_sac_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=64,
         traj_len=1,
         collect_print_freq=1000,

@@ -254,7 +254,7 @@ class BaseLearner(object):
         self._log_buffer['scalars'].update(scalars_vars)
         self._log_buffer['histogram'].update(histogram_vars)
 
-        self._actor_envstep = envstep
+        self._collector_envstep = envstep
         self.call_hook('after_iter')
         self._last_iter.add(1)
 

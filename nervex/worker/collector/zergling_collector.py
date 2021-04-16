@@ -11,13 +11,13 @@ from easydict import EasyDict
 
 from nervex.envs import get_vec_env_setting, AsyncSubprocessEnvManager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
-from .base_parallel_actor import BaseActor
-from .base_serial_actor import CachePool
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
+from .base_parallel_collector import BaseCollector
+from .base_serial_collector import CachePool
 
 
-@ACTOR_REGISTRY.register('zergling')
-class ZerglingActor(BaseActor):
+@COLLECTOR_REGISTRY.register('zergling')
+class ZerglingCollector(BaseCollector):
     """
     Feature:
       - one policy, many envs
@@ -51,14 +51,14 @@ class ZerglingActor(BaseActor):
         self._total_episode = 0
 
     def _setup_env_manager(self) -> BaseEnvManager:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
         manager_cfg = self._env_kwargs.get('manager', {})
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num
         else:
-            env_cfg = actor_env_cfg
-            episode_num = self._env_kwargs.actor_episode_num
+            env_cfg = collector_env_cfg
+            episode_num = self._env_kwargs.collector_episode_num
         env_manager = AsyncSubprocessEnvManager(
             env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num, manager_cfg=manager_cfg
         )
@@ -125,9 +125,9 @@ class ZerglingActor(BaseActor):
                         self.send_stepdata(metadata['data_id'], s)
                         self.send_metadata(metadata)
                     send_data_time.append(self._timer.value)
+                self._traj_cache[env_id].clear()
             if t.done:
                 # env reset is done by env_manager automatically
-                self._traj_cache[env_id].clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
                 self._policy.reset([env_id])
@@ -148,8 +148,8 @@ class ZerglingActor(BaseActor):
         )
         dones = [t.done for t in timestep.values()]
         if any(dones):
-            actor_info = self._get_actor_info()
-            self.send_metadata(actor_info)
+            collector_info = self._get_collector_info()
+            self.send_metadata(collector_info)
 
     # override
     def get_finish_info(self) -> dict:
@@ -158,7 +158,7 @@ class ZerglingActor(BaseActor):
             'eval_flag': self._eval_flag,
             'env_num': self._env_num,
             'duration': duration,
-            'actor_done': self._env_manager.done,
+            'collector_done': self._env_manager.done,
             'predefined_episode_count': self._predefined_episode_count,
             'real_episode_count': self._total_episode,
             'step_count': self._total_step,
@@ -227,15 +227,15 @@ class ZerglingActor(BaseActor):
         }
         return metadata
 
-    def _get_actor_info(self) -> dict:
+    def _get_collector_info(self) -> dict:
         return {
             'eval_flag': self._eval_flag,
             'get_info_time': time.time(),
-            'actor_done': self._env_manager.done,
+            'collector_done': self._env_manager.done,
             'cur_episode': self._total_episode,
             'cur_sample': self._total_sample,
             'cur_step': self._total_step,
         }
 
     def __repr__(self) -> str:
-        return "ZerglingActor"
+        return "ZerglingCollector"

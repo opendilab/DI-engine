@@ -7,7 +7,7 @@ Below is the original readme from openAI's open source code.
 # Multi-Agent Particle Environment
 
 A simple multi-agent particle world with a continuous observation and discrete action space, along with some basic simulated physics.
-Used in the paper [Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments](https://arxiv.org/pdf/1706.02275.pdf).
+Used in the paper [Multi-Agent collectorctor-Critic for Mixed Cooperative-Competitive Environments](https://arxiv.org/pdf/1706.02275.pdf).
 
 ## Getting started:
 
@@ -69,7 +69,7 @@ If you used this environment for your experiments or found it helpful, consider 
 Environments in this repo:
 <pre>
 @article{lowe2017multi,
-  title={Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments},
+  title={Multi-Agent collectorctor-Critic for Mixed Cooperative-Competitive Environments},
   author={Lowe, Ryan and Wu, Yi and Tamar, Aviv and Harb, Jean and Abbeel, Pieter and Mordatch, Igor},
   journal={Neural Information Processing Systems (NIPS)},
   year={2017}

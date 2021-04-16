@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from nervex.utils import build_logger, EasyTimer
 from nervex.envs import BaseEnvManager
-from .base_serial_actor import CachePool
+from .base_serial_collector import CachePool
 
 
 class BaseSerialEvaluator(object):
@@ -86,7 +86,7 @@ class BaseSerialEvaluator(object):
         self._policy.reset()
         with self._timer:
             while episode_count < n_episode:
-                obs = self._env_manager.next_obs
+                obs = self._env_manager.ready_obs
                 self._obs_pool.update(obs)
                 env_id, obs = self._policy.data_preprocess(obs)
                 policy_output = self._policy.forward(env_id, obs)

@@ -17,7 +17,7 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 16
+    collector_env_num: 16
     evaluator_env_num: 8
     use_act_scale: True
 policy:
@@ -40,7 +40,7 @@ policy:
         algo:
             target_theta: 0.005
             discount_factor: 0.99
-            actor_update_freq: 2
+            collector_update_freq: 2
             use_twin_critic: True
             use_noise: True
             noise_sigma: 0.2
@@ -60,7 +60,7 @@ replay_buffer:
         replay_buffer_size: 20000
         max_use: 1024
         min_sample_ratio: 1
-actor:
+collector:
     n_sample: 24
     traj_len: 1
     collect_print_freq: 1000

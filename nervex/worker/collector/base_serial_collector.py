@@ -8,12 +8,12 @@ from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
 
-class BaseSerialActor(object):
+class BaseSerialCollector(object):
     """
     Overview:
-        Baseclass for serial actor.
+        Baseclass for serial collector.
     Interfaces:
-        __init__, reset, generate_data, close
+        __init__, reset, collect_data, close
     Property:
         env, policy
     """
@@ -76,7 +76,7 @@ class BaseSerialActor(object):
         self._done_episode = []
 
     @property
-    def actor_info(self) -> dict:
+    def collector_info(self) -> dict:
         """
         Overview:
             Get current info dict, which will be sent to commander, e.g. replay buffer priority update,
@@ -87,13 +87,13 @@ class BaseSerialActor(object):
         ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
-    def generate_data(self,
+    def collect_data(self,
                       train_iter: int = -1,
                       n_episode: Optional[int] = None,
                       n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
-           Generate data. Either ``n_episode`` or ``n_sample`` must be None.
+           Collect data. Either ``n_episode`` or ``n_sample`` must be None.
         Arguments:
            - train_iter (:obj:`int`): count of iteration
            - n_episode (:obj:`int`): number of episode
@@ -142,7 +142,7 @@ class BaseSerialActor(object):
         while not collect_end_fn(collected_episode, collected_sample):
             with self._timer:
                 # Get current env obs.
-                obs = self._env_manager.next_obs
+                obs = self._env_manager.ready_obs
                 self._obs_pool.update(obs)
                 # Policy forward.
                 env_id, obs = self._policy.data_preprocess(obs)
@@ -215,7 +215,7 @@ class BaseSerialActor(object):
                 'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
                 'avg_envstep_per_episode': envstep_count / episode_count,
-                'avg_sample_per_epsiode': train_sample_count / episode_count,
+                'avg_sample_per_episode': train_sample_count / episode_count,
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
@@ -234,10 +234,10 @@ class BaseSerialActor(object):
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue
-                self._tb_logger.add_scalar('actor_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('collector_iter/' + k, v, train_iter)
                 if k in ['total_envstep_count']:
                     continue
-                self._tb_logger.add_scalar('actor_step/' + k, v, self._total_envstep_count)
+                self._tb_logger.add_scalar('collector_step/' + k, v, self._total_envstep_count)
         return return_data
 
     def _var_reset(self, env_id: int) -> None:

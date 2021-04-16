@@ -3,7 +3,7 @@ from easydict import EasyDict
 agent_num = 5
 num_agents = agent_num
 num_landmarks = agent_num
-actor_env_num = 4
+collector_env_num = 4
 evaluator_env_num = 2
 max_step = 100
 cooperative_navigation_collaQ_default_config = dict(
@@ -15,7 +15,7 @@ cooperative_navigation_collaQ_default_config = dict(
         num_landmarks=num_landmarks,
         max_step=max_step,
         agent_num=agent_num,
-        actor_env_num=actor_env_num,
+        collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
     ),
     policy=dict(
@@ -49,7 +49,7 @@ cooperative_navigation_collaQ_default_config = dict(
             traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
-            env_num=actor_env_num,
+            env_num=collector_env_num,
         ),
         eval=dict(
             agent_num=agent_num,
@@ -66,7 +66,7 @@ cooperative_navigation_collaQ_default_config = dict(
         replay_buffer_size=5000,
         max_use=10,
     ),
-    actor=dict(
+    collector=dict(
         n_episode=6,
         traj_len=max_step,  # cooperative_navigation_episode_max_length
         collect_print_freq=4,
