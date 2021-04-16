@@ -2,11 +2,13 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.utils import ENV_REGISTRY
 
 
+@ENV_REGISTRY.register('lunarlander')
 class LunarLanderEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -78,6 +80,3 @@ class LunarLanderEnv(BaseEnv):
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
-
-
-register_env('lunarlander', LunarLanderEnv)

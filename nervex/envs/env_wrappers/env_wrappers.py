@@ -74,13 +74,17 @@ class WarpFrame(gym.ObservationWrapper):
         self.size = 84
         obs_space = env.observation_space
         if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
-        self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(
-            low=np.min(obs_space[0].low),
-            high=np.max(obs_space[0].high),
-            shape=(self.size, self.size),
-            dtype=obs_space[0].dtype
-        ) for _ in range(len(obs_space))])
+            obs_space = (obs_space, )
+        self.observation_space = gym.spaces.tuple.Tuple(
+            [
+                gym.spaces.Box(
+                    low=np.min(obs_space[0].low),
+                    high=np.max(obs_space[0].high),
+                    shape=(self.size, self.size),
+                    dtype=obs_space[0].dtype
+                ) for _ in range(len(obs_space))
+            ]
+        )
         if len(self.observation_space) == 1:
             self.observation_space = self.observation_space[0]
 
@@ -136,14 +140,15 @@ class FrameStack(gym.Wrapper):
         self.frames = deque([], maxlen=n_frames)
         obs_space = env.observation_space
         if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
+            obs_space = (obs_space, )
         shape = (n_frames, ) + obs_space[0].shape
-        self.observation_space = gym.spaces.tuple.Tuple([gym.spaces.Box(
-            low=np.min(obs_space[0].low),
-            high=np.max(obs_space[0].high),
-            shape=shape,
-            dtype=obs_space[0].dtype
-        ) for _ in range(len(obs_space))])
+        self.observation_space = gym.spaces.tuple.Tuple(
+            [
+                gym.spaces.Box(
+                    low=np.min(obs_space[0].low), high=np.max(obs_space[0].high), shape=shape, dtype=obs_space[0].dtype
+                ) for _ in range(len(obs_space))
+            ]
+        )
         if len(self.observation_space) == 1:
             self.observation_space = self.observation_space[0]
 
