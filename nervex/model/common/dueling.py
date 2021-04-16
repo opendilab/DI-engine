@@ -119,22 +119,29 @@ class DuelingHead(nn.Module):
 
             quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
 
-            quantiles = self.beta_function(quantiles)
+            beta_quantiles = self.beta_function(quantiles)
 
             quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
+            beta_quantile_net = beta_quantiles.repeat([1, self.quantile_embedding_dim])
 
             quantile_net = torch.cos(
                 torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
                 quantile_net
             )
-
             quantile_net = self.iqn_fc(quantile_net)
-
             quantile_net = F.relu(quantile_net)
+
+            beta_quantile_net = torch.cos(
+                torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
+                beta_quantile_net
+            )
+            beta_quantile_net = self.iqn_fc(beta_quantile_net)
+            beta_quantile_net = F.relu(beta_quantile_net)
 
             x = x.repeat(num_quantiles, 1)
 
             x = x * quantile_net
+            beta_x = x * beta_quantile_net
 
         a = self.A(x)
         v = self.V(x)
@@ -149,9 +156,13 @@ class DuelingHead(nn.Module):
             q = q.sum(-1)
             return q, dist
         elif self.quantile:
+            beta_a = self.A(beta_x)
+            beta_v = self.V(beta_x)
             q = a - a.mean(dim=-1, keepdim=True) + v
             q = q.reshape(num_quantiles, batch_size, -1)
-            logit = q.mean(0)
+            beta_q = beta_a - beta_a.mean(dim=-1, keepdim=True) + beta_v
+            beta_q = beta_q.reshape(num_quantiles, batch_size, -1)
+            logit = beta_q.mean(0)
             return logit, q, quantiles
         else:
             return a - a.mean(dim=-1, keepdim=True) + v
