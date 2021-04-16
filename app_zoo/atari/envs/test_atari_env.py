@@ -21,7 +21,6 @@ class TestAtariEnv:
             timestep = pong_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
-            assert isinstance(timestep, tuple)
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
                 break
@@ -41,7 +40,6 @@ class TestAtariEnv:
             timestep = mr_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
-            assert isinstance(timestep, tuple)
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
                 break

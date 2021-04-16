@@ -5,7 +5,11 @@ import cv2
 import gym
 import os.path as osp
 import numpy as np
+from typing import Union, Optional
 from collections import deque
+from copy import deepcopy
+from torch import float32
+import matplotlib.pyplot as plt
 
 
 class NoopResetEnv(gym.Wrapper):
@@ -319,3 +323,60 @@ class RamWrapper(gym.Wrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
+
+
+class EpisodicLifeEnv(gym.Wrapper):
+    """Make end-of-life == end-of-episode, but only reset on true game over. It
+    helps the value estimation.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.lives = 0
+        self.was_real_done = True
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self.was_real_done = done
+        # check current lives, make loss of life terminal, then update lives to
+        # handle bonus lives
+        lives = self.env.unwrapped.ale.lives()
+        if 0 < lives < self.lives:
+            # for Qbert sometimes we stay in lives == 0 condition for a few
+            # frames, so its important to keep lives > 0, so that we only reset
+            # once the environment is actually done.
+            done = True
+        self.lives = lives
+        return obs, reward, done, info
+
+    def reset(self):
+        """Calls the Gym environment reset, only when lives are exhausted. This
+        way all states are still reachable even though lives are episodic, and
+        the learner need not know about any of this behind-the-scenes.
+        """
+        if self.was_real_done:
+            obs = self.env.reset()
+        else:
+            # no-op step to advance from terminal/lost life state
+            obs = self.env.step(0)[0]
+        self.lives = self.env.unwrapped.ale.lives()
+        return obs
+
+
+class FireResetEnv(gym.Wrapper):
+    """Take action on reset for environments that are fixed until firing.
+    Related discussion: https://github.com/openai/baselines/issues/240
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
+        assert len(env.unwrapped.get_action_meanings()) >= 3
+
+    def reset(self):
+        self.env.reset()
+        return self.env.step(1)[0]

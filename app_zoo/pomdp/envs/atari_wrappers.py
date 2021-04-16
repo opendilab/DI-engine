@@ -10,8 +10,7 @@ from copy import deepcopy
 from torch import float32
 import matplotlib.pyplot as plt
 
-from nervex.envs import RamWrapper, NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, \
-                      ClipRewardEnv, FrameStack
+from nervex.envs import RamWrapper, NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, ClipRewardEnv, FrameStack
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
