@@ -293,7 +293,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
-    下面所示为在slurm集群上的启动脚本，只需要将 ``nervex xxxx``当作一个任务提交到某个计算节点即可，和普通srun提交任务没有区别。
+    下面所示为在slurm集群上的启动脚本，只需要将 ``nervex xxxx`` 当作一个任务提交到某个计算节点即可，和普通srun提交任务没有区别。
     
     .. code:: bash
 
