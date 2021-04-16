@@ -28,7 +28,9 @@ class LunarLanderEnv(BaseEnv):
         return obs
 
     def close(self) -> None:
-        self._env.close()
+        if self._init_flag:
+            self._env.close()
+        self._init_flag = False
 
     def render(self) -> None:
         self._env.render()

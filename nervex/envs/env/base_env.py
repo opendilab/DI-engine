@@ -3,10 +3,11 @@ from typing import Any, List, Tuple
 import logging
 import gym
 from namedlist import namedlist
+from collections import namedtuple
 from nervex.utils import import_module, ENV_REGISTRY
 
-BaseEnvTimestep = namedlist('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
-BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
+BaseEnvInfo = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 
 class BaseEnv(gym.Env):

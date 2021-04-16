@@ -89,7 +89,9 @@ class CompetitiveRlEnv(BaseEnv):
         return obs
 
     def close(self) -> None:
-        self._env.close()
+        if self._init_flag:
+            self._env.close()
+        self._init_flag = False
 
     def seed(self, seed: int) -> None:
         self._seed = seed
