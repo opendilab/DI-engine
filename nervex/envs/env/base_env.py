@@ -34,8 +34,7 @@ class BaseEnv(gym.Env):
     @abstractmethod
     def close(self) -> None:
         """
-        Overview: Environments will automatically close() themselves when garbage 
-                  collected or when the program exits. 
+        Overview: Environments will automatically close() themselves when garbage collected or exits.
                   ABS Method from `gym.Env`.
         """
         raise NotImplementedError
