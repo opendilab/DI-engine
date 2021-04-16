@@ -36,7 +36,7 @@ cartpole_dqnvanilla_default_config = dict(
             unroll_len=1,
             algo=dict(nstep=1, ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.1,
@@ -68,7 +68,6 @@ cartpole_dqnvanilla_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_dqnvanilla_default_config = EasyDict(cartpole_dqnvanilla_default_config)
 main_config = cartpole_dqnvanilla_default_config

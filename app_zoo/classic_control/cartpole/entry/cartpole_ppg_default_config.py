@@ -45,7 +45,6 @@ cartpole_ppg_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         buffer_name=['policy', 'value'],
@@ -80,7 +79,6 @@ cartpole_ppg_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_ppg_default_config = EasyDict(cartpole_ppg_default_config)
 main_config = cartpole_ppg_default_config

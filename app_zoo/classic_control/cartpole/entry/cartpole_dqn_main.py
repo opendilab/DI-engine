@@ -1,12 +1,13 @@
 import os
 from tensorboardX import SummaryWriter
 
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator
 from nervex.data import BufferManager
 from nervex.envs import BaseEnvManager
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.entry.utils import set_pkg_seed
+from nervex.rl_utils import epsilon_greedy
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
 
@@ -27,15 +28,17 @@ def main(cfg, seed=0):
     actor = BaseSerialActor(cfg.actor, actor_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
-    commander = BaseSerialCommander(cfg.commander, learner, actor, evaluator, replay_buffer, policy.command_mode)
+
+    eps_cfg = cfg.policy.other.eps
+    epsilon_greedy_fn = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     while True:
-        commander.step()
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, actor.envstep)
             if stop:
                 break
-        new_data = actor.generate_data(learner.train_iter)
+        eps = epsilon_greedy_fn(learner.train_iter)
+        new_data = actor.generate_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
         for i in range(cfg.policy.learn.train_iteration):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)

@@ -59,8 +59,7 @@ cartpole_sqn_default_config = dict(
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
         ),
-        # command_mode config
-        command=dict(
+        other=dict(
             # Epsilon greedy with decay.
             eps=dict(
                 # Decay type. Support ['exp', 'linear'].
@@ -112,7 +111,6 @@ cartpole_sqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_sqn_default_config = EasyDict(cartpole_sqn_default_config)
 main_config = cartpole_sqn_default_config

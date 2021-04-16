@@ -16,7 +16,6 @@ cartpole_rainbowdqn_iqn_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='rainbow_dqn',
-        import_names=['nervex.policy.dqn', 'nervex.policy.rainbow_dqn'],
         on_policy=False,
         use_priority=True,
         model=dict(
@@ -44,11 +43,10 @@ cartpole_rainbowdqn_iqn_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.5,
             end=0.05,
@@ -80,7 +78,6 @@ cartpole_rainbowdqn_iqn_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_rainbowdqn_iqn_config = EasyDict(cartpole_rainbowdqn_iqn_config)
 main_config = cartpole_rainbowdqn_iqn_config

@@ -42,7 +42,6 @@ cartpole_ppo_default_loader = dict_(
                 gae_lambda=item('gae_lambda') >> (is_type(float) & interval(0.0, 1.0)),
             )
         ),
-        command=item('command') >> dict_()
     ),
     replay_buffer=item('replay_buffer') >> dict_(
         replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
@@ -59,7 +58,6 @@ cartpole_ppo_default_loader = dict_(
         stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
-    commander=item('commander') | raw({}),
 )
 policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
 policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')

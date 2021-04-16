@@ -3,7 +3,7 @@ import pickle
 import torch
 from functools import partial
 
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
@@ -31,6 +31,7 @@ def eval(
     """
     if isinstance(cfg, str):
         cfg = read_config(cfg)
+    cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Env init.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
@@ -80,6 +81,7 @@ def collect_demo_data(
     """
     if isinstance(cfg, str):
         cfg = read_config(cfg)
+    cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Env init.
     if env_setting is None:
         env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env.env_kwargs)

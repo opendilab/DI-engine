@@ -62,11 +62,9 @@ cooperative_navigation_atoc_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=max_step,
             unroll_len=1,
             algo=dict(noise_sigma=0.4, ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=100000,
@@ -76,7 +74,7 @@ cooperative_navigation_atoc_default_config = dict(
     actor=dict(
         # n_episode=4,
         n_sample=500,
-        traj_len=max_step,  # cooperative_navigation_episode_max_length
+        traj_len='inf',
         collect_print_freq=4,
     ),
     evaluator=dict(
@@ -95,7 +93,6 @@ cooperative_navigation_atoc_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cooperative_navigation_atoc_default_config = EasyDict(cooperative_navigation_atoc_default_config)
 main_config = cooperative_navigation_atoc_default_config

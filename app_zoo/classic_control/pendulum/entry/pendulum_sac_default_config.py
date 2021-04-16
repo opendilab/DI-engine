@@ -51,7 +51,6 @@ pendulum_sac_default_config = dict(
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=100000,
@@ -78,7 +77,6 @@ pendulum_sac_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 pendulum_sac_default_config = EasyDict(pendulum_sac_default_config)
 main_config = pendulum_sac_default_config

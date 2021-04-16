@@ -3,6 +3,7 @@ import time
 import uuid
 from collections import namedtuple, deque
 from threading import Thread
+from functools import partial
 from typing import Dict, Callable, Any, List
 import numpy as np
 import torch
@@ -11,7 +12,7 @@ from easydict import EasyDict
 from nervex.envs import get_vec_env_setting
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, ACTOR_REGISTRY
-from nervex.envs import BaseEnvTimestep, AsyncSubprocessEnvManager, BaseEnvManager
+from nervex.envs import BaseEnvTimestep, SyncSubprocessEnvManager, BaseEnvManager
 from .base_parallel_actor import BaseActor
 from .base_serial_actor import CachePool
 
@@ -56,6 +57,7 @@ class OneVsOneActor(BaseActor):
 
     def _setup_env_manager(self) -> BaseEnvManager:
         env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        manager_cfg = self._env_kwargs.get('manager', {})
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
             episode_num = self._env_kwargs.evaluator_episode_num
@@ -63,8 +65,8 @@ class OneVsOneActor(BaseActor):
             env_cfg = actor_env_cfg
             episode_num = self._env_kwargs.actor_episode_num
         self._episode_num = episode_num
-        env_manager = AsyncSubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num
+        env_manager = SyncSubprocessEnvManager(
+            env_fn=[partial(env_fn, cfg=c) for c in env_cfg], episode_num=episode_num, **manager_cfg
         )
         env_manager.launch()
         return env_manager
@@ -92,7 +94,10 @@ class OneVsOneActor(BaseActor):
         policy_outputs = []
         for i in range(len(self._policy)):
             env_id, policy_obs = self._policy[i].data_preprocess(obs[i])
-            policy_output = self._policy[i].forward(env_id, policy_obs)
+            if self._eval_flag:
+                policy_output = self._policy[i].forward(env_id, policy_obs)
+            else:
+                policy_output = self._policy[i].forward(env_id, policy_obs, **self._cfg.collect_setting)
             policy_outputs.append(self._policy[i].data_postprocess(env_id, policy_output))
         self._policy_output_pool.update(policy_outputs)
         actions = {}

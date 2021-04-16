@@ -41,7 +41,6 @@ cartpole_ppo_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=1000,
@@ -68,7 +67,6 @@ cartpole_ppo_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_ppo_default_config = EasyDict(cartpole_ppo_default_config)
 main_config = cartpole_ppo_default_config

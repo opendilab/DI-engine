@@ -34,26 +34,19 @@ cartpole_ppovanilla_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(eps=dict(
-            type='exp',
-            start=0.95,
-            end=0.1,
-            decay=10000,
-        ), ),
     ),
     replay_buffer=dict(
         replay_buffer_size=1000,
     ),
     actor=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
+        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -73,7 +66,6 @@ cartpole_ppovanilla_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_ppovanilla_default_config = EasyDict(cartpole_ppovanilla_default_config)
 main_config = cartpole_ppovanilla_default_config

@@ -40,7 +40,6 @@ cartpole_a2c_default_config = dict(
                 use_nstep_return=False,
             ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=10000,
@@ -67,7 +66,6 @@ cartpole_a2c_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_a2c_default_config = EasyDict(cartpole_a2c_default_config)
 main_config = cartpole_a2c_default_config

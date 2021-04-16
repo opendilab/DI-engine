@@ -24,7 +24,7 @@ class BaseSerialActor(object):
             env: BaseEnvManager = None,
             policy: namedtuple = None,
             tb_logger: 'SummaryWriter' = None  # noqa
-        ) -> None:
+    ) -> None:
         """
         Overview:
             Initialization method.
@@ -99,10 +99,13 @@ class BaseSerialActor(object):
         ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
-    def generate_data(self,
-                      train_iter: int = -1,
-                      n_episode: Optional[int] = None,
-                      n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+    def generate_data(
+            self,
+            train_iter: int = -1,
+            n_episode: Optional[int] = None,
+            n_sample: Optional[int] = None,
+            policy_kwargs: Optional[dict] = None
+    ) -> Tuple[List[Any], dict]:
         """
         Overview:
            Generate data. Either ``n_episode`` or ``n_sample`` must be None.
@@ -115,13 +118,13 @@ class BaseSerialActor(object):
         """
         assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
-            return self._collect_episode(train_iter, n_episode)
+            return self._collect_episode(train_iter, n_episode, policy_kwargs)
         elif n_sample is not None:
-            return self._collect_sample(train_iter, n_sample)
+            return self._collect_sample(train_iter, n_sample, policy_kwargs)
         elif self._default_n_episode is not None:
-            return self._collect_episode(train_iter, self._default_n_episode)
+            return self._collect_episode(train_iter, self._default_n_episode, policy_kwargs)
         elif self._default_n_sample is not None:
-            return self._collect_sample(train_iter, self._default_n_sample)
+            return self._collect_sample(train_iter, self._default_n_sample, policy_kwargs)
         else:
             raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
@@ -136,13 +139,22 @@ class BaseSerialActor(object):
     def __del__(self) -> None:
         self.close()
 
-    def _collect_episode(self, train_iter: int, n_episode: int) -> Tuple[List[Any], dict]:
-        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode)
+    def _collect_episode(self,
+                         train_iter: int,
+                         n_episode: int,
+                         policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode, policy_kwargs)
 
-    def _collect_sample(self, train_iter: int, n_sample: int) -> Tuple[List[Any], dict]:
-        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample)
+    def _collect_sample(self,
+                        train_iter: int,
+                        n_sample: int,
+                        policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample, policy_kwargs)
 
-    def _collect(self, train_iter: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+    def _collect(self,
+                 train_iter: int,
+                 collect_end_fn: Callable,
+                 policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
             Real collect method in process of generating data.
@@ -153,6 +165,8 @@ class BaseSerialActor(object):
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
+        if policy_kwargs is None:
+            policy_kwargs = {}
         return_data = []
         self._policy.reset()
         collected_episode = 0
@@ -164,7 +178,7 @@ class BaseSerialActor(object):
                 self._obs_pool.update(obs)
                 # Policy forward.
                 env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(env_id, obs)
+                policy_output = self._policy.forward(env_id, obs, **policy_kwargs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.

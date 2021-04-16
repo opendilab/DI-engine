@@ -45,7 +45,7 @@ def test_real_loader():
                 unroll_len=item('unroll_len') >> is_type(int) >> interval(1, 200),
                 algo=item('algo') >> dict_(nstep=item('nstep') >> (is_type(int) & interval(1, 10))),
             ),
-            command=item('command') >> dict_(
+            other=item('other') >> dict_(
                 eps=item('eps') >> dict_(
                     type=item('type') >> enum('linear', 'exp'),
                     start=item('start') >> interval(0.0, 1.0, left_ok=False),
@@ -57,7 +57,6 @@ def test_real_loader():
         replay_buffer=item('replay_buffer') >>
         dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
         learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str)),
-        commander=item('commander') | raw({}),
         actor=item('actor') >> dict_(
             n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
             traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
@@ -76,7 +75,7 @@ def test_real_loader():
         dict_(
             nstep_check=mcmp(learn_nstep, "==", collect_nstep),
             unroll_len_check=mcmp(policy_unroll_len, "<=", actor_traj_len),
-            eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
+            eps_check=item('policy') >> item('other') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
         )
     )
     cartpole_dqn_loader = element_loader >> relation_loader

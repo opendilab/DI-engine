@@ -16,7 +16,6 @@ bitflip_dqn_default_config = dict(
     policy=dict(
         use_cuda=False,
         policy_type='dqn',
-        import_names=['nervex.policy.dqn'],
         on_policy=False,
         model=dict(
             obs_dim=10,
@@ -44,7 +43,7 @@ bitflip_dqn_default_config = dict(
                 her_replay_k=1,
             ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.02,
@@ -75,7 +74,6 @@ bitflip_dqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 bitflip_dqn_default_config = EasyDict(bitflip_dqn_default_config)
 main_config = bitflip_dqn_default_config

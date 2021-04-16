@@ -46,12 +46,6 @@ pendulum_ppo_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(eps=dict(
-            type='exp',
-            start=0.95,
-            end=0.1,
-            decay=10000,
-        ), ),
     ),
     replay_buffer=dict(
         replay_buffer_size=1000,
@@ -78,7 +72,6 @@ pendulum_ppo_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 pendulum_ppo_default_config = EasyDict(pendulum_ppo_default_config)
 main_config = pendulum_ppo_default_config

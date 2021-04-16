@@ -65,7 +65,6 @@ class PPGPolicy(CommonPolicy):
         # Main armor
         self._armor.mode(train=True)
         self._armor.reset()
-        self._learn_setting_set = {}
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
@@ -183,7 +182,6 @@ class PPGPolicy(CommonPolicy):
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -257,7 +255,6 @@ class PPGPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -272,9 +269,6 @@ class PPGPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
-
-    def _init_command(self) -> None:
-        pass
 
     def default_model(self) -> Tuple[str, List[str]]:
         # return 'fc_vac', ['nervex.model.actor_critic.value_ac']

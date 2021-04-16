@@ -47,7 +47,6 @@ cooperative_navigation_iql_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
             env_num=actor_env_num,
@@ -56,7 +55,7 @@ cooperative_navigation_iql_default_config = dict(
             agent_num=agent_num,
             env_num=evaluator_env_num,
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=1.0,
             end=0.05,
@@ -69,7 +68,7 @@ cooperative_navigation_iql_default_config = dict(
     ),
     actor=dict(
         n_episode=4,
-        traj_len=max_step,  # cooperative_navigation_episode_max_length
+        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -88,7 +87,6 @@ cooperative_navigation_iql_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cooperative_navigation_iql_default_config = EasyDict(cooperative_navigation_iql_default_config)
 main_config = cooperative_navigation_iql_default_config

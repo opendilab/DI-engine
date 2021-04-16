@@ -59,7 +59,6 @@ class CollaQPolicy(CommonPolicy):
         self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
 
     def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         r"""
@@ -153,9 +152,8 @@ class CollaQPolicy(CommonPolicy):
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
@@ -166,7 +164,7 @@ class CollaQPolicy(CommonPolicy):
             - data (:obj:`dict`): The collected data
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
+            output = self._collect_armor.forward(data, eps=eps, data_id=data_id)
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -210,7 +208,6 @@ class CollaQPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -225,27 +222,6 @@ class CollaQPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, data_id=data_id)
         return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-            Set the eps_greedy rule according to the config for command
-        """
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        r"""
-        Overview:
-            Collect mode setting information including eps
-        Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
-        Returns:
-           - collect_setting (:obj:`dict`): Including eps in collect mode.
-        """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""

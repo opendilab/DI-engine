@@ -58,8 +58,8 @@ cartpole_dqn_default_config = dict(
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
-        # command_mode config
-        command=dict(
+        # other config
+        other=dict(
             # Epsilon greedy with decay.
             eps=dict(
                 # Decay type. Support ['exp', 'linear'].
@@ -111,7 +111,6 @@ cartpole_dqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
 main_config = cartpole_dqn_default_config
