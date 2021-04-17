@@ -181,6 +181,18 @@ class SQNPolicy(CommonPolicy):
             'q_value': np.mean([x.cpu().detach().numpy() for x in itertools.chain(*q_value)], dtype=float),
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_alpha': self._optimizer_alpha.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._optimizer_alpha.load_state_dict(state_dict['optimizer_alpha'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
@@ -277,13 +289,9 @@ class SQNPolicy(CommonPolicy):
             output = self._eval_armor.forward(data)
         return output
 
-    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
+    def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         assert model is None
         return SQNModel(**cfg.model)
-
-    def default_model(self) -> None:
-        # placeholder
-        pass
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

@@ -53,7 +53,7 @@ def serial_pipeline_irl(
     commander = BaseSerialCommander(
         cfg.get('commander', {}), learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
+    reward_model = create_irl_model(cfg.irl, policy.collect_mode.get_attribute('device'))
     reward_model.start()
     # ==========
     # Main loop

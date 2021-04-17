@@ -193,9 +193,8 @@ class ZerglingCollector(BaseCollector):
                 self.error('Policy update error: {}'.format(e))
                 time.sleep(1)
 
-        handle = self._policy.state_dict_handle()
-        handle['model'].load_state_dict(policy_update_info['model'])
-        self._policy_iter = policy_update_info['iter']
+        self._policy_iter = policy_update_info.pop('iter')
+        self._policy.load_state_dict(policy_update_info)
         self.debug('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
 
     # ******************************** thread **************************************

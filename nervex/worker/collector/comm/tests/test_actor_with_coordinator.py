@@ -62,7 +62,7 @@ class TestCollectorWithCoordinator:
                 time.sleep(0.5)
             torch.save(
                 {
-                    'model': setup_collector['collector0']._collector.policy.state_dict_handle()['model'].state_dict(),
+                    'model': setup_collector['collector0']._collector.policy.state_dict()['model'],
                     'iter': 0
                 }, 'test.pth'
             )

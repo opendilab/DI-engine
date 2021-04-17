@@ -360,7 +360,7 @@ class SendPolicyHook(LearnerHook):
         """
         last_iter = engine.last_iter.val
         if engine.rank == 0 and last_iter % self._freq == 0:
-            state_dict = {'model': engine.policy.state_dict_handle()['model'].state_dict(), 'iter': last_iter}
+            state_dict = {'model': engine.policy.state_dict()['model'], 'iter': last_iter}
             engine.send_policy(state_dict)
             engine.debug('{} save iter{} policy'.format(engine.name, last_iter))
 

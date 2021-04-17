@@ -145,6 +145,16 @@ class IMPALAPolicy(CommonPolicy):
         rewards = rewards * weights
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:

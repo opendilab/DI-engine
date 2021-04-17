@@ -158,6 +158,18 @@ class ATOCPolicy(CommonPolicy):
             **q_value_dict,
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer_actor': self._optimizer_actor.state_dict(),
+            'optimizer_critic': self._optimizer_critic.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
+        self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:

@@ -231,9 +231,8 @@ class OneVsOneCollector(BaseCollector):
                     self.error('Policy {} update error: {}'.format(i + 1, e))
                     time.sleep(1)
 
-            handle = self._policy[i].state_dict_handle()
-            handle['model'].load_state_dict(policy_update_info['model'])
-            self._policy_iter[i] = policy_update_info['iter']
+            self._policy_iter[i] = policy_update_info.pop('iter')
+            self._policy[i].load_state_dict(policy_update_info)
             self.debug('Update policy {} with {}(iter{}) in {}'.format(i + 1, path, self._policy_iter, time.time()))
         self._first_update_policy = False
 

@@ -170,6 +170,18 @@ class PPGPolicy(CommonPolicy):
                 'clipfrac': ppo_info.clipfrac,
             }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:

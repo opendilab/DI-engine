@@ -49,7 +49,8 @@ class SACPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         # Init auto alpha
-        if algo_cfg.get('is_auto_alpha', None):
+        self._is_auto_alpha = algo_cfg.get('is_auto_alpha', None)
+        if self._is_auto_alpha:
             self._target_entropy = -np.prod(self._cfg.model.action_dim)
             self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha]))
             self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu').requires_grad_()
@@ -187,6 +188,24 @@ class SACPolicy(CommonPolicy):
             'priority': td_error_per_sample.abs().tolist(),
             **loss_dict
         }
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        ret = {
+            'model': self._model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+        }
+        if self._is_auto_alpha:
+            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        if self._is_auto_alpha:
+            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
 
     def _init_collect(self) -> None:
         r"""
