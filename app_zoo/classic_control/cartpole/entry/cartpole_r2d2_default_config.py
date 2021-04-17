@@ -7,11 +7,15 @@ collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        collector_env_num=collector_env_num,
-        evaluator_env_num=evaluator_env_num,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            collector_env_num=collector_env_num,
+            evaluator_env_num=evaluator_env_num,
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -45,7 +49,7 @@ cartpole_r2d2_default_config = dict(
             ),
         ),
         eval=dict(env_num=evaluator_env_num, ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.05,
@@ -77,7 +81,6 @@ cartpole_r2d2_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_r2d2_default_config = EasyDict(cartpole_r2d2_default_config)
 main_config = cartpole_r2d2_default_config

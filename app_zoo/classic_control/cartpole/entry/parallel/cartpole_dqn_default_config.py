@@ -1,10 +1,10 @@
 from easydict import EasyDict
 from nervex.config import parallel_transform
 
-traj_len=9
+traj_len = 9
 __policy_default_config = dict(
     use_cuda=False,
-    policy_type='dqn',
+    policy_type='dqn_command',
     on_policy=False,
     model=dict(
         obs_dim=4,
@@ -21,11 +21,10 @@ __policy_default_config = dict(
         ),
     ),
     collect=dict(
-        traj_len=traj_len,
         unroll_len=1,
         algo=dict(nstep=3),
     ),
-    command=dict(eps=dict(
+    other=dict(eps=dict(
         type='exp',
         start=0.95,
         end=0.1,

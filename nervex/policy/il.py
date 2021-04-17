@@ -25,7 +25,7 @@ class ILPolicy(CommonPolicy):
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
     Property:
-        learn_mode, collect_mode, eval_mode, command_mode
+        learn_mode, collect_mode, eval_mode
     """
 
     def _init_learn(self) -> None:
@@ -46,7 +46,6 @@ class ILPolicy(CommonPolicy):
         self._armor.mode(train=True)
         self._armor.reset()
 
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0  # count iterations
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -91,7 +90,6 @@ class ILPolicy(CommonPolicy):
         self._collect_armor = Armor(FootballKaggle5thPlaceModel())
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -153,7 +151,6 @@ class ILPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -168,13 +165,6 @@ class ILPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data['obs']['processed_obs'])
         return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
 
     def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
         data_info = {

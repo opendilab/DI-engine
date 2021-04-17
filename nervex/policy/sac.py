@@ -72,7 +72,6 @@ class SACPolicy(CommonPolicy):
         self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -212,7 +211,6 @@ class SACPolicy(CommonPolicy):
         )
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -258,7 +256,6 @@ class SACPolicy(CommonPolicy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -273,13 +270,6 @@ class SACPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
         return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'sac', ['nervex.model.sac']

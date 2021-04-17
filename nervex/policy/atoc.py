@@ -20,7 +20,7 @@ class ATOCPolicy(CommonPolicy):
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
     Property:
-        learn_mode, collect_mode, eval_mode, command_mode
+        learn_mode, collect_mode, eval_mode
     """
 
     def _init_learn(self) -> None:
@@ -73,7 +73,6 @@ class ATOCPolicy(CommonPolicy):
         self._armor.reset()
         self._armor.target_reset()
 
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0  # count iterations
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -182,7 +181,6 @@ class ATOCPolicy(CommonPolicy):
         )
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -248,7 +246,6 @@ class ATOCPolicy(CommonPolicy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -263,13 +260,6 @@ class ATOCPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'atoc', ['nervex.model.atoc.atoc_network']
