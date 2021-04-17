@@ -34,7 +34,7 @@ def Pow(x: Union[torch.Tensor, float], eta=0.0):
     if eta >= 0:
         return x ** (1 / (1 + eta))
     else:
-        return 1 - (1 - eta) ** (1 / 1 - eta)
+        return 1 - (1 - x) ** (1 / 1 - eta)
 
 
 beta_function_map['Pow'] = Pow

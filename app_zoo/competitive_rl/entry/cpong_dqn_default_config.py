@@ -70,9 +70,9 @@ __base_learner_default_config = dict(
     ),
 )
 
-__one_vs_one_actor_default_config = dict(
-    actor_type='one_vs_one',
-    import_names=['nervex.worker.actor.one_vs_one_actor'],
+__one_vs_one_collector_default_config = dict(
+    collector_type='one_vs_one',
+    import_names=['nervex.worker.collector.one_vs_one_collector'],
     print_freq=100,
     traj_len=traj_len,
     compressor='lz4',
@@ -80,8 +80,8 @@ __one_vs_one_actor_default_config = dict(
     env_kwargs=dict(
         import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
         env_type='competitive_rl',
-        actor_env_num=16,
-        actor_episode_num=4,
+        collector_env_num=16,
+        collector_episode_num=4,
         evaluator_env_num=3,
         evaluator_episode_num=1,
         eval_stop_value=20,
@@ -91,7 +91,7 @@ __one_vs_one_actor_default_config = dict(
 )
 
 __coordinator_default_config = dict(
-    actor_task_timeout=30,
+    collector_task_timeout=30,
     learner_task_timeout=600,
     interaction=dict(
         host='auto',
@@ -100,10 +100,10 @@ __coordinator_default_config = dict(
     commander=dict(
         parallel_commander_type='one_vs_one',
         import_names=['nervex.worker.coordinator.one_vs_one_parallel_commander'],
-        actor_task_space=2,
+        collector_task_space=2,
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
-        actor_cfg=__one_vs_one_actor_default_config,
+        collector_cfg=__one_vs_one_collector_default_config,
         replay_buffer_cfg=dict(
             meta_maxlen=10000,
             max_use=100,
@@ -135,18 +135,18 @@ main_config = dict(
         use_distributed=False,
         repeat_num=2,
     ),
-    actor0=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+    collector0=dict(
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',
         path_policy='.',
         queue_maxsize=8,
     ),
-    actor1=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+    collector1=dict(
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',

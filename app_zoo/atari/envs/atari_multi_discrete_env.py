@@ -82,11 +82,11 @@ class AtariMultiDiscreteEnv(BaseEnv):
         return "nerveX Atari Multi Discrete Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num', 1)
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
-        return [cfg for _ in range(actor_env_num)]
+        return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:

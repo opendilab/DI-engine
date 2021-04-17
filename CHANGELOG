@@ -1,3 +1,14 @@
+2021.4.17(v0.1.1rc2)
+ - 支持HPC RL所有算子
+ - 修改actor(数据收集)为collector
+ - 修改collector的generate_data方法为collect_data方法
+ - 修改env_manager的next_obs属性为ready_obs属性
+ - 添加VPN(Value Prediction Network) doc
+ - 添加rl-exploration doc
+ - 修复IQN beta function相关bug
+ - 修复QMIX中action mask相关bug(计算target_q时)
+ - 修复并行版本中collector数据cache未及时清空的bug
+
 2021.4.6(v0.1.1rc1)
  - gfootball IL Policy
  - polish SQN

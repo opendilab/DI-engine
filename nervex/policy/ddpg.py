@@ -19,8 +19,6 @@ class DDPGPolicy(CommonPolicy):
         Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
         both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in armor plugin to
         switch algorithm.
-    Interface:
-        __init__, set_setting, __repr__, state_dict_handle
     Property:
         learn_mode, collect_mode, eval_mode
     """

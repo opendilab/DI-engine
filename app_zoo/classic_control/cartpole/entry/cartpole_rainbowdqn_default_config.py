@@ -9,7 +9,7 @@ cartpole_rainbowdqn_default_config = dict(
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
-            actor_env_num=8,
+            collector_env_num=8,
             evaluator_env_num=5,
         ),
     ),
@@ -51,7 +51,7 @@ cartpole_rainbowdqn_default_config = dict(
     replay_buffer=dict(
         replay_buffer_size=20000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=80,
         traj_len=(8 + nstep),
         collect_print_freq=100,

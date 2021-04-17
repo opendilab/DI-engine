@@ -9,7 +9,7 @@ pendulum_sac_auto_alpha_config = dict(
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
             env_type='pendulum',
-            actor_env_num=8,
+            collector_env_num=8,
             evaluator_env_num=8,
             use_act_scale=True,
             norm_obs=dict(use_norm=False, ),
@@ -56,7 +56,7 @@ pendulum_sac_auto_alpha_config = dict(
         replay_buffer_size=100000,
         max_use=256,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=64,
         traj_len=1,
         collect_print_freq=1000,

@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -34,24 +34,24 @@ def serial_pipeline_irl(
     cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Prepare vectorize env
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
     else:
-        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    actor_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in actor_env_cfg])
+        env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
+    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
-    actor_env.seed(seed)
+    collector_env.seed(seed)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
-    # Create components: policy, learner, actor, evaluator, replay buffer, commander.
+    # Create components: policy, learner, collector, evaluator, replay buffer, commander.
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    actor = BaseSerialActor(cfg.actor, actor_env, policy.collect_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
     commander = BaseSerialCommander(
-        cfg.get('commander', {}), learner, actor, evaluator, replay_buffer, policy.command_mode
+        cfg.get('commander', {}), learner, collector, evaluator, replay_buffer, policy.command_mode
     )
     reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
     reward_model.start()
@@ -64,24 +64,24 @@ def serial_pipeline_irl(
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_start_size() > 0:
         collect_kwargs = commander.step()
-        new_data = actor.generate_data(
+        new_data = collector.collect_data(
             learner.train_iter, n_sample=replay_buffer.replay_start_size(), policy_kwargs=collect_kwargs
         )
-        replay_buffer.push(new_data, cur_actor_envstep=0)
+        replay_buffer.push(new_data, cur_collector_envstep=0)
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, actor.envstep)
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
-            new_data = actor.generate_data(learner.train_iter, policy_kwargs=collect_kwargs)
+            new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
-            replay_buffer.push(new_data, cur_actor_envstep=actor.envstep)
+            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
@@ -98,7 +98,7 @@ def serial_pipeline_irl(
                 break
             # update train_data reward
             reward_model.estimate(train_data)
-            learner.train(train_data, actor.envstep)
+            learner.train(train_data, collector.envstep)
             if cfg.policy.get('use_priority', False):
                 replay_buffer.update(learner.priority_info)
         if cfg.policy.on_policy:

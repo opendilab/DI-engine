@@ -2,6 +2,7 @@ from functools import reduce
 import torch
 import torch.nn.functional as F
 from .td import generalized_lambda_returns
+from nervex.hpc_rl import hpc_wrapper
 
 
 def tb_cross_entropy(logit, label, mask=None):
@@ -48,6 +49,12 @@ def upgo_returns(rewards: torch.Tensor, bootstrap_values: torch.Tensor) -> torch
     return generalized_lambda_returns(bootstrap_values, rewards, 1.0, lambdas)
 
 
+@hpc_wrapper(
+    shape_fn=lambda args: args[0].shape,
+    namedtuple_data=True,
+    include_args=5,
+    include_kwargs=['target_output', 'rhos', 'action', 'rewards', 'bootstrap_values']
+)
 def upgo_loss(
         target_output: torch.Tensor,
         rhos: torch.Tensor,

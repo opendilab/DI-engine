@@ -8,7 +8,7 @@ cartpole_impala_default_config = dict(
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
-            actor_env_num=8,
+            collector_env_num=8,
             evaluator_env_num=5,
         ),
     ),
@@ -49,7 +49,7 @@ cartpole_impala_default_config = dict(
         replay_buffer_size=2000,
         replay_start_size=400,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=16,
         traj_len=200,  # cartpole max episode len
         collect_print_freq=100,

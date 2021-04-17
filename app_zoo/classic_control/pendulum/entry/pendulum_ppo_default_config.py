@@ -8,7 +8,7 @@ pendulum_ppo_default_config = dict(
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
             env_type='pendulum',
-            actor_env_num=8,
+            collector_env_num=8,
             evaluator_env_num=8,
             use_act_scale=True,
             norm_obs=dict(use_norm=False, ),
@@ -51,7 +51,7 @@ pendulum_ppo_default_config = dict(
         replay_buffer_size=1000,
         max_use=16,
     ),
-    actor=dict(
+    collector=dict(
         n_episode=16,
         traj_len=200,
         collect_print_freq=1000,

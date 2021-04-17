@@ -10,7 +10,7 @@ sumo_rainbow_dqn_default_config = dict(
         # Must use the absolute path. All the following "import_names" should obey this too.
         import_names=['app_zoo.sumo.envs.sumo_env'],
         env_type='sumo_wj3',
-        actor_env_num=4,
+        collector_env_num=4,
         evaluator_env_num=1,
     ),
     policy=dict(
@@ -26,7 +26,7 @@ sumo_rainbow_dqn_default_config = dict(
         model=dict(obs_dim=380, action_dim=[2, 2, 3], hidden_dim_list=[128, 128, 64], v_max=10, v_min=-10, n_atom=51),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
+            # How many steps to train after collector's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
             train_iteration=3,
             batch_size=64,
@@ -71,8 +71,8 @@ sumo_rainbow_dqn_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
-        # You can use either "n_sample" or "n_episode" in actor.collect.
+    collector=dict(
+        # You can use either "n_sample" or "n_episode" in collector.collect.
         # Get "n_sample" samples per collect.
         n_sample=8,
         # Get "n_episode" complete episodic trajectories per collect.

@@ -9,7 +9,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=4,
     ),
     policy=dict(
@@ -63,7 +63,7 @@ spaceinvaders_rainbowdqn_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=400,
         traj_len=(8 + nstep),
         collect_print_freq=100,

@@ -3,7 +3,7 @@ import pickle
 import torch
 from functools import partial
 
-from nervex.worker import BaseLearner, BaseSerialActor, BaseSerialEvaluator
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
@@ -84,21 +84,21 @@ def collect_demo_data(
     cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Env init.
     if env_setting is None:
-        env_fn, actor_env_cfg, _ = get_vec_env_setting(cfg.env.env_kwargs)
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env.env_kwargs)
     else:
-        env_fn, actor_env_cfg, _ = env_setting
-    actor_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in actor_env_cfg])
+        env_fn, collector_env_cfg, _ = env_setting
+    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     # Random seed.
-    actor_env.seed(seed)
+    collector_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
     policy = create_policy(cfg.policy, model=model, enable_field=['collect'])
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    actor = BaseSerialActor(cfg.actor, actor_env, policy.collect_mode)
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode)
     # let's collect some expert demostrations
-    exp_data = actor.generate_data(n_sample=collect_count)
+    exp_data = collector.collect_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:

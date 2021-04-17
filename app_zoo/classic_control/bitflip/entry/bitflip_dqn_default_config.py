@@ -8,7 +8,7 @@ bitflip_dqn_default_config = dict(
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
             env_type='bitflip',
-            actor_env_num=1,
+            collector_env_num=1,
             evaluator_env_num=8,
             n_bits=5,
         ),
@@ -53,7 +53,7 @@ bitflip_dqn_default_config = dict(
     replay_buffer=dict(
         replay_buffer_size=5000,
     ),
-    actor=dict(
+    collector=dict(
         n_episode=1,
         traj_len=50,
         collect_print_freq=100,

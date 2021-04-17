@@ -8,7 +8,7 @@ from app_zoo.classic_control.cartpole.entry.parallel.cartpole_dqn_default_config
 @pytest.mark.execution_timeout(120.0, method='thread')
 def test_dqn():
     config = deepcopy(main_config)
-    config.coordinator.commander.actor_cfg.env_kwargs.eval_stop_value = 15
+    config.coordinator.commander.collector_cfg.env_kwargs.eval_stop_value = 15
     config.coordinator.commander.eval_interval = 5
     try:
         parallel_pipeline(config, seed=0)

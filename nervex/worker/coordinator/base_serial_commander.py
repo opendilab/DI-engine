@@ -15,7 +15,7 @@ class BaseSerialCommander(object):
             self,
             cfg: dict,
             learner: 'BaseLearner',  # noqa
-            actor: 'BaseSerialActor',  # noqa
+            collector: 'BaseSerialCollector',  # noqa
             evaluator: 'BaseSerialEvaluator',  # noqa
             replay_buffer: 'BufferManager',  # noqa
             policy: namedtuple = None,
@@ -26,13 +26,13 @@ class BaseSerialCommander(object):
         Arguments:
             - cfg (:obj:`dict`): the config of commander
             - learner (:obj:`BaseLearner`): the learner
-            - actor (:obj:`BaseSerialActor`): the actor
+            - collector (:obj:`BaseSerialCollector`): the collector
             - evaluator (:obj:`BaseSerialEvaluator`): the evaluator
             - replay_buffer (:obj:`BufferManager`): the buffer
         """
         self._cfg = cfg
         self._learner = learner
-        self._actor = actor
+        self._collector = collector
         self._evaluator = evaluator
         self._replay_buffer = replay_buffer
         self._info = {}
@@ -46,9 +46,9 @@ class BaseSerialCommander(object):
         """
         # Update info
         learn_info = self._learner.learn_info
-        actor_info = self._actor.actor_info
+        collector_info = self._collector.collector_info
         self._info.update(learn_info)
-        self._info.update(actor_info)
+        self._info.update(collector_info)
         # update kwargs
         collect_kwargs = self._policy.get_setting_collect(self._info)
         return collect_kwargs
