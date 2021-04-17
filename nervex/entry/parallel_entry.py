@@ -8,6 +8,7 @@ from easydict import EasyDict
 
 from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
+from .utils import set_pkg_seed
 
 
 def parallel_pipeline(
@@ -33,6 +34,7 @@ def parallel_pipeline(
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True
+    set_pkg_seed(seed)
     # Parallel job launch.
     if isinstance(config, str):
         config = read_config(config)
@@ -45,16 +47,19 @@ def parallel_pipeline(
     collector_handle = []
     for k, v in config.items():
         if 'learner' in k:
-            learner_handle.append(launch_learner(v))
+            learner_handle.append(launch_learner(seed, v))
         elif 'collector' in k:
-            collector_handle.append(launch_collector(v))
-    launch_coordinator(config.coordinator, learner_handle=learner_handle, collector_handle=collector_handle)
+            collector_handle.append(launch_collector(seed, v))
+    launch_coordinator(seed, config.coordinator, learner_handle=learner_handle, collector_handle=collector_handle)
 
 
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
 # for they can be used to read correponding config from file.
-def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
+def launch_learner(
+        seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
+) -> list:
+    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
@@ -73,7 +78,10 @@ def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None
     return learner_thread, start_learner_event, close_learner_event
 
 
-def launch_collector(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
+def launch_collector(
+        seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
+) -> list:
+    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
@@ -93,11 +101,13 @@ def launch_collector(config: Optional[dict] = None, filename: Optional[str] = No
 
 
 def launch_coordinator(
+        seed: int,
         config: Optional[EasyDict] = None,
         filename: Optional[str] = None,
         learner_handle: Optional[list] = None,
         collector_handle: Optional[list] = None
 ) -> None:
+    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f).coordinator
@@ -128,89 +138,9 @@ def launch_coordinator(
     print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
 
 
-def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str] = None) -> None:
+def launch_learner_aggregator(seed: int, filename: Optional[str] = None, name: Optional[str] = None) -> None:
+    set_pkg_seed(seed)
     with open(filename, 'rb') as f:
         config = pickle.load(f)[name]
     aggregator = LearnerAggregator(config)
     aggregator.start()
-
-
-"""
-def dist_pipeline(
-        filename: str,
-        seed: int,
-        platform: str,
-        coordinator_host: Optional[str] = None,
-        learner_host: Optional[List[str]] = None,
-        collector_host: Optional[List[str]] = None,
-        enable_total_log: Optional[bool] = False,
-        disable_flask_log: Optional[bool] = True,
-) -> None:
-    # Disable some part nervex log
-    if not enable_total_log:
-        coordinator_log = logging.getLogger('coordinator_logger')
-        coordinator_log.disabled = True
-    # Disable flask logger.
-    if disable_flask_log:
-        log = logging.getLogger('werkzeug')
-        log.disabled = True
-    if platform == 'local':
-        raise NotImplementedError
-    elif platform == 'slurm':
-        config = read_config(filename)
-        config = parallel_transform_slurm(config, coordinator_host, learner_host, collector_host)
-        # Pickle dump config to disk for later use.
-        real_filename = filename + '.pkl'
-        with open(real_filename, 'wb') as f:
-            pickle.dump(config, f)
-        for k, v in config.items():
-            if 'learner' in k:
-                # Learner launch will be different whether to use learner aggregator or not.
-                use_aggregator = v.get('use_aggregator', False)
-                num = v.get('repeat_num', 1)
-                # Learner launch.
-                if use_aggregator:
-                    srun_args = "srun --mpi=pmi2 -p {} -w {} -n{} --gres=gpu:{}".format(v.partition, v.node, num, num)
-                else:
-                    srun_args = "srun -p {} -w {} --gres=gpu:1".format(v.partition, v.node)
-                subprocess.Popen(
-                    "{} --job-name=learner python -c \
-                    \"import nervex.entry.parallel_entry as pe; pe.launch_learner(filename='{}', name='{}')\"".format(
-                        srun_args, real_filename, k
-                    ),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    shell=True,
-                )
-                # Additional learner aggregator launch.
-                if use_aggregator:
-                    aggregator_k = 'aggregator' + k[7:]
-                    aggregator_cfg = config[aggregator_k]
-                    subprocess.Popen(
-                        "srun -p {} -w {} --job-name=learner_aggregator python -c \
-                        \"import nervex.entry.parallel_entry as pe; pe.launch_learner_aggregator(filename='{}', \
-                        name='{}')\"".format(
-                            aggregator_cfg.partition, aggregator_cfg.node, real_filename, aggregator_k
-                        ),
-                        stderr=subprocess.STDOUT,
-                        shell=True,
-                    )
-            elif 'collector' in k:
-                subprocess.Popen(
-                    "srun -p {} -w {} --gres=gpu:1 --job-name=collector python -c \
-                    \"import nervex.entry.parallel_entry as pe; pe.launch_collector(filename='{}', name='{}')\"".format(
-                        v.partition, v.node, real_filename, k
-                    ),
-                    stderr=subprocess.STDOUT,
-                    shell=True,
-                )
-        # Coordinator run in manager node.
-        subprocess.run(
-            "python -c \"import nervex.entry.parallel_entry as pe; pe.launch_coordinator(filename='{}')\"".
-            format(real_filename),
-            stderr=subprocess.STDOUT,
-            shell=True,
-        )
-    elif platform == 'k8s':
-        raise NotImplementedError
-"""

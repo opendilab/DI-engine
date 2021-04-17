@@ -6,7 +6,7 @@ num_landmarks = agent_num
 collector_env_num = 4
 evaluator_env_num = 2
 max_step = 100
-cooperative_navigation_collaQ_default_config = dict(
+cooperative_navigation_collaq_default_config = dict(
     env=dict(
         manager=dict(
             type='subprocess',
@@ -91,5 +91,5 @@ cooperative_navigation_collaQ_default_config = dict(
         ),
     ),
 )
-cooperative_navigation_collaQ_default_config = EasyDict(cooperative_navigation_collaQ_default_config)
-main_config = cooperative_navigation_collaQ_default_config
+cooperative_navigation_collaq_default_config = EasyDict(cooperative_navigation_collaq_default_config)
+main_config = cooperative_navigation_collaq_default_config
