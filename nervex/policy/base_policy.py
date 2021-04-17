@@ -12,21 +12,21 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_R
 class Policy(ABC):
     learn_function = namedtuple(
         'learn_function', [
-            'data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_setting', 'monitor_vars',
+            'data_preprocess', 'forward', 'reset', 'info', 'state_dict_handle', 'set_attribute', 'monitor_vars',
             'get_attribute'
         ]
     )
     collect_function = namedtuple(
         'collect_function', [
             'data_preprocess', 'forward', 'data_postprocess', 'process_transition', 'get_train_sample', 'reset',
-            'set_setting', 'state_dict_handle'
+            'set_attribute', 'state_dict_handle'
         ]
     )
     eval_function = namedtuple(
         'eval_function',
-        ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_setting', 'state_dict_handle']
+        ['data_preprocess', 'forward', 'data_postprocess', 'reset', 'set_attribute', 'state_dict_handle']
     )
-    command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
+    total_field = set(['learn', 'collect', 'eval'])
 
     def __init__(
             self,
@@ -44,17 +44,15 @@ class Policy(ABC):
             torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model
-        self._enable_field = enable_field
-        self._total_field = set(['learn', 'collect', 'eval', 'command'])
-        if self._enable_field is None:
-            self._init_learn()
-            self._init_collect()
-            self._init_eval()
-            self._init_command()
+
+        if enable_field is None:
+            self._enable_field = self.total_field
         else:
-            assert set(self._enable_field).issubset(self._total_field), self._enable_field
-            for field in self._enable_field:
-                getattr(self, '_init_' + field)()
+            self._enable_field = enable_field
+        assert set(self._enable_field).issubset(self.total_field), self._enable_field
+        for field in self._enable_field:
+            getattr(self, '_init_' + field)()
+
         if self._use_distributed:
             if self._enable_field is None or self._enable_field == ['learn']:
                 armor = self._armor
@@ -75,9 +73,7 @@ class Policy(ABC):
                 model_cfg.import_names = import_names
             return create_model(model_cfg)
         else:
-            if isinstance(model, type):
-                return model(**model_cfg)
-            elif isinstance(model, torch.nn.Module):
+            if isinstance(model, torch.nn.Module):
                 return model
             else:
                 raise RuntimeError("invalid model: {}".format(type(model)))
@@ -94,10 +90,6 @@ class Policy(ABC):
     def _init_eval(self) -> None:
         raise NotImplementedError
 
-    @abstractmethod
-    def _init_command(self) -> None:
-        raise NotImplementedError
-
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(
@@ -106,7 +98,7 @@ class Policy(ABC):
             self._reset_learn,
             self.__repr__,
             self.state_dict_handle,
-            self.set_setting,
+            self.set_attribute,
             self._monitor_vars_learn,
             self.get_attribute,
         )
@@ -120,7 +112,7 @@ class Policy(ABC):
             self._process_transition,
             self._get_train_sample,
             self._reset_collect,
-            self.set_setting,
+            self.set_attribute,
             self.state_dict_handle,
         )
 
@@ -131,20 +123,12 @@ class Policy(ABC):
             self._forward_eval,
             self._data_postprocess_collect,
             self._reset_eval,
-            self.set_setting,
+            self.set_attribute,
             self.state_dict_handle,
         )
 
-    @property
-    def command_mode(self) -> 'Policy.command_function':  # noqa
-        return Policy.command_function(self._get_setting_learn, self._get_setting_collect, self._get_setting_eval)
-
-    def set_setting(self, mode_name: str, setting: dict) -> None:
-        assert mode_name in ['learn', 'collect', 'eval'], mode_name
-        for k, v in setting.items():
-            # This attribute should be set in _init_{mode} method as a list
-            assert k in getattr(self, '_' + mode_name + '_setting_set')
-            setattr(self, '_' + k, v)
+    def set_attribute(self, name: str, value: Any) -> None:
+        setattr(self, '_' + name, value)
 
     def get_attribute(self, name: str) -> Any:
         attributes = ['batch_size', 'use_cuda', 'device']
@@ -164,9 +148,6 @@ class Policy(ABC):
         if hasattr(self, '_optimizer'):
             state_dict['optimizer'] = self._optimizer
         return state_dict
-
-    def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'total_loss']
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
         for name, param in model.named_parameters():
@@ -190,6 +171,9 @@ class Policy(ABC):
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         raise NotImplementedError
 
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss']
+
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
         return self._cfg.learn.batch_size
 
@@ -200,7 +184,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict, **kwargs) -> dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -227,6 +211,21 @@ class Policy(ABC):
 
     @abstractmethod
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        raise NotImplementedError
+
+
+class CommandModePolicy(Policy):
+    command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
+    total_field = set(['learn', 'collect', 'eval', 'command'])
+
+    @property
+    def command_mode(self) -> 'Policy.command_function':  # noqa
+        return CommandModePolicy.command_function(
+            self._get_setting_learn, self._get_setting_collect, self._get_setting_eval
+        )
+
+    @abstractmethod
+    def _init_command(self) -> None:
         raise NotImplementedError
 
     # *************************************** command function ************************************

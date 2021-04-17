@@ -2,14 +2,18 @@ from easydict import EasyDict
 
 pendulum_ppo_default_config = dict(
     env=dict(
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
-        env_type='pendulum',
-        collector_env_num=8,
-        evaluator_env_num=8,
-        use_act_scale=True,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
+            env_type='pendulum',
+            collector_env_num=8,
+            evaluator_env_num=8,
+            use_act_scale=True,
+            norm_obs=dict(use_norm=False, ),
+            norm_reward=dict(use_norm=False,),
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -42,12 +46,6 @@ pendulum_ppo_default_config = dict(
                 gae_lambda=0.95,
             ),
         ),
-        command=dict(eps=dict(
-            type='exp',
-            start=0.95,
-            end=0.1,
-            decay=10000,
-        ), ),
     ),
     replay_buffer=dict(
         replay_buffer_size=1000,
@@ -74,7 +72,6 @@ pendulum_ppo_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 pendulum_ppo_default_config = EasyDict(pendulum_ppo_default_config)
 main_config = pendulum_ppo_default_config

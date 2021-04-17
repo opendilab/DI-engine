@@ -13,7 +13,7 @@ from app_zoo.classic_control.cartpole.entry import \
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
-from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_default_config, \
+from app_zoo.multiagent_particle.entry import cooperative_navigation_collaq_default_config, \
     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
     cooperative_navigation_qmix_default_config
 

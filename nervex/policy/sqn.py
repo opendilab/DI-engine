@@ -9,7 +9,7 @@ from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import Adder, epsilon_greedy
+from nervex.rl_utils import Adder
 from nervex.armor import Armor
 from nervex.model import FCDiscreteNet, SQNDiscreteNet
 from nervex.utils import POLICY_REGISTRY
@@ -71,7 +71,6 @@ class SQNPolicy(CommonPolicy):
         self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
     def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
@@ -195,7 +194,6 @@ class SQNPolicy(CommonPolicy):
         # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -209,7 +207,7 @@ class SQNPolicy(CommonPolicy):
         """
         # start with random action for better exploration
         output = self._collect_armor.forward(data)
-        _decay = self._cfg.command.eps.decay
+        _decay = self._cfg.other.eps.decay
         _act_p = 1 / \
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
 
@@ -264,7 +262,6 @@ class SQNPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -279,26 +276,6 @@ class SQNPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data)
         return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        r"""
-        Overview:
-            Collect mode setting information including eps
-        Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
-        Returns:
-           - collect_setting (:obj:`dict`): Including eps in collect mode.
-        """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
 
     def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
         assert model is None

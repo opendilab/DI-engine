@@ -64,7 +64,6 @@ class RainbowDQNPolicy(DQNPolicy):
         self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         """
@@ -150,9 +149,8 @@ class RainbowDQNPolicy(DQNPolicy):
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=True)
         self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
         r"""
         Overview:
             Reset the noise from noise net and collect output according to eps_greedy plugin
@@ -166,7 +164,7 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         self._reset_noise(self._collect_armor.model)
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps)
+            output = self._collect_armor.forward(data, eps=eps)
         return output
 
     def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:

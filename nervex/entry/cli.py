@@ -90,7 +90,7 @@ def cli(
     module_name: str,
 ):
     if mode == 'serial':
-        serial_pipeline(config, seed, enable_total_log=enable_total_log)
+        serial_pipeline(config, seed)
     elif mode == 'parallel':
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
     elif mode == 'dist':

@@ -1,6 +1,7 @@
 from abc import ABC
 from types import MethodType
 from typing import Union, Any, List, Callable, Iterable, Dict, Optional
+import copy
 from functools import partial
 from collections import namedtuple
 import numbers
@@ -22,25 +23,18 @@ class BaseEnvManager(object):
 
     def __init__(
             self,
-            env_fn: Callable,
-            env_cfg: Iterable,
-            env_num: int,
+            env_fn: List[Callable],
             episode_num: Optional[Union[int, float]] = float('inf'),
-            manager_cfg: Optional[dict] = {},
     ) -> None:
         """
         Overview:
             Initialize the BaseEnvManager.
         Arguments:
-            - env_fn (:obj:`function`): the function to create environment
-            - env_cfg (:obj:`list`): the list of environemnt configs
-            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
+            - env_fn (:obj:`List[Callable]`): the function to create environment
             - episode_num (:obj:`Optional[Union[int, float]]`): maximum episodes to collect in one environment
-            - manager_cfg (:obj:`Optional[dict]`): config for env manager
         """
         self._env_fn = env_fn
-        self._env_cfg = env_cfg
-        self._env_num = env_num
+        self._env_num = len(self._env_fn)
         if episode_num == "inf":
             episode_num = float("inf")
         self._episode_num = episode_num
@@ -48,8 +42,6 @@ class BaseEnvManager(object):
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
         self._env_replay_path = None
-        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
-        self._env_ref = self._env_fn(self._env_cfg[0])
 
     @property
     def env_num(self) -> int:
@@ -114,7 +106,9 @@ class BaseEnvManager(object):
         self._closed = False
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._ready_obs = {i: None for i in range(self.env_num)}
-        self._envs = [self._env_fn(c) for c in self._env_cfg]
+        self._envs = [e() for e in self._env_fn]
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
         if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
@@ -214,7 +208,9 @@ class BaseEnvManager(object):
         return self._env_ref.info()
 
 
-def create_env_manager(type_: str, **kwargs) -> BaseEnvManager:
-    if 'import_names' in kwargs:
-        import_module(kwargs.pop('import_names'))
-    return ENV_MANAGER_REGISTRY.build(type_, **kwargs)
+def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:
+    manager_cfg = copy.deepcopy(manager_cfg)
+    if 'import_names' in manager_cfg:
+        import_module(manager_cfg.pop('import_names'))
+    manager_type = manager_cfg.pop('type')
+    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, **manager_cfg)

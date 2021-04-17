@@ -152,7 +152,7 @@ class QMix(nn.Module):
                 action_mask = data['obs']['action_mask'].unsqueeze(0)
             else:
                 action_mask = data['obs']['action_mask']
-            agent_q[action_mask == 0.0] = - 9999999
+            agent_q[action_mask == 0.0] = -9999999
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         if self.use_mixer:

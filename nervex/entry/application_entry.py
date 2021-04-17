@@ -1,7 +1,9 @@
-from typing import Union, Optional, List, Any
+from typing import Union, Optional, List, Any, Callable
 import pickle
 import torch
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
+from functools import partial
+
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.config import read_config
 from nervex.data import BufferManager
@@ -12,62 +14,46 @@ from .utils import set_pkg_seed
 
 def eval(
         cfg: Union[str, dict],
-        seed: int,
-        env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
-        policy_type: Optional[type] = None,  # subclass of Policy
-        model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
-        state_dict: Optional[dict] = None,  # policy or model state_dict
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
 ) -> float:
     r"""
     Overview:
         Pure evaluation entry.
     Arguments:
-        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``Str`` type means config file path.
+        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``str`` type means config file path.
         - seed (:obj:`int`): Random seed.
-        - env_setting (:obj:`Optional[Any]`): Subclass of ``BaseEnv``, and config dict.
-        - policy_type (:obj:`Optional[type]`): Subclass of ``Policy``.
-        - model (:obj:`Optional[Union[type, torch.nn.Module]]`): Instance or subclass of torch.nn.Module.
+        - env_setting (:obj:`Optional[List[Any]]`): Subclass of ``BaseEnv``, and config dict.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
     """
     if isinstance(cfg, str):
         cfg = read_config(cfg)
+    cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Env init.
     manager_cfg = cfg.env.get('manager', {})
     if env_setting is None:
-        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
-    em_type = cfg.env.env_manager_type
-    evaluator_env = create_env_manager(
-        cfg.env.env_manager_type,
-        env_fn=env_fn,
-        env_cfg=evaluator_env_cfg,
-        env_num=len(evaluator_env_cfg),
-        manager_cfg=manager_cfg,
-        episode_num=manager_cfg.get('episode_num', len(evaluator_env_cfg))
-    )
+    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     if evaluator_env_cfg[0].get('replay_path', None):
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
     # Random seed.
-    if not seed:
-        seed = cfg.get('seed', 0)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
-    policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model=model, enable_field=['eval'])
+    policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    evaluator = BaseSerialEvaluator(cfg.evaluator)
-
-    evaluator.env = evaluator_env
-    evaluator.policy = policy.eval_mode
+    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode)
     # Evaluate
     _, eval_reward = evaluator.eval()
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
-    evaluator.close()
 
     return eval_reward
 
@@ -77,10 +63,9 @@ def collect_demo_data(
         seed: int,
         collect_count: int,
         expert_data_path: str,
-        env_setting: Optional[Any] = None,  # subclass of BaseEnv, and config dict
-        policy_type: Optional[type] = None,  # subclass of Policy
-        model: Optional[Union[type, torch.nn.Module]] = None,  # instance or subclass of torch.nn.Module
-        state_dict: Optional[dict] = None,  # policy or model state_dict
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
 ) -> None:
     r"""
     Overview:
@@ -90,39 +75,28 @@ def collect_demo_data(
         - seed (:obj:`int`): Random seed.
         - collect_count (:obj:`int`): The count of collected data.
         - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
-        - env_setting (:obj:`Optional[Any]`): Subclass of ``BaseEnv``, and config dict.
-        - policy_type (:obj:`Optional[type]`): Subclass of ``Policy``.
-        - model (:obj:`Optional[Union[type, torch.nn.Module]]`): Instance or subclass of torch.nn.Module.
+        - env_setting (:obj:`Optional[List[Any]]`): Subclass of ``BaseEnv``, and config dict.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
     """
     if isinstance(cfg, str):
         cfg = read_config(cfg)
+    cfg.policy.policy_type = cfg.policy.policy_type + '_command'
     # Env init.
     if env_setting is None:
-        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env.env_kwargs)
     else:
         env_fn, collector_env_cfg, _ = env_setting
-    manager_cfg = cfg.env.get('manager', {})
-    collector_env = create_env_manager(
-        cfg.env.env_manager_type,
-        env_fn=env_fn,
-        env_cfg=collector_env_cfg,
-        env_num=len(collector_env_cfg),
-        manager_cfg=manager_cfg
-    )
+    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     # Random seed.
     collector_env.seed(seed)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
-    policy_fn = create_policy if policy_type is None else policy_type
-    policy = policy_fn(cfg.policy, model=model, enable_field=['collect'])
+    policy = create_policy(cfg.policy, model=model, enable_field=['collect'])
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
-    collector = BaseSerialCollector(cfg.collector)
-
-    collector.env = collector_env
-    collector.policy = policy.collect_mode
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode)
     # let's collect some expert demostrations
     exp_data = collector.collect_data(n_sample=collect_count)
     if cfg.policy.use_cuda:
@@ -130,4 +104,3 @@ def collect_demo_data(
     with open(expert_data_path, 'wb') as f:
         pickle.dump(exp_data, f)
     print('Collect demo data successfully')
-    collector.close()

@@ -18,7 +18,13 @@ class BaseSerialEvaluator(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
+    def __init__(
+            self,
+            cfg: dict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None  # noqa
+    ) -> None:
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
@@ -29,6 +35,10 @@ class BaseSerialEvaluator(object):
         """
         self._default_n_episode = cfg.get('n_episode', None)
         self._stop_value = cfg.stop_value
+        if env is not None:
+            self.env = env
+        if policy is not None:
+            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
             self._tb_logger = tb_logger
@@ -36,6 +46,9 @@ class BaseSerialEvaluator(object):
             self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
         self._timer = EasyTimer()
         self._cfg = cfg
+        self._max_eval_reward = float("-inf")
+        self._end_flag = False
+        self._last_eval_iter = 0
 
     @property
     def env(self) -> BaseEnvManager:
@@ -43,6 +56,7 @@ class BaseSerialEvaluator(object):
 
     @env.setter
     def env(self, _env_manager: BaseEnvManager) -> None:
+        self._end_flag = False
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
@@ -60,16 +74,36 @@ class BaseSerialEvaluator(object):
         self._policy_output_pool = CachePool('policy_output', self._env_num)
 
     def close(self) -> None:
+        if self._end_flag:
+            return
+        self._end_flag = True
         self._env_manager.close()
         self._tb_logger.flush()
         self._tb_logger.close()
 
-    def eval(self, train_iter: int = -1, envstep: int = -1, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+    def __del__(self):
+        self.close()
+
+    def should_eval(self, train_iter: int) -> bool:
+        if (train_iter - self._last_eval_iter) < self._cfg.eval_freq and train_iter != 0:
+            return False
+        self._last_eval_iter = train_iter
+        return True
+
+    def eval(
+            self,
+            save_ckpt_fn: Callable = None,
+            train_iter: int = -1,
+            envstep: int = -1,
+            n_episode: Optional[int] = None
+    ) -> Tuple[bool, float]:
         '''
         Overview:
             Evaluate policy.
         Arguments:
+            - save_ckpt_fn (:obj:`Callable`): Saving ckpt function, which will be triggered by getting the best reward.
             - train_iter (:obj:`int`): Current training iteration.
+            - envstep (:obj:`int`): Current env interaction step.
             - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
@@ -137,10 +171,15 @@ class BaseSerialEvaluator(object):
             self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
             self._tb_logger.add_scalar('evaluator_step/' + k, v, envstep)
         eval_reward = np.mean(episode_reward)
+        if eval_reward > self._max_eval_reward:
+            if save_ckpt_fn:
+                save_ckpt_fn('ckpt_best.pth.tar')
+            self._max_eval_reward = eval_reward
         stop_flag = eval_reward >= self._stop_value
         if stop_flag:
             self._logger.info(
-                "[EVALUATOR] Current eval_reward: {} is greater than stop_value: {}, so the training program is over.".
-                format(eval_reward, self._stop_value)
+                "[nerveX serial pipeline] " +
+                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, eval_reward
