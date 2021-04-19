@@ -198,6 +198,7 @@ class SACPolicy(CommonPolicy):
         }
         if self._is_auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+        return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._model.load_state_dict(state_dict['model'])
