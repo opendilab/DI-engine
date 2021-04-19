@@ -397,8 +397,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            # Because each thread updates the corresponding env_id value,
-            # they won't lead to a thread-safe problem.
+            # Because each thread updates the corresponding env_id value, they won't lead to a thread-safe problem.
             self._env_states[env_id] = EnvState.RUN
             self._ready_obs[env_id] = self._inv_transform(obs)
 
@@ -482,7 +481,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 continue
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] >= self._epsiode_num:
+                if self._env_episode_count[env_id] >= self._episode_num:
                     self._env_states[env_id] = EnvState.DONE
                 else:
                     self._env_states[env_id] = EnvState.RESET

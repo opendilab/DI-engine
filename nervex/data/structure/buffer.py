@@ -224,10 +224,10 @@ class ReplayBuffer:
         if monitor_cfg is None:
             monitor_cfg = EasyDict(
                 {
-                    'log_freq': 2000,
+                    'log_freq': 1000,
                     'log_path': './log/buffer/default',
-                    'natural_expire': 100,
-                    'tick_expire': 100,
+                    'natural_expire': 10,
+                    'tick_expire': 10,
                 }
             )
         self.monitor_cfg = monitor_cfg

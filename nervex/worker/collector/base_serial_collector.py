@@ -88,9 +88,9 @@ class BaseSerialCollector(object):
         return ret
 
     def collect_data(self,
-                     train_iter: int = -1,
-                     n_episode: Optional[int] = None,
-                     n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+                      train_iter: int = -1,
+                      n_episode: Optional[int] = None,
+                      n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
            Collect data. Either ``n_episode`` or ``n_sample`` must be None.
@@ -215,7 +215,7 @@ class BaseSerialCollector(object):
                 'envstep_count': envstep_count,
                 'train_sample_count': train_sample_count,
                 'avg_envstep_per_episode': envstep_count / episode_count,
-                'avg_sample_per_epsiode': train_sample_count / episode_count,
+                'avg_sample_per_episode': train_sample_count / episode_count,
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,

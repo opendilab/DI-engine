@@ -125,9 +125,9 @@ class ZerglingCollector(BaseCollector):
                         self.send_stepdata(metadata['data_id'], s)
                         self.send_metadata(metadata)
                     send_data_time.append(self._timer.value)
+                self._traj_cache[env_id].clear()
             if t.done:
                 # env reset is done by env_manager automatically
-                self._traj_cache[env_id].clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
                 self._policy.reset([env_id])

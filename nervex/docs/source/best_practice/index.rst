@@ -531,8 +531,9 @@ Best Practice
 
    在 ``policy_type`` 中，指明名字。
 
-   在 ``import_names`` 中，指明文件路径。我们要求 ``import_names`` 需为一个 ``list``，其中每个元素是一个python的绝对import路径，
-   即可以在 Python Idle 内执行 ``import name1.name2``，例如：
+   在 ``import_names`` 中，指明文件路径。我们要求 ``import_names`` 需为一个 ``list`` ，其中每个元素是一个python的绝对import路径，
+   即可以在 Python Idle 内执行 ``import name1.name2`` ，例如：
+
       - ``nervex.policy.dqn``
       - ``app_zoo.atari.envs.atari_env``
 
@@ -656,6 +657,7 @@ n-step在强化学习算法是一种常见配置，介于1-step和蒙特卡洛�
       在对应算法Policy中的 ``_forward_learn`` 方法中使用对应n-step td 方法，如使用简单的 ``nstep_return`` ：
 
       .. code:: python
+
          def _forward_learn(self, data: dict) -> Dict[str, Any]:
             r"""
             Overview:

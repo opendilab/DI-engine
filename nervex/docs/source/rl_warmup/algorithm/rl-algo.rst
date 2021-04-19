@@ -657,6 +657,126 @@ MCTS作为一种需有许多良好性质和性能保障的决策算法，可以�
 .. note:: 
    如果对MCTS的一些相关理论感兴趣的话，可以参阅 `A survey of MCTS <https://www.researchgate.net/publication/235985858_A_Survey_of_Monte_Carlo_Tree_Search_Methods>`_ .
 
+
+Value Prediction Network
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Value Prediction Network是一种对传统model based算法的改进，也是Muzero算法的一个前身。
+`Value Prediction Network <https://arxiv.org/pdf/1707.03497.pdf>`_ 论文是Google Brain 2017年发表的工作，发表在2017年nips会议上。
+
+算法简介
+''''''''''''''''''''''''
+VPN算法的动机是Planning过程仅仅需要根据当前state预测未来的reward和value，而并不需要对observation进行准确的预测。因此，一个不需要准确预测observation但能预测未来reward和value的模型是更容易学习的，能在更复杂的环境中有更好的表现。
+
+该算法通过学习一个通过提取abstract state对未来reward和value进行预测的dynamics model，而不是直接通过observation对未来环境的state和reward进行预测。
+通过训练学习abstract state的方式，Value Prediction Network在observation相对复杂、对planning要求高、随机性较强的环境中取得更好的效果，因为在此环境中，Observation Prediction Model很难对环境进行精确的建模。
+Value Prediction Network经实验验证后，其实际应用效果相比于纯粹的model-free和model-based方法有一定的优势。
+
+
+.. note::
+   Model-based和Model-free算法：
+    - model-based算法指该算法会学习环境的转移过程并对环境进行建模，而model-free算法则不需要对环境进行建模。
+    - model-based算法的样本效率相对较高，但理论比较复杂；model-free的方法样本效率相对低，但是相对简单且更容易实现。
+
+
+model-based算法的问题
+'''''''''''''''''''''''''''
+model-based算法虽然有更高的样本效率，但是其使用相比model-free的算法更为复杂，不如model-free方法流行，多用于获取数据成本较高的环境，如机器人控制等环境。
+这是由于model-base算法涉及到环境建模，导致其建模过程复杂，且由于环境建模同样需要训练，整体模型训练难度远高于model-free方法。
+
+大多数大多model-based算法建模的环境模型都是通过observation和action去推测下一个observation和reward，这种模型被称为observation-prediction model。
+
+而在相对复杂的环境中，observation通常具有较高的维度，且有一定的随机性，导致model-based算法很难学会环境对应的observation-prediction model。
+
+
+dynamics model
+'''''''''''''''''''
+为了解决model-based算法现有的一些问题，Value Prediction Network一文提出了一种介于传统model-based算法和model-free算法之间的方式，使用dynamics model对环境进行建模。
+
+dynamics model即使用abstract state空间，对未来的环境reward和value进行多步的一个预测。
+
+从model-based的角度来看，dynamics model通过提取abstract state的形式，对环境的状态转移过程、reward和discount function进行了一定程度上的建模。
+
+而从model-free的角度来看，dynamics对abstract state的提取可以看作是critic在对reward和value进行预测的辅助性任务，是为了更好的提取state的相关表示。
+
+.. note::
+   由于每个option之后会运行的步数不同，因此VPN需要对discount进行预测，所预测的discount应该能与该option的步数相对应。
+   在论文的Atari实验中，实验设计的option是连续10步重复相同动作(因为在Atari中比较难以手动设计option)，因此相当于所有option对应的步数固定，因此discount也固定。对于discount固定的情况，VPN则不需要预测输出discount。
+
+VPN 算法结构
+'''''''''''''''''''
+
+
+Value Prediction Network包括四个部分：
+
+   .. image:: images/vpn-structure.png
+
+- Encoding：将observation编码为abstract state。
+- Value：价值估计，输入为abstract state而不是observation，输出为对应state的value值。
+- Outcome： 输入当前的abstract state和option（强化学习中，option的概念提出于1999年的论文 `A framework for temporal abstraction in reinforcement learning <http://www.incompleteideas.net/papers/SPS-aij.pdf>`_ , 具体定义为“closed-loop policies for taking action over a period of time”， 即从几种可能的短期Policy选择一种，根据于选择的option一次运行 k step的action），输出对应的option-reward和option-discount。
+- Transition： 输入当前的abstract state和option（action），输出对应的下一个abstract state。
+
+此时就可以通过以上四个部分对Q值进行估计，即输入一个observation和对应的option（action），输出对应的价值估计。
+
+对应的Q-value预测公式为：
+
+   .. image:: images/vpn-dstep.png
+
+d-step planning方式如下图：
+
+   .. image:: images/vpn-planning.png
+
+planning可以分为expansion和backup两部分。Expansion部分直接进行d步的rollout，Back up则是根据公式，用最好结果的序列对Q value进行计算。
+
+.. note:: 
+   在VPN论文中，作者提及了VPN算法兼容其他树搜索算法如MCTS等，但其在具体实验出于简化的目的选择了简单的Rollout。
+
+
+VPN算法在训练时，使用k-step prediction的方式进行训练：
+
+   .. image:: images/vpn-kstep.png
+
+通过如下公式计算第t步的loss：
+
+   .. image:: images/vpn-kstep-loss.png
+
+   .. image:: images/vpn-kstep-loss2.png
+
+最后使用rollout过程上的accumulate loss进行更新。
+
+整个更新流程图如下：
+
+   .. image:: images/vpn-learning.png
+
+
+实验对比
+'''''''''''''''''''''
+
+下图是VPN网络和DQN、OPN的实验对比表：
+
+   .. image:: images/vpn-exp1.png
+      :scale: 60 %
+
+其中VPN(1)表示进行1-step planning的VPN算法，而VPN(5)表示进行5-step planning的VPN算法，OPN表示不进行抽象状态提取（不使用abstract state）而直接预测observaiton的模型。
+
+从实验对比表中可以看出，OPN和VPN在相对较简单的环境下效果相差不大，但在有随机性的环境中VPN的算法效果明显优于OPN。
+
+
+在VPN中，Planning的方式也十分重要，下图对比表示了不同d-step planning的VPN效果：
+
+   .. image:: images/vpn-exp2.png
+      :scale: 60 %
+
+从该图可以看出，加深Planning中rollout的深度可以使得VPN算法获得更好的实验效果。作者也提及了VPN兼容其他的树搜索算法，因此使用MCTS rollout进行Planning的Muzero算法也是Google团队顺理成章的后续工作。
+
+
+后继工作
+'''''''''''''''''''
+DeepMind提出的Muzero算法可以视为Value Prediction Network的dynamics model方法与AlphaZero MCTS rollout planning方法的结合。
+该后继工作使用model-based的方法，不仅在围棋、国际象棋、将棋等棋类游戏中取得了极佳的效果，还在通常使用model-free算法的Atari环境中都取得了超过或持平之前sota的结果，将model-based算法带到了新的高度。
+
+
+
+
 Paper List
 ^^^^^^^^^^
 
