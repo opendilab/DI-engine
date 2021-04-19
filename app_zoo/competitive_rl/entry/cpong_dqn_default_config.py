@@ -3,7 +3,7 @@ from nervex.config import parallel_transform
 
 traj_len = 1
 nstep = 1
-batch_size = 32
+batch_size = 64
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
@@ -100,7 +100,7 @@ __coordinator_default_config = dict(
     commander=dict(
         parallel_commander_type='one_vs_one',
         import_names=['nervex.worker.coordinator.one_vs_one_parallel_commander'],
-        actor_task_space=2,
+        actor_task_space=1,  # 2,
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
         actor_cfg=__one_vs_one_actor_default_config,
@@ -144,14 +144,14 @@ main_config = dict(
         path_policy='.',
         queue_maxsize=8,
     ),
-    actor1=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
-        host='auto',
-        port='auto',
-        path_data='./data',
-        path_policy='.',
-        queue_maxsize=8,
-    ),
+    # actor1=dict(
+    #     import_names=['nervex.worker.actor.comm.flask_fs_actor'],
+    #     comm_actor_type='flask_fs',
+    #     host='auto',
+    #     port='auto',
+    #     path_data='./data',
+    #     path_policy='.',
+    #     queue_maxsize=8,
+    # ),
 )
 main_config = parallel_transform(main_config)
