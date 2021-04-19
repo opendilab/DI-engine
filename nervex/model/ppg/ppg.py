@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import PhasicPolicyGradientBase, FCEncoder, ConvEncoder
+from ..common import ActorCriticBase, FCEncoder, ConvEncoder
 from ..actor_critic.value_ac import FCValueAC, ConvValueAC
 
 
@@ -188,7 +188,7 @@ class ConvValueNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('fc_ppg')
-class FCPPG(PhasicPolicyGradientBase):
+class FCPPG(ActorCriticBase):
 
     def __init__(
             self,
@@ -221,18 +221,18 @@ class FCPPG(PhasicPolicyGradientBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         return self._policy_net.compute_action_value(state_input)
 
-    def compute_action(self,
+    def compute_actor(self,
                        inputs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         logit = self._policy_net.compute_action(state_input)['logit']
         return {'logit': logit}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         value = self._value_net_forward(state_input)
         return {'value': value}
@@ -247,7 +247,7 @@ class FCPPG(PhasicPolicyGradientBase):
 
 
 @MODEL_REGISTRY.register('conv_ppg')
-class ConvPPG(PhasicPolicyGradientBase):
+class ConvPPG(ActorCriticBase):
 
     def __init__(
             self,
@@ -280,18 +280,18 @@ class ConvPPG(PhasicPolicyGradientBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         return self._policy_net.compute_action_value(state_input)
 
-    def compute_action(self,
+    def compute_actor(self,
                        inputs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         logit = self._policy_net.compute_action(state_input)['logit']
         return {'logit': logit}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         value = self._value_net_forward(state_input)
         return {'value': value}

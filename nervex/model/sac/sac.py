@@ -125,6 +125,7 @@ class SAC(SoftActorCriticBase):
             use_twin_q: bool = False
     ) -> None:
         super(SAC, self).__init__()
+        self.modes.append('evaluate')
 
         self._act = nn.ReLU()
         # input info
@@ -163,7 +164,7 @@ class SAC(SoftActorCriticBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
@@ -171,12 +172,19 @@ class SAC(SoftActorCriticBase):
         q_value = self._soft_q_net_forward(state_action_input)
         return {'q_value': q_value}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic_v(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         v_value = self._value_net_forward(state_input)
         return {'v_value': v_value}
 
-    def compute_action(self,
+    def compute_critic(self, inputs: Dict[str, torch.Tensor], qv='q') -> Dict[str, torch.Tensor]:
+        assert qv in ['q', 'v'], qv
+        if 'q' == qv:
+            return compute_critic_q(inputs)
+        else:
+            return compute_critic_v(inputs)
+
+    def compute_actor(self,
                        inputs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']

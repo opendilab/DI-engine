@@ -54,7 +54,7 @@ class A2CPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         # forward
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs'], param={'mode': 'compute_actor_critic'})
 
         adv = data['adv']
         if self._use_adv_norm:
@@ -64,7 +64,7 @@ class A2CPolicy(CommonPolicy):
         with torch.no_grad():
             if self._learn_use_nstep_return:
                 # use nstep return
-                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_actor_critic'})['value']
                 reward = data['reward'].permute(1, 0).contiguous()
                 nstep_data = nstep_return_data(reward, next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
@@ -134,7 +134,7 @@ class A2CPolicy(CommonPolicy):
             - data (:obj:`dict`): The collected data
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -201,7 +201,7 @@ class A2CPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _init_command(self) -> None:

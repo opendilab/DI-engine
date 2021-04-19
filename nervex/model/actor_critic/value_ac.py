@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Union, Optional
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder
+from ..common import ActorCriticBase, ConvEncoder, FCEncoder
 
 
-class ValueAC(ValueActorCriticBase):
+class ValueAC(ActorCriticBase):
     r"""
     Overview:
         Actor-Critic model. Critic part outputs value of current state,
@@ -109,7 +109,7 @@ class ValueAC(ValueActorCriticBase):
         else:
             return self._actor(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             First encode raw observation, then output value and logit.
@@ -136,7 +136,7 @@ class ValueAC(ValueActorCriticBase):
 
         return {'value': value, 'logit': logit}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             First encode raw observation, then output logit.

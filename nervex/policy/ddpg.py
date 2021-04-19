@@ -134,7 +134,9 @@ class DDPGPolicy(CommonPolicy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_data = {'action': self._armor.forward(data, param={'mode': 'compute_actor'}), 'obs': data['obs']}
+            actor_loss = -self._armor.forward(actor_data, param={'mode': 'compute_critic'})['q_value'].mean()
+
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()

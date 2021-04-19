@@ -94,16 +94,16 @@ class ATOCPolicy(CommonPolicy):
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_critic'})['q_value']
         q_value_dict = {}
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
+            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_actor'})['action']
         next_data['action'] = next_action
         with torch.no_grad():
-            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_critic'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
         # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
@@ -125,7 +125,7 @@ class ATOCPolicy(CommonPolicy):
             if self._use_communication:
                 inputs = self._armor.forward(
                     {'obs': data['obs']}, param={
-                        'mode': 'compute_action',
+                        'mode': 'compute_actor',
                         'get_delta_q': False
                     }
                 )
@@ -137,7 +137,7 @@ class ATOCPolicy(CommonPolicy):
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
-            actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_loss = -self._armor.forward(data, param={'mode': 'compute_critic'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -195,7 +195,7 @@ class ATOCPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
@@ -261,7 +261,7 @@ class ATOCPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _init_command(self) -> None:

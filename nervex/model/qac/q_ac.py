@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
 from nervex.utils import squeeze, deep_merge_dicts, MODEL_REGISTRY
-from ..common import QActorCriticBase, FCEncoder
+from ..common import ActorCriticBase, FCEncoder
 
 
 class FCContinuousNet(nn.Module):
@@ -46,7 +46,7 @@ class FCContinuousNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('qac')
-class QAC(QActorCriticBase):
+class QAC(ActorCriticBase):
     """
     Overview:
         QAC network. Use ``FCContinuousNet`` as subnetworks for actor and critic(s).
@@ -61,7 +61,6 @@ class QAC(QActorCriticBase):
             state_action_embedding_dim: int = 64,
             state_embedding_dim: int = 64,
             use_twin_critic: bool = False,
-            use_backward_hook: bool = False,
     ) -> None:
         """
         Overview:
@@ -74,14 +73,8 @@ class QAC(QActorCriticBase):
             - state_embedding_dim (:obj:`int`): the dim of state that will be embedded into, i.e. hidden dim
             - use_twin_critic (:obj:`bool`): whether to use a pair of critic networks. If True, it is TD3 model; \
                 Otherwise, it is DDPG model.
-            - use_backward_hook (:obj:`bool`): whether to use backward_hook. Now is only used in unit test, \
-                since in Policy we use two optimizers to avoid using backward_hook.
         """
         super(QAC, self).__init__()
-
-        def backward_hook(module, grad_input, grad_output):
-            for p in module.parameters():
-                p.requires_grad = True
 
         self._act = nn.ReLU()
         # input info
@@ -102,8 +95,6 @@ class QAC(QActorCriticBase):
         )
         self._use_twin_critic = use_twin_critic
         self._use_backward_hook = use_backward_hook
-        if self._use_backward_hook:
-            self._critic[0].register_backward_hook(backward_hook)
 
     def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
         if self._use_twin_critic and not single:
@@ -114,7 +105,7 @@ class QAC(QActorCriticBase):
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._actor(x)
 
-    def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
@@ -122,23 +113,23 @@ class QAC(QActorCriticBase):
         q = self._critic_forward(state_action_input)
         return {'q_value': q}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         action = self._actor_forward(inputs['obs'])
         return {'action': action}
 
-    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        action = self._actor_forward(state_input)
-        if len(action.shape) == 1:
-            action = action.unsqueeze(1)
-        state_action_input = torch.cat([state_input, action], dim=1)
-
-        if self._use_backward_hook:
-            for p in self._critic[0].parameters():
-                p.requires_grad = False  # will set True when backward_hook called
-        q = self._critic_forward(state_action_input, single=True)
-
-        return {'q_value': q}
+    # def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    #     state_input = inputs['obs']
+    #     action = self._actor_forward(state_input)
+    #     if len(action.shape) == 1:
+    #         action = action.unsqueeze(1)
+    #     state_action_input = torch.cat([state_input, action], dim=1)
+    #
+    #     if self._use_backward_hook:
+    #         for p in self._critic[0].parameters():
+    #             p.requires_grad = False  # will set True when backward_hook called
+    #     q = self._critic_forward(state_action_input, single=True)
+    #
+    #     return {'q_value': q}
 
     @property
     def actor(self) -> torch.nn.Module:

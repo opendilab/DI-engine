@@ -106,7 +106,7 @@ class IMPALAPolicy(CommonPolicy):
         # ====================
         # IMPALA forward
         # ====================
-        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_actor_critic'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -171,7 +171,7 @@ class IMPALAPolicy(CommonPolicy):
             - data (:obj:`dict`): The collected data
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -220,7 +220,7 @@ class IMPALAPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _init_command(self) -> None:

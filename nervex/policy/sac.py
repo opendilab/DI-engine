@@ -99,15 +99,15 @@ class SACPolicy(CommonPolicy):
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._armor.forward(data, param={'mode': 'compute_value'})['v_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_critic', 'qv': 'q'})['q_value']
+        v_value = self._armor.forward(data, param={'mode': 'compute_critic', 'qv': 'v'})['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_value'})['v_value']
+            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_critic', 'qv': 'v'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -130,7 +130,7 @@ class SACPolicy(CommonPolicy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_q'})['q_value']
+        new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_critic', 'qv': 'q'})['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
@@ -225,7 +225,7 @@ class SACPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -271,7 +271,7 @@ class SACPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor', 'deterministic_eval': True})
         return output
 
     def _init_command(self) -> None:

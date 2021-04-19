@@ -104,8 +104,8 @@ class ComaNetwork(nn.Module):
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
-        assert mode in ['compute_action', 'compute_q_value'], mode
-        if mode == 'compute_action':
+        assert mode in ['compute_actor', 'compute_critic'], mode
+        if mode == 'compute_actor':
             return self._actor(data)
-        elif mode == 'compute_q_value':
+        elif mode == 'compute_critic':
             return self._critic(data)

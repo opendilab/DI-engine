@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import QActorCriticBase
+from ..common import ActorCriticBase
 
 
 class ATOCAttentionUnit(nn.Module):
@@ -364,7 +364,7 @@ class ATOCCriticNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('atoc')
-class ATOCQAC(QActorCriticBase):
+class ATOCQAC(ActorCriticBase):
     r"""
     Overview:
         the QAC network of atoc
@@ -400,6 +400,10 @@ class ATOCQAC(QActorCriticBase):
         """
         super(ATOCQAC, self).__init__()
         self._use_communication = use_communication
+
+        if self._use_communication:
+            self.modes.append('optimize_actor_attention')
+
         self._actor = ATOCActorNet(
             obs_dim,
             thought_dim,
@@ -418,84 +422,6 @@ class ATOCQAC(QActorCriticBase):
 
     def _actor_forward(self, x: Dict[str, torch.Tensor]) -> torch.Tensor:
         return self._actor(x)
-
-    def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
-        r"""
-        Overview:
-            compute the q value of the given obs (or obs and action)
-
-        Arguments:
-            - inputs (:obj:`Dict`): the inputs contain obs and action, if action is None then the network will \
-                calculate the action according to the observation
-            - q (:obj:`Dict`): the output of ciritic network
-        """
-        if inputs.get('action') is None:
-            inputs['action'] = self._actor_forward(inputs)['action']
-        q = self._critic_forward(inputs)
-        return q
-
-    def compute_action(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = True) -> Dict[str, torch.Tensor]:
-        r'''
-        Overview:
-            compute the action according to inputs, call the _compute_delta_q function to compute delta_q
-
-        Arguments:
-            - inputs (:obj:`Dict`): the inputs containing the observation
-            - get_delta_q (:obj:`bool`) : whether need to get delta_q
-            - outputs (:obj:`Dict`): the output of actor network and delta_q
-
-        .. note::
-
-            in ATOC, not only the action is computed, but the groups, initiator_prob, thoughts, delta_q, etc
-        '''
-        outputs = self._actor_forward(inputs)
-        if get_delta_q and self._use_communication:
-            delta_q = self._compute_delta_q(inputs['obs'], outputs)
-            outputs['delta_q'] = delta_q
-        return outputs
-
-    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            return the q value which can used to optimize the actor part of atoc network (without attentin unit)
-
-        Arguments:
-            - inputs (:obj:`Dict`): the inputs containing the observation
-            - q (:obj:`Dict`): the output of ciritic network, without critic grad
-        """
-        # if inputs.get('action') is None:
-        #     inputs['action'] = self._actor_forward(inputs)['action']
-        inputs['action'] = self._actor_forward(inputs)['action']
-        q = self._critic_forward(inputs)
-
-        return q
-
-    def optimize_actor_attention(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            return the actor attention loss
-
-        Arguments:
-            - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
-            - actor_attention_loss (:obj:`Dict`): the loss of actor attention unit
-        """
-        if not self._use_communication:
-            raise NotImplementedError
-        delta_q = inputs['delta_q'].reshape(-1)
-        init_prob = inputs['initiator_prob'].reshape(-1)
-        is_init = inputs['is_initiator'].reshape(-1)
-        delta_q = delta_q[is_init.nonzero()]
-        init_prob = init_prob[is_init.nonzero()]
-        init_prob = 0.9 * init_prob + 0.05
-
-        # judge to avoid nan
-        if init_prob.shape == (0, 1):
-            actor_attention_loss = torch.Tensor([-0.0])
-            actor_attention_loss.requires_grad = True
-        else:
-            actor_attention_loss = -delta_q * \
-                torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
-        return {'actor_attention_loss': actor_attention_loss}
 
     def _compute_delta_q(self, obs: torch.Tensor, actor_outputs: dict) -> torch.Tensor:
         r"""
@@ -545,28 +471,86 @@ class ATOCQAC(QActorCriticBase):
                     curr_delta_q[b][i] = actual_q_group.mean() - q_group.mean()
         return curr_delta_q
 
-    def forward(self, inputs, mode=None, **kwargs):
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, List[torch.Tensor]]:
         r"""
         Overview:
-            override forward method of QActorCriticBase, so it can enable compute_delta_q and optimize_actor_attention
+            compute the q value of the given obs (or obs and action)
 
         Arguments:
-            - inputs (:obj:`Dict`): the inputs
-            - mode (:obj:`str`): the mode of forward determine which method to call
+            - inputs (:obj:`Dict`): the inputs contain obs and action, if action is None then the network will \
+                calculate the action according to the observation
+            - q (:obj:`Dict`): the output of ciritic network
         """
-        if self._use_communication:
-            assert (
-                mode in [
-                    'optimize_actor', 'optimize_actor_attention', 'compute_q', 'compute_action', 'compute_action_q',
-                    'compute_delta_q'
-                ]
-            ), mode
+        if inputs.get('action') is None:
+            inputs['action'] = self._actor_forward(inputs)['action']
+        q = self._critic_forward(inputs)
+        return q
+
+    def compute_actor(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = True) -> Dict[str, torch.Tensor]:
+        r'''
+        Overview:
+            compute the action according to inputs, call the _compute_delta_q function to compute delta_q
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs containing the observation
+            - get_delta_q (:obj:`bool`) : whether need to get delta_q
+            - outputs (:obj:`Dict`): the output of actor network and delta_q
+
+        .. note::
+
+            in ATOC, not only the action is computed, but the groups, initiator_prob, thoughts, delta_q, etc
+        '''
+        outputs = self._actor_forward(inputs)
+        if get_delta_q and self._use_communication:
+            delta_q = self._compute_delta_q(inputs['obs'], outputs)
+            outputs['delta_q'] = delta_q
+        return outputs
+
+    def optimize_actor_attention(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            return the actor attention loss
+
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
+            - actor_attention_loss (:obj:`Dict`): the loss of actor attention unit
+        """
+        if not self._use_communication:
+            raise NotImplementedError
+        delta_q = inputs['delta_q'].reshape(-1)
+        init_prob = inputs['initiator_prob'].reshape(-1)
+        is_init = inputs['is_initiator'].reshape(-1)
+        delta_q = delta_q[is_init.nonzero()]
+        init_prob = init_prob[is_init.nonzero()]
+        init_prob = 0.9 * init_prob + 0.05
+
+        # judge to avoid nan
+        if init_prob.shape == (0, 1):
+            actor_attention_loss = torch.Tensor([-0.0])
+            actor_attention_loss.requires_grad = True
         else:
-            assert (mode in [
-                'optimize_actor',
-                'compute_q',
-                'compute_action',
-                'compute_action_q',
-            ]), mode
-        f = getattr(self, mode)
-        return f(inputs, **kwargs)
+            actor_attention_loss = -delta_q * \
+                torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
+        return {'actor_attention_loss': actor_attention_loss}
+
+    # def forward(self, inputs, mode=None, **kwargs):
+    #     r"""
+    #     Overview:
+    #         override forward method of QActorCriticBase, so it can enable compute_delta_q and optimize_actor_attention
+    #
+    #     Arguments:
+    #         - inputs (:obj:`Dict`): the inputs
+    #         - mode (:obj:`str`): the mode of forward determine which method to call
+    #     """
+    #     if self._use_communication:
+    #         assert (
+    #             mode in ['optimize_actor_attention', 'compute_critic', 'compute_actor'
+    #             ]
+    #         ), mode
+    #     else:
+    #         assert (mode in [
+    #             'compute_critic',
+    #             'compute_actor',
+    #         ]), mode
+    #     f = getattr(self, mode)
+    #     return f(inputs, **kwargs)

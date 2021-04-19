@@ -35,7 +35,7 @@ class PPOVanillaPolicy(CommonPolicy):
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
-        output = self._model(data['obs'], mode="compute_action_value")
+        output = self._model(data['obs'], mode="compute_actor_critic")
         adv = data['adv']
         # norm adv in total train_batch
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -77,7 +77,7 @@ class PPOVanillaPolicy(CommonPolicy):
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data['obs'], mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -119,7 +119,7 @@ class PPOVanillaPolicy(CommonPolicy):
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data['obs'], mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit

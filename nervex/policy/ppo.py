@@ -54,7 +54,7 @@ class PPOPolicy(CommonPolicy):
         # ====================
         # PPO forward
         # ====================
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs'], param={'mode': 'compute_actor_critic'})
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -112,7 +112,7 @@ class PPOPolicy(CommonPolicy):
             - data (:obj:`dict`): The collected data
         """
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -175,7 +175,7 @@ class PPOPolicy(CommonPolicy):
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         return output
 
     def _init_command(self) -> None:
