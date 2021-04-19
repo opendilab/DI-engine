@@ -35,9 +35,11 @@ class CartPoleEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make('CartPole-v0')
             self._init_flag = True
-        if hasattr(self, '_seed'):
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
+        elif hasattr(self, '_seed'):
+            self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -48,8 +50,9 @@ class CartPoleEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
+        self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
