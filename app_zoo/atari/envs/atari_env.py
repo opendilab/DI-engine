@@ -14,13 +14,13 @@ ATARIENV_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'dtype': np.float32}, 
+            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -35,13 +35,13 @@ ATARIENV_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'dtype': np.float32}, 
+            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -56,13 +56,13 @@ ATARIENV_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'dtype': np.float32}, 
+            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -77,13 +77,13 @@ ATARIENV_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(18,), 
-            value={'dtype': np.float32}, 
+            value={'min': 0, 'max': 18, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 

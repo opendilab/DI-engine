@@ -35,13 +35,13 @@ COMPETITIVERL_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(2, 3, 210, 160), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
-            shape=None,  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
-            value={'dtype': np.float32}, 
+            shape=(2, 6),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
+            value={'min': np.zeros((2, 6)), 'max': np.ones((2, 6)) * 6, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 

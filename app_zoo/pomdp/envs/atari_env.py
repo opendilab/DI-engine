@@ -17,13 +17,13 @@ MUJOCO_INFO_DICT = {
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(512,), 
-            value={'dtype': np.float32}, 
+            value={'min': np.zeros((512,)), 'max': np.ones((512,)) * 255, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'dtype': np.float32}, 
+            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
             to_agent_processor=None,
             from_agent_processor=None
         ), 

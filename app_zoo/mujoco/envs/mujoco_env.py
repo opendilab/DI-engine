@@ -22,7 +22,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(8,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -43,7 +43,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(3,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -64,7 +64,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -85,7 +85,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -106,7 +106,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(3,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -127,7 +127,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(1,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -148,7 +148,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(1,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -169,7 +169,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(2,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
@@ -190,7 +190,7 @@ MUJOCO_INFO_DICT = {
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
-            value={'min': -1.0, 'max': 1.0}, 
+            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
             to_agent_processor=None, 
             from_agent_processor=None
         ), 
