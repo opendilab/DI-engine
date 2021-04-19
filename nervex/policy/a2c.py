@@ -34,8 +34,9 @@ class A2CPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
-        self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
-        self._learn_nstep = algo_cfg.get('nstep', 1)
+        if self._learn_use_nstep_return:
+            self._learn_gamma = algo_cfg.discount_factor
+            self._learn_nstep = algo_cfg.nstep
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target armors
