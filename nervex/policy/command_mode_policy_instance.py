@@ -90,7 +90,7 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('sqn_command')
-class SQNCommandModePolicy(SQNPolicy, EpsCommandModePolicy):
+class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
     pass
 
 

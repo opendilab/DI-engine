@@ -91,10 +91,8 @@ class PPOVanillaPolicy(CommonPolicy):
                 logit, value = [logit], [value]
             action = []
             for i, l in enumerate(logit):
-                if np.random.random() > self._eps:
-                    action.append(l.argmax(dim=-1))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+                prob = torch.softmax(l, dim=-1)
+                action.append(torch.multinomial(prob, 1).squeeze(-1))
 
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
