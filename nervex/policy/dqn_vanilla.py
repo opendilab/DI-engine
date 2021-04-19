@@ -68,14 +68,14 @@ class DQNVanillaPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):
             logit = [logit]
         action = []
         for i, l in enumerate(logit):
-            if np.random.random() > self._eps:
+            if np.random.random() > eps:
                 action.append(l.argmax(dim=-1))
             else:
                 action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
