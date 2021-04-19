@@ -6,4 +6,5 @@ __AUTHOR_EMAIL__ = "niuyazhe@sensetime.com"
 __version__ = __VERSION__
 
 enable_hpc_rl = False
+enable_linklink = False
 enable_numba = True
