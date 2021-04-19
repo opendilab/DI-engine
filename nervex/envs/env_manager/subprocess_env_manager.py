@@ -182,7 +182,7 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
                 return ret
             except Exception as e:
                 exceptions.append(e)
-                time.sleep(0.1)
+                time.sleep(0.01)
         e_info = ''.join(
             [
                 'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
@@ -281,7 +281,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def _setup_async_args(self) -> None:
         r"""
         Overview:
-            set up the async arguments utilized in the step().
+            Set up the async arguments utilized in method ``step``.
             wait_num: for each time the minimum number of env return to gather
             timeout: for each time the minimum number of env return to gather
         """
@@ -316,11 +316,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
         while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
-            if sleep_count % 10 == 0:
+            if sleep_count % 1000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
                 )
-            time.sleep(0.1)
+            time.sleep(0.001)
             sleep_count += 1
         return {i: self._ready_obs[i] for i in self.ready_env}
 
@@ -417,7 +417,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. \
+                Each element of timestep is in ``torch.Tensor`` type.
         Note:
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
@@ -441,8 +442,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         step_args = self._async_args['step']
         wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
-        rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
 
+        rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
         ready_env_ids = []
         timesteps = {}
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
@@ -496,7 +497,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
-    def worker_fn(p, c, env_fn_wrapper, obs_buffer, method_name_list) -> None:
+    def worker_fn(p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'PickleWrapper', obs_buffer: ShmBuffer, method_name_list: list) -> None:  # noqa
         """
         Overview:
             Subprocess's target function to run.
@@ -601,12 +602,13 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             p.close()
 
     @staticmethod
-    def wait(rest_conn: list, wait_num: int, timeout: Union[None, float] = None) -> Tuple[list, list]:
+    def wait(rest_conn: list, wait_num: int, timeout: Optional[float] = None) -> Tuple[list, list]:
         """
         Overview:
-            wait at least enough(len(ready_conn) >= wait_num) num connection within timeout constraint
-            if timeout is None, wait_num == len(ready_conn), means sync mode;
-            if timeout is not None, when len(ready_conn) >= wait_num, returns;
+            Wait at least enough(len(ready_conn) >= wait_num) connections within timeout constraint.
+            If timeout is None and wait_num == len(ready_conn), means sync mode;
+            If timeout is not None, will return when len(ready_conn) >= wait_num and 
+            this method takes more than timeout seconds.
         """
         assert 1 <= wait_num <= len(rest_conn
                                     ), 'please indicate proper wait_num: <wait_num: {}, rest_conn_num: {}>'.format(
@@ -615,15 +617,13 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         rest_conn_set = set(rest_conn)
         ready_conn = set()
         start_time = time.time()
-        rest_time = timeout
         while len(rest_conn_set) > 0:
+            if len(ready_conn) >= wait_num and timeout:
+                if (time.time() - start_time) >= timeout:
+                    break
             finish_conn = set(connection.wait(rest_conn_set, timeout=timeout))
             ready_conn = ready_conn.union(finish_conn)
             rest_conn_set = rest_conn_set.difference(finish_conn)
-            if len(ready_conn) >= wait_num and timeout:
-                rest_time = timeout - (time.time() - start_time)
-                if rest_time <= 0.0:
-                    break
         ready_ids = [rest_conn.index(c) for c in ready_conn]
         return list(ready_conn), ready_ids
 

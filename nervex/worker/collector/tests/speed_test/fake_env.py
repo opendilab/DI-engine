@@ -11,8 +11,14 @@ from nervex.torch_utils import to_ndarray
 from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
-def env_sleep(duration) -> None:
+global env_sum
+env_sum = 0
+
+
+def env_sleep(duration):
     time.sleep(duration)
+    global env_sum
+    env_sum += duration
 
 
 class FakeEnv(BaseEnv):

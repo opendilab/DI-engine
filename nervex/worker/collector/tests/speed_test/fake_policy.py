@@ -12,10 +12,6 @@ from nervex.rl_utils import Adder
 from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
-def policy_sleep(duration: float) -> None:
-    time.sleep(duration)
-
-
 class FakePolicy(CommonPolicy):
 
     def __init__(
@@ -27,6 +23,13 @@ class FakePolicy(CommonPolicy):
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._init_collect()
         self._forward_time = cfg.get('forward_time', 0.)
+        self.policy_sum = 0
+        self.policy_times = 0
+    
+    def policy_sleep(self, duration):
+        time.sleep(duration)
+        self.policy_sum += duration
+        self.policy_times += 1
 
     def _init_learn(self) -> None:
         pass
@@ -57,7 +60,7 @@ class FakePolicy(CommonPolicy):
     #     raise NotImplementedError
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
-        policy_sleep(random_change(self._forward_time))
+        self.policy_sleep(random_change(self._forward_time))
         return {'action': torch.ones(data['obs'].shape[0], 2)}
         # pass
 

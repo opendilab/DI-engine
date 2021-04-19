@@ -9,7 +9,7 @@ from nervex.data import BufferManager
 from nervex.utils import deep_merge_dicts
 
 from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
-from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv
+from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
 
@@ -35,13 +35,13 @@ def compare_test(cfg, out_str, seed):
         collector.policy = policy.collect_mode
 
         start = time.time()
-        for iter in range(200):
+        for iter in range(300):
             if iter % 50 == 0:
                 print('\t', iter)
             new_data = collector.collect_data(iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
-        print('\tduration: {}'.format(time.time() - start))
+        print('\tduration: {}, env_sleep: {}, policy_sleep: {}({})'.format(time.time() - start, env_sum, policy.policy_sum, policy.policy_times))
 
         collector.close()
         replay_buffer.close()
