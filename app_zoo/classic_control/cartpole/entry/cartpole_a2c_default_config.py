@@ -51,7 +51,7 @@ cartpole_a2c_default_config = dict(
     ),
     evaluator=dict(
         n_episode=5,
-        eval_freq=200,
+        eval_freq=50,
         stop_value=195,
     ),
     learner=dict(
