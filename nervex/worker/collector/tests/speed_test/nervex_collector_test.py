@@ -69,13 +69,10 @@ if __name__ == '__main__':
         #         reset_time=0.01,
         #         step_time=0.005,
         #     ),
-        #     policy=dict(
-        #         forward_time=0.004,
-        #     ),
-        #     actor=dict(
-        #         n_sample=80,
-        #     ),
+        #     policy=dict(forward_time=0.004, ),
+        #     actor=dict(n_sample=80, ),
         # ),
+
         dict(
             size="middle",
             env=dict(
@@ -98,12 +95,8 @@ if __name__ == '__main__':
         #         reset_time=10,
         #         step_time=0.1,
         #     ),
-        #     policy=dict(
-        #         forward_time=0.02,
-        #     ),
-        #     actor=dict(
-        #         n_sample=80,
-        #     ),
+        #     policy=dict(forward_time=0.02, ),
+        #     actor=dict(n_sample=80, ),
         # ),
     ]
     out_str = []

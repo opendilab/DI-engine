@@ -59,7 +59,7 @@ class FakeEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # to shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
@@ -69,7 +69,6 @@ class FakeEnv(BaseEnv):
             obs_space=T((self._obs_dim, ), {
                 'dtype': float,
             }, None, None),
-            # [min, max)
             act_space=T((self._action_dim, ), {
                 'min': 0,
                 'max': 2
@@ -81,4 +80,4 @@ class FakeEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX CartPole Env"
+        return "nerveX Fake Env for collector profile test"

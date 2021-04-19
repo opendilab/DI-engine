@@ -114,32 +114,6 @@ class ShmBufferContainer(object):
             return self._data.get()
 
 
-# class CloudPickleWrapper(object):
-#     """
-#     Overview:
-#         CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
-#     """
-
-#     def __init__(self, data: Any) -> None:
-#         self.data = data
-#         if isinstance(data, (tuple, list, dict, np.ndarray)) or data is None:
-#             self._pickle_type = 'normal'
-#         else:
-#             self._pickle_type = 'cloud'
-
-#     def __getstate__(self) -> bytes:
-#         if self._pickle_type == 'normal':
-#             return pickle.dumps(self.data)
-#         elif self._pickle_type == 'cloud':
-#             return cloudpickle.dumps(self.data)
-
-#     def __setstate__(self, data: bytes) -> None:
-#         if self._pickle_type == 'normal':
-#             self.data = pickle.loads(data)
-#         elif self._pickle_type == 'cloud':
-#             self.data = cloudpickle.loads(data)
-
-
 class CloudPickleWrapper(object):
     """
     Overview:
@@ -154,18 +128,6 @@ class CloudPickleWrapper(object):
 
     def __setstate__(self, data: bytes) -> None:
         self.data = cloudpickle.loads(data)
-
-
-class NormalPickleWrapper(object):
-
-    def __init__(self, data: Any) -> None:
-        self.data = data
-
-    def __getstate__(self) -> bytes:
-        return pickle.dumps(self.data)
-
-    def __setstate__(self, data: bytes) -> None:
-        self.data = pickle.loads(data)
 
 
 def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
@@ -274,7 +236,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         if self._env_replay_path is not None:
             self._pipe_parents[env_id].send(
-                NormalPickleWrapper(['enable_save_replay', [self._env_replay_path[env_id]], {}])
+                ['enable_save_replay', [self._env_replay_path[env_id]], {}]
             )
             self._pipe_parents[env_id].recv()
 
@@ -360,8 +322,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         # set seed
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
-                self._pipe_parents[i].send(NormalPickleWrapper(['seed', [self._env_seed[i]], {}]))
-            ret = [p.recv().data for _, p in self._pipe_parents.items()]
+                self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
+            ret = [p.recv() for _, p in self._pipe_parents.items()]
             self._check_data(ret)
 
         # reset env
@@ -380,9 +342,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         @retry_wrapper
         def reset_fn():
             if self._pipe_parents[env_id].poll():
-                recv_data = self._pipe_parents[env_id].recv().data
+                recv_data = self._pipe_parents[env_id].recv()
                 raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
-            self._pipe_parents[env_id].send(NormalPickleWrapper(['reset', [], self._reset_param[env_id]]))
+            self._pipe_parents[env_id].send(['reset', [], self._reset_param[env_id]])
 
             if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
                 # terminate the old subprocess
@@ -393,7 +355,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self._create_env_subprocess(env_id)
                 raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
 
-            obs = self._pipe_parents[env_id].recv().data
+            obs = self._pipe_parents[env_id].recv()
             self._check_data([obs], close=False)
             if self.shared_memory:
                 obs = self._obs_buffers[env_id].get()
@@ -438,7 +400,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         for env_id, act in actions.items():
             act = self._transform(act)
-            self._pipe_parents[env_id].send(NormalPickleWrapper(['step', [act], {}]))
+            self._pipe_parents[env_id].send(['step', [act], {}])
 
         step_args = self._async_args['step']
         wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
@@ -452,7 +414,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
-            timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
             self._check_data(timesteps.values())
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
@@ -509,7 +471,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         try:
             while True:
                 try:
-                    cmd, args, kwargs = c.recv().data
+                    cmd, args, kwargs = c.recv()
                 except EOFError:  # for the case when the pipe has been closed
                     c.close()
                     break
@@ -537,7 +499,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                             ret = getattr(env, cmd)(*args, **kwargs)
                     else:
                         raise KeyError("not support env cmd: {}".format(cmd))
-                    c.send(NormalPickleWrapper(ret))
+                    c.send(ret)
                 except Exception as e:
                     # when there are some errors in env, worker_fn will send the errors to env manager
                     # directly send error to another process will lose the stack trace, so we create a new Exception
@@ -572,8 +534,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for _, p in self._pipe_parents.items():
-            p.send(NormalPickleWrapper(['getattr', [key], {}]))
-        ret = [p.recv().data for _, p in self._pipe_parents.items()]
+            p.send(['getattr', [key], {}])
+        ret = [p.recv() for _, p in self._pipe_parents.items()]
         self._check_data(ret)
         return ret
 
@@ -590,7 +552,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._closed = True
         self._env_ref.close()
         for _, p in self._pipe_parents.items():
-            p.send(NormalPickleWrapper(['close', None, None]))
+            p.send(['close', None, None])
         for _, p in self._pipe_parents.items():
             p.recv()
         # disable process join for avoiding hang

@@ -349,7 +349,7 @@ class ReplayBuffer:
                 else:
                     data = ori_data
                 try:
-                    assert all([fn(data) for fn in self.check_list])
+                    assert self._data_check(data)
                 except AssertionError:
                     # If data check fails, log it and return without any operations.
                     self._logger.info('Illegal data type [{}], reject it...'.format(type(data)))
