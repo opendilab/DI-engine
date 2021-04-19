@@ -6,10 +6,11 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder, iqn_nstep_td_data, iqn_nstep_td_error
 from nervex.model import NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
 from nervex.armor import Armor
-from .base_policy import register_policy
+from nervex.utils import POLICY_REGISTRY
 from .dqn import DQNPolicy
 
 
+@POLICY_REGISTRY.register('rainbow_dqn')
 class RainbowDQNPolicy(DQNPolicy):
     r"""
     Overview:
@@ -52,7 +53,6 @@ class RainbowDQNPolicy(DQNPolicy):
             self._tau = algo_cfg.tau_num
             self._tau_prim = algo_cfg.tau_prim_num
             self._num_quantiles = algo_cfg.quantile_num
-
         else:
             self._v_max = self._cfg.model.v_max
             self._v_min = self._cfg.model.v_min
@@ -60,8 +60,6 @@ class RainbowDQNPolicy(DQNPolicy):
 
         self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -97,20 +95,22 @@ class RainbowDQNPolicy(DQNPolicy):
             ret = self._armor.forward(data['obs'], param={'num_quantiles': self._tau})
             q = ret['q']
             replay_quantiles = ret['quantiles']
-            target_q = self._armor.target_forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
-            self._reset_noise(self._armor.model)
-            target_q_action = self._armor.forward(
-                data['next_obs'], param={'num_quantiles': self._num_quantiles}
-            )['action']
+            with torch.no_grad():
+                target_q = self._armor.target_forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
+                self._reset_noise(self._armor.model)
+                target_q_action = self._armor.forward(
+                    data['next_obs'], param={'num_quantiles': self._num_quantiles}
+                )['action']
             data = iqn_nstep_td_data(
                 q, target_q, data['action'], target_q_action, reward, data['done'], replay_quantiles, data['weight']
             )
             loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
         else:
             q_dist = self._armor.forward(data['obs'])['distribution']
-            target_q_dist = self._armor.target_forward(data['next_obs'])['distribution']
-            self._reset_noise(self._armor.model)
-            target_q_action = self._armor.forward(data['next_obs'])['action']
+            with torch.no_grad():
+                target_q_dist = self._armor.target_forward(data['next_obs'])['distribution']
+                self._reset_noise(self._armor.model)
+                target_q_action = self._armor.forward(data['next_obs'])['action']
             data = dist_nstep_td_data(
                 q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
             )
@@ -143,14 +143,10 @@ class RainbowDQNPolicy(DQNPolicy):
                 the rainbow dqn enable the eps_greedy_sample, but might not need to use it, \
                     as the noise_net contain noise that can help exploration
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
         self._collect_armor.mode(train=True)
         self._collect_armor.reset()
@@ -169,7 +165,9 @@ class RainbowDQNPolicy(DQNPolicy):
             - data (:obj:`dict`): The collected data
         """
         self._reset_noise(self._collect_armor.model)
-        return self._collect_armor.forward(data, eps=self._eps)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps)
+        return output
 
     def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""
@@ -183,8 +181,7 @@ class RainbowDQNPolicy(DQNPolicy):
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj, self._traj_len, return_num=self._collect_nstep)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(traj, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -204,7 +201,3 @@ class RainbowDQNPolicy(DQNPolicy):
         for m in model.modules():
             if hasattr(m, 'reset_noise'):
                 m.reset_noise()
-
-
-# regist rainbow_dqn policy in the policy maps
-register_policy('rainbow_dqn', RainbowDQNPolicy)

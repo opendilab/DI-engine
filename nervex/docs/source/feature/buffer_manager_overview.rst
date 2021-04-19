@@ -2,7 +2,7 @@ Buffer Manager Overview
 ========================
 
 概述：
-    Prioritized Replay Buffer（优先回放经验池）是强化学习中的一个核心概念，用于将actor收集到的数据存储在其中，并在learner需要训练数据时
+    Prioritized Replay Buffer（优先回放经验池）是强化学习中的一个核心概念，用于将collector收集到的数据存储在其中，并在learner需要训练数据时
     按照一定的优先级进行采样，可以有效解决样本存在相关性而不满足独立同分布假设、样本使用效率过低等问题，保证训练效果更加稳定。
 
     我们的Buffer Manager可以包括多个Replay Buffer，manager可以指定将数据存在哪个buffer，也可以按照一定的策略从不同的buffer中采样训练样本，
@@ -79,7 +79,7 @@ Replay Buffer
 
             由manager的 ``push_data`` 调用。 
             
-            将actor产生的数据存入buffer，二者的区别在于数据是单个还是一个list包含多个。首先要调用 ``_data_check`` 对数据进行检查，
+            将collector产生的数据存入buffer，二者的区别在于数据是单个还是一个list包含多个。首先要调用 ``_data_check`` 对数据进行检查，
             通过检查的数据会被增添 ``['replay_unique_id', 'replay_buffer_idx']`` 两个域，分别代表该数据的唯一身份标识
             和其在buffer中的索引。最后，更新monitor与logger。
 
@@ -89,15 +89,15 @@ Replay Buffer
 
             由manager的 ``sample`` 调用，在调用时，必须先调用 ``sample_check`` 进行检查和预处理，然后才能调用 ``sample`` 进行实际的采样。
 
-            ``sample_check`` 会先计算buffer中数据的staleness，其等于数据被actor采集到的model iteration和现在learner需要采样数据时的model iteration之间的差值。
+            ``sample_check`` 会先计算buffer中数据的staleness，其等于数据被collector采集到的model iteration和现在learner需要采样数据时的model iteration之间的差值。
             如果某条数据的staleness超过一定限度，会将该条数据从buffer中移除。
             
             若 ``sample_check`` 结果为True，即通过检查，才会触发后续被调用``sample`` 。
             buffer利用线段树实现了prioritized sample，将priority存储在线段树中以进行采样的原理此处不做详细说明，总之，buffer可以将priority作为概率进行采样。
             首先调用 ``_get_indices`` 得到需要被采样的所有索引值（这一步便用到了上一句中的线段树），然后调用 ``_sample_with_indices`` 实际来取出数据。
-            然后，计算每一条数据的staleness, reuse, importance sampling weight并附加到其域中。
+            然后，计算每一条数据的staleness, use, importance sampling weight并附加到其域中。
             如果发现sample到了相同的数据，则需要deepcopy以保证数据安全性。
-            如果发现该数据的reuse超过一定限度，会将该条数据从buffer中移除。
+            如果发现该数据的use超过一定限度，会将该条数据从buffer中移除。
 
             最后，更新monitor与logger。
 

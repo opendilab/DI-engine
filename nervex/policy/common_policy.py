@@ -28,14 +28,14 @@ class CommonPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         if self._use_cuda:
-            data = to_device(data, 'cuda:{}'.format(self._rank % 8))
+            data = to_device(data, self._device)
         return data, data_info
 
     def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data = {'obs': data}
         return data_id, data
 
@@ -45,9 +45,8 @@ class CommonPolicy(Policy):
         data = default_decollate(data)
         return {i: d for i, d in zip(data_id, data)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len)
         return self._adder.get_train_sample(data)
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:

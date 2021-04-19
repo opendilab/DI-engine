@@ -2,12 +2,14 @@ from typing import Any, List, Union, Sequence
 import copy
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from .atari_wrappers import wrap_deepmind
+from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 
 
+@ENV_REGISTRY.register("atari")
 class AtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -16,9 +18,9 @@ class AtariEnv(BaseEnv):
             cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
         )
 
-    def reset(self) -> Sequence:
+    def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
-            np_seed = 100 * np.random.randint(1,1000)
+            np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -60,11 +62,11 @@ class AtariEnv(BaseEnv):
         return "nerveX Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num', 1)
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
-        return [cfg for _ in range(actor_env_num)]
+        return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
@@ -74,4 +76,11 @@ class AtariEnv(BaseEnv):
         return [cfg for _ in range(evaluator_env_num)]
 
 
-register_env('atari', AtariEnv)
+@ENV_REGISTRY.register('atari_mr')
+class AtariEnvMR(AtariEnv):
+
+    def __init__(self, cfg: dict) -> None:
+        self._cfg = cfg
+        self._env = wrap_deepmind_mr(
+            cfg.env_id, frame_stack=cfg.frame_stack, episode_life=cfg.is_train, clip_rewards=cfg.is_train
+        )

@@ -9,13 +9,16 @@ from app_zoo.classic_control.cartpole.entry import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
-    cartpole_ppg_default_config
+    cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
 from app_zoo.multiagent_particle.entry import cooperative_navigation_collaQ_default_config, \
     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
     cooperative_navigation_qmix_default_config
+
+with open("./algo_record.log", "w+") as f:
+    f.write("ALGO TEST STARTS\n")
 
 
 @pytest.mark.algotest
@@ -25,6 +28,8 @@ def test_dqn():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("1. dqn\n")
 
 
 @pytest.mark.algotest
@@ -34,6 +39,8 @@ def test_ddpg():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("2. ddpg\n")
 
 
 @pytest.mark.algotest
@@ -43,6 +50,8 @@ def test_td3():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("3. td3\n")
 
 
 @pytest.mark.algotest
@@ -52,6 +61,8 @@ def test_a2c():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("4. a2c\n")
 
 
 @pytest.mark.algotest
@@ -61,6 +72,8 @@ def test_rainbow_dqn():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("5. rainbow\n")
 
 
 @pytest.mark.algotest
@@ -70,6 +83,8 @@ def test_dqn_vanilla():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("6. dqn vanilla\n")
 
 
 @pytest.mark.algotest
@@ -79,6 +94,8 @@ def test_ppo():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("7. ppo\n")
 
 
 @pytest.mark.algotest
@@ -88,6 +105,8 @@ def test_ppo_vanilla():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("8. ppo vanilla\n")
 
 
 @pytest.mark.algotest
@@ -97,6 +116,8 @@ def test_sac():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("9. sac\n")
 
 
 @pytest.mark.algotest
@@ -106,6 +127,8 @@ def test_sac_auto_alpha():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("10. sac with auto alpha\n")
 
 
 # @pytest.mark.algotest
@@ -115,6 +138,8 @@ def test_r2d2():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("11. r2d2\n")
 
 
 # @pytest.mark.algotest
@@ -127,6 +152,8 @@ def test_qmix():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("12. qmix\n")
 
 
 # @pytest.mark.algotest
@@ -139,13 +166,15 @@ def test_coma():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("13. coma\n")
 
 
 @pytest.mark.algotest
 def test_a2c_with_nstep_return():
     config = deepcopy(cartpole_a2c_default_config)
     config.policy.learn.algo.use_nstep_return = True
-    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
+    config.policy.learn.algo.discount_fcollector = config.policy.collect.algo.discount_factor
     config.policy.learn.algo.nstep = 3
     config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
     config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
@@ -153,6 +182,8 @@ def test_a2c_with_nstep_return():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("14. a2c with nstep return\n")
 
 
 # @pytest.mark.algotest
@@ -162,6 +193,8 @@ def test_ppo_vanilla_continous():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("15. ppo vanilla continuous\n")
 
 
 @pytest.mark.algotest
@@ -171,16 +204,20 @@ def test_impala():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("16. impala\n")
 
 
 @pytest.mark.algotest
 def test_iqn():
     config = deepcopy(cartpole_rainbowdqn_iqn_config)
-    config.evaluator.stop_val = 30  # for save time
+    config.evaluator.stop_value = 30  # for save time
     try:
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("17. iqn\n")
 
 
 @pytest.mark.algotest
@@ -191,6 +228,8 @@ def test_her_dqn():
         os.popen('rm -rf log ckpt*')
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("18. her dqn\n")
 
 
 @pytest.mark.algotest
@@ -200,3 +239,16 @@ def test_ppg():
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("19. ppg\n")
+
+
+@pytest.mark.algotest
+def test_sqn():
+    config = deepcopy(cartpole_sqn_default_config)
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("20. sqn\n")

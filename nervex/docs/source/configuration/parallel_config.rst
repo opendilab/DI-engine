@@ -21,7 +21,7 @@ Parallel Pipeline Config
             weight_decay=0.,
             algo=dict(
                 target_update_freq=100,
-                discount_factor=0.95,
+                discount_fcollector=0.95,
                 nstep=1,
             ),
         ),
@@ -34,34 +34,33 @@ Parallel Pipeline Config
         ),
     )
 
-    zergling_actor_default_config = dict(
-        actor_type='zergling',
-        import_names=['nervex.worker.actor.zergling_actor'],
+    zergling_collector_default_config = dict(
+        collector_type='zergling',
+        import_names=['nervex.worker.collector.zergling_collector'],
         print_freq=10,
         traj_len=traj_len,
         # The function to compress data.
         compressor='lz4',
-        # Frequency for actor to update its own policy according learner's saved one.
+        # Frequency for collector to update its own policy according learner's saved one.
         policy_update_freq=3,
         policy_update_path='test.pth',
-        # Env config for actor and evaluator.
+        # Env config for collector and evaluator.
         env_kwargs=dict(
-            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
-            actor_env_num=8,
+            collector_env_num=8,
             evaluator_env_num=5,
-            actor_episode_num=2,
+            collector_episode_num=2,
             evaluator_episode_num=1,
-            eval_stop_val=1e9,
+            eval_stop_value=1e9,
         ),
     )
 
     coordinator_default_config = dict(
-        # Timeout seconds for actor and learner.
-        actor_task_timeout=30,
+        # Timeout seconds for collector and learner.
+        collector_task_timeout=30,
         learner_task_timeout=600,
         # For host and port settings, can be 'auto' (allocate according to current situation) or specific one.
-        # Host and port in learner and actor config are the same.
+        # Host and port in learner and collector config are the same.
         interaction=dict(
             host='auto',
             port='auto',
@@ -69,11 +68,11 @@ Parallel Pipeline Config
         commander=dict(
             parallel_commander_type='naive',
             import_names=[],
-            # Task space for actor and learner.
-            actor_task_space=2,
+            # Task space for collector and learner.
+            collector_task_space=2,
             learner_task_space=1,
             learner_cfg=base_learner_default_config,
-            actor_cfg=zergling_actor_default_config,
+            collector_cfg=zergling_collector_default_config,
             replay_buffer_cfg=dict(),
             policy=policy_default_config,
             max_iterations=10,
@@ -83,8 +82,8 @@ Parallel Pipeline Config
 
     parallel_local_default_config = dict(
         coordinator=coordinator_default_config,
-        # In general, learner number and actor should be in accordance with commander's task space.
-        # Here we have 1 learner and 2 actors.
+        # In general, learner number and collector should be in accordance with commander's task space.
+        # Here we have 1 learner and 2 collectors.
         learner0=dict(
             import_names=['nervex.worker.learner.comm.flask_fs_learner'],
             comm_learner_type='flask_fs',
@@ -100,18 +99,18 @@ Parallel Pipeline Config
             # Whether to used cross-machine distributed training.
             use_distributed=False,
         ),
-        actor0=dict(
-            import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-            comm_actor_type='flask_fs',
+        collector0=dict(
+            import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+            comm_collector_type='flask_fs',
             host='auto',
             port='auto',
             path_data='.',
             path_policy='.',
             queue_maxsize=8,
         ),
-        actor1=dict(
-            import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-            comm_actor_type='flask_fs',
+        collector1=dict(
+            import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+            comm_collector_type='flask_fs',
             host='auto',
             port='auto',
             path_data='.',

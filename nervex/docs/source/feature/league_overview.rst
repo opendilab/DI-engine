@@ -196,9 +196,9 @@ Player
 
         - 概述：
 
-            league 在被 commander 调用需要生成新的 actor job 时，将调用指定 player 的 ``get_job`` 方法，获取其对手。
-            在 actor 开始执行任务后，learner 利用产生的数据训练自身，训练一段时间后，会通过 commander 告知 league，
-            然后 league 调用指定 player 的 ``is_trained_enough`` 方法，判断当前产生数据的 actor 所持有的策略是否相对更新了较多：
+            league 在被 commander 调用需要生成新的 collector job 时，将调用指定 player 的 ``get_job`` 方法，获取其对手。
+            在 collector 开始执行任务后，learner 利用产生的数据训练自身，训练一段时间后，会通过 commander 告知 league，
+            然后 league 调用指定 player 的 ``is_trained_enough`` 方法，判断当前产生数据的 collector 所持有的策略是否相对更新了较多：
             若是，则可以 ``snapshot`` 及 ``mutate``。
 
         - 类接口方法：
@@ -270,7 +270,7 @@ League
 
 概述：
     league 是管理 player 及他们之间关系 （使用payoff），可统筹为 player 分配工作的类。
-    一般由 Commander 持有一个，用于在对战类环境中生成 actor task 中，找到合适的两个 player 参与该对局。
+    一般由 Commander 持有一个，用于在对战类环境中生成 collector task 中，找到合适的两个 player 参与该对局。
 
 基类定义：
     1. BaseLeague (nervex/league/base_league.py)
@@ -369,7 +369,7 @@ League
                         Update an active player's info.
                     Arguments:
                         - player_info (:obj:`dict`): Info dict of the player which is to be updated, \
-                            at least includs ['player_id', 'train_step']
+                            at least includs ['player_id', 'train_iteration']
                     """
                     # ...
 
@@ -411,10 +411,10 @@ League
 
         - 类接口方法：
             1. ``__init__``: 初始化，在最前会调用 ``_init_cfg``，读取当前league的config；最后会调用 ``_init_league`` ，初始化league中的player。
-            2. ``get_job_info``: commander 在准备为 actor 分配任务后，调用该方法得知此次任务由哪两个 player 执行。
+            2. ``get_job_info``: commander 在准备为 collector 分配任务后，调用该方法得知此次任务由哪两个 player 执行。
             3. ``judge_snapshot``: 当 learner 利用数据更新自身策略后，player 持有的策略也会相应更新，在一定时间的训练后，commander 调用此方法判断 player 的策略是否得到了足够的训练。
             4. ``update_active_player``: 当 learner 训练后，或是 evaluator 结束评估后，更新对应 player 的模型步数或下一次 evaluate 中将选择的对手。
-            5. ``finish_job``: 当 actor 任务结束后，更新 shared payoff 中的对战信息。
+            5. ``finish_job``: 当 collector 任务结束后，更新 shared payoff 中的对战信息。
 
         - 需要用户实现的方法：
 

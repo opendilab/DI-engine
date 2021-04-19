@@ -10,7 +10,7 @@ qbert_dqn_default_config = dict(
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=4,
     ),
     policy=dict(
@@ -23,11 +23,11 @@ qbert_dqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=512,
+            hidden_dim_list=[128, 128, 512],
             head_kwargs=dict(dueling=True, ),
         ),
         learn=dict(
-            train_step=10,
+            train_iteration=10,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.00001,
@@ -52,21 +52,20 @@ qbert_dqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=1000,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=4,
         eval_freq=2000,
-        stop_val=9000,
+        stop_value=9000,
     ),
     learner=dict(
         load_path='',

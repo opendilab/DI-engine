@@ -10,7 +10,7 @@ spaceinvaders_dqn_default_config = dict(
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=4,
     ),
     policy=dict(
@@ -22,11 +22,11 @@ spaceinvaders_dqn_default_config = dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_dim=[4, 84, 84],
             action_dim=6,
-            embedding_dim=512,
+            hidden_dim_list=[128, 128, 512],
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
-            train_step=50,
+            train_iteration=50,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0001,
@@ -51,21 +51,20 @@ spaceinvaders_dqn_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
+            replay_buffer_size=100000,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=4,
         eval_freq=5000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

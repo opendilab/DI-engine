@@ -9,7 +9,9 @@ import yaml
 from easydict import EasyDict
 from sumolib import checkBinary
 
-from nervex.envs.env import BaseEnv, register_env
+from nervex.envs.env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.utils import ENV_REGISTRY
+from nervex.torch_utils import to_ndarray, to_tensor
 from nervex.utils import deep_merge_dicts
 from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
 from app_zoo.sumo.envs.obs.sumo_obs_runner import SumoObsRunner
@@ -25,6 +27,7 @@ def build_config(user_config):
     return deep_merge_dicts(default_config, user_config)
 
 
+@ENV_REGISTRY.register('sumo_wj3')
 class SumoWJ3Env(BaseEnv):
     r"""
     Overview:
@@ -32,8 +35,6 @@ class SumoWJ3Env(BaseEnv):
     Interface:
         __init__, reset, close, step, info
     """
-    timestep = namedtuple('SumoTimestep', ['obs', 'reward', 'done', 'info'])
-    info_template = namedtuple('SumoWJ3EnvInfo', ['obs_space', 'act_space', 'rew_space', 'agent_num'])
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -96,7 +97,7 @@ class SumoWJ3Env(BaseEnv):
         self._reward_helper.reset()
         self._action_helper.reset()
         obs = self._obs_helper.reset()
-        return obs
+        return to_ndarray(obs)
 
     def close(self):
         r"""
@@ -118,7 +119,7 @@ class SumoWJ3Env(BaseEnv):
             reward(:obj:`float` or :obj:`dict`), done(:obj:`bool`) and info(:obj:`dict`)
         """
         assert self._launch_env_flag
-        self.action = action
+        self.action = [a.squeeze() for a in to_tensor(action)]
         raw_action = self._action_helper.get(self)
         self._simulate(raw_action)
 
@@ -130,7 +131,9 @@ class SumoWJ3Env(BaseEnv):
             info['final_eval_reward'] = self._reward_helper._final_eval_reward
             self.close()
         # return obs, reward, done, info
-        return SumoWJ3Env.timestep(obs, reward, done, info)
+        obs = to_ndarray(obs)
+        reward = to_ndarray(reward)
+        return BaseEnvTimestep(obs, reward, done, info)
 
     def seed(self, seed: int) -> None:
         pass
@@ -163,7 +166,7 @@ class SumoWJ3Env(BaseEnv):
             'act_space': self._action_helper.info,
             'rew_space': self._reward_helper.info,
         }
-        return SumoWJ3Env.info_template(**info_data)
+        return BaseEnvInfo(**info_data)
 
     def __repr__(self) -> str:
         return 'sumoEnv:\n\
@@ -178,6 +181,3 @@ class SumoWJ3Env(BaseEnv):
     @action.setter
     def action(self, _action):
         self._action = _action
-
-
-register_env('sumo_wj3', SumoWJ3Env)

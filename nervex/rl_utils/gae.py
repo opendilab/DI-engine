@@ -5,7 +5,23 @@ from nervex.hpc_rl import hpc_wrapper
 gae_data = namedtuple('gae_data', ['value', 'reward'])
 
 
-@hpc_wrapper(shape_fn=lambda args: args[0].reward.shape, namedtuple_data=True)
+def shape_fn_gae(args, kwargs):
+    r"""
+    Overview:
+        Return shape of gae for hpc
+    Returns:
+        shape: [T, B]
+    """
+    if len(args) <= 0:
+        tmp = kwargs['data'].reward.shape
+    else:
+        tmp = args[0].reward.shape
+    return tmp
+
+
+@hpc_wrapper(
+    shape_fn=shape_fn_gae, namedtuple_data=True, include_args=[0, 1, 2], include_kwargs=['data', 'gamma', 'lambda_']
+)
 def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.FloatTensor:
     """
     Overview:
@@ -25,7 +41,7 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
 
     .. note::
         value_{T+1} should be 0 if this trajectory reached a terminal state(done=True), otherwise we use value
-        function, this operation is implemented in actor for packing trajectory.
+        function, this operation is implemented in collector for packing trajectory.
     """
     value, reward = data
     delta = reward + gamma * value[1:] - value[:-1]

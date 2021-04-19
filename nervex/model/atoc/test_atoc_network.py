@@ -10,13 +10,15 @@ class TestATOCNets:
     def test_actor_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
         torch.autograd.set_detect_anomaly(True)
-        model = ATOCActorNet(obs_dim, thought_dim, act_dim, A, 2, 2)
+        model = ATOCActorNet(obs_dim, thought_dim, act_dim, A, True, 2, 2)
         for _ in range(1):
             data = {'obs': torch.randn(B, A, obs_dim)}
             out = model.forward(data)
             assert out['action'].shape == (B, A, act_dim)
             assert out['group'].shape == (B, A, A)
             loss1 = out['action'].sum()
+            if _ == 0:
+                is_differentiable_print_no_grad(loss1, model)
 
     def test_critic_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
@@ -31,7 +33,7 @@ class TestATOCNets:
 
     def test_qac_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
-        model = ATOCQAC(obs_dim, act_dim, thought_dim, A, 2, 2)
+        model = ATOCQAC(obs_dim, act_dim, thought_dim, A, True, 2, 2)
 
         # test basic forward path
 

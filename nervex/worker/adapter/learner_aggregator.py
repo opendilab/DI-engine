@@ -45,7 +45,7 @@ class LearnerAggregatorSlave(Slave):
         elif task_name == 'learner_learn_task':
             return self._callback_fn['deal_with_learn'](task)
         else:
-            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+            raise TaskFail(result={'message': 'task name error'}, message='illegal learner task <{}>'.format(task_name))
 
 
 class LearnerAggregator(object):

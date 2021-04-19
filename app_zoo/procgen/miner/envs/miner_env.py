@@ -3,9 +3,10 @@ import time
 import gym
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.utils import ENV_REGISTRY
 
 
 def disable_gym_view_window():
@@ -23,6 +24,7 @@ def disable_gym_view_window():
     rendering.get_window = get_window
 
 
+@ENV_REGISTRY.register('miner')
 class MinerEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -95,6 +97,3 @@ class MinerEnv(BaseEnv):
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
-
-
-register_env('miner', MinerEnv)

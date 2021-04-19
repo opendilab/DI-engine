@@ -3,9 +3,10 @@ import time
 import gym
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.utils import ENV_REGISTRY
 
 
 def disable_gym_view_window():
@@ -23,6 +24,7 @@ def disable_gym_view_window():
     rendering.get_window = get_window
 
 
+@ENV_REGISTRY.register('cartpole')
 class CartPoleEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -31,7 +33,7 @@ class CartPoleEnv(BaseEnv):
 
     def reset(self) -> torch.Tensor:
         if hasattr(self, '_seed'):
-            np_seed = 100 * np.random.randint(1,1000)
+            np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
@@ -91,6 +93,3 @@ class CartPoleEnv(BaseEnv):
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
-
-
-register_env('cartpole', CartPoleEnv)

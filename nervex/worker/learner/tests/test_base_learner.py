@@ -8,8 +8,7 @@ from typing import Any
 from functools import partial
 
 from nervex.worker import BaseLearner
-from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, \
-    register_learner, create_learner
+from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, create_learner
 from nervex.config import base_learner_default_config
 
 
@@ -47,6 +46,17 @@ class FakePolicy:
     def monitor_vars(self):
         return ['total_loss', 'cur_lr']
 
+    def get_attribute(self, name):
+        if name == 'use_cuda':
+            return False
+        elif name == 'device':
+            return 'cpu'
+        else:
+            raise KeyError
+
+    def reset(self):
+        pass
+
 
 @pytest.mark.unittest
 class TestBaseLearner:
@@ -66,12 +76,11 @@ class TestBaseLearner:
         os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
-        register_learner('fake', FakeLearner)
         path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
         cfg = self._get_cfg(path)
-        learner = create_learner(cfg)
+        learner = FakeLearner(cfg)
         learner.setup_dataloader()
         learner.policy = FakePolicy()
         with pytest.raises(KeyError):
@@ -81,7 +90,7 @@ class TestBaseLearner:
         assert learner.last_iter.val == 10 + 5
 
         # test hook
-        dir_name = 'ckpt{}'.format(learner.name)
+        dir_name = 'ckpt_{}'.format(learner._instance_name)
         for n in [5, 10, 15]:
             assert os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
         for n in [0, 4, 7, 12]:

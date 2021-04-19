@@ -1,10 +1,10 @@
 from easydict import EasyDict
 from nervex.config import parallel_transform
 
+traj_len=9
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
-    import_names=['nervex.policy.dqn'],
     on_policy=False,
     model=dict(
         obs_dim=4,
@@ -17,13 +17,13 @@ __policy_default_config = dict(
         algo=dict(
             target_update_freq=100,
             discount_factor=0.95,
-            nstep=1,
+            nstep=3,
         ),
     ),
     collect=dict(
-        traj_len=1,
+        traj_len=traj_len,
         unroll_len=1,
-        algo=dict(nstep=1),
+        algo=dict(nstep=3),
     ),
     command=dict(eps=dict(
         type='exp',
@@ -64,26 +64,26 @@ __base_learner_default_config = dict(
     ),
 )
 
-__zergling_actor_default_config = dict(
-    actor_type='zergling',
-    import_names=['nervex.worker.actor.zergling_actor'],
+__zergling_collector_default_config = dict(
+    collector_type='zergling',
+    import_names=['nervex.worker.collector.zergling_collector'],
     print_freq=10,
-    traj_len=1,
+    traj_len=traj_len,
     compressor='lz4',
     policy_update_freq=3,
     env_kwargs=dict(
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
-        actor_env_num=8,
-        actor_episode_num=2,
+        collector_env_num=8,
+        collector_episode_num=2,
         evaluator_env_num=5,
         evaluator_episode_num=1,
-        eval_stop_val=195,
+        eval_stop_value=195,
     ),
 )
 
 __coordinator_default_config = dict(
-    actor_task_timeout=30,
+    collector_task_timeout=30,
     learner_task_timeout=600,
     interaction=dict(
         host='auto',
@@ -92,17 +92,13 @@ __coordinator_default_config = dict(
     commander=dict(
         parallel_commander_type='solo',
         import_names=['nervex.worker.coordinator.solo_parallel_commander'],
-        actor_task_space=2,
+        collector_task_space=2,
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
-        actor_cfg=__zergling_actor_default_config,
+        collector_cfg=__zergling_collector_default_config,
         replay_buffer_cfg=dict(
-            buffer_name=['agent'],
-            agent=dict(
-                meta_maxlen=100000,
-                max_reuse=1100,
-                min_sample_ratio=1,
-            )
+            replay_buffer_size=100000,
+            enable_track_used_data=False,
         ),
         policy=__policy_default_config,
         max_iterations=int(1e9),
@@ -123,18 +119,18 @@ main_config = dict(
         send_policy_freq=1,
         use_distributed=False,
     ),
-    actor0=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+    collector0=dict(
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',
         path_policy='.',
         queue_maxsize=8,
     ),
-    actor1=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+    collector1=dict(
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',

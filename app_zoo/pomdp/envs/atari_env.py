@@ -3,8 +3,9 @@ import copy
 import torch
 import gym
 import numpy as np
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
@@ -32,6 +33,7 @@ def PomdpEnv(cfg):
     return env
 
 
+@ENV_REGISTRY.register('pomdp')
 class PomdpAtariEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -90,11 +92,11 @@ class PomdpAtariEnv(BaseEnv):
         return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num', 1)
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
-        return [cfg for _ in range(actor_env_num)]
+        return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
@@ -102,6 +104,3 @@ class PomdpAtariEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
-
-
-register_env('pomdp', PomdpAtariEnv)

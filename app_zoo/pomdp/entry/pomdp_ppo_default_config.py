@@ -3,9 +3,8 @@ from easydict import EasyDict
 pomdp_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        import_names=['app_zoo.pomdp.envs.atari_env'],
         env_type='pomdp',
-        actor_env_num=6,
+        collector_env_num=6,
         evaluator_env_num=3,
         env_id='Pong-ramNoFrameskip-v4',
         frame_stack=4,
@@ -32,7 +31,7 @@ pomdp_ppo_default_config = dict(
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=5,
+            train_iteration=5,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,
@@ -56,20 +55,19 @@ pomdp_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=1000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collectorctorctor=dict(
         n_sample=16,
         traj_len=2000,  # cartpole max episode len
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

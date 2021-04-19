@@ -9,7 +9,7 @@ coinrun_dqn_default_config = dict(
         env_type='coinrun',
         # frame_stack=4,
         is_train=True,
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=8,
     ),
     policy=dict(
@@ -25,7 +25,7 @@ coinrun_dqn_default_config = dict(
             head_kwargs=dict(dueling=False, ),
         ),
         learn=dict(
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.0001,
             weight_decay=0.0,
@@ -51,20 +51,19 @@ coinrun_dqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=10000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collectorctor=dict(
         n_sample=100,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=4,
         eval_freq=5000,
-        stop_val=20,
+        stop_value=20,
     ),
     learner=dict(
         load_path='',

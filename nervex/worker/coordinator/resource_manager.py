@@ -6,7 +6,7 @@ class NaiveResourceManager(object):
     Overview:
         the naive resource manager
     Interface:
-        __init__, assign_actor, assign_learner, update
+        __init__, assign_collector, assign_learner, update
     """
 
     def __init__(self) -> None:
@@ -14,21 +14,21 @@ class NaiveResourceManager(object):
         Overview:
             init the resouce manager
         """
-        self._worker_type = ['actor', 'learner']
+        self._worker_type = ['collector', 'learner']
         self._resource_info = {k: {} for k in self._worker_type}
 
-    def assign_actor(self, actor_task: dict) -> dict:
+    def assign_collector(self, collector_task: dict) -> dict:
         r"""
         Overview:
-            assign the actor_task randomly and return the resouce info
+            assign the collector_task randomly and return the resouce info
         Arguments:
-            - actor_task (:obj:`dict`): the actor task to assign
+            - collector_task (:obj:`dict`): the collector task to assign
         """
-        available_actor_list = list(self._resource_info['actor'].keys())
-        if len(available_actor_list) > 0:
-            selected_actor = random.sample(available_actor_list, 1)[0]
-            info = self._resource_info['actor'].pop(selected_actor)
-            return {'actor_id': selected_actor, 'resource_info': info}
+        available_collector_list = list(self._resource_info['collector'].keys())
+        if len(available_collector_list) > 0:
+            selected_collector = random.sample(available_collector_list, 1)[0]
+            info = self._resource_info['collector'].pop(selected_collector)
+            return {'collector_id': selected_collector, 'resource_info': info}
         else:
             return None
 

@@ -6,10 +6,12 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import ppo_data, ppo_error, Adder
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('ppo')
 class PPOPolicy(CommonPolicy):
     r"""
     Overview:
@@ -34,7 +36,6 @@ class PPOPolicy(CommonPolicy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main armor
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
         self._armor.mode(train=True)
         self._armor.reset()
         self._learn_setting_set = {}
@@ -89,15 +90,9 @@ class PPOPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # GAE calculation needs v_t+1
-        assert self._traj_len > 1, "ppo traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -116,7 +111,9 @@ class PPOPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -140,19 +137,16 @@ class PPOPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
@@ -166,7 +160,6 @@ class PPOPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -181,7 +174,9 @@ class PPOPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         pass
@@ -193,6 +188,3 @@ class PPOPolicy(CommonPolicy):
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
-
-
-register_policy('ppo', PPOPolicy)

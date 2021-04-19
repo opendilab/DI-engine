@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('atoc')
 class ATOCPolicy(CommonPolicy):
     r"""
     Overview:
@@ -27,6 +29,12 @@ class ATOCPolicy(CommonPolicy):
             Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target armors.
         """
+        # algorithm config
+        algo_cfg = self._cfg.learn.algo
+        self._algo_cfg_learn = algo_cfg
+        self._use_communication = algo_cfg.use_communication
+        self._gamma = algo_cfg.discount_factor
+        self._actor_update_freq = algo_cfg.actor_update_freq
         # actor and critic optimizer
         self._optimizer_actor = Adam(
             self._model._actor.parameters(),
@@ -38,18 +46,13 @@ class ATOCPolicy(CommonPolicy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
-        self._optimizer_actor_attention = Adam(
-            self._model._actor._attention.parameters(),
-            lr=self._cfg.learn.learning_rate_actor,
-            weight_decay=self._cfg.learn.weight_decay
-        )
+        if self._use_communication:
+            self._optimizer_actor_attention = Adam(
+                self._model._actor._attention.parameters(),
+                lr=self._cfg.learn.learning_rate_actor,
+                weight_decay=self._cfg.learn.weight_decay
+            )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
-
-        # algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
-        self._actor_update_freq = algo_cfg.actor_update_freq
 
         # main and target armors
         self._armor = Armor(self._model)
@@ -65,8 +68,6 @@ class ATOCPolicy(CommonPolicy):
                 },
                 noise_range=algo_cfg.noise_range,
             )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -98,9 +99,11 @@ class ATOCPolicy(CommonPolicy):
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
-        next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
+        with torch.no_grad():
+            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
         next_data['action'] = next_action
-        target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
         # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
@@ -119,17 +122,21 @@ class ATOCPolicy(CommonPolicy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            inputs = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action', 'get_delta_q': False})
-            inputs['delta_q'] = data['delta_q']
-            attention_loss = -self._armor.forward(
-                inputs, param={'mode': 'optimize_actor_attention'}
-            )['actor_attention_loss'].mean()
-            loss_dict['attention_loss'] = attention_loss
-            self._optimizer_actor_attention.zero_grad()
-            attention_loss.backward()
-            self._optimizer_actor_attention.step()
-            # newdata = self._armor.forward({'obs':data['obs']}, param={'mode': 'compute_action', 'get_delta_q': False})
-            # newdata['obs']
+            if self._use_communication:
+                inputs = self._armor.forward(
+                    {'obs': data['obs']}, param={
+                        'mode': 'compute_action',
+                        'get_delta_q': False
+                    }
+                )
+                inputs['delta_q'] = data['delta_q']
+                attention_loss = -self._armor.forward(
+                    inputs, param={'mode': 'optimize_actor_attention'}
+                )['actor_attention_loss'].mean()
+                loss_dict['attention_loss'] = attention_loss
+                self._optimizer_actor_attention.zero_grad()
+                attention_loss.backward()
+                self._optimizer_actor_attention.step()
             actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
@@ -158,7 +165,6 @@ class ATOCPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
@@ -174,7 +180,6 @@ class ATOCPolicy(CommonPolicy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -189,7 +194,8 @@ class ATOCPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
@@ -204,24 +210,33 @@ class ATOCPolicy(CommonPolicy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': armor_output['action'],
-            'delta_q': armor_output['delta_q'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if self._use_communication:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': armor_output['action'],
+                'delta_q': armor_output['delta_q'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': armor_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj_cache, self._traj_len)
-        delta_q_batch = [d['delta_q'] for d in data]
-        delta_min = torch.stack(delta_q_batch).min()
-        delta_max = torch.stack(delta_q_batch).max()
-        for i in range(len(data)):
-            data[i]['delta_q'] = (data[i]['delta_q'] - delta_min) / (delta_max - delta_min + 1e-8)
+        if self._use_communication:
+            delta_q_batch = [d['delta_q'] for d in data]
+            delta_min = torch.stack(delta_q_batch).min()
+            delta_max = torch.stack(delta_q_batch).max()
+            for i in range(len(data)):
+                data[i]['delta_q'] = (data[i]['delta_q'] - delta_min) / (delta_max - delta_min + 1e-8)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -231,7 +246,6 @@ class ATOCPolicy(CommonPolicy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -246,7 +260,8 @@ class ATOCPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _init_command(self) -> None:
@@ -271,6 +286,3 @@ class ATOCPolicy(CommonPolicy):
             'action'
         ]
         return ret
-
-
-register_policy('atoc', ATOCPolicy)

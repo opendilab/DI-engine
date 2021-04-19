@@ -8,10 +8,12 @@ from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
 from nervex.model import ComaNetwork
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('coma')
 class COMAPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
@@ -54,8 +56,6 @@ class COMAPolicy(CommonPolicy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -84,7 +84,7 @@ class COMAPolicy(CommonPolicy):
         data = timestep_collate(data)
         assert set(data.keys()) > set(['obs', 'action', 'reward'])
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
         return data, data_info
@@ -111,7 +111,8 @@ class COMAPolicy(CommonPolicy):
         self._armor.reset(state=data['prev_state'][0])
         self._armor.target_reset(state=data['prev_state'][0])
         q_value = self._armor.forward(data, param={'mode': 'compute_q_value'})['q_value']
-        target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
         logit = self._armor.forward(data, param={'mode': 'compute_action'})['logit']
 
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
@@ -140,9 +141,6 @@ class COMAPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Armor has eps_greedy_sample plugin and hidden state plugin
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == "inf":
-            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -154,7 +152,6 @@ class COMAPolicy(CommonPolicy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -171,7 +168,9 @@ class COMAPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, eps=self._eps, data_id=data_id, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id, param={'mode': 'compute_action'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -210,7 +209,6 @@ class COMAPolicy(CommonPolicy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -227,7 +225,9 @@ class COMAPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         r"""
@@ -252,18 +252,17 @@ class COMAPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory, then sample from trajectory
 
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -271,6 +270,3 @@ class COMAPolicy(CommonPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
-
-
-register_policy('coma', COMAPolicy)

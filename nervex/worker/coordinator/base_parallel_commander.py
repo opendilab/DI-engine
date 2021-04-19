@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from easydict import EasyDict
 import copy
-from nervex.utils import import_module
+
+from nervex.utils import import_module, COMMANDER_REGISTRY
+from nervex.league import create_league
 
 
 class BaseCommander(ABC):
@@ -10,18 +12,18 @@ class BaseCommander(ABC):
     Overview:
         Base parallel commander abstract class.
     Interface:
-        get_actor_task
+        get_collector_task
     """
 
     @abstractmethod
-    def get_actor_task(self) -> dict:
+    def get_collector_task(self) -> dict:
         raise NotImplementedError
 
-    def judge_actor_finish(self, task_id: str, info: dict) -> bool:
-        actor_done = info.get('actor_done', False)
+    def judge_collector_finish(self, task_id: str, info: dict) -> bool:
+        collector_done = info.get('collector_done', False)
         cur_episode = info['cur_episode']
         cur_sample = info['cur_sample']
-        if actor_done:
+        if collector_done:
             return True
         return False
 
@@ -33,13 +35,14 @@ class BaseCommander(ABC):
         return False
 
 
+@COMMANDER_REGISTRY.register('naive')
 class NaiveCommander(BaseCommander):
     r"""
     Overview:
         A naive implementation of parallel commander.
     Interface:
-        __init__, get_actor_task, get_learner_task, finsh_actor_task, finish_learner_task,
-        notify_fail_actor_task, notify_fail_learner_task, get_learner_info
+        __init__, get_collector_task, get_learner_task, finsh_collector_task, finish_learner_task,
+        notify_fail_collector_task, notify_fail_learner_task, get_learner_info
     """
 
     def __init__(self, cfg: dict) -> None:
@@ -48,33 +51,33 @@ class NaiveCommander(BaseCommander):
             Init the naive commander according to config
         Arguments:
             - cfg (:obj:`dict`): The config to init commander. Should include \
-                "actor_task_space" and "learner_task_space".
+                "collector_task_space" and "learner_task_space".
         """
         self._cfg = cfg
-        self.actor_task_space = cfg.actor_task_space
+        self.collector_task_space = cfg.collector_task_space
         self.learner_task_space = cfg.learner_task_space
-        self.actor_task_count = 0
+        self.collector_task_count = 0
         self.learner_task_count = 0
         self._learner_info = defaultdict(list)
         self._learner_task_finish_count = 0
-        self._actor_task_finish_count = 0
+        self._collector_task_finish_count = 0
 
-    def get_actor_task(self) -> dict:
+    def get_collector_task(self) -> dict:
         r"""
         Overview:
-            Get a new actor task when ``actor_task_count`` is smaller than ``actor_task_space``.
+            Get a new collector task when ``collector_task_count`` is smaller than ``collector_task_space``.
         Return:
-            - task (:obj:`dict`): New actor task.
+            - task (:obj:`dict`): New collector task.
         """
-        if self.actor_task_count < self.actor_task_space:
-            self.actor_task_count += 1
-            actor_cfg = self._cfg.actor_cfg
-            actor_cfg.collect_setting = {'eps': 0.9}
-            actor_cfg.eval_flag = False
+        if self.collector_task_count < self.collector_task_space:
+            self.collector_task_count += 1
+            collector_cfg = self._cfg.collector_cfg
+            collector_cfg.collect_setting = {'eps': 0.9}
+            collector_cfg.eval_flag = False
             return {
-                'task_id': 'actor_task_id{}'.format(self.actor_task_count),
+                'task_id': 'collector_task_id{}'.format(self.collector_task_count),
                 'buffer_id': 'test',
-                'actor_cfg': actor_cfg,
+                'collector_cfg': collector_cfg,
                 'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
@@ -102,12 +105,12 @@ class NaiveCommander(BaseCommander):
         else:
             return None
 
-    def finish_actor_task(self, task_id: str, finished_task: dict) -> None:
+    def finish_collector_task(self, task_id: str, finished_task: dict) -> None:
         r"""
         Overview:
-            finish actor task will add the actor_task_finish_count
+            finish collector task will add the collector_task_finish_count
         """
-        self._actor_task_finish_count += 1
+        self._collector_task_finish_count += 1
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
         r"""
@@ -119,10 +122,10 @@ class NaiveCommander(BaseCommander):
         self._learner_task_finish_count += 1
         return finished_task['buffer_id']
 
-    def notify_fail_actor_task(self, task: dict) -> None:
+    def notify_fail_collector_task(self, task: dict) -> None:
         r"""
         Overview:
-            naive coordinator will pass when need to notify_fail_actor_task
+            naive coordinator will pass when need to notify_fail_collector_task
         """
         pass
 
@@ -144,22 +147,6 @@ class NaiveCommander(BaseCommander):
         self._learner_info[task_id].append(info)
 
 
-commander_map = {'naive': NaiveCommander}
-
-
-def register_parallel_commander(name: str, commander: type) -> None:
-    r"""
-    Overview:
-        register the commander to commander_map
-    Arguments:
-        - name (:obj:`str`): the name of commander
-        - commander (:obj:`type`): the commander class to register
-    """
-    assert isinstance(name, str)
-    assert issubclass(commander, BaseCommander)
-    commander_map[name] = commander
-
-
 def create_parallel_commander(cfg: dict) -> BaseCommander:
     r"""
     Overview:
@@ -168,9 +155,5 @@ def create_parallel_commander(cfg: dict) -> BaseCommander:
         - cfg (:obj:`dict`): the commander cfg to create, should include import_names and parallel_commander_type
     """
     cfg = EasyDict(cfg)
-    import_module(cfg.import_names)
-    commander_type = cfg.parallel_commander_type
-    if commander_type not in commander_map:
-        raise KeyError("not support parallel commander type: {}".format(commander_type))
-    else:
-        return commander_map[commander_type](cfg)
+    import_module(cfg.get('import_names', []))
+    return COMMANDER_REGISTRY.build(cfg.parallel_commander_type, cfg=cfg)

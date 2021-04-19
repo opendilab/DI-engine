@@ -9,10 +9,12 @@ from nervex.torch_utils import Adam, RMSprop
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('impala')
 class IMPALAPolicy(CommonPolicy):
     r"""
     Overview:
@@ -43,6 +45,7 @@ class IMPALAPolicy(CommonPolicy):
         self._armor = Armor(self._model)
 
         self._action_dim = self._cfg.model.action_dim
+        self._unroll_len = self._cfg.learn.unroll_len
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -55,7 +58,6 @@ class IMPALAPolicy(CommonPolicy):
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
         # Main armor
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
         self._armor.mode(train=True)
         self._armor.reset()
         self._learn_setting_set = {}
@@ -77,7 +79,7 @@ class IMPALAPolicy(CommonPolicy):
         }
         data = default_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         use_priority = self._cfg.get('use_priority', False)
         if use_priority:
@@ -150,19 +152,13 @@ class IMPALAPolicy(CommonPolicy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
-        self._traj_len = self._cfg.collect.traj_len
-        self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # v_trace need v_t+1
-        assert self._traj_len > 1, "IMPALA traj len should be greater than 1"
+        self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -174,7 +170,9 @@ class IMPALAPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -207,7 +205,6 @@ class IMPALAPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -222,7 +219,9 @@ class IMPALAPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         pass
@@ -232,6 +231,3 @@ class IMPALAPolicy(CommonPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
-
-
-register_policy('impala', IMPALAPolicy)

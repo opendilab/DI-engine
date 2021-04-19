@@ -9,7 +9,7 @@ space_ppo_default_config = dict(
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=3,
     ),
     policy=dict(
@@ -25,7 +25,7 @@ space_ppo_default_config = dict(
             embedding_dim=128,
         ),
         learn=dict(
-            train_step=16,
+            train_iteration=16,
             batch_size=128,
             learning_rate=0.00025,
             weight_decay=0.0,
@@ -38,8 +38,7 @@ space_ppo_default_config = dict(
         collect=dict(
             traj_len=128,
             unroll_len=1,
-            algo=dict(discount_factor=discount_factor,
-                      gae_lambda=0.95),
+            algo=dict(discount_factor=discount_factor, gae_lambda=0.95),
         ),
         command=dict(),
     ),
@@ -47,20 +46,19 @@ space_ppo_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=3,
+            max_use=3,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=1024,
         traj_len=128,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=3,
         eval_freq=1000,
-        stop_val=800000,
+        stop_value=800000,
     ),
     learner=dict(
         load_path='',

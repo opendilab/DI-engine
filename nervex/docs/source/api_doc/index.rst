@@ -14,6 +14,7 @@ API Doc
     data/dataloader
     data/collate_fn
     data/buffer_manager
+    env/env_manager
     env/sumo_env
     league/league
     league/payoff
@@ -61,9 +62,8 @@ API Doc
     utils/time_helper
     worker/learner/learner
     worker/learner/learner_comm
-    worker/actor/env_manager
-    worker/actor/comm
-    worker/actor/actor
+    worker/collector/comm
+    worker/collector/collector
     worker/coordinator/coordinator
     worker/coordinator/comm_coordinator
     worker/coordinator/resource_manager

@@ -155,7 +155,7 @@ def entry(env, read_infer_ratio, use_cuda):
     print(out_str)
 
     # ### PyTorch DataLoader ####
-    for real_num_workers in [0]:
+    for real_num_workers in [0, 8]:
         total_sum_time_list = []
         total_data_time_list = []
         total_infer_time_list = []

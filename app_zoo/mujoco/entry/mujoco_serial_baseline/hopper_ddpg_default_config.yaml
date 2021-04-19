@@ -3,7 +3,7 @@ common:
     save_path: '.'
     load_path: ''
 env:
-    env_id: 'Hopper-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_val: 10500, 3700, 5300
+    env_id: 'Hopper-v3'  # ['HalfCheetah-v1', 'Hopper-v1', 'Walker2d-v1']  # stop_value: 10500, 3700, 5300
     # frame_stack: 4
     norm_obs: 
         use_norm: True
@@ -13,7 +13,7 @@ env:
     env_manager_type: 'subprocess'  # [base, subprocess]
     import_names: ['app_zoo.mujoco.envs.mujoco_env']
     env_type: 'mujoco'
-    actor_env_num: 16
+    collector_env_num: 16
     evaluator_env_num: 8
     use_act_scale: True
 policy:
@@ -27,7 +27,7 @@ policy:
         action_dim: 3
         use_twin_critic: False
     learn:
-        train_step: 4
+        train_iteration: 4
         batch_size: 128
         learning_rate_actor: 0.0005
         learning_rate_critic: 0.001
@@ -36,7 +36,7 @@ policy:
         algo:
             target_theta: 0.005
             discount_factor: 0.99
-            actor_update_freq: 1
+            collector_update_freq: 1
             use_twin_critic: False
             use_noise: True
             noise_sigma: 0.2
@@ -54,18 +54,17 @@ policy:
 replay_buffer:
     buffer_name: ['agent']
     agent:
-        meta_maxlen: 20000
-        max_reuse: 16
+        replay_buffer_size: 20000
+        max_use: 16
         min_sample_ratio: 1
-actor:
+collector:
     n_sample: 48
     traj_len: 1
-    traj_print_freq: 1000
     collect_print_freq: 1000
 evaluator:
     n_episode: 8
     eval_freq: 1000
-    stop_val: 3700
+    stop_value: 3700
 learner:
     hook:
         log_show:

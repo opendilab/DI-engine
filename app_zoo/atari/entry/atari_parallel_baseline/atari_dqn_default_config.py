@@ -66,9 +66,9 @@ __base_learner_default_config = dict(
     ),
 )
 
-__zergling_actor_default_config = dict(
-    actor_type='zergling',
-    import_names=['nervex.worker.actor.zergling_actor'],
+__zergling_collector_default_config = dict(
+    collector_type='zergling',
+    import_names=['nervex.worker.collector.zergling_collector'],
     print_freq=100,
     traj_len=39,
     compressor='lz4',
@@ -76,18 +76,18 @@ __zergling_actor_default_config = dict(
     env_kwargs=dict(
         import_names=['app_zoo.atari.envs.atari_env'],
         env_type='atari',
-        actor_env_num=16,
-        actor_episode_num=4,
+        collector_env_num=16,
+        collector_episode_num=4,
         evaluator_env_num=3,
         evaluator_episode_num=1,
-        eval_stop_val=20,
+        eval_stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
     ),
 )
 
 __coordinator_default_config = dict(
-    actor_task_timeout=30,
+    collector_task_timeout=30,
     learner_task_timeout=600,
     interaction=dict(
         host='auto',
@@ -96,13 +96,13 @@ __coordinator_default_config = dict(
     commander=dict(
         parallel_commander_type='solo',
         import_names=['nervex.worker.coordinator.solo_parallel_commander'],
-        actor_task_space=2,
+        collector_task_space=2,
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
-        actor_cfg=__zergling_actor_default_config,
+        collector_cfg=__zergling_collector_default_config,
         replay_buffer_cfg=dict(
-            meta_maxlen=10000,
-            max_reuse=100,
+            replay_buffer_size=10000,
+            max_use=100,
             unroll_len=1,
             min_sample_ratio=1,
             monitor=dict(log_freq=1000),
@@ -128,8 +128,8 @@ main_config = dict(
         repeat_num=2,
     ),
     actor0=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',
@@ -137,8 +137,8 @@ main_config = dict(
         queue_maxsize=8,
     ),
     actor1=dict(
-        import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-        comm_actor_type='flask_fs',
+        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        comm_collector_type='flask_fs',
         host='auto',
         port='auto',
         path_data='./data',

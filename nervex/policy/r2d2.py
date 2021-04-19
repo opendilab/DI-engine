@@ -7,10 +7,12 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('r2d2')
 class R2D2Policy(CommonPolicy):
     r"""
     Overview:
@@ -48,8 +50,6 @@ class R2D2Policy(CommonPolicy):
         self._armor.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._learn_setting_set = {}
@@ -74,7 +74,7 @@ class R2D2Policy(CommonPolicy):
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
         bs = self._burnin_step
         data['weight'] = data.get('weight', [None for _ in range(self._nstep)])
@@ -117,8 +117,9 @@ class R2D2Policy(CommonPolicy):
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._armor.forward(inputs)['logit']
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
-        target_q_value = self._armor.target_forward(next_inputs)['logit']
-        target_q_action = self._armor.forward(next_inputs)['action']
+        with torch.no_grad():
+            target_q_value = self._armor.target_forward(next_inputs)['logit']
+            target_q_action = self._armor.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
@@ -159,9 +160,7 @@ class R2D2Policy(CommonPolicy):
         """
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_burnin_step = self._cfg.collect.algo.burnin_step
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        assert self._traj_len >= self._unroll_len
         assert self._unroll_len == self._collect_burnin_step + 2 * self._collect_nstep
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -169,7 +168,6 @@ class R2D2Policy(CommonPolicy):
             'main', 'hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -186,7 +184,9 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, data_id=data_id, eps=self._eps)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, data_id=data_id, eps=self._eps)
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -209,19 +209,18 @@ class R2D2Policy(CommonPolicy):
         }
         return EasyDict(transition)
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj_cache (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=self._collect_burnin_step)
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+        data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -233,7 +232,6 @@ class R2D2Policy(CommonPolicy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -250,7 +248,9 @@ class R2D2Policy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id)
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id)
+        return output
 
     def _init_command(self) -> None:
         r"""
@@ -277,7 +277,3 @@ class R2D2Policy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
-
-
-# regist r2d2 policy in the policy maps
-register_policy('r2d2', R2D2Policy)

@@ -37,7 +37,8 @@ nervex (框架核心)
         │   └── serial_entry.py (串行入口)
         ├── envs (强化学习环境接口)
         │   ├── common (通用环境元素基类)
-        │   └── env (环境基类和具体的环境类)
+        │   ├── env (环境基类和具体的环境类)
+        │   └── env_manager (环境管理器类)
         ├── hpc_rl (加速算子组件)
         │   ├── hpc_rll-0.0.1-cp36-cp36m-linux_x86_64.whl (环境库打包whl文件)
         │   └── wrapper.py
@@ -138,7 +139,7 @@ nervex (框架核心)
         │   ├── system_helper.py (系统工具)
         │   └── time_helper.py （计时函数）
         └── worker
-            ├── actor (数据生成器)
+            ├── collector (数据生成器)
             ├── adapter (适配器)
             ├── coordinator (协作器)
             └── learner (训练学习器)
@@ -165,7 +166,7 @@ app_zoo (基于nerveX的DRL应用)
 数据流图
 ============================
 
-nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Actor(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
+nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Collector(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
 
 .. image:: dataflow.png
 
@@ -228,7 +229,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
     根据不同的需求，可以修改配置文件并自定义相关的启动脚本，配置文件中可能修改的地方主要有如下几处：
 
       - policy.use_cuda: 是否使用cuda，主要取决于使用者的机器上是否有GPU
-      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_val可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
+      - env.env_type: 如要更改所使用的环境，首先修改env.env_type，并对应修改env.import_names，atari及mujuco还需修改env.env_id，不同环境的evaluator.stop_value可能不同也需要修改。需注意环境的observation是图像还是向量，并检查是否需要对应修改policy.model中的encoder。
       - policy: 若要更改所使用的算法/策略，首先修改policy.policy_type，并对应修改policy.import_names, policy.on_policy, policy.model等。
 
     .. note::
@@ -257,8 +258,8 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         │   ├── iteration_0.pth.tar
         │   └── iteration_200.pth.tar
         └── log
-            ├── actor
-            │   └── actor_logger.txt
+            ├── collector
+            │   └── collect_logger.txt
             ├── buffer
             │   └── armor_buffer
             │       ├── armor_logger.txt
@@ -272,10 +273,9 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
     对于 ``ckptBaseLearner*`` ，一般来说，iteration 最大的文件保存有 evaluate 阶段 reward 最高的模型， iteration 从小至大的 eval_reward 也应当是从小至大的。
 
-    ``log`` 下包括 ``actor``, ``evaluator``, ``learner``, ``buffer`` 四个文件夹，除了 ``actor`` 外，均既有 tensorboard logger 又有 text logger，
-    而 ``actor`` 仅有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
+    ``log`` 下包括 ``collector``, ``evaluator``, ``learner``, ``buffer`` 四个文件夹，每个都既有 tensorboard logger 又有 text logger。这些 logger 均按照各自的 log_freq 在一定的时间/步数间隔下进行记录。
 
-    ``actor`` 记录与环境交互的信息， ``learner`` 记录根据数据进行策略更新的信息， ``evaluator`` 记录对于当前最新策略的评估信息，
+    ``collector`` 记录与环境交互的信息， ``learner`` 记录根据数据进行策略更新的信息， ``evaluator`` 记录对于当前最新策略的评估信息，
     ``buffer`` 记录数据被塞入与采样出的各种统计量。
 
 算法训练入口示例(并行版本)
@@ -293,11 +293,11 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
 
         nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
-    下面所示为在slurm集群上的启动脚本，其中需要指定actor和learner相应的计算节点IP，Coordinator默认运行在管理节点上。
+    下面所示为在slurm集群上的启动脚本，只需要将 ``nervex xxxx`` 当作一个任务提交到某个计算节点即可，和普通srun提交任务没有区别。
     
     .. code:: bash
 
-        nervex -m parallel -p slurm -c cartpole_dqn_default_config.py -s 0 --actor_host SH-IDC1-10-198-8-66 --learner_host SH-IDC1-10-198-8-66
+        srun -p x_cerebra --gres=gpu:1 nervex -m parallel -c cartpole_dqn_default_config.py -s 0
     
     nervex 命令参数选项:
 
@@ -308,7 +308,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         - **\-p, --platform [local|slurm|k8s]** : local or slurm or k8s
         - **\-ch, --coordinator_host TEXT** : coordinator host
         - **\-lh, --learner_host TEXT** : learner host
-        - **\-ah, --actor_host TEXT** : actor host
+        - **\-ah, --collector_host TEXT** : collector host
         - **\-h, --help** : Show this message and exit.
 
 配置文件
@@ -337,7 +337,7 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         │   ├── ....
         │   └── env_7_4939d342-68f3-11eb-9a9b-29face2f0d06
         ├── log
-        │   ├── actor
+        │   ├── collector
         │   │   ├── 011f43e3-6d93-4e6d-ab6a-f124b1719050_476275_logger.txt
         │   │   ├── 34bc401b-ae5b-4a0c-816c-1db81738ae8c_606251_logger.txt
         │   │   ├── ....
@@ -360,12 +360,12 @@ nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作�
         │       └── learner_tb_logger
         └── policy_587ffbea-31bc-4aac-8d60-70ba68f5c5a7_611148
 
-    ``policy_*`` 是由 learner 存储，由 actor 读入以更新策略用的。
+    ``policy_*`` 是由 learner 存储，由 collector 读入以更新策略用的。
 
     ``data`` 下存储的是 replay buffer 中的 trajectory（replay buffer仅存储这些 trajectory 的路径，而不实际存储数据）。
 
-    ``log`` ，其下包括 ``actor``, ``evaluator``, ``learner``, ``buffer``, ``commander`` 五个文件夹，以及 ``coordinator_logger.txt`` 文件。
-    其中， ``actor``, ``evaluator`` 会按照不同的 task 生成多个 txt 文件； ``learner`` 部分与串行版本类似，多个 task 的文字记录均在同一 txt 文件中，
+    ``log`` ，其下包括 ``collector``, ``evaluator``, ``learner``, ``buffer``, ``commander`` 五个文件夹，以及 ``coordinator_logger.txt`` 文件。
+    其中， ``collector``, ``evaluator`` 会按照不同的 task 生成多个 txt 文件； ``learner`` 部分与串行版本类似，多个 task 的文字记录均在同一 txt 文件中，
     但 tensorboard 会分 task 记录。 ``buffer`` 与串行版本相同。 ``commander`` 中将 evaluator 中的信息进行了整合，方便用户查看当前策略训练情况。
     ``coordinator_logger.txt`` 则记录了和并行模式下通信相关的各种信息。
 
@@ -401,15 +401,21 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
 
     env = CartPoleEnv(cfg={})  # use default env config
 
-而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，actor部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
+而在 ``serial_pipeline`` 中，我们有两种创建环境的方式，第一种是通过 ``cfg.env`` ，即配置文件中 ``env`` 相关字段进行自动创建，第二种是通过 ``env_setting`` 参数直接从调用者处得到环境类，collector部分的环境配置，以及evaluator部分的环境配置，具体的代码如下：
 
 .. code:: python
 
     if env_setting is None:
-        env_fn, actor_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
-        env_fn, actor_env_cfg, evaluator_env_cfg = env_setting
-    env_manager_type = BaseEnvManager if cfg.env.env_manager_type == 'base' else SubprocessEnvManager
+        env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
+    em_type = cfg.env.env_manager_type
+    if em_type == 'base':
+        env_manager_type = BaseEnvManager
+    elif em_type == 'aynsc_subprocess':
+        env_manager_type = SubprocessEnvManager
+    elif em_type == 'subprocess':
+        env_manager_type = SyncSubprocessEnvManager
 
 其中从config中获取env_setting的方式为 ``get_vec_env_setting`` 函数：
 
@@ -421,23 +427,23 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
             env_fn = env_mapping[cfg.env_type]
         else:
             raise KeyError("invalid env type: {}".format(cfg.env_type))
-        actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
+        collector_env_cfg = env_fn.create_collector_env_cfg(cfg)
         evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
-        return env_fn, actor_env_cfg, evaluator_env_cfg
+        return env_fn, collector_env_cfg, evaluator_env_cfg
 
-注意到我们对 ``actor_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
+注意到我们对 ``collector_env_cfg`` , ``evaluator_env_cfg`` 进行了分开处理，这是考虑到训练过程中为了取得更好的训练效果，例如在Atari环境中经常会使用 ``Wrapper``
 对环境做不同的处理，而 ``Wrapper`` 处理后的 ``evaluator_env`` 其实并不能很好的衡量算法的效果，所以需要区别对待。
 
 为了加快生成数据的效率，nerveX提供了向量化环境运行的机制，即一次运行多个同类环境进行交互生成训练数据，并由 ``Env Manager`` （环境管理器） 模块负责维护相关功能，每次运行批量启动多个环境交互生成数据。环境管理器与环境本身内容完全解耦，无需了解任何环境具体的数据信息，环境本身可以使用任意数据类型，但经过环境管理器处理之后，进入nervex一律为PyTorch Tensor相关数据格式。系统提供了多种实现方式的环境管理器，最常用的子进程环境管理器的实例代码如下：
 
 .. code:: python
     
-    from nervex.worker.actor.env_manager import SubprocessEnvManager
+    from nervex.worker.collector.env_manager import SubprocessEnvManager
 
     # create 4 CartPoleEnv env with default config(set `env_cfg=[{} for _ in range(4)]`)
     env_manager = SubprocessEnvManager(env_fn=CartPoleEnv, env_cfg=[{} for _ in range(4)], env_num=4)
 
-我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SubprocessEnvManager`` 
+我们在 ``serial_pipeline`` 中，通过 ``config`` 文件中对应的 ``cfg.env.env_manager_type`` 控制使用 ``SyncSubprocessEnvManager``, ``SubprocessEnvManager``
 还是 ``BaseEnvManager`` 。
 
 .. note::
@@ -507,7 +513,7 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     为了便于和其他模块的对接，nerveX限制神经网络的输入输出为dict形式，即键为字符串值为Tensor或一组Tensor。但dict确实存在无法明晰输入输出数据具体内容的问题，故建议使用者为自己的神经网络准备
     相应的单元测试，并在forward方法中注明输入和输出的数据键及值的Tensor维度，格式可参考 `https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/ppo.py#L32`。
 
-Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Actor分别代码训练端和数据生成端：
+Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Collector分别代码训练端和数据生成端：
 
 
 .. note::
@@ -578,7 +584,7 @@ Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法�
 
 
     # you can refer to `nervex/data/replay_buffer_default_config.yaml` for the detailed configuration 
-    cfg = {'meta_maxlen': 10}
+    cfg = {'replay_buffer_size': 10}
     buffer_ = BufferManager(cfg)
 
     # add 10 data
@@ -639,12 +645,12 @@ DRL Policy Example(DQN)
     #epsilon_greedy for exploration
     from nervex.rl_utils import epsilon_greedy
     
-    #Adder用于处理actor产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
+    #Adder用于处理collector产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
     from nervex.rl_utils import Adder
 
 .. code:: python
 
-    #Armor模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于collect数据的actor部分以及用于eval的evaluator部分
+    #Armor模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于收集数据的collector部分以及用于eval的evaluator部分
     #(Armor是可选使用模块，使用者也可自定义相应的处理模块)
     #Armor具体的使用方式可以参照下面代码中的实例
     from nervex.armor import Armor
@@ -792,13 +798,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 'total_loss': loss.item(),
             }
 
-我们也需要对actor部分进行初始化，包括： 
+我们也需要对collector部分进行初始化，包括： 
 
-- actor数据的收集方式， 包括 ``self._adder`` 等
-- 初始化的模型传入actor armor， 即 ``self._collect_armor`` 
+- collector数据的收集方式， 包括 ``self._adder`` 等
+- 初始化的模型传入collector armor， 即 ``self._collect_armor`` 
 - 初始化armor的相关plugin 
 
-  - 如actor使用 ``eps_greedy`` 进行sample
+  - 如collector使用 ``eps_greedy`` 进行sample
 
 为此我们实现 ``_init_collect`` 方法
 
@@ -811,7 +817,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 Init traj and unroll length, adder, collect armor.
                 Enable the eps_greedy_sample
             """
-            # actor数据的收集方式
+            # collector数据的收集方式
             self._traj_len = self._cfg.collect.traj_len
             if self._traj_len == "inf":
                 self._traj_len == float("inf")
@@ -819,7 +825,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._adder = Adder(self._use_cuda, self._unroll_len)
             self._collect_nstep = self._cfg.collect.algo.nstep
             
-            # 初始化的模型传入actor armor
+            # 初始化的模型传入collector armor
             self._collect_armor = Armor(self._model)
             
             # 初始化armor的相关plugin
@@ -831,7 +837,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._collect_armor.reset()
             self._collect_setting_set = {'eps'}
 
-我们的actor需要根据环境返回的observation获取相关动作数据
+我们的collector需要根据环境返回的observation获取相关动作数据
 
 为此我们实现 ``_forward_collect`` 方法
 
@@ -873,7 +879,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             return self._adder.get_train_sample(data)
 
 
-我们需要将对应的数据加入transition，即在 ``BaseSerialActor`` 中实现的：
+我们需要将对应的数据加入transition，即在 ``BaseSerialCollector`` 中实现的：
 
 .. code:: python
 
@@ -950,7 +956,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             """
             return self._eval_armor.forward(data)
 
-在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和actor之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
+在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和collector之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
 
 在 ``_get_setting_collect`` 方法中，我们使用command中的组件，根据相关信息（比如训练迭代数），来为collect部分设置下一次工作的相关配置
 

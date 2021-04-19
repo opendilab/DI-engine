@@ -6,10 +6,12 @@ from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep
 from nervex.torch_utils import Adam
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('a2c')
 class A2CPolicy(CommonPolicy):
     r"""
     Overview:
@@ -38,7 +40,6 @@ class A2CPolicy(CommonPolicy):
 
         # Main and target armors
         self._armor = Armor(self._model)
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
         self._armor.mode(train=True)
         self._armor.reset()
         self._learn_setting_set = {}
@@ -60,18 +61,16 @@ class A2CPolicy(CommonPolicy):
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
-        if self._learn_use_nstep_return:
-            # use nstep return
-            next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
-            reward = data['reward'].permute(1, 0).contiguous()
-            nstep_data = nstep_return_data(reward, next_value, data['done'])
-            return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
-        else:
-            # Return = value + adv
-            return_ = data['value'] + adv
-
-        # return = value + adv
-        return_ = data['value'] + adv
+        with torch.no_grad():
+            if self._learn_use_nstep_return:
+                # use nstep return
+                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+                reward = data['reward'].permute(1, 0).contiguous()
+                nstep_data = nstep_return_data(reward, next_value, data['done'])
+                return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
+            else:
+                # Return = value + adv
+                return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
 
         # Calculate A2C loss
@@ -111,15 +110,9 @@ class A2CPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
         """
 
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
-        if self._traj_len == 'inf':
-            self._traj_len = float('inf')
-        # because gae calculation need v_t+1
-        assert self._traj_len > 1, "a2c traj len should be greater than 1"
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -140,7 +133,9 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -165,24 +160,21 @@ class A2CPolicy(CommonPolicy):
         }
         return transition
 
-    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - traj (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_traj(traj, self._traj_len, return_num=1)
-        if self._traj_len == float('inf'):
-            assert data[-1]['done'], "episode must be terminated by done=True"
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
         if self._collect_use_nstep_return:
-            data = self._adder.get_nstep_return_data(data, self._collect_nstep, self._traj_len)
+            data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
@@ -194,7 +186,6 @@ class A2CPolicy(CommonPolicy):
 
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -209,7 +200,9 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+        return output
 
     def _init_command(self) -> None:
         pass
@@ -219,6 +212,3 @@ class A2CPolicy(CommonPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']
-
-
-register_policy('a2c', A2CPolicy)

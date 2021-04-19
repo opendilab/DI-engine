@@ -9,10 +9,12 @@ import torch.nn.functional as F
 from nervex.torch_utils import Adam
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.armor import Armor
-from nervex.policy.base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from nervex.policy.base_policy import Policy
 from nervex.policy.common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('sac')
 class SACPolicy(CommonPolicy):
     r"""
     Overview:
@@ -66,8 +68,6 @@ class SACPolicy(CommonPolicy):
         # Main and target armors
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -96,7 +96,6 @@ class SACPolicy(CommonPolicy):
         eval_data = self._armor.forward(data, param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
-        new_action = eval_data["action"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
@@ -107,16 +106,16 @@ class SACPolicy(CommonPolicy):
         # q network
         # =================
         # compute q loss
-        next_data = {'obs': next_obs}
-        target_v_value = self._armor.target_forward(next_data, param={'mode': 'compute_value'})['v_value']
+        with torch.no_grad():
+            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
-            q_data0 = v_1step_td_data(q_value[0], target_v_value, reward, done, data['weight'])
+            q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
-            q_data1 = v_1step_td_data(q_value[1], target_v_value, reward, done, data['weight'])
+            q_data1 = v_1step_td_data(q_value[1], next_v_value, reward, done, data['weight'])
             loss_dict['q_twin_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
             td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
-            q_data = v_1step_td_data(q_value, target_v_value, reward, done, data['weight'])
+            q_data = v_1step_td_data(q_value, next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
         # update q network
@@ -134,9 +133,9 @@ class SACPolicy(CommonPolicy):
         new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_q'})['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
-        # new_q_value: (bs, ), log_prob: (bs, act_dim) -> next_v_value: (bs, )
-        next_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
-        loss_dict['value_loss'] = F.mse_loss(v_value, next_v_value.detach())
+        # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
+        target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
+        loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
 
         # update value network
         self._optimizer_value.zero_grad()
@@ -197,7 +196,6 @@ class SACPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Use action noise for exploration.
         """
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -212,7 +210,6 @@ class SACPolicy(CommonPolicy):
             },
             noise_range=None,
         )
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {}
@@ -227,7 +224,8 @@ class SACPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
@@ -258,7 +256,6 @@ class SACPolicy(CommonPolicy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -273,7 +270,8 @@ class SACPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
         return output
 
     def _init_command(self) -> None:
@@ -302,6 +300,3 @@ class SACPolicy(CommonPolicy):
             return super()._monitor_vars_learn() + [
                 'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
             ] + q_twin
-
-
-register_policy('sac', SACPolicy)

@@ -16,7 +16,7 @@
 2. 在账户上配置 ``mujoco-py``
 
 * 下载环境 `wget https://www.roboti.us/download/mujoco200_linux.zip`，解压并将里面的东西放到 `~/.mujoco/mujoco200` 下
-* 通过 `pip install --user mujoco_py==2.0.2.8` 安装模块
+* 通过 `pip install --user mujoco_py==2.0.2.8` 在`source r0.3.2`环境下安装模块
 * 将 mujoco 加到环境变量中 `export LD_LIBRARY_PATH=/mnt/lustre/xxxxx/.mujoco/mujoco200/bin:$LD_LIBRARY_PATH` ，将xxxxx替换为你的用户名
 
 

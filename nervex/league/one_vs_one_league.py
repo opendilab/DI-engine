@@ -2,12 +2,13 @@ import copy
 from easydict import EasyDict
 import os.path as osp
 
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, LEAGUE_REGISTRY
 from nervex.config import one_vs_one_league_default_config
-from .base_league import BaseLeague, register_league
+from .base_league import BaseLeague
 from .player import ActivePlayer
 
 
+@LEAGUE_REGISTRY.register('one_vs_one')
 class OneVsOneLeague(BaseLeague):
     """
     Overview:
@@ -72,12 +73,9 @@ class OneVsOneLeague(BaseLeague):
             - player_info (:obj:`dict`): An info dict of the active player which is to be updated.
         """
         assert isinstance(player, ActivePlayer)
-        if 'train_step' in player_info:
+        if 'train_iteration' in player_info:
             # Update info from learner
-            player.total_agent_step = player_info['train_step']
+            player.total_agent_step = player_info['train_iteration']
         elif 'eval_win' in player_info and player_info['eval_win']:
             # Update info from evaluator
             increment_eval_difficulty = player.increment_eval_difficulty()
-
-
-register_league('one_vs_one', OneVsOneLeague)

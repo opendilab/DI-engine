@@ -5,7 +5,8 @@ import pickle
 import logging
 from threading import Thread, Event
 from easydict import EasyDict
-from nervex.worker import create_comm_learner, create_comm_actor, Coordinator, LearnerAggregator
+
+from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
 
 
@@ -41,16 +42,16 @@ def parallel_pipeline(
         raise TypeError("invalid config type: {}".format(config))
     config = parallel_transform(config)
     learner_handle = []
-    actor_handle = []
+    collector_handle = []
     for k, v in config.items():
         if 'learner' in k:
             learner_handle.append(launch_learner(v))
-        elif 'actor' in k:
-            actor_handle.append(launch_actor(v))
-    launch_coordinator(config.coordinator, learner_handle=learner_handle, actor_handle=actor_handle)
+        elif 'collector' in k:
+            collector_handle.append(launch_collector(v))
+    launch_coordinator(config.coordinator, learner_handle=learner_handle, collector_handle=collector_handle)
 
 
-# Following functions are used to launch different components(learner, learner aggregator, actor, coordinator).
+# Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
 # for they can be used to read correponding config from file.
 def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
@@ -72,30 +73,30 @@ def launch_learner(config: Optional[dict] = None, filename: Optional[str] = None
     return learner_thread, start_learner_event, close_learner_event
 
 
-def launch_actor(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
+def launch_collector(config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None) -> list:
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
-    start_actor_event = Event()
-    close_actor_event = Event()
+    start_collector_event = Event()
+    close_collector_event = Event()
 
-    def run_actor():
-        actor = create_comm_actor(config)
-        actor.start()
-        start_actor_event.set()
-        close_actor_event.wait()
-        actor.close()
+    def run_collector():
+        collector = create_comm_collector(config)
+        collector.start()
+        start_collector_event.set()
+        close_collector_event.wait()
+        collector.close()
 
-    actor_thread = Thread(target=run_actor, args=(), name='actor_entry_thread')
-    actor_thread.start()
-    return actor_thread, start_actor_event, close_actor_event
+    collector_thread = Thread(target=run_collector, args=(), name='collector_entry_thread')
+    collector_thread.start()
+    return collector_thread, start_collector_event, close_collector_event
 
 
 def launch_coordinator(
         config: Optional[EasyDict] = None,
         filename: Optional[str] = None,
         learner_handle: Optional[list] = None,
-        actor_handle: Optional[list] = None
+        collector_handle: Optional[list] = None
 ) -> None:
     if config is None:
         with open(filename, 'rb') as f:
@@ -103,7 +104,7 @@ def launch_coordinator(
     coordinator = Coordinator(config)
     for _, start_event, _ in learner_handle:
         start_event.wait()
-    for _, start_event, _ in actor_handle:
+    for _, start_event, _ in collector_handle:
         start_event.wait()
     coordinator.start()
     system_shutdown_event = Event()
@@ -116,7 +117,7 @@ def launch_coordinator(
                 coordinator.close()
                 for _, _, close_event in learner_handle:
                     close_event.set()
-                for _, _, close_event in actor_handle:
+                for _, _, close_event in collector_handle:
                     close_event.set()
                 system_shutdown_event.set()
                 break
@@ -134,29 +135,17 @@ def launch_learner_aggregator(filename: Optional[str] = None, name: Optional[str
     aggregator.start()
 
 
+"""
 def dist_pipeline(
         filename: str,
         seed: int,
         platform: str,
         coordinator_host: Optional[str] = None,
         learner_host: Optional[List[str]] = None,
-        actor_host: Optional[List[str]] = None,
+        collector_host: Optional[List[str]] = None,
         enable_total_log: Optional[bool] = False,
         disable_flask_log: Optional[bool] = True,
 ) -> None:
-    r"""
-    Overview:
-        Distributed parallel pipeline entry.
-    Arguments:
-        - filename (:obj:`str`): Config file path.
-        - seed (:obj:`int`): Random seed.
-        - platform (:obj:`str`): The Platform to launch job. Now supports ["local", "slurm"].
-        - coordinator_host (:obj:`Optional[str]`): Coordinator host.
-        - learner_host (:obj:`Optional[str]`): Learner host.
-        - actor_host (:obj:`Optional[str]`): Actor host.
-        - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
-        - disable_flask_log (:obj:`Optional[bool]`): whether disable flask log
-    """
     # Disable some part nervex log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
@@ -169,7 +158,7 @@ def dist_pipeline(
         raise NotImplementedError
     elif platform == 'slurm':
         config = read_config(filename)
-        config = parallel_transform_slurm(config, coordinator_host, learner_host, actor_host)
+        config = parallel_transform_slurm(config, coordinator_host, learner_host, collector_host)
         # Pickle dump config to disk for later use.
         real_filename = filename + '.pkl'
         with open(real_filename, 'wb') as f:
@@ -206,10 +195,10 @@ def dist_pipeline(
                         stderr=subprocess.STDOUT,
                         shell=True,
                     )
-            elif 'actor' in k:
+            elif 'collector' in k:
                 subprocess.Popen(
-                    "srun -p {} -w {} --gres=gpu:1 --job-name=actor python -c \
-                    \"import nervex.entry.parallel_entry as pe; pe.launch_actor(filename='{}', name='{}')\"".format(
+                    "srun -p {} -w {} --gres=gpu:1 --job-name=collector python -c \
+                    \"import nervex.entry.parallel_entry as pe; pe.launch_collector(filename='{}', name='{}')\"".format(
                         v.partition, v.node, real_filename, k
                     ),
                     stderr=subprocess.STDOUT,
@@ -224,3 +213,4 @@ def dist_pipeline(
         )
     elif platform == 'k8s':
         raise NotImplementedError
+"""

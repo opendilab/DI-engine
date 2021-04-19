@@ -3,28 +3,27 @@ from easydict import EasyDict
 nstep = 2
 unroll_len = 6
 burnin_step = 2
-actor_env_num = 8
+collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_default_config = dict(
     env=dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
-        actor_env_num=actor_env_num,
+        collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
     ),
     policy=dict(
         use_cuda=False,
         policy_type='r2d2',
-        import_names=['nervex.policy.r2d2'],
         on_policy=False,
         model=dict(
             obs_dim=4,
             action_dim=2,
-            embedding_dim=32,
+            hidden_dim_list=[128, 128, 64],
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0,
@@ -39,7 +38,7 @@ cartpole_r2d2_default_config = dict(
         collect=dict(
             traj_len=(2 * unroll_len + nstep),
             unroll_len=(2 * nstep + burnin_step),
-            env_num=actor_env_num,
+            env_num=collector_env_num,
             algo=dict(
                 burnin_step=2,
                 nstep=nstep,
@@ -54,23 +53,17 @@ cartpole_r2d2_default_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=1000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=1000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=32,
         traj_len=14,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

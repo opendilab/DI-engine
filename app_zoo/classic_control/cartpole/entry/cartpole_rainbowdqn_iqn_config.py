@@ -6,7 +6,7 @@ cartpole_rainbowdqn_iqn_config = dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         env_type='cartpole',
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=5,
     ),
     policy=dict(
@@ -24,7 +24,7 @@ cartpole_rainbowdqn_iqn_config = dict(
             quantile_embedding_dim=128,
         ),
         learn=dict(
-            train_step=3,
+            train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
             weight_decay=0.0001,
@@ -52,23 +52,17 @@ cartpole_rainbowdqn_iqn_config = dict(
         ), ),
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            meta_maxlen=100000,
-            max_reuse=100,
-            min_sample_ratio=1,
-        ),
+        replay_buffer_size=100000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=80,
         traj_len=(8 + nstep),
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=200,
-        stop_val=195,
+        stop_value=195,
     ),
     learner=dict(
         load_path='',

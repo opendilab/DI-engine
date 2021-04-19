@@ -1,6 +1,6 @@
 import copy
 
-import torch
+import numpy as np
 
 from nervex.envs.common import EnvElementRunner
 from nervex.envs.env.base_env import BaseEnv
@@ -13,7 +13,7 @@ class GfootballRawActionRunner(EnvElementRunner):
         # set self._core and other state variable
         self._core = GfootballRawAction(cfg)
 
-    def get(self, engine: BaseEnv) -> torch.tensor:
+    def get(self, engine: BaseEnv) -> np.array:
         agent_action = copy.deepcopy(engine.agent_action)
         return agent_action
 

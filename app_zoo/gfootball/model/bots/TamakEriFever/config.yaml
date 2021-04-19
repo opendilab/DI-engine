@@ -1,0 +1,42 @@
+
+env_args:
+    env: 'Football'
+    source: 'football_ikki'
+    frames_per_sec: 10  # we cannot change
+
+    frame_skip: 0
+    limit_steps: 3002
+
+train_args:
+    gamma_per_sec: 0.97
+    lambda_per_sec: 0.4
+    forward_steps: 64
+    compress_steps: 16
+    entropy_regularization: 1.3e-3
+    monte_carlo_rate: 1.0
+    update_episodes: 400
+    batch_size: 192
+    minimum_episodes: 3000
+    maximum_episodes: 30000
+    num_batchers: 23
+    eval_rate: 0.1
+    replay_rate: 0  # 0.1
+    supervised_weight: 0  # 0.1
+    record_dir: "records/"
+    randomized_start_rate: 0.3
+    randomized_start_max_steps: 400
+    reward_reset: True
+    worker:
+        num_gather: 2
+        num_process: 6
+    seed: 1800
+    restart_epoch: 1679
+
+entry_args:
+    remote_host: ''
+    num_gather: 2
+    num_process: 6
+
+eval_args:
+    remote_host: ''
+

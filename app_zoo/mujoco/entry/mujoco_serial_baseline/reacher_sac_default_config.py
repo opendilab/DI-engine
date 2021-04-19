@@ -11,7 +11,7 @@ reacher_sac_default_config = dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.mujoco.envs.mujoco_env'],
         env_type='mujoco',
-        actor_env_num=16,
+        collector_env_num=16,
         evaluator_env_num=8,
         use_act_scale=True,
     ),
@@ -27,7 +27,7 @@ reacher_sac_default_config = dict(
             use_twin_q=True,
         ),
         learn=dict(
-            train_step=1,
+            train_iteration=1,
             batch_size=256,
             learning_rate_q=0.0003,
             learning_rate_value=0.0003,
@@ -57,21 +57,20 @@ reacher_sac_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=1000000,
-            max_reuse=16,
+            replay_buffer_size=100000,
+            max_use=256,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=64,
         traj_len=1,
-        traj_print_freq=1000,
         collect_print_freq=1000,
     ),
     evaluator=dict(
         n_episode=8,
         eval_freq=1000,
-        stop_val=-3.1,
+        stop_value=-3.1,
     ),
     learner=dict(
         hook=dict(

@@ -5,6 +5,7 @@ import time
 from threading import Thread
 from typing import List
 from collections import defaultdict
+from easydict import EasyDict
 import numpy as np
 import pytest
 import pickle
@@ -21,29 +22,35 @@ BATCH_SIZE = 8
 PRODUCER_NUM = 16
 CONSUMER_NUM = 4
 LASTING_TIME = 5
+ID_COUNT = 0
 np.random.seed(1)
 
 
 @pytest.fixture(scope="function")
 def setup_config():
-    cfg = deepcopy(buffer_manager_default_config)
-    cfg.replay_buffer.agent.enable_track_used_data = True
+    cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    cfg.enable_track_used_data = True
     return cfg
 
 
 @pytest.fixture(scope="function")
 def setup_demo_config():
-    cfg = deepcopy(buffer_manager_default_config)
-    cfg.replay_buffer.buffer_name.append('demo')
-    cfg.replay_buffer.agent.enable_track_used_data = True
-    cfg.replay_buffer.demo = cfg.replay_buffer.agent
-    cfg.replay_buffer.demo.monitor.log_path = './log/buffer/demo_buffer/'
-    print(cfg)
+    buffer_cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    cfg = {
+        'buffer_name': ['agent', 'demo'],
+        'agent': buffer_cfg,
+        'demo': buffer_cfg,
+    }
+    cfg = EasyDict(cfg)
+    cfg.agent.enable_track_used_data = True
+    cfg.demo.monitor.log_path = './log/buffer/demo_buffer/'
     return cfg
 
 
 def generate_data() -> dict:
-    ret = {'obs': np.random.randn(4), 'data_push_length': 8}
+    global ID_COUNT
+    ret = {'obs': np.random.randn(4), 'data_push_length': 8, 'data_id': ID_COUNT}
+    ID_COUNT += 1
     p_weight = np.random.uniform()
     if p_weight < 1. / 3:
         pass  # no key 'priority'
@@ -78,14 +85,14 @@ class TestBufferManager:
             time.sleep(duration)
             if np.random.randint(0, 100) > 50:
                 print('[PRODUCER] thread {} use {} second to produce 1 data'.format(id_, duration))
-                replay_buffer.push_data(generate_data(), [buffer_name[0]])
+                replay_buffer.push(generate_data(), [buffer_name[0]])
                 count += 1
             else:
                 data_count = np.random.randint(2, 5)
                 print(
                     '[PRODUCER] thread {} use {} second to produce a list of {} data'.format(id_, duration, data_count)
                 )
-                replay_buffer.push_data(generate_data_list(data_count), [buffer_name[1]])
+                replay_buffer.push(generate_data_list(data_count), [buffer_name[1]])
                 count += data_count
         print('[PRODUCER] thread {} finish job, total produce {} data'.format(id_, count))
         self.produce_count += count
@@ -136,7 +143,7 @@ class TestBufferManager:
 
         self.global_data = []
         os.popen('rm -rf log*')
-        setup_replay_buffer = BufferManager(setup_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_config)
         setup_replay_buffer._cache.debug = True
         produce_threads = [Thread(target=self.produce, args=(i, setup_replay_buffer)) for i in range(PRODUCER_NUM)]
         consume_threads = [
@@ -144,7 +151,7 @@ class TestBufferManager:
         ]
         for t in produce_threads:
             t.start()
-        setup_replay_buffer.run()
+        setup_replay_buffer.start()
         for t in consume_threads:
             t.start()
 
@@ -152,9 +159,8 @@ class TestBufferManager:
             t.join()
         for t in consume_threads:
             t.join()
-        used_data = setup_replay_buffer.used_data()
         count = setup_replay_buffer.count()
-        setup_replay_buffer.push_data({'data': np.random.randn(4)})
+        setup_replay_buffer.push({'data': np.random.randn(4)})
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 3)
@@ -175,7 +181,7 @@ class TestBufferManager:
         demo_data_list = generate_data_list(50)
         with open("demonstration_data.pkl", "wb") as f:
             pickle.dump(demo_data_list, f)
-        setup_replay_buffer = BufferManager(setup_demo_config.replay_buffer)
+        setup_replay_buffer = BufferManager(setup_demo_config)
         setup_replay_buffer._cache.debug = True
         os.popen("rm -rf demonstration_data.pkl")
 
@@ -186,7 +192,7 @@ class TestBufferManager:
         consume_threads = [Thread(target=self.consume, args=(i, setup_replay_buffer, bs)) for i in range(CONSUMER_NUM)]
         for t in produce_threads:
             t.start()
-        setup_replay_buffer.run()
+        setup_replay_buffer.start()
         for t in consume_threads:
             t.start()
 
@@ -194,11 +200,9 @@ class TestBufferManager:
             t.join()
         for t in consume_threads:
             t.join()
-        agent_used_data = setup_replay_buffer.used_data('agent')
-        demo_used_data = setup_replay_buffer.used_data('demo')
         agent_count = setup_replay_buffer.count('agent')
         demo_count = setup_replay_buffer.count('demo')
-        setup_replay_buffer.push_data({'data': np.random.randn(4)}, ['agent'])
+        setup_replay_buffer.push({'data': np.random.randn(4)}, ['agent'])
         setup_replay_buffer.close()
         time.sleep(1 + 0.5)
         assert (len(threading.enumerate()) <= 4), threading.enumerate()
@@ -218,7 +222,7 @@ class TestBufferManager:
         # pr.enable()
 
         os.popen('rm -rf log*')
-        replay_buffer = BufferManager(setup_config.replay_buffer)
+        replay_buffer = BufferManager(setup_config)
         replay_buffer._cache.debug = True
 
         begin_time = time.time()
@@ -230,11 +234,11 @@ class TestBufferManager:
             produce_begin_time = time.time()
             while produce_count < 20000:
                 if np.random.randint(0, 100) > 80:
-                    replay_buffer.push_data(generate_data())
+                    replay_buffer.push(generate_data())
                     produce_count += 1
                 else:
                     data_count = np.random.randint(10, 50)
-                    replay_buffer.push_data(generate_data_list(data_count))
+                    replay_buffer.push(generate_data_list(data_count))
                     produce_count += data_count
             print(
                 '[PRODUCER] produce {} data, using {} seconds'.format(produce_count,

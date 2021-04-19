@@ -5,11 +5,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
-from nervex.utils import list_split, squeeze
+from nervex.utils import list_split, squeeze, MODEL_REGISTRY
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
-from ..common import register_model
 
 
 class Mixer(nn.Module):
@@ -76,6 +75,7 @@ class Mixer(nn.Module):
         return hidden.squeeze(-1).squeeze(-1)
 
 
+@MODEL_REGISTRY.register('qmix')
 class QMix(nn.Module):
     """
     Overview:
@@ -90,12 +90,13 @@ class QMix(nn.Module):
             obs_dim: int,
             global_obs_dim: int,
             action_dim: int,
-            embedding_dim: int,
+            hidden_dim_list: list,
             use_mixer: bool = True
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+        self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
+        embedding_dim = hidden_dim_list[-1]
         self.use_mixer = use_mixer
         if self.use_mixer:
             self._mixer = Mixer(agent_num, embedding_dim)
@@ -146,6 +147,12 @@ class QMix(nn.Module):
         next_state, _ = list_split(next_state, step=A)
         agent_q = agent_q.reshape(T, B, A, -1)
         if action is None:
+            # For target forward process
+            if len(data['obs']['action_mask'].shape) == 3:
+                action_mask = data['obs']['action_mask'].unsqueeze(0)
+            else:
+                action_mask = data['obs']['action_mask']
+            agent_q[action_mask == 0.0] = - 9999999
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         if self.use_mixer:
@@ -259,6 +266,7 @@ class CollaQSMACAttentionModule(nn.Module):
         return obs
 
 
+@MODEL_REGISTRY.register('collaq')
 class CollaQ(nn.Module):
 
     def __init__(
@@ -268,7 +276,7 @@ class CollaQ(nn.Module):
             obs_alone_dim: int,
             global_obs_dim: int,
             action_dim: int,
-            embedding_dim: int,
+            hidden_dim_list: list,
             enable_attention: bool = False,
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
@@ -281,7 +289,7 @@ class CollaQ(nn.Module):
         self._act = nn.ReLU()
         self.use_mixer = use_mixer
         if not self.enable_attention:
-            self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+            self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
         else:
             #TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
@@ -294,8 +302,9 @@ class CollaQ(nn.Module):
                     (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
                 )
             ).shape[-1]
-            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
-        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, embedding_dim)
+            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, hidden_dim_list)
+        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, hidden_dim_list)
+        embedding_dim = hidden_dim_list[-1]
         if self.use_mixer:
             self._mixer = Mixer(agent_num, embedding_dim)
             global_obs_dim = squeeze(global_obs_dim)
@@ -449,7 +458,3 @@ class CollaQ(nn.Module):
             layers.append(nn.Linear(embedding_dim, embedding_dim))
             layers.append(self._act)
         return nn.Sequential(*layers)
-
-
-register_model('qmix', QMix)
-register_model('collaq', CollaQ)

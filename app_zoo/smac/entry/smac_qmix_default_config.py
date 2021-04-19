@@ -1,33 +1,31 @@
 from easydict import EasyDict
 
 agent_num = 8
-actor_env_num = 8
+collector_env_num = 8
 evaluator_env_num = 5
 smac_qmix_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        import_names=['app_zoo.smac.envs.smac_env'],
         env_type='smac',
         map_name='3s5z',
         agent_num=agent_num,
-        actor_env_num=actor_env_num,
+        collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         shared_memory=False,
     ),
     policy=dict(
         use_cuda=True,
         policy_type='qmix',
-        import_names=['nervex.policy.qmix'],
         on_policy=True,
         model=dict(
             agent_num=agent_num,
             obs_dim=248,
             global_obs_dim=216,
             action_dim=14,
-            embedding_dim=64,
+            hidden_dim_list=[128, 128, 256],
         ),
         learn=dict(
-            train_step=100,
+            train_iteration=100,
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,
@@ -41,7 +39,7 @@ smac_qmix_default_config = dict(
             traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
-            env_num=actor_env_num,
+            env_num=collector_env_num,
         ),
         eval=dict(
             agent_num=agent_num,
@@ -57,21 +55,20 @@ smac_qmix_default_config = dict(
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=5000,
-            max_reuse=10,
+            replay_buffer_size=5000,
+            max_use=10,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collectorctor=dict(
         n_episode=4,
         traj_len=1000,  # smac_episode_max_length
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
         eval_freq=50,
-        stop_val=0.7,
+        stop_value=0.7,
     ),
     learner=dict(
         hook=dict(

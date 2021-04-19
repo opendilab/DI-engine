@@ -91,11 +91,17 @@ Armor
 
         - 目前已经实现的插件：
 
-          1. 梯度插件(stateless)：控制 ``forward`` 时是否需要为计算梯度做准备（例如缓存中间计算结果）
-          2. 隐状态插件(stateful): 控制 ``forward`` 时隐状态的行为，在实例内部根据训练batch样本数维护对应的隐状态，每次 ``forward`` 前输入上一次迭代的输出隐状态，而 ``forward`` 后保存该次的输出隐状态为下一次做准备，此外，该插件支持的特殊行为有：
+            1. ``HiddenStateHelper`` (stateful)：控制 ``forward`` 时隐状态的行为，在实例内部根据训练batch样本数维护对应的隐状态，每次 ``forward`` 前输入上一次迭代的输出隐状态，而 ``forward`` 后保存该次的输出隐状态为下一次做准备，此外，该插件支持的特殊行为有：
 
                 1. 单次迭代进输入部分样本，使用其对应的隐状态
                 2. 对具体的样本的隐状态进行重置。
+            
+            2. ``ArgmaxSampleHelper`` (stateless)：对于 logit 输入，找到最大值所在的的 index，作为动作。用于离散动作。
+            3. ``EpsGreedySampleHelper`` (stateless)：对于 q value 输入，利用Epsilon贪婪策略采样动作。用于离散动作。
+            4. ``MultinomialSampleHelper`` (stateless)：对于 logit 输入，根据概率采样动作。用于离散动作。
+            5. ``ActionNoiseHelper`` (stateless)：为动作加上指定种类（如高斯、OU）的噪声。用于连续动作。
+            6. ``TargetNetworkHelper`` (stateful)：用于实现 target network。
+            7. ``TeacherNetworkHelper`` (stateful)：用于实现 teacher network。
 
 .. note::
     BaseArmor和Armor相关插件的测试可以参见 `worker/armor/tests/test_armor.py`

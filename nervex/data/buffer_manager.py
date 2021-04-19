@@ -1,57 +1,121 @@
+from abc import ABC, abstractmethod
+import time
+import copy
 import os.path as osp
 from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
 from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, remove_file
 from nervex.config import buffer_manager_default_config
 
 default_config = buffer_manager_default_config.replay_buffer
 
 
-class BufferManager:
+class IBuffer(ABC):
+
+    @abstractmethod
+    def start(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def close(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(self, info: Dict[str, list]) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def sample(self, batch_size: int, cur_learner_iter: int) -> list:
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def count(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
+    def state_dict(self) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def load_state_dict(self, _state_dict: dict) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def replay_start_size(self) -> int:
+        raise NotImplementedError
+
+
+class BufferManager(IBuffer):
     """
     Overview:
         Reinforcement Learning replay buffer's manager. Manage one or many buffers.
     Interface:
-        __init__, push_data, sample, update, run, close
+        __init__, push, sample, update, clear, count, start, close, state_dict, load_state_dict
     """
 
-    def __init__(self, cfg: dict):
+    def __init__(self, cfg: dict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
         """
         Overview:
             Initialize replay buffer
         Arguments:
-            - cfg (:obj:`dict`): config dict
+            - cfg (:obj:``dict``): config dict
         """
-        self.cfg = deep_merge_dicts(default_config, cfg)
-        # ``buffer_name``` is a list containing all buffers' names
-        self.buffer_name = self.cfg.buffer_name
-        # ``buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
+        # ``self.buffer_name`` is a list containing all buffers' names
+        if 'buffer_name' in cfg:
+            self.buffer_name = cfg['buffer_name']
+        else:
+            self.buffer_name = ['agent']
+        self.cfg = {}
+        for name in self.buffer_name:
+            if name in cfg:
+                self.cfg[name] = deep_merge_dicts(default_config, cfg.pop(name))
+            else:
+                self.cfg[name] = deep_merge_dicts(default_config, cfg)
+        # ``self.buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
+        self._enable_track_used_data = {}
+        self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
+            enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
             self.buffer[name] = ReplayBuffer(
                 name=name,
-                load_path=buffer_cfg.get('load_path', None),
-                maxlen=buffer_cfg.get('maxlen', 10000),
-                max_reuse=buffer_cfg.get('max_reuse', None),
-                max_staleness=buffer_cfg.get('max_staleness', None),
+                replay_buffer_size=buffer_cfg['replay_buffer_size'],
+                replay_start_size=buffer_cfg.get('replay_start_size', 0),
+                max_use=buffer_cfg.get('max_use', float("inf")),
+                max_staleness=buffer_cfg.get('max_staleness', float("inf")),
                 min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
-                alpha=buffer_cfg.get('alpha', 0.),
-                beta=buffer_cfg.get('beta', 0.),
-                anneal_step=buffer_cfg.get('anneal_step', 0),
-                enable_track_used_data=buffer_cfg.get('enable_track_used_data', False),
+                alpha=buffer_cfg.get('alpha', 0.6),
+                beta=buffer_cfg.get('beta', 0.4),
+                anneal_step=buffer_cfg.get('anneal_step', int(1e5)),
+                enable_track_used_data=enable_track_used_data,
                 deepcopy=buffer_cfg.get('deepcopy', False),
                 monitor_cfg=buffer_cfg.get('monitor', None),
+                tb_logger=tb_logger,
             )
+            self._enable_track_used_data[name] = enable_track_used_data
+            if self._enable_track_used_data[name]:
+                self._delete_used_data_thread[name] = Thread(
+                    target=self._delete_used_data, args=(name, ), name='delete_used_data'
+                )
 
         # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
         # self.use_cache = cfg.get('use_cache', False)
         self.use_cache = False
         self._cache = Cache(maxlen=self.cfg.get('cache_maxlen', 256), timeout=self.cfg.get('timeout', 8))
         self._cache_thread = Thread(target=self._cache2meta, name='buffer_cache')
+        self._end_flag = False
 
     def _cache2meta(self):
         """
@@ -63,15 +127,20 @@ class BufferManager:
             with self._meta_lock:
                 self._meta_buffer.append(data)
 
-    def push_data(self, data: Union[list, dict], buffer_name: Optional[List[str]] = None) -> None:
+    def push(
+            self,
+            data: Union[list, dict],
+            buffer_name: Optional[List[str]] = None,
+            cur_collector_envstep: int = -1
+    ) -> None:
         """
         Overview:
             Push ``data`` into appointed buffer.
         Arguments:
-            - data (:obj:`list` or `dict`): Data list or data item (dict type).
-            - buffer_name (:obj:`Optional[List[str]]`): The buffer to push data into
+            - data (:obj:``list`` or ``dict``): Data list or data item (dict type).
+            - buffer_name (:obj:``Optional[List[str]]``): The buffer to push data into
         """
-        assert (isinstance(data, list) or isinstance(data, dict))
+        assert (isinstance(data, list) or isinstance(data, dict)), type(data)
         if isinstance(data, dict):
             data = [data]
         if self.use_cache:
@@ -81,8 +150,12 @@ class BufferManager:
             if buffer_name is None:
                 elem = data[0]
                 buffer_name = elem.get('buffer_name', self.buffer_name)
-            for n in buffer_name:
-                self.buffer[n].extend(data)
+            for i, n in enumerate(buffer_name):
+                # TODO optimizer multi-buffer deepcopy
+                if i >= 1:
+                    self.buffer[n].extend(copy.deepcopy(data), cur_collector_envstep)
+                else:
+                    self.buffer[n].extend(data, cur_collector_envstep)
 
     def sample(
             self,
@@ -91,13 +164,13 @@ class BufferManager:
     ) -> Union[list, Dict[str, list]]:
         """
         Overview:
-            Sample data from prioritized buffers according to sample ratio.
+            Sample data from prioritized buffers according to ``batch_size``.
         Arguments:
-            - batch_size (:obj:`int`): Batch size of the data that will be sampled. Caller can indicates \
-                the corresponding batch_size when samples from multiple buffers.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - batch_size (:obj:``Union[int, Dict[str, int]]``): Batch size of the data that will be sampled. \
+                Caller can indicate the corresponding batch_size when sampling from multiple buffers.
+            - cur_learner_iter (:obj:``int``): Learner's current iteration, used to calculate staleness.
         Returns:
-            - data (:obj:`Union[list, Dict[str, list]]`): Sampled data batch.
+            - data (:obj:``Union[list, Dict[str, list]]``): Sampled data batch.
         """
         # single buffer case
         if isinstance(batch_size, int):
@@ -124,7 +197,7 @@ class BufferManager:
         Overview:
             Update prioritized buffers with outside info. Current info includes transition's priority update.
         Arguments:
-            - info (:obj:`Dict[str, list]`): Info dict. Currently contains keys \
+            - info (:obj:``Dict[str, list]``): Info dict. Currently contains keys \
                 ['replay_unique_id', 'replay_buffer_idx', 'priority']. \
                 "repaly_unique_id" format is "{buffer name}_{count in this buffer}"
         """
@@ -141,7 +214,9 @@ class BufferManager:
     def clear(self, buffer_name: Optional[List[str]] = None) -> None:
         """
         Overview:
-            Clear prioritized buffer, exclude all data(including cache)
+            Clear one replay buffer by excluding all data(including cache)
+        Arguments:
+            - buffer_name (:obj:``Optional[List[str]]``): Name of the buffer to be cleared.
         """
         # TODO(nyz) clear cache data
         if buffer_name is None:
@@ -149,20 +224,25 @@ class BufferManager:
         for name in buffer_name:
             self.buffer[name].clear()
 
-    def run(self) -> None:
+    def start(self) -> None:
         """
         Overview:
             Launch ``Cache`` thread and ``_cache2meta`` thread
         """
+        for name, flag in self._enable_track_used_data.items():
+            if flag:
+                self._delete_used_data_thread[name].start()
         if self.use_cache:
             self._cache.run()
             self._cache_thread.start()
+        self._end_flag = False
 
     def close(self) -> None:
         """
         Overview:
             Shut down the cache gracefully, as well as each buffer's tensorboard logger.
         """
+        self._end_flag = True
         if self.use_cache:
             self._cache.close()
         for buffer in self.buffer.values():
@@ -173,9 +253,9 @@ class BufferManager:
         Overview:
             Return chosen buffer's current data count.
         Arguments:
-            - buffer_name (:obj:`Optional[str]`): Chosen buffer's name
+            - buffer_name (:obj:``Optional[str]``): Chosen buffer's name
         Returns:
-            - count (:obj:`int`): Chosen buffer's data count
+            - count (:obj:``int``): Chosen buffer's data count
         """
         if buffer_name is None:
             validlen = [self.buffer[n].validlen for n in self.buffer_name]
@@ -183,13 +263,27 @@ class BufferManager:
         else:
             return self.buffer[buffer_name].validlen
 
-    def used_data(self, buffer_name: str = "agent") -> 'queue.Queue':  # noqa
-        """
-        Overview:
-            Return chosen buffer's "used data", which was once in the buffer, but was replaced and discarded afterwards
-        Arguments:
-            - buffer_name (:obj:`str`): Chosen buffer's name, default set to "agent"
-        Returns:
-            - queue (:obj:`queue.Queue`): Chosen buffer's record list
-        """
-        return self.buffer[buffer_name].used_data
+    def state_dict(self) -> dict:
+        return {n: self.buffer[n].state_dict() for n in self.buffer_name}
+
+    def load_state_dict(self, _state_dict: dict, strict: bool = True) -> None:
+        if strict:
+            assert set(_state_dict.keys()) == set(self.buffer.keys()
+                                                  ), '{}/{}'.format(set(_state_dict.keys()), set(self.buffer.keys()))
+        for n, v in _state_dict.items():
+            if n in self.buffer.keys():
+                self.buffer[n].load_state_dict(v)
+
+    def replay_start_size(self, buffer_name: Optional[str] = None) -> int:
+        if buffer_name is None:
+            return max([self.buffer[n].replay_start_size for n in self.buffer_name])
+        else:
+            return self.buffer[buffer_name].replay_start_size
+
+    def _delete_used_data(self, name: str) -> None:
+        while not self._end_flag:
+            data = self.buffer[name].used_data
+            if data:
+                remove_file(data)
+            else:
+                time.sleep(0.001)

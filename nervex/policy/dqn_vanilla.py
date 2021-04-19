@@ -8,10 +8,12 @@ import numpy as np
 from nervex.torch_utils import Adam
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
 from nervex.model import FCDiscreteNet
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('dqn_vanilla')
 class DQNVanillaPolicy(CommonPolicy):
 
     def _init_learn(self) -> None:
@@ -55,7 +57,6 @@ class DQNVanillaPolicy(CommonPolicy):
         }
 
     def _init_collect(self) -> None:
-        self._traj_len = self._cfg.collect.traj_len
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_setting_set = {'eps'}
 
@@ -112,8 +113,7 @@ class DQNVanillaPolicy(CommonPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
-        data = [traj_cache.popleft() for _ in range(self._traj_len)]
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         return data
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -124,6 +124,3 @@ class DQNVanillaPolicy(CommonPolicy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._model.eval()
-
-
-register_policy('dqn_vanilla', DQNVanillaPolicy)

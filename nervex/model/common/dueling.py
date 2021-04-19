@@ -33,6 +33,7 @@ class DuelingHead(nn.Module):
         v_layer_num: int,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        init_type: Optional[str] = "xavier",
         distribution: bool = False,
         quantile: bool = False,
         noise: bool = False,
@@ -77,8 +78,14 @@ class DuelingHead(nn.Module):
             block = noise_block
         else:
             block = fc_block
-        self.A = [block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(a_layer_num)]
-        self.V = [block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type) for _ in range(v_layer_num)]
+        self.A = [
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type, init_type=init_type)
+            for _ in range(a_layer_num)
+        ]
+        self.V = [
+            block(hidden_dim, hidden_dim, activation=activation, norm_type=norm_type, init_type=init_type)
+            for _ in range(v_layer_num)
+        ]
 
         a_out_dim = action_dim
         v_out_dim = 1
@@ -112,22 +119,29 @@ class DuelingHead(nn.Module):
 
             quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
 
-            quantiles = self.beta_function(quantiles)
+            beta_quantiles = self.beta_function(quantiles)
 
             quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
+            beta_quantile_net = beta_quantiles.repeat([1, self.quantile_embedding_dim])
 
             quantile_net = torch.cos(
                 torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
                 quantile_net
             )
-
             quantile_net = self.iqn_fc(quantile_net)
-
             quantile_net = F.relu(quantile_net)
+
+            beta_quantile_net = torch.cos(
+                torch.arange(1, self.quantile_embedding_dim + 1, 1, device=device, dtype=torch.float32) * math.pi *
+                beta_quantile_net
+            )
+            beta_quantile_net = self.iqn_fc(beta_quantile_net)
+            beta_quantile_net = F.relu(beta_quantile_net)
 
             x = x.repeat(num_quantiles, 1)
 
             x = x * quantile_net
+            beta_x = x * beta_quantile_net
 
         a = self.A(x)
         v = self.V(x)
@@ -136,15 +150,19 @@ class DuelingHead(nn.Module):
             a = a.view(*a.shape[:-1], self.action_dim, self.n_atom)
             v = v.view(*v.shape[:-1], 1, self.n_atom)
             dist = a - a.mean(dim=-2, keepdim=True) + v
-            dist = torch.softmax(dist, dim=-1)
+            dist = torch.softmax(dist, dim=-1) + 1e-6
             q = dist * torch.linspace(self.v_min, self.v_max,
                                       self.n_atom).to(torch.device("cuda" if dist.is_cuda else "cpu"))
             q = q.sum(-1)
             return q, dist
         elif self.quantile:
+            beta_a = self.A(beta_x)
+            beta_v = self.V(beta_x)
             q = a - a.mean(dim=-1, keepdim=True) + v
             q = q.reshape(num_quantiles, batch_size, -1)
-            logit = q.mean(0)
+            beta_q = beta_a - beta_a.mean(dim=-1, keepdim=True) + beta_v
+            beta_q = beta_q.reshape(num_quantiles, batch_size, -1)
+            logit = beta_q.mean(0)
             return logit, q, quantiles
         else:
             return a - a.mean(dim=-1, keepdim=True) + v

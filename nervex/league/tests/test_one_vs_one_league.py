@@ -27,7 +27,7 @@ class TestOneVsOneLeague:
         assert not league.judge_snapshot(active_player_id)
         player_update_dict = {
             'player_id': active_player_id,
-            'train_step': one_vs_one_league_default_config.league.naive_sp_player.one_phase_step * 2,
+            'train_iteration': one_vs_one_league_default_config.league.naive_sp_player.one_phase_step * 2,
         }
         league.update_active_player(player_update_dict)
         assert league.judge_snapshot(active_player_id)

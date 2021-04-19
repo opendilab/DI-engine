@@ -3,11 +3,9 @@ from typing import Union, List, Dict, Optional, Tuple, Callable
 
 import torch
 import torch.nn as nn
-
 from nervex.model import DuelingHead, ConvEncoder
 from nervex.torch_utils import get_lstm
-from nervex.utils import squeeze
-from ..common import register_model
+from nervex.utils import squeeze, MODEL_REGISTRY
 
 
 class DiscreteNet(nn.Module):
@@ -22,7 +20,7 @@ class DiscreteNet(nn.Module):
             self,
             obs_dim: Union[int, tuple],
             action_dim: tuple,
-            embedding_dim: int = 64,
+            hidden_dim_list: list = [128, 128, 64],
             **kwargs,
     ) -> None:
         r"""
@@ -32,11 +30,12 @@ class DiscreteNet(nn.Module):
             - obs_dim (:obj:`Union[int, tuple]`): a tuple of observation dim
             - action_dim (:obj:`int`): the num of action dim, \
                 note that it can be a tuple containing more than one element
-            - embedding_dim (:obj:`int`): encoder's embedding dim (output dim)
+            - hidden_dim_list (:obj:`list`): encoder's hidden layer dimension list
         """
         super(DiscreteNet, self).__init__()
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
-        self._encoder = Encoder(obs_dim, embedding_dim, **encoder_kwargs)
+        embedding_dim = hidden_dim_list[-1]
+        self._encoder = Encoder(obs_dim, hidden_dim_list=hidden_dim_list, **encoder_kwargs)
         self._use_distribution = head_kwargs.get('distribution', False)
         if lstm_kwargs['lstm_type'] != 'none':
             lstm_kwargs['input_size'] = embedding_dim
@@ -97,7 +96,7 @@ class DiscreteNet(nn.Module):
         return x
 
 
-register_model('discrete_net', DiscreteNet)
+MODEL_REGISTRY.register('discrete_net', DiscreteNet)
 
 
 class Encoder(nn.Module):
@@ -111,23 +110,23 @@ class Encoder(nn.Module):
     def __init__(
             self,
             obs_dim: Union[int, tuple],
-            embedding_dim: int,
             encoder_type: str,
+            hidden_dim_list: list = [128, 128, 64],
     ) -> None:
         r"""
         Overview:
             Init the Encoder according to arguments.
         Arguments:
             - obs_dim (:obj:`Union[int, tuple]`): a tuple of observation dim
-            - embedding_dim (:obj:`int`): encoder's embedding dim (output dim)
             - encoder_type (:obj:`str`): type of encoder, now supports ['fc', 'conv2d']
+            - hidden_dim_list (:obj:`list`): encoder's hidden layer dimension list
         """
         super(Encoder, self).__init__()
         self.act = nn.ReLU()
         assert encoder_type in ['fc', 'conv2d'], encoder_type
+        embedding_dim = hidden_dim_list[-1]
         if encoder_type == 'fc':
             input_dim = squeeze(obs_dim)
-            hidden_dim_list = [128, 128] + [embedding_dim]
             layers = []
             for dim in hidden_dim_list:
                 layers.append(nn.Linear(input_dim, dim))
@@ -162,6 +161,7 @@ class Head(nn.Module):
             action_dim: tuple,
             input_dim: int,
             dueling: bool = True,
+            init_type: str = "xavier",
             a_layer_num: int = 1,
             v_layer_num: int = 1,
             distribution: bool = False,
@@ -202,6 +202,7 @@ class Head(nn.Module):
             DuelingHead,
             a_layer_num=a_layer_num,
             v_layer_num=v_layer_num,
+            init_type=init_type,
             distribution=distribution,
             quantile=quantile,
             noise=noise,
@@ -241,8 +242,16 @@ class Head(nn.Module):
             else:
                 x = self.pred(x)
         if self.distribution:
+            if isinstance(x[0], tuple):
+                x[0] = list(x[0])
+            if isinstance(x[1], tuple):
+                x[1] = list(x[1])
             return {'logit': x[0], 'distribution': x[1]}
         elif self.quantile:
+            if isinstance(x[0], tuple):
+                x[0] = list(x[0])
+            if isinstance(x[1], tuple):
+                x[1] = list(x[1])
             return {'logit': x[0], 'q': x[1], 'quantiles': x[2]}
         else:
             return {'logit': x}
@@ -254,7 +263,22 @@ FCDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={'dueling': True}
 )
-register_model('fc_discrete_net', FCDiscreteNet)
+
+MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
+
+SQNDiscreteNet = partial(
+    DiscreteNet,
+    hidden_dim_list=[512, 64],
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'dueling': False,
+        'init_type': None
+    }
+)
+
+MODEL_REGISTRY.register('sqn_discrete_net', SQNDiscreteNet)
+
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -274,7 +298,7 @@ NoiseFCDiscreteNet = partial(
         'noise': True
     }
 )
-register_model('noise_dist_fc', NoiseDistributionFCDiscreteNet)
+MODEL_REGISTRY.register('noise_dist_fc', NoiseDistributionFCDiscreteNet)
 ConvDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -287,14 +311,14 @@ FCRDiscreteNet = partial(
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
-register_model('fcr_discrete_net', FCRDiscreteNet)
+MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'normal'},
     head_kwargs={'dueling': True}
 )
-register_model('convr_discrete_net', ConvRDiscreteNet)
+MODEL_REGISTRY.register('convr_discrete_net', ConvRDiscreteNet)
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -305,7 +329,7 @@ NoiseQuantileFCDiscreteNet = partial(
         'noise': True,
     }
 )
-register_model('noise_quantile_fc', NoiseQuantileFCDiscreteNet)
+MODEL_REGISTRY.register('noise_quantile_fc', NoiseQuantileFCDiscreteNet)
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:

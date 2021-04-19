@@ -1,3 +1,58 @@
+2021.4.17(v0.1.1rc2)
+ - 支持HPC RL所有算子
+ - 修改actor(数据收集)为collector
+ - 修改collector的generate_data方法为collect_data方法
+ - 修改env_manager的next_obs属性为ready_obs属性
+ - 添加VPN(Value Prediction Network) doc
+ - 添加rl-exploration doc
+ - 修复IQN beta function相关bug
+ - 修复QMIX中action mask相关bug(计算target_q时)
+ - 修复并行版本中collector数据cache未及时清空的bug
+
+2021.4.6(v0.1.1rc1)
+ - gfootball IL Policy
+ - polish SQN
+ - Atari Multi-Discrete Env
+ - PPO/Rainbow 支持Multi-Discrete Env
+ - 分离requirements，支持按需安装相关的库
+ - 更新使用自建gitlab CI runner
+ - 添加dist entry(local/slurm)
+ - 添加注册器(registry)机制
+ - 添加replay buffer的保存和加载机制
+ - 添加subprocess env manager reset超时重启机制
+ - 添加sync subprocess env manager并设为默认选择
+ - 添加新的replay buffer数据删除机制
+ - 添加共用tensorboard，四个主模块可只使用一个tb
+ - 添加env step作为tb横轴
+ - 添加计算grad norm的相关函数
+ - 在policy中删除traj_len字段
+ - 修改train_step为train_iteration字段
+ - 修改stop_val为stop_value字段
+ - 修复rainbow取log数值稳定性和分布计算的问题
+ - 修复命令行工具无法设计stdout缓冲区大小的问题
+ - 移到env manager到env文件夹下
+ - 重构replay buffer配置文件字段
+ - 重构actor部分log显示机制
+ - 修改replay buffer中部分变量命名
+ - 添加exploration算法相关文档
+ - 增加若干文档和单元测试
+
+2021.3.12(v0.1.1rc0)
+ - League Demo
+ - Inverse RL Pipeline
+ - SQN算法实现
+ - Multi Discrete Action Space Demo(SUMO环境)
+ - 更新UPGO算法实现
+ - 文档Best Practice
+ - 废弃grad armor plugin
+ - 删除learner中的use_cuda选项
+ - 添加actor tensorboard和tensorboard中histogram接口
+ - 抽象通用replay buffer接口
+ - 添加pytorch计算cov(协方差)的工具函数
+ - 修复多卡训练时关于cuda device的bug
+ - 修复ATOC RNN使用相关bug
+ - 修复replay buffer anneal step相关bug
+
 2021.3.5(v0.1.1b0)
  - PPG算法实现
  - ATOC Policy实现

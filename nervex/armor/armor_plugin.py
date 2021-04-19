@@ -57,39 +57,6 @@ class IArmorStatefulPlugin(IArmorPlugin):
         raise NotImplementedError
 
 
-class GradHelper(IArmorStatelessPlugin):
-    r"""
-    Overview:
-        GradHelper help the armor to enable grad or disable grad while calling forward method
-    Interfaces:
-        register
-    Examples:
-        >>> GradHelper.register(actor_armor, Flase)
-        >>> GradHelper.register(learner_armor, True)
-    """
-
-    @classmethod
-    def register(cls: type, armor: Any, enable_grad: bool) -> None:
-        r"""
-        Overview:
-            After register, method ``armor.foward`` will be set to enable grad or disable grad.
-        Arguments:
-            - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.
-            - enbale_grad (:obj:`bool`): Whether to enable grad or disable grad during ``forward``.
-        """
-
-        def grad_wrapper(fn):
-            context = torch.enable_grad() if enable_grad else torch.no_grad()
-
-            def wrapper(*args, **kwargs):
-                with context:
-                    return fn(*args, **kwargs)
-
-            return wrapper
-
-        armor.forward = grad_wrapper(armor.forward)
-
-
 class HiddenStateHelper(IArmorStatefulPlugin):
     """
     Overview:
@@ -128,11 +95,12 @@ class HiddenStateHelper(IArmorStatefulPlugin):
 
             def wrapper(data, **kwargs):
                 state_id = kwargs.pop('data_id', None)
+                valid_id = kwargs.pop('valid_id', None)
                 data, state_info = armor._state_manager.before_forward(data, state_id)
                 output = forward_fn(data, **kwargs)
                 h = output.pop('next_state', None)
                 if h:
-                    armor._state_manager.after_forward(h, state_info)
+                    armor._state_manager.after_forward(h, state_info, valid_id)
                 if save_prev_state:
                     prev_state = get_tensor_data(data['prev_state'])
                     output['prev_state'] = prev_state
@@ -175,10 +143,14 @@ class HiddenStateHelper(IArmorStatefulPlugin):
         data['prev_state'] = list(state_info.values())
         return data, state_info
 
-    def after_forward(self, h: Any, state_info: dict) -> None:
+    def after_forward(self, h: Any, state_info: dict, valid_id: Optional[list] = None) -> None:
         assert len(h) == len(state_info), '{}/{}'.format(len(h), len(state_info))
         for i, idx in enumerate(state_info.keys()):
-            self._state[idx] = h[i]
+            if valid_id is None:
+                self._state[idx] = h[i]
+            else:
+                if idx in valid_id:
+                    self._state[idx] = h[i]
 
 
 def sample_action(logit=None, prob=None):
@@ -200,7 +172,7 @@ class ArgmaxSampleHelper(IArmorStatelessPlugin):
     Interfaces:
         register
     Examples:
-        >>> ArgmaxSampleHelper.register(actor_armor)
+        >>> ArgmaxSampleHelper.register(collector_armor)
     """
 
     @classmethod
@@ -283,7 +255,7 @@ class MultinomialSampleHelper(IArmorStatelessPlugin):
 class EpsGreedySampleHelper(IArmorStatelessPlugin):
     r"""
     Overview:
-        Epsilon greedy sampler used in actor_armor to help balance exploratin and exploitation.
+        Epsilon greedy sampler used in collector_armor to help balance exploratin and exploitation.
     Interfaces:
         register
     """
@@ -339,7 +311,7 @@ class EpsGreedySampleHelper(IArmorStatelessPlugin):
 class ActionNoiseHelper(IArmorStatefulPlugin):
     r"""
     Overview:
-        Add noise to actor's action output; Do clips on both generated noise and action after adding noise.
+        Add noise to collector's action output; Do clips on both generated noise and action after adding noise.
     Interfaces:
         register, __init__, add_noise, reset
     """
@@ -527,7 +499,6 @@ class TeacherNetworkHelper(IArmorStatelessPlugin):
 
 
 plugin_name_map = {
-    'grad': GradHelper,
     'hidden_state': HiddenStateHelper,
     'argmax_sample': ArgmaxSampleHelper,
     'eps_greedy_sample': EpsGreedySampleHelper,

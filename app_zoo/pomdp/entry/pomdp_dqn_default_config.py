@@ -10,12 +10,10 @@ pomdp_dqn_default_config = dict(
         env_manager_type='subprocess',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # manager=dict(shared_memory=True, ),
-        # Must use the absolute path. All the following "import_names" should obey this too.
-        import_names=['app_zoo.pomdp.envs.atari_env'],
         # Env register name (refer to function "register_env").
         env_type='pomdp',
-        # Env number respectively for actor and evaluator.
-        actor_env_num=6,
+        # Env number respectively for collectorctorctorctorctorctorctor and evaluator.
+        collector_env_num=6,
         evaluator_env_num=3,
         # POMDP config
         env_id='Pong-ramNoFrameskip-v4',
@@ -45,9 +43,9 @@ pomdp_dqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_step" means bigger off-policy.
+            # How many steps to train after collectorctorctorctorctorctorctor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
-            train_step=20,
+            train_iteration=20,
             batch_size=32,
             learning_rate=0.001,
             # L2 norm weight for network parameters.
@@ -90,18 +88,17 @@ pomdp_dqn_default_config = dict(
         buffer_name=['agent'],
         agent=dict(
             meta_maxlen=100000,
-            max_reuse=100,
+            max_use=100,
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
-        # You can use either "n_sample" or "n_episode" in actor.collect.
+    collectorctorctorctorctorctorctor=dict(
+        # You can use either "n_sample" or "n_episode" in collectorctorctorctorctorctorctor.collect.
         # Get "n_sample" samples per collect.
         n_sample=100,
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
         traj_len=traj_len,
-        traj_print_freq=100,
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -109,8 +106,8 @@ pomdp_dqn_default_config = dict(
         n_episode=3,
         # Evaluate every "eval_freq" training steps.
         eval_freq=1000,
-        # Once evaluation reward reaches "stop_val", which means the policy converges, then the whole training can end.
-        stop_val=20,
+        # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
+        stop_value=20,
     ),
 
     # You can refer to "config/serial.py" for details.

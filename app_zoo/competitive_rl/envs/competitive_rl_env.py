@@ -5,11 +5,12 @@ import numpy as np
 import gym
 import competitive_rl
 
-from nervex.envs import BaseEnv, register_env, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .competitive_rl_env_wrapper import BuiltinOpponentWrapper, wrap_env
+from nervex.utils import ENV_REGISTRY
 
 competitive_rl.register_competitive_envs()
 
@@ -29,6 +30,8 @@ cCarRacingDouble-v0: Dict(0:Box(2,), 1:Box(2,))
 cPongTournament-v0
 """
 
+
+@ENV_REGISTRY.register('competitive_rl')
 class CompetitiveRlEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
@@ -114,11 +117,11 @@ class CompetitiveRlEnv(BaseEnv):
         return "nerveX Competitve RL Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_cfg = copy.deepcopy(cfg)
-        actor_env_num = actor_cfg.pop('actor_env_num', 1)
-        actor_cfg.is_evaluator = False
-        return [actor_cfg for _ in range(actor_env_num)]
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_cfg = copy.deepcopy(cfg)
+        collector_env_num = collector_cfg.pop('collector_env_num', 1)
+        collector_cfg.is_evaluator = False
+        return [collector_cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
@@ -141,5 +144,3 @@ class CompetitiveRlEnv(BaseEnv):
         if self._env_id == "cCarRacingDouble-v0":
             obs = np.stack([obs, copy.deepcopy(obs)])
         return obs
-
-register_env('competitive_rl', CompetitiveRlEnv)

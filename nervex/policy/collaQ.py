@@ -8,10 +8,12 @@ from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, A
 from nervex.model import CollaQ
 from nervex.armor import Armor
 from nervex.data import timestep_collate
-from .base_policy import Policy, register_policy
+from nervex.utils import POLICY_REGISTRY
+from .base_policy import Policy
 from .common_policy import CommonPolicy
 
 
+@POLICY_REGISTRY.register('collaq')
 class CollaQPolicy(CommonPolicy):
     r"""
     Overview:
@@ -53,8 +55,6 @@ class CollaQPolicy(CommonPolicy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._armor.add_plugin('main', 'grad', enable_grad=True)
-        self._armor.add_plugin('target', 'grad', enable_grad=False)
         self._armor.mode(train=True)
         self._armor.target_mode(train=True)
         self._armor.reset()
@@ -81,7 +81,7 @@ class CollaQPolicy(CommonPolicy):
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
-            data = to_device(data, 'cuda')
+            data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
         return data, data_info
@@ -108,7 +108,8 @@ class CollaQPolicy(CommonPolicy):
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
         total_q = self._armor.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
-        target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
+        with torch.no_grad():
+            target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
 
         # td_loss calculation
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
@@ -139,9 +140,6 @@ class CollaQPolicy(CommonPolicy):
             Init traj and unroll length, adder, collect armor.
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
-        self._traj_len = self._cfg.collect.traj_len
-        if self._traj_len == "inf":
-            self._traj_len = float("inf")
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
@@ -153,7 +151,6 @@ class CollaQPolicy(CommonPolicy):
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._collect_setting_set = {'eps'}
@@ -168,7 +165,9 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        return self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
+        with torch.no_grad():
+            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -209,7 +208,6 @@ class CollaQPolicy(CommonPolicy):
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
         self._eval_setting_set = {}
@@ -224,7 +222,9 @@ class CollaQPolicy(CommonPolicy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        return self._eval_armor.forward(data, data_id=data_id)
+        with torch.no_grad():
+            output = self._eval_armor.forward(data, data_id=data_id)
+        return output
 
     def _init_command(self) -> None:
         r"""
@@ -247,20 +247,16 @@ class CollaQPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory from the adder
         Arguments:
-            - traj (:obj:`deque`): The trajectory's cache
+            - data (:obj:`deque`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = self._adder.get_traj(traj_cache, self._traj_len, return_num=0)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'collaq', ['nervex.model.qmix.qmix']
-
-
-register_policy('collaQ', CollaQPolicy)

@@ -3,8 +3,7 @@ from collections import namedtuple
 import numpy as np
 from easydict import EasyDict
 
-from nervex.utils import deep_merge_dicts, import_module
-from nervex.rl_utils import epsilon_greedy
+from nervex.utils import deep_merge_dicts, import_module, PLAYER_REGISTRY
 from .algorithm import pfsp
 
 
@@ -75,6 +74,7 @@ class Player:
         self._total_agent_step = step
 
 
+@PLAYER_REGISTRY.register('historical_player')
 class HistoricalPlayer(Player):
     """
     Overview:
@@ -286,6 +286,7 @@ class ActivePlayer(Player):
         self._checkpoint_path = path
 
 
+@PLAYER_REGISTRY.register('naive_sp_player')
 class NaiveSpPlayer(ActivePlayer):
 
     def _pfsp_branch(self) -> HistoricalPlayer:
@@ -311,23 +312,6 @@ class NaiveSpPlayer(ActivePlayer):
         return self
 
 
-player_mapping = {}
-
-
-def register_player(name: str, player: type) -> None:
-    """
-    Overview:
-        Add a new Player class with its name to dict player_mapping, any subclass derived from
-        Player must use this function to register in nervex system before instantiate.
-    Arguments:
-        - name (:obj:`str`): name of the new Player class
-        - player (:obj:`type`): the new Player class, should be subclass of Player
-    """
-    assert isinstance(name, str)
-    assert issubclass(player, Player)
-    player_mapping[name] = player
-
-
 def create_player(cfg: EasyDict, player_type: str, *args, **kwargs) -> Player:
     """
     Overview:
@@ -341,12 +325,5 @@ def create_player(cfg: EasyDict, player_type: str, *args, **kwargs) -> Player:
         - player (:obj:`Player`): the created new player, should be an instance of one of \
             player_mapping's values
     """
-    import_module(cfg.import_names)
-    if player_type not in player_mapping.keys():
-        raise KeyError("Not support player type: {}".format(player_type))
-    else:
-        return player_mapping[player_type](*args, **kwargs)
-
-
-register_player('historical_player', HistoricalPlayer)
-register_player('naive_sp_player', NaiveSpPlayer)
+    import_module(cfg.get('import_names', []))
+    return PLAYER_REGISTRY.build(player_type, *args, **kwargs)
