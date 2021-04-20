@@ -66,34 +66,35 @@ class ParticleEnv(BaseEnv):
                     'min': -np.inf,
                     'max': +np.inf,
                     'dtype': float
-                }, None, None
+                },
             )
-            rew_space['agent' + str(i)] = T((1, ), {'min': -np.inf, 'max': +np.inf, 'dtype': float}, None, None)
+            rew_space['agent' + str(i)] = T((1, ), {'min': -np.inf, 'max': +np.inf, 'dtype': float},)
             act = self._env.action_space[i]
             if isinstance(act, MultiDiscrete):
                 act_space['agent' + str(i)] = T(
                     (act.shape, ), {
                         'min': [int(l) for l in list(act.low)],
                         'max': [int(h) for h in list(act.high)]
-                    }, None, None
+                    },
                 )
             elif isinstance(act, gym.spaces.Tuple):
                 #are not used in our environment yet
-                act_space['agent' + str(i)] = T((len(act.gym.spaces), ), {'space': act.gym.spaces}, None, None)
+                act_space['agent' + str(i)] = T((len(act.gym.spaces), ), {'space': act.gym.spaces},)
             elif isinstance(act, gym.spaces.Discrete):
-                act_space['agent' + str(i)] = T((1, ), {'min': 0, 'max': act.n - 1, 'dtype': int}, None, None)
+                act_space['agent' + str(i)] = T((1, ), {'min': 0, 'max': act.n - 1, 'dtype': int},)
             elif isinstance(act, gym.spaces.Box):
                 act_space['agent' +
                           str(i)] = T(act.shape, {
                               'min': act.low,
                               'max': act.high,
                               'dtype': act.dtype
-                          }, None, None)
+                          },)
         return BaseEnvInfo(
             agent_num=self.agent_num,
             obs_space=obs_space,
             act_space=act_space,
             rew_space=rew_space,
+            use_wrappers=None
         )
 
     def __repr__(self) -> str:
@@ -211,9 +212,9 @@ class CooperativeNavigation(BaseEnv):
         if self._agent_obs_only:
             return CNEnvInfo(
                 agent_num=self.agent_num,
-                obs_space=T((self.agent_num, self.obs_dim), None, None, None),
-                act_space=T((self.agent_num, self.action_dim), None, None, None),
-                rew_space=T((1, ), None, None, None)
+                obs_space=T((self.agent_num, self.obs_dim), None,),
+                act_space=T((self.agent_num, self.action_dim), None,),
+                rew_space=T((1, ), None,)
             )
         return CNEnvInfo(
             agent_num=self.agent_num,
@@ -224,10 +225,10 @@ class CooperativeNavigation(BaseEnv):
                     'agent_alone_padding_state': (self.agent_num, self.obs_dim),
                     'global_state': (self.global_obs_dim, ),
                     'action_mask': (self.agent_num, self.action_dim)
-                }, None, None, None
+                }, None,
             ),
-            act_space=T((self.agent_num, self.action_dim), None, None, None),
-            rew_space=T((1, ), None, None, None)
+            act_space=T((self.agent_num, self.action_dim), None,),
+            rew_space=T((1, ), None,)
         )
 
     def __repr__(self) -> str:

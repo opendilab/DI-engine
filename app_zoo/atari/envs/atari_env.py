@@ -13,8 +13,8 @@ ATARIENV_INFO_DICT = {
     'PongNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(4, 84, 84), 
-            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
+            shape=(210, 160, 3), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
@@ -29,8 +29,8 @@ ATARIENV_INFO_DICT = {
     'QbertNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(4, 84, 84), 
-            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
+            shape=(210, 160, 3), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
@@ -45,8 +45,8 @@ ATARIENV_INFO_DICT = {
     'SpaceInvadersNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(4, 84, 84), 
-            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
+            shape=(210, 160, 3), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
@@ -61,8 +61,8 @@ ATARIENV_INFO_DICT = {
     'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(4, 84, 84), 
-            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
+            shape=(210, 160, 3), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
             shape=(18,), 
