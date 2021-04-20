@@ -235,9 +235,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_states[env_id] = EnvState.INIT
 
         if self._env_replay_path is not None:
-            self._pipe_parents[env_id].send(
-                ['enable_save_replay', [self._env_replay_path[env_id]], {}]
-            )
+            self._pipe_parents[env_id].send(['enable_save_replay', [self._env_replay_path[env_id]], {}])
             self._pipe_parents[env_id].recv()
 
     def _setup_async_args(self) -> None:
@@ -353,7 +351,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._subprocesses[env_id].terminate()
                 # reset the subprocess
                 self._create_env_subprocess(env_id)
-                raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
+                # raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
 
             obs = self._pipe_parents[env_id].recv()
             self._check_data([obs], close=False)
@@ -459,7 +457,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
-    def worker_fn(p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'PickleWrapper', obs_buffer: ShmBuffer, method_name_list: list) -> None:  # noqa
+    def worker_fn(
+            p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'PickleWrapper', obs_buffer: ShmBuffer,
+            method_name_list: list
+    ) -> None:  # noqa
         """
         Overview:
             Subprocess's target function to run.

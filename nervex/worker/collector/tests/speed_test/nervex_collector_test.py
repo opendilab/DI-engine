@@ -41,13 +41,17 @@ def compare_test(cfg, out_str, seed):
             new_data = collector.collect_data(iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
-        print('\tduration: {}, env_sleep: {}, policy_sleep: {}({})'.format(time.time() - start, env_sum, policy.policy_sum, policy.policy_times))
+        print(
+            '\tduration: {}, env_sleep: {}, policy_sleep: {}({})'.format(
+                time.time() - start, env_sum, policy.policy_sum, policy.policy_times
+            )
+        )
 
         collector.close()
         replay_buffer.close()
     print(cfg)
     print('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
-    out_str.append('avg duration: {}'.format(time.time() - start))
+    out_str.append('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
 
 
 if __name__ == '__main__':
@@ -60,26 +64,25 @@ if __name__ == '__main__':
     set_pkg_seed(seed, use_cuda=False)
 
     cfgs = [
-        # dict(
-        #     size="small",
-        #     env=dict(
-        #         obs_dim=64,
-        #         action_dim=2,
-        #         episode_step=500,
-        #         reset_time=0.01,
-        #         step_time=0.005,
-        #     ),
-        #     policy=dict(forward_time=0.004, ),
-        #     actor=dict(n_sample=80, ),
-        # ),
-
+        dict(
+            size="small",
+            env=dict(
+                obs_dim=64,
+                action_dim=2,
+                episode_step=500,
+                reset_time=0.1,
+                step_time=0.005,
+            ),
+            policy=dict(forward_time=0.004, ),
+            actor=dict(n_sample=80, ),
+        ),
         dict(
             size="middle",
             env=dict(
                 obs_dim=int(3e2),  # int(3e3),
                 action_dim=2,
                 episode_step=500,
-                reset_time=0.5,
+                reset_time=2,  # 0.5
                 step_time=0.01,
             ),
             policy=dict(forward_time=0.008, ),

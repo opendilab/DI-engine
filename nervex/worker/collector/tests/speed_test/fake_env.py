@@ -10,7 +10,6 @@ from nervex.torch_utils import to_ndarray
 
 from nervex.worker.collector.tests.speed_test.utils import random_change
 
-
 global env_sum
 env_sum = 0
 

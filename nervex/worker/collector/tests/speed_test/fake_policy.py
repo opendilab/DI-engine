@@ -25,7 +25,7 @@ class FakePolicy(CommonPolicy):
         self._forward_time = cfg.get('forward_time', 0.)
         self.policy_sum = 0
         self.policy_times = 0
-    
+
     def policy_sleep(self, duration):
         time.sleep(duration)
         self.policy_sum += duration
