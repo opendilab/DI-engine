@@ -11,66 +11,66 @@ from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 
 ATARIENV_INFO_DICT = {
     'PongNoFrameskip-v4': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(210, 160, 3), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(210, 160, 3),
+            value={'min': 0, 'max': 255, 'dtype': np.float32},
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-        ), 
+            shape=(6,),
+            value={'min': 0, 'max': 6, 'dtype': np.float32},
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            shape=1,
+            value={'min': -1, 'max': 1, 'dtype': np.float32},
         ),
         use_wrappers=None,
     ),
     'QbertNoFrameskip-v4': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(210, 160, 3), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(210, 160, 3),
+            value={'min': 0, 'max': 255, 'dtype': np.float32},
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-        ), 
+            shape=(6,),
+            value={'min': 0, 'max': 6, 'dtype': np.float32},
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            shape=1,
+            value={'min': -1, 'max': 1, 'dtype': np.float32},
         ),
         use_wrappers=None,
     ),
     'SpaceInvadersNoFrameskip-v4': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(210, 160, 3), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(210, 160, 3),
+            value={'min': 0, 'max': 255, 'dtype': np.float32},
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-        ), 
+            shape=(6,),
+            value={'min': 0, 'max': 6, 'dtype': np.float32},
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            shape=1,
+            value={'min': -1, 'max': 1, 'dtype': np.float32},
         ),
         use_wrappers=None,
     ),
     'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(210, 160, 3), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(210, 160, 3),
+            value={'min': 0, 'max': 255, 'dtype': np.float32},
+        ),
         act_space=EnvElementInfo(
-            shape=(18,), 
-            value={'min': 0, 'max': 18, 'dtype': np.float32}, 
-        ), 
+            shape=(18,),
+            value={'min': 0, 'max': 18, 'dtype': np.float32},
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            shape=1,
+            value={'min': -1, 'max': 1, 'dtype': np.float32},
         ),
         use_wrappers=None,
     ),
@@ -129,7 +129,7 @@ class AtariEnv(BaseEnv):
 
     def _make_env(self, only_info=False):
         return wrap_deepmind(
-            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
+            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train,
             clip_rewards=self._cfg.is_train, only_info=only_info
         )
 
@@ -138,14 +138,14 @@ class AtariEnv(BaseEnv):
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.pop('collector_env_num', 1)
+        collector_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
@@ -153,7 +153,7 @@ class AtariEnv(BaseEnv):
 
 @ENV_REGISTRY.register('atari_mr')
 class AtariEnvMR(AtariEnv):
-        
+
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._make_env(only_info=False)
@@ -165,10 +165,10 @@ class AtariEnvMR(AtariEnv):
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
         return obs
-    
+
     def _make_env(self, only_info=False):
         self._env = wrap_deepmind_mr(
-            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
+            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train,
             clip_rewards=self._cfg.is_train, only_info=only_info
         )
 

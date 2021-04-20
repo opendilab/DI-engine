@@ -1,9 +1,10 @@
 import os
+import gym
 from tensorboardX import SummaryWriter
 
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.data import BufferManager
-from nervex.envs import BaseEnvManager
+from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.entry.utils import set_pkg_seed
@@ -14,8 +15,10 @@ from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import c
 
 def main(cfg, seed=0):
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(collector_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(evaluator_env_num)])
+    # collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(collector_env_num)])
+    # evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(evaluator_env_num)])
 
     collector_env.seed(seed)
     evaluator_env.seed(seed)

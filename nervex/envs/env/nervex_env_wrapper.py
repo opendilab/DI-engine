@@ -43,6 +43,8 @@ class NervexEnvWrapper(BaseEnv):
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        if action.shape == (1, ):
+            action = action.squeeze()
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
@@ -88,14 +90,14 @@ class NervexEnvWrapper(BaseEnv):
 
     @staticmethod
     def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num', 1)
+        actor_env_num = cfg.pop('actor_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
         return [cfg for _ in range(actor_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num', 1)
+        evaluator_env_num = cfg.pop('evaluator_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]

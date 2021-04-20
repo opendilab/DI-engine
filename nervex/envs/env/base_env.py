@@ -71,12 +71,12 @@ class BaseEnv(gym.Env):
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.get('collector_env_num', 1)
+        collector_env_num = cfg.pop('collector_env_num')
         return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.get('evaluator_env_num', 1)
+        evaluator_env_num = cfg.pop('evaluator_env_num')
         return [cfg for _ in range(evaluator_env_num)]
 
     # optional method
