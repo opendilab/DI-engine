@@ -1,19 +1,20 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
+from collections import namedtuple, deque
 import torch
 import numpy as np
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('ddpg')
-class DDPGPolicy(CommonPolicy):
+class DDPGPolicy(Policy):
     r"""
     Overview:
         Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
@@ -80,6 +81,14 @@ class DDPGPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
         loss_dict = {}
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # critic learn forward
         # ====================
@@ -97,9 +106,8 @@ class DDPGPolicy(CommonPolicy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            next_data = {'obs': next_obs}
-            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
-            next_data['action'] = next_action
+            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_action'})['action']
+            next_data = {'obs': next_obs, 'action': next_action}
             target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
         if self._use_twin_critic:
             # TD3: two critic networks
@@ -131,7 +139,7 @@ class DDPGPolicy(CommonPolicy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_loss = -self._armor.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -189,19 +197,25 @@ class DDPGPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
@@ -224,6 +238,9 @@ class DDPGPolicy(CommonPolicy):
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
@@ -234,19 +251,25 @@ class DDPGPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qac', ['nervex.model.qac.q_ac']

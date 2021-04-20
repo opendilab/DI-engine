@@ -7,14 +7,13 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
 from nervex.model import QMix
 from nervex.armor import Armor
-from nervex.data import timestep_collate
+from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 @POLICY_REGISTRY.register('qmix')
-class QMIXPolicy(CommonPolicy):
+class QMIXPolicy(Policy):
     r"""
     Overview:
         Policy class of QMIX algorithm. QMIX is a multiarmor reinforcement learning algorithm, \
@@ -59,7 +58,7 @@ class QMIXPolicy(CommonPolicy):
         self._armor.reset()
         self._armor.target_reset()
 
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Any]) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -70,19 +69,14 @@ class QMIXPolicy(CommonPolicy):
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
-            - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        data_info = {
-            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
-            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
-        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -94,6 +88,7 @@ class QMIXPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        data = self._data_preprocess_learn(data)
         # ====================
         # Q-mix forward
         # ====================
@@ -154,19 +149,26 @@ class QMIXPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
         with torch.no_grad():
             output = self._collect_armor.forward(data, eps=eps, data_id=data_id)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -208,19 +210,26 @@ class QMIXPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
         with torch.no_grad():
             output = self._eval_armor.forward(data, data_id=data_id)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""

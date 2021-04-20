@@ -3,16 +3,18 @@ from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, Adder
 from nervex.model import FCDiscreteNet, ConvDiscreteNet
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
-from .common_policy import CommonPolicy
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('dqn')
-class DQNPolicy(CommonPolicy):
+class DQNPolicy(Policy):
     r"""
     Overview:
         Policy class of DQN algorithm.
@@ -50,16 +52,17 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.get('ignore_done', False),
+            use_nstep=True
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # Q-learning forward
         # ====================
-        # Reward reshaping for n-step
-        reward = data['reward']
-        if len(reward.shape) == 1:
-            reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-        reward = reward.permute(1, 0).contiguous()
         # Current q value (main armor)
         q_value = self._armor.forward(data['obs'])['logit']
         # Target q value
@@ -69,7 +72,7 @@ class DQNPolicy(CommonPolicy):
             target_q_action = self._armor.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
+            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
 
@@ -125,19 +128,25 @@ class DQNPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, eps=eps)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
@@ -186,19 +195,25 @@ class DQNPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - data (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']

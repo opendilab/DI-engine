@@ -2,17 +2,18 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, Adder
+from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('ppo')
-class PPOPolicy(CommonPolicy):
+class PPOPolicy(Policy):
     r"""
     Overview:
         Policy class of PPO algorithm.
@@ -50,6 +51,9 @@ class PPOPolicy(CommonPolicy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        data = default_preprocess_learn(data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=False)
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # PPO forward
         # ====================
@@ -109,19 +113,25 @@ class PPOPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -171,19 +181,25 @@ class PPOPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

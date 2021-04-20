@@ -3,16 +3,17 @@ from collections import namedtuple, deque
 import torch
 
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('a2c')
-class A2CPolicy(CommonPolicy):
+class A2CPolicy(Policy):
     r"""
     Overview:
         Policy class of A2C algorithm.
@@ -53,6 +54,11 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        data = default_preprocess_learn(
+            data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # forward
         output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
 
@@ -65,8 +71,7 @@ class A2CPolicy(CommonPolicy):
             if self._learn_use_nstep_return:
                 # use nstep return
                 next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
-                reward = data['reward'].permute(1, 0).contiguous()
-                nstep_data = nstep_return_data(reward, next_value, data['done'])
+                nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
             else:
                 # Return = value + adv
@@ -132,19 +137,25 @@ class A2CPolicy(CommonPolicy):
         self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
         self._collect_nstep = algo_cfg.get('nstep', 1)
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -198,19 +209,25 @@ class A2CPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

@@ -6,14 +6,13 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 from nervex.utils import POLICY_REGISTRY, squeeze
-from nervex.data import default_collate
+from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 class ExperienceDataset(Dataset):
@@ -38,7 +37,7 @@ def create_shuffled_dataloader(data, batch_size):
 
 
 @POLICY_REGISTRY.register('ppg')
-class PPGPolicy(CommonPolicy):
+class PPGPolicy(Policy):
     r"""
     Overview:
         Policy class of PPG algorithm.
@@ -72,11 +71,10 @@ class PPGPolicy(CommonPolicy):
         self._aux_memories = []
         self._beta_weight = algo_cfg.beta_weight
 
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Any]) -> dict:
         # TODO(nyz) priority for ppg
         use_priority = self._cfg.get('use_priority', False)
         assert not use_priority, "NotImplement"
-        data_info = {}
         # data preprocess
         for k, data_item in data.items():
             data_item = default_collate(data_item)
@@ -89,7 +87,7 @@ class PPGPolicy(CommonPolicy):
             data[k] = data_item
         if self._use_cuda:
             data = to_device(data, self._device)
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -102,6 +100,7 @@ class PPGPolicy(CommonPolicy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        data = self._data_preprocess_learn(data)
         # ====================
         # PPG forward
         # ====================
@@ -199,19 +198,25 @@ class PPGPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -268,19 +273,25 @@ class PPGPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         # return 'fc_vac', ['nervex.model.actor_critic.value_ac']

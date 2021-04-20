@@ -209,18 +209,17 @@ class ATOCActorNet(nn.Module):
         self._get_group_freq = T_initiate
         self._step_count = 0
 
-    def forward(self, data: Dict):
+    def forward(self, obs: Dict):
         r"""
         Overview:
             the forward method of actor network, take the input obs, and calculate the corresponding action, group, \
                 initiator_prob, thoughts, etc...
 
         Arguments:
-            - data (:obj:`Dict`): the input data containing the observation
+            - obs (:obj:`Dict`): the input obs containing the observation
             - ret (:obj:`Dict`): the returned output, including action, group, initiator_prob, is_initiator, \
                 new_thoughts and old_thoughts
         """
-        obs = data['obs']
         assert len(obs.shape) == 3
         self._cur_batch_size, n_agent, obs_dim = obs.shape
         B, A, N = obs.shape
@@ -359,8 +358,8 @@ class ATOCCriticNet(nn.Module):
         x = torch.cat([obs, action], -1)
         for m in self._main:
             x = m(x)
-        data['q_value'] = x.squeeze(-1)
-        return data
+        x = x.squeeze(-1)
+        return {'q_value': x}
 
 
 @MODEL_REGISTRY.register('atoc')
@@ -450,23 +449,21 @@ class ATOCQAC(QActorCriticBase):
         '''
         outputs = self._actor_forward(inputs)
         if get_delta_q and self._use_communication:
-            delta_q = self._compute_delta_q(inputs['obs'], outputs)
+            delta_q = self._compute_delta_q(inputs, outputs)
             outputs['delta_q'] = delta_q
         return outputs
 
-    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def optimize_actor(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             return the q value which can used to optimize the actor part of atoc network (without attentin unit)
 
         Arguments:
-            - inputs (:obj:`Dict`): the inputs containing the observation
+            - obs (:obj:`Dict`): the inputs containing the observation
             - q (:obj:`Dict`): the output of ciritic network, without critic grad
         """
-        # if inputs.get('action') is None:
-        #     inputs['action'] = self._actor_forward(inputs)['action']
-        inputs['action'] = self._actor_forward(inputs)['action']
-        q = self._critic_forward(inputs)
+        action = self._actor_forward(obs)['action']
+        q = self._critic_forward({'obs': obs, 'action': action})
 
         return q
 

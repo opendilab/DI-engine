@@ -6,17 +6,18 @@ from easydict import EasyDict
 import copy
 from torch.distributions import Independent, Normal
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('ppo_vanilla')
-class PPOVanillaPolicy(CommonPolicy):
+class PPOVanillaPolicy(Policy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(
@@ -33,6 +34,9 @@ class PPOVanillaPolicy(CommonPolicy):
         self._continous = self._cfg.model.get("continous", False)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        data = default_preprocess_learn(data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=False)
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # forward
         output = self._model(data['obs'], mode="compute_action_value")
         adv = data['adv']
@@ -83,9 +87,13 @@ class PPOVanillaPolicy(CommonPolicy):
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data, mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -107,7 +115,10 @@ class PPOVanillaPolicy(CommonPolicy):
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -123,9 +134,13 @@ class PPOVanillaPolicy(CommonPolicy):
     def _init_eval(self) -> None:
         pass
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data, mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -145,7 +160,10 @@ class PPOVanillaPolicy(CommonPolicy):
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

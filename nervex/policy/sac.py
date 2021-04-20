@@ -1,21 +1,22 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
+from collections import namedtuple, deque
 import sys
 import os
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
-from nervex.policy.base_policy import Policy
-from nervex.policy.common_policy import CommonPolicy
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('sac')
-class SACPolicy(CommonPolicy):
+class SACPolicy(Policy):
     r"""
     Overview:
         Policy class of SAC algorithm.
@@ -85,6 +86,14 @@ class SACPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         loss_dict = {}
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
 
         obs = data.get('obs')
         next_obs = data.get('next_obs')
@@ -93,21 +102,21 @@ class SACPolicy(CommonPolicy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._armor.forward(data, param={'mode': 'evaluate'})
+        eval_data = self._armor.forward(data['obs'], param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
         q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._armor.forward(data, param={'mode': 'compute_value'})['v_value']
+        v_value = self._armor.forward(data['obs'], param={'mode': 'compute_value'})['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_value'})['v_value']
+            next_v_value = self._armor.target_forward(next_obs, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -232,19 +241,25 @@ class SACPolicy(CommonPolicy):
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy, set in arguments for consistency.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -267,6 +282,9 @@ class SACPolicy(CommonPolicy):
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
@@ -277,19 +295,25 @@ class SACPolicy(CommonPolicy):
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'sac', ['nervex.model.sac']

@@ -171,16 +171,14 @@ class SAC(SoftActorCriticBase):
         q_value = self._soft_q_net_forward(state_action_input)
         return {'q_value': q_value}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        v_value = self._value_net_forward(state_input)
+    def compute_value(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        v_value = self._value_net_forward(obs)
         return {'v_value': v_value}
 
     def compute_action(self,
-                       inputs: Dict[str, torch.Tensor],
+                       obs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        mean, log_std = self._policy_net_forward(state_input)
+        mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 
         dist = Normal(mean, std)
@@ -192,9 +190,8 @@ class SAC(SoftActorCriticBase):
 
         return {'action': action}
 
-    def evaluate(self, inputs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        mean, log_std = self._policy_net_forward(state_input)
+    def evaluate(self, obs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
+        mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 
         dist = Normal(mean, std)

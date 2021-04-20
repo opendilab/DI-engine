@@ -12,7 +12,6 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_R
 class Policy(ABC):
     learn_function = namedtuple(
         'learn_function', [
-            'data_preprocess',
             'forward',
             'reset',
             'info',
@@ -25,9 +24,7 @@ class Policy(ABC):
     )
     collect_function = namedtuple(
         'collect_function', [
-            'data_preprocess',
             'forward',
-            'data_postprocess',
             'process_transition',
             'get_train_sample',
             'reset',
@@ -39,9 +36,7 @@ class Policy(ABC):
     )
     eval_function = namedtuple(
         'eval_function', [
-            'data_preprocess',
             'forward',
-            'data_postprocess',
             'reset',
             'get_attribute',
             'set_attribute',
@@ -114,7 +109,6 @@ class Policy(ABC):
     @property
     def learn_mode(self) -> 'Policy.learn_function':  # noqa
         return Policy.learn_function(
-            self._data_preprocess_learn,
             self._forward_learn,
             self._reset_learn,
             self.__repr__,
@@ -128,9 +122,7 @@ class Policy(ABC):
     @property
     def collect_mode(self) -> 'Policy.collect_function':  # noqa
         return Policy.collect_function(
-            self._data_preprocess_collect,
             self._forward_collect,
-            self._data_postprocess_collect,
             self._process_transition,
             self._get_train_sample,
             self._reset_collect,
@@ -143,9 +135,7 @@ class Policy(ABC):
     @property
     def eval_mode(self) -> 'Policy.eval_function':  # noqa
         return Policy.eval_function(
-            self._data_preprocess_collect,
             self._forward_eval,
-            self._data_postprocess_collect,
             self._reset_eval,
             self._get_attribute,
             self._set_attribute,
@@ -174,22 +164,19 @@ class Policy(ABC):
             if param.requires_grad:
                 allreduce(param.grad.data)
 
-    # don't need to implement default_model method by default
+    # don't need to implement default_model method by force
     def default_model(self) -> Tuple[str, List[str]]:
         raise NotImplementedError
 
     # *************************************** learn function ************************************
-    @abstractmethod
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
-        raise NotImplementedError
 
     @abstractmethod
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
-    @abstractmethod
-    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        raise NotImplementedError
+    # @abstractmethod
+    # def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+    #    raise NotImplementedError
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss']
@@ -206,15 +193,7 @@ class Policy(ABC):
     # *************************************** collect function ************************************
 
     @abstractmethod
-    def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:
-        raise NotImplementedError
-
-    @abstractmethod
     def _forward_collect(self, data_id: List[int], data: dict, **kwargs) -> dict:
-        raise NotImplementedError
-
-    @abstractmethod
-    def _data_postprocess_collect(self, data_id: List[int], data: dict) -> Dict[int, dict]:
         raise NotImplementedError
 
     @abstractmethod
@@ -225,9 +204,9 @@ class Policy(ABC):
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         raise NotImplementedError
 
-    @abstractmethod
-    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        raise NotImplementedError
+    # @abstractmethod
+    # def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+    #    raise NotImplementedError
 
     def _state_dict_collect(self) -> Dict[str, Any]:
         return {'model': self._model.state_dict()}
@@ -241,15 +220,27 @@ class Policy(ABC):
     def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
-    @abstractmethod
-    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        raise NotImplementedError
+    # @abstractmethod
+    # def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+    #    raise NotImplementedError
 
     def _state_dict_eval(self) -> Dict[str, Any]:
         return {'model': self._model.state_dict()}
 
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
         self._model.load_state_dict(state_dict['model'], strict=True)
+
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._armor.mode(train=True)
+        self._armor.reset(data_id=data_id)
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_armor.mode(train=False)
+        self._collect_armor.reset(data_id=data_id)
+
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._eval_armor.mode(train=False)
+        self._eval_armor.reset(data_id=data_id)
 
 
 class CommandModePolicy(Policy):
