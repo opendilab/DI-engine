@@ -34,23 +34,18 @@ COMPETITIVERL_INFO_DICT = {
     'cPongDouble-v0': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(2, 3, 210, 160), 
-            value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
+            shape=(3, 210, 160), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
-            shape=(2, 6),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
-            value={'min': np.zeros((2, 6)), 'max': np.ones((2, 6)) * 6, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
+            shape=(6,),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
+            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32},
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
 }
 
@@ -74,7 +69,7 @@ class CompetitiveRlEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = wrap_env(self._env_id, self._builtin_wrap, self._opponent)
+            self._env = self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -148,11 +143,16 @@ class CompetitiveRlEnv(BaseEnv):
     #     )
 
     def info(self) -> BaseEnvInfo:
-        if self._env_id in COMPETITIVERL_INFO_DICT:
-            return COMPETITIVERL_INFO_DICT[self._env_id]
+        if self.env_id in COMPETITIVERL_INFO_DICT:
+            info = copy.deepcopy(COMPETITIVERL_INFO_DICT[self.env_id])
+            info.use_wrappers = self._make_env(only_info=True)
+            return info
         else:
             raise NotImplementedError('{} not found in COMPETITIVERL_INFO_DICT [{}]'\
                 .format(self._env_id, COMPETITIVERL_INFO_DICT.keys()))
+
+    def _make_env(self, only_info=False):
+        return wrap_env(self._env_id, self._builtin_wrap, self._opponent, only_info=only_info)
 
     def __repr__(self) -> str:
         return "nerveX Competitve RL Env({})".format(self._cfg.env_id)

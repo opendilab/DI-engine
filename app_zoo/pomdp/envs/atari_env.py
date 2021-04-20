@@ -12,31 +12,26 @@ from .atari_wrappers import wrap_deepmind
 from pprint import pprint
 
 
-MUJOCO_INFO_DICT = {
+POMDP_INFO_DICT = {
     'Pong-ramNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(512,), 
             value={'min': np.zeros((512,)), 'max': np.ones((512,)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-            to_agent_processor=None,
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': -1, 'max': 1, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
 }
 
-def PomdpEnv(cfg):
+def PomdpEnv(cfg, only_info=False):
     '''
     For debug purpose, create an env follow openai gym standard so it can be widely test by
     other library with same environment setting in nerveX
@@ -53,6 +48,7 @@ def PomdpEnv(cfg):
         use_ram=cfg.use_ram,
         render=cfg.render,
         pomdp=cfg.pomdp,
+        only_info=only_info,
     )
     return env
 
@@ -66,16 +62,7 @@ class PomdpAtariEnv(BaseEnv):
 
     def reset(self) -> Sequence:
         if not self._init_flag:
-            self._env = wrap_deepmind(
-                self._cfg.env_id,
-                frame_stack=self._cfg.frame_stack,
-                episode_life=self._cfg.is_train,
-                clip_rewards=self._cfg.is_train,
-                warp_frame=self._cfg.warp_frame,
-                use_ram=self._cfg.use_ram,
-                render=self._cfg.render,
-                pomdp=self._cfg.pomdp,
-            )
+            self._env = self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -108,11 +95,26 @@ class PomdpAtariEnv(BaseEnv):
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
-        if self._cfg.env_id in MUJOCO_INFO_DICT:
-            return MUJOCO_INFO_DICT[self._cfg.env_id]
+        if self._cfg.env_id in POMDP_INFO_DICT:
+            info = copy.deepcopy(POMDP_INFO_DICT[self._cfg.env_id])
+            info.use_wrappers = self._make_env(only_info=True)
+            return info
         else:
-            raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\
-                .format(self._cfg.env_id, MUJOCO_INFO_DICT.keys()))
+            raise NotImplementedError('{} not found in POMDP_INFO_DICT [{}]'\
+                .format(self._cfg.env_id, POMDP_INFO_DICT.keys()))
+
+    def _make_env(self, only_info=False):
+        return wrap_deepmind(
+            self._cfg.env_id,
+            frame_stack=self._cfg.frame_stack,
+            episode_life=self._cfg.is_train,
+            clip_rewards=self._cfg.is_train,
+            warp_frame=self._cfg.warp_frame,
+            use_ram=self._cfg.use_ram,
+            render=self._cfg.render,
+            pomdp=self._cfg.pomdp,
+            only_info=only_info,
+        )
 
     def __repr__(self) -> str:
         return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)

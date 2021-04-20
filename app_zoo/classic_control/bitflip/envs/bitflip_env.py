@@ -76,17 +76,18 @@ class BitFlipEnv(BaseEnv):
                     'min': [0 for _ in range(self._n_bits)],
                     'max': [1 for _ in range(self._n_bits)],
                     'dtype': float,
-                }, None, None
+                },
             ),
             # [min, max)
             act_space=T((self._n_bits, ), {
                 'min': 0,
                 'max': self._n_bits
-            }, None, None),
+            },),
             rew_space=T((1, ), {
                 'min': 0.0,
                 'max': 1.0
-            }, None, None),
+            },),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

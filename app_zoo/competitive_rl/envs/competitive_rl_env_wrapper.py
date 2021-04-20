@@ -81,7 +81,7 @@ class BuiltinOpponentWrapper(gym.Wrapper):
 
 
 # def wrap_env(env_id, builtin_wrap, opponent, frame_stack=4, warp_frame=True):
-def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False):
+def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False, only_info=False):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -93,14 +93,26 @@ def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False):
     :param bool warp_frame: wrap the grayscale + resize observation wrapper.
     :return: the wrapped atari environment.
     """
-    env = gym.make(env_id)
-    if builtin_wrap:
-        env = BuiltinOpponentWrapper(env)
-        env.reset_opponent(opponent)
-    env = ObsTransposeWrapper(env)
+    if not only_info:
+        env = gym.make(env_id)
+        if builtin_wrap:
+            env = BuiltinOpponentWrapper(env)
+            env.reset_opponent(opponent)
+        env = ObsTransposeWrapper(env)
 
-    if warp_frame:
-        env = WarpFrame(env)
-    if frame_stack:
-        env = FrameStack(env, frame_stack)
-    return env
+        if warp_frame:
+            env = WarpFrame(env)
+        if frame_stack:
+            env = FrameStack(env, frame_stack)
+        return env
+    else:
+        wrapper_info = ''
+        if builtin_wrap:
+            wrapper_info += BuiltinOpponentWrapper.__name__ + '\n'
+        wrapper_info += ObsTransposeWrapper.__name__ + '\n'
+
+        if warp_frame:
+            wrapper_info = WarpFrame.__name__ + '\n'
+        if frame_stack:
+            wrapper_info = FrameStack.__name__ + '\n'
+        return wrapper_info

@@ -15,84 +15,64 @@ ATARIENV_INFO_DICT = {
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
             value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': -1, 'max': 1, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
     'QbertNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
             value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': -1, 'max': 1, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
     'SpaceInvadersNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
             value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': -1, 'max': 1, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
     'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
             shape=(4, 84, 84), 
             value={'min': np.zeros((4, 84, 84)), 'max': np.ones((4, 84, 84)) * 255, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(18,), 
             value={'min': 0, 'max': 18, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': -1, 'max': 1, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
-        )
+        ),
+        use_wrappers=None,
     ),
 }
 
@@ -106,10 +86,7 @@ class AtariEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = wrap_deepmind(
-                self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
-                clip_rewards=self._cfg.is_train
-            )
+            self._env = self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -143,10 +120,18 @@ class AtariEnv(BaseEnv):
 
     def info(self) -> BaseEnvInfo:
         if self._cfg.env_id in ATARIENV_INFO_DICT:
-            return ATARIENV_INFO_DICT[self._cfg.env_id]
+            info = copy.deepcopy(ATARIENV_INFO_DICT[self._cfg.env_id])
+            info.use_wrappers = self._make_env(only_info=True)
+            return info
         else:
             raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
                 .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))
+
+    def _make_env(self, only_info=False):
+        return wrap_deepmind(
+            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
+            clip_rewards=self._cfg.is_train, only_info=only_info
+        )
 
     def __repr__(self) -> str:
         return "nerveX Atari Env({})".format(self._cfg.env_id)
@@ -171,10 +156,7 @@ class AtariEnvMR(AtariEnv):
         
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = wrap_deepmind_mr(
-                self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
-                clip_rewards=self._cfg.is_train
-            )
+            self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed'):
             np_seed = 100 * np.random.randint(1, 1000)
@@ -183,6 +165,12 @@ class AtariEnvMR(AtariEnv):
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
         return obs
+    
+    def _make_env(self, only_info=False):
+        self._env = wrap_deepmind_mr(
+            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train, 
+            clip_rewards=self._cfg.is_train, only_info=only_info
+        )
 
     def info(self) -> BaseEnvInfo:
         if self._cfg.env_id in ATARIENV_INFO_DICT:

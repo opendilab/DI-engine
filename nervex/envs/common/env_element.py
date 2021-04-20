@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
+from namedlist import namedlist
 from typing import Any
 
-EnvElementInfo = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
+EnvElementInfo = namedlist('EnvElementInfo', ['shape', 'value'])
 
 
 class IEnvElement(ABC):
@@ -45,8 +46,8 @@ class EnvElement(IEnvElement):
         flag = [
             hasattr(self, '_shape'),
             hasattr(self, '_value'),
-            hasattr(self, '_to_agent_processor'),
-            hasattr(self, '_from_agent_processor'),
+            # hasattr(self, '_to_agent_processor'),
+            # hasattr(self, '_from_agent_processor'),
         ]
         assert all(flag), 'this class {} is not a legal subclass of EnvElement({})'.format(self.__class__, flag)
 
@@ -55,6 +56,6 @@ class EnvElement(IEnvElement):
         return EnvElementInfo(
             shape=self._shape,
             value=self._value,
-            to_agent_processor=self._to_agent_processor,
-            from_agent_processor=self._from_agent_processor
+            # to_agent_processor=self._to_agent_processor,
+            # from_agent_processor=self._from_agent_processor
         )

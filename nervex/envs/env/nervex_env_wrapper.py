@@ -63,8 +63,6 @@ class NervexEnvWrapper(BaseEnv):
                     'max': obs_space.high,
                     'dtype': np.float32
                 },
-                to_agent_processor=None,
-                from_agent_processor=None
             ),
             act_space=EnvElementInfo(
                 shape=(act_space.n, ),
@@ -73,8 +71,6 @@ class NervexEnvWrapper(BaseEnv):
                     'max': act_space.n,
                     'dtype': np.float32
                 },
-                to_agent_processor=None,
-                from_agent_processor=None
             ),
             rew_space=EnvElementInfo(
                 shape=1,
@@ -83,9 +79,8 @@ class NervexEnvWrapper(BaseEnv):
                     'max': 1,
                     'dtype': np.float32
                 },
-                to_agent_processor=None,
-                from_agent_processor=None
-            )
+            ),
+            use_wrappers=None
         )
 
     def __repr__(self) -> str:

@@ -9,7 +9,7 @@ from nervex.envs import NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetE
                         ClipRewardEnv, FrameStack
 
 
-def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
+def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -22,25 +22,43 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
     :return: the wrapped atari environment.
     """
     assert 'NoFrameskip' in env_id
-    env = gym.make(env_id)
-    env = NoopResetEnv(env, noop_max=30)
-    env = MaxAndSkipEnv(env, skip=4)
-    if episode_life:
-        env = EpisodicLifeEnv(env)
-    if 'FIRE' in env.unwrapped.get_action_meanings():
-        env = FireResetEnv(env)
-    if warp_frame:
-        env = WarpFrame(env)
-    if scale:
-        env = ScaledFloatFrame(env)
-    if clip_rewards:
-        env = ClipRewardEnv(env)
-    if frame_stack:
-        env = FrameStack(env, frame_stack)
-    return env
+    if not only_info:
+        env = gym.make(env_id)
+        env = NoopResetEnv(env, noop_max=30)
+        env = MaxAndSkipEnv(env, skip=4)
+        if episode_life:
+            env = EpisodicLifeEnv(env)
+        if 'FIRE' in env.unwrapped.get_action_meanings():
+            env = FireResetEnv(env)
+        if warp_frame:
+            env = WarpFrame(env)
+        if scale:
+            env = ScaledFloatFrame(env)
+        if clip_rewards:
+            env = ClipRewardEnv(env)
+        if frame_stack:
+            env = FrameStack(env, frame_stack)
+        return env
+    else:
+        wrapper_info = NoopResetEnv.__name__ + '\n'
+        wrapper_info += MaxAndSkipEnv.__name__ + '\n'
+        if episode_life:
+            wrapper_info += EpisodicLifeEnv.__name__ + '\n'
+        # if 'FIRE' in env.unwrapped.get_action_meanings():
+        if 'Pong' in env_id or 'Qbert' in env_id or 'SpaceInvader' in env_id or 'Montezuma' in env_id:
+            wrapper_info += FireResetEnv.__name__ + '\n'
+        if warp_frame:
+            wrapper_info += WarpFrame.__name__ + '\n'
+        if scale:
+            wrapper_info += ScaledFloatFrame.__name__ + '\n'
+        if clip_rewards:
+            wrapper_info += ClipRewardEnv.__name__ + '\n'
+        if frame_stack:
+            wrapper_info += FrameStack.__name__ + '\n'
+        return wrapper_info
 
 
-def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
+def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -53,19 +71,37 @@ def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4
     :return: the wrapped atari environment.
     """
     assert 'MontezumaReveng' in env_id
-    env = gym.make(env_id)
-    env = NoopResetEnv(env, noop_max=30)
-    env = MaxAndSkipEnv(env, skip=4)
-    if episode_life:
-        env = EpisodicLifeEnv(env)
-    if 'FIRE' in env.unwrapped.get_action_meanings():
-        env = FireResetEnv(env)
-    if warp_frame:
-        env = WarpFrame(env)
-    if scale:
-        env = ScaledFloatFrame(env)
-    if clip_rewards:
-        env = ClipRewardEnv(env)
-    if frame_stack:
-        env = FrameStack(env, frame_stack)
-    return env
+    if not only_info:
+        env = gym.make(env_id)
+        env = NoopResetEnv(env, noop_max=30)
+        env = MaxAndSkipEnv(env, skip=4)
+        if episode_life:
+            env = EpisodicLifeEnv(env)
+        if 'FIRE' in env.unwrapped.get_action_meanings():
+            env = FireResetEnv(env)
+        if warp_frame:
+            env = WarpFrame(env)
+        if scale:
+            env = ScaledFloatFrame(env)
+        if clip_rewards:
+            env = ClipRewardEnv(env)
+        if frame_stack:
+            env = FrameStack(env, frame_stack)
+        return env
+    else:
+        wrapper_info = NoopResetEnv.__name__ + '\n'
+        wrapper_info += MaxAndSkipEnv.__name__ + '\n'
+        if episode_life:
+            wrapper_info += EpisodicLifeEnv.__name__ + '\n'
+        # if 'FIRE' in env.unwrapped.get_action_meanings():
+        if 'Pong' in env_id or 'Qbert' in env_id or 'SpaceInvader' in env_id or 'Montezuma' in env_id:
+            wrapper_info += FireResetEnv.__name__ + '\n'
+        if warp_frame:
+            wrapper_info += WarpFrame.__name__ + '\n'
+        if scale:
+            wrapper_info += ScaledFloatFrame.__name__ + '\n'
+        if clip_rewards:
+            wrapper_info += ClipRewardEnv.__name__ + '\n'
+        if frame_stack:
+            wrapper_info += FrameStack.__name__ + '\n'
+        return wrapper_info

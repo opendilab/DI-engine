@@ -136,7 +136,8 @@ def wrap_deepmind(
     scale=True,
     warp_frame=True,
     use_ram=False,
-    render=False
+    render=False,
+    only_info=False
 ):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
@@ -151,25 +152,48 @@ def wrap_deepmind(
     :return: the wrapped atari environment.
     """
     assert 'NoFrameskip' in env_id
-    env = gym.make(env_id)
-    env = RamWrapper(env)
-    env = NoopResetEnv(env, noop_max=30)
-    env = MaxAndSkipEnv(env, skip=4)
-    if episode_life:
-        env = EpisodicLifeEnv(env)
-    if 'FIRE' in env.unwrapped.get_action_meanings():
-        env = FireResetEnv(env)
-    if warp_frame:
-        env = WarpFrame(env)
-    if scale:
-        env = ScaledFloatFrame(env)
-    if clip_rewards:
-        env = ClipRewardEnv(env)
+    if not only_info:
+        env = gym.make(env_id)
+        env = RamWrapper(env)
+        env = NoopResetEnv(env, noop_max=30)
+        env = MaxAndSkipEnv(env, skip=4)
+        if episode_life:
+            env = EpisodicLifeEnv(env)
+        if 'FIRE' in env.unwrapped.get_action_meanings():
+            env = FireResetEnv(env)
+        if warp_frame:
+            env = WarpFrame(env)
+        if scale:
+            env = ScaledFloatFrame(env)
+        if clip_rewards:
+            env = ClipRewardEnv(env)
 
-    if frame_stack:
-        if use_ram:
-            env = FrameStackRam(env, frame_stack, pomdp, render)
-        else:
-            env = FrameStack(env, frame_stack)
+        if frame_stack:
+            if use_ram:
+                env = FrameStackRam(env, frame_stack, pomdp, render)
+            else:
+                env = FrameStack(env, frame_stack)
 
-    return env
+        return env
+    else:
+        wrapper_info = RamWrapper.__name__ + '\n'
+        wrapper_info += NoopResetEnv.__name__ + '\n'
+        wrapper_info += MaxAndSkipEnv.__name__ + '\n'
+        if episode_life:
+            wrapper_info = EpisodicLifeEnv.__name__ + '\n'
+        if 'Pong' in env_id or 'Qbert' in env_id or 'SpaceInvader' in env_id or 'Montezuma' in env_id:
+            wrapper_info = FireResetEnv.__name__ + '\n'
+        if warp_frame:
+            wrapper_info = WarpFrame.__name__ + '\n'
+        if scale:
+            wrapper_info = ScaledFloatFrame.__name__ + '\n'
+        if clip_rewards:
+            wrapper_info = ClipRewardEnv.__name__ + '\n'
+
+        if frame_stack:
+            if use_ram:
+                wrapper_info = FrameStackRam.__name__ + '\n'
+            else:
+                wrapper_info = FrameStack.__name__ + '\n'
+
+        return wrapper_info

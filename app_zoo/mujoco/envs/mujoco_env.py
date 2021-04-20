@@ -17,189 +17,144 @@ MUJOCO_INFO_DICT = {
         obs_space=EnvElementInfo(
             shape=(111,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(8,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'Hopper-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(3,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ), 
     'Walker2d-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(17,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ), 
     'HalfCheetah-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(17,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'Hopper-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(3,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'InvertedPendulum-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(4,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(1,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'InvertedDoublePendulum-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(1,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'Reacher-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(2,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
     'Walker2d-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(17,), 
             value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 
             value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ), 
         rew_space=EnvElementInfo(
             shape=1, 
             value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
-            to_agent_processor=None, 
-            from_agent_processor=None
         ),
+        use_wrappers=None,
     ),
 }
 
@@ -214,11 +169,7 @@ class MujocoEnv(BaseEnv):
 
     def reset(self) -> torch.FloatTensor:
         if not self._init_flag:
-            self._env = wrap_mujoco(
-                self._cfg.env_id,
-                norm_obs=self._cfg.get('norm_obs', None),
-                norm_reward=self._cfg.get('norm_reward', None),
-            )
+            self._env = self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -255,10 +206,20 @@ class MujocoEnv(BaseEnv):
 
     def info(self) -> BaseEnvInfo:
         if self._cfg.env_id in MUJOCO_INFO_DICT:
-            return MUJOCO_INFO_DICT[self._cfg.env_id]
+            info = copy.deepcopy(MUJOCO_INFO_DICT[self._cfg.env_id])
+            info.use_wrappers = self._make_env(only_info=True)
+            return info
         else:
             raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\
                 .format(self._cfg.env_id, MUJOCO_INFO_DICT.keys()))
+
+    def _make_env(self, only_info=False):
+        return wrap_mujoco(
+            self._cfg.env_id,
+            norm_obs=self._cfg.get('norm_obs', None),
+            norm_reward=self._cfg.get('norm_reward', None),
+            only_info=only_info
+        )
 
     def __repr__(self) -> str:
         return "nerveX Mujoco Env({})".format(self._cfg.env_id)

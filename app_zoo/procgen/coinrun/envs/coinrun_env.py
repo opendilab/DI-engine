@@ -75,19 +75,20 @@ class CoinRunEnv(BaseEnv):
                     'min': np.zeros(shape=(3, 64, 64)),
                     'max': np.ones(shape=(3, 64, 64)) * 255,
                     'dtype': np.uint8,
-                }, None, None
+                },
             ),
             # [min, max)
             act_space=T((15, ), {
                 'min': 0,
                 'max': 15,
                 'dtype': np.uint8
-            }, None, None),
+            },),
             rew_space=T((1, ), {
                 'min': float("-inf"),
                 'max': float("inf"),
                 'dtype': np.float32
-            }, None, None),
+            },),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

@@ -62,16 +62,17 @@ class LunarLanderEnv(BaseEnv):
                 'min': [float("-inf")] * 8,
                 'max': [float("inf")] * 8,
                 'dtype': float,
-            }, None, None),
+            },),
             # [min, max)
             act_space=T((4, ), {
                 'min': 0,
                 'max': 4
-            }, None, None),
+            },),
             rew_space=T((1, ), {
                 'min': -1000,
                 'max': 1000
-            }, None, None),
+            },),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

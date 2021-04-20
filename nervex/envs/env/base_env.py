@@ -8,8 +8,8 @@ from namedlist import namedlist
 from collections import namedtuple
 from nervex.utils import import_module, ENV_REGISTRY
 
-BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
-BaseEnvInfo = namedtuple('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+BaseEnvTimestep = namedlist('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
+BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'use_wrappers'])
 
 
 class BaseEnv(gym.Env):

@@ -5,7 +5,7 @@ import pybulletgym
 from nervex.envs import ObsNormEnv, RewardNormEnv
 
 
-def wrap_mujoco(env_id, norm_obs=True, norm_reward=True) -> gym.Env:
+def wrap_mujoco(env_id, norm_obs=True, norm_reward=True, only_info=False) -> gym.Env:
     r"""
     Overview:
         Wrap Mujoco Env to preprocess env step's return info, e.g. observation normalization, reward normalization, etc.
@@ -17,9 +17,17 @@ def wrap_mujoco(env_id, norm_obs=True, norm_reward=True) -> gym.Env:
     Returns:
         - wrapped_env (:obj:`gym.Env`): The wrapped mujoco environment
     """
-    env = gym.make(env_id)
-    if norm_obs is not None and norm_obs.use_norm:
-        env = ObsNormEnv(env)
-    if norm_reward is not None and norm_reward.use_norm:
-        env = RewardNormEnv(env, norm_reward.reward_discount)
-    return env
+    if not only_info:
+        env = gym.make(env_id)
+        if norm_obs is not None and norm_obs.use_norm:
+            env = ObsNormEnv(env)
+        if norm_reward is not None and norm_reward.use_norm:
+            env = RewardNormEnv(env, norm_reward.reward_discount)
+        return env
+    else:
+        wrapper_info = ''
+        if norm_obs is not None and norm_obs.use_norm:
+            wrapper_info = ObsNormEnv.__name__ + '\n'
+        if norm_reward is not None and norm_reward.use_norm:
+            wrapper_info = RewardNormEnv.__name__ + '\n'
+        return env
