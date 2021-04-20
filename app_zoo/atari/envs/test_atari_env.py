@@ -21,7 +21,6 @@ class TestAtariEnv:
             timestep = pong_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
-            assert isinstance(timestep, tuple)
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
                 break
@@ -41,9 +40,16 @@ class TestAtariEnv:
             timestep = mr_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack, 84, 84)
             assert timestep.reward.shape == (1, )
-            assert isinstance(timestep, tuple)
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
                 break
         print(mr_env.info(), 'final_eval_reward: {}'.format(timestep.info['final_eval_reward']))
         mr_env.close()
+
+    def test_info(self):
+        cfg = {'env_id': 'PongNoFrameskip-v4', 'frame_stack': 4, 'is_train': True}
+        cfg = EasyDict(cfg)
+        pong_env = AtariEnv(cfg)
+        info_dict = pong_env.info()
+        print(info_dict)
+        pong_env.close()

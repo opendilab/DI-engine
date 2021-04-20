@@ -22,7 +22,7 @@ class TestAtariMultiDiscreteEnv:
             timestep = pong_env.step(random_action)
             assert timestep.obs.shape == (cfg.frame_stack * env_num, 84, 84)
             assert timestep.reward.shape == (1, )
-            assert isinstance(timestep, tuple)
+            assert isinstance(timestep, list)
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
                 break
