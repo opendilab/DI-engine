@@ -16,8 +16,8 @@ POMDP_INFO_DICT = {
     'Pong-ramNoFrameskip-v4': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(512,), 
-            value={'min': np.zeros((512,)), 'max': np.ones((512,)) * 255, 'dtype': np.float32}, 
+            shape=(128,), 
+            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
             shape=(6,), 

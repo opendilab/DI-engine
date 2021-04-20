@@ -34,7 +34,7 @@ COMPETITIVERL_INFO_DICT = {
     'cPongDouble-v0': BaseEnvInfo(
         agent_num=1, 
         obs_space=EnvElementInfo(
-            shape=(3, 210, 160), 
+            shape=(210, 160, 3), 
             value={'min': 0, 'max': 255, 'dtype': np.float32}, 
         ), 
         act_space=EnvElementInfo(
