@@ -3,15 +3,19 @@ from easydict import EasyDict
 nstep = 2
 unroll_len = 6
 burnin_step = 2
-actor_env_num = 8
+collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=actor_env_num,
-        evaluator_env_num=evaluator_env_num,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            collector_env_num=collector_env_num,
+            evaluator_env_num=evaluator_env_num,
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -38,14 +42,14 @@ cartpole_r2d2_default_config = dict(
         collect=dict(
             traj_len=(2 * unroll_len + nstep),
             unroll_len=(2 * nstep + burnin_step),
-            env_num=actor_env_num,
+            env_num=collector_env_num,
             algo=dict(
                 burnin_step=2,
                 nstep=nstep,
             ),
         ),
         eval=dict(env_num=evaluator_env_num, ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.05,
@@ -55,7 +59,7 @@ cartpole_r2d2_default_config = dict(
     replay_buffer=dict(
         replay_buffer_size=1000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=32,
         traj_len=14,
         collect_print_freq=100,
@@ -77,7 +81,6 @@ cartpole_r2d2_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_r2d2_default_config = EasyDict(cartpole_r2d2_default_config)
 main_config = cartpole_r2d2_default_config

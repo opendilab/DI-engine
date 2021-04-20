@@ -3,16 +3,19 @@ from easydict import EasyDict
 nstep = 3
 cartpole_rainbowdqn_iqn_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=8,
-        evaluator_env_num=5,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            collector_env_num=8,
+            evaluator_env_num=5,
+        ),
     ),
     policy=dict(
         use_cuda=False,
         policy_type='rainbow_dqn',
-        import_names=['nervex.policy.dqn', 'nervex.policy.rainbow_dqn'],
         on_policy=False,
         use_priority=True,
         model=dict(
@@ -40,11 +43,10 @@ cartpole_rainbowdqn_iqn_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.5,
             end=0.05,
@@ -54,7 +56,7 @@ cartpole_rainbowdqn_iqn_config = dict(
     replay_buffer=dict(
         replay_buffer_size=100000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=80,
         traj_len=(8 + nstep),
         collect_print_freq=100,
@@ -76,7 +78,6 @@ cartpole_rainbowdqn_iqn_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_rainbowdqn_iqn_config = EasyDict(cartpole_rainbowdqn_iqn_config)
 main_config = cartpole_rainbowdqn_iqn_config

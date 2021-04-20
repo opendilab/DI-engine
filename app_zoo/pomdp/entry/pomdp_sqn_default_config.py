@@ -15,8 +15,8 @@ pomdp_sqn_default_config = dict(
         import_names=['app_zoo.pomdp.envs.atari_env'],
         # Env register name (refer to function "register_env").
         env_type='pomdp',
-        # Env number respectively for actor and evaluator.
-        actor_env_num=6,
+        # Env number respectively for collectorctor and evaluator.
+        collector_env_num=6,
         evaluator_env_num=3,
         # POMDP config
         # env_id='Breakout-ramNoFrameskip-v4',
@@ -50,7 +50,7 @@ pomdp_sqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
+            # How many steps to train after collectorctor's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
             # train_iteration=50,
             train_iteration=update_freq,
@@ -94,8 +94,8 @@ pomdp_sqn_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
-        # You can use either "n_sample" or "n_episode" in actor.collect.
+    collectorctor=dict(
+        # You can use either "n_sample" or "n_episode" in collectorctor.collect.
         # Get "n_sample" samples per collect.
         n_sample=update_freq,   # training freq
         # Get "n_episode" complete episodic trajectories per collect.

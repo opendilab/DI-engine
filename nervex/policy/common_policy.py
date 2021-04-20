@@ -60,12 +60,3 @@ class CommonPolicy(Policy):
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_armor.mode(train=False)
         self._eval_armor.reset(data_id=data_id)
-
-    def _get_setting_learn(self, *args, **kwargs) -> dict:
-        return {}
-
-    def _get_setting_collect(self, *args, **kwargs) -> dict:
-        return {}
-
-    def _get_setting_eval(self, *args, **kwargs) -> dict:
-        return {}

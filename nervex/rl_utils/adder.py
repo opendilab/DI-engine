@@ -12,7 +12,7 @@ class Adder(object):
     """
     Overview:
         Adder is a component that handles different transformations and calculations for transitions
-        in Actor Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
+        in Collector Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
     Interface:
         __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample, get_her
     """

@@ -60,7 +60,6 @@ class IMPALAPolicy(CommonPolicy):
         # Main armor
         self._armor.mode(train=True)
         self._armor.reset()
-        self._learn_setting_set = {}
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
         r"""
@@ -157,7 +156,6 @@ class IMPALAPolicy(CommonPolicy):
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
         self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data_id: List[int], data: dict) -> dict:
@@ -207,7 +205,6 @@ class IMPALAPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -222,9 +219,6 @@ class IMPALAPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
-
-    def _init_command(self) -> None:
-        pass
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

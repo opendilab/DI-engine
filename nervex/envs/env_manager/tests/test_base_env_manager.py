@@ -24,7 +24,7 @@ class TestBaseEnvManager:
         count = 1
         start_time = time.time()
         while not env_manager.done:
-            env_id = env_manager.next_obs.keys()
+            env_id = env_manager.ready_obs.keys()
             action = {i: torch.randn(4) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)
@@ -36,7 +36,7 @@ class TestBaseEnvManager:
         print('total step time: {}'.format(end_time - start_time))
         assert all(
             [
-                env_manager._env_episode_count[env_id] >= env_manager._epsiode_num
+                env_manager._env_episode_count[env_id] >= env_manager._episode_num
                 for env_id in range(env_manager.env_num)
             ]
         )

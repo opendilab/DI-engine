@@ -70,9 +70,9 @@ class BaseEnv(gym.Env):
         raise NotImplementedError
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.get('actor_env_num', 1)
-        return [cfg for _ in range(actor_env_num)]
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.get('collector_env_num', 1)
+        return [cfg for _ in range(collector_env_num)]
 
     @staticmethod
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
@@ -87,6 +87,6 @@ class BaseEnv(gym.Env):
 def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
     import_module(cfg.get('import_names', []))
     env_fn = ENV_REGISTRY[cfg.env_type]
-    actor_env_cfg = env_fn.create_actor_env_cfg(cfg)
+    collector_env_cfg = env_fn.create_collector_env_cfg(cfg)
     evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
-    return env_fn, actor_env_cfg, evaluator_env_cfg
+    return env_fn, collector_env_cfg, evaluator_env_cfg

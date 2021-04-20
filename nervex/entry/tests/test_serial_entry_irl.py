@@ -41,7 +41,7 @@ def test_pdeil(irl_config):
     irl_config['expert_data_path'] = expert_data_path
     config.irl = irl_config
     if irl_config['type'] == 'gail':
-        config.actor.n_sample = irl_config['batch_size']
+        config.collector.n_sample = irl_config['batch_size']
     serial_pipeline_irl(config, seed=0)
 
 

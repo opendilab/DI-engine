@@ -26,7 +26,6 @@ class DQNVanillaPolicy(CommonPolicy):
 
         self._update_count = 0
         self._target_update_freq = algo_cfg.target_update_freq
-        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         # forward
@@ -58,16 +57,15 @@ class DQNVanillaPolicy(CommonPolicy):
 
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
         with torch.no_grad():
             logit = self._model(data['obs'])['logit']
         if isinstance(logit, torch.Tensor):
             logit = [logit]
         action = []
         for i, l in enumerate(logit):
-            if np.random.random() > self._eps:
+            if np.random.random() > eps:
                 action.append(l.argmax(dim=-1))
             else:
                 action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
@@ -87,7 +85,7 @@ class DQNVanillaPolicy(CommonPolicy):
         return EasyDict(transition)
 
     def _init_eval(self) -> None:
-        self._eval_setting_set = {}
+        pass
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
@@ -101,14 +99,6 @@ class DQNVanillaPolicy(CommonPolicy):
             action, logit = action[0], logit[0]
         output = {'action': action}
         return output
-
-    def _init_command(self) -> None:
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']

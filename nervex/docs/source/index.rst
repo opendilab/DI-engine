@@ -30,4 +30,3 @@ Online Distributed Reinforcement learning train and evaluate system
    faq/index
    best_practice/index
    rl_warmup/index
-   exploration_survey/index

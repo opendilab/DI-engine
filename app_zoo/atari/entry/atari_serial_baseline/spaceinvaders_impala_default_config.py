@@ -9,7 +9,7 @@ spaceinvaders_impala_default_config = dict(
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         is_train=True,
-        actor_env_num=4,
+        collector_env_num=4,
         evaluator_env_num=4,
     ),
     policy=dict(
@@ -59,7 +59,7 @@ spaceinvaders_impala_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=16,
         traj_len=128,
         collect_print_freq=100,

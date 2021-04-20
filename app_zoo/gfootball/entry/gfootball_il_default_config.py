@@ -6,7 +6,7 @@ gfootball_il_default_config = dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.gfootball.envs.gfootball_env'],
         env_type='gfootball',
-        actor_env_num=4,
+        collector_env_num=4,
         evaluator_env_num=2,
         manager=dict(shared_memory=False, ),
     ),
@@ -33,7 +33,7 @@ gfootball_il_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_episode=2,
         traj_len=traj_len,
         traj_print_freq=100,

@@ -51,4 +51,6 @@ class NaiveLearner(Slave):
         elif task_name == 'learner_close_task':
             return {'task_id': self.task_info['task_id'], 'buffer_id': self.task_info['buffer_id']}
         else:
-            raise TaskFail(result={'message': 'task name error'}, message='illegal actor task <{}>'.format(task_name))
+            raise TaskFail(
+                result={'message': 'task name error'}, message='illegal collector task <{}>'.format(task_name)
+            )

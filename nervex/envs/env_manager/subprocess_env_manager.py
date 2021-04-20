@@ -167,37 +167,35 @@ def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
 class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
-        Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
-            subprocess.
+        Create an AsyncSubprocessEnvManager to manage multiple environments.
+        Each Environment is run by a seperate subprocess.
     Interfaces:
-        seed, launch, next_obs, step, reset, env_info
+        seed, launch, ready_obs, step, reset, env_info
     """
 
     def __init__(
-            self,
-            env_fn: Callable,
-            env_cfg: Iterable,
-            env_num: int,
-            episode_num: Optional[Union[int, float]] = float('inf'),
-            manager_cfg: Optional[dict] = {},
+        self,
+        env_fn: List[Callable],
+        episode_num: Optional[Union[int, float]] = float('inf'),
+        shared_memory: bool = True,
+        context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
+        wait_num: int = 2,
+        timeout: float = 0.01,
+        reset_timeout: float = 60,
     ) -> None:
         """
         Overview:
             Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
-            - env_cfg (:obj:`list`): the list of environemnt configs
-            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
             - episode_num (:obj:`int`): maximum episodes to collect in one environment
-            - manager_cfg (:obj:`dict`): config for env manager
         """
-        super().__init__(env_fn, env_cfg, env_num, episode_num)
-        self.shared_memory = manager_cfg.get('shared_memory', True)
-        default_context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        self.context_str = manager_cfg.get('context', default_context_str)
-        self.timeout = manager_cfg.get('timeout', 0.01)
-        self.wait_num = manager_cfg.get('wait_num', 2)
-        self.reset_timeout = manager_cfg.get('reset_timeout', 60)
+        super().__init__(env_fn, episode_num)
+        self._shared_memory = shared_memory
+        self._context = context
+        self._timeout = timeout
+        self._wait_num = wait_num
+        self._reset_timeout = reset_timeout
         self._lock = LockContext(LockContextType.THREAD_LOCK)
 
     def _create_state(self) -> None:
@@ -206,8 +204,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             Fork/spawn sub-processes and create pipes to transfer the data.
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-        self._next_obs = {env_id: None for env_id in range(self.env_num)}
-        if self.shared_memory:
+        self._ready_obs = {env_id: None for env_id in range(self.env_num)}
+        self._env_ref = self._env_fn[0]()
+        if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
             dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
@@ -225,13 +224,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _create_env_subprocess(self, env_id):
         # start a new one
-        env_fn = partial(self._env_fn, cfg=self._env_cfg[env_id])
         self._pipe_parents[env_id], self._pipe_children[env_id] = Pipe()
-        ctx = get_context(self.context_str)
+        ctx = get_context(self._context)
         self._subprocesses[env_id] = ctx.Process(
             target=self.worker_fn,
             args=(
-                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(env_fn),
+                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(self._env_fn[env_id]),
                 self._obs_buffers[env_id], self.method_name_list
             ),
             daemon=True,
@@ -256,8 +254,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._async_args = {
             'step': {
-                'wait_num': self.wait_num,
-                'timeout': self.timeout
+                'wait_num': self._wait_num,
+                'timeout': self._timeout
             },
         }
 
@@ -270,7 +268,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         return [i for i in self.active_env if i not in self._waiting_env['step']]
 
     @property
-    def next_obs(self) -> Dict[int, Any]:
+    def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
             Get the next observations.
@@ -279,7 +277,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Note:
             The observations are returned in torch.Tensor.
         Example:
-            >>>     obs_dict = env_manager.next_obs
+            >>>     obs_dict = env_manager.ready_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
@@ -288,7 +286,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             logging.warning('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
             time.sleep(1)
             sleep_count += 1
-        return self._inv_transform({i: self._next_obs[i] for i in self.ready_env})
+        return self._inv_transform({i: self._ready_obs[i] for i in self.ready_env})
 
     @property
     def done(self) -> bool:
@@ -350,7 +348,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
             self._pipe_parents[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
 
-            if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
+            if not self._pipe_parents[env_id].poll(self._reset_timeout):  # wait for 60 seconds to restart the env
                 # terminate the old subprocess
                 self._pipe_parents[env_id].close()
                 if self._subprocesses[env_id].is_alive():
@@ -361,11 +359,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
             obs = self._pipe_parents[env_id].recv().data
             self._check_data([obs], close=False)
-            if self.shared_memory:
+            if self._shared_memory:
                 obs = self._obs_buffers[env_id].get()
             with self._lock:
                 self._env_states[env_id] = EnvState.RUN
-                self._next_obs[env_id] = obs
+                self._ready_obs[env_id] = obs
 
         try:
             reset_fn()
@@ -441,12 +439,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_thread.daemon = True
                 reset_thread.start()
                 continue
-            if self.shared_memory:
+            if self._shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
             timesteps[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] >= self._epsiode_num:
+                if self._env_episode_count[env_id] >= self._episode_num:
                     self._env_states[env_id] = EnvState.DONE
                 else:
                     self._env_states[env_id] = EnvState.RESET
@@ -454,7 +452,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     reset_thread.daemon = True
                     reset_thread.start()
             else:
-                self._next_obs[env_id] = timestep.obs
+                self._ready_obs[env_id] = timestep.obs
 
         return self._inv_transform(timesteps)
 

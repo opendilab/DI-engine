@@ -34,15 +34,15 @@ class A2CPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
-        self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
-        self._learn_nstep = algo_cfg.get('nstep', 1)
+        if self._learn_use_nstep_return:
+            self._learn_gamma = algo_cfg.discount_factor
+            self._learn_nstep = algo_cfg.nstep
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target armors
         self._armor = Armor(self._model)
         self._armor.mode(train=True)
         self._armor.reset()
-        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -115,7 +115,6 @@ class A2CPolicy(CommonPolicy):
         self._collect_armor.add_plugin('main', 'multinomial_sample')
         self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -188,7 +187,6 @@ class A2CPolicy(CommonPolicy):
         self._eval_armor.add_plugin('main', 'argmax_sample')
         self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         r"""
@@ -203,9 +201,6 @@ class A2CPolicy(CommonPolicy):
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         return output
-
-    def _init_command(self) -> None:
-        pass
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

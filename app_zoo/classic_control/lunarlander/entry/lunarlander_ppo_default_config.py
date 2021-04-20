@@ -5,7 +5,7 @@ lunarlander_ppo_default_config = dict(
         env_manager_type='base',
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
         env_type='lunarlander',
-        actor_env_num=8,
+        collector_env_num=8,
         evaluator_env_num=5,
     ),
     policy=dict(
@@ -47,7 +47,7 @@ lunarlander_ppo_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_sample=16,
         traj_len=200,  # cartpole max episode len
         traj_print_freq=100,

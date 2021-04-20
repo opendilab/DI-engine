@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 agent_num = 8
-actor_env_num = 8
+collector_env_num = 8
 evaluator_env_num = 5
 smac_coma_default_config = dict(
     env=dict(
@@ -9,7 +9,7 @@ smac_coma_default_config = dict(
         env_type='smac',
         map_name='3s5z',
         agent_num=agent_num,
-        actor_env_num=actor_env_num,
+        collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         shared_memory=False,
     ),
@@ -46,7 +46,7 @@ smac_coma_default_config = dict(
             traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
-            env_num=actor_env_num,
+            env_num=collector_env_num,
         ),
         eval=dict(
             agent_num=agent_num,
@@ -67,7 +67,7 @@ smac_coma_default_config = dict(
             min_sample_ratio=1,
         ),
     ),
-    actor=dict(
+    collector=dict(
         n_episode=4,
         traj_len=1000,  # smac_episode_max_length
         collect_print_freq=100,

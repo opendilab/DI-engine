@@ -7,15 +7,15 @@ participant env_manager
 participant policy
 participant learner
 participant replay_buffer
-participant actor
+participant collector
 participant evaluator
 participant commander
 autonumber
 
-controller -> env_manager: init actor and evaluator env_manager; set seed
+controller -> env_manager: init collector and evaluator env_manager; set seed
 controller -> policy: init policy
 controller -> learner: init learner; set learn_mode policy
-controller -> actor: init actor; set collect_mode policy; set env_manager
+controller -> collector: init collector; set collect_mode policy; set env_manager
 controller -> evaluator: init evaluator; set eval_mode policy; set env_manager
 controller -> commander: init commander; set command_mode policy
 controller -> replay_buffer: init replay_buffer
@@ -31,8 +31,8 @@ loop
     end
   end
   loop until replay_buffer's data_count is big enough
-    actor -> actor: generate data (steps or episodes)
-    actor -> replay_buffer: push_data
+    collector -> collector: generate data (steps or episodes)
+    collector -> replay_buffer: push_data
   end
   loop learner_train_iteration times
     replay_buffer -> learner: sample_data
@@ -48,6 +48,6 @@ end
 learner -> learner: call after_run hook
 controller -> replay_buffer: close replay_buffer
 controller -> learner: close learner
-controller -> actor: close actor
+controller -> collector: close collector
 controller -> evaluator: close evaluator
 @enduml

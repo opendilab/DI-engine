@@ -7,3 +7,4 @@
      rl-algo
      large-scale-rl
      multi-agent
+     rl-exploration

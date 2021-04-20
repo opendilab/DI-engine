@@ -2,17 +2,20 @@ from easydict import EasyDict
 
 bitflip_dqn_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
-        env_type='bitflip',
-        actor_env_num=1,
-        evaluator_env_num=8,
-        n_bits=5,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
+            env_type='bitflip',
+            collector_env_num=1,
+            evaluator_env_num=8,
+            n_bits=5,
+        ),
     ),
     policy=dict(
         use_cuda=False,
         policy_type='dqn',
-        import_names=['nervex.policy.dqn'],
         on_policy=False,
         model=dict(
             obs_dim=10,
@@ -40,7 +43,7 @@ bitflip_dqn_default_config = dict(
                 her_replay_k=1,
             ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.02,
@@ -50,7 +53,7 @@ bitflip_dqn_default_config = dict(
     replay_buffer=dict(
         replay_buffer_size=5000,
     ),
-    actor=dict(
+    collector=dict(
         n_episode=1,
         traj_len=50,
         collect_print_freq=100,
@@ -71,7 +74,6 @@ bitflip_dqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 bitflip_dqn_default_config = EasyDict(bitflip_dqn_default_config)
 main_config = bitflip_dqn_default_config

@@ -1,6 +1,26 @@
 import torch
 import torch.nn as nn
 from typing import Tuple
+from nervex.hpc_rl import hpc_wrapper
+
+
+def shape_fn_scatter_connection(args, kwargs):
+    r"""
+    Overview:
+        Return shape of scatter_connection for hpc
+    Returns:
+        shape: [B, M, N, H, W, scatter_type]
+    """
+    if len(args) <= 1:
+        tmp = list(kwargs['x'].shape)
+    else:
+        tmp = list(args[1].shape)  # args[0] is __main__.ScatterConnection object
+    if len(args) <= 2:
+        tmp.extend(kwargs['spatial_size'])
+    else:
+        tmp.extend(args[2])
+    tmp.append(args[0].scatter_type)
+    return tmp
 
 
 class ScatterConnection(nn.Module):
@@ -23,6 +43,13 @@ class ScatterConnection(nn.Module):
         self.scatter_type = scatter_type
         assert self.scatter_type in ['cover', 'add']
 
+    @hpc_wrapper(
+        shape_fn=shape_fn_scatter_connection,
+        namedtuple_data=False,
+        include_args=[0, 2],
+        include_kwargs=['x', 'location'],
+        is_cls_method=True
+    )
     def forward(self, x: torch.Tensor, spatial_size: Tuple[int, int], location: torch.Tensor) -> torch.Tensor:
         """
             Overview:
