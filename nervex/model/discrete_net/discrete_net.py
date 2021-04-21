@@ -50,9 +50,10 @@ class DiscreteNet(nn.Module):
             self._lstm = get_lstm(**lstm_kwargs)
 
         # build head: the head encodes the observations into q-value of actions.
-            # if action_dim is a tuple, like '(3, 5)', it means there are two discrete action spaces, separately consisting of 3 and 5 actions.
-        self._head = MultiDiscreteHead(action_dim, embedding_dim, head_fn, **head_kwargs) if use_multi_discrete \
-                else head_fn(action_dim, embedding_dim, **head_kwargs)
+        if use_multi_discrete:
+            self._head = MultiDiscreteHead(action_dim, embedding_dim, head_fn, **head_kwargs)
+        else:
+            self._head = head_fn(action_dim, embedding_dim, **head_kwargs)
 
     def forward(self, inputs: Dict) -> Dict:
         r"""

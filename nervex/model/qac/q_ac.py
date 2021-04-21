@@ -27,12 +27,8 @@ class FCContinuousNet(nn.Module):
     ) -> None:
         super(FCContinuousNet, self).__init__()
         self._act = nn.ReLU()
-        self._main = nn.Sequential(
-            mlp(input_dim, embedding_dim, embedding_dim, layer_num + 1, activation=self._act),
-            nn.Linear(embedding_dim, output_dim)
-        )
+        self._main = nn.Sequential(mlp(input_dim, embedding_dim, embedding_dim, layer_num + 1, activation=self._act), nn.Linear(embedding_dim, output_dim))
         self._use_final_tanh = use_final_tanh
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
         if self._use_final_tanh:
@@ -91,7 +87,6 @@ class QAC(ActorCriticBase):
             ]
         )
         self._use_twin_critic = use_twin_critic
-        self._use_backward_hook = use_backward_hook
 
     def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
         if self._use_twin_critic and not single:
@@ -113,20 +108,6 @@ class QAC(ActorCriticBase):
     def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         action = self._actor_forward(inputs['obs'])
         return {'action': action}
-
-    # def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-    #     state_input = inputs['obs']
-    #     action = self._actor_forward(state_input)
-    #     if len(action.shape) == 1:
-    #         action = action.unsqueeze(1)
-    #     state_action_input = torch.cat([state_input, action], dim=1)
-    #
-    #     if self._use_backward_hook:
-    #         for p in self._critic[0].parameters():
-    #             p.requires_grad = False  # will set True when backward_hook called
-    #     q = self._critic_forward(state_action_input, single=True)
-    #
-    #     return {'q_value': q}
 
     @property
     def actor(self) -> torch.nn.Module:
