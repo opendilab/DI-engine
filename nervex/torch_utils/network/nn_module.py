@@ -66,7 +66,7 @@ def sequential_pack(layers):
     """
     assert isinstance(layers, list)
     seq = nn.Sequential(*layers)
-    for item in layers:
+    for item in reversed(layers):
         if isinstance(item, nn.Conv2d) or isinstance(item, nn.ConvTranspose2d):
             seq.out_channels = item.out_channels
             break
@@ -271,6 +271,57 @@ def fc_block(
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
 
+def mlp(
+    in_channels,
+    hidden_channels,
+    out_channels,
+    layer_num,
+    layer_fn=None,
+    init_type="xavier",
+    activation=None,
+    norm_type=None,
+    use_dropout=False,
+    dropout_probability=0.5
+):
+    r"""
+    Overview:
+        create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,
+        optional normalization can be done to the dim 1 (across the channels)
+        x -> fc -> norm -> act -> dropout -> out
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor
+        - hidden_channels (:obj:`int`): Number of channels in the hidden tensor
+        - out_channels (:obj:`int`): Number of channels in the output tensor
+        - layer_num (:obj:`int`): Number of layers
+        - init_type (:obj:`str`): the type of init to implement
+        - activation (:obj:`nn.Moduel`): the optional activation function
+        - norm_type (:obj:`str`): type of the normalization
+        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
+        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+    Returns:
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
+    .. note::
+        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
+    """
+    assert layer_num > 0, layer_num
+
+    channels = [in_channels] + [hidden_channels] * (layer_num - 1) + [out_channels]
+    if layer_fn is None:
+        layer_fn = nn.Linear
+    block = []
+
+    for i, in_channels, out_channels in enumerate(zip(channels[:-1], channels[1:])):
+        block.append(layer_fn(in_channels, out_channels))
+        weight_init_(block[-1].weight, init_type, activation)
+        if norm_type is not None:
+            block.append(build_normalization(norm_type, dim=1)(out_channels))
+        if activation is not None:
+            block.append(activation)
+        if use_dropout:
+            block.append(nn.Dropout(dropout_probability))
+
+    return sequential_pack(block)
 
 class ChannelShuffle(nn.Module):
     r"""

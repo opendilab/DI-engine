@@ -161,6 +161,24 @@ class ValueAC(ActorCriticBase):
 
         return {'logit': logit}
 
+    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            First encode raw observation, then output value and logit.
+            Normal reinforcement learning training, often called by learner to optimize both critic and actor.
+        Arguments:
+            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
+        Returns:
+            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
+        """
+        # for compatible, but we recommend use dict as input format
+        if isinstance(inputs, torch.Tensor):
+            embedding = self._encoder(inputs)
+        else:
+            embedding = self._encoder(inputs['obs'])
+        value = self._critic_forward(embedding)
+
+        return {'value': value}
 
 @MODEL_REGISTRY.register('conv_vac')
 class ConvValueAC(ValueAC):
