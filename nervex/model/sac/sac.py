@@ -11,6 +11,7 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
+from nervex.torch_utils.network.nn_module import mlp
 from ..common import SoftActorCriticBase
 
 
@@ -19,22 +20,12 @@ class SoftQNet(nn.Module):
     def __init__(self, obs_dim, action_dim, soft_q_hidden_dim: int, init_w: float = 3e-3):
         super(SoftQNet, self).__init__()
         self._act = nn.ReLU()
+
         input_dim = squeeze(obs_dim + action_dim)
-        hidden_dim = soft_q_hidden_dim
-        hidden_dim_list = [256] + [hidden_dim]
-
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-
-        output_layer = nn.Linear(input_dim, 1)
+        output_layer = nn.Linear(soft_q_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        layers.append(output_layer)
-
-        self._main = nn.Sequential(*layers)
+        self._main = nn.Sequential(mlp(input_dim, 256, soft_q_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -47,21 +38,10 @@ class ValueNet(nn.Module):
         super(ValueNet, self).__init__()
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim)
-        hidden_dim = value_hidden_dim
-        hidden_dim_list = [256] + [hidden_dim]
-
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-
-        output_layer = nn.Linear(input_dim, 1)
+        output_layer = nn.Linear(value_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        layers.append(output_layer)
-
-        self._main = nn.Sequential(*layers)
+        self._main = nn.Sequential(mlp(input_dim, 256, value_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -83,23 +63,16 @@ class PolicyNet(nn.Module):
         self._log_std_min = log_std_min
         self._log_std_max = log_std_max
         self._act = nn.ReLU()
-        hidden_dim = policy_hidden_dim
         input_dim = squeeze(obs_dim)
         output_dim = squeeze(action_dim)
-        hidden_dim_list = [256] + [hidden_dim]
 
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-        self._main = nn.Sequential(*layers)
+        self._main = mlp(input_dim, 256, policy_hidden_dim, 2, activation=self._act)
 
-        self._mean_layer = nn.Linear(dim, output_dim)
+        self._mean_layer = nn.Linear(policy_hidden_dim, output_dim)
         self._mean_layer.weight.data.uniform_(-init_w, init_w)
         self._mean_layer.bias.data.uniform_(-init_w, init_w)
 
-        self._log_std_layer = nn.Linear(dim, output_dim)
+        self._log_std_layer = nn.Linear(policy_hidden_dim, output_dim)
         self._log_std_layer.weight.data.uniform_(-init_w, init_w)
         self._log_std_layer.bias.data.uniform_(-init_w, init_w)
 

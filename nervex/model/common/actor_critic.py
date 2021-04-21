@@ -8,7 +8,7 @@ class ActorCriticBase(nn.Module):
     Interface:
         forward, seed, compute_actor_critic, compute_actor, compute_critic, mimic, mimic_single
     """
-    self.modes = ['compute_actor_critic', 'compute_actor', 'compute_critic', 'mimic', 'mimic_single']
+    self.modes = ['compute_actor_critic', 'compute_actor', 'compute_critic']
 
     def forward(self, inputs, mode=None, **kwargs):
         """
@@ -18,7 +18,7 @@ class ActorCriticBase(nn.Module):
         Arguments:
             - inputs (:obj:`dict` or other :obj:`obj`): the input.
             - mode (:obj:`str`): the current mode to use in forward, support\
-                ['compute_actor_critic', 'compute_actor', 'compute_critic', 'mimic', 'mimic_single']
+                ['compute_actor_critic', 'compute_actor', 'compute_critic']
         Returns:
             - return (:obj:`dict` or other :obj:`obj`): the correspond output.
 
@@ -47,12 +47,6 @@ class ActorCriticBase(nn.Module):
         raise NotImplementedError
 
     def compute_critic(self, inputs, **kwargs):
-        raise NotImplementedError
-
-    def mimic(self, inputs, **kwargs):
-        raise NotImplementedError
-
-    def mimic_single(self, inputs, **kwargs):
         raise NotImplementedError
 
     def evaluate(self, inputs, **kwargs):

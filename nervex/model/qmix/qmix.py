@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.utils import list_split, squeeze, MODEL_REGISTRY
-from nervex.torch_utils.network.nn_module import fc_block
+from nervex.torch_utils.network.nn_module import fc_block, mlp
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
 
@@ -32,20 +32,10 @@ class Mixer(nn.Module):
         self._agent_num = agent_num
         self._embedding_dim = embedding_dim
         self._act = nn.ReLU()
-        self._w1 = []
-        for i in range(w_layers - 1):
-            self._w1.append(nn.Linear(embedding_dim, embedding_dim))
-            self._w1.append(self._act)
-        self._w1.append(nn.Linear(embedding_dim, embedding_dim * agent_num))
-        self._w1 = nn.Sequential(*self._w1)
-
-        self._w2 = []
-        for i in range(w_layers - 1):
-            self._w2.append(nn.Linear(embedding_dim, embedding_dim))
-            self._w2.append(self._act)
-        self._w2.append(nn.Linear(embedding_dim, embedding_dim))
-        self._w2 = nn.Sequential(*self._w2)
-
+        self._w1 = nn.Sequential( mlp(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
+                                    nn.Linear(embedding_dim, embedding_dim * agent_num) )
+        self._w2 = nn.Sequential( mlp(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
+                                    nn.Linear(embedding_dim, embedding_dim) )
         self._b1 = nn.Linear(embedding_dim, embedding_dim)
         self._b2 = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), self._act, nn.Linear(embedding_dim, 1))
 
@@ -164,14 +154,7 @@ class QMix(nn.Module):
         }
 
     def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
-        layers = []
-        layer_num = 1
-        layers.append(nn.Linear(global_obs_dim, embedding_dim))
-        layers.append(self._act)
-        for _ in range(layer_num):
-            layers.append(nn.Linear(embedding_dim, embedding_dim))
-            layers.append(self._act)
-        return nn.Sequential(*layers)
+        return mlp(global_obs_dim, embedding_dim, embedding_dim, 2, activation=self._act)
 
 
 class CollaQMultiHeadAttention(nn.Module):
@@ -444,11 +427,4 @@ class CollaQ(nn.Module):
         }
 
     def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
-        layers = []
-        layer_num = 1
-        layers.append(nn.Linear(global_obs_dim, embedding_dim))
-        layers.append(self._act)
-        for _ in range(layer_num):
-            layers.append(nn.Linear(embedding_dim, embedding_dim))
-            layers.append(self._act)
-        return nn.Sequential(*layers)
+        return mlp(global_obs_dim, embedding_dim, embedding_dim, 2, activation=self._act)

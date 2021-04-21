@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
 from nervex.utils import squeeze, deep_merge_dicts, MODEL_REGISTRY
+from nervex.torch_utils.network.nn_module import mlp
 from ..common import ActorCriticBase, FCEncoder
 
 
@@ -26,16 +27,8 @@ class FCContinuousNet(nn.Module):
     ) -> None:
         super(FCContinuousNet, self).__init__()
         self._act = nn.ReLU()
+        self._main = nn.Sequential(mlp(input_dim, embedding_dim, embedding_dim, layer_num + 1, activation=self._act), nn.Linear(embedding_dim, output_dim))
         self._use_final_tanh = use_final_tanh
-        layers = []
-        layers.append(nn.Linear(input_dim, embedding_dim))
-        layers.append(self._act)
-        for _ in range(layer_num):
-            layers.append(nn.Linear(embedding_dim, embedding_dim))
-            layers.append(self._act)
-        layers.append(nn.Linear(embedding_dim, output_dim))
-        self._main = nn.Sequential(*layers)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
         if self._use_final_tanh:
