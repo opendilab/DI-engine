@@ -86,7 +86,7 @@ class ATOCPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
         loss_dict = {}
-        data = default_preprocess_learn(data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=False)
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
         if self._use_cuda:
             data = to_device(data, self._device)
         # ====================
@@ -126,12 +126,7 @@ class ATOCPolicy(Policy):
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             if self._use_communication:
-                output = self._armor.forward(
-                    data['obs'], param={
-                        'mode': 'compute_action',
-                        'get_delta_q': False
-                    }
-                )
+                output = self._armor.forward(data['obs'], param={'mode': 'compute_action', 'get_delta_q': False})
                 output['delta_q'] = data['delta_q']
                 attention_loss = -self._armor.forward(
                     output, param={'mode': 'optimize_actor_attention'}

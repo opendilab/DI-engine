@@ -32,7 +32,7 @@ class DQNVanillaPolicy(Policy):
         data = default_preprocess_learn(
             data,
             use_priority=self._cfg.get('use_priority', False),
-            ignore_done=self._cfg.get('ignore_done', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
             use_nstep=False
         )
         if self._use_cuda:

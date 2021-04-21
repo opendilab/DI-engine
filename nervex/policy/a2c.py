@@ -55,7 +55,7 @@ class A2CPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
+            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
         )
         if self._use_cuda:
             data = to_device(data, self._device)

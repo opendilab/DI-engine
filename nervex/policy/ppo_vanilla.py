@@ -34,7 +34,7 @@ class PPOVanillaPolicy(Policy):
         self._continous = self._cfg.model.get("continous", False)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        data = default_preprocess_learn(data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=False)
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
         if self._use_cuda:
             data = to_device(data, self._device)
         # forward

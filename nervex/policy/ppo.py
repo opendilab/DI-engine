@@ -51,7 +51,7 @@ class PPOPolicy(Policy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
-        data = default_preprocess_learn(data, ignore_done=self._cfg.get('ignore_done', False), use_nstep=False)
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
         if self._use_cuda:
             data = to_device(data, self._device)
         # ====================
