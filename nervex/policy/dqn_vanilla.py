@@ -22,8 +22,6 @@ class DQNVanillaPolicy(Policy):
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
         self._target_model = deepcopy(self._model)
-        self._model.train()
-        self._target_model.train()
 
         self._update_count = 0
         self._target_update_freq = algo_cfg.target_update_freq
@@ -37,6 +35,8 @@ class DQNVanillaPolicy(Policy):
         )
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._model.train()
+        self._target_model.train()
         # forward
         with torch.enable_grad():
             ret = self._model(data['obs'])
@@ -83,6 +83,7 @@ class DQNVanillaPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
+        self._model.eval()
         with torch.no_grad():
             logit = self._model(data)['logit']
         if isinstance(logit, torch.Tensor):
@@ -121,6 +122,7 @@ class DQNVanillaPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
+        self._model.eval()
         with torch.no_grad():
             logit = self._model(data)['logit']
         if isinstance(logit, torch.Tensor):

@@ -38,8 +38,6 @@ class DQNPolicy(Policy):
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
 
@@ -63,6 +61,8 @@ class DQNPolicy(Policy):
         # ====================
         # Q-learning forward
         # ====================
+        self._armor.model.train()
+        self._armor.target_model.train()
         # Current q value (main armor)
         q_value = self._armor.forward(data['obs'])['logit']
         # Target q value
@@ -125,7 +125,6 @@ class DQNPolicy(Policy):
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
@@ -141,6 +140,7 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, eps=eps)
         if self._use_cuda:
@@ -192,7 +192,6 @@ class DQNPolicy(Policy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -208,6 +207,7 @@ class DQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data)
         if self._use_cuda:

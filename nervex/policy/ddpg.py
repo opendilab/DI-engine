@@ -64,8 +64,6 @@ class DDPGPolicy(Policy):
                 },
                 noise_range=algo_cfg.noise_range,
             )
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
 
@@ -92,6 +90,8 @@ class DDPGPolicy(Policy):
         # ====================
         # critic learn forward
         # ====================
+        self._armor.model.train()
+        self._armor.target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
@@ -194,7 +194,6 @@ class DDPGPolicy(Policy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict) -> dict:
@@ -210,6 +209,7 @@ class DDPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
@@ -248,7 +248,6 @@ class DDPGPolicy(Policy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -264,6 +263,7 @@ class DDPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:

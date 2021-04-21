@@ -49,8 +49,6 @@ class R2D2Policy(Policy):
         self._armor.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
@@ -102,6 +100,8 @@ class R2D2Policy(Policy):
         """
         # forward
         data = self._data_preprocess_learn(data)
+        self._armor.model.train()
+        self._armor.target_model.train()
         self._armor.reset(data_id=None, state=data['prev_state'][0])
         self._armor.target_reset(data_id=None, state=data['prev_state'][0])
         if len(data['burnin_obs']) != 0:
@@ -160,7 +160,7 @@ class R2D2Policy(Policy):
     def _init_collect(self) -> None:
         r"""
         Overview:
-            Collect mode init moethod. Called by ``self.__init__``.
+            Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
         self._collect_nstep = self._cfg.collect.algo.nstep
@@ -173,7 +173,6 @@ class R2D2Policy(Policy):
             'main', 'hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -192,6 +191,7 @@ class R2D2Policy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, data_id=data_id, eps=eps)
         if self._use_cuda:
@@ -243,7 +243,6 @@ class R2D2Policy(Policy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -262,6 +261,7 @@ class R2D2Policy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, data_id=data_id)
         if self._use_cuda:

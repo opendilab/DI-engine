@@ -42,7 +42,6 @@ class A2CPolicy(Policy):
 
         # Main and target armors
         self._armor = Armor(self._model)
-        self._armor.mode(train=True)
         self._armor.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -59,6 +58,7 @@ class A2CPolicy(Policy):
         )
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._armor.model.train()
         # forward
         output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
 
@@ -128,7 +128,6 @@ class A2CPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
@@ -150,6 +149,7 @@ class A2CPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
@@ -206,7 +206,6 @@ class A2CPolicy(Policy):
 
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -222,6 +221,7 @@ class A2CPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:

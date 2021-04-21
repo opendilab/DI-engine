@@ -30,7 +30,6 @@ class PPOVanillaPolicy(Policy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._clip_ratio = algo_cfg.clip_ratio
-        self._model.train()
         self._continous = self._cfg.model.get("continous", False)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -38,6 +37,7 @@ class PPOVanillaPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         # forward
+        self._model.train()
         output = self._model(data['obs'], mode="compute_action_value")
         adv = data['adv']
         # norm adv in total train_batch
@@ -92,6 +92,7 @@ class PPOVanillaPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._model.eval()
         with torch.no_grad():
             ret = self._model(data, mode="compute_action_value")
             logit, value = ret['logit'], ret['value']
@@ -139,6 +140,7 @@ class PPOVanillaPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._model.eval()
         with torch.no_grad():
             ret = self._model(data, mode="compute_action_value")
             logit, value = ret['logit'], ret['value']

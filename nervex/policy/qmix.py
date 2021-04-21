@@ -53,8 +53,6 @@ class QMIXPolicy(Policy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
 
@@ -92,6 +90,8 @@ class QMIXPolicy(Policy):
         # ====================
         # Q-mix forward
         # ====================
+        self._armor.model.train()
+        self._armor.target_model.train()
         # for hidden_state plugin, we need to reset the main armor and target armor
         self._armor.reset(state=data['prev_state'][0])
         self._armor.target_reset(state=data['prev_state'][0])
@@ -146,7 +146,6 @@ class QMIXPolicy(Policy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -163,6 +162,7 @@ class QMIXPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, eps=eps, data_id=data_id)
         if self._use_cuda:
@@ -207,7 +207,6 @@ class QMIXPolicy(Policy):
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -224,6 +223,7 @@ class QMIXPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, data_id=data_id)
         if self._use_cuda:

@@ -62,7 +62,6 @@ class PPGPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main armor
-        self._armor.mode(train=True)
         self._armor.reset()
 
         # Auxiliary memories
@@ -104,6 +103,7 @@ class PPGPolicy(Policy):
         # ====================
         # PPG forward
         # ====================
+        self._armor.model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
         if self._use_adv_norm:
@@ -191,7 +191,6 @@ class PPGPolicy(Policy):
         self._collect_armor = Armor(self._model)
         # TODO continuous action space exploration
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
@@ -211,6 +210,7 @@ class PPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
@@ -270,7 +270,6 @@ class PPGPolicy(Policy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -286,6 +285,7 @@ class PPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:

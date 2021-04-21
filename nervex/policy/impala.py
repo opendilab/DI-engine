@@ -56,7 +56,6 @@ class IMPALAPolicy(Policy):
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
         # Main armor
-        self._armor.mode(train=True)
         self._armor.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
@@ -99,6 +98,7 @@ class IMPALAPolicy(Policy):
         # ====================
         # IMPALA forward
         # ====================
+        self._armor.model.train()
         output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
@@ -158,7 +158,6 @@ class IMPALAPolicy(Policy):
         self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
@@ -175,6 +174,7 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
@@ -216,7 +216,6 @@ class IMPALAPolicy(Policy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -232,6 +231,7 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:

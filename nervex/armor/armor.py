@@ -14,7 +14,7 @@ class BaseArmor(ABC):
         Base armor class. Can be wrapped by different armor plugins.
         Use model and plugin mechanism to implement different runtime demand for RL algorithm.
     Interfaces:
-        __init__, forward, mode, state_dict, load_state_dict, reset, add_model, add_plugin
+        __init__, forward, state_dict, load_state_dict, reset, add_model, add_plugin
     """
 
     def __init__(self, model: torch.nn.Module) -> None:
@@ -40,18 +40,6 @@ class BaseArmor(ABC):
             return self._model(data, **param)
         else:
             return self._model(data)
-
-    def mode(self, train: bool) -> None:
-        r"""
-        Overview:
-            Call the model's corresponding method.
-        Arguments:
-            - train (:obj:`bool`): Whether to call the train method or eval method.
-        """
-        if train:
-            self._model.train()
-        else:
-            self._model.eval()
 
     @property
     def model(self) -> torch.nn.Module:

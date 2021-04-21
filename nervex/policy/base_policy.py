@@ -231,15 +231,12 @@ class Policy(ABC):
         self._model.load_state_dict(state_dict['model'], strict=True)
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._armor.mode(train=True)
         self._armor.reset(data_id=data_id)
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset(data_id=data_id)
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset(data_id=data_id)
 
 

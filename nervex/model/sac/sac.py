@@ -175,9 +175,7 @@ class SAC(SoftActorCriticBase):
         v_value = self._value_net_forward(obs)
         return {'v_value': v_value}
 
-    def compute_action(self,
-                       obs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+    def compute_action(self, obs: Dict[str, torch.Tensor], deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 

@@ -67,8 +67,6 @@ class SQNPolicy(Policy):
         # Main and target armors
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
         self._forward_learn_cnt = 0
@@ -129,6 +127,8 @@ class SQNPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
+        self._armor.model.train()
+        self._armor.target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
@@ -213,7 +213,6 @@ class SQNPolicy(Policy):
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_armor = Armor(self._model)
         # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict) -> dict:
@@ -229,8 +228,10 @@ class SQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        # start with random action for better exploration
-        output = self._collect_armor.forward(data)
+        self._collect_armor.model.eval()
+        with torch.no_grad():
+            # start with random action for better exploration
+            output = self._collect_armor.forward(data)
         _decay = self._cfg.other.eps.decay
         _act_p = 1 / \
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
@@ -290,7 +291,6 @@ class SQNPolicy(Policy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -306,6 +306,7 @@ class SQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data)
         if self._use_cuda:

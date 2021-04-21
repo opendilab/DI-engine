@@ -70,8 +70,6 @@ class SACPolicy(Policy):
         # Main and target armors
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
         self._forward_learn_cnt = 0
@@ -95,6 +93,8 @@ class SACPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
+        self._armor.model.train()
+        self._armor.target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
@@ -238,7 +238,6 @@ class SACPolicy(Policy):
             },
             noise_range=None,
         )
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict) -> dict:
@@ -254,6 +253,7 @@ class SACPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
@@ -292,7 +292,6 @@ class SACPolicy(Policy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -308,6 +307,7 @@ class SACPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
         if self._use_cuda:

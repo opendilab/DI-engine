@@ -62,8 +62,6 @@ class RainbowDQNPolicy(DQNPolicy):
 
         self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
 
@@ -92,6 +90,8 @@ class RainbowDQNPolicy(DQNPolicy):
         # ====================
         # Rainbow forward
         # ====================
+        self._armor.model.train()
+        self._armor.target_model.train()
         # reset noise of noisenet for both main armor and target armor
         self._reset_noise(self._armor.model)
         self._reset_noise(self._armor.target_model)
@@ -153,7 +153,6 @@ class RainbowDQNPolicy(DQNPolicy):
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=True)
         self._collect_armor.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -171,6 +170,7 @@ class RainbowDQNPolicy(DQNPolicy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         self._reset_noise(self._collect_armor.model)
         with torch.no_grad():
             output = self._collect_armor.forward(data, eps=eps)
