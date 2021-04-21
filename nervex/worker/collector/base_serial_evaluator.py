@@ -85,7 +85,6 @@ class BaseSerialEvaluator(object):
         self.close()
 
     def should_eval(self, train_iter: int) -> bool:
-        print('train_iter', train_iter, (train_iter - self._last_eval_iter) < self._cfg.eval_freq)
         if (train_iter - self._last_eval_iter) < self._cfg.eval_freq and train_iter != 0:
             return False
         self._last_eval_iter = train_iter

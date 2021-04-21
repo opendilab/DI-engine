@@ -86,12 +86,10 @@ class ZerglingCollector(BaseCollector):
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         self._obs_pool.update(obs)
-        env_id, obs = self._policy.data_preprocess(obs)
         if self._eval_flag:
-            policy_output = self._policy.forward(env_id, obs)
+            policy_output = self._policy.forward(obs)
         else:
-            policy_output = self._policy.forward(env_id, obs, **self._cfg.collect_setting)
-        policy_output = self._policy.data_postprocess(env_id, policy_output)
+            policy_output = self._policy.forward(obs, **self._cfg.collect_setting)
         self._policy_output_pool.update(policy_output)
         actions = {env_id: output['action'] for env_id, output in policy_output.items()}
         return actions

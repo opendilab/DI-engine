@@ -93,12 +93,11 @@ class OneVsOneCollector(BaseCollector):
         self._obs_pool.update(obs)
         policy_outputs = []
         for i in range(len(self._policy)):
-            env_id, policy_obs = self._policy[i].data_preprocess(obs[i])
             if self._eval_flag:
-                policy_output = self._policy[i].forward(env_id, policy_obs)
+                policy_output = self._policy[i].forward(obs)
             else:
-                policy_output = self._policy[i].forward(env_id, policy_obs, **self._cfg.collect_setting)
-            policy_outputs.append(self._policy[i].data_postprocess(env_id, policy_output))
+                policy_output = self._policy[i].forward(obs, **self._cfg.collect_setting)
+            policy_outputs.append(policy_output)
         self._policy_output_pool.update(policy_outputs)
         actions = {}
         for env_id in data_id:
