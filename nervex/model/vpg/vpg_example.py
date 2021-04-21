@@ -11,6 +11,7 @@ class VPGNN(IVPG):
         Basic network of a series of vanilla policy gradient algorithms (e.g.: A2C, PPO),
         which implementes the IVPG interface
     """
+
     def __init__(
             self,
             actor: nn.Module,
@@ -58,6 +59,7 @@ class VPGSharedEncoderNN(IVPG):
         Basic network of a series of vanilla policy gradient algorithms with shared encoder(e.g.: A2C, PPO),
         which implementes the IVPG interface
     """
+
     def __init__(
             self,
             encoder: nn.Module,

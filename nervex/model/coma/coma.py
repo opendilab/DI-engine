@@ -58,7 +58,10 @@ class ComaCriticNetwork(nn.Module):
         self._act_dim = squeeze(action_dim)
         self._embedding_dim = embedding_dim
         self._act = nn.ReLU()
-        self._mlp = nn.Sequential(mlp(self._input_dim, embedding_dim, embedding_dim, 2, activation=self._act), nn.Linear(embedding_dim, action_dim))
+        self._mlp = nn.Sequential(
+            mlp(self._input_dim, embedding_dim, embedding_dim, 2, activation=self._act),
+            nn.Linear(embedding_dim, action_dim)
+        )
 
     def forward(self, data: Dict) -> Dict:
         """

@@ -1,4 +1,4 @@
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, Dict
 
 import torch
 import torch.nn as nn
@@ -144,14 +144,14 @@ class QuantileHead(nn.Module):
         q_quantile_net = self.quantile_net(q_quantiles)
         logit_quantile_net = self.quantile_net(logit_quantiles)
 
-        x = x.repeat(num_quantiles, 1)
+        x = x.repeat(self.num_quantiles, 1)
         q_x = x * q_quantile_net
         logit_x = x * logit_quantile_net
 
         q = self.Q(q_x).reshape(self.num_quantiles, batch_size, -1)
         logit = self.Q(logit_x).reshape(self.num_quantiles, batch_size, -1).mean(0)
 
-        return {'logit': logit, 'q': q, 'quantiles': quantiles}
+        return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
 
 class DuelingHead(nn.Module):
     def __init__(

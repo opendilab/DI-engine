@@ -153,9 +153,9 @@ class SAC(SoftActorCriticBase):
     def compute_critic(self, inputs: Dict[str, torch.Tensor], qv='q') -> Dict[str, torch.Tensor]:
         assert qv in ['q', 'v'], qv
         if 'q' == qv:
-            return compute_critic_q(inputs)
+            return self.compute_critic_q(inputs)
         else:
-            return compute_critic_v(inputs)
+            return self.compute_critic_v(inputs)
 
     def compute_actor(self,
                        inputs: Dict[str, torch.Tensor],
