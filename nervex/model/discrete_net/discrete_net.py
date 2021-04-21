@@ -36,7 +36,7 @@ class DiscreteNet(nn.Module):
         # parse arguments
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         embedding_dim = hidden_dim_list[-1]
-        action_dim = squeeze(action_dim)  # if action_dim is '(n,)', transform it in to 'n'.
+        action_dim = squeeze(action_dim) # if action_dim is '(n,)', transform it in to 'n'.
         use_multi_discrete = isinstance(action_dim, tuple)
         head_fn = head_fn_map[head_kwargs.pop('head_type')]
 
@@ -50,9 +50,9 @@ class DiscreteNet(nn.Module):
             self._lstm = get_lstm(**lstm_kwargs)
 
         # build head: the head encodes the observations into q-value of actions.
-        # if action_dim is a tuple, like '(3, 5)', it means there are two discrete action spaces, separately consisting of 3 and 5 actions.
-        self._head = MultiDiscreteHead(action_dim, embedding_dim, head_fn, **head_kwargs
-                                       ) if use_multi_discrete else head_fn(action_dim, embedding_dim, **head_kwargs)
+            # if action_dim is a tuple, like '(3, 5)', it means there are two discrete action spaces, separately consisting of 3 and 5 actions.
+        self._head = MultiDiscreteHead(action_dim, embedding_dim, head_fn, **head_kwargs) if use_multi_discrete \
+                else head_fn(action_dim, embedding_dim, **head_kwargs)
 
     def forward(self, inputs: Dict) -> Dict:
         r"""
@@ -184,7 +184,7 @@ class MultiDiscreteHead(nn.Module):
             - head_fn: class of head, like dueling_head, distribution_head, quatile_head, etc
             - head_kwargs: class-specific arguments
         """
-        super(Head, self).__init__()
+        super(MultiDiscreteHead, self).__init__()
         self.pred = nn.ModuleList()
         for dim in action_dim:
             self.pred.append(head_fn(input_dim, dim, **head_kwargs))
@@ -198,7 +198,7 @@ class MultiDiscreteHead(nn.Module):
         Returns:
             - return (:obj:`Dict`): dict of list
         """
-        return {k: [_[k] for _ in x] for k in x[0].keys()}
+        return {k:[_[k] for _ in x] for k in x[0].keys()}
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
@@ -224,6 +224,7 @@ FCDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
 
+
 SQNDiscreteNet = partial(
     DiscreteNet,
     hidden_dim_list=[512, 64],
@@ -235,6 +236,7 @@ SQNDiscreteNet = partial(
     }
 )
 MODEL_REGISTRY.register('sqn_discrete_net', SQNDiscreteNet)
+
 
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
@@ -248,6 +250,7 @@ NoiseDistributionFCDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('noise_dist_fc', NoiseDistributionFCDiscreteNet)
 
+
 NoiseFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -260,6 +263,7 @@ NoiseFCDiscreteNet = partial(
     }
 )
 
+
 ConvDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -270,6 +274,7 @@ ConvDiscreteNet = partial(
         'v_layer_num': 1
     }
 )
+
 
 FCRDiscreteNet = partial(
     DiscreteNet,
@@ -283,6 +288,7 @@ FCRDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
 
+
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -294,6 +300,7 @@ ConvRDiscreteNet = partial(
     }
 )
 MODEL_REGISTRY.register('convr_discrete_net', ConvRDiscreteNet)
+
 
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,
