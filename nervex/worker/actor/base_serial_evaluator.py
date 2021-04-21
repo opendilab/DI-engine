@@ -31,7 +31,7 @@ class BaseSerialEvaluator(object):
         self._stop_val = cfg.stop_val
         self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator', need_tb=True)
         for var in ['episode_count', 'step_count', 'avg_step_per_episode', 'avg_time_per_step', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std']:
+                    'reward_mean', 'reward_mean_env_step', 'reward_std', 'fake_reward_mean', 'fake_reward_mean_env_step']:
             self._tb_logger.register_var('evaluator/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -136,3 +136,88 @@ class BaseSerialEvaluator(object):
                 .format(eval_reward, self._stop_val)
             )
         return stop_flag, eval_reward
+
+
+    def fake_eval(self, train_iter: int, evaluator_env_num: int, env_step: int, n_episode: Optional[int] = None) -> Tuple[bool, float]:
+        '''
+        Overview:
+            Evaluate policy.
+        Arguments:
+            - train_iter (:obj:`int`): Current training iteration.
+            - n_episode (:obj:`int`): Number of evaluation episodes.
+        Returns:
+            - stop_flag (:obj:`bool`): Whether this training program can be ended.
+            - eval_reward (:obj:`float`): Current eval_reward.
+        '''
+        if n_episode is None:
+            n_episode = self._default_n_episode
+        assert n_episode is not None, "please indicate eval n_episode"
+        episode_count = 0
+        step_count = 0
+        episode_reward = []
+        episode_fake_reward = []
+        reward_sum = [0 for i in range(evaluator_env_num)]
+        info = {}
+        self.reset()
+        self._policy.reset()
+        with self._timer:
+            while episode_count < n_episode:
+                obs = self._env_manager.next_obs
+                self._obs_pool.update(obs)
+                env_id, obs = self._policy.data_preprocess(obs)
+                policy_output = self._policy.forward(env_id, obs)
+                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                self._policy_output_pool.update(policy_output)
+                actions = {i: a['action'] for i, a in policy_output.items()}
+                timesteps = self._env_manager.step(actions)
+                for i, t in timesteps.items():
+                    if t.info.get('abnormal', False):
+                        # If there is an abnormal timestep, reset all the related variables(including this env).
+                        self._policy.reset([i])
+                        continue
+                    reward_sum[i] += t.info['fake_final_eval_reward'].item()
+                    if t.done:
+                        # Env reset is done by env_manager automatically.
+                        self._policy.reset([i])
+                        reward = t.info['final_eval_reward']
+                        if isinstance(reward, torch.Tensor):
+                            reward = reward.item()
+                        episode_reward.append(reward)
+                        self._logger.info(
+                            "[EVALUATOR]env {} finish episode, final reward: {}, final fake reward: {},  current episode: {}".format(
+                                i, reward, reward_sum[i], episode_count
+                            )
+                        )
+                        episode_fake_reward.append(reward_sum[i])
+                        reward_sum[i] = 0
+                        episode_count += 1
+                    step_count += 1
+        duration = self._timer.value
+        info = {
+            'train_iter': train_iter,
+            'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
+            'episode_count': episode_count,
+            'step_count': step_count,
+            'avg_step_per_episode': step_count / episode_count,
+            'avg_time_per_step': duration / step_count,
+            'avg_time_per_episode': duration / episode_count,
+            'reward_mean': np.mean(episode_reward),
+            'fake_reward_mean': np.mean(episode_fake_reward),
+            'reward_std': np.std(episode_reward)
+        }
+        self._logger.info(
+            "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+        )
+        tb_vars = [['evaluator/' + k, v, train_iter] for k, v in info.items() if k not in ['train_iter', 'ckpt_name']]
+        tb_vars.append(['evaluator/fake_reward_mean_env_step', np.mean(episode_fake_reward), env_step])
+        tb_vars.append(['evaluator/reward_mean_env_step', np.mean(episode_reward), env_step])
+        self._tb_logger.add_val_list(tb_vars, viz_type='scalar')
+        eval_reward = np.mean(episode_reward)
+        stop_flag = eval_reward >= self._stop_val
+        if stop_flag:
+            self._logger.info(
+                "[EVALUATOR] current eval_reward: {} is greater than the stop_val: {}, so the training program is over."
+                    .format(eval_reward, self._stop_val)
+            )
+        return stop_flag, eval_reward
+

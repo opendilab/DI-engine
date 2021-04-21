@@ -113,7 +113,7 @@ def serial_pipeline(
         commander.step()
         # Evaluate at the beginning of training.
         if eval_interval >= cfg.evaluator.eval_freq:
-            stop_flag, eval_reward = evaluator.eval(learner.train_iter)
+            stop_flag, eval_reward = evaluator.fake_eval(learner.train_iter,cfg.evaluator.evaluator_env_num,actor.actor_info['env_step'])
             eval_interval = 0
             if stop_flag and learner.train_iter > 0:
                 # Evaluator's mean episode reward reaches the expected ``stop_val``.

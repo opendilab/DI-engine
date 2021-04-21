@@ -3,15 +3,14 @@ from easydict import EasyDict
 agent_num = 8
 actor_env_num = 8
 evaluator_env_num = 5
-#agent_num = 1
-#actor_env_num = 1
-#evaluator_env_num = 1
-smac_qmix_default_config = dict(
+smac_qmix_default_config_nandu1_9 = dict(
     env=dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.smac.envs.smac_env'],
         env_type='smac',
         map_name='3s5z',
+        difficulty=1,
+        reward_only_positive=True,
         agent_num=agent_num,
         actor_env_num=actor_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -21,10 +20,10 @@ smac_qmix_default_config = dict(
         use_cuda=True,
         policy_type='qmix',
         import_names=['nervex.policy.qmix'],
-        on_policy=True,
+        on_policy=False,
         model=dict(
             agent_num=agent_num,
-            obs_dim=248,
+            obs_dim=150,
             global_obs_dim=216,
             action_dim=14,
             embedding_dim=64,
@@ -34,15 +33,15 @@ smac_qmix_default_config = dict(
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,
-            weight_decay=0.0001,
+            # weight_decay=0.0001,
             algo=dict(
-                target_update_theta=0.001,
+                target_update_theta=0.0001,
                 discount_factor=0.99,
             ),
         ),
         collect=dict(
             traj_len='inf',
-            unroll_len=16,
+            unroll_len=20,
             agent_num=agent_num,
             env_num=actor_env_num,
         ),
@@ -52,21 +51,21 @@ smac_qmix_default_config = dict(
         ),
         command=dict(eps=dict(
             type='exp',
-            start=1.0,
+            start=1,
             end=0.05,
-            decay=100000,
+            decay=50000,
         ), ),
     ),
     replay_buffer=dict(
         buffer_name=['agent'],
         agent=dict(
-            meta_maxlen=5000,
+            maxlen=5000,
             max_reuse=10,
             min_sample_ratio=1,
         ),
     ),
     actor=dict(
-        n_episode=4,
+        n_episode=8,
         traj_len=1000,  # smac_episode_max_length
         traj_print_freq=100,
         collect_print_freq=100,
@@ -89,5 +88,5 @@ smac_qmix_default_config = dict(
     ),
     commander=dict(),
 )
-smac_qmix_default_config = EasyDict(smac_qmix_default_config)
-main_config = smac_qmix_default_config
+smac_qmix_default_config_nandu1_9 = EasyDict(smac_qmix_default_config_nandu1_9)
+main_config = smac_qmix_default_config_nandu1_9

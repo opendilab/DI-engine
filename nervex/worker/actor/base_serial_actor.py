@@ -38,7 +38,7 @@ class BaseSerialActor(object):
         self._logger, self._tb_logger = build_logger(path='./log/actor', name='collect', need_tb=True)
         for var in ['episode_count', 'step_count', 'train_sample_count', 'avg_step_per_episode',
                     'avg_sample_per_epsiode', 'avg_time_per_step', 'avg_time_per_train_sample', 'avg_time_per_episode',
-                    'reward_mean', 'reward_std']:
+                    'reward_mean', 'reward_std', 'fake_reward_mean']:
             self._tb_logger.register_var('actor/' + var)
         self._timer = EasyTimer()
         self._cfg = cfg
@@ -137,6 +137,7 @@ class BaseSerialActor(object):
         step_count = 0
         train_sample_count = 0
         episode_reward = []
+        episode_fake_reward = []
         return_data = []
         info = {}
         self._policy.reset()
@@ -185,9 +186,11 @@ class BaseSerialActor(object):
                         self._policy_output_pool.reset(env_id)
                         self._policy.reset([env_id])
                         reward = timestep.info['final_eval_reward']
+                        fake_reward = timestep.info['fake_final_eval_reward']
                         if isinstance(reward, torch.Tensor):
                             reward = reward.item()
                         episode_reward.append(reward)
+                        episode_fake_reward.append(fake_reward)
                         episode_count += 1
                         self._total_episode_count += 1
                     step_count += 1
@@ -206,6 +209,7 @@ class BaseSerialActor(object):
                 'reward_mean': np.mean(episode_reward) if len(episode_reward) > 0 else 0.,
                 'reward_std': np.std(episode_reward) if len(episode_reward) > 0 else 0.,
                 'each_reward': episode_reward,
+                'fake_reward_mean': np.mean(episode_fake_reward) if len(episode_fake_reward) > 0 else 0.
             }
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             tb_vars = [['actor/' + k, v, iter_count] for k, v in info.items() if k not in ['each_reward']]

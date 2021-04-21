@@ -71,7 +71,9 @@ class SMACEnv(SC2Env, BaseEnv):
         self.two_player = two_player
         assert map_name is not None
         map_params = get_map_params(map_name)
-        self.difficulty = 7
+        self.reward_only_positive=cfg.get('reward_only_positive',True)
+        self.difficulty = cfg.get('difficulty',7)
+        mirror_opponent=cfg.get('mirror_opponent',True)
         self.players, self.num_players = self._get_players(
             "agent_vs_agent" if self.two_player else "game_vs_bot",
             player1_race=map_params["a_race"],
@@ -160,7 +162,7 @@ class SMACEnv(SC2Env, BaseEnv):
         # self._episode_step = 0
 
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
-        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, reward_type)
+        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, reward_type, self.max_reward, reward_only_positive=self.reward_only_positive)
 
     def seed(self, seed):
         self._seed = seed
@@ -392,6 +394,7 @@ class SMACEnv(SC2Env, BaseEnv):
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
             new_infos['final_eval_reward'] = infos['final_eval_reward']
+            new_infos['fake_final_eval_reward'] = infos['fake_final_eval_reward']
             infos = new_infos
             obs = {
                 'agent_state': self.get_obs(),
@@ -418,7 +421,8 @@ class SMACEnv(SC2Env, BaseEnv):
         for k in reward:
             reward[k] = np.array(reward[k]).astype(np.float32)
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.,
+                'fake_final_eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -445,13 +449,14 @@ class SMACEnv(SC2Env, BaseEnv):
             self.battles_game += 1
             self.timeouts += 1
 
-            if sum(u.health + u.shield for u in self.agents.values()) >= \
-                    sum(u.health + u.shield for u in self.enemies.values()):
-                reward[ORIGINAL_AGENT] += 1
-                reward[OPPONENT_AGENT] += -1
-            else:
-                reward[ORIGINAL_AGENT] += -1
-                reward[OPPONENT_AGENT] += 1
+            # if sum(u.health + u.shield for u in self.agents.values()) >= \
+            #         sum(u.health + u.shield for u in self.enemies.values()):
+            #     # lj fix
+            #     reward[ORIGINAL_AGENT] += 1
+            #     reward[OPPONENT_AGENT] += -1
+            # else:
+            #     reward[ORIGINAL_AGENT] += -1
+            #     reward[OPPONENT_AGENT] += 1
 
         if terminated:
             self._episode_count += 1
@@ -465,7 +470,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
         # Test purpose
         # reward = {k: 0 * v + 100 for k, v in reward.items()}
-
+        info['fake_final_eval_reward'] = reward[ORIGINAL_AGENT]
         return reward, {ORIGINAL_AGENT: terminated, OPPONENT_AGENT: terminated, "__all__": terminated}, info
 
     def close(self):
@@ -762,9 +767,10 @@ class SMACEnv(SC2Env, BaseEnv):
                         type_id = self.get_unit_type_id(al_unit, True, is_opponent)
                         ally_feats[i, ind + type_id] = 1
                         ind += self.unit_type_bits
-
-                    if self.obs_last_action:
-                        ally_feats[i, ind:] = self.action_helper.get_last_action(is_opponent)[al_id]
+                    
+                    # LJ fix
+                    # if self.obs_last_action:
+                    #     ally_feats[i, ind:] = self.action_helper.get_last_action(is_opponent)[al_id]
 
             # Own features
             ind = 0
@@ -790,7 +796,6 @@ class SMACEnv(SC2Env, BaseEnv):
         agent_id_feats[agent_id] = 1
         # Only set to false by outside wrapper
         if self.flatten_observation:
-
             agent_obs = np.concatenate(
                 (
                     move_feats.flatten(),
@@ -841,8 +846,9 @@ class SMACEnv(SC2Env, BaseEnv):
         if self.obs_all_health:
             nf_al += 1 + self.shield_bits_ally
 
-        if self.obs_last_action:
-            nf_al += self.n_actions
+        # LJ fix
+        # if self.obs_last_action:
+        #     nf_al += self.n_actions
 
         return self.n_agents - 1, nf_al
 

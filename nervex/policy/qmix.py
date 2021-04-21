@@ -3,8 +3,8 @@ from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
+from nervex.torch_utils import Adam, to_device, RMSprop
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, v_1step_td_data_with_mask, v_1step_td_error_with_mask, epsilon_greedy, Adder
 from nervex.model import QMix
 from nervex.armor import Armor
 from nervex.data import timestep_collate
@@ -34,12 +34,15 @@ class QMIXPolicy(CommonPolicy):
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
+        # self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate,grad_clip_type='clip_norm',clip_value=10)
         self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
 
         self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
+        # self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin(
             'main',
             'hidden_state',
@@ -107,6 +110,15 @@ class QMIXPolicy(CommonPolicy):
 
         data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
         loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        # mask = 1 - data['done']
+        # T, B = mask.shape
+        # for j in range(B):
+        #     for i in range(T):
+        #         if mask[i, j] == 0:
+        #             mask[i, j] = 1
+        #             break
+        # data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
+        # loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
         # ====================
         # Q-mix update
         # ====================
