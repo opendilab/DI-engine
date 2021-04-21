@@ -8,8 +8,10 @@ import numpy as np
 from easydict import EasyDict
 from functools import partial
 from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
+from nervex.envs.env_manager.base_env_manager import EnvState
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from nervex.utils.time_helper import WatchDog
 
 
 class EnvException(Exception):
@@ -21,42 +23,70 @@ def setup_exception():
     return EnvException
 
 
+@pytest.fixture(scope='module')
+def setup_watchdog():
+    return WatchDog
+
+
 class FakeEnv(object):
 
     def __init__(self, cfg):
-        self._target_step = random.randint(3, 6) * 2
-        self._current_step = 0
+        self._target_time = random.randint(3, 6)
+        self._current_time = 0
         self._name = cfg['name']
         self._stat = None
         self._seed = 0
         self._data_count = 0
         self.timeout_flag = False
+        self._launched = False
+        self._state = EnvState.INIT
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
-            raise EnvException("reset error: {}".format(stat))
+            self.dead()
         if isinstance(stat, str) and stat == "timeout":
             if self.timeout_flag:  # after step(), the reset can hall with status of timeout
                 time.sleep(5)
+        if isinstance(stat, str) and stat == "block":
+            self.block()
 
-        self._current_step = 0
+        self._launched = True
+        self._current_time = 0
         self._stat = stat
+        self._state = EnvState.RUN
 
     def step(self, action):
+        assert self._launched
+        assert not self._state == EnvState.ERROR
         self.timeout_flag = True  # after one step, enable timeout flag
         if isinstance(action, str) and action == 'error':
-            raise EnvException("env error, current step {}".format(self._current_step))
+            self.dead()
         if isinstance(action, str) and action == 'catched_error':
             return BaseEnvTimestep(None, None, True, {'abnormal': True})
+        if isinstance(action, str) and action == "timeout":
+            if self.timeout_flag:  # after step(), the reset can hall with status of timeout
+                time.sleep(3)
+        if isinstance(action, str) and action == 'block':
+            self.block()
         obs = to_ndarray(torch.randn(3))
         reward = to_ndarray(torch.randint(0, 2, size=[1]).numpy())
-        done = self._current_step >= self._target_step
-        simulation_time = random.uniform(1.0, 1.5)
-        info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_step, 'cur': self._current_step}
+        done = self._current_time >= self._target_time
+        if done:
+            self._state = EnvState.DONE
+        simulation_time = random.uniform(0.5, 1)
+        info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_time, 'cur': self._current_time}
         time.sleep(simulation_time)
-        self._current_step += simulation_time
+        self._current_time += simulation_time
         self._data_count += 1
         return BaseEnvTimestep(obs, reward, done, info)
+
+    def dead(self):
+        self._state = EnvState.ERROR
+        raise EnvException("env error, current time {}".format(self._current_time))
+
+    def block(self):
+        self._state = EnvState.ERROR
+        time.sleep(1000)
 
     def info(self):
         T = EnvElementInfo
@@ -78,7 +108,8 @@ class FakeEnv(object):
         )
 
     def close(self):
-        pass
+        self._launched = False
+        self._state = EnvState.INIT
 
     def seed(self, seed):
         self._seed = seed
@@ -122,6 +153,9 @@ def get_manager_cfg(env_num=4):
             'name': 'name{}'.format(i),
         } for i in range(env_num)],
         'episode_num': 2,
+        'reset_timeout': 10,
+        'step_timeout': 8,
+        'max_retry': 5,
     }
     return EasyDict(manager_cfg)
 
@@ -139,6 +173,6 @@ def setup_async_manager_cfg():
     manager_cfg = get_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
-    manager_cfg['reset_timeout'] = 4
     manager_cfg['shared_memory'] = False
+    manager_cfg['connect_timeout'] = 30
     return manager_cfg

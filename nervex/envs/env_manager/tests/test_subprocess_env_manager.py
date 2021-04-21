@@ -1,8 +1,9 @@
 import time
-
+import signal
 import pytest
 import torch
 
+from ..base_env_manager import EnvState
 from ..subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 
 
@@ -15,12 +16,26 @@ class TestSubprocessEnvManager:
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        assert all([s == 314 for s in env_manager._seed])
+        assert all([s == 'stat_test'] for s in env_manager._stat)
+        # Test basic
         name = env_manager._name
         for i in range(env_manager.env_num):
             assert name[i] == 'name{}'.format(i)
-        assert all([s == 314 for s in env_manager._seed])
-        assert all([s == 'stat_test'] for s in env_manager._stat)
-
+        assert len(name) == env_manager.env_num
+        assert all([isinstance(n, str) for n in name])
+        name = env_manager.name
+        assert len(name) == env_manager.env_num
+        assert all([isinstance(n, str) for n in name])
+        assert env_manager._max_retry == 5
+        assert env_manager._reset_timeout == 10
+        # Test arribute
+        with pytest.raises(AttributeError):
+            data = env_manager.xxx
+        env_manager._env_ref.user_defined()
+        with pytest.raises(RuntimeError):
+            env_manager.user_defined()
+        # Test step
         env_count = [0 for _ in range(env_manager.env_num)]
         data_count = 0
         start_time = time.time()
@@ -33,58 +48,60 @@ class TestSubprocessEnvManager:
             timestep = env_manager.step(action)
             data_count += len(timestep)
             assert len(timestep) >= 1
-            print('timestep', timestep.keys(), timestep)
+            print('timestep', timestep.keys(), timestep, len(timestep))
             for k, t in timestep.items():
                 if t.done:
                     print('env{} finish episode{}'.format(k, env_count[k]))
                     env_count[k] += 1
         assert all([c == setup_async_manager_cfg.episode_num for c in env_count])
         assert data_count == sum(env_manager._data_count)
+        assert all([env_manager._env_states[env_id] == EnvState.DONE for env_id in range(env_manager.env_num)])
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
 
+        # Test close
         env_manager.close()
-        env_manager.close()
+        assert env_manager._closed
+        with pytest.raises(AssertionError):
+            env_manager.reset([])
+        with pytest.raises(AssertionError):
+            env_manager.step([])
 
     def test_error(self, setup_async_manager_cfg, setup_exception):
         env_manager = SyncSubprocessEnvManager(**setup_async_manager_cfg)
-        with pytest.raises(Exception):
+        # Test reset error
+        with pytest.raises(AssertionError):
+            env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        with pytest.raises(RuntimeError):
             obs = env_manager.launch(reset_param=[{'stat': 'error'} for _ in range(env_manager.env_num)])
         assert env_manager._closed
         time.sleep(0.5)  # necessary time interval
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
         assert not env_manager._closed
-        with pytest.raises(AttributeError):
-            data = env_manager.xxx
-        with pytest.raises(AttributeError):
-            data = env_manager.xxx()
+
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
-        env_manager._env_ref.user_defined()
-        with pytest.raises(RuntimeError):
-            env_manager.user_defined()
-        name = env_manager._name
-        assert len(name) == env_manager.env_num
-        assert all([isinstance(n, str) for n in name])
-        name = env_manager.name
-        assert len(name) == env_manager.env_num
-        assert all([isinstance(n, str) for n in name])
+
+        # Test step catched error
         action = {i: torch.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'catched_error'
         timestep = env_manager.step(action)
-        assert len(name) == env_manager.env_num
+
         assert timestep[0].info['abnormal']
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
-        assert env_manager._env_states[0] == 3  # reset
+        assert env_manager._env_states[0] == EnvState.RESET
         assert len(env_manager.ready_obs) == 3
         # wait for reset
         while not len(env_manager.ready_obs) == env_manager.env_num:
             time.sleep(0.1)
-        assert env_manager._env_states[0] == 2  # run
+        assert env_manager._env_states[0] == EnvState.RUN
         assert len(env_manager.ready_obs) == 4
-        # with pytest.raises(setup_exception):
+        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+
+        # Test step error
+        action[0] = 'error'
         with pytest.raises(Exception):
-            timestep = env_manager.step({i: 'error' for i in range(env_manager.env_num)})
+            timestep = env_manager.step(action)
         assert env_manager._closed
 
         env_manager.close()
@@ -93,16 +110,52 @@ class TestSubprocessEnvManager:
         with pytest.raises(AssertionError):
             env_manager.step([])
 
-    def test_reset(self, setup_async_manager_cfg):
+    def test_block(self, setup_async_manager_cfg, setup_watchdog, setup_model_type):
         env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
-        with pytest.raises(AssertionError):
-            env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        watchdog = setup_watchdog(60)
+        model = setup_model_type()
+        # Test reset timeout
+        watchdog.start()
+        with pytest.raises(RuntimeError):
+            reset_param = [{'stat': 'block'} for _ in range(env_manager.env_num)]
+            obs = env_manager.launch(reset_param=reset_param)
+        assert env_manager._closed
+        time.sleep(0.5)
+        reset_param = [{'stat': 'stat_test'} for _ in range(env_manager.env_num)]
+        reset_param[0]['stat'] = 'timeout'
+        obs = env_manager.launch(reset_param=reset_param)
+        time.sleep(0.5)
+        assert not env_manager._closed
+
+        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        obs = env_manager.ready_obs
+        assert len(obs) >= 1
+        watchdog.stop()
+
+        # Test step timeout
+        watchdog.start()
+        obs = env_manager.reset([{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        action = {i: torch.randn(4) for i in range(env_manager.env_num)}
+        action[0] = 'block'
+        with pytest.raises(TimeoutError):
+            timestep = env_manager.step(action)
+            obs = env_manager.ready_obs
+            while 0 not in obs:
+                action = model.forward(obs)
+                timestep = env_manager.step(action)
+                obs = env_manager.ready_obs
+        time.sleep(0.5)
+
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
-        assert len(timestep) <= env_manager.env_num
-        env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
-        assert len(timestep) <= env_manager.env_num
-        env_manager.reset(reset_param=[{'stat': 'timeout'} for _ in range(env_manager.env_num)])
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
-        assert len(timestep) > 0
+        time.sleep(0.5)
+        action[0] = 'timeout'
+        timestep = env_manager.step(action)
+        obs = env_manager.ready_obs
+        while 0 not in obs:
+            action = model.forward(obs)
+            timestep = env_manager.step(action)
+            obs = env_manager.ready_obs
+        assert len(obs) >= 1
+        watchdog.stop()
+
+        env_manager.close()
