@@ -9,7 +9,9 @@ from nervex.torch_utils import fc_block, noise_block, NoiseLinearLayer, mlp
 from typing import Callable
 from nervex.rl_utils import beta_function_map
 
+
 class BaseHead(nn.Module):
+
     def __init__(
         self,
         hidden_dim: int,
@@ -35,14 +37,26 @@ class BaseHead(nn.Module):
         super(BaseHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
+        self.Q = nn.Sequential(
+            mlp(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                layer_num,
+                layer_fn=layer,
+                init_type=init_type,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_dim, action_dim, init_type=init_type)
+        )
 
     def forward(self, x: torch.Tensor) -> Dict:
         logit = self.Q(x)
         return {'logit': logit}
 
+
 class DistributionHead(nn.Module):
+
     def __init__(
         self,
         hidden_dim: int,
@@ -71,8 +85,18 @@ class DistributionHead(nn.Module):
         super(DistributionHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim * n_atom, init_type=init_type))
+        self.Q = nn.Sequential(
+            mlp(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                layer_num,
+                layer_fn=layer,
+                init_type=init_type,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_dim, action_dim * n_atom, init_type=init_type)
+        )
         self.action_dim = action_dim
         self.n_atom = n_atom
         self.v_min = v_min
@@ -87,7 +111,9 @@ class DistributionHead(nn.Module):
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
 
+
 class QuantileHead(nn.Module):
+
     def __init__(
         self,
         hidden_dim: int,
@@ -116,8 +142,18 @@ class QuantileHead(nn.Module):
         super(QuantileHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
+        self.Q = nn.Sequential(
+            mlp(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                layer_num,
+                layer_fn=layer,
+                init_type=init_type,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_dim, action_dim, init_type=init_type)
+        )
         self.num_quantiles = num_quantiles
         self.quantile_embedding_dim = quantile_embedding_dim
         self.action_dim = action_dim
@@ -127,8 +163,7 @@ class QuantileHead(nn.Module):
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
         quantile_net = torch.cos(
-            torch.arange(1, self.quantile_embedding_dim + 1, 1).to(quantiles) * math.pi *
-            quantile_net
+            torch.arange(1, self.quantile_embedding_dim + 1, 1).to(quantiles) * math.pi * quantile_net
         )
         quantile_net = self.iqn_fc(quantile_net)
         quantile_net = F.relu(quantile_net)
@@ -153,7 +188,9 @@ class QuantileHead(nn.Module):
 
         return {'logit': logit, 'q': q, 'quantiles': quantiles}
 
+
 class DuelingHead(nn.Module):
+
     def __init__(
         self,
         hidden_dim: int,
@@ -181,16 +218,37 @@ class DuelingHead(nn.Module):
         super(DuelingHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.A = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, a_layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
-        self.V = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, v_layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, 1, init_type=init_type))
+        self.A = nn.Sequential(
+            mlp(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                a_layer_num,
+                layer_fn=layer,
+                init_type=init_type,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_dim, action_dim, init_type=init_type)
+        )
+        self.V = nn.Sequential(
+            mlp(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                v_layer_num,
+                layer_fn=layer,
+                init_type=init_type,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_dim, 1, init_type=init_type)
+        )
 
     def forward(self, x: torch.Tensor) -> Dict:
         a = self.A(x)
         v = self.V(x)
         logit = a - a.mean(dim=-1, keepdim=True) + v
         return {'logit': logit}
+
 
 head_fn_map = {
     'base': BaseHead,

@@ -271,6 +271,7 @@ def fc_block(
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
 
+
 def mlp(
     in_channels,
     hidden_channels,
@@ -322,6 +323,7 @@ def mlp(
             block.append(nn.Dropout(dropout_probability))
 
     return sequential_pack(block)
+
 
 class ChannelShuffle(nn.Module):
     r"""

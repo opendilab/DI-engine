@@ -158,8 +158,8 @@ class SAC(SoftActorCriticBase):
             return compute_critic_v(inputs)
 
     def compute_actor(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+                      inputs: Dict[str, torch.Tensor],
+                      deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         mean, log_std = self._policy_net_forward(state_input)
         std = log_std.exp()

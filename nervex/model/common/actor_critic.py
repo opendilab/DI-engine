@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class ActorCriticBase(nn.Module):
     r"""
     Overview:
@@ -57,6 +58,7 @@ class ActorCriticBase(nn.Module):
 
     def _critic_forward(self, inputs, **kwargs):
         raise NotImplementedError
+
 
 class ValueActorCriticBase(nn.Module):
     r"""
