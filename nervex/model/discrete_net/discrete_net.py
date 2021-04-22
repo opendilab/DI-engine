@@ -239,6 +239,22 @@ SQNDiscreteNet = partial(
 MODEL_REGISTRY.register('sqn_discrete_net', SQNDiscreteNet)
 
 
+class SQNModel(nn.Module):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super(SQNModel, self).__init__()
+        self.q0 = SQNDiscreteNet(*args, **kwargs)
+        self.q1 = SQNDiscreteNet(*args, **kwargs)
+
+    def forward(self, data: dict) -> dict:
+        output0 = self.q0(data)
+        output1 = self.q1(data)
+        return {
+            'q_value': [output0['logit'], output1['logit']],
+            'logit': output0['logit'],
+        }
+MODEL_REGISTRY.register('sqn_model', SQNModel)
+
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},

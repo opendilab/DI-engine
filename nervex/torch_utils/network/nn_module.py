@@ -84,7 +84,6 @@ def conv1d_block(
     padding=0,
     dilation=1,
     groups=1,
-    init_type="xavier",
     activation=None,
     norm_type=None
 ):
@@ -103,7 +102,6 @@ def conv1d_block(
         - padding (:obj:`int`): Zero-padding added to both sides of the input
         - dilation (:obj:`int`): Spacing between kernel elements
         - groups (:obj:`int`): Number of blocked connections from input channels to output channels
-        - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
 
@@ -112,7 +110,6 @@ def conv1d_block(
     """
     block = []
     block.append(nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups))
-    weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
@@ -128,7 +125,6 @@ def conv2d_block(
     padding=0,
     dilation=1,
     groups=1,
-    init_type="xavier",
     pad_type='zero',
     activation=None,
     norm_type=None
@@ -148,7 +144,6 @@ def conv2d_block(
         - padding (:obj:`int`): Zero-padding added to both sides of the input
         - dilation (:obj:`int`): Spacing between kernel elements
         - groups (:obj:`int`): Number of blocked connections from input channels to output channels
-        - init_type (:obj:`str`): the type of init to implement
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
@@ -170,7 +165,6 @@ def conv2d_block(
     block.append(
         nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, groups=groups)
     )
-    weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
@@ -186,7 +180,6 @@ def deconv2d_block(
     padding=0,
     output_padding=0,
     groups=1,
-    init_type="xavier",
     activation=None,
     norm_type=None
 ):
@@ -203,7 +196,6 @@ def deconv2d_block(
         - kernel_size (:obj:`int`): Size of the convolving kernel
         - stride (:obj:`int`): Stride of the convolution
         - padding (:obj:`int`): Zero-padding added to both sides of the input
-        - init_type (:obj:`str`): the type of init to implement
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
@@ -224,7 +216,6 @@ def deconv2d_block(
             groups=groups
         )
     )
-    weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
@@ -235,7 +226,6 @@ def deconv2d_block(
 def fc_block(
     in_channels,
     out_channels,
-    init_type="xavier",
     activation=None,
     norm_type=None,
     use_dropout=False,
@@ -249,7 +239,6 @@ def fc_block(
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
-        - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
@@ -262,7 +251,6 @@ def fc_block(
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
-    weight_init_(block[-1].weight, init_type, activation)
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
@@ -271,18 +259,16 @@ def fc_block(
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
 
-
-def mlp(
-    in_channels,
-    hidden_channels,
-    out_channels,
-    layer_num,
+def MLP(
+    in_channels: int,
+    hidden_channels: int,
+    out_channels: int,
+    layer_num: int,
     layer_fn=None,
-    init_type="xavier",
     activation=None,
     norm_type=None,
-    use_dropout=False,
-    dropout_probability=0.5
+    use_dropout: bool = False,
+    dropout_probability: float = 0.5
 ):
     r"""
     Overview:
@@ -294,7 +280,6 @@ def mlp(
         - hidden_channels (:obj:`int`): Number of channels in the hidden tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
         - layer_num (:obj:`int`): Number of layers
-        - init_type (:obj:`str`): the type of init to implement
         - activation (:obj:`nn.Moduel`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
@@ -314,7 +299,6 @@ def mlp(
 
     for i, in_channels, out_channels in enumerate(zip(channels[:-1], channels[1:])):
         block.append(layer_fn(in_channels, out_channels))
-        weight_init_(block[-1].weight, init_type, activation)
         if norm_type is not None:
             block.append(build_normalization(norm_type, dim=1)(out_channels))
         if activation is not None:
@@ -323,7 +307,6 @@ def mlp(
             block.append(nn.Dropout(dropout_probability))
 
     return sequential_pack(block)
-
 
 class ChannelShuffle(nn.Module):
     r"""
@@ -561,7 +544,6 @@ class NoiseLinearLayer(nn.Module):
 def noise_block(
     in_channels: int,
     out_channels: int,
-    init_type=None,
     activation=None,
     norm_type=None,
     use_dropout=False,
@@ -576,7 +558,6 @@ def noise_block(
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
-        - init_type (:obj:`str`): the type of init to implement, no need for extra init here
         - activation (:obj:`str`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block

@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from nervex.torch_utils.network.nn_module import mlp
+from nervex.torch_utils.network.nn_module import MLP
 from ..common import ActorCriticBase, FCEncoder, ConvEncoder
 from ..actor_critic.value_ac import FCValueAC, ConvValueAC
 
@@ -31,7 +31,7 @@ class FCValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        self._critic = nn.Sequential(mlp(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+        self._critic = nn.Sequential(MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
                                         nn.Linear(head_hidden_dim, 1))
 
     def _setup_encoder(self) -> torch.nn.Module:
@@ -88,7 +88,7 @@ class ConvValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        self._critic = nn.Sequential(mlp(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+        self._critic = nn.Sequential(MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
                                         nn.Linear(head_hidden_dim, 1))
 
     def _setup_encoder(self) -> torch.nn.Module:

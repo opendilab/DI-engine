@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-from nervex.torch_utils import fc_block, noise_block, NoiseLinearLayer, mlp
+from nervex.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
 from typing import Callable
 from nervex.rl_utils import beta_function_map
 
@@ -17,7 +17,6 @@ class BaseHead(nn.Module):
         layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        init_type: Optional[str] = "xavier",
         noise: bool = False,
     ) -> None:
         r"""
@@ -35,8 +34,8 @@ class BaseHead(nn.Module):
         super(BaseHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
+        self.Q = nn.Sequential(MLP(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, activation=activation, norm_type=norm_type),
+                                block(hidden_dim, action_dim))
 
     def forward(self, x: torch.Tensor) -> Dict:
         logit = self.Q(x)
@@ -51,9 +50,9 @@ class DistributionHead(nn.Module):
         n_atom: int = 51,
         v_min: float = -10,
         v_max: float = 10,
+        is_cuda: bool = True,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        init_type: Optional[str] = "xavier",
         noise: bool = False,
     ) -> None:
         r"""
@@ -71,19 +70,20 @@ class DistributionHead(nn.Module):
         super(DistributionHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim * n_atom, init_type=init_type))
+        self.Q = nn.Sequential(MLP(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, activation=activation, norm_type=norm_type),
+                                block(hidden_dim, action_dim * n_atom))
         self.action_dim = action_dim
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
+        self.is_cuda = is_cuda
 
     def forward(self, x: torch.Tensor) -> Dict:
         q = self.Q(x)
         q = q.view(*q.shape[:-1], self.action_dim, self.n_atom)
         dist = torch.softmax(q, dim=-1) + 1e-6
         q = dist * torch.linspace(self.v_min, self.v_max,
-                                  self.n_atom).to(torch.device("cuda" if dist.is_cuda else "cpu"))
+                                  self.n_atom).to(torch.device("cuda" if self.is_cuda else "cpu"))
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
 
@@ -96,9 +96,9 @@ class QuantileHead(nn.Module):
         num_quantiles: int = 32,
         quantile_embedding_dim: int = 128,
         beta_function_type: str = 'uniform',
+        is_cuda: bool = True,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        init_type: Optional[str] = "xavier",
         noise: bool = False,
     ) -> None:
         r"""
@@ -116,13 +116,14 @@ class QuantileHead(nn.Module):
         super(QuantileHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.Q = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
+        self.Q = nn.Sequential(MLP(hidden_dim, hidden_dim, hidden_dim, layer_num, layer_fn=layer, activation=activation, norm_type=norm_type),
+                                block(hidden_dim, action_dim))
         self.num_quantiles = num_quantiles
         self.quantile_embedding_dim = quantile_embedding_dim
         self.action_dim = action_dim
         self.iqn_fc = nn.Linear(self.quantile_embedding_dim, hidden_dim)
         self.beta_function = beta_function_map[beta_function_type]
+        self.is_cuda = is_cuda
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
@@ -136,7 +137,7 @@ class QuantileHead(nn.Module):
 
     def forward(self, x: torch.Tensor) -> Dict:
         batch_size = x.shape[0]
-        device = torch.device("cuda" if x.is_cuda else "cpu")
+        device = torch.device("cuda" if self.is_cuda else "cpu")
 
         q_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
         logit_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
@@ -162,7 +163,6 @@ class DuelingHead(nn.Module):
         v_layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        init_type: Optional[str] = "xavier",
         noise: bool = False,
     ) -> None:
         r"""
@@ -181,10 +181,10 @@ class DuelingHead(nn.Module):
         super(DuelingHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.A = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, a_layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, action_dim, init_type=init_type))
-        self.V = nn.Sequential(mlp(hidden_dim, hidden_dim, hidden_dim, v_layer_num, layer_fn=layer, init_type=init_type, activation=activation, norm_type=norm_type),
-                                block(hidden_dim, 1, init_type=init_type))
+        self.A = nn.Sequential(MLP(hidden_dim, hidden_dim, hidden_dim, a_layer_num, layer_fn=layer, activation=activation, norm_type=norm_type),
+                                block(hidden_dim, action_dim))
+        self.V = nn.Sequential(MLP(hidden_dim, hidden_dim, hidden_dim, v_layer_num, layer_fn=layer, activation=activation, norm_type=norm_type),
+                                block(hidden_dim, 1))
 
     def forward(self, x: torch.Tensor) -> Dict:
         a = self.A(x)

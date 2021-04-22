@@ -11,27 +11,9 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from nervex.torch_utils import Adam
 from nervex.rl_utils import Adder, epsilon_greedy
 from nervex.armor import Armor
-from nervex.model import FCDiscreteNet, SQNDiscreteNet
 from nervex.utils import POLICY_REGISTRY
 from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
-
-
-class SQNModel(torch.nn.Module):
-
-    def __init__(self, *args, **kwargs) -> None:
-        super(SQNModel, self).__init__()
-        self.q0 = SQNDiscreteNet(*args, **kwargs)
-        self.q1 = SQNDiscreteNet(*args, **kwargs)
-
-    def forward(self, data: dict) -> dict:
-        output0 = self.q0(data)
-        output1 = self.q1(data)
-        return {
-            'q_value': [output0['logit'], output1['logit']],
-            'logit': output0['logit'],
-        }
-
 
 @POLICY_REGISTRY.register('sqn')
 class SQNPolicy(CommonPolicy):
@@ -300,13 +282,8 @@ class SQNPolicy(CommonPolicy):
         learner_step = command_info['learner_step']
         return {'eps': self.epsilon_greedy(learner_step)}
 
-    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
-        assert model is None
-        return SQNModel(**cfg.model)
-
     def default_model(self) -> None:
-        # placeholder
-        pass
+        return 'sqn_model', ['nervex.model.discrete_net.discrete_net']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

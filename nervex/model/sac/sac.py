@@ -11,7 +11,7 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from nervex.torch_utils.network.nn_module import mlp
+from nervex.torch_utils import MLP
 from ..common import SoftActorCriticBase
 
 
@@ -25,7 +25,7 @@ class SoftQNet(nn.Module):
         output_layer = nn.Linear(soft_q_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        self._main = nn.Sequential(mlp(input_dim, 256, soft_q_hidden_dim, 2, activation=self._act), output_layer)
+        self._main = nn.Sequential(MLP(input_dim, 256, soft_q_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -41,7 +41,7 @@ class ValueNet(nn.Module):
         output_layer = nn.Linear(value_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        self._main = nn.Sequential(mlp(input_dim, 256, value_hidden_dim, 2, activation=self._act), output_layer)
+        self._main = nn.Sequential(MLP(input_dim, 256, value_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -66,7 +66,7 @@ class PolicyNet(nn.Module):
         input_dim = squeeze(obs_dim)
         output_dim = squeeze(action_dim)
 
-        self._main = mlp(input_dim, 256, policy_hidden_dim, 2, activation=self._act)
+        self._main = MLP(input_dim, 256, policy_hidden_dim, 2, activation=self._act)
 
         self._mean_layer = nn.Linear(policy_hidden_dim, output_dim)
         self._mean_layer.weight.data.uniform_(-init_w, init_w)
