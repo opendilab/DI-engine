@@ -231,7 +231,6 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
-        self._policy.reset()
 
         # Forward
         log_vars = self._policy.forward(data)

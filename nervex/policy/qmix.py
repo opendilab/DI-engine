@@ -118,6 +118,9 @@ class QMIXPolicy(Policy):
             'total_loss': loss.item(),
         }
 
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._armor.reset(data_id=data_id)
+
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._model.state_dict(),
@@ -169,6 +172,9 @@ class QMIXPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_armor.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -230,6 +236,9 @@ class QMIXPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._eval_armor.reset(data_id=data_id)
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""

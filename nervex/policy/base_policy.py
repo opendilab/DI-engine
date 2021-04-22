@@ -147,8 +147,6 @@ class Policy(ABC):
         setattr(self, '_' + name, value)
 
     def _get_attribute(self, name: str) -> Any:
-        attributes = ['batch_size', 'use_cuda', 'device']
-        assert name in attributes, 'attr<{}> not in {}'.format(name, attributes)
         if hasattr(self, '_get_' + name):
             return getattr(self, '_get_' + name)()
         elif hasattr(self, '_' + name):
@@ -174,9 +172,9 @@ class Policy(ABC):
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
-    # @abstractmethod
-    # def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-    #    raise NotImplementedError
+    # don't need to implement default_model method by force
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        pass
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss']
@@ -204,9 +202,9 @@ class Policy(ABC):
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         raise NotImplementedError
 
-    # @abstractmethod
-    # def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-    #    raise NotImplementedError
+    # don't need to implement default_model method by force
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        pass
 
     def _state_dict_collect(self) -> Dict[str, Any]:
         return {'model': self._model.state_dict()}
@@ -220,24 +218,14 @@ class Policy(ABC):
     def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
-    # @abstractmethod
-    # def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-    #    raise NotImplementedError
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        pass
 
     def _state_dict_eval(self) -> Dict[str, Any]:
         return {'model': self._model.state_dict()}
 
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
         self._model.load_state_dict(state_dict['model'], strict=True)
-
-    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._armor.reset(data_id=data_id)
-
-    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_armor.reset(data_id=data_id)
-
-    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self._eval_armor.reset(data_id=data_id)
 
 
 class CommandModePolicy(Policy):
