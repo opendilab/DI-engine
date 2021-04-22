@@ -2,6 +2,7 @@ from abc import ABC
 from types import MethodType
 from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
 from functools import partial, wraps
+from easydict import EasyDict
 import copy
 from collections import namedtuple
 import numbers
@@ -85,6 +86,12 @@ class BaseEnvManager(object):
     Properties:
         env_num, ready_obs, done, method_name_list
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(cls.config)
+
+    config = dict()
 
     def __init__(
         self,
@@ -321,6 +328,9 @@ class BaseEnvManager(object):
 
     def env_info(self) -> namedtuple:
         return self._env_ref.info()
+
+    def env_default_config(self) -> EasyDict:
+        return self._env_ref.default_config()
 
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:

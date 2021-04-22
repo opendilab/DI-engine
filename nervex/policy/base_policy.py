@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractclassmethod
 from collections import namedtuple, deque
 from typing import Optional, List, Dict, Any, Tuple, Union
 
@@ -7,10 +7,15 @@ import copy
 from easydict import EasyDict
 
 from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
+from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
 
 
 class Policy(ABC):
+
+    @abstractclassmethod
+    def default_config(cls: type) -> EasyDict:
+        raise NotImplementedError
+
     learn_function = namedtuple(
         'learn_function', [
             'forward',
@@ -53,7 +58,7 @@ class Policy(ABC):
             model: Optional[Union[type, torch.nn.Module]] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
-        self._cfg = cfg
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
         model = self._create_model(cfg, model)
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._use_distributed = cfg.get('use_distributed', False)
@@ -94,6 +99,10 @@ class Policy(ABC):
                 return model
             else:
                 raise RuntimeError("invalid model: {}".format(type(model)))
+
+    @property
+    def cfg(self) -> EasyDict:
+        return self._cfg
 
     @abstractmethod
     def _init_learn(self) -> None:

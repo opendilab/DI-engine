@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import namedtuple, deque
+from easydict import EasyDict
 import copy
 import numpy as np
 import torch
@@ -18,6 +19,12 @@ class BaseSerialCollector(object):
         env, policy
     """
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
+
+    config = dict(collect_print_freq=100, )
+
     def __init__(
             self,
             cfg: dict,
@@ -31,19 +38,11 @@ class BaseSerialCollector(object):
         Arguments:
             - cfg (:obj:`EasyDict`): Config dict
         """
-        self._default_n_episode = cfg.get('n_episode', None)
-        self._default_n_sample = cfg.get('n_sample', None)
-        self._traj_len = cfg.traj_len
-        if self._traj_len != "inf":
-            self._traj_cache_length = self._traj_len
-        else:
-            self._traj_len = float('inf')
-            self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
-        if env is not None:
-            self.env = env
         if policy is not None:
             self.policy = policy
+        if env is not None:
+            self.env = env
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
@@ -72,6 +71,14 @@ class BaseSerialCollector(object):
     @policy.setter
     def policy(self, _policy: namedtuple) -> None:
         self._policy = _policy
+        self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
+        self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        self._traj_len = _policy.get_attribute('cfg').collect.traj_len
+        if self._traj_len != "inf":
+            self._traj_cache_length = self._traj_len
+        else:
+            self._traj_len = float('inf')
+            self._traj_cache_length = None
 
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)

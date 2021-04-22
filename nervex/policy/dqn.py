@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
-import torch
 import copy
+import torch
 import logging
 from easydict import EasyDict
 
@@ -20,6 +20,57 @@ class DQNPolicy(Policy):
     Overview:
         Policy class of DQN algorithm.
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
+
+    config = dict(
+        # RL policy register name (refer to function "register_policy").
+        policy_type='dqn',
+        # Whether to use cuda for network.
+        use_cuda=False,
+        # Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        learn=dict(
+            # How many iterations to train after collector's one collection.
+            # Bigger "train_iteration" means bigger off-policy.
+            # collect data -> train fixed iterations -> collect data -> ...
+            train_iteration=3,
+            batch_size=64,
+            learning_rate=0.001,
+            # L2 norm weight for network parameters.
+            weight_decay=0.0,
+            algo=dict(
+                # Frequence of target network update.
+                target_update_freq=100,
+                # Reward's future discount facotr, aka. gamma.
+                discount_factor=0.97,
+                # How many steps in td error.
+                nstep=1,
+            ),
+        ),
+        # collect_mode config
+        collect=dict(
+            n_sample=8,
+            traj_len=1,
+            # Cut trajectories into pieces with length "unrol_len".
+            unroll_len=1,
+            algo=dict(nstep=1, ),
+        ),
+        eval=dict(),
+        # other config
+        other=dict(
+            # Epsilon greedy with decay.
+            eps=dict(
+                # Decay type. Support ['exp', 'linear'].
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=10000,
+            ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         r"""

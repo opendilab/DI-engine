@@ -2,7 +2,9 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import torch
+import copy
 import numpy as np
+from easydict import EasyDict
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -26,6 +28,11 @@ def disable_gym_view_window():
 
 @ENV_REGISTRY.register('cartpole')
 class CartPoleEnv(BaseEnv):
+
+    config = dict(
+        n_episode=5,
+        stop_value=195,
+    )
 
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg

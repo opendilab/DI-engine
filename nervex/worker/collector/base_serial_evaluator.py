@@ -1,9 +1,10 @@
 from typing import List, Dict, Any, Optional, Callable, Tuple
 from collections import namedtuple
+from easydict import EasyDict
 import copy
 import numpy as np
 import torch
-from nervex.utils import build_logger, EasyTimer
+from nervex.utils import build_logger, EasyTimer, deep_merge_dicts
 from nervex.envs import BaseEnvManager
 from .base_serial_collector import CachePool
 
@@ -17,6 +18,15 @@ class BaseSerialEvaluator(object):
     Property:
         env, policy
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
+
+    config = dict(
+        # Evaluate every "eval_freq" training iterations.
+        eval_freq=50,
+    )
 
     def __init__(
             self,
@@ -33,8 +43,7 @@ class BaseSerialEvaluator(object):
         Arguments:
             - cfg (:obj:`EasyDict`)
         """
-        self._default_n_episode = cfg.get('n_episode', None)
-        self._stop_value = cfg.stop_value
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
         if env is not None:
             self.env = env
         if policy is not None:
@@ -45,7 +54,6 @@ class BaseSerialEvaluator(object):
         else:
             self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
         self._timer = EasyTimer()
-        self._cfg = cfg
         self._max_eval_reward = float("-inf")
         self._end_flag = False
         self._last_eval_iter = 0
@@ -60,6 +68,8 @@ class BaseSerialEvaluator(object):
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
+        self._default_n_episode = _env_manager.env_default_config().n_episode
+        self._stop_value = _env_manager.env_default_config().stop_value
 
     @property
     def policy(self) -> namedtuple:

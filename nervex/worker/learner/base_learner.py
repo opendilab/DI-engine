@@ -6,6 +6,7 @@ Main Function:
 """
 import os
 import time
+import copy
 from typing import Any, Union, Callable, List, Dict, Optional
 from functools import partial
 from easydict import EasyDict
@@ -97,6 +98,42 @@ class BaseLearner(object):
         tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
     """
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
+
+    config = dict(
+        load_path='',
+        use_distributed=False,
+        dataloader=dict(
+            batch_size=2,
+            chunk_size=2,
+            num_workers=0,
+        ),
+        # --- Hooks ---
+        hook=dict(
+            load_ckpt=dict(
+                name='load_ckpt',
+                type='load_ckpt',
+                priority=20,
+                position='before_run',
+            ),
+            log_show=dict(
+                name='log_show',
+                type='log_show',
+                priority=20,
+                position='after_iter',
+                ext_args=dict(freq=100),
+            ),
+            save_ckpt_after_run=dict(
+                name='save_ckpt_after_run',
+                type='save_ckpt',
+                priority=20,
+                position='after_run',
+            )
+        ),
+    )
+
     _name = "BaseLearner"  # override this variable for sub-class learner
 
     def __init__(
@@ -120,7 +157,7 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
-        self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
         self._use_distributed = self._cfg.use_distributed

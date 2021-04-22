@@ -1,6 +1,7 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.data import BufferManager
@@ -9,19 +10,37 @@ from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.entry.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
-from app_zoo.classic_control.cartpole.config import cartpole_dqn_default_config
+from nervex.utils import deep_merge_dicts
+from app_zoo.classic_control.cartpole.envs import CartPoleEnv
+from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 
 
-# Get NerveX form env class
+def compile_config(cfg, env, env_manager, policy, learner, collector, evaluator, buffer):
+    env_config = env.default_config()
+    env_config.manager = env_manager.default_config()
+    policy_config = policy.default_config()
+    policy_config.learn.learner = learner.default_config()
+    policy_config.collect.collector = collector.default_config()
+    policy_config.eval.evaluator = evaluator.default_config()
+    policy_config.other.buffer = buffer.default_config()
+    default_config = EasyDict({'env': env_config, 'policy': policy_config})
+    cfg = deep_merge_dicts(default_config, cfg)
+    # TODO export python-type config
+    return cfg
+
+
+# Get nerveX form env class
 def wrapped_cartpole_env():
     return NervexEnvWrapper(gym.make('CartPole-v0'))
 
 
 def main(cfg, seed=0):
-    # Set up collect and evaluate envs
-    collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
+    cfg = compile_config(cfg, CartPoleEnv, BaseEnvManager, DQNPolicy, BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BufferManager)
+    collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
+    # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
+    # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(collector_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(evaluator_env_num)])
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
@@ -34,10 +53,10 @@ def main(cfg, seed=0):
 
     # Set up collection, training and evaluation utilities
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
 
     # Set up other modules, etc. epsilon greedy
     eps_cfg = cfg.policy.other.eps
@@ -63,4 +82,4 @@ def main(cfg, seed=0):
 
 
 if __name__ == "__main__":
-    main(cartpole_dqn_default_config, seed=0)
+    main(cartpole_dqn_config, seed=0)

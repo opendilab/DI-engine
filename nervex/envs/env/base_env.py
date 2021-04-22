@@ -4,6 +4,7 @@ import logging
 import gym
 import copy
 import numpy as np
+from easydict import EasyDict
 from namedlist import namedlist
 from collections import namedtuple
 from nervex.utils import import_module, ENV_REGISTRY
@@ -18,6 +19,12 @@ class BaseEnv(gym.Env):
     Interface: __init__
     Property: timestep
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = cls.config
+        assert all([k in cfg for k in ['n_episode', 'stop_value']]), cfg
+        return copy.deepcopy(EasyDict(cfg))
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
