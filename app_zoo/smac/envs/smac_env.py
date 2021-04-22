@@ -737,7 +737,10 @@ class SMACEnv(SC2Env, BaseEnv):
                     if self.unit_type_bits > 0:
                         # If enemy is computer, than use ally=False, but since now we use
                         #  agent for enemy, ally=True
-                        type_id = self.get_unit_type_id(e_unit, True, not is_opponent)
+                        if self.two_player:
+                            type_id = self.get_unit_type_id(e_unit, True, not is_opponent)
+                        else:
+                            type_id = self.get_unit_type_id(e_unit, False, False)
                         enemy_feats[e_id, ind + type_id] = 1  # unit type
 
             # Ally features
