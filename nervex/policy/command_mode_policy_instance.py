@@ -1,5 +1,5 @@
 from nervex.utils import POLICY_REGISTRY
-from nervex.rl_utils import epsilon_greedy
+from nervex.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy
@@ -30,7 +30,7 @@ class EpsCommandModePolicy(CommandModePolicy):
             Set the eps_greedy rule according to the config for command
         """
         eps_cfg = self._cfg.other.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+        self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def _get_setting_collect(self, command_info: dict) -> dict:
         r"""

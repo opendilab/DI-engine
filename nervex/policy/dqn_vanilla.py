@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 
 from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error
 from nervex.model import FCDiscreteNet
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy

@@ -4,7 +4,7 @@ import torch
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.model import QMix
 from nervex.armor import Armor
 from nervex.data import timestep_collate

@@ -4,7 +4,7 @@ import torch
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
+from nervex.rl_utils import coma_data, coma_error, Adder
 from nervex.model import ComaNetwork
 from nervex.armor import Armor
 from nervex.data import timestep_collate

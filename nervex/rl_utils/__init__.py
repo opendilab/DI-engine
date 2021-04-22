@@ -1,4 +1,4 @@
-from .exploration import epsilon_greedy, create_noise_generator
+from .exploration import get_epsilon_greedy_fn, create_noise_generator
 from .ppo import ppo_data, ppo_loss, ppo_info, ppo_policy_data, ppo_policy_error, ppo_value_data, ppo_value_error,\
     ppo_error, ppo_error_continous
 from .ppg import ppg_data, ppg_joint_loss, ppg_joint_error

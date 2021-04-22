@@ -1,5 +1,8 @@
 import os
 import gym
+import random
+import numpy as np
+import torch
 from tensorboardX import SummaryWriter
 
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
@@ -8,17 +11,19 @@ from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.entry.utils import set_pkg_seed
-from nervex.rl_utils import epsilon_greedy
+from nervex.rl_utils import get_epsilon_greedy_fn
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
 
 
+def wrapped_cartpole_env():
+    return NervexEnvWrapper(gym.make('CartPole-v0'))
+
+
 def main(cfg, seed=0):
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(evaluator_env_num)])
-    # collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(collector_env_num)])
-    # evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
 
     collector_env.seed(seed)
     evaluator_env.seed(seed)
@@ -33,14 +38,14 @@ def main(cfg, seed=0):
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
 
     eps_cfg = cfg.policy.other.eps
-    epsilon_greedy_fn = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     while True:
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        eps = epsilon_greedy_fn(learner.train_iter)
+        eps = epsilon_greedy(learner.train_iter)
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.train_iteration):
