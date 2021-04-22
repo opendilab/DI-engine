@@ -66,8 +66,8 @@ cooperative_navigation_iql_default_config = dict(
         replay_buffer_size=5000,
         max_use=10,
     ),
-    collectorctor=dict(
-        n_episode=4,
+    collector=dict(
+        n_episode=6,
         traj_len='inf',
         collect_print_freq=100,
     ),

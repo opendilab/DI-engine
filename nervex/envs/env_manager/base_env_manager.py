@@ -1,13 +1,78 @@
 from abc import ABC
 from types import MethodType
-from typing import Union, Any, List, Callable, Iterable, Dict, Optional
+from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
+from functools import partial, wraps
 import copy
-from functools import partial
 from collections import namedtuple
 import numbers
 import torch
+import enum
+import time
+import traceback
+import signal
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from nervex.utils import ENV_MANAGER_REGISTRY, import_module
+from nervex.envs.env.base_env import BaseEnvTimestep
+from nervex.utils.time_helper import WatchDog
+
+
+class EnvState(enum.IntEnum):
+    VOID = 0
+    INIT = 1
+    RUN = 2
+    RESET = 3
+    DONE = 4
+    ERROR = 5
+
+
+def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: float = 0.1) -> Callable:
+    """
+    Overview:
+        Retry the function until exceeding the maximum retry times.
+    """
+
+    if func is None:
+        return partial(retry_wrapper, max_retry=max_retry)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        exceptions = []
+        for _ in range(max_retry):
+            try:
+                ret = func(*args, **kwargs)
+                return ret
+            except BaseException as e:
+                exceptions.append(e)
+                time.sleep(waiting_time)
+        e_info = ''.join(
+            [
+                'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
+                for i, e in enumerate(exceptions)
+            ]
+        )
+        func_exception = Exception("Function {} runtime error:\n{}".format(func, e_info))
+        raise RuntimeError("Function {} has exceeded max retries({})".format(func, max_retry)) from func_exception
+
+    return wrapper
+
+
+def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
+    if func is None:
+        return partial(timeout_wrapper, timeout=timeout)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        watchdog = WatchDog(timeout)
+        watchdog.start()
+        try:
+            ret = func(*args, **kwargs)
+            return ret
+        except BaseException as e:
+            raise e
+        finally:
+            watchdog.stop()
+
+    return wrapper
 
 
 @ENV_MANAGER_REGISTRY.register('base')
@@ -22,9 +87,13 @@ class BaseEnvManager(object):
     """
 
     def __init__(
-            self,
-            env_fn: List[Callable],
-            episode_num: Optional[Union[int, float]] = float('inf'),
+        self,
+        env_fn: List[Callable],
+        episode_num: Optional[Union[int, float]] = float('inf'),
+        max_retry: int = 1,
+        step_timeout: int = 60,
+        reset_timeout: int = 60,
+        retry_waiting_time: float = 0.1,
     ) -> None:
         """
         Overview:
@@ -42,6 +111,14 @@ class BaseEnvManager(object):
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
         self._env_replay_path = None
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn[0]()
+        self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
+
+        self._max_retry = max_retry
+        self._step_timeout = step_timeout
+        self._reset_timeout = reset_timeout
+        self._retry_waiting_time = retry_waiting_time
 
     @property
     def env_num(self) -> int:
@@ -65,11 +142,15 @@ class BaseEnvManager(object):
 
     @property
     def done(self) -> bool:
-        return all([self._env_episode_count[env_id] >= self._episode_num for env_id in range(self.env_num)])
+        return all([s == EnvState.DONE for s in self._env_states.values()])
 
     @property
     def method_name_list(self) -> list:
         return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
+
+    @property
+    def active_env(self) -> List[int]:
+        return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     def __getattr__(self, key: str) -> Any:
         """
@@ -103,16 +184,17 @@ class BaseEnvManager(object):
         self.reset(reset_param)
 
     def _create_state(self) -> None:
-        self._closed = False
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [e() for e in self._env_fn]
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
+        self._env_states = {i: EnvState.INIT for i in range(self._env_num)}
         if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
                 e.enable_save_replay(s)
+        self._closed = False
 
     def reset(self, reset_param: List[dict] = None) -> None:
         """
@@ -121,6 +203,7 @@ class BaseEnvManager(object):
         Arguments:
             - reset_param (:obj:`List`): list of reset parameters for each environment.
         """
+        self._check_closed()
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
@@ -132,15 +215,20 @@ class BaseEnvManager(object):
             self._reset(i)
 
     def _reset(self, env_id: int) -> None:
-        obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
-        self._ready_obs[env_id] = obs
 
-    def _safe_run(self, fn: Callable) -> Any:
+        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
+        @timeout_wrapper(timeout=self._reset_timeout)
+        def reset_fn():
+            return self._envs[env_id].reset(**self._reset_param[env_id])
+
         try:
-            return fn()
+            obs = reset_fn()
         except Exception as e:
+            self._env_states[env_id] = EnvState.ERROR
             self.close()
             raise e
+        self._ready_obs[env_id] = obs
+        self._env_states[env_id] = EnvState.RUN
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
@@ -159,18 +247,39 @@ class BaseEnvManager(object):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
         """
+
         self._check_closed()
         timesteps = {}
         for env_id, act in actions.items():
             act = self._transform(act)
-            timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
-            if timesteps[env_id].done:
+            timesteps[env_id] = self._step(env_id, act)
+            if timesteps[env_id].info.get('abnormal', False):
+                self._env_states[env_id] = EnvState.RESET
+                self._reset(env_id)
+            elif timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] < self._episode_num:
+                    self._env_states[env_id] = EnvState.RESET
                     self._reset(env_id)
+                else:
+                    self._env_states[env_id] = EnvState.DONE
             else:
                 self._ready_obs[env_id] = timesteps[env_id].obs
         return self._inv_transform(timesteps)
+
+    def _step(self, env_id: int, act: Any) -> namedtuple:
+
+        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
+        @timeout_wrapper(timeout=self._step_timeout)
+        def step_fn():
+            return self._envs[env_id].step(act)
+
+        try:
+            ret = step_fn()
+            return ret
+        except Exception as e:
+            self._env_states[env_id] = EnvState.ERROR
+            raise e
 
     def seed(self, seed: Union[List[int], int]) -> None:
         """
@@ -202,6 +311,8 @@ class BaseEnvManager(object):
         self._env_ref.close()
         for env in self._envs:
             env.close()
+        for i in range(self._env_num):
+            self._env_states[i] = EnvState.VOID
         self._closed = True
 
     def env_info(self) -> namedtuple:

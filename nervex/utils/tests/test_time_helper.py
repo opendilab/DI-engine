@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import time
-from nervex.utils.time_helper import build_time_helper
+from nervex.utils.time_helper import build_time_helper, WatchDog
 
 
 @pytest.mark.unittest
@@ -51,3 +51,15 @@ class TestTimeHelper:
         # time_lag is bigger than 1e-3
         # assert abs(t-1) < 1e-3
         assert abs(t - 1) < 1e-2
+
+
+@pytest.mark.unittest
+class TestWatchDog:
+
+    def test_naive(self):
+        watchdog = WatchDog(5)
+        watchdog.start()
+        time.sleep(4)
+        with pytest.raises(TimeoutError):
+            time.sleep(4)
+        time.sleep(4)

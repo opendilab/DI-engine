@@ -2,10 +2,11 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 """
 import time
-from typing import Callable
+from typing import Any, Callable
 
 import torch
 from easydict import EasyDict
+import signal
 
 
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
@@ -213,3 +214,33 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
             return cls.start_record.elapsed_time(cls.end_record) / 1000
 
     return TimeWrapperCuda
+
+
+class WatchDog(object):
+    """
+    Overview:
+        Simple watchdog timer to detect timeouts
+
+    Args:
+        timeout (int): Timeout value of the watchdog [seconds].
+            If it is not reset before exceeding this value, a TimeourError is raised.
+
+    Interface:
+        start, stop
+    """
+
+    def __init__(self, timeout: int = 1):
+        self._timeout = timeout + 1
+        self._failed = False
+
+    def start(self):
+        signal.signal(signal.SIGALRM, self._event)
+        signal.alarm(self._timeout)
+
+    @staticmethod
+    def _event(signum: Any, frame: Any):
+        raise TimeoutError()
+
+    def stop(self):
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, signal.SIG_DFL)
