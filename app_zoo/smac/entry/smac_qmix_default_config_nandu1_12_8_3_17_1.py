@@ -1,14 +1,14 @@
 from easydict import EasyDict
 
-agent_num = 2
+agent_num = 8
 actor_env_num = 16
 evaluator_env_num = 10
-smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg = dict(
+smac_qmix_default_config_nandu1_12_8_3_17_1 = dict(
     env=dict(
         env_manager_type='subprocess',
         import_names=['app_zoo.smac.envs.smac_env'],
         env_type='smac',
-        map_name='2c_vs_64zg',
+        map_name='3s5z',
         difficulty=8,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -24,13 +24,13 @@ smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg = dict(
         on_policy=False,
         model=dict(
             agent_num=agent_num,
-            obs_dim=404,
-            global_obs_dim=342,
-            action_dim=70,
+            obs_dim=150,
+            global_obs_dim=216,
+            action_dim=14,
             embedding_dim=64,
         ),
         learn=dict(
-            train_step=10,
+            train_step=20,
             batch_size=64,
             agent_num=agent_num,
             learning_rate=0.0005,
@@ -90,5 +90,5 @@ smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg = dict(
     ),
     commander=dict(),
 )
-smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg = EasyDict(smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg)
-main_config = smac_qmix_default_config_nandu1_12_8_3_17_2c_vs_64zg
+smac_qmix_default_config_nandu1_12_8_3_17_1 = EasyDict(smac_qmix_default_config_nandu1_12_8_3_17_1)
+main_config = smac_qmix_default_config_nandu1_12_8_3_17_1

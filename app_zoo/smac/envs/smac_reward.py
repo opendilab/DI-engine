@@ -8,7 +8,8 @@ OPPONENT_AGENT = "opponent"
 class SMACReward:
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
-    def __init__(self, n_agents, n_enemies, two_player, reward_type, max_reward, reward_scale=True, reduce_agent=True,reward_only_positive=True):
+    def __init__(self, n_agents, n_enemies, two_player, reward_type, max_reward, reward_scale=True, reduce_agent=True,
+                 reward_only_positive=True):
         self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
         self.max_reward = max_reward
@@ -28,7 +29,10 @@ class SMACReward:
 
         self.two_player = two_player
 
-    def reset(self):
+    def reset(self, max_reward):
+        self.max_reward = max_reward
+        if self.reward_type == 'original':
+            self.info().value['max']= self.max_reward / self.reward_scale_rate
         self.death_tracker_ally.fill(0)
         self.death_tracker_enemy.fill(0)
 
@@ -156,9 +160,10 @@ class SMACReward:
         #         reward[my_id] += 2
 
         if self.reward_only_positive:
-            reward = abs((delta_deaths + delta_death_enemy + delta_enemy).sum())
+            # reward = abs((delta_deaths + delta_death_enemy + delta_enemy).sum())
+            reward = abs(delta_deaths.sum() + delta_death_enemy.sum() + delta_enemy.sum())
         else:
-            reward = (delta_deaths + delta_death_enemy + delta_enemy - delta_ally).sum()
+            reward = delta_deaths.sum() + delta_death_enemy.sum() + delta_enemy.sum() - delta_ally.sum()
 
         return reward
 
@@ -166,7 +171,7 @@ class SMACReward:
         if self.reward_type == 'sparse':
             value = {'min': -1, 'max': 1}
         elif self.reward_type == 'original':
-            value = {'min': 0, 'max': (self.max_reward)/self.reward_scale_rate}
+            value = {'min': 0, 'max': self.max_reward / self.reward_scale_rate}
         #     # TODO(nyz) health + shield range
         #     if self.reduce_agent:
         #         value = {'min': 0, 'max': (self.reward_win + self.reward_death_value * self.n_enemies +1230)/20}
