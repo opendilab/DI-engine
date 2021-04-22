@@ -1,7 +1,9 @@
+from typing import Dict, Union, Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Union, Optional
+
 from nervex.utils import squeeze, MODEL_REGISTRY
 from ..common import ActorCriticBase, ConvEncoder, FCEncoder
 
@@ -179,7 +181,6 @@ class ValueAC(ActorCriticBase):
         value = self._critic_forward(embedding)
 
         return {'value': value}
-
 
 @MODEL_REGISTRY.register('conv_vac')
 class ConvValueAC(ValueAC):
