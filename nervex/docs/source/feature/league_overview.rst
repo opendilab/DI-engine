@@ -2,25 +2,54 @@ League Overview
 ========================
 
 概述：
-    League这一概念原本来自于`AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_ 。
+    League这一概念来自于 `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_  。
     在 AlphaStar 中存在一个 league，league 中有很多 player，每个 player 持有一个策略（或是网络），
-    不同 player 之间可以互相交战，并根据对战数据更新自身策略。
-    StarCraft2 这种 1v1 对战游戏中，league 负责为 player 分配对手，决定将与谁交战，这是 AlphaStar 训练效果非常好的原因之一。
+    StarCraft2 这种 1v1 对战游戏中，league 负责为 player 分配对手，不同 player 之间可以互相交战，产生非常丰富的对局数据，用来更新自身策略。
+    这是 AlphaStar 训练效果非常好的原因之一。
 
-    在nerveX中，也实现了 ``league`` 模块，可分为三个部分：
+    接下来，我们将首先介绍最简单的 league 的训练流程是怎样的；然后将结合代码，介绍 nerveX 中 ``league`` 模块。
 
-        - ``Player``：league 中的 player ，分为 active（策略可更新）和 historical（策略不可更新）两类。
-        - ``Payoff``：用于记录 league 中全部 player 的全部对局结果，通常为所有 player 所共享，是未来分配对手的依据。
-        - ``League``：持有全部 player 及他们的 payoff 记录，负责维护 payoff 及 player 状态，并根据 payoff 为 player 分配对手。
 
+League Intro
+-------------
+
+在 1v1 的对战类游戏中，我们总是希望可以找到两个两个水平相近的 player 对战，因为这样产生的轨迹数据对于策略优化来说是更有意义的。
+那么如何做到呢？最常见的一种对战方式叫做 "self-play"，即自对弈。
+
+在自对弈中，很重要的一个问题就是，对战另一方的那个对手，是完全与自己一样，策略、参数均可更新，还是仅仅是自己隔一段时间冻结的一个当时最好的策略与参数呢？
+
+    - 第一种情况下，两个完全相同的 player 对战，产生的轨迹数据可以放入同一个 replay buffer，供 learner 采样数据，优化策略。这种情况下，会产生双倍的训练数据。但与此同时，这就成为了一个 2-agent 的问题，而一旦环境中的 agent 个数超过一个，那么交互的过程就不再是马尔可夫过程，优化过程的稳定性也将远不如单一 agent。
+    - 第二种情况下，player 会每隔一定迭代数就冻结一个当前最好的策略，在下一个阶段就以这个冻结的 player 为对手，期待在每个阶段过后，自己都会变得更强，此时仅仅非冻结的自身产生的轨迹可以用作训练数据。但与此同时，会产生一个类似“石头剪刀布”一样的问题：player 先是训出了一个最好的策略 A，冻结后训练出策略 B 打败了策略 A，冻结后训练出策略 C 又打败了策略 B，最后发现策略 C 会输给策略A。
+
+为了解决以上两种问题，self-play 一般的训练流程取两种方法的长处，并规避其短处，流程如下：
+
+    1. 最开始，初始化一个空的 player 池，并将当前唯一一个 player 放入
+    2. 此时，由于 player 池只有一个 player，故只能采用第一种方法。
+    3. 经过一定的迭代数后，将当前 player 冻结形成一个快照，将这个快照 player 加入 player 池中。
+    4. 按照一定规则，从 player 池中选择一个作为对手，对应采用第一种或是第二种方法。
+    5. 当可被更新的自身策略足够好后，结束训练流程。
+
+以上过程就是我们给出的league demo ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` （todo entry修改后对应修改）所展示的训练流程。
+
+在 AlphaStar 中，使用了远比简单的 self-play 更加复杂的算法，也设计了更多类型、拥有各自特性的 player 互相对战。这样做的目的，一是想更好的解决“剪刀石头布”循环问题，二是希望发掘并整合更多元的策略。有兴趣的同学可以自行阅读原论文的 "Methods" 下的 "Multi-agent learning" 部分。
+
+
+nerveX Implementation
+------------------------
+
+nerveX 中， league 分为以下三个部分：
+
+    - ``Player``：league 中的 player ，分为 active（策略可更新）和 historical（策略不可更新）两类。
+    - ``Payoff``：用于记录 league 中全部 player 的全部对局结果，通常为所有 player 所共享，是未来分配对手的依据。
+    - ``League``：持有全部 player 及他们的 payoff 记录，负责维护 payoff 及 player 状态，并根据 payoff 为 player 分配对手。
 
 Player
----------
+~~~~~~~~~~~~
 
 概述：
     player 是 league 的成员，是对局中的玩家。每个 player 会拥有一份网络参数，代表它会执行某种不完全和他人相同的策略。
 
-    大体上，player 可以分为 active 和 historical 两类：
+    player 可以分为 active 和 historical 两类：
 
         - active 表示 player 的网络参数可以更新，通常是 league 中需要被训练的 player；
         - historical 表示它是某个时刻的 active 参数冻结产生的 player，它在之后参数都将保持固定，常作为 active player 的对手，它的存在提升了对局数据的多样性。
@@ -56,8 +85,8 @@ Player
 
         - 概述：
 
-            定义了 active player 和 historical player 都需要的一些属性，如类别、共享 payoff、checkpoint路径、id、持有网络的训练步数等。
-            是抽象基类，故不能实例化。
+            定义了 active player 和 historical player 都需要的一些属性，如类别、payoff对局信息、checkpoint路径、id、持有网络的训练步数等。
+            是抽象基类，不能实例化。
 
     2. HistoricalPlayer (nervex/league/player.py)
 
@@ -196,7 +225,7 @@ Player
 
         - 概述：
 
-            league 在被 commander 调用需要生成新的 collector job 时，将调用指定 player 的 ``get_job`` 方法，获取其对手。
+            league 在被 commander 调用需要生成新的 collect job 时，将调用指定 player 的 ``get_job`` 方法，获取其对手。
             在 collector 开始执行任务后，learner 利用产生的数据训练自身，训练一段时间后，会通过 commander 告知 league，
             然后 league 调用指定 player 的 ``is_trained_enough`` 方法，判断当前产生数据的 collector 所持有的策略是否相对更新了较多：
             若是，则可以 ``snapshot`` 及 ``mutate``。
@@ -252,7 +281,7 @@ Player
 
 
 Payoff
-----------------
+~~~~~~~~
 
 概述：
     payoff 用于记录以往对局的结果，该结果对于未来分配对手有着重要意义。
@@ -266,7 +295,7 @@ Payoff
 
 
 League
-----------------
+~~~~~~~~
 
 概述：
     league 是管理 player 及他们之间关系 （使用payoff），可统筹为 player 分配工作的类。

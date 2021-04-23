@@ -66,10 +66,7 @@ class OneVsOneCollector(BaseCollector):
             episode_num = self._env_kwargs.collector_episode_num
         self._episode_num = episode_num
 
-        env_manager = AsyncSubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, episode_num=episode_num, **manager_cfg
-
-        )
+        env_manager = AsyncSubprocessEnvManager(env_fn=env_fn, env_cfg=env_cfg, episode_num=episode_num, **manager_cfg)
         env_manager.launch()
         self._predefined_episode_count = episode_num * len(env_cfg)
         return env_manager
