@@ -34,13 +34,6 @@ class ActorCriticBase(nn.Module):
         f = getattr(self, mode)
         return f(inputs, **kwargs)
 
-    def seed(self, seed):
-        """
-        Overview:
-            Set the seed used in torch, see torch.manual_seed.
-        """
-        torch.manual_seed(seed)
-
     def compute_actor_critic(self, inputs):
         raise NotImplementedError
 

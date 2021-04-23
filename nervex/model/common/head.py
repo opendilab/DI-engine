@@ -50,7 +50,7 @@ class DistributionHead(nn.Module):
         n_atom: int = 51,
         v_min: float = -10,
         v_max: float = 10,
-        is_cuda: bool = True,
+        device: Union[torch.device, str] = 'cpu',
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         noise: bool = False,
@@ -76,14 +76,14 @@ class DistributionHead(nn.Module):
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
-        self.is_cuda = is_cuda
+        self.device = device
 
     def forward(self, x: torch.Tensor) -> Dict:
         q = self.Q(x)
         q = q.view(*q.shape[:-1], self.action_dim, self.n_atom)
         dist = torch.softmax(q, dim=-1) + 1e-6
         q = dist * torch.linspace(self.v_min, self.v_max,
-                                  self.n_atom).to(torch.device("cuda" if self.is_cuda else "cpu"))
+                                  self.n_atom).to(self.device)
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
 
@@ -96,7 +96,7 @@ class QuantileHead(nn.Module):
         num_quantiles: int = 32,
         quantile_embedding_dim: int = 128,
         beta_function_type: str = 'uniform',
-        is_cuda: bool = True,
+        device: Union[torch.device, str] = 'cpu',
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         noise: bool = False,
@@ -123,7 +123,7 @@ class QuantileHead(nn.Module):
         self.action_dim = action_dim
         self.iqn_fc = nn.Linear(self.quantile_embedding_dim, hidden_dim)
         self.beta_function = beta_function_map[beta_function_type]
-        self.is_cuda = is_cuda
+        self.device = device
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         quantile_net = quantiles.repeat([1, self.quantile_embedding_dim])
@@ -137,10 +137,9 @@ class QuantileHead(nn.Module):
 
     def forward(self, x: torch.Tensor) -> Dict:
         batch_size = x.shape[0]
-        device = torch.device("cuda" if self.is_cuda else "cpu")
 
-        q_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
-        logit_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(device)
+        q_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
+        logit_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
         logit_quantiles = self.beta_function(logit_quantiles)
         q_quantile_net = self.quantile_net(q_quantiles)
         logit_quantile_net = self.quantile_net(logit_quantiles)
