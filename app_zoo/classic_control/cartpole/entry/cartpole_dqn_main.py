@@ -1,8 +1,5 @@
 import os
 import gym
-import random
-import numpy as np
-import torch
 from tensorboardX import SummaryWriter
 
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
@@ -12,8 +9,7 @@ from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.entry.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
-from app_zoo.classic_control.cartpole.envs import CartPoleEnv
-from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
+from app_zoo.classic_control.cartpole.config import cartpole_dqn_default_config
 
 
 def wrapped_cartpole_env():
