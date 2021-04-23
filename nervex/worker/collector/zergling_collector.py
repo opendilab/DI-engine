@@ -86,12 +86,10 @@ class ZerglingCollector(BaseCollector):
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         self._obs_pool.update(obs)
-        env_id, obs = self._policy.data_preprocess(obs)
         if self._eval_flag:
-            policy_output = self._policy.forward(env_id, obs)
+            policy_output = self._policy.forward(obs)
         else:
-            policy_output = self._policy.forward(env_id, obs, **self._cfg.collect_setting)
-        policy_output = self._policy.data_postprocess(env_id, policy_output)
+            policy_output = self._policy.forward(obs, **self._cfg.collect_setting)
         self._policy_output_pool.update(policy_output)
         actions = {env_id: output['action'] for env_id, output in policy_output.items()}
         return actions
@@ -193,9 +191,8 @@ class ZerglingCollector(BaseCollector):
                 self.error('Policy update error: {}'.format(e))
                 time.sleep(1)
 
-        handle = self._policy.state_dict_handle()
-        handle['model'].load_state_dict(policy_update_info['model'])
-        self._policy_iter = policy_update_info['iter']
+        self._policy_iter = policy_update_info.pop('iter')
+        self._policy.load_state_dict(policy_update_info)
         self.debug('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
 
     # ******************************** thread **************************************

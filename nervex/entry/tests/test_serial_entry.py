@@ -260,7 +260,6 @@ def test_qmix_particle():
 def test_atoc_particle():
     config = deepcopy(cooperative_navigation_atoc_default_config)
     config.policy.use_cuda = False
-    config.policy.learn.train_iteration = 1
     config.evaluator.stop_value = -float("inf")
     config.evaluator.eval_freq = 1
     try:

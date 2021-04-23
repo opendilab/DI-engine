@@ -3,19 +3,17 @@ from collections import namedtuple, deque
 import torch
 import torch.nn.functional as F
 
+from nervex.torch_utils import Adam, RMSprop, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.torch_utils import to_device
-from nervex.torch_utils import Adam, RMSprop
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 @POLICY_REGISTRY.register('impala')
-class IMPALAPolicy(CommonPolicy):
+class IMPALAPolicy(Policy):
     r"""
     Overview:
         Policy class of IMPALA algorithm.
@@ -58,10 +56,9 @@ class IMPALAPolicy(CommonPolicy):
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
         # Main armor
-        self._armor.mode(train=True)
         self._armor.reset()
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
         Overview:
             Data preprocess function of learn mode.
@@ -70,12 +67,7 @@ class IMPALAPolicy(CommonPolicy):
             - data (:obj:`dict`): Dict type data
         Returns:
             - data (:obj:`dict`)
-            - data_info (:obj:`dict`)
         """
-        data_info = {
-            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
-            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
-        }
         data = default_collate(data)
         if self._use_cuda:
             data = to_device(data, self._device)
@@ -90,7 +82,7 @@ class IMPALAPolicy(CommonPolicy):
         data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
         data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -102,9 +94,11 @@ class IMPALAPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`):
               Including current lr, total_loss, policy_loss, value_loss and entropy_loss
         """
+        data = self._data_preprocess_learn(data)
         # ====================
         # IMPALA forward
         # ====================
+        self._armor.model.train()
         output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
@@ -145,6 +139,16 @@ class IMPALAPolicy(CommonPolicy):
         rewards = rewards * weights
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
@@ -154,23 +158,29 @@ class IMPALAPolicy(CommonPolicy):
         self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
         self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         """
@@ -195,6 +205,9 @@ class IMPALAPolicy(CommonPolicy):
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
@@ -203,22 +216,28 @@ class IMPALAPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
             - data_id (:obj:`List[int]`): Not used in this policy.
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

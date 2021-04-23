@@ -6,14 +6,13 @@ from easydict import EasyDict
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
 from nervex.armor import Armor
-from nervex.data import timestep_collate
+from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 @POLICY_REGISTRY.register('r2d2')
-class R2D2Policy(CommonPolicy):
+class R2D2Policy(Policy):
     r"""
     Overview:
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
@@ -50,10 +49,8 @@ class R2D2Policy(CommonPolicy):
         self._armor.add_plugin('main', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('target', 'hidden_state', state_num=self._cfg.learn.batch_size)
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -66,10 +63,6 @@ class R2D2Policy(CommonPolicy):
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        data_info = {
-            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
-            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
-        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
@@ -88,7 +81,7 @@ class R2D2Policy(CommonPolicy):
         data['burnin_obs'] = data['obs'][:bs]
         data['main_obs'] = data['obs'][bs:bs + self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -106,6 +99,9 @@ class R2D2Policy(CommonPolicy):
                 - total_loss (:obj:`float`): The calculated loss
         """
         # forward
+        data = self._data_preprocess_learn(data)
+        self._armor.model.train()
+        self._armor.target_model.train()
         self._armor.reset(data_id=None, state=data['prev_state'][0])
         self._armor.target_reset(data_id=None, state=data['prev_state'][0])
         if len(data['burnin_obs']) != 0:
@@ -151,10 +147,23 @@ class R2D2Policy(CommonPolicy):
             'priority': td_error_per_sample.abs().tolist(),
         }
 
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._armor.reset(data_id=data_id)
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
-            Collect mode init moethod. Called by ``self.__init__``.
+            Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect armor.
         """
         self._collect_nstep = self._cfg.collect.algo.nstep
@@ -167,24 +176,34 @@ class R2D2Policy(CommonPolicy):
             'main', 'hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin
 
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
 
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, data_id=data_id, eps=eps)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_armor.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -230,24 +249,34 @@ class R2D2Policy(CommonPolicy):
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
 
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
 
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, data_id=data_id)
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._eval_armor.reset(data_id=data_id)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']

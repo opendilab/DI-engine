@@ -72,9 +72,9 @@ class TestBaseArmor:
 
     def test_naive(self, setup_model):
         armor = BaseArmor(setup_model)
-        armor.mode(train=False)
+        armor.model.eval()
         assert not armor.model.training
-        armor.mode(train=True)
+        armor.model.train()
         assert armor.model.training
         armor.reset()
         state_dict = armor.state_dict()
@@ -136,7 +136,7 @@ class TestArmorPlugin:
         register_plugin('abstract', IArmorStatelessPlugin)
         with pytest.raises(NotImplementedError):
             armor.add_plugin('main', 'abstract')
-        assert all([hasattr(armor, n) for n in ['target_reset', 'target_mode', 'target_forward', 'target_update']])
+        assert all([hasattr(armor, n) for n in ['target_reset', 'target_forward', 'target_update']])
         assert armor.model.fc1.weight.eq(armor.target_model.fc1.weight).sum() == 12
         armor.model.fc1.weight.data = torch.randn_like(armor.model.fc1.weight)
         assert armor.model.fc1.weight.ne(armor.target_model.fc1.weight).sum() == 12
@@ -146,8 +146,8 @@ class TestArmorPlugin:
         armor.target_reset()
 
         inputs = torch.randn(2, 3)
-        armor.mode(train=True)
-        armor.target_mode(train=True)
+        armor.model.train()
+        armor.target_model.train()
         output = armor.forward(inputs)
         with torch.no_grad():
             output_target = armor.target_forward(inputs)
@@ -182,14 +182,9 @@ class TestArmorPlugin:
         armor.add_model('teacher', teacher_cfg={})
         armor.add_plugin('main', 'hidden_state', state_num=state_num, save_prev_state=True)
         armor.add_plugin('teacher', 'hidden_state', state_num=state_num, save_prev_state=True)
-        assert all(
-            [
-                hasattr(armor, n)
-                for n in ['teacher_reset', 'teacher_mode', 'teacher_forward', 'teacher_load_state_dict']
-            ]
-        )
-        armor.mode(train=True)
-        armor.teacher_mode(train=False)
+        assert all([hasattr(armor, n) for n in ['teacher_reset', 'teacher_forward', 'teacher_load_state_dict']])
+        armor.model.train()
+        armor.teacher_model.train()
         armor.reset()
         armor.teacher_reset()
         assert all([m.ne(t).sum() == 0 for m, t in zip(armor.model.parameters(), armor.teacher_model.parameters())])
@@ -220,7 +215,7 @@ class TestArmorPlugin:
         model = ActorMLP()
         armor = Armor(model)
         armor.add_plugin('main', 'eps_greedy_sample')
-        armor.mode(train=False)
+        armor.model.eval()
         eps_threshold = 0.5
         data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
         with torch.no_grad():

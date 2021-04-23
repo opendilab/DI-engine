@@ -14,6 +14,6 @@ def test_eval():
         policy = serial_pipeline(deepcopy(config), seed=0)
     except Exception:
         assert False, 'Serial pipeline failure'
-    state_dict = {'model': policy.state_dict_handle()['model'].state_dict()}
+    state_dict = policy.eval_mode.state_dict()
     eval_reward = eval(config, seed=0, state_dict=state_dict)
     assert eval_reward >= stop_value

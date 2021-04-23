@@ -30,7 +30,7 @@ def test_pdeil(irl_config):
     # collect expert demo data
     collect_count = 10000
     expert_data_path = 'expert_data.pkl'
-    state_dict = {'model': expert_policy.state_dict_handle()['model'].state_dict()}
+    state_dict = expert_policy.collect_mode.state_dict()
     config = deepcopy(cartpole_ppo_default_config)
     collect_demo_data(
         config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count

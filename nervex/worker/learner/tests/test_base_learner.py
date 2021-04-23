@@ -37,8 +37,11 @@ class FakePolicy:
     def data_preprocess(self, x):
         return x
 
-    def state_dict_handle(self):
+    def state_dict(self):
         return {'model': self._model}
+
+    def load_state_dict(self, state_dict):
+        pass
 
     def info(self):
         return 'FakePolicy'
