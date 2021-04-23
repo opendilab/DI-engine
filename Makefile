@@ -44,6 +44,6 @@ all_test: unittest algotest cudatest benchmark
 format:
 	yapf --in-place --recursive -p --verbose --style .style.yapf ${FORMAT_DIR}
 format_test:
-	bash format.sh --test
+	bash format.sh ./nervex --test
 flake_check:
 	flake8 ./nervex

@@ -4,11 +4,15 @@ from nervex.loader import dict_, is_type, to_type, collection, interval, is_posi
 
 cartpole_ppo_default_loader = dict_(
     env=item('env') >> dict_(
-        env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
-        import_names=item('import_names') >> collection(str),
-        env_type=item('env_type') >> is_type(str),
-        collector_env_num=item('collector_env_num') >> is_type(int) >> interval(1, 32),
-        evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
+        manager=item('manager') >> dict_(
+            type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
+        ),
+        env_kwargs=item('env_kwargs') >> dict_(
+            import_names=item('import_names') >> collection(str),
+            env_type=item('env_type') >> is_type(str),
+            collector_env_num=item('collector_env_num') >> is_type(int) >> interval(1, 32),
+            evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
+        ),
     ),
     policy=item('policy') >> dict_(
         use_cuda=item('use_cuda') >> is_type(bool),
@@ -38,7 +42,6 @@ cartpole_ppo_default_loader = dict_(
                 gae_lambda=item('gae_lambda') >> (is_type(float) & interval(0.0, 1.0)),
             )
         ),
-        command=item('command') >> dict_()
     ),
     replay_buffer=item('replay_buffer') >> dict_(
         replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
@@ -55,7 +58,6 @@ cartpole_ppo_default_loader = dict_(
         stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
-    commander=item('commander') | raw({}),
 )
 policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
 policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')

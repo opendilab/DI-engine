@@ -212,8 +212,6 @@ class BaseCollector(ABC):
     @policy.setter
     def policy(self, _policy: Policy) -> None:
         self._policy = _policy
-        if not self._eval_flag:
-            self._policy.set_setting('collect', self._cfg.collect_setting)
 
 
 def create_collector(cfg: dict) -> BaseCollector:

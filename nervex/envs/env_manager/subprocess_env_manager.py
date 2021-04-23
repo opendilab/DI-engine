@@ -19,7 +19,7 @@ from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from nervex.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
-from .base_env_manager import BaseEnvManager
+from .base_env_manager import BaseEnvManager, EnvState, retry_wrapper, timeout_wrapper
 
 _NTYPE_TO_CTYPE = {
     np.bool: ctypes.c_bool,
@@ -35,13 +35,6 @@ _NTYPE_TO_CTYPE = {
     np.float32: ctypes.c_float,
     np.float64: ctypes.c_double,
 }
-
-
-class EnvState(enum.IntEnum):
-    INIT = 1
-    RUN = 2
-    RESET = 3
-    DONE = 4
 
 
 class ShmBuffer():
@@ -136,69 +129,47 @@ class CloudpickleWrapper(object):
             self.data = cloudpickle.loads(data)
 
 
-def retry_wrapper(fn: Callable, max_retry: int = 10) -> Callable:
-    """
-    Overview:
-        Retry the function until exceeding the maximum retry times.
-    """
-
-    def wrapper(*args, **kwargs):
-        exceptions = []
-        for _ in range(max_retry):
-            try:
-                ret = fn(*args, **kwargs)
-                return ret
-            except Exception as e:
-                exceptions.append(e)
-                time.sleep(0.1)
-        e_info = ''.join(
-            [
-                'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
-                for i, e in enumerate(exceptions)
-            ]
-        )
-        fn_exception = Exception("Function {} runtime error:\n{}".format(fn, e_info))
-        raise RuntimeError("Function {} has exceeded max retries({})".format(fn, max_retry)) from fn_exception
-
-    return wrapper
-
-
 @ENV_MANAGER_REGISTRY.register('async_subprocess')
 class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
-        Create a AsyncSubprocessEnvManager to manage multiple environments. Each Environment is run by a seperate \
-            subprocess.
+        Create an AsyncSubprocessEnvManager to manage multiple environments.
+        Each Environment is run by a seperate subprocess.
     Interfaces:
         seed, launch, ready_obs, step, reset, env_info
     """
 
     def __init__(
-            self,
-            env_fn: Callable,
-            env_cfg: Iterable,
-            env_num: int,
-            episode_num: Optional[Union[int, float]] = float('inf'),
-            manager_cfg: Optional[dict] = {},
+        self,
+        env_fn: List[Callable],
+        episode_num: Optional[Union[int, float]] = float('inf'),
+        max_retry: int = 1,
+        step_timeout: int = 60,
+        reset_timeout: int = 60,
+        retry_waiting_time: float = 0.1,
+        # subprocess specified args
+        shared_memory: bool = True,
+        context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
+        wait_num: int = 2,
+        step_wait_timeout=0.01,
+        connect_timeout: int = 60,
     ) -> None:
         """
         Overview:
             Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
-            - env_cfg (:obj:`list`): the list of environemnt configs
-            - env_num (:obj:`int`): number of environments to create, equal to len(env_cfg)
             - episode_num (:obj:`int`): maximum episodes to collect in one environment
-            - manager_cfg (:obj:`dict`): config for env manager
         """
-        super().__init__(env_fn, env_cfg, env_num, episode_num)
-        self.shared_memory = manager_cfg.get('shared_memory', True)
-        default_context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-        self.context_str = manager_cfg.get('context', default_context_str)
-        self.timeout = manager_cfg.get('timeout', 0.01)
-        self.wait_num = manager_cfg.get('wait_num', 2)
-        self.reset_timeout = manager_cfg.get('reset_timeout', 60)
+        super().__init__(env_fn, episode_num, max_retry, step_timeout, reset_timeout, retry_waiting_time)
+        self._shared_memory = shared_memory
+        self._context = context
+        self._wait_num = wait_num
+        self._step_wait_timeout = step_wait_timeout
+
         self._lock = LockContext(LockContextType.THREAD_LOCK)
+        self._connect_timeout = connect_timeout
+        self._connect_timeout = np.max([self._connect_timeout, self._step_timeout + 0.5, self._reset_timeout + 0.5])
 
     def _create_state(self) -> None:
         r"""
@@ -207,7 +178,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
-        if self.shared_memory:
+        self._env_ref = self._env_fn[0]()
+        if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
             dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
@@ -216,7 +188,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._pipe_parents, self._pipe_children = {}, {}
         self._subprocesses = {}
-        self._env_states = {}
         for env_id in range(self.env_num):
             self._create_env_subprocess(env_id)
         self._waiting_env = {'step': set()}
@@ -225,14 +196,19 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _create_env_subprocess(self, env_id):
         # start a new one
-        env_fn = partial(self._env_fn, cfg=self._env_cfg[env_id])
         self._pipe_parents[env_id], self._pipe_children[env_id] = Pipe()
-        ctx = get_context(self.context_str)
+        ctx = get_context(self._context)
         self._subprocesses[env_id] = ctx.Process(
-            target=self.worker_fn,
+            #target=self.worker_fn,
+            target=self.worker_fn_robust,
             args=(
-                self._pipe_parents[env_id], self._pipe_children[env_id], CloudpickleWrapper(env_fn),
-                self._obs_buffers[env_id], self.method_name_list
+                self._pipe_parents[env_id],
+                self._pipe_children[env_id],
+                CloudpickleWrapper(self._env_fn[env_id]),
+                self._obs_buffers[env_id],
+                self.method_name_list,
+                self._reset_timeout,
+                self._step_timeout,
             ),
             daemon=True,
             name='subprocess_env_manager{}_{}'.format(env_id, time.time())
@@ -256,14 +232,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._async_args = {
             'step': {
-                'wait_num': self.wait_num,
-                'timeout': self.timeout
+                'wait_num': self._wait_num,
+                'timeout': self._step_wait_timeout
             },
         }
-
-    @property
-    def active_env(self) -> List[int]:
-        return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
     def ready_env(self) -> List[int]:
@@ -289,10 +261,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             time.sleep(1)
             sleep_count += 1
         return self._inv_transform({i: self._ready_obs[i] for i in self.ready_env})
-
-    @property
-    def done(self) -> bool:
-        return all([s == EnvState.DONE for s in self._env_states.values()])
 
     def launch(self, reset_param: Optional[List[dict]] = None) -> None:
         """
@@ -327,7 +295,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
                 self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
-            ret = [p.recv().data for _, p in self._pipe_parents.items()]
+            ret = {i: p.recv().data for i, p in self._pipe_parents.items()}
             self._check_data(ret)
 
         # reset env
@@ -343,14 +311,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _reset(self, env_id: int) -> None:
 
-        @retry_wrapper
+        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         def reset_fn():
             if self._pipe_parents[env_id].poll():
                 recv_data = self._pipe_parents[env_id].recv().data
                 raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
             self._pipe_parents[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
 
-            if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
+            if not self._pipe_parents[env_id].poll(self._connect_timeout):
                 # terminate the old subprocess
                 self._pipe_parents[env_id].close()
                 if self._subprocesses[env_id].is_alive():
@@ -360,8 +328,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
 
             obs = self._pipe_parents[env_id].recv().data
-            self._check_data([obs], close=False)
-            if self.shared_memory:
+            self._check_data({env_id: obs}, close=False)
+            if self._shared_memory:
                 obs = self._obs_buffers[env_id].get()
             with self._lock:
                 self._env_states[env_id] = EnvState.RUN
@@ -419,7 +387,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
             timesteps.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-            self._check_data(timesteps.values())
+            self._check_data(timesteps)
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
             # at least one not done timestep or all the connection is ready
@@ -441,7 +409,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_thread.daemon = True
                 reset_thread.start()
                 continue
-            if self.shared_memory:
+            if self._shared_memory:
                 timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
             timesteps[env_id] = timestep
             if timestep.done:
@@ -518,13 +486,85 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         except KeyboardInterrupt:
             c.close()
 
-    def _check_data(self, data: Iterable, close: bool = True) -> None:
-        for d in data:
+    @staticmethod
+    def worker_fn_robust(
+            parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60
+    ) -> None:
+        torch.set_num_threads(1)
+        env_fn = env_fn_wrapper.data
+        env = env_fn()
+        parent.close()
+
+        @timeout_wrapper(timeout=step_timeout)
+        def step_fn(*args, **kwargs):
+            timestep = env.step(*args, **kwargs)
+            if timestep.info.get('abnormal', False):
+                ret = timestep
+            else:
+                if obs_buffer is not None:
+                    obs_buffer.fill(timestep.obs)
+                    timestep = timestep._replace(obs=None)
+                ret = timestep
+            return ret
+
+        @timeout_wrapper(timeout=reset_timeout)
+        def reset_fn(*args, **kwargs):
+            try:
+                ret = env.reset(*args, **kwargs)
+                if obs_buffer is not None:
+                    obs_buffer.fill(ret)
+                    ret = None
+                return ret
+            except Exception as e:
+                env.close()
+                raise e
+
+        while True:
+            try:
+                cmd, args, kwargs = child.recv().data
+            except EOFError:  # for the case when the pipe has been closed
+                child.close()
+                break
+            try:
+                if cmd == 'getattr':
+                    ret = getattr(env, args[0])
+                elif cmd in method_name_list:
+                    if cmd == 'step':
+                        ret = step_fn(*args, **kwargs)
+                    elif cmd == 'reset':
+                        ret = reset_fn(*args, **kwargs)
+                    elif args is None and kwargs is None:
+                        ret = getattr(env, cmd)()
+                    else:
+                        ret = getattr(env, cmd)(*args, **kwargs)
+                else:
+                    raise KeyError("not support env cmd: {}".format(cmd))
+                child.send(CloudpickleWrapper(ret))
+            except Exception as e:
+                # when there are some errors in env, worker_fn will send the errors to env manager
+                # directly send error to another process will lose the stack trace, so we create a new Exception
+                child.send(
+                    CloudpickleWrapper(
+                        e.__class__(
+                            '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
+                        )
+                    )
+                )
+            if cmd == 'close':
+                child.close()
+                break
+
+    def _check_data(self, data: Dict, close: bool = True) -> None:
+        exceptions = []
+        for i, d in data.items():
             if isinstance(d, Exception):
-                # when receiving env Exception, env manager will safely close and raise this Exception to caller
-                if close:
-                    self.close()
-                raise d
+                self._env_states[i] = EnvState.ERROR
+                exceptions.append(d)
+        # when receiving env Exception, env manager will safely close and raise this Exception to caller
+        if len(exceptions) > 0:
+            if close:
+                self.close()
+            raise exceptions[0]
 
     # override
     def __getattr__(self, key: str) -> Any:
@@ -537,8 +577,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for _, p in self._pipe_parents.items():
             p.send(CloudpickleWrapper(['getattr', [key], {}]))
-        ret = [p.recv().data for _, p in self._pipe_parents.items()]
-        self._check_data(ret)
+        data = {i: p.recv().data for i, p in self._pipe_parents.items()}
+        self._check_data(data)
+        ret = [data[i] for i in self._pipe_parents.keys()]
         return ret
 
     # override
@@ -557,6 +598,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             p.send(CloudpickleWrapper(['close', None, None]))
         for _, p in self._pipe_parents.items():
             p.recv()
+        for i in range(self._env_num):
+            self._env_states[i] = EnvState.VOID
         # disable process join for avoiding hang
         # for p in self._subprocesses:
         #     p.join()

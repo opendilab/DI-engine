@@ -30,9 +30,12 @@ class StarPilotEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._seed = 0
-        self._env = gym.make('procgen:procgen-starpilot-v0', start_level=0, num_levels=1)
+        self._init_flag = False
 
     def reset(self) -> torch.Tensor:
+        if not self._init_flag:
+            self._env = gym.make('procgen:procgen-starpilot-v0', start_level=0, num_levels=1)
+            self._init_flag = True
         if hasattr(self, '_seed'):
             self._env.close()
             self._env = gym.make('procgen:procgen-starpilot-v0', start_level=self._seed, num_levels=1)
@@ -43,7 +46,9 @@ class StarPilotEnv(BaseEnv):
         return obs
 
     def close(self) -> None:
-        self._env.close()
+        if self._init_flag:
+            self._env.close()
+        self._init_flag = False
 
     def seed(self, seed: int) -> None:
         self._seed = seed
@@ -70,19 +75,20 @@ class StarPilotEnv(BaseEnv):
                     'min': np.zeros(shape=(3, 64, 64)),
                     'max': np.ones(shape=(3, 64, 64)) * 255,
                     'dtype': np.uint8,
-                }, None, None
+                },
             ),
             # [min, max)
             act_space=T((15, ), {
                 'min': 0,
                 'max': 15,
                 'dtype': np.uint8
-            }, None, None),
+            },),
             rew_space=T((1, ), {
                 'min': float("-inf"),
                 'max': float("inf"),
                 'dtype': np.float32
-            }, None, None),
+            },),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

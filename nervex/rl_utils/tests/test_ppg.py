@@ -14,8 +14,10 @@ args = [item for item in product(*[use_value_clip_args, weight_args])]
 @pytest.mark.parametrize('use_value_clip, weight', args)
 def test_ppg(use_value_clip, weight):
     B, N = 4, 32
-    logit_new = torch.randn(B, N).requires_grad_(True)
-    logit_old = logit_new + torch.rand_like(logit_new) * 0.1
+    logit_new = torch.randn(B, N).add_(0.1).clamp_(0.1, 0.99)
+    logit_old = logit_new.add_(torch.rand_like(logit_new) * 0.1).clamp_(0.1, 0.99)
+    logit_new.requires_grad_(True)
+    logit_old.requires_grad_(True)
     action = torch.randint(0, N, size=(B, ))
     value_new = torch.randn(B).requires_grad_(True)
     value_old = value_new + torch.rand_like(value_new) * 0.1

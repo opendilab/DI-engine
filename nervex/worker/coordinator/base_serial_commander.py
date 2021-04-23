@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+
 class BaseSerialCommander(object):
     r"""
     Overview:
@@ -14,7 +17,8 @@ class BaseSerialCommander(object):
             learner: 'BaseLearner',  # noqa
             collector: 'BaseSerialCollector',  # noqa
             evaluator: 'BaseSerialEvaluator',  # noqa
-            replay_buffer: 'BufferManager'  # noqa
+            replay_buffer: 'BufferManager',  # noqa
+            policy: namedtuple = None,
     ) -> None:
         r"""
         Overview:
@@ -32,6 +36,8 @@ class BaseSerialCommander(object):
         self._evaluator = evaluator
         self._replay_buffer = replay_buffer
         self._info = {}
+        if policy is not None:
+            self.policy = policy
 
     def step(self) -> None:
         r"""
@@ -43,9 +49,9 @@ class BaseSerialCommander(object):
         collector_info = self._collector.collector_info
         self._info.update(learn_info)
         self._info.update(collector_info)
-        # update setting
-        collect_setting = self._policy.get_setting_collect(self._info)
-        self._collector.policy.set_setting('collect', collect_setting)
+        # update kwargs
+        collect_kwargs = self._policy.get_setting_collect(self._info)
+        return collect_kwargs
 
     @property
     def policy(self) -> 'Policy':  # noqa

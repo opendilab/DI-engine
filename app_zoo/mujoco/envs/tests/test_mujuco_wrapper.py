@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 
-from app_zoo.mujoco.envs.mujoco_wrappers import RunningMeanStd
+# from app_zoo.mujoco.envs.mujoco_wrappers import RunningMeanStd
+from nervex.envs import RunningMeanStd
 
 
 @pytest.mark.unittest

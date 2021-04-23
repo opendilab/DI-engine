@@ -30,7 +30,6 @@ class PPOVanillaPolicy(CommonPolicy):
         self._entropy_weight = algo_cfg.entropy_weight
         self._clip_ratio = algo_cfg.clip_ratio
         self._model.train()
-        self._learn_setting_set = {}
         self._continous = self._cfg.model.get("continous", False)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -70,7 +69,6 @@ class PPOVanillaPolicy(CommonPolicy):
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
         assert (self._unroll_len == 1)
-        self._collect_setting_set = {'eps'}
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
@@ -93,10 +91,8 @@ class PPOVanillaPolicy(CommonPolicy):
                 logit, value = [logit], [value]
             action = []
             for i, l in enumerate(logit):
-                if np.random.random() > self._eps:
-                    action.append(l.argmax(dim=-1))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+                prob = torch.softmax(l, dim=-1)
+                action.append(torch.multinomial(prob, 1).squeeze(-1))
 
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
@@ -115,7 +111,7 @@ class PPOVanillaPolicy(CommonPolicy):
         return EasyDict(transition)
 
     def _init_eval(self) -> None:
-        self._eval_setting_set = {}
+        pass
 
     def _forward_eval(self, data_id: List[int], data: dict) -> dict:
         with torch.no_grad():
@@ -143,14 +139,6 @@ class PPOVanillaPolicy(CommonPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']
-
-    def _init_command(self) -> None:
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         data = self._gae(data, gamma=self._gamma, gae_lambda=self._gae_lambda)

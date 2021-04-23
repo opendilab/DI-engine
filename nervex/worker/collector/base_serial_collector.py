@@ -18,7 +18,13 @@ class BaseSerialCollector(object):
         env, policy
     """
 
-    def __init__(self, cfg: dict, tb_logger: 'SummaryWriter' = None) -> None:  # noqa
+    def __init__(
+            self,
+            cfg: dict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None  # noqa
+    ) -> None:
         """
         Overview:
             Initialization method.
@@ -34,6 +40,10 @@ class BaseSerialCollector(object):
             self._traj_len = float('inf')
             self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
+        if env is not None:
+            self.env = env
+        if policy is not None:
+            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
@@ -41,6 +51,7 @@ class BaseSerialCollector(object):
             self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
         self._timer = EasyTimer()
         self._cfg = cfg
+        self._end_flag = False
 
     @property
     def env(self) -> BaseEnvManager:
@@ -48,6 +59,7 @@ class BaseSerialCollector(object):
 
     @env.setter
     def env(self, _env_manager: BaseEnvManager) -> None:
+        self._end_flag = False
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
@@ -87,10 +99,20 @@ class BaseSerialCollector(object):
         ret = {'env_step': self._total_envstep_count, 'sample_step': self._total_train_sample_count}
         return ret
 
+<<<<<<< HEAD
     def collect_data(self,
                      train_iter: int = -1,
                      n_episode: Optional[int] = None,
                      n_sample: Optional[int] = None) -> Tuple[List[Any], dict]:
+=======
+    def collect_data(
+            self,
+            train_iter: int = -1,
+            n_episode: Optional[int] = None,
+            n_sample: Optional[int] = None,
+            policy_kwargs: Optional[dict] = None
+    ) -> Tuple[List[Any], dict]:
+>>>>>>> dev-0.2.0b0
         """
         Overview:
            Collect data. Either ``n_episode`` or ``n_sample`` must be None.
@@ -103,28 +125,43 @@ class BaseSerialCollector(object):
         """
         assert n_episode is None or n_sample is None, "Either n_episode or n_sample must be None"
         if n_episode is not None:
-            return self._collect_episode(train_iter, n_episode)
+            return self._collect_episode(train_iter, n_episode, policy_kwargs)
         elif n_sample is not None:
-            return self._collect_sample(train_iter, n_sample)
+            return self._collect_sample(train_iter, n_sample, policy_kwargs)
         elif self._default_n_episode is not None:
-            return self._collect_episode(train_iter, self._default_n_episode)
+            return self._collect_episode(train_iter, self._default_n_episode, policy_kwargs)
         elif self._default_n_sample is not None:
-            return self._collect_sample(train_iter, self._default_n_sample)
+            return self._collect_sample(train_iter, self._default_n_sample, policy_kwargs)
         else:
             raise RuntimeError("Please clarify specific n_episode or n_sample (int value) in config yaml or outer call")
 
     def close(self) -> None:
+        if self._end_flag:
+            return
+        self._end_flag = True
         self._env_manager.close()
         self._tb_logger.flush()
         self._tb_logger.close()
 
-    def _collect_episode(self, train_iter: int, n_episode: int) -> Tuple[List[Any], dict]:
-        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode)
+    def __del__(self) -> None:
+        self.close()
 
-    def _collect_sample(self, train_iter: int, n_sample: int) -> Tuple[List[Any], dict]:
-        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample)
+    def _collect_episode(self,
+                         train_iter: int,
+                         n_episode: int,
+                         policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_episode >= n_episode, policy_kwargs)
 
-    def _collect(self, train_iter: int, collect_end_fn: Callable) -> Tuple[List[Any], dict]:
+    def _collect_sample(self,
+                        train_iter: int,
+                        n_sample: int,
+                        policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
+        return self._collect(train_iter, lambda num_episode, num_sample: num_sample >= n_sample, policy_kwargs)
+
+    def _collect(self,
+                 train_iter: int,
+                 collect_end_fn: Callable,
+                 policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], dict]:
         """
         Overview:
             Real collect method in process of generating data.
@@ -135,6 +172,8 @@ class BaseSerialCollector(object):
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
+        if policy_kwargs is None:
+            policy_kwargs = {}
         return_data = []
         self._policy.reset()
         collected_episode = 0
@@ -146,7 +185,7 @@ class BaseSerialCollector(object):
                 self._obs_pool.update(obs)
                 # Policy forward.
                 env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(env_id, obs)
+                policy_output = self._policy.forward(env_id, obs, **policy_kwargs)
                 policy_output = self._policy.data_postprocess(env_id, policy_output)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
