@@ -12,12 +12,19 @@ from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
+FAST_MODE = False
+
 
 def compare_test(cfg, out_str, seed):
+    global FAST_MODE
     duration_list = []
-    for i in range(3):
+    repeat_times = 1 if FAST_MODE else 3
+    for i in range(repeat_times):
         cfg = deep_merge_dicts(test_config, cfg)
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        cfg.env.collector_env_num = 8
+        if cfg.env.env_manager_type == 'async_subprocess':
+            cfg.env.manager.wait_num = 8 - 1
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
         manager_cfg = cfg.env.get('manager', {})
         collector_env = create_env_manager(
             cfg.env.env_manager_type,
@@ -35,7 +42,8 @@ def compare_test(cfg, out_str, seed):
         collector.policy = policy.collect_mode
 
         start = time.time()
-        for iter in range(300):
+        iters = 150 if FAST_MODE else 300
+        for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
             new_data = collector.collect_data(iter)
@@ -76,18 +84,19 @@ if __name__ == '__main__':
             policy=dict(forward_time=0.004, ),
             actor=dict(n_sample=80, ),
         ),
-        dict(
-            size="middle",
-            env=dict(
-                obs_dim=int(3e2),  # int(3e3),
-                action_dim=2,
-                episode_step=500,
-                reset_time=2,  # 0.5
-                step_time=0.01,
-            ),
-            policy=dict(forward_time=0.008, ),
-            actor=dict(n_sample=80, ),
-        ),
+
+        # dict(
+        #     size="middle",
+        #     env=dict(
+        #         obs_dim=int(3e2),  # int(3e3),
+        #         action_dim=2,
+        #         episode_step=500,
+        #         reset_time=0.5,  # 2
+        #         step_time=0.01,
+        #     ),
+        #     policy=dict(forward_time=0.008, ),
+        #     actor=dict(n_sample=80, ),
+        # ),
 
         # dict(
         #     size="big",
@@ -95,7 +104,7 @@ if __name__ == '__main__':
         #         obs_dim=int(3e3),  # int(3e6),
         #         action_dim=2,
         #         episode_step=500,
-        #         reset_time=10,
+        #         reset_time=2,
         #         step_time=0.1,
         #     ),
         #     policy=dict(forward_time=0.02, ),
@@ -104,10 +113,14 @@ if __name__ == '__main__':
     ]
     out_str = []
     for cfg in cfgs:
-        for envm in ['subprocess']:  # ['base', 'async_subprocess', 'subprocess']
-            cfg = EasyDict(cfg)
-            print('=={} {}'.format(cfg.size, envm))
-            out_str.append('=={} {}'.format(cfg.size, envm))
-            cfg.env.env_manager_type = envm
-            compare_test(cfg, out_str, seed)
+        envm_list = ['async_subprocess', 'subprocess']  # ['base', 'async_subprocess', 'subprocess']
+        for envm in envm_list:
+            reset_list = [1, 5]  # [1, 5]
+            for reset_ratio in reset_list:
+                cfg = EasyDict(cfg)
+                cfg.env.reset_time *= reset_ratio
+                cfg.env.env_manager_type = envm
+                print('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
+                out_str.append('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
+                compare_test(cfg, out_str, seed)
     print('\n'.join(out_str))

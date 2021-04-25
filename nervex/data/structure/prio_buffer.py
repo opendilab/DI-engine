@@ -15,108 +15,7 @@ from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime
 from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger
 
 
-class NaturalMonitor(LoggedModel):
-    """
-    Overview:
-        NaturalMonitor is to monitor how many pieces of data are added into and read out from buffer per second.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    in_count = LoggedValue(int)
-    out_count = LoggedValue(int)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _sum = sum([_value for (_begin_time, _end_time), _value in records])
-            return _sum / self.expire
-
-        self.register_attribute_value('avg', 'in_count', partial(__avg_func, prop_name='in_count'))
-        self.register_attribute_value('avg', 'out_count', partial(__avg_func, prop_name='out_count'))
-
-
-class OutTickMonitor(LoggedModel):
-    """
-    Overview:
-        OutTickMonitor is to monitor read-out indicators for ``expire`` times recent read-outs.
-        Indicators include: read out time; average and max of read out data items' use; average, max and min of
-        read out data items' priorityl; average and max of staleness.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    out_time = LoggedValue(float)
-    # use, priority and staleness are all averaged across one batch.
-    use = LoggedValue(float)
-    priority = LoggedValue(float)
-    staleness = LoggedValue(float)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
-
-        def __max_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return max(_list)
-
-        def __min_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return min(_list)
-
-        self.register_attribute_value('avg', 'out_time', partial(__avg_func, prop_name='out_time'))
-        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use'))
-        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use'))
-        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
-        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
-        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
-        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
-        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
-
-
-class InTickMonitor(LoggedModel):
-    """
-    Overview:
-        InTickMonitor is to monitor add-in indicators for ``expire`` times recent add-ins.
-        Indicators include: add in time.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    in_time = LoggedValue(float)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
-
-        self.register_attribute_value('avg', 'in_time', partial(__avg_func, prop_name='in_time'))
-
-
-class ReplayBuffer:
+class PrioritizedReplayBuffer:
     r"""
     Overview:
         Prioritized replay buffer, can store and sample data.
@@ -166,7 +65,6 @@ class ReplayBuffer:
             - monitor_cfg (:obj:`EasyDict`): Monitor's dict config.
             - eps (:obj:`float`): A small positive number to avoid edge case.
         """
-        # TODO(nyz) remove elements according to priority
         # ``_data`` is a circular queue to store data (or data's reference/file path)
         self._data = [None for _ in range(replay_buffer_size)]
         self._enable_track_used_data = enable_track_used_data
@@ -205,15 +103,15 @@ class ReplayBuffer:
         self._max_staleness = max_staleness if max_staleness is not None else float("inf")
         assert min_sample_ratio >= 1, min_sample_ratio
         self.min_sample_ratio = min_sample_ratio
+        self._deepcopy = deepcopy
+
+        # Prioritized sample.
         assert 0 <= alpha <= 1, alpha
         self.alpha = alpha
         assert 0 <= beta <= 1, beta
         self._beta = beta
         self._anneal_step = anneal_step
         self._beta_anneal_one_step = (1 - self._beta) / self._anneal_step
-        self._deepcopy = deepcopy
-
-        # Prioritized sample.
         # Capacity needs to be the power of 2.
         capacity = int(np.power(2, np.ceil(np.log2(self.replay_buffer_size))))
         # Sum segtree and min segtree are used to sample data according to priority.
@@ -279,9 +177,8 @@ class ReplayBuffer:
                         self._remove(p)
                     else:
                         # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
-                        # index self._tail to index self._tail - 1, we can jump out of the loop as soon as
+                        # index self._head to index self._tail - 1, we can jump out of the loop as soon as
                         # meeting a fresh enough data
-                        self._head = p
                         break
                 p = (p + 1) % self._replay_buffer_size
                 if p == self._tail:
@@ -538,11 +435,11 @@ class ReplayBuffer:
         """
         # Divide [0, 1) into size intervals on average
         intervals = np.array([i * 1.0 / size for i in range(size)])
-        # uniformly sample within each interval
+        # Uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
+        # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
         mass *= self._sum_tree.reduce()
-        # find prefix sum index to sample with probability
+        # Find prefix sum index to sample with probability
         return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
     def _remove(self, idx: int) -> None:
@@ -553,6 +450,8 @@ class ReplayBuffer:
         Arguments:
             - idx (:obj:`int`): Data at this position will be removed.
         """
+        if idx == self._head:
+            self._head = (self._head + 1) % self._replay_buffer_size
         self._track_used_data(self._data[idx])
         if self._data[idx] is not None:
             self._valid_count -= 1
@@ -763,3 +662,104 @@ class ReplayBuffer:
         else:
             for k, v in _state_dict.items():
                 setattr(self, '_{}'.format(k), v)
+
+
+class NaturalMonitor(LoggedModel):
+    """
+    Overview:
+        NaturalMonitor is to monitor how many pieces of data are added into and read out from buffer per second.
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    in_count = LoggedValue(int)
+    out_count = LoggedValue(int)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _sum = sum([_value for (_begin_time, _end_time), _value in records])
+            return _sum / self.expire
+
+        self.register_attribute_value('avg', 'in_count', partial(__avg_func, prop_name='in_count'))
+        self.register_attribute_value('avg', 'out_count', partial(__avg_func, prop_name='out_count'))
+
+
+class OutTickMonitor(LoggedModel):
+    """
+    Overview:
+        OutTickMonitor is to monitor read-out indicators for ``expire`` times recent read-outs.
+        Indicators include: read out time; average and max of read out data items' use; average, max and min of
+        read out data items' priorityl; average and max of staleness.
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    out_time = LoggedValue(float)
+    # use, priority and staleness are all averaged across one batch.
+    use = LoggedValue(float)
+    priority = LoggedValue(float)
+    staleness = LoggedValue(float)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
+
+        def __max_func(prop_name: str) -> Union[float, int]:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return max(_list)
+
+        def __min_func(prop_name: str) -> Union[float, int]:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return min(_list)
+
+        self.register_attribute_value('avg', 'out_time', partial(__avg_func, prop_name='out_time'))
+        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use'))
+        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use'))
+        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
+        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
+        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
+        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
+        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
+
+
+class InTickMonitor(LoggedModel):
+    """
+    Overview:
+        InTickMonitor is to monitor add-in indicators for ``expire`` times recent add-ins.
+        Indicators include: add in time.
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    in_time = LoggedValue(float)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list)
+
+        self.register_attribute_value('avg', 'in_time', partial(__avg_func, prop_name='in_time'))

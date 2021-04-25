@@ -4,7 +4,10 @@ nstep = 1
 test_config = dict(
     env=dict(
         env_manager_type='subprocess',
-        manager=dict(shared_memory=True, ),
+        manager=dict(
+            shared_memory=True,
+            wait_num=7,  # 8-1
+        ),
         collector_env_num=8,
         evaluator_env_num=5,
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
@@ -26,17 +29,11 @@ test_config = dict(
         collect_print_freq=5000,
     ),
     replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=300,
-            max_use=100,
-            min_sample_ratio=1,
-            monitor=dict(
-                log_freq=5000,
-                natural_expire=3,
-                tick_expire=3,
-            ),
-        ),
+        # buffer_name=['agent'],
+        # agent=dict(
+        buffer_type='naive',
+        replay_buffer_size=10000,
+        # ),
     ),
 )
 test_config = EasyDict(test_config)

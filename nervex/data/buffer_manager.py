@@ -6,7 +6,7 @@ from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
 import numpy as np
 
-from nervex.data.structure import ReplayBuffer, Cache, SumSegmentTree
+from nervex.data.structure import PrioritizedReplayBuffer, Cache, SumSegmentTree
 from nervex.utils import deep_merge_dicts, remove_file
 from nervex.config import buffer_manager_default_config
 
@@ -88,26 +88,34 @@ class BufferManager(IBuffer):
         self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
-            enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
-            self.buffer[name] = ReplayBuffer(
-                name=name,
-                replay_buffer_size=buffer_cfg['replay_buffer_size'],
-                replay_start_size=buffer_cfg.get('replay_start_size', 0),
-                max_use=buffer_cfg.get('max_use', float("inf")),
-                max_staleness=buffer_cfg.get('max_staleness', float("inf")),
-                min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
-                alpha=buffer_cfg.get('alpha', 0.6),
-                beta=buffer_cfg.get('beta', 0.4),
-                anneal_step=buffer_cfg.get('anneal_step', int(1e5)),
-                enable_track_used_data=enable_track_used_data,
-                deepcopy=buffer_cfg.get('deepcopy', False),
-                monitor_cfg=buffer_cfg.get('monitor', None),
-                tb_logger=tb_logger,
-            )
-            self._enable_track_used_data[name] = enable_track_used_data
-            if self._enable_track_used_data[name]:
-                self._delete_used_data_thread[name] = Thread(
-                    target=self._delete_used_data, args=(name, ), name='delete_used_data'
+            buffer_type = buffer_cfg.get('buffer_type', 'priority')
+            if buffer_type == 'priority':
+                enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
+                self.buffer[name] = PrioritizedReplayBuffer(
+                    name=name,
+                    replay_buffer_size=buffer_cfg['replay_buffer_size'],
+                    replay_start_size=buffer_cfg.get('replay_start_size', 0),
+                    max_use=buffer_cfg.get('max_use', float("inf")),
+                    max_staleness=buffer_cfg.get('max_staleness', float("inf")),
+                    min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
+                    alpha=buffer_cfg.get('alpha', 0.6),
+                    beta=buffer_cfg.get('beta', 0.4),
+                    anneal_step=buffer_cfg.get('anneal_step', int(1e5)),
+                    enable_track_used_data=enable_track_used_data,
+                    deepcopy=buffer_cfg.get('deepcopy', False),
+                    monitor_cfg=buffer_cfg.get('monitor', None),
+                    tb_logger=tb_logger,
+                )
+                self._enable_track_used_data[name] = enable_track_used_data
+                if self._enable_track_used_data[name]:
+                    self._delete_used_data_thread[name] = Thread(
+                        target=self._delete_used_data, args=(name, ), name='delete_used_data'
+                    )
+            elif buffer_type == 'naive':
+                self.buffer[name] = PrioritizedReplayBuffer(
+                    name=name,
+                    replay_buffer_size=buffer_cfg['replay_buffer_size'],
+                    deepcopy=buffer_cfg.get('deepcopy', False),
                 )
 
         # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.

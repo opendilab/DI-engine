@@ -247,6 +247,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._async_args = {
             'step': {
+                'mode': 'async',
                 'wait_num': self.wait_num,
                 'timeout': self.timeout
             },
@@ -344,14 +345,16 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
             self._pipe_parents[env_id].send(['reset', [], self._reset_param[env_id]])
 
-            if not self._pipe_parents[env_id].poll(self.reset_timeout):  # wait for 60 seconds to restart the env
+            # In case some envs may fail when resetting, we will wait for ``reset_timeout``(default 60) seconds.
+            # If no response, we will restart the env.
+            if not self._pipe_parents[env_id].poll(self.reset_timeout):
                 # terminate the old subprocess
                 self._pipe_parents[env_id].close()
                 if self._subprocesses[env_id].is_alive():
                     self._subprocesses[env_id].terminate()
                 # reset the subprocess
                 self._create_env_subprocess(env_id)
-                # raise Exception("env reset timeout")  # leave it to retry_wrapper to try again
+                raise Exception("env reset timeout")  # Leave it to retry_wrapper to try again
 
             obs = self._pipe_parents[env_id].recv()
             self._check_data([obs], close=False)
@@ -370,6 +373,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.close()
                 raise e
 
+    # @profile
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
@@ -403,37 +407,69 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         step_args = self._async_args['step']
         wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
 
-        rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
-        ready_env_ids = []
         timesteps = {}
-        cur_rest_env_ids = copy.deepcopy(rest_env_ids)
-        while True:
-            rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
-            cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
-            assert len(cur_ready_env_ids) == len(ready_conn)
-            timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+        if self._async_args['step']['mode'] == 'async':
+            rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
+            ready_env_ids = []
+            cur_rest_env_ids = copy.deepcopy(rest_env_ids)
+            while True:
+                rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
+                ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(
+                    rest_conn, min(wait_num, len(rest_conn)), timeout
+                )
+                # ready_conn = rest_conn
+                # ready_ids = [ready_conn.index(c) for c in ready_conn]
+                cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
+                assert len(cur_ready_env_ids) == len(ready_conn)
+                timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+                self._check_data(timesteps.values())
+                ready_env_ids += cur_ready_env_ids
+                cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
+                # At least one not done env timestep, or all envs' steps are finished
+                if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
+                    break
+            self._waiting_env['step']: set
+            for env_id in rest_env_ids:
+                if env_id in ready_env_ids:
+                    if env_id in self._waiting_env['step']:
+                        self._waiting_env['step'].remove(env_id)
+                else:
+                    self._waiting_env['step'].add(env_id)
+        elif self._async_args['step']['mode'] == 'sync':
+            ready_conn = [self._pipe_parents[env_id] for env_id in env_ids]
+            timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
             self._check_data(timesteps.values())
-            ready_env_ids += cur_ready_env_ids
-            cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
-            # at least one not done timestep or all the connection is ready
-            if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
-                break
 
-        self._waiting_env['step']: set
-        for env_id in rest_env_ids:
-            if env_id in ready_env_ids:
-                if env_id in self._waiting_env['step']:
-                    self._waiting_env['step'].remove(env_id)
-            else:
-                self._waiting_env['step'].add(env_id)
+            # rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
+            # ready_env_ids = []
+            # cur_rest_env_ids = copy.deepcopy(rest_env_ids)
+            # while True:
+            #     rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
+            #     ready_conn = rest_conn
+            #     ready_ids = [ready_conn.index(c) for c in ready_conn]
+            #     cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
+            #     assert len(cur_ready_env_ids) == len(ready_conn)
+            #     timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            #     self._check_data(timesteps.values())
+            #     ready_env_ids += cur_ready_env_ids
+            #     cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
+            #     # at least one not done timestep or all the connection is ready
+            #     if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
+            #         break
+            # self._waiting_env['step']: set
+            # for env_id in rest_env_ids:
+            #     if env_id in ready_env_ids:
+            #         if env_id in self._waiting_env['step']:
+            #             self._waiting_env['step'].remove(env_id)
+            #     else:
+            #         self._waiting_env['step'].add(env_id)
 
         if self.shared_memory:
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         timesteps = self._inv_transform(timesteps)
 
-        for i, (env_id, timestep) in enumerate(timesteps.items()):
+        for env_id, timestep in timesteps.items():
             if timestep.info.get('abnormal', False):
                 self._env_states[env_id] = EnvState.RESET
                 reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
@@ -457,6 +493,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
+    # @profile
     def worker_fn(
             p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'PickleWrapper', obs_buffer: ShmBuffer,
             method_name_list: list
@@ -597,6 +634,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
     def _setup_async_args(self) -> None:
         self._async_args = {
             'step': {
+                'mode': 'sync',
                 'wait_num': self._env_num,  # math.inf,
                 'timeout': None,
             },
