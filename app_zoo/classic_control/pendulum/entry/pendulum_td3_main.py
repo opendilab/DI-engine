@@ -5,31 +5,35 @@ from tensorboardX import SummaryWriter
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.data import BufferManager
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import PPOPolicy
-from nervex.model import FCValueAC
+from nervex.policy import DDPGPolicy
+from nervex.model import QAC
 from nervex.entry.utils import set_pkg_seed
-from app_zoo.classic_control.cartpole.config import cartpole_ppo_default_config
-
-
-def wrapped_cartpole_env():
-    return NervexEnvWrapper(gym.make('CartPole-v0'))
+from app_zoo.classic_control.pendulum.config import pendulum_td3_default_config
 
 
 def main(cfg, seed=0):
+    
+    def wrapped_pendulum_env():
+        return NervexEnvWrapper(gym.make('Pendulum-v0'), cfg=cfg.env.wrapper)
+    
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(
+        env_fn=[wrapped_pendulum_env for _ in range(collector_env_num)])
+    evaluator_env = BaseEnvManager(
+        env_fn=[wrapped_pendulum_env for _ in range(evaluator_env_num)])
 
     collector_env.seed(seed)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
 
-    model = FCValueAC(**cfg.policy.model)
-    policy = PPOPolicy(cfg.policy, model=model)
+    model = QAC(**cfg.policy.model)
+    policy = DDPGPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    collector = BaseSerialCollector(
+        cfg.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(
+        cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
 
     while True:
@@ -46,4 +50,4 @@ def main(cfg, seed=0):
                 break
 
 if __name__ == "__main__":
-    main(cartpole_ppo_default_config, seed=0)
+    main(pendulum_td3_default_config, seed=0)
