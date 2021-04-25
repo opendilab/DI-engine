@@ -17,10 +17,8 @@ def wrapped_cartpole_env():
 
 def main(cfg, seed=0):
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(
-        env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(
-        env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
 
     collector_env.seed(seed)
     evaluator_env.seed(seed)
@@ -30,28 +28,24 @@ def main(cfg, seed=0):
     policy = PPOPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(
-        cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(
-        cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
-    
+
     while True:
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(
-                learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         new_data = collector.collect_data(learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.train_iteration):
-            train_data = replay_buffer.sample(
-                learner.policy.get_attribute('batch_size'), learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
                 if cfg.policy.get('use_priority', False):
                     replay_buffer.update(learner.priority_info)
 
+
 if __name__ == "__main__":
     main(cartpole_ppo_default_config, seed=0)
-

@@ -59,18 +59,25 @@ class PendulumEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T((3, ), {
-                'min': [-1.0, -1.0, -8.0],
-                'max': [1.0, 1.0, 8.0],
-                'dtype': np.float32,
-            },),
-            act_space=T((1, ), {
-                'min': -2.0,
-                'max': 2.0,
-                'dtype': np.float32
-            },),
+            obs_space=T(
+                (3, ),
+                {
+                    'min': [-1.0, -1.0, -8.0],
+                    'max': [1.0, 1.0, 8.0],
+                    'dtype': np.float32,
+                },
+            ),
+            act_space=T(
+                (1, ),
+                {
+                    'min': -2.0,
+                    'max': 2.0,
+                    'dtype': np.float32
+                },
+            ),
             rew_space=T(
-                (1, ), {
+                (1, ),
+                {
                     'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
                     'max': -0.0,
                     'dtype': np.float32

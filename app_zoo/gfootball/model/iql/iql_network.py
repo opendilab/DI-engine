@@ -18,8 +18,8 @@ iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_co
 class FootballIQL(nn.Module):
 
     def __init__(
-        self,
-        cfg: dict = {},
+            self,
+            cfg: dict = {},
     ) -> None:
         super(FootballIQL, self).__init__()
         self.cfg = deep_merge_dicts(iql_default_config.model, cfg)
@@ -104,8 +104,8 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
 class PlayerEncoder(nn.Module):
 
     def __init__(
-        self,
-        cfg: dict,
+            self,
+            cfg: dict,
     ) -> None:
         super(PlayerEncoder, self).__init__()
         self.act = nn.ReLU()
@@ -170,8 +170,8 @@ class PlayerEncoder(nn.Module):
 class SpatialEncoder(nn.Module):
 
     def __init__(
-        self,
-        cfg: dict,
+            self,
+            cfg: dict,
     ) -> None:
         super(SpatialEncoder, self).__init__()
         self.act = build_activation(cfg.activation)
@@ -230,9 +230,9 @@ class SpatialEncoder(nn.Module):
 class FootballHead(nn.Module):
 
     def __init__(
-        self,
-        input_dim: int,
-        cfg: dict,
+            self,
+            input_dim: int,
+            cfg: dict,
     ) -> None:
         super(FootballHead, self).__init__()
         self.act = nn.ReLU()

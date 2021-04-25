@@ -2,9 +2,7 @@ from easydict import EasyDict
 
 cartpole_ppo_default_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
@@ -42,9 +40,7 @@ cartpole_ppo_default_config = dict(
             ),
         ),
     ),
-    replay_buffer=dict(
-        replay_buffer_size=1000,
-    ),
+    replay_buffer=dict(replay_buffer_size=1000, ),
     collector=dict(
         n_sample=16,
         traj_len=200,  # cartpole max episode len

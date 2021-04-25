@@ -8,29 +8,38 @@ from competitive_rl.pong.builtin_policies import get_builtin_agent_names, single
 from competitive_rl.utils.policy_serving import Policy
 from nervex.envs import ObsTransposeWrapper, WarpFrame, FrameStack
 
+
 def get_compute_action_function_ours(agent_name, num_envs=1):
     resource_dir = osp.join(osp.dirname(__file__), "resources", "pong")
     if agent_name == "STRONG":
         return Policy(
-            single_obs_space, single_act_space, num_envs,
+            single_obs_space,
+            single_act_space,
+            num_envs,
             osp.join(resource_dir, "checkpoint-strong.pkl"),
             use_light_model=False
         )
     if agent_name == "MEDIUM":
         return Policy(
-            single_obs_space, single_act_space, num_envs,
+            single_obs_space,
+            single_act_space,
+            num_envs,
             osp.join(resource_dir, "checkpoint-medium.pkl"),
             use_light_model=True
         )
     if agent_name == "ALPHA_PONG":
         return Policy(
-            single_obs_space, single_act_space, num_envs,
+            single_obs_space,
+            single_act_space,
+            num_envs,
             osp.join(resource_dir, "checkpoint-alphapong.pkl"),
             use_light_model=False
         )
     if agent_name == "WEAK":
         return Policy(
-            single_obs_space, single_act_space, num_envs,
+            single_obs_space,
+            single_act_space,
+            num_envs,
             osp.join(resource_dir, "checkpoint-weak.pkl"),
             use_light_model=True
         )
@@ -42,10 +51,13 @@ def get_compute_action_function_ours(agent_name, num_envs=1):
 
 
 class BuiltinOpponentWrapper(gym.Wrapper):
+
     def __init__(self, env: 'gym.Env', num_envs: int = 1) -> None:  # noqa
         super().__init__(env)
-        self.agents = {agent_name: get_compute_action_function_ours(
-            agent_name, num_envs) for agent_name in get_builtin_agent_names()}
+        self.agents = {
+            agent_name: get_compute_action_function_ours(agent_name, num_envs)
+            for agent_name in get_builtin_agent_names()
+        }
         self.agent_names = list(self.agents)
         self.prev_opponent_obs = None
         self.current_opponent_name = "RULE_BASED"
@@ -60,10 +72,7 @@ class BuiltinOpponentWrapper(gym.Wrapper):
         self.current_opponent = self.agents[self.current_opponent_name]
 
     def step(self, action):
-        tuple_action = (
-            action.item(),
-            self.current_opponent(self.prev_opponent_obs)
-        )
+        tuple_action = (action.item(), self.current_opponent(self.prev_opponent_obs))
         obs, rew, done, info = self.env.step(tuple_action)
         self.prev_opponent_obs = obs[1]
         # if done.ndim == 2:

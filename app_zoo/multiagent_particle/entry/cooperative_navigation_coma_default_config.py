@@ -8,9 +8,7 @@ num_landmarks = agent_num
 max_step = 100
 cooperative_navigation_coma_default_config = dict(
     env=dict(
-        manager=dict(
-            type='subprocess',
-        ),
+        manager=dict(type='subprocess', ),
         env_kwargs=dict(
             import_names=['app_zoo.multiagent_particle.envs.particle_env'],
             env_type='cooperative_navigation',
