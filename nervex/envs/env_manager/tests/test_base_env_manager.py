@@ -10,7 +10,8 @@ from ..base_env_manager import BaseEnvManager, EnvState
 class TestBaseEnvManager:
 
     def test_naive(self, setup_sync_manager_cfg):
-        env_manager = BaseEnvManager(**setup_sync_manager_cfg)
+        env_fn = setup_sync_manager_cfg.pop('env_fn')
+        env_manager = BaseEnvManager(env_fn, setup_sync_manager_cfg)
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         assert env_manager._closed
         obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
@@ -58,7 +59,8 @@ class TestBaseEnvManager:
             env_manager.step([])
 
     def test_error(self, setup_sync_manager_cfg, setup_exception):
-        env_manager = BaseEnvManager(**setup_sync_manager_cfg)
+        env_fn = setup_sync_manager_cfg.pop('env_fn')
+        env_manager = BaseEnvManager(env_fn, setup_sync_manager_cfg)
         # Test reset error
         with pytest.raises(RuntimeError):
             reset_param = [{'stat': 'error'} for _ in range(env_manager.env_num)]
@@ -94,7 +96,8 @@ class TestBaseEnvManager:
         env_manager.close()
 
     def test_block(self, setup_sync_manager_cfg, setup_exception, setup_watchdog):
-        env_manager = BaseEnvManager(**setup_sync_manager_cfg)
+        env_fn = setup_sync_manager_cfg.pop('env_fn')
+        env_manager = BaseEnvManager(env_fn, setup_sync_manager_cfg)
         watchdog = setup_watchdog(30)
         # Test reset timeout
         watchdog.start()

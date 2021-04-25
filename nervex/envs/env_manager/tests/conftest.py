@@ -160,19 +160,19 @@ def get_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def setup_sync_manager_cfg():
     manager_cfg = get_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
-    return manager_cfg
+    return EasyDict(manager_cfg)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='function')
 def setup_async_manager_cfg():
     manager_cfg = get_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
     manager_cfg['connect_timeout'] = 30
-    return manager_cfg
+    return EasyDict(manager_cfg)

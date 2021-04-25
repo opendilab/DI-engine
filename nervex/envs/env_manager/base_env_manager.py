@@ -12,7 +12,7 @@ import time
 import traceback
 import signal
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import ENV_MANAGER_REGISTRY, import_module
+from nervex.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts
 from nervex.envs.env.base_env import BaseEnvTimestep
 from nervex.utils.time_helper import WatchDog
 
@@ -102,22 +102,19 @@ class BaseEnvManager(object):
     )
 
     def __init__(
-        self,
-        env_fn: List[Callable],
-        cfg: EasyDict = EasyDict({}),
+            self,
+            env_fn: List[Callable],
+            cfg: EasyDict = EasyDict({}),
     ) -> None:
         """
         Overview:
             Initialize the BaseEnvManager.
         Arguments:
             - env_fn (:obj:`List[Callable]`): the function to create environment
-            - episode_num (:obj:`Optional[Union[int, float]]`): maximum episodes to collect in one environment
         """
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
-        if episode_num == "inf":
-            episode_num = float("inf")
-        self._episode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
@@ -126,10 +123,11 @@ class BaseEnvManager(object):
         self._env_ref = self._env_fn[0]()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
 
-        self._max_retry = max_retry
-        self._step_timeout = step_timeout
-        self._reset_timeout = reset_timeout
-        self._retry_waiting_time = retry_waiting_time
+        self._episode_num = self._cfg.episode_num
+        self._max_retry = self._cfg.max_retry
+        self._step_timeout = self._cfg.step_timeout
+        self._reset_timeout = self._cfg.reset_timeout
+        self._retry_waiting_time = self._cfg.retry_waiting_time
 
     @property
     def env_num(self) -> int:
@@ -342,7 +340,7 @@ def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvMana
     if 'import_names' in manager_cfg:
         import_module(manager_cfg.pop('import_names'))
     manager_type = manager_cfg.pop('type')
-    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, **manager_cfg)
+    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, cfg=manager_cfg)
 
 
 def get_env_manager_cls(cfg: EasyDict) -> type:
