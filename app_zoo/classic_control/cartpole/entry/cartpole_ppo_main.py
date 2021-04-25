@@ -43,8 +43,7 @@ def main(cfg, seed=0):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
-                if cfg.policy.get('use_priority', False):
-                    replay_buffer.update(learner.priority_info)
+                replay_buffer.update(learner.priority_info)
 
 
 if __name__ == "__main__":
