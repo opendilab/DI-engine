@@ -103,13 +103,13 @@ class CollaQPolicy(Policy):
         self._model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
-        ret = self._model.forward(inputs, param={'single_step': False})
+        ret = self._model.forward(inputs, single_step=False)
         total_q = ret['total_q']
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
-        total_q = self._model.forward(inputs, param={'single_step': False})['total_q']
+        total_q = self._model.forward(inputs, single_step=False)['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
-            target_total_q = self._target_model.forward(next_inputs, param={'single_step': False})['total_q']
+            target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 
         # td_loss calculation
         td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])

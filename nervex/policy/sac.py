@@ -110,21 +110,21 @@ class SACPolicy(Policy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._model.forward(data['obs'], param={'mode': 'evaluate'})
+        eval_data = self._model.forward(data['obs'], mode='evaluate')
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._model.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._model.forward(data['obs'], param={'mode': 'compute_value'})['v_value']
+        q_value = self._model.forward(data, mode='compute_q')['q_value']
+        v_value = self._model.forward(data['obs'], mode='compute_value')['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._target_model.forward(next_obs, param={'mode': 'compute_value'})['v_value']
+            next_v_value = self._target_model.forward(next_obs, mode='compute_value')['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -147,7 +147,7 @@ class SACPolicy(Policy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._model.forward(eval_data, param={'mode': 'compute_q'})['q_value']
+        new_q_value = self._model.forward(eval_data, mode='compute_q')['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
@@ -262,7 +262,7 @@ class SACPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_model.forward(data, mode='compute_action')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -316,7 +316,7 @@ class SACPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
+            output = self._eval_model.forward(data, mode='compute_action', deterministic_eval=True)
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

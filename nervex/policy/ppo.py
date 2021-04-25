@@ -58,7 +58,7 @@ class PPOPolicy(Policy):
         # PPO forward
         # ====================
         self._model.train()
-        output = self._model.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._model.forward(data['obs'], mode='compute_action_value')
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -127,7 +127,7 @@ class PPOPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, mode='compute_action_value')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -194,7 +194,7 @@ class PPOPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, mode='compute_action')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

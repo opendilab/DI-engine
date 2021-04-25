@@ -61,7 +61,7 @@ class A2CPolicy(Policy):
             data = to_device(data, self._device)
         self._model.train()
         # forward
-        output = self._model.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._model.forward(data['obs'], mode='compute_action_value')
 
         adv = data['adv']
         if self._use_adv_norm:
@@ -71,7 +71,7 @@ class A2CPolicy(Policy):
         with torch.no_grad():
             if self._learn_use_nstep_return:
                 # use nstep return
-                next_value = self._model.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+                next_value = self._model.forward(data['next_obs'], mode='compute_action_value')['value']
                 nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
             else:
@@ -151,7 +151,7 @@ class A2CPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, mode='compute_action_value')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -226,7 +226,7 @@ class A2CPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, mode='compute_action')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
