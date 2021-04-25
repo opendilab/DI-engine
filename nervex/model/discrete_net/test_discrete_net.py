@@ -5,6 +5,7 @@ import pytest
 from nervex.model import FCDiscreteNet, ConvDiscreteNet, FCRDiscreteNet, ConvRDiscreteNet, NoiseFCDiscreteNet, \
     NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
 from nervex.torch_utils import is_differentiable
+from nervex.utils import squeeze
 
 B = 4
 T = 6
@@ -19,10 +20,9 @@ action_dim_args = [(6, ), [4, 8], [
 class TestDiscreteNet:
 
     def output_check(self, model, outputs):
-        action_dim = model._head.action_dim
-        if isinstance(action_dim, tuple):
+        if isinstance(outputs, list):
             loss = sum([t.sum() for t in outputs])
-        elif np.isscalar(action_dim):
+        elif isinstance(outputs, torch.Tensor):
             loss = outputs.sum()
         is_differentiable(loss, model)
 
@@ -84,11 +84,10 @@ class TestDiscreteNet:
         assert len(prev_state) == B
         assert all([len(o) == 2 and all([isinstance(o1, torch.Tensor) for o1 in o]) for o in prev_state])
         self.output_check(model, logit)
-        action_dim = model._head.action_dim
-        if isinstance(action_dim, tuple):
+        if isinstance(squeeze(action_dim), tuple):
             assert all([l.shape == (T, B, d) for l, d in zip(logit, action_dim)])
-        elif np.isscalar(action_dim):
-            assert logit.shape == (T, B, action_dim)
+        elif np.isscalar(squeeze(action_dim)):
+            assert logit.shape == (T, B, squeeze(action_dim))
 
     def test_conv_r_discrete_net(self, action_dim):
         dims = [3, 64, 64]
@@ -113,8 +112,7 @@ class TestDiscreteNet:
         assert len(prev_state) == B
         assert all([len(o) == 2 and all([isinstance(o1, torch.Tensor) for o1 in o]) for o in prev_state])
         self.output_check(model, logit)
-        action_dim = model._head.action_dim
-        if isinstance(action_dim, tuple):
+        if isinstance(squeeze(action_dim), tuple):
             assert all([l.shape == (T, B, d) for l, d in zip(logit, action_dim)])
-        elif np.isscalar(action_dim):
-            assert logit.shape == (T, B, action_dim)
+        elif np.isscalar(squeeze(action_dim)):
+            assert logit.shape == (T, B, squeeze(action_dim))

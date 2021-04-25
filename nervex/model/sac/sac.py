@@ -12,7 +12,7 @@ from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
 from nervex.torch_utils import MLP
-from ..common import SoftActorCriticBase
+from ..common import ActorCriticBase
 
 
 class SoftQNet(nn.Module):
@@ -86,7 +86,7 @@ class PolicyNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('sac')
-class SAC(SoftActorCriticBase):
+class SAC(ActorCriticBase):
 
     def __init__(
             self,

@@ -9,6 +9,7 @@ class ActorCriticBase(nn.Module):
         forward, seed, compute_actor_critic, compute_actor, compute_critic, mimic, mimic_single
     """
     def __init__(self, ) -> None:
+        super(ActorCriticBase, self).__init__()
         self.modes = ['compute_actor_critic', 'compute_actor', 'compute_critic']
 
     def forward(self, inputs, mode=None, **kwargs):

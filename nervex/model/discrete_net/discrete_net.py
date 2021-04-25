@@ -1,5 +1,6 @@
 from functools import partial
 from typing import Union, List, Dict, Optional, Tuple, Callable
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
@@ -51,9 +52,9 @@ class DiscreteNet(nn.Module):
 
         # build head: the head encodes the observations into q-value of actions.
         if use_multi_discrete:
-            self._head = MultiDiscreteHead(action_dim, embedding_dim, head_fn, **head_kwargs)
+            self._head = MultiDiscreteHead(embedding_dim, action_dim, head_fn, **head_kwargs)
         else:
-            self._head = head_fn(action_dim, embedding_dim, **head_kwargs)
+            self._head = head_fn(embedding_dim, action_dim, **head_kwargs)
 
     def forward(self, inputs: Dict) -> Dict:
         r"""
@@ -170,8 +171,8 @@ class MultiDiscreteHead(nn.Module):
 
     def __init__(
             self,
-            action_dim: tuple,
             input_dim: int,
+            action_dim: tuple,
             head_fn: nn.Module,
             **head_kwargs,
     ) -> None:
@@ -386,7 +387,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'lstm_type': kwargs.get('lstm_type', 'normal'),
         }
     if 'head_kwargs' in kwargs:
-        head_kwargs = kwargs['head_kwargs']
+        head_kwargs = deepcopy(kwargs['head_kwargs'])
         for k in kwargs:
             if k in head_kwargs_keys:
                 head_kwargs[k] = kwargs[k]

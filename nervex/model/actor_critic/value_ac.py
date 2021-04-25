@@ -163,7 +163,7 @@ class ValueAC(ActorCriticBase):
 
         return {'logit': logit}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             First encode raw observation, then output value and logit.

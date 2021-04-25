@@ -165,13 +165,13 @@ class FCPPG(ActorCriticBase):
 
     def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        return self._policy_net.compute_action_value(state_input)
+        return self._policy_net.compute_actor_critic(state_input)
 
     def compute_actor(self,
                        inputs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
-        logit = self._policy_net.compute_action(state_input)['logit']
+        logit = self._policy_net.compute_actor(state_input)['logit']
         return {'logit': logit}
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
