@@ -29,11 +29,8 @@ test_config = dict(
         collect_print_freq=5000,
     ),
     replay_buffer=dict(
-        # buffer_name=['agent'],
-        # agent=dict(
         buffer_type='naive',
         replay_buffer_size=10000,
-        # ),
     ),
 )
 test_config = EasyDict(test_config)

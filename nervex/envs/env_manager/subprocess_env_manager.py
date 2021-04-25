@@ -530,7 +530,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _check_data(self, data: Iterable, close: bool = True) -> None:
         for d in data:
-            if isinstance(d, Exception):
+            if isinstance(d, Exception) or (isinstance(d, CloudPickleWrapper) and isinstance(d.data, Exception)):
                 # when receiving env Exception, env manager will safely close and raise this Exception to caller
                 if close:
                     self.close()
