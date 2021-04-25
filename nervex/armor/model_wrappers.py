@@ -35,7 +35,7 @@ class IModelWrapper(ABC):
         """
         return getattr(self._model, key)
 
-    def reset(self) -> None:
+    def reset(self, data_id: List[int] = None) -> None:
         r"""
         Overview
             the reset function that the Armor Wrappers with states should implement
