@@ -186,7 +186,7 @@ class SQNPolicy(Policy):
         self._optimizer_alpha.step()
 
         # target update
-        self._model.target_update(self._model.state_dict())
+        self._target_model.update(self._model.state_dict())
         self._forward_learn_cnt += 1
         # some useful info
         return {

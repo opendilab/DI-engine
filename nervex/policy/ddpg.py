@@ -70,6 +70,7 @@ class DDPGPolicy(Policy):
                 },
                 noise_range=algo_cfg.noise_range
             )
+        self._model = model_wrap(self._model, wrapper_name='base')
         self._model.reset()
         self._target_model.reset()
 

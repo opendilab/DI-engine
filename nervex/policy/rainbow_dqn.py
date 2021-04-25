@@ -102,14 +102,14 @@ class RainbowDQNPolicy(DQNPolicy):
         self._reset_noise(self._model)
         self._reset_noise(self._target_model)
         if self._use_iqn:
-            ret = self._model.forward(data['obs'], param={'num_quantiles': self._tau})
+            ret = self._model.forward(data['obs'], num_quantiles=self._tau)
             q = ret['q']
             replay_quantiles = ret['quantiles']
             with torch.no_grad():
-                target_q = self._target_model.forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
+                target_q = self._target_model.forward(data['next_obs'], num_quantiles=self._tau_prim)['q']
                 self._reset_noise(self._model)
                 target_q_action = self._model.forward(
-                    data['next_obs'], param={'num_quantiles': self._num_quantiles}
+                    data['next_obs'], num_quantiles=self._num_quantiles
                 )['action']
             data = iqn_nstep_td_data(
                 q, target_q, data['action'], target_q_action, data['reward'], data['done'], replay_quantiles,

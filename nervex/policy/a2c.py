@@ -42,8 +42,7 @@ class A2CPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target armors
-        # self._armor = Armor(self._model)
-        # self._armor.reset()
+        self._model = model_wrap(self._model, wrapper_name='base')
         self._model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
