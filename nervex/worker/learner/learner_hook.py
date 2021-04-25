@@ -321,6 +321,28 @@ def register_learner_hook(name: str, hook_type: type) -> None:
     hook_mapping[name] = hook_type
 
 
+simplified_hook_mapping = {
+    'log_show_after_iter': lambda freq: hook_mapping['log_show']
+    ('log_show', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
+    'load_ckpt_before_run': lambda _: hook_mapping['load_ckpt']('load_ckpt', 20, position='before_run'),
+    'save_ckpt_after_iter': lambda freq: hook_mapping['save_ckpt']
+    ('save_ckpt_after_iter', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
+    'save_ckpt_after_run': lambda _: hook_mapping['save_ckpt']('save_ckpt_after_run', 20, position='after_run'),
+}
+
+
+def find_char(s: str, flag: str, num: int, reverse: bool = False) -> int:
+    assert num > 0, num
+    count = 0
+    iterable_obj = reversed(range(len(s))) if reverse else range(len(s))
+    for i in iterable_obj:
+        if s[i] == flag:
+            count += 1
+            if count == num:
+                return i
+    return -1
+
+
 def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
     """
     Overview:
@@ -336,17 +358,21 @@ def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
         Lower value means higher priority.
     """
     hooks = {k: [] for k in LearnerHook.positions}
-    for item in cfg.values():
-        priority = item.get('priority', 100)
-        pos = item.position
-        idx = 0
-        for i in reversed(range(len(hooks[pos]))):
-            if priority >= hooks[pos][i].priority:
-                idx = i + 1
-                break
-        ext_args = item.get('ext_args', {})
-        hook = hook_mapping[item.type](item.name, priority, position=pos, ext_args=ext_args)
-        hooks[pos].insert(idx, hook)
+    for key, value in cfg.items():
+        if key in simplified_hook_mapping:
+            pos = key[find_char(key, '_', 2, reverse=True) + 1:]
+            hooks[pos].append(simplified_hook_mapping[key](value))
+        else:
+            priority = value.get('priority', 100)
+            pos = value.position
+            idx = 0
+            for i in reversed(range(len(hooks[pos]))):
+                if priority >= hooks[pos][i].priority:
+                    idx = i + 1
+                    break
+            ext_args = value.get('ext_args', {})
+            hook = hook_mapping[value.type](value.name, priority, position=pos, ext_args=ext_args)
+            hooks[pos].insert(idx, hook)
     return hooks
 
 
