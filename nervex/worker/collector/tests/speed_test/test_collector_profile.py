@@ -1,6 +1,7 @@
 import time
 import logging
 from easydict import EasyDict
+import pytest
 
 from nervex.worker import BaseSerialCollector
 from nervex.envs import get_vec_env_setting, create_env_manager
@@ -12,6 +13,8 @@ from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
+# SLOW MODE: Repeat 3 times; Each time 300 iterations; Approximate duration -- small 5min, middle 10min, big 45min.
+# FAST MODE: Only once; 100 iterations; Approcimate duration is 1/6 of SLOW MODE.
 FAST_MODE = False
 
 
@@ -62,7 +65,8 @@ def compare_test(cfg, out_str, seed):
     out_str.append('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
 
 
-if __name__ == '__main__':
+@pytest.mark.benchmark
+def test_collector_profile():
     collector_log = logging.getLogger('collector_logger')
     collector_log.disabled = True
     buffer_log = logging.getLogger('agent_buffer_logger')
@@ -84,20 +88,20 @@ if __name__ == '__main__':
             policy=dict(forward_time=0.004, ),
             actor=dict(n_sample=80, ),
         ),
+        dict(
+            size="middle",
+            env=dict(
+                obs_dim=int(3e2),  # int(3e3),
+                action_dim=2,
+                episode_step=500,
+                reset_time=0.5,  # 2
+                step_time=0.01,
+            ),
+            policy=dict(forward_time=0.008, ),
+            actor=dict(n_sample=80, ),
+        ),
 
-        # dict(
-        #     size="middle",
-        #     env=dict(
-        #         obs_dim=int(3e2),  # int(3e3),
-        #         action_dim=2,
-        #         episode_step=500,
-        #         reset_time=0.5,  # 2
-        #         step_time=0.01,
-        #     ),
-        #     policy=dict(forward_time=0.008, ),
-        #     actor=dict(n_sample=80, ),
-        # ),
-
+        # Big env(45min)  takes much longer time than small(5min) and middle(10min).
         # dict(
         #     size="big",
         #     env=dict(
@@ -113,6 +117,7 @@ if __name__ == '__main__':
     ]
     out_str = []
     for cfg in cfgs:
+        # Note: 'base' takes much approximately 6 times longer than 'subprocess'
         envm_list = ['async_subprocess', 'subprocess']  # ['base', 'async_subprocess', 'subprocess']
         for envm in envm_list:
             reset_list = [1, 5]  # [1, 5]

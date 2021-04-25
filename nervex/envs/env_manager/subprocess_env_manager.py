@@ -373,7 +373,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.close()
                 raise e
 
-    # @profile
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
@@ -440,30 +439,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
             self._check_data(timesteps.values())
 
-            # rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
-            # ready_env_ids = []
-            # cur_rest_env_ids = copy.deepcopy(rest_env_ids)
-            # while True:
-            #     rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-            #     ready_conn = rest_conn
-            #     ready_ids = [ready_conn.index(c) for c in ready_conn]
-            #     cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
-            #     assert len(cur_ready_env_ids) == len(ready_conn)
-            #     timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-            #     self._check_data(timesteps.values())
-            #     ready_env_ids += cur_ready_env_ids
-            #     cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
-            #     # at least one not done timestep or all the connection is ready
-            #     if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
-            #         break
-            # self._waiting_env['step']: set
-            # for env_id in rest_env_ids:
-            #     if env_id in ready_env_ids:
-            #         if env_id in self._waiting_env['step']:
-            #             self._waiting_env['step'].remove(env_id)
-            #     else:
-            #         self._waiting_env['step'].add(env_id)
-
         if self.shared_memory:
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
@@ -493,10 +468,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
     @staticmethod
-    # @profile
     def worker_fn(
-            p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'PickleWrapper', obs_buffer: ShmBuffer,
-            method_name_list: list
+            p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'CloudPickleWrapper',
+            obs_buffer: ShmBuffer, method_name_list: list
     ) -> None:  # noqa
         """
         Overview:
@@ -607,7 +581,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Overview:
             Wait at least enough(len(ready_conn) >= wait_num) connections within timeout constraint.
             If timeout is None and wait_num == len(ready_conn), means sync mode;
-            If timeout is not None, will return when len(ready_conn) >= wait_num and 
+            If timeout is not None, will return when len(ready_conn) >= wait_num and
             this method takes more than timeout seconds.
         """
         assert 1 <= wait_num <= len(rest_conn

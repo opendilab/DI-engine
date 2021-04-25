@@ -75,7 +75,8 @@ class NaiveReplayBuffer:
             This function must be called exactly before calling ``sample``.
         """
         print(
-            '[warning] Naive Buffer does not need to check before sampling, but sample_check method is preserved for compatiblity.'
+            '[warning] Naive Buffer does not need to check before sampling, \
+                but sample_check method is preserved for compatiblity.'
         )
         return True
 
