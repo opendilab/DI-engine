@@ -339,3 +339,8 @@ def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvMana
         import_module(manager_cfg.pop('import_names'))
     manager_type = manager_cfg.pop('type')
     return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, **manager_cfg)
+
+
+def get_env_manager_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return ENV_MANAGER_REGISTRY.get(cfg.type)

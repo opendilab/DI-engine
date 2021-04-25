@@ -8,6 +8,11 @@ from typing import Optional, Tuple, NoReturn
 
 import yaml
 from easydict import EasyDict
+from nervex.utils import deep_merge_dicts
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
+from nervex.data import BufferManager
+from nervex.envs import get_env_cls, get_env_manager_cls
+from nervex.policy import get_policy_cls
 
 
 class Config(object):
@@ -97,20 +102,58 @@ def save_config_yaml(config_: dict, path: str) -> NoReturn:
         yaml.safe_dump(json.loads(config_string), f)
 
 
-def read_config(cfg: str) -> dict:
+def read_config(cfg: str) -> Tuple[dict, dict]:
     suffix = cfg.split('.')[-1]
-    if suffix == 'yaml':
-        cfg = read_config_yaml(cfg)
-    elif suffix == 'py':
+    if suffix == 'py':
         cfg = Config.file_to_dict(cfg).cfg_dict
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
-        cfg = cfg['main_config']
+        return cfg['main_config'], cfg['create_config']
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))
-    return cfg
 
 
 def save_config(config_: dict, path: str, type_: str = 'yaml') -> NoReturn:
     assert type_ in ['yaml'], type_
     if type_ == 'yaml':
         save_config_yaml(config_, path)
+
+
+def compile_config(
+    cfg,
+    env=None,
+    env_manager=None,
+    policy=None,
+    learner=BaseLearner,
+    collector=BaseSerialCollector,
+    evaluator=BaseSerialEvaluator,
+    buffer=BufferManager,
+    auto: bool = False,
+    create_cfg: dict = None
+):
+    if auto:
+        assert create_cfg is not None
+        if env is None:
+            env = get_env_cls(create_cfg.env)
+        if env_manager is None:
+            env_manager = get_env_manager_cls(create_cfg.env_manager)
+        if policy is None:
+            policy = get_policy_cls(create_cfg.policy)
+        env_config = env.default_config()
+        env_config.update(create_cfg.env)
+        env_config.manager = env_manager.default_config()
+        env_config.manager.update(create_cfg.env_manager)
+        policy_config = policy.default_config()
+        policy_config.update(create_cfg.policy)
+        policy_config.other.commander = BaseSerialCommander.default_config()
+    else:
+        env_config = env.default_config()
+        env_config.manager = env_manager.default_config()
+        policy_config = policy.default_config()
+    policy_config.learn.learner = learner.default_config()
+    policy_config.collect.collector = collector.default_config()
+    policy_config.eval.evaluator = evaluator.default_config()
+    policy_config.other.buffer = buffer.default_config()
+    default_config = EasyDict({'env': env_config, 'policy': policy_config})
+    cfg = deep_merge_dicts(default_config, cfg)
+    # TODO export python-type config
+    return cfg

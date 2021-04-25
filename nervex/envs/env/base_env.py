@@ -93,7 +93,12 @@ class BaseEnv(gym.Env):
 
 def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
     import_module(cfg.get('import_names', []))
-    env_fn = ENV_REGISTRY[cfg.env_type]
+    env_fn = ENV_REGISTRY.get(cfg.type)
     collector_env_cfg = env_fn.create_collector_env_cfg(cfg)
     evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
     return env_fn, collector_env_cfg, evaluator_env_cfg
+
+
+def get_env_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return ENV_REGISTRY.get(cfg.type)

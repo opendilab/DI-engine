@@ -1,20 +1,21 @@
-from typing import Union, Optional, List, Any, Callable
+from typing import Union, Optional, List, Any, Callable, Tuple
 import os
 import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
+from nervex.config import compile_config
 from nervex.envs import get_vec_env_setting, create_env_manager
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def serial_pipeline(
-        cfg: Union[str, dict],
+        input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
@@ -23,34 +24,39 @@ def serial_pipeline(
     Overview:
         Serial pipeline entry.
     Arguments:
-        - cfg (:obj:`Union[str, dict]`): Config in dict type. ``str`` type means config file path.
+        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. ``str`` type means config file path.
         - seed (:obj:`int`): Random seed.
         - env_setting (:obj:`Optional[List[Any]]`): Subclass of ``BaseEnv``, and config dict.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     """
-    if isinstance(cfg, str):
-        cfg = read_config(cfg)
-    cfg.policy.policy_type = cfg.policy.policy_type + '_command'
-    # Prepare vectorize env
+    if isinstance(input_cfg, str):
+        cfg, create_cfg = read_config(input_cfg)
+    else:
+        cfg, create_cfg = input_cfg
+    # TODO(nyz) when env_setting is not None
+    assert env_setting is None  # temporally
+    create_cfg.policy.type = create_cfg.policy.type + '_command'
+    cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
+    # Create main components: env, policy
     if env_setting is None:
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env.env_kwargs)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    # Random seed
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
-    # Create components: policy, learner, collector, evaluator, replay buffer, commander.
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
+
+    # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
     commander = BaseSerialCommander(
-        cfg.get('commander', {}), learner, collector, evaluator, replay_buffer, policy.command_mode
+        cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
     # ==========
     # Main loop

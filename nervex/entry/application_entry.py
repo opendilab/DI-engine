@@ -9,7 +9,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.torch_utils import to_device
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def eval(

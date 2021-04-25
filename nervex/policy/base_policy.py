@@ -269,4 +269,9 @@ class CommandModePolicy(Policy):
 def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
     import_module(cfg.get('import_names', []))
-    return POLICY_REGISTRY.build(cfg.policy_type, cfg=cfg, **kwargs)
+    return POLICY_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
+
+
+def get_policy_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return POLICY_REGISTRY.get(cfg.type)

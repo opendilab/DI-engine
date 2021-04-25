@@ -1,4 +1,4 @@
-from .base_policy import Policy, CommandModePolicy, create_policy
+from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
 from .dqn import DQNPolicy
 from .rainbow_dqn import RainbowDQNPolicy
 from .ddpg import DDPGPolicy

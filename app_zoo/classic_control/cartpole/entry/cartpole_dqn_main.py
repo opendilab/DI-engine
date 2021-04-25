@@ -3,14 +3,14 @@ import gym
 from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
+from nervex.config import compile_config
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
 from nervex.data import BufferManager
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
-from nervex.entry.utils import set_pkg_seed
+from nervex.utils import set_pkg_seed, deep_merge_dicts
 from nervex.rl_utils import get_epsilon_greedy_fn
-from nervex.utils import deep_merge_dicts
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 

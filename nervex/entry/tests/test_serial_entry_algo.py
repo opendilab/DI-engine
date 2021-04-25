@@ -4,18 +4,18 @@ import os
 from copy import deepcopy
 
 from nervex.entry import serial_pipeline
-from app_zoo.classic_control.bitflip.config import bitflip_dqn_default_config
-from app_zoo.classic_control.cartpole.config import \
-    cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
-    cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
-    cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
-    cartpole_ppg_default_config, cartpole_sqn_default_config
-from app_zoo.classic_control.pendulum.config import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
-    pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
-from app_zoo.smac.entry import smac_collaQ_default_config, smac_coma_default_config, smac_qmix_default_config
-from app_zoo.multiagent_particle.config import cooperative_navigation_collaq_default_config, \
-    cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
-    cooperative_navigation_qmix_default_config
+# from app_zoo.classic_control.bitflip.entry import bitflip_dqn_default_config
+# from app_zoo.classic_control.cartpole.entry import \
+#     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
+#     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
+#     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
+#     cartpole_ppg_default_config, cartpole_sqn_default_config
+# from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
+#     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
+# from app_zoo.multiagent_particle.entry import cooperative_navigation_collaq_default_config, \
+#     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
+#     cooperative_navigation_qmix_default_config
+from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -23,7 +23,7 @@ with open("./algo_record.log", "w+") as f:
 
 @pytest.mark.algotest
 def test_dqn():
-    config = deepcopy(cartpole_dqn_default_config)
+    config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -34,7 +34,7 @@ def test_dqn():
 
 @pytest.mark.algotest
 def test_ddpg():
-    config = deepcopy(pendulum_ddpg_default_config)
+    config = deepcopy(pendulum_ddpg_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -45,7 +45,7 @@ def test_ddpg():
 
 @pytest.mark.algotest
 def test_td3():
-    config = deepcopy(pendulum_td3_default_config)
+    config = deepcopy(pendulum_td3_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -56,7 +56,7 @@ def test_td3():
 
 @pytest.mark.algotest
 def test_a2c():
-    config = deepcopy(cartpole_a2c_default_config)
+    config = deepcopy(cartpole_a2c_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -67,7 +67,7 @@ def test_a2c():
 
 @pytest.mark.algotest
 def test_rainbow_dqn():
-    config = deepcopy(cartpole_rainbowdqn_default_config)
+    config = deepcopy(cartpole_rainbowdqn_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -78,7 +78,7 @@ def test_rainbow_dqn():
 
 @pytest.mark.algotest
 def test_dqn_vanilla():
-    config = deepcopy(cartpole_dqnvanilla_default_config)
+    config = deepcopy(cartpole_dqnvanilla_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -89,7 +89,7 @@ def test_dqn_vanilla():
 
 @pytest.mark.algotest
 def test_ppo():
-    config = deepcopy(cartpole_ppo_default_config)
+    config = deepcopy(cartpole_ppo_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -100,7 +100,7 @@ def test_ppo():
 
 @pytest.mark.algotest
 def test_ppo_vanilla():
-    config = deepcopy(cartpole_ppovanilla_default_config)
+    config = deepcopy(cartpole_ppovanilla_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -111,7 +111,7 @@ def test_ppo_vanilla():
 
 @pytest.mark.algotest
 def test_sac():
-    config = deepcopy(pendulum_sac_default_config)
+    config = deepcopy(pendulum_sac_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -122,7 +122,7 @@ def test_sac():
 
 @pytest.mark.algotest
 def test_sac_auto_alpha():
-    config = deepcopy(pendulum_sac_auto_alpha_config)
+    config = deepcopy(pendulum_sac_auto_alpha_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -133,7 +133,7 @@ def test_sac_auto_alpha():
 
 # @pytest.mark.algotest
 def test_r2d2():
-    config = deepcopy(cartpole_r2d2_default_config)
+    config = deepcopy(cartpole_r2d2_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -142,37 +142,9 @@ def test_r2d2():
         f.write("11. r2d2\n")
 
 
-# @pytest.mark.algotest
-def test_qmix():
-    config = deepcopy(smac_qmix_default_config)
-    config.env.env_type = 'fake_smac'
-    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
-    config.policy.use_cuda = False
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("12. qmix\n")
-
-
-# @pytest.mark.algotest
-def test_coma():
-    config = deepcopy(smac_coma_default_config)
-    config.env.env_type = 'fake_smac'
-    config.env.import_names = ['app_zoo.smac.envs.fake_smac_env']
-    config.policy.use_cuda = False
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("13. coma\n")
-
-
 @pytest.mark.algotest
 def test_a2c_with_nstep_return():
-    config = deepcopy(cartpole_a2c_default_config)
+    config = deepcopy(cartpole_a2c_default_config)  # noqa
     config.policy.learn.algo.use_nstep_return = True
     config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
     config.policy.learn.algo.nstep = 3
@@ -188,7 +160,7 @@ def test_a2c_with_nstep_return():
 
 # @pytest.mark.algotest
 def test_ppo_vanilla_continous():
-    config = deepcopy(pendulum_ppo_default_config)
+    config = deepcopy(pendulum_ppo_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -199,7 +171,7 @@ def test_ppo_vanilla_continous():
 
 @pytest.mark.algotest
 def test_impala():
-    config = deepcopy(cartpole_impala_default_config)
+    config = deepcopy(cartpole_impala_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -210,7 +182,7 @@ def test_impala():
 
 @pytest.mark.algotest
 def test_iqn():
-    config = deepcopy(cartpole_rainbowdqn_iqn_config)
+    config = deepcopy(cartpole_rainbowdqn_iqn_config)  # noqa
     config.evaluator.stop_value = 30  # for save time
     try:
         serial_pipeline(config, seed=0)
@@ -222,7 +194,7 @@ def test_iqn():
 
 @pytest.mark.algotest
 def test_her_dqn():
-    config = deepcopy(bitflip_dqn_default_config)
+    config = deepcopy(bitflip_dqn_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
         os.popen('rm -rf log ckpt*')
@@ -234,7 +206,7 @@ def test_her_dqn():
 
 @pytest.mark.algotest
 def test_ppg():
-    config = deepcopy(cartpole_ppg_default_config)
+    config = deepcopy(cartpole_ppg_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -245,7 +217,7 @@ def test_ppg():
 
 @pytest.mark.algotest
 def test_sqn():
-    config = deepcopy(cartpole_sqn_default_config)
+    config = deepcopy(cartpole_sqn_default_config)  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:

@@ -73,6 +73,9 @@ class BaseSerialCollector(object):
         self._policy = _policy
         self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
         self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        assert any(
+            [t is None for t in [self._default_n_sample, self._default_n_episode]]
+        ), "n_episode/n_sample in policy cfg can't be not None at the same time"
         self._traj_len = _policy.get_attribute('cfg').collect.traj_len
         if self._traj_len != "inf":
             self._traj_cache_length = self._traj_len

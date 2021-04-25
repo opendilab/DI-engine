@@ -11,7 +11,7 @@ from nervex.config import read_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.irl_utils import create_irl_model
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def serial_pipeline_irl(
