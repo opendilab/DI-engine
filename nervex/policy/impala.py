@@ -1,13 +1,14 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 import torch.nn.functional as F
 
 from nervex.torch_utils import Adam, RMSprop, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 
@@ -40,7 +41,7 @@ class IMPALAPolicy(Policy):
             )
         else:
             raise NotImplementedError
-        self._armor = Armor(self._model)
+        self._model = model_wrap(self._model, wrapper_name='base')
 
         self._action_dim = self._cfg.model.action_dim
         self._unroll_len = self._cfg.learn.unroll_len
@@ -56,7 +57,7 @@ class IMPALAPolicy(Policy):
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
         # Main armor
-        self._armor.reset()
+        self._model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
@@ -98,8 +99,8 @@ class IMPALAPolicy(Policy):
         # ====================
         # IMPALA forward
         # ====================
-        self._armor.model.train()
-        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
+        self._model.train()
+        output = self._model.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -156,9 +157,8 @@ class IMPALAPolicy(Policy):
             Init traj and unroll length, adder, collect armor.
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data: dict) -> dict:
@@ -174,9 +174,9 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -214,9 +214,8 @@ class IMPALAPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -231,9 +230,9 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

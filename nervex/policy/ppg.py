@@ -11,7 +11,7 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from .base_policy import Policy
 
 
@@ -52,7 +52,7 @@ class PPGPolicy(Policy):
         # Optimizer
         self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
+        self._model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -62,7 +62,7 @@ class PPGPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main armor
-        self._armor.reset()
+        self._model.reset()
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
@@ -103,7 +103,7 @@ class PPGPolicy(Policy):
         # ====================
         # PPG forward
         # ====================
-        self._armor.model.train()
+        self._model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
         if self._use_adv_norm:
@@ -111,7 +111,7 @@ class PPGPolicy(Policy):
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
         # Policy Phase(Policy)
-        policy_output = self._armor.forward(policy_data, param={'mode': 'compute_action'})
+        policy_output = self._model.forward(policy_data, param={'mode': 'compute_action'})
         policy_error_data = ppo_policy_data(
             policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
@@ -123,7 +123,7 @@ class PPGPolicy(Policy):
 
         # Policy Phase(Value)
         return_ = value_data['value'] + value_adv
-        value_output = self._armor.forward(value_data, param={'mode': 'compute_value'})
+        value_output = self._model.forward(value_data, param={'mode': 'compute_value'})
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
         self._optimizer_value.zero_grad()
@@ -188,10 +188,9 @@ class PPGPolicy(Policy):
             Init unroll length, adder, collect armor.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         # TODO continuous action space exploration
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.reset()
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -210,9 +209,9 @@ class PPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -268,9 +267,8 @@ class PPGPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -285,9 +283,9 @@ class PPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -340,7 +338,7 @@ class PPGPolicy(Policy):
         data['weight'] = torch.cat(weights)
         # compute current policy logit_old
         with torch.no_grad():
-            data['logit_old'] = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action'})['logit']
+            data['logit_old'] = self._model.forward({'obs': data['obs']}, param={'mode': 'compute_action'})['logit']
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
@@ -356,7 +354,7 @@ class PPGPolicy(Policy):
 
         for epoch in range(self._epochs_aux):
             for data in dl:
-                policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
+                policy_output = self._model.forward(data, param={'mode': 'compute_action_value'})
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
@@ -378,7 +376,7 @@ class PPGPolicy(Policy):
 
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
-                values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
+                values = self._model.forward(data, param={'mode': 'compute_value'})['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
                 value_loss = ppo_value_error(data_aux, self._clip_ratio)

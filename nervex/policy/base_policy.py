@@ -3,6 +3,7 @@ from collections import namedtuple, deque
 from typing import Optional, List, Dict, Any, Tuple, Union
 
 import torch
+import copy
 from easydict import EasyDict
 
 from nervex.model import create_model

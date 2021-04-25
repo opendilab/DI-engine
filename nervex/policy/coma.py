@@ -1,13 +1,14 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
 from nervex.model import ComaNetwork
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.data import timestep_collate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -36,28 +37,33 @@ class COMAPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
         self._lambda = algo_cfg.td_lambda
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
 
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
-        self._armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_update_theta}
+        )
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.add_plugin(
-            'target',
-            'hidden_state',
+        self._model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.reset()
-        self._armor.target_reset()
+        self._model.reset()
+        self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
         r"""
@@ -101,14 +107,14 @@ class COMAPolicy(Policy):
         """
         data = self._data_preprocess_learn(data)
         # forward
-        self._armor.model.train()
-        self._armor.target_model.train()
-        self._armor.reset(state=data['prev_state'][0])
-        self._armor.target_reset(state=data['prev_state'][0])
-        q_value = self._armor.forward(data, param={'mode': 'compute_q_value'})['q_value']
+        self._model.train()
+        self._target_model.train()
+        self._model.reset(state=data['prev_state'][0])
+        self._target_model.reset(state=data['prev_state'][0])
+        q_value = self._model.forward(data, param={'mode': 'compute_q_value'})['q_value']
         with torch.no_grad():
-            target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
-        logit = self._armor.forward(data, param={'mode': 'compute_action'})['logit']
+            target_q_value = self._target_model.forward(data, param={'mode': 'compute_q_value'})['q_value']
+        logit = self._model.forward(data, param={'mode': 'compute_action'})['logit']
 
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
         coma_loss = coma_error(data, self._gamma, self._lambda)
@@ -120,7 +126,7 @@ class COMAPolicy(Policy):
         total_loss.backward()
         self._optimizer.step()
         # after update
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': total_loss.item(),
@@ -130,7 +136,7 @@ class COMAPolicy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._armor.reset(data_id=data_id)
+        self._model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -151,16 +157,15 @@ class COMAPolicy(Policy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
@@ -178,16 +183,16 @@ class COMAPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=eps, data_id=data_id, param={'mode': 'compute_action'})
+            output = self._collect_model.forward(data, eps=eps, data_id=data_id, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_armor.reset(data_id=data_id)
+        self._collect_model.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -217,16 +222,15 @@ class COMAPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor with argmax strategy and hidden_state plugin.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._eval_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -244,16 +248,16 @@ class COMAPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, data_id=data_id, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self._eval_armor.reset(data_id=data_id)
+        self._eval_model.reset(data_id=data_id)
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""

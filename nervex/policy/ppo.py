@@ -1,12 +1,13 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, Adder
 from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -27,7 +28,7 @@ class PPOPolicy(Policy):
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
+        self._model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -36,8 +37,8 @@ class PPOPolicy(Policy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main armor
-        self._armor.reset()
+        # Main model
+        self._model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -56,8 +57,8 @@ class PPOPolicy(Policy):
         # ====================
         # PPO forward
         # ====================
-        self._armor.model.train()
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        self._model.train()
+        output = self._model.forward(data['obs'], param={'mode': 'compute_action_value'})
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -104,9 +105,8 @@ class PPOPolicy(Policy):
             Init traj and unroll length, adder, collect armor.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -125,9 +125,9 @@ class PPOPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -176,9 +176,8 @@ class PPOPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -193,9 +192,9 @@ class PPOPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

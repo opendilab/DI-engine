@@ -2,11 +2,12 @@ import math
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 import torch.nn as nn
 import numpy as np
 
 from nervex.torch_utils import Adam, to_device, one_hot
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.data import default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -41,9 +42,9 @@ class ILPolicy(Policy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
         # main and target armors
-        self._armor = Armor(self._model)
-        self._armor.mode(train=True)
-        self._armor.reset()
+        self._model = model_wrap(self._model, wrapper_name='base')
+        self._model.train()
+        self._model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
@@ -68,7 +69,7 @@ class ILPolicy(Policy):
         action = data.get('action')
         logit = data.get('logit')
         priority = data.get('priority')
-        model_action_logit = self._armor.forward(obs['processed_obs'])['logit']
+        model_action_logit = self._model.forward(obs['processed_obs'])['logit']
         supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
         supervised_loss.backward()
@@ -98,9 +99,9 @@ class ILPolicy(Policy):
         """
         # algo_cfg = self._cfg.collect.algo
         # self._collect_armor = Armor(self._expert_model)
-        self._collect_armor = Armor(FootballKaggle5thPlaceModel())
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(FootballKaggle5thPlaceModel(), wrapper_name='base')
+        self._collect_model.eval()
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -116,7 +117,7 @@ class ILPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         with torch.no_grad():
-            output = self._collect_armor.forward(default_decollate(data['obs']['raw_obs']))
+            output = self._collect_model.forward(default_decollate(data['obs']['raw_obs']))
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -164,10 +165,9 @@ class ILPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.train()
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -183,7 +183,7 @@ class ILPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
         with torch.no_grad():
-            output = self._eval_armor.forward(data['obs']['processed_obs'])
+            output = self._eval_model.forward(data['obs']['processed_obs'])
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

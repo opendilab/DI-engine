@@ -2,12 +2,13 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
 import numpy as np
+import copy
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.data import default_collate, default_decollate
 from nervex.model import QAC
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -56,21 +57,42 @@ class ATOCPolicy(Policy):
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
         # main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        # self._armor = Armor(self._model)
+        # self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        # if algo_cfg.use_noise:
+        #     self._armor.add_plugin(
+        #         'target',
+        #         'action_noise',
+        #         noise_type='gauss',
+        #         noise_kwargs={
+        #             'mu': 0.0,
+        #             'sigma': algo_cfg.noise_sigma
+        #         },
+        #         noise_range=algo_cfg.noise_range,
+        #     )
+        # self._armor.reset()
+        # self._armor.target_reset()
+
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
         if algo_cfg.use_noise:
-            self._armor.add_plugin(
-                'target',
-                'action_noise',
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='action_noise',
                 noise_type='gauss',
                 noise_kwargs={
                     'mu': 0.0,
                     'sigma': algo_cfg.noise_sigma
                 },
-                noise_range=algo_cfg.noise_range,
+                noise_range=algo_cfg.noise_range
             )
-        self._armor.reset()
-        self._armor.target_reset()
+        self._model.reset()
+        self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
@@ -90,23 +112,23 @@ class ATOCPolicy(Policy):
         # ====================
         # critic learn forward
         # ====================
-        self._armor.model.train()
-        self._armor.target_model.train()
+        self._model.train()
+        self._target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value = self._model.forward(data, param={'mode': 'compute_q'})['q_value']
         q_value_dict = {}
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_action'})['action']
+            next_action = self._target_model.forward(next_obs, param={'mode': 'compute_action'})['action']
         next_data = {'obs': next_obs, 'action': next_action}
         with torch.no_grad():
-            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+            target_q_value = self._target_model.forward(next_data, param={'mode': 'compute_q'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
         # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
@@ -126,16 +148,16 @@ class ATOCPolicy(Policy):
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             if self._use_communication:
-                output = self._armor.forward(data['obs'], param={'mode': 'compute_action', 'get_delta_q': False})
+                output = self._model.forward(data['obs'], param={'mode': 'compute_action', 'get_delta_q': False})
                 output['delta_q'] = data['delta_q']
-                attention_loss = -self._armor.forward(
+                attention_loss = -self._model.forward(
                     output, param={'mode': 'optimize_actor_attention'}
                 )['actor_attention_loss'].mean()
                 loss_dict['attention_loss'] = attention_loss
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
-            actor_loss = -self._armor.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_loss = -self._model.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -146,7 +168,7 @@ class ATOCPolicy(Policy):
         # =============
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._model.state_dict())
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
@@ -178,11 +200,24 @@ class ATOCPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
-        self._collect_armor = Armor(self._model)
+        # self._collect_armor = Armor(self._model)
+        # algo_cfg = self._cfg.collect.algo
+        # self._collect_armor.add_plugin(
+        #     'main',
+        #     'action_noise',
+        #     noise_type='gauss',
+        #     noise_kwargs={
+        #         'mu': 0.0,
+        #         'sigma': algo_cfg.noise_sigma
+        #     },
+        #     noise_range=None,  # no noise clip in actor
+        # )
+        # self._collect_armor.reset()
+
         algo_cfg = self._cfg.collect.algo
-        self._collect_armor.add_plugin(
-            'main',
-            'action_noise',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
@@ -190,7 +225,7 @@ class ATOCPolicy(Policy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_armor.reset()
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -205,9 +240,9 @@ class ATOCPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -260,8 +295,10 @@ class ATOCPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.reset()
+        # self._eval_armor = Armor(self._model)
+        # self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -276,9 +313,9 @@ class ATOCPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

@@ -1,12 +1,13 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.armor import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -41,8 +42,9 @@ class A2CPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.reset()
+        # self._armor = Armor(self._model)
+        # self._armor.reset()
+        self._model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -58,9 +60,9 @@ class A2CPolicy(Policy):
         )
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._armor.model.train()
+        self._model.train()
         # forward
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._model.forward(data['obs'], param={'mode': 'compute_action_value'})
 
         adv = data['adv']
         if self._use_adv_norm:
@@ -70,7 +72,7 @@ class A2CPolicy(Policy):
         with torch.no_grad():
             if self._learn_use_nstep_return:
                 # use nstep return
-                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
+                next_value = self._model.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
                 nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
             else:
@@ -126,9 +128,8 @@ class A2CPolicy(Policy):
         """
 
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -149,9 +150,9 @@ class A2CPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_model.forward(data, param={'mode': 'compute_action_value'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -204,9 +205,12 @@ class A2CPolicy(Policy):
             Init eval armor with argmax strategy.
         """
 
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        # self._eval_armor = Armor(self._model)
+        # self._eval_armor.add_plugin('main', 'argmax_sample')
+        # self._eval_armor.reset()
+
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -221,9 +225,9 @@ class A2CPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_model.forward(data, param={'mode': 'compute_action'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
