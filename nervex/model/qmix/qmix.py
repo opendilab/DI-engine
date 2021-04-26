@@ -32,10 +32,14 @@ class Mixer(nn.Module):
         self._agent_num = agent_num
         self._embedding_dim = embedding_dim
         self._act = nn.ReLU()
-        self._w1 = nn.Sequential( MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
-                                    nn.Linear(embedding_dim, embedding_dim * agent_num) )
-        self._w2 = nn.Sequential( MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
-                                    nn.Linear(embedding_dim, embedding_dim) )
+        self._w1 = nn.Sequential(
+            MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
+            nn.Linear(embedding_dim, embedding_dim * agent_num)
+        )
+        self._w2 = nn.Sequential(
+            MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
+            nn.Linear(embedding_dim, embedding_dim)
+        )
         self._b1 = nn.Linear(embedding_dim, embedding_dim)
         self._b2 = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), self._act, nn.Linear(embedding_dim, 1))
 

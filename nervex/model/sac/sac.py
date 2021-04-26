@@ -156,9 +156,7 @@ class SAC(ActorCriticBase):
         else:
             return self.compute_critic_v(inputs)
 
-    def compute_actor(self,
-                       obs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+    def compute_actor(self, obs: Dict[str, torch.Tensor], deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 

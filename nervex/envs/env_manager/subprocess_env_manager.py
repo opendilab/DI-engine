@@ -271,6 +271,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         assert self._closed, "please first close the env manager"
         self._create_state()
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for i in range(self.env_num):
+                if self._env_dynamic_seed is not None:
+                    self._pipe_parents[i].send(
+                        CloudpickleWrapper(['seed', [self._env_seed[i], self._env_dynamic_seed], {}])
+                    )
+                else:
+                    self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
+            ret = {i: p.recv().data for i, p in self._pipe_parents.items()}
+            self._check_data(ret)
         self.reset(reset_param)
 
     def reset(self, reset_param: Optional[List[dict]] = None) -> None:
@@ -291,12 +302,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for i in range(self.env_num):
-                self._pipe_parents[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
-            ret = {i: p.recv().data for i, p in self._pipe_parents.items()}
-            self._check_data(ret)
 
         # reset env
         reset_thread_list = []

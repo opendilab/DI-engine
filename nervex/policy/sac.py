@@ -116,10 +116,7 @@ class SACPolicy(Policy):
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward(next_obs, param={
-                'mode': 'compute_critic',
-                'qv': 'v'
-            })['v_value']
+            next_v_value = self._armor.target_forward(next_obs, param={'mode': 'compute_critic', 'qv': 'v'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)

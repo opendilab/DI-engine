@@ -15,6 +15,7 @@ from nervex.torch_utils.network.nn_module import MLP
 from ..common import ActorCriticBase, FCEncoder, ConvEncoder
 from ..actor_critic.value_ac import FCValueAC, ConvValueAC
 
+
 class FCValueNet(nn.Module):
 
     def __init__(
@@ -31,8 +32,10 @@ class FCValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        self._critic = nn.Sequential(MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
-                                        nn.Linear(head_hidden_dim, 1))
+        self._critic = nn.Sequential(
+            MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+            nn.Linear(head_hidden_dim, 1)
+        )
 
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
@@ -88,8 +91,10 @@ class ConvValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        self._critic = nn.Sequential(MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
-                                        nn.Linear(head_hidden_dim, 1))
+        self._critic = nn.Sequential(
+            MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+            nn.Linear(head_hidden_dim, 1)
+        )
 
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
@@ -167,8 +172,8 @@ class FCPPG(ActorCriticBase):
         return self._policy_net.compute_actor_critic(inputs)
 
     def compute_actor(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+                      inputs: Dict[str, torch.Tensor],
+                      deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         logit = self._policy_net.compute_actor(inputs)['logit']
         return {'logit': logit}
 
@@ -224,8 +229,8 @@ class ConvPPG(ActorCriticBase):
         return self._policy_net.compute_action_value(state_input)
 
     def compute_actor(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+                      inputs: Dict[str, torch.Tensor],
+                      deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         logit = self._policy_net.compute_action(state_input)['logit']
         return {'logit': logit}

@@ -181,6 +181,7 @@ class ValueAC(ActorCriticBase):
 
         return {'value': value}
 
+
 @MODEL_REGISTRY.register('conv_vac')
 class ConvValueAC(ValueAC):
     r"""

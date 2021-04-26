@@ -77,15 +77,7 @@ def sequential_pack(layers):
 
 
 def conv1d_block(
-    in_channels,
-    out_channels,
-    kernel_size,
-    stride=1,
-    padding=0,
-    dilation=1,
-    groups=1,
-    activation=None,
-    norm_type=None
+    in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, activation=None, norm_type=None
 ):
     r"""
     Overview:
@@ -223,14 +215,7 @@ def deconv2d_block(
     return sequential_pack(block)
 
 
-def fc_block(
-    in_channels,
-    out_channels,
-    activation=None,
-    norm_type=None,
-    use_dropout=False,
-    dropout_probability=0.5
-):
+def fc_block(in_channels, out_channels, activation=None, norm_type=None, use_dropout=False, dropout_probability=0.5):
     r"""
     Overview:
         create a fully-connected block with activation, normalization and dropout
@@ -258,6 +243,7 @@ def fc_block(
     if use_dropout:
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
+
 
 def MLP(
     in_channels: int,
@@ -307,6 +293,7 @@ def MLP(
             block.append(nn.Dropout(dropout_probability))
 
     return sequential_pack(block)
+
 
 class ChannelShuffle(nn.Module):
     r"""

@@ -37,7 +37,7 @@ class DiscreteNet(nn.Module):
         # parse arguments
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         embedding_dim = hidden_dim_list[-1]
-        action_dim = squeeze(action_dim) # if action_dim is '(n,)', transform it in to 'n'.
+        action_dim = squeeze(action_dim)  # if action_dim is '(n,)', transform it in to 'n'.
         use_multi_discrete = isinstance(action_dim, tuple)
         head_fn = head_fn_map[head_kwargs.pop('head_type')]
 
@@ -203,7 +203,7 @@ class MultiDiscreteHead(nn.Module):
         Returns:
             - return (:obj:`Dict`): dict of list
         """
-        return {k:[_[k] for _ in x] for k in x[0].keys()}
+        return {k: [_[k] for _ in x] for k in x[0].keys()}
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
@@ -228,7 +228,6 @@ FCDiscreteNet = partial(
     }
 )
 MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
-
 
 SQNDiscreteNet = partial(
     DiscreteNet,
@@ -257,6 +256,8 @@ class SQNModel(nn.Module):
             'q_value': [output0['logit'], output1['logit']],
             'logit': output0['logit'],
         }
+
+
 MODEL_REGISTRY.register('sqn_model', SQNModel)
 
 NoiseDistributionFCDiscreteNet = partial(
@@ -271,7 +272,6 @@ NoiseDistributionFCDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('noise_dist_fc', NoiseDistributionFCDiscreteNet)
 
-
 NoiseFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
@@ -284,7 +284,6 @@ NoiseFCDiscreteNet = partial(
     }
 )
 
-
 ConvDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -295,7 +294,6 @@ ConvDiscreteNet = partial(
         'v_layer_num': 1
     }
 )
-
 
 FCRDiscreteNet = partial(
     DiscreteNet,
@@ -309,7 +307,6 @@ FCRDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
 
-
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
@@ -321,7 +318,6 @@ ConvRDiscreteNet = partial(
     }
 )
 MODEL_REGISTRY.register('convr_discrete_net', ConvRDiscreteNet)
-
 
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,

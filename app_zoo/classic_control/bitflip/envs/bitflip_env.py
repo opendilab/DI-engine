@@ -1,4 +1,5 @@
 import copy
+import random
 import numpy as np
 
 from typing import Any, Dict, Optional, Union, List
@@ -23,6 +24,11 @@ class BitFlipEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         self._curr_step = 0
         self._final_eval_reward = 0
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            random_seed = 100 * random.randint(1, 1000)
+            np.random.seed(self._seed + random_seed)
+        elif hasattr(self, '_seed'):
+            np.random.seed(self._seed)
         self._state = np.random.randint(0, 2, size=(self._n_bits, )).astype(np.float32)
         self._goal = np.random.randint(0, 2, size=(self._n_bits, )).astype(np.float32)
 
@@ -38,9 +44,10 @@ class BitFlipEnv(BaseEnv):
     def check_success(self, state: np.ndarray, goal: np.ndarray) -> bool:
         return (self._state == self._goal).all()
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
-        np.random.seed(self._seed)
+        self._dynamic_seed = dynamic_seed
+        random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         self._state[action] = 1 - self._state[action]

@@ -40,7 +40,9 @@ class ParticleEnv(BaseEnv):
         # Note: the real env instance only has a empty close method, only pass
         self._env.close()
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = False) -> None:
+        if dynamic_seed:
+            raise NotImplementedError
         self._seed = seed
 
     def _process_action(self, action: list):
@@ -155,8 +157,10 @@ class CooperativeNavigation(BaseEnv):
         # Note: the real env instance only has a empty close method, only pass
         self._env.close()
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = False) -> None:
         self._seed = seed
+        if dynamic_seed:
+            raise NotImplementedError
         if hasattr(self, '_seed'):
             # Note: the real env instance only has a empty seed method, only pass
             self._env.seed = self._seed

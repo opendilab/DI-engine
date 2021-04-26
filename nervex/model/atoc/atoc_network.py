@@ -453,10 +453,7 @@ class ATOCQAC(ActorCriticBase):
                             'obs': obs[b][j],
                             'action': before_update_action_j
                         })['q_value']
-                        after_update_Q_j = self._critic({
-                            'obs': obs[b][j],
-                            'action': after_update_action_j
-                        })['q_value']
+                        after_update_Q_j = self._critic({'obs': obs[b][j], 'action': after_update_action_j})['q_value']
                         q_group.append(before_update_Q_j)
                         actual_q_group.append(after_update_Q_j)
                     q_group = torch.stack(q_group)

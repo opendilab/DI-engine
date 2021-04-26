@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class ActorCriticBase(nn.Module):
     r"""
     Overview:
@@ -8,6 +9,7 @@ class ActorCriticBase(nn.Module):
     Interface:
         forward, seed, compute_actor_critic, compute_actor, compute_critic, mimic, mimic_single
     """
+
     def __init__(self, ) -> None:
         super(ActorCriticBase, self).__init__()
         self.modes = ['compute_actor_critic', 'compute_actor', 'compute_critic']

@@ -43,7 +43,7 @@ def eval(
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
     # Random seed.
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
     policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
