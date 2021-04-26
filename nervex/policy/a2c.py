@@ -24,7 +24,7 @@ class A2CPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target armors.
+            Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
         self._optimizer = Adam(
@@ -41,7 +41,7 @@ class A2CPolicy(Policy):
             self._learn_nstep = algo_cfg.nstep
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main and target armors
+        # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
 
