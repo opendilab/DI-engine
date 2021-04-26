@@ -67,8 +67,8 @@ class RainbowDQNPolicy(DQNPolicy):
             update_type='assign',
             update_kwargs={'freq': algo_cfg.target_update_freq}
         )
-        self._model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._learn_model.reset()
         self._target_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -96,19 +96,19 @@ class RainbowDQNPolicy(DQNPolicy):
         # ====================
         # Rainbow forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         # reset noise of noisenet for both main armor and target armor
-        self._reset_noise(self._model)
+        self._reset_noise(self._learn_model)
         self._reset_noise(self._target_model)
         if self._use_iqn:
-            ret = self._model.forward(data['obs'], num_quantiles=self._tau)
+            ret = self._learn_model.forward(data['obs'], num_quantiles=self._tau)
             q = ret['q']
             replay_quantiles = ret['quantiles']
             with torch.no_grad():
                 target_q = self._target_model.forward(data['next_obs'], num_quantiles=self._tau_prim)['q']
-                self._reset_noise(self._model)
-                target_q_action = self._model.forward(
+                self._reset_noise(self._learn_model)
+                target_q_action = self._learn_model.forward(
                     data['next_obs'], num_quantiles=self._num_quantiles
                 )['action']
             data = iqn_nstep_td_data(
@@ -117,11 +117,11 @@ class RainbowDQNPolicy(DQNPolicy):
             )
             loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
         else:
-            q_dist = self._model.forward(data['obs'])['distribution']
+            q_dist = self._learn_model.forward(data['obs'])['distribution']
             with torch.no_grad():
                 target_q_dist = self._target_model.forward(data['next_obs'])['distribution']
-                self._reset_noise(self._model)
-                target_q_action = self._model.forward(data['next_obs'])['action']
+                self._reset_noise(self._learn_model)
+                target_q_action = self._learn_model.forward(data['next_obs'])['action']
             data = dist_nstep_td_data(
                 q_dist, target_q_dist, data['action'], target_q_action, data['reward'], data['done'], data['weight']
             )
@@ -137,7 +137,7 @@ class RainbowDQNPolicy(DQNPolicy):
         # =============
         # after update
         # =============
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),

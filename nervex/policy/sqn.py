@@ -73,8 +73,8 @@ class SQNPolicy(Policy):
             update_type='momentum',
             update_kwargs={'theta': algo_cfg.target_theta}
         )
-        self._model = model_wrap(self._model, wrapper_name='base')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
         self._target_model.reset()
 
         self._forward_learn_cnt = 0
@@ -135,7 +135,7 @@ class SQNPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
@@ -143,7 +143,7 @@ class SQNPolicy(Policy):
         action = data.get('action')
         done = data.get('done')
         # Q-function
-        q_value = self._model.forward({'obs': obs})['q_value']
+        q_value = self._learn_model.forward({'obs': obs})['q_value']
         target_q_value = self._target_model.forward({'obs': next_obs})['q_value']  # TODO:check grad
 
         num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)  # num of seperate env
@@ -186,7 +186,7 @@ class SQNPolicy(Policy):
         self._optimizer_alpha.step()
 
         # target update
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         self._forward_learn_cnt += 1
         # some useful info
         return {
@@ -200,13 +200,13 @@ class SQNPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_alpha': self._optimizer_alpha.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_alpha.load_state_dict(state_dict['optimizer_alpha'])
 

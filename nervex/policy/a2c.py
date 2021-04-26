@@ -42,8 +42,8 @@ class A2CPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main and target armors
-        self._model = model_wrap(self._model, wrapper_name='base')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -59,9 +59,9 @@ class A2CPolicy(Policy):
         )
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._model.train()
+        self._learn_model.train()
         # forward
-        output = self._model.forward(data['obs'], mode='compute_action_value')
+        output = self._learn_model.forward(data['obs'], mode='compute_action_value')
 
         adv = data['adv']
         if self._use_adv_norm:
@@ -71,7 +71,7 @@ class A2CPolicy(Policy):
         with torch.no_grad():
             if self._learn_use_nstep_return:
                 # use nstep return
-                next_value = self._model.forward(data['next_obs'], mode='compute_action_value')['value']
+                next_value = self._learn_model.forward(data['next_obs'], mode='compute_action_value')['value']
                 nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
             else:
@@ -92,7 +92,7 @@ class A2CPolicy(Policy):
         total_loss.backward()
 
         torch.nn.utils.clip_grad_norm_(
-            list(self._model.parameters()),
+            list(self._learn_model.parameters()),
             max_norm=0.5,
         )
         self._optimizer.step()
@@ -111,12 +111,12 @@ class A2CPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

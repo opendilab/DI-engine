@@ -76,8 +76,8 @@ class SACPolicy(Policy):
             update_type='momentum',
             update_kwargs={'theta': algo_cfg.target_theta}
         )
-        self._model = model_wrap(self._model, wrapper_name='base')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
         self._target_model.reset()
 
         self._forward_learn_cnt = 0
@@ -101,7 +101,7 @@ class SACPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
@@ -110,14 +110,14 @@ class SACPolicy(Policy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._model.forward(data['obs'], mode='evaluate')
+        eval_data = self._learn_model.forward(data['obs'], mode='evaluate')
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._model.forward(data, mode='compute_q')['q_value']
-        v_value = self._model.forward(data['obs'], mode='compute_value')['v_value']
+        q_value = self._learn_model.forward(data, mode='compute_q')['q_value']
+        v_value = self._learn_model.forward(data['obs'], mode='compute_value')['v_value']
 
         # =================
         # q network
@@ -147,7 +147,7 @@ class SACPolicy(Policy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._model.forward(eval_data, mode='compute_q')['q_value']
+        new_q_value = self._learn_model.forward(eval_data, mode='compute_q')['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
@@ -197,7 +197,7 @@ class SACPolicy(Policy):
         # =============
         self._forward_learn_cnt += 1
         # target update
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_v': self._optimizer_value.defaults['lr'],
@@ -208,7 +208,7 @@ class SACPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_value': self._optimizer_value.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
@@ -218,7 +218,7 @@ class SACPolicy(Policy):
         return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])

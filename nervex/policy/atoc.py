@@ -57,22 +57,6 @@ class ATOCPolicy(Policy):
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
         # main and target armors
-        # self._armor = Armor(self._model)
-        # self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        # if algo_cfg.use_noise:
-        #     self._armor.add_plugin(
-        #         'target',
-        #         'action_noise',
-        #         noise_type='gauss',
-        #         noise_kwargs={
-        #             'mu': 0.0,
-        #             'sigma': algo_cfg.noise_sigma
-        #         },
-        #         noise_range=algo_cfg.noise_range,
-        #     )
-        # self._armor.reset()
-        # self._armor.target_reset()
-
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -91,7 +75,8 @@ class ATOCPolicy(Policy):
                 },
                 noise_range=algo_cfg.noise_range
             )
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
         self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
@@ -112,14 +97,14 @@ class ATOCPolicy(Policy):
         # ====================
         # critic learn forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._model.forward(data, mode='compute_q')['q_value']
+        q_value = self._learn_model.forward(data, mode='compute_q')['q_value']
         q_value_dict = {}
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
@@ -148,16 +133,16 @@ class ATOCPolicy(Policy):
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             if self._use_communication:
-                output = self._model.forward(data['obs'], mode='compute_action', get_delta_q=False)
+                output = self._learn_model.forward(data['obs'], mode='compute_action', get_delta_q=False)
                 output['delta_q'] = data['delta_q']
-                attention_loss = -self._model.forward(
+                attention_loss = -self._learn_model.forward(
                     output, mode='optimize_actor_attention'
                 )['actor_attention_loss'].mean()
                 loss_dict['attention_loss'] = attention_loss
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
-            actor_loss = -self._model.forward(data['obs'], mode='optimize_actor')['q_value'].mean()
+            actor_loss = -self._learn_model.forward(data['obs'], mode='optimize_actor')['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -168,7 +153,7 @@ class ATOCPolicy(Policy):
         # =============
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
@@ -181,13 +166,13 @@ class ATOCPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
@@ -200,20 +185,6 @@ class ATOCPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         # collect armor
-        # self._collect_armor = Armor(self._model)
-        # algo_cfg = self._cfg.collect.algo
-        # self._collect_armor.add_plugin(
-        #     'main',
-        #     'action_noise',
-        #     noise_type='gauss',
-        #     noise_kwargs={
-        #         'mu': 0.0,
-        #         'sigma': algo_cfg.noise_sigma
-        #     },
-        #     noise_range=None,  # no noise clip in actor
-        # )
-        # self._collect_armor.reset()
-
         algo_cfg = self._cfg.collect.algo
         self._collect_model = model_wrap(
             self._model,
@@ -295,8 +266,6 @@ class ATOCPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
-        # self._eval_armor = Armor(self._model)
-        # self._eval_armor.reset()
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
 

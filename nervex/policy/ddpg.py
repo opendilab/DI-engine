@@ -70,8 +70,8 @@ class DDPGPolicy(Policy):
                 },
                 noise_range=algo_cfg.noise_range
             )
-        self._model = model_wrap(self._model, wrapper_name='base')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
         self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
@@ -97,14 +97,14 @@ class DDPGPolicy(Policy):
         # ====================
         # critic learn forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._model.forward(data, mode='compute_q')['q_value']
+        q_value = self._learn_model.forward(data, mode='compute_q')['q_value']
         q_value_dict = {}
         if self._use_twin_critic:
             q_value_dict['q_value'] = q_value[0].mean()
@@ -146,7 +146,7 @@ class DDPGPolicy(Policy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_loss = -self._model.forward(data['obs'], mode='optimize_actor')['q_value'].mean()
+            actor_loss = -self._learn_model.forward(data['obs'], mode='optimize_actor')['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -157,7 +157,7 @@ class DDPGPolicy(Policy):
         # =============
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
@@ -170,13 +170,13 @@ class DDPGPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 

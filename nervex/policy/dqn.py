@@ -51,8 +51,8 @@ class DQNPolicy(Policy):
             update_type='assign',
             update_kwargs={'freq': algo_cfg.target_update_freq}
         )
-        self._model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._learn_model.reset()
         self._target_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -75,15 +75,15 @@ class DQNPolicy(Policy):
         # ====================
         # Q-learning forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         # Current q value (main armor)
-        q_value = self._model.forward(data['obs'])['logit']
+        q_value = self._learn_model.forward(data['obs'])['logit']
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
             # Max q value action (main armor)
-            target_q_action = self._model.forward(data['next_obs'])['action']
+            target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
@@ -96,13 +96,13 @@ class DQNPolicy(Policy):
         self._optimizer.zero_grad()
         loss.backward()
         if self._use_distributed:
-            self.sync_gradients(self._model)
+            self.sync_gradients(self._learn_model)
         self._optimizer.step()
 
         # =============
         # after update
         # =============
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
@@ -113,12 +113,12 @@ class DQNPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -137,10 +137,6 @@ class DQNPolicy(Policy):
         else:
             self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
-        # self._collect_armor = Armor(self._model)
-        # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        # self._collect_armor.reset()
-
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -207,10 +203,6 @@ class DQNPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval armor with argmax strategy.
         """
-        # self._eval_armor = Armor(self._model)
-        # self._eval_armor.add_plugin('main', 'argmax_sample')
-        # self._eval_armor.reset()
-
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 

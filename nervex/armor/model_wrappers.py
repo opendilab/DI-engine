@@ -5,7 +5,6 @@ from typing import Any, Tuple, Callable, Union, Optional, Dict, List
 
 import numpy as np
 import torch
-import logging
 from nervex.torch_utils import get_tensor_data
 from nervex.rl_utils import create_noise_generator
 
@@ -35,6 +34,14 @@ class IModelWrapper(ABC):
         """
         return getattr(self._model, key)
 
+
+class BaseModelWrapper(IModelWrapper):
+    r"""
+    Overview:
+        the base class of Armor Wrappers
+    Interfaces:
+        register
+    """
     def reset(self, data_id: List[int] = None) -> None:
         r"""
         Overview
@@ -350,7 +357,7 @@ class TeacherNetworkWrapper(IModelWrapper):
 
 
 wrapper_name_map = {
-    'base': IModelWrapper,
+    'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,

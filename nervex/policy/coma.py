@@ -56,13 +56,13 @@ class COMAPolicy(Policy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._model = model_wrap(
+        self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._model.reset()
+        self._learn_model.reset()
         self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
@@ -107,14 +107,14 @@ class COMAPolicy(Policy):
         """
         data = self._data_preprocess_learn(data)
         # forward
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
-        self._model.reset(state=data['prev_state'][0])
+        self._learn_model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
-        q_value = self._model.forward(data, mode='compute_q_value')['q_value']
+        q_value = self._learn_model.forward(data, mode='compute_q_value')['q_value']
         with torch.no_grad():
             target_q_value = self._target_model.forward(data, mode='compute_q_value')['q_value']
-        logit = self._model.forward(data, mode='compute_action')['logit']
+        logit = self._learn_model.forward(data, mode='compute_action')['logit']
 
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
         coma_loss = coma_error(data, self._gamma, self._lambda)
@@ -126,7 +126,7 @@ class COMAPolicy(Policy):
         total_loss.backward()
         self._optimizer.step()
         # after update
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': total_loss.item(),
@@ -136,16 +136,16 @@ class COMAPolicy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._model.reset(data_id=data_id)
+        self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -164,7 +164,7 @@ class COMAPolicy(Policy):
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -229,7 +229,7 @@ class COMAPolicy(Policy):
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:

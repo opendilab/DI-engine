@@ -42,9 +42,9 @@ class ILPolicy(Policy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
         # main and target armors
-        self._model = model_wrap(self._model, wrapper_name='base')
-        self._model.train()
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.train()
+        self._learn_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
@@ -69,7 +69,7 @@ class ILPolicy(Policy):
         action = data.get('action')
         logit = data.get('logit')
         priority = data.get('priority')
-        model_action_logit = self._model.forward(obs['processed_obs'])['logit']
+        model_action_logit = self._learn_model.forward(obs['processed_obs'])['logit']
         supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
         supervised_loss.backward()
@@ -83,12 +83,12 @@ class ILPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

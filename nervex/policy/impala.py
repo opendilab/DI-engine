@@ -41,7 +41,7 @@ class IMPALAPolicy(Policy):
             )
         else:
             raise NotImplementedError
-        self._model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         self._action_dim = self._cfg.model.action_dim
         self._unroll_len = self._cfg.learn.unroll_len
@@ -57,7 +57,7 @@ class IMPALAPolicy(Policy):
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
         # Main armor
-        self._model.reset()
+        self._learn_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
@@ -99,8 +99,8 @@ class IMPALAPolicy(Policy):
         # ====================
         # IMPALA forward
         # ====================
-        self._model.train()
-        output = self._model.forward(data['obs_plus_1'], mode='compute_action_value')
+        self._learn_model.train()
+        output = self._learn_model.forward(data['obs_plus_1'], mode='compute_action_value')
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -142,12 +142,12 @@ class IMPALAPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

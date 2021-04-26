@@ -52,7 +52,7 @@ class PPGPolicy(Policy):
         # Optimizer
         self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
-        self._model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -62,7 +62,7 @@ class PPGPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main armor
-        self._model.reset()
+        self._learn_model.reset()
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
@@ -103,7 +103,7 @@ class PPGPolicy(Policy):
         # ====================
         # PPG forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
         if self._use_adv_norm:
@@ -111,7 +111,7 @@ class PPGPolicy(Policy):
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
         # Policy Phase(Policy)
-        policy_output = self._model.forward(policy_data, mode='compute_action')
+        policy_output = self._learn_model.forward(policy_data, mode='compute_action')
         policy_error_data = ppo_policy_data(
             policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
@@ -123,7 +123,7 @@ class PPGPolicy(Policy):
 
         # Policy Phase(Value)
         return_ = value_data['value'] + value_adv
-        value_output = self._model.forward(value_data, mode='compute_value')
+        value_output = self._learn_model.forward(value_data, mode='compute_value')
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
         self._optimizer_value.zero_grad()
@@ -171,13 +171,13 @@ class PPGPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
             'optimizer_value': self._optimizer_value.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
 

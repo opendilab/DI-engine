@@ -28,7 +28,7 @@ class PPOPolicy(Policy):
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -38,7 +38,7 @@ class PPOPolicy(Policy):
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
         # Main model
-        self._model.reset()
+        self._learn_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -57,8 +57,8 @@ class PPOPolicy(Policy):
         # ====================
         # PPO forward
         # ====================
-        self._model.train()
-        output = self._model.forward(data['obs'], mode='compute_action_value')
+        self._learn_model.train()
+        output = self._learn_model.forward(data['obs'], mode='compute_action_value')
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -90,12 +90,12 @@ class PPOPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

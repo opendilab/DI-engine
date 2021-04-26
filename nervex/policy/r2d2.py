@@ -55,9 +55,9 @@ class R2D2Policy(Policy):
         self._target_model = model_wrap(
             self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size
         )
-        self._model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size)
-        self._model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._model.reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size)
+        self._learn_model = model_wrap(self._learn_model, wrapper_name='argmax_sample')
+        self._learn_model.reset()
         self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
@@ -110,21 +110,21 @@ class R2D2Policy(Policy):
         """
         # forward
         data = self._data_preprocess_learn(data)
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
-        self._model.reset(data_id=None, state=data['prev_state'][0])
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
         if len(data['burnin_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_obs'], 'enable_fast_timestep': True}
-                _ = self._model.forward(inputs)
+                _ = self._learn_model.forward(inputs)
                 _ = self._target_model.forward(inputs)
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
-        q_value = self._model.forward(inputs)['logit']
+        q_value = self._learn_model.forward(inputs)['logit']
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
             target_q_value = self._target_model.forward(next_inputs)['logit']
-            target_q_action = self._model.forward(next_inputs)['action']
+            target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
@@ -150,7 +150,7 @@ class R2D2Policy(Policy):
         loss.backward()
         self._optimizer.step()
         # after update
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
@@ -158,16 +158,16 @@ class R2D2Policy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._model.reset(data_id=data_id)
+        self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

@@ -54,13 +54,13 @@ class CollaQPolicy(Policy):
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._model = model_wrap(
+        self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._model.reset()
+        self._learn_model.reset()
         self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
@@ -97,16 +97,16 @@ class CollaQPolicy(Policy):
         # ====================
         # CollaQ forward
         # ====================
-        self._model.train()
+        self._learn_model.train()
         self._target_model.train()
         # for hidden_state plugin, we need to reset the main armor and target armor
-        self._model.reset(state=data['prev_state'][0])
+        self._learn_model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
-        ret = self._model.forward(inputs, single_step=False)
+        ret = self._learn_model.forward(inputs, single_step=False)
         total_q = ret['total_q']
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
-        total_q = self._model.forward(inputs, single_step=False)['total_q']
+        total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
@@ -127,23 +127,23 @@ class CollaQPolicy(Policy):
         # =============
         # after update
         # =============
-        self._target_model.update(self._model.state_dict())
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._model.reset(data_id=data_id)
+        self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
