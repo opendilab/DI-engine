@@ -102,6 +102,23 @@ def save_config_yaml(config_: dict, path: str) -> NoReturn:
         yaml.safe_dump(json.loads(config_string), f)
 
 
+def save_config_py(config_: dict, path: str) -> NoReturn:
+    """
+    Overview:
+        save configuration to python file
+    Arguments:
+        - config (:obj:`dict`): Config data
+        - path (:obj:`str`): Path of target yaml
+    """
+    # config_string = json.dumps(config_, indent=4)
+    config_string = str(config_)
+    from yapf.yapflib.yapf_api import FormatCode
+    config_string, _ = FormatCode(config_string)
+    config_string = config_string.replace('inf', 'float("inf")')
+    with open(path, "w") as f:
+        f.write('exp_config=' + config_string)
+
+
 def read_config(cfg: str) -> Tuple[dict, dict]:
     suffix = cfg.split('.')[-1]
     if suffix == 'py':
@@ -112,10 +129,12 @@ def read_config(cfg: str) -> Tuple[dict, dict]:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
 
-def save_config(config_: dict, path: str, type_: str = 'yaml') -> NoReturn:
-    assert type_ in ['yaml'], type_
+def save_config(config_: dict, path: str, type_: str = 'py') -> NoReturn:
+    assert type_ in ['yaml', 'py'], type_
     if type_ == 'yaml':
         save_config_yaml(config_, path)
+    elif type_ == 'py':
+        save_config_py(config_, path)
 
 
 def compile_config(
@@ -128,7 +147,9 @@ def compile_config(
     evaluator=BaseSerialEvaluator,
     buffer=BufferManager,
     auto: bool = False,
-    create_cfg: dict = None
+    create_cfg: dict = None,
+    save_cfg: bool = False,
+    save_path: str = 'total_config.py',
 ):
     if auto:
         assert create_cfg is not None
@@ -155,5 +176,6 @@ def compile_config(
     policy_config.other.buffer = buffer.default_config()
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg = deep_merge_dicts(default_config, cfg)
-    # TODO export python-type config
+    if save_cfg:
+        save_config(cfg, save_path)
     return cfg

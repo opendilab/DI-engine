@@ -21,7 +21,9 @@ class BaseSerialEvaluator(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        return copy.deepcopy(EasyDict(cls.config))
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
     config = dict(
         # Evaluate every "eval_freq" training iterations.

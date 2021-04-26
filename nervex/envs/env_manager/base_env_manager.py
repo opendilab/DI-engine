@@ -89,18 +89,22 @@ class BaseEnvManager(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        return copy.deepcopy(cls.config)
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
-    config = dict()
+    config = dict(
+        episode_num=float("inf"),
+        max_retry=1,
+        step_timeout=60,
+        reset_timeout=60,
+        retry_waiting_time=0.1,
+    )
 
     def __init__(
         self,
         env_fn: List[Callable],
-        episode_num: Optional[Union[int, float]] = float('inf'),
-        max_retry: int = 1,
-        step_timeout: int = 60,
-        reset_timeout: int = 60,
-        retry_waiting_time: float = 0.1,
+        cfg: EasyDict = EasyDict({}),
     ) -> None:
         """
         Overview:

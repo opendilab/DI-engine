@@ -32,7 +32,9 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
 
     @classmethod
     def default_config(cls) -> EasyDict:
-        return copy.deepcopy(EasyDict(cls.config))
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
     config = dict(
         # Max length of the buffer.

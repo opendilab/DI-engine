@@ -15,27 +15,13 @@ from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 
 
-def compile_config(cfg, env, env_manager, policy, learner, collector, evaluator, buffer):
-    env_config = env.default_config()
-    env_config.manager = env_manager.default_config()
-    policy_config = policy.default_config()
-    policy_config.learn.learner = learner.default_config()
-    policy_config.collect.collector = collector.default_config()
-    policy_config.eval.evaluator = evaluator.default_config()
-    policy_config.other.buffer = buffer.default_config()
-    default_config = EasyDict({'env': env_config, 'policy': policy_config})
-    cfg = deep_merge_dicts(default_config, cfg)
-    # TODO export python-type config
-    return cfg
-
-
 # Get nerveX form env class
 def wrapped_cartpole_env():
     return NervexEnvWrapper(gym.make('CartPole-v0'))
 
 
 def main(cfg, seed=0):
-    cfg = compile_config(cfg, CartPoleEnv, BaseEnvManager, DQNPolicy, BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BufferManager)
+    cfg = compile_config(cfg, CartPoleEnv, BaseEnvManager, DQNPolicy, BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BufferManager, save_cfg=True)
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
     # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
@@ -82,4 +68,4 @@ def main(cfg, seed=0):
 
 
 if __name__ == "__main__":
-    main(cartpole_dqn_config, seed=0)
+    main(cartpole_dqn_config)

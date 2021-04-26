@@ -22,9 +22,10 @@ class BaseEnv(gym.Env):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = cls.config
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
         assert all([k in cfg for k in ['n_episode', 'stop_value']]), cfg
-        return copy.deepcopy(EasyDict(cfg))
+        return copy.deepcopy(cfg)
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:

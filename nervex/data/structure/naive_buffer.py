@@ -28,7 +28,9 @@ class NaiveReplayBuffer:
 
     @classmethod
     def default_config(cls) -> EasyDict:
-        return copy.deepcopy(EasyDict(cls.config))
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
     config = dict(
         replay_buffer_size=10000,
