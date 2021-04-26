@@ -33,10 +33,7 @@ class IModelWrapper(ABC):
         .. note::
             If you want to get the attribute ``attr`` in ``armor[k]``, you should query "{k}_{attr}".
         """
-        if hasattr(self.model, key):
-            return getattr(self._model, key)
-        else:
-            logging.warning('{} object has no attribute "{}"'.format(type(self._model), key))
+        return getattr(self._model, key)
 
 
 class BaseModelWrapper(IModelWrapper):
@@ -376,6 +373,8 @@ wrapper_name_map = {
 
 def model_wrap(model, wrapper_name: str = None, **kwargs):
     if wrapper_name in wrapper_name_map:
+        if not isinstance(model, IModelWrapper):
+            model = wrapper_name_map['base'](model)
         model = wrapper_name_map[wrapper_name](model, **kwargs)
     return model
 
