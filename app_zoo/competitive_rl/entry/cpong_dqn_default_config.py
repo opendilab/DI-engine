@@ -144,17 +144,6 @@ main_config = dict(
         path_policy='.',
         queue_maxsize=8,
     ),
-<<<<<<< HEAD
-    # actor1=dict(
-    #     import_names=['nervex.worker.actor.comm.flask_fs_actor'],
-    #     comm_actor_type='flask_fs',
-    #     host='auto',
-    #     port='auto',
-    #     path_data='./data',
-    #     path_policy='.',
-    #     queue_maxsize=8,
-    # ),
-=======
     collector1=dict(
         import_names=['nervex.worker.collector.comm.flask_fs_collector'],
         comm_collector_type='flask_fs',
@@ -164,6 +153,5 @@ main_config = dict(
         path_policy='.',
         queue_maxsize=8,
     ),
->>>>>>> master
 )
 main_config = parallel_transform(main_config)
