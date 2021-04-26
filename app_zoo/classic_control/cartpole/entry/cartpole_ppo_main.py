@@ -45,5 +45,6 @@ def main(cfg, seed=0):
             if stop:
                 break
 
+
 if __name__ == "__main__":
     main(cartpole_ppo_default_config, seed=0)

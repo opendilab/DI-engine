@@ -17,13 +17,11 @@ def main(cfg, seed=0):
 
     def wrapped_env():
         return CooperativeNavigation(cfg=cfg.env.env_kwargs)
-    
+
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = SyncSubprocessEnvManager(
-        env_fn=[wrapped_env for _ in range(collector_env_num)])
-    evaluator_env = SyncSubprocessEnvManager(
-        env_fn=[wrapped_env for _ in range(evaluator_env_num)])
-    
+    collector_env = SyncSubprocessEnvManager(env_fn=[wrapped_env for _ in range(collector_env_num)])
+    evaluator_env = SyncSubprocessEnvManager(env_fn=[wrapped_env for _ in range(evaluator_env_num)])
+
     collector_env.seed(seed)
     evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
@@ -32,10 +30,8 @@ def main(cfg, seed=0):
     policy = QMIXPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(
-        cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(
-        cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
 
     eps_cfg = cfg.policy.other.eps
