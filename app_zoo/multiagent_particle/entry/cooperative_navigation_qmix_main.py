@@ -20,9 +20,9 @@ def wrapped_env(cfg):
 def main(cfg, seed=0):
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
     collector_env = SyncSubprocessEnvManager(
-        env_fn=[wrapped_env(cfg.env) for _ in range(collector_env_num)])
+        env_fn=[wrapped_env(cfg.env.env_kwargs) for _ in range(collector_env_num)])
     evaluator_env = SyncSubprocessEnvManager(
-        env_fn=[wrapped_env(cfg.env) for _ in range(evaluator_env_num)])
+        env_fn=[wrapped_env(cfg.env.env_kwargs) for _ in range(evaluator_env_num)])
     
     collector_env.seed(seed)
     evaluator_env.seed(seed)
