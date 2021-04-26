@@ -38,6 +38,10 @@ def main(cfg, seed=0):
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     while True:
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            if stop:
+                break
         eps = epsilon_greedy(learner.train_iter)
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
@@ -45,10 +49,6 @@ def main(cfg, seed=0):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
-        if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            if stop:
-                break
 
 
 if __name__ == "__main__":

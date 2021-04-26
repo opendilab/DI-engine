@@ -33,6 +33,10 @@ def main(cfg, seed=0):
     replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
 
     while True:
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            if stop:
+                break
         new_data = collector.collect_data(learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.train_iteration):
@@ -40,10 +44,6 @@ def main(cfg, seed=0):
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
                 replay_buffer.update(learner.priority_info)
-        if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            if stop:
-                break
 
 
 if __name__ == "__main__":
