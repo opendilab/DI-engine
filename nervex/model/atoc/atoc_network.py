@@ -209,18 +209,17 @@ class ATOCActorNet(nn.Module):
         self._get_group_freq = T_initiate
         self._step_count = 0
 
-    def forward(self, data: Dict):
+    def forward(self, obs: Dict):
         r"""
         Overview:
             the forward method of actor network, take the input obs, and calculate the corresponding action, group, \
                 initiator_prob, thoughts, etc...
 
         Arguments:
-            - data (:obj:`Dict`): the input data containing the observation
+            - obs (:obj:`Dict`): the input obs containing the observation
             - ret (:obj:`Dict`): the returned output, including action, group, initiator_prob, is_initiator, \
                 new_thoughts and old_thoughts
         """
-        obs = data['obs']
         assert len(obs.shape) == 3
         self._cur_batch_size, n_agent, obs_dim = obs.shape
         B, A, N = obs.shape
@@ -359,8 +358,8 @@ class ATOCCriticNet(nn.Module):
         x = torch.cat([obs, action], -1)
         for m in self._main:
             x = m(x)
-        data['q_value'] = x.squeeze(-1)
-        return data
+        x = x.squeeze(-1)
+        return {'q_value': x}
 
 
 @MODEL_REGISTRY.register('atoc')
@@ -417,12 +416,6 @@ class ATOCQAC(ActorCriticBase):
         )
         self._critic = ATOCCriticNet(obs_dim, action_dim, embedding_dims=critic_embedding_dims)
 
-    def _critic_forward(self, x: Dict[str, torch.Tensor]) -> Union[List[torch.Tensor], torch.Tensor]:
-        return self._critic(x)
-
-    def _actor_forward(self, x: Dict[str, torch.Tensor]) -> torch.Tensor:
-        return self._actor(x)
-
     def _compute_delta_q(self, obs: torch.Tensor, actor_outputs: dict) -> torch.Tensor:
         r"""
         Overview:
@@ -456,11 +449,11 @@ class ATOCQAC(ActorCriticBase):
                         after_update_action_j = self._actor.actor_2(
                             torch.cat([old_thoughts[b][j], new_thoughts[b][j]], dim=-1)
                         )
-                        before_update_Q_j = self._critic_forward({
+                        before_update_Q_j = self._critic({
                             'obs': obs[b][j],
                             'action': before_update_action_j
                         })['q_value']
-                        after_update_Q_j = self._critic_forward({
+                        after_update_Q_j = self._critic({
                             'obs': obs[b][j],
                             'action': after_update_action_j
                         })['q_value']
@@ -482,8 +475,8 @@ class ATOCQAC(ActorCriticBase):
             - q (:obj:`Dict`): the output of ciritic network
         """
         if inputs.get('action') is None:
-            inputs['action'] = self._actor_forward(inputs)['action']
-        q = self._critic_forward(inputs)
+            inputs['action'] = self._actor(inputs)['action']
+        q = self._critic(inputs)
         return q
 
     def compute_actor(self, inputs: Dict[str, torch.Tensor], get_delta_q: bool = True) -> Dict[str, torch.Tensor]:
@@ -500,9 +493,9 @@ class ATOCQAC(ActorCriticBase):
 
             in ATOC, not only the action is computed, but the groups, initiator_prob, thoughts, delta_q, etc
         '''
-        outputs = self._actor_forward(inputs)
+        outputs = self._actor(inputs)
         if get_delta_q and self._use_communication:
-            delta_q = self._compute_delta_q(inputs['obs'], outputs)
+            delta_q = self._compute_delta_q(inputs, outputs)
             outputs['delta_q'] = delta_q
         return outputs
 
@@ -532,25 +525,3 @@ class ATOCQAC(ActorCriticBase):
             actor_attention_loss = -delta_q * \
                 torch.log(init_prob) - (1 - delta_q) * torch.log(1 - init_prob)
         return {'actor_attention_loss': actor_attention_loss}
-
-    # def forward(self, inputs, mode=None, **kwargs):
-    #     r"""
-    #     Overview:
-    #         override forward method of QActorCriticBase, so it can enable compute_delta_q and optimize_actor_attention
-    #
-    #     Arguments:
-    #         - inputs (:obj:`Dict`): the inputs
-    #         - mode (:obj:`str`): the mode of forward determine which method to call
-    #     """
-    #     if self._use_communication:
-    #         assert (
-    #             mode in ['optimize_actor_attention', 'compute_critic', 'compute_actor'
-    #             ]
-    #         ), mode
-    #     else:
-    #         assert (mode in [
-    #             'compute_critic',
-    #             'compute_actor',
-    #         ]), mode
-    #     f = getattr(self, mode)
-    #     return f(inputs, **kwargs)

@@ -9,10 +9,11 @@ import torch
 import torch.multiprocessing as tm
 from nervex.torch_utils import to_device
 from nervex.utils import LockContext, LockContextType
+from .base_dataloader import IDataLoader
 from .collate_fn import default_collate
 
 
-class AsyncDataLoader(object):
+class AsyncDataLoader(IDataLoader):
     r"""
     Overview:
         An asynchronous dataloader.

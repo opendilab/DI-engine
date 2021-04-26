@@ -35,7 +35,7 @@ Env Manager
                     self._env_cfg = env_cfg
                     if episode_num == 'inf':
                         episode_num = float('inf')
-                    self._epsiode_num = episode_num
+                    self._episode_num = episode_num
                     self._transform = partial(to_ndarray)
                     self._inv_transform = partial(to_tensor, dtype=torch.float32)
                     self._closed = True
@@ -63,7 +63,7 @@ Env Manager
 
                 @property
                 def done(self) -> bool:
-                    return all([v == self._epsiode_num for v in self._env_episode_count.values()])
+                    return all([v == self._episode_num for v in self._env_episode_count.values()])
 
                 @property
                 def method_name_list(self) -> list:
@@ -140,7 +140,7 @@ Env Manager
 
         .. note::
 
-            具体的使用可以参考测试文件 nervex/worker/actor/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
+            具体的使用可以参考测试文件 nervex/envs/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
 
     2. SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
 
@@ -334,7 +334,7 @@ Env Manager
                         ret[env_id] = timestep
                         if timestep.done:
                             self._env_episode_count[env_id] += 1
-                            if self._env_episode_count[env_id] >= self._epsiode_num:
+                            if self._env_episode_count[env_id] >= self._episode_num:
                                 self._env_state[env_id] = EnvState.DONE
                             else:
                                 self._env_state[env_id] = EnvState.RESET

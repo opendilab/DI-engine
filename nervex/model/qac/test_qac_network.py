@@ -46,7 +46,7 @@ class TestQAC:
                 self.output_check(model._act_dim, model._critic, q)
 
             # compute_action
-            action = model(inputs, mode='compute_actor')['action']
+            action = model(inputs['obs'], mode='compute_actor')['action']
             if squeeze(action_dim) == 1:
                 assert action.shape == (B, )
             else:

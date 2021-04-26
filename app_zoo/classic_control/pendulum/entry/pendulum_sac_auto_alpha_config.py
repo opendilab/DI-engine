@@ -3,14 +3,18 @@ from easydict import EasyDict
 use_twin_q = True
 pendulum_sac_auto_alpha_config = dict(
     env=dict(
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
-        env_type='pendulum',
-        actor_env_num=8,
-        evaluator_env_num=8,
-        use_act_scale=True,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
+            env_type='pendulum',
+            collector_env_num=8,
+            evaluator_env_num=8,
+            use_act_scale=True,
+            norm_obs=dict(use_norm=False, ),
+            norm_reward=dict(use_norm=False,),
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -47,13 +51,12 @@ pendulum_sac_auto_alpha_config = dict(
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=100000,
         max_use=256,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=64,
         traj_len=1,
         collect_print_freq=1000,
@@ -74,7 +77,6 @@ pendulum_sac_auto_alpha_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 pendulum_sac_auto_alpha_config = EasyDict(pendulum_sac_auto_alpha_config)
 main_config = pendulum_sac_auto_alpha_config

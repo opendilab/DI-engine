@@ -1,19 +1,19 @@
 import pickle
 import logging
-from nervex.worker import Coordinator, create_comm_actor, create_comm_learner
+from nervex.worker import Coordinator, create_comm_collector, create_comm_learner
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
 from .utils import set_pkg_seed
 
 
 def dist_prepare_config(
-        filename: str, seed: int, platform: str, coordinator_host: str, learner_host: str, actor_host: str
+        filename: str, seed: int, platform: str, coordinator_host: str, learner_host: str, collector_host: str
 ) -> str:
     set_pkg_seed(seed)
     config = read_config(filename)
     if platform == 'local':
-        config = parallel_transform(config, coordinator_host, learner_host, actor_host)
+        config = parallel_transform(config, coordinator_host, learner_host, collector_host)
     elif platform == 'slurm':
-        config = parallel_transform_slurm(config, coordinator_host, learner_host, actor_host)
+        config = parallel_transform_slurm(config, coordinator_host, learner_host, collector_host)
     elif platform == 'k8s':
         raise NotImplementedError
     # Pickle dump config to disk for later use.
@@ -47,14 +47,14 @@ def dist_launch_learner(filename: str, seed: int, name: str = None, disable_flas
     learner.start()
 
 
-def dist_launch_actor(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
+def dist_launch_collector(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
     set_pkg_seed(seed)
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True
     if name is None:
-        name = 'actor'
+        name = 'collector'
     with open(filename, 'rb') as f:
         config = pickle.load(f)[name]
-    actor = create_comm_actor(config)
-    actor.start()
+    collector = create_comm_collector(config)
+    collector.start()

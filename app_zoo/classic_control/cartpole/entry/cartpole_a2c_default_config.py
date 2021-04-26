@@ -2,11 +2,15 @@ from easydict import EasyDict
 
 cartpole_a2c_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        actor_env_num=8,
-        evaluator_env_num=5,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            collector_env_num=8,
+            evaluator_env_num=5,
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -36,19 +40,18 @@ cartpole_a2c_default_config = dict(
                 use_nstep_return=False,
             ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=10000,
     ),
-    actor=dict(
+    collector=dict(
         n_sample=128,
         traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
         n_episode=5,
-        eval_freq=200,
+        eval_freq=50,
         stop_value=195,
     ),
     learner=dict(
@@ -63,7 +66,6 @@ cartpole_a2c_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_a2c_default_config = EasyDict(cartpole_a2c_default_config)
 main_config = cartpole_a2c_default_config

@@ -3,19 +3,21 @@ from easydict import EasyDict
 nstep = 1
 cartpole_dqn_default_config = dict(
     env=dict(
-        # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
-        # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
-        # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
-        env_manager_type='base',
-        # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, ),
-        # Must use the absolute path. All the following "import_names" should obey this too.
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        # Env register name (refer to function "register_env").
-        env_type='cartpole',
-        # Env number respectively for actor and evaluator.
-        actor_env_num=8,
-        evaluator_env_num=5,
+        manager=dict(
+            # Support ['base', 'subprocess']. 'base' is pseudo parallel and 'subprocess' is subprocess parallel.
+            # 'base' is used for some light env(e.g. cartpole), whose env step time is much shorter than IPC time.
+            # 'subprocess' is used for more complicated env(e.g. pong and larger than pong), which is more recommended to use in practice.
+            type='base',
+        ),
+        env_kwargs=dict(
+            # Must use the absolute path. All the following "import_names" should obey this too.
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            # Env register name (refer to function "register_env").
+            env_type='cartpole',
+            # Env number respectively for actor and evaluator.
+            collector_env_num=8,
+            evaluator_env_num=5,
+        )
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -34,7 +36,7 @@ cartpole_dqn_default_config = dict(
         ),
         # learn_mode config
         learn=dict(
-            # How many steps to train after actor's one collection. Bigger "train_iteration" means bigger off-policy.
+            # How many steps to train after collector's one collection. Bigger "train_iteration" means bigger off-policy.
             # collect data -> train fixed steps -> collect data -> ...
             train_iteration=3,
             batch_size=64,
@@ -56,8 +58,8 @@ cartpole_dqn_default_config = dict(
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
-        # command_mode config
-        command=dict(
+        # other config
+        other=dict(
             # Epsilon greedy with decay.
             eps=dict(
                 # Decay type. Support ['exp', 'linear'].
@@ -72,8 +74,8 @@ cartpole_dqn_default_config = dict(
     replay_buffer=dict(
         replay_buffer_size=20000,
     ),
-    actor=dict(
-        # You can use either "n_sample" or "n_episode" in actor.collect.
+    collector=dict(
+        # You can use either "n_sample" or "n_episode" in collector.collect.
         # Get "n_sample" samples per collect.
         n_sample=8,
         # Get "n_episode" complete episodic trajectories per collect.
@@ -85,7 +87,7 @@ cartpole_dqn_default_config = dict(
         # Episode number for evaluation.
         n_episode=5,
         # Evaluate every "eval_freq" training steps.
-        eval_freq=10,
+        eval_freq=50,
         # Once evaluation reward reaches "stop_value", which means the policy converges, then the whole training can end.
         stop_value=195,
     ),
@@ -109,7 +111,6 @@ cartpole_dqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_dqn_default_config = EasyDict(cartpole_dqn_default_config)
 main_config = cartpole_dqn_default_config

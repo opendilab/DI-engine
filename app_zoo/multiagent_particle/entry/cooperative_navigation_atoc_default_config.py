@@ -3,7 +3,7 @@ from easydict import EasyDict
 agent_num = 5
 num_agents = agent_num
 num_landmarks = agent_num
-actor_env_num = 4
+collector_env_num = 4
 evaluator_env_num = 5
 use_communication = True
 thought_dim = 16
@@ -11,17 +11,21 @@ batch_size = 32
 max_step = 100
 cooperative_navigation_atoc_default_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.multiagent_particle.envs.particle_env'],
-        env_type='cooperative_navigation',
-        num_agents=num_agents,
-        num_landmarks=num_landmarks,
-        agent_num=agent_num,
-        max_step=max_step,
-        actor_env_num=actor_env_num,
-        evaluator_env_num=evaluator_env_num,
-        agent_obs_only=True,
-        discrete_action=False,
+        manager=dict(
+            type='subprocess',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.multiagent_particle.envs.particle_env'],
+            env_type='cooperative_navigation',
+            num_agents=num_agents,
+            num_landmarks=num_landmarks,
+            max_step=max_step,
+            agent_num=agent_num,
+            collector_env_num=collector_env_num,
+            evaluator_env_num=evaluator_env_num,
+            agent_obs_only=True,
+            discrete_action=False,
+        ),
     ),
     policy=dict(
         use_cuda=True,
@@ -58,21 +62,19 @@ cooperative_navigation_atoc_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=max_step,
             unroll_len=1,
             algo=dict(noise_sigma=0.4, ),
         ),
-        command=dict(),
     ),
     replay_buffer=dict(
         replay_buffer_size=100000,
         replay_start_size=1000,
         max_use=10,
     ),
-    actor=dict(
+    collector=dict(
         # n_episode=4,
         n_sample=500,
-        traj_len=max_step,  # cooperative_navigation_episode_max_length
+        traj_len='inf',
         collect_print_freq=4,
     ),
     evaluator=dict(
@@ -91,7 +93,6 @@ cooperative_navigation_atoc_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cooperative_navigation_atoc_default_config = EasyDict(cooperative_navigation_atoc_default_config)
 main_config = cooperative_navigation_atoc_default_config

@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 import torch
 from easydict import EasyDict
 
-from nervex.utils import allreduce
+from nervex.utils import allreduce, read_file, save_file
 
 
 class Hook(ABC):
@@ -111,15 +111,11 @@ class LoadCkptHook(LearnerHook):
         path = engine.load_path
         if path == '':  # not load
             return
-        policy_handle = engine.policy.state_dict_handle()
-        optimizer = policy_handle.get('optimizer', None)
-        engine.checkpoint_manager.load(
-            path,
-            model=policy_handle['model'],
-            optimizer=optimizer,
-            last_iter=engine.last_iter,
-            logger_prefix='({})'.format(engine.name),
-        )
+        state_dict = read_file(path)
+        if 'last_iter' in state_dict:
+            last_iter = state_dict.pop('last_iter')
+            engine.last_iter.update(last_iter)
+        engine.policy.load_state_dict(state_dict)
         engine.info('{} load ckpt in {}'.format(engine.name, path))
 
 
@@ -162,14 +158,9 @@ class SaveCkptHook(LearnerHook):
                     pass
             ckpt_name = engine.ckpt_name if engine.ckpt_name else 'iteration_{}.pth.tar'.format(engine.last_iter.val)
             path = os.path.join(dirname, ckpt_name)
-            policy_handle = engine.policy.state_dict_handle()
-            optimizer = policy_handle.get('optimizer', None)
-            engine.checkpoint_manager.save(
-                path,
-                model=policy_handle['model'],
-                optimizer=optimizer,
-                last_iter=engine.last_iter,
-            )
+            state_dict = engine.policy.state_dict()
+            state_dict.update({'last_iter': engine.last_iter.val})
+            save_file(path, state_dict)
             engine.info('{} save ckpt in {}'.format(engine.name, path))
 
 
@@ -228,7 +219,7 @@ class LogShowHook(LearnerHook):
             engine.logger.print_vars(text_var_dict)
             for k, v in tb_var_dict.items():
                 engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
-                engine.tb_logger.add_scalar('learner_step/' + k, v, engine._actor_envstep)
+                engine.tb_logger.add_scalar('learner_step/' + k, v, engine._collector_envstep)
             # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger
             tb_var_dict = {}
             for k in engine.log_buffer['histogram']:

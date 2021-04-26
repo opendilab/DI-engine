@@ -27,7 +27,7 @@ def output_check(action_dim, model, output):
 @pytest.mark.unittest
 @pytest.mark.parametrize('obs_dim, action_dim', args)
 def test_fc_ppg(obs_dim, action_dim):
-    input = {'obs': torch.randn(4, obs_dim), 'action': torch.randn(4, squeeze(action_dim))}
+    input = torch.randn(4, obs_dim)
     model = FCPPG(obs_dim, action_dim)
     # compute_action_value
     outputs = model(input, mode='compute_actor_critic')

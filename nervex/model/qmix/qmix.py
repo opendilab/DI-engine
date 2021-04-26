@@ -137,6 +137,12 @@ class QMix(nn.Module):
         next_state, _ = list_split(next_state, step=A)
         agent_q = agent_q.reshape(T, B, A, -1)
         if action is None:
+            # For target forward process
+            if len(data['obs']['action_mask'].shape) == 3:
+                action_mask = data['obs']['action_mask'].unsqueeze(0)
+            else:
+                action_mask = data['obs']['action_mask']
+            agent_q[action_mask == 0.0] = -9999999
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         if self.use_mixer:

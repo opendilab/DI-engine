@@ -24,7 +24,7 @@ class IBuffer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def push(self, data: Union[list, dict], cur_actor_envstep: int) -> None:
+    def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
         raise NotImplementedError
 
     @abstractmethod
@@ -131,7 +131,7 @@ class BufferManager(IBuffer):
             self,
             data: Union[list, dict],
             buffer_name: Optional[List[str]] = None,
-            cur_actor_envstep: int = -1
+            cur_collector_envstep: int = -1
     ) -> None:
         """
         Overview:
@@ -153,9 +153,9 @@ class BufferManager(IBuffer):
             for i, n in enumerate(buffer_name):
                 # TODO optimizer multi-buffer deepcopy
                 if i >= 1:
-                    self.buffer[n].extend(copy.deepcopy(data), cur_actor_envstep)
+                    self.buffer[n].extend(copy.deepcopy(data), cur_collector_envstep)
                 else:
-                    self.buffer[n].extend(data, cur_actor_envstep)
+                    self.buffer[n].extend(data, cur_collector_envstep)
 
     def sample(
             self,
@@ -164,7 +164,7 @@ class BufferManager(IBuffer):
     ) -> Union[list, Dict[str, list]]:
         """
         Overview:
-            Sample data from prioritized buffers according to ``batch_size`.
+            Sample data from prioritized buffers according to ``batch_size``.
         Arguments:
             - batch_size (:obj:``Union[int, Dict[str, int]]``): Batch size of the data that will be sampled. \
                 Caller can indicate the corresponding batch_size when sampling from multiple buffers.
@@ -247,6 +247,10 @@ class BufferManager(IBuffer):
             self._cache.close()
         for buffer in self.buffer.values():
             buffer.close()
+
+    def __del__(self):
+        if not self._end_flag:
+            self.close()
 
     def count(self, buffer_name: Optional[str] = None) -> int:
         """

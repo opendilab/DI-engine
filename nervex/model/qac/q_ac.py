@@ -105,8 +105,8 @@ class QAC(ActorCriticBase):
         q = self._critic_forward(state_action_input)
         return {'q_value': q}
 
-    def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        action = self._actor_forward(inputs['obs'])
+    def compute_actor(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        action = self._actor_forward(obs)
         return {'action': action}
 
     @property

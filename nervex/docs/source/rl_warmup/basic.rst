@@ -89,7 +89,7 @@ example
 
 动态规划(DP)
 ~~~~~~~~~~~~~
-动态规划DP是一类优化方法，在给定一个MDP完备欢迎的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
+动态规划DP是一类优化方法，在给定一个MDP完备环境的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
 
 很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，只不过降低了计算复杂的和对环境模型完备的假设。
 
@@ -188,9 +188,12 @@ Q0: MC、TD、DP分别指什么？这些方法有哪些异同？
  - Answer：MC指蒙特卡洛方法，TD指时序差分学习，DP指动态规划。
 
 Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
- - Answer：蒙特卡洛和TD算法隶属于model-free，而动态规划属于model-based。
+ - Answer：
+   model base算法指该算法会学习环境的转移过程并对环境进行建模，而model free算法则不需要对环境进行建模。
+   蒙特卡洛和TD算法隶属于model-free，因为这两个算法不需要算法建模具体环境。
+   而动态规划属于model-based，因为使用动态规划需要完备的环境模型。
 
-Q2: 什么是value-based， policy-based和actor-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
+Q2: 什么是value-based， policy-based和collector-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
  - Answer：
    所谓value-based就是在学习如何critic(评判一个输入状态的价值)，policy-based对应的是学习如何去做actor(判断在一个输入状态应该采取什么行动)，而actor-critic就是一边去学习如何判断critic，一边去训练做actor的网络。
    具体关系用下图就能很好解释：
@@ -204,7 +207,7 @@ Q3: 什么是on-policy和off-policy？
    on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
 
 Q4: 什么是online training和offline training？我们通常如何实现offline training？
- - Answer： Offline training即是training时不使用actor与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
+ - Answer： Offline training即是training时不使用collector与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
 
 
 Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？

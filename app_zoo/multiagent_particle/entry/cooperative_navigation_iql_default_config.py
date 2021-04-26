@@ -1,23 +1,27 @@
 from easydict import EasyDict
 
 agent_num = 5
-actor_env_num = 4
+collector_env_num = 4
 evaluator_env_num = 2
 num_agents = agent_num
 num_landmarks = agent_num
 max_step = 100
 cooperative_navigation_iql_default_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.multiagent_particle.envs.particle_env'],
-        env_type='cooperative_navigation',
-        num_agents=num_agents,
-        num_landmarks=num_landmarks,
-        max_step=max_step,
-        agent_num=agent_num,
-        actor_env_num=actor_env_num,
-        evaluator_env_num=evaluator_env_num,
-        shared_memory=False,
+        manager=dict(
+            type='subprocess',
+            shared_memory=False,
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.multiagent_particle.envs.particle_env'],
+            env_type='cooperative_navigation',
+            num_agents=num_agents,
+            num_landmarks=num_landmarks,
+            max_step=max_step,
+            agent_num=agent_num,
+            collector_env_num=collector_env_num,
+            evaluator_env_num=evaluator_env_num,
+        ),
     ),
     policy=dict(
         use_cuda=True,
@@ -43,16 +47,15 @@ cooperative_navigation_iql_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
-            env_num=actor_env_num,
+            env_num=collector_env_num,
         ),
         eval=dict(
             agent_num=agent_num,
             env_num=evaluator_env_num,
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=1.0,
             end=0.05,
@@ -63,9 +66,9 @@ cooperative_navigation_iql_default_config = dict(
         replay_buffer_size=5000,
         max_use=10,
     ),
-    actor=dict(
-        n_episode=4,
-        traj_len=max_step,  # cooperative_navigation_episode_max_length
+    collector=dict(
+        n_episode=6,
+        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -84,7 +87,6 @@ cooperative_navigation_iql_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cooperative_navigation_iql_default_config = EasyDict(cooperative_navigation_iql_default_config)
 main_config = cooperative_navigation_iql_default_config

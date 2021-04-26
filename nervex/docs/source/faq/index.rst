@@ -40,7 +40,7 @@ Q2: 如何自定义环境
    - 环境step方法返回的info **必须** 为dict，且当一个episode结束时，info中 **必须** 包括 ``final_eval_reward`` 这个键，其将作为评价整个episode性能的指标，要求 ``final_eval_reward`` 的取值为python内置数据类型(int, float)
    - (optional)如果想要在nervex中通过配置文件使用自定义的环境，需要在自定义环境文件中全局范围调用 ``nervex/utils/registry_factory/ENV_REGISTRY`` 这一 ``Registry`` 模块的实例进行注册，可使用装饰器或调用函数两类方法进行注册。并在配置文件中指定环境名(``env_type``)，以及加载的模块名(``import_names``)
    - (optional)BaseEnv的info方法返回环境相关的参数信息，但其并不会和系统其他模块强耦合，只是作为 **可选** 的一个方法，使用者也可自定义相关格式，以及在系统中最终的用法
-   - (optional) create_actor_env_cfg和create_evaluator_env_cfg方法会解析传入的配置文件，生成相应的环境配置list，该方法的目的是处理不同环境使用不同配置文件的情况，如果用户不想使用该方法，可以使用串行入口的env_setting参数进行信息传递。
+   - (optional) create_collector_env_cfg和create_evaluator_env_cfg方法会解析传入的配置文件，生成相应的环境配置list，该方法的目的是处理不同环境使用不同配置文件的情况，如果用户不想使用该方法，可以使用串行入口的env_setting参数进行信息传递。
 
 
 Q3: 如何自定义神经网络
@@ -64,7 +64,7 @@ Q5: 配置文件中的traj_len, unroll_len概念
 
 :A5:
   - unroll_len指的是训练端，每次迭代展开的步数长度，一般情况下为1，在有RNN（处理时间序列的神经网络）的情况下才会大于1，该数值如果不为1的话，应该尽可能设置的大一点，使得用来学习的序列尽量长，一般最大值是根据显存和RNN的训练收益进行调整。
-  - traj_len是actor部分一个trajectory的长度，一个trajectory是一次数据发送的基本单元，一般大于等于unroll_len。在不考虑数据吞吐效率的情况下，尽可能设置大一点，如果设置为字符串 ``inf`` ，那么就是以一个完整的episode来发送数据，trajectory越长，某些操作（比如GAE）可以传递的reward值就越远，有利于训练收敛。为了平衡效率，一般设置为unroll_len的整数倍。
+  - traj_len是collector部分一个trajectory的长度，一个trajectory是一次数据发送的基本单元，一般大于等于unroll_len。在不考虑数据吞吐效率的情况下，尽可能设置大一点，如果设置为字符串 ``inf`` ，那么就是以一个完整的episode来发送数据，trajectory越长，某些操作（比如GAE）可以传递的reward值就越远，有利于训练收敛。为了平衡效率，一般设置为unroll_len的整数倍。
   - 如果使用nstep return，traj_len = n * unroll_len + nstep，其中n = 1, 2, 3, ... , 从而保证traj最后几帧数据也能有效利用。
   - 如果使用GAE，traj_len > 1
 
