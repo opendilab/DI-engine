@@ -5,6 +5,7 @@ from typing import Any, Tuple, Callable, Union, Optional, Dict, List
 
 import numpy as np
 import torch
+import logging
 from nervex.torch_utils import get_tensor_data
 from nervex.rl_utils import create_noise_generator
 
@@ -32,7 +33,10 @@ class IModelWrapper(ABC):
         .. note::
             If you want to get the attribute ``attr`` in ``armor[k]``, you should query "{k}_{attr}".
         """
-        return getattr(self._model, key)
+        if hasattr(self.model, key):
+            return getattr(self._model, key)
+        else:
+            logging.warning('{} object has no attribute "{}"'.format(type(self._model), key))
 
 
 class BaseModelWrapper(IModelWrapper):
@@ -370,7 +374,7 @@ wrapper_name_map = {
 }
 
 
-def model_wrap(model: torch.nn.Module, wrapper_name: str = None, **kwargs) -> torch.nn.Module:
+def model_wrap(model, wrapper_name: str = None, **kwargs):
     if wrapper_name in wrapper_name_map:
         model = wrapper_name_map[wrapper_name](model, **kwargs)
     return model
