@@ -56,7 +56,7 @@ class DiscreteNet(nn.Module):
         else:
             self._head = head_fn(embedding_dim, action_dim, **head_kwargs)
 
-    def forward(self, inputs: Dict) -> Dict:
+    def forward(self, inputs: Dict, num_quantiles: int = None) -> Dict:
         r"""
         Overview:
             Normal forward. Would use lstm between encoder and head if needed
@@ -81,7 +81,10 @@ class DiscreteNet(nn.Module):
             x['next_state'] = next_state
             return x
         else:
-            x = self._head(x)
+            if num_quantiles is not None:
+                x = self._head(x, num_quantiles)
+            else:
+                x = self._head(x)
             return x
 
     def fast_timestep_forward(self, inputs: Dict) -> Dict:
@@ -393,11 +396,9 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
                 head_kwargs[k] = kwargs[k]
     else:
         head_kwargs = {
-            'dueling': kwargs.get('dueling', True),
+            'head_type': kwargs.get('head_type', 'base'),
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
-            'distribution': kwargs.get('distribution', False),
-            'quantile': kwargs.get('quantile', False),
             'noise': kwargs.get('noise', False),
             'v_max': kwargs.get('v_max', 10),
             'v_min': kwargs.get('v_min', -10),

@@ -297,7 +297,7 @@ def MLP(
         layer_fn = nn.Linear
     block = []
 
-    for i, in_channels, out_channels in enumerate(zip(channels[:-1], channels[1:])):
+    for i, (in_channels, out_channels) in enumerate(zip(channels[:-1], channels[1:])):
         block.append(layer_fn(in_channels, out_channels))
         if norm_type is not None:
             block.append(build_normalization(norm_type, dim=1)(out_channels))

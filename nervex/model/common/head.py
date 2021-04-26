@@ -135,21 +135,23 @@ class QuantileHead(nn.Module):
         quantile_net = F.relu(quantile_net)
         return quantile_net
 
-    def forward(self, x: torch.Tensor) -> Dict:
+    def forward(self, x: torch.Tensor, num_quantiles: int = None) -> Dict:
+        if num_quantiles is None:
+            num_quantiles = self.num_quantiles
         batch_size = x.shape[0]
 
-        q_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
-        logit_quantiles = torch.FloatTensor(self.num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
+        q_quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
+        logit_quantiles = torch.FloatTensor(num_quantiles * batch_size, 1).uniform_(0, 1).to(self.device)
         logit_quantiles = self.beta_function(logit_quantiles)
         q_quantile_net = self.quantile_net(q_quantiles)
         logit_quantile_net = self.quantile_net(logit_quantiles)
 
-        x = x.repeat(self.num_quantiles, 1)
+        x = x.repeat(num_quantiles, 1)
         q_x = x * q_quantile_net
         logit_x = x * logit_quantile_net
 
-        q = self.Q(q_x).reshape(self.num_quantiles, batch_size, -1)
-        logit = self.Q(logit_x).reshape(self.num_quantiles, batch_size, -1).mean(0)
+        q = self.Q(q_x).reshape(num_quantiles, batch_size, -1)
+        logit = self.Q(logit_x).reshape(num_quantiles, batch_size, -1).mean(0)
 
         return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
 
