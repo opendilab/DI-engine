@@ -359,7 +359,7 @@ def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
     """
     hooks = {k: [] for k in LearnerHook.positions}
     for key, value in cfg.items():
-        if key in simplified_hook_mapping:
+        if key in simplified_hook_mapping and not isinstance(value, dict):
             pos = key[find_char(key, '_', 2, reverse=True) + 1:]
             hooks[pos].append(simplified_hook_mapping[key](value))
         else:
