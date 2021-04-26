@@ -162,7 +162,7 @@ class CollaQPolicy(Policy):
             save_prev_state=True,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -227,7 +227,7 @@ class CollaQPolicy(Policy):
             save_prev_state=True,
             init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
         )
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
