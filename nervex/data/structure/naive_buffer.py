@@ -19,10 +19,11 @@ class NaiveReplayBuffer:
     r"""
     Overview:
         Naive replay buffer, can store and sample data.
+        An naive implementation of replay buffer with no priority and any other advanced features.
         This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that functions like
         ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
     Interface:
-        __init__, append, extend, sample, update
+        __init__, append, extend, sample, update, clear, close
     Property:
         replay_buffer_size, validlen, beta
     """
@@ -61,22 +62,11 @@ class NaiveReplayBuffer:
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
         Overview:
-            Do preparations for sampling and check whther data is enough for sampling
-            Preparation includes removing stale transition in ``self._data``.
-            Check includes judging whether this buffer satisfies the sample condition:
-            current elements count / planning sample count >= min_sample_ratio.
-        Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
-        Returns:
-            - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
-
-        .. note::
-            This function must be called exactly before calling ``sample``.
+            Naive Buffer does not need to check before sampling, but this method is preserved for compatiblity.
         """
         print(
             '[warning] Naive Buffer does not need to check before sampling, \
-                but sample_check method is preserved for compatiblity.'
+                but `sample_check` method is preserved for compatiblity.'
         )
         return True
 
@@ -86,13 +76,9 @@ class NaiveReplayBuffer:
             Sample data with length ``size``.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatiblity.
         Returns:
-            - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
-                and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
-
-        .. note::
-            Before calling this function, ``sample_check`` must be called.
+            - sample_data (:obj:`list`): A list of data with length ``size``.
         """
         if size == 0:
             return []
@@ -104,7 +90,7 @@ class NaiveReplayBuffer:
     def append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
         r"""
         Overview:
-            Append a data item into queue.
+            Append a data item into ``self._data``.
             Add two keys in data:
 
                 - replay_unique_id: The data item's unique id, using ``self._generate_id`` to generate it.
@@ -112,6 +98,7 @@ class NaiveReplayBuffer:
                     old element, then it would be replaced by this new input one. using ``self._tail`` to locate.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
+            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatiblity.
         """
         with self._lock:
             if self._deepcopy:
@@ -134,6 +121,7 @@ class NaiveReplayBuffer:
             Add two keys in each data item, you can refer to ``append`` for details.
         Arguments:
             - ori_data (:obj:`List[Any]`): The data list.
+            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatiblity.
         """
         with self._lock:
             if self._deepcopy:
@@ -180,11 +168,9 @@ class NaiveReplayBuffer:
     def update(self, info: dict) -> None:
         r"""
         Overview:
-            Update a data's priority. Use "repaly_buffer_idx" to locate and "replay_unique_id" to verify.
-        Arguments:
-            - info (:obj:`dict`): Info dict containing all necessary keys for priority update.
+            Naive Buffer does not need to update any info, but this method is preserved for compatiblity.
         """
-        print('[warning] Naive Buffer does not have priority, therefore calling update method is of no effect.')
+        print('[warning] Naive Buffer does not need to update any info, but `update` method is preserved for compatiblity.')
         pass
 
     def clear(self) -> None:
@@ -202,7 +188,7 @@ class NaiveReplayBuffer:
     def close(self) -> None:
         """
         Overview:
-            Close the tensorboard logger.
+            Clear the buffer and close.
         """
         self.clear()
 
@@ -216,7 +202,7 @@ class NaiveReplayBuffer:
     def _get_indices(self, size: int) -> list:
         r"""
         Overview:
-            Get the sample index list according to the priority probability.
+            Get the sample index list.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled
         Returns:
@@ -232,10 +218,10 @@ class NaiveReplayBuffer:
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
         Overview:
-            Sample data with ``indices``; Remove a data item if it is used for too many times.
+            Sample data with ``indices``.
         Arguments:
             - indices (:obj:`List[int]`): A list including all the sample indices.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatiblity.
         Returns:
             - data (:obj:`list`) Sampled data.
         """
@@ -270,40 +256,16 @@ class NaiveReplayBuffer:
         return self._valid_count
 
     @property
-    def beta(self) -> float:
-        return self._beta
-
-    @beta.setter
-    def beta(self, beta: float) -> NoReturn:
-        self._beta = beta
-
-    @property
-    def used_data(self) -> Any:
-        if self._enable_track_used_data:
-            if not self._used_data.empty():
-                return self._used_data.get()
-            else:
-                return None
-        else:
-            return None
-
-    @property
     def push_count(self) -> int:
         return self._push_count
 
     def state_dict(self) -> dict:
         return {
             'data': self._data,
-            'use_count': self._use_count,
             'tail': self._tail,
-            'max_priority': self._max_priority,
-            'anneal_step': self._anneal_step,
-            'beta': self._beta,
-            'head': self._head,
             'next_unique_id': self._next_unique_id,
             'valid_count': self._valid_count,
-            'sum_tree': self._sum_tree,
-            'min_tree': self._min_tree,
+            'push_count': self._push_count,
         }
 
     def load_state_dict(self, _state_dict: dict) -> None:

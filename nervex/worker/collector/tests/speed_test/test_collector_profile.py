@@ -45,7 +45,7 @@ def compare_test(cfg, out_str, seed):
         collector.policy = policy.collect_mode
 
         start = time.time()
-        iters = 150 if FAST_MODE else 300
+        iters = 300  # 150 if FAST_MODE else 300
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
@@ -102,23 +102,23 @@ def test_collector_profile():
         ),
 
         # Big env(45min)  takes much longer time than small(5min) and middle(10min).
-        # dict(
-        #     size="big",
-        #     env=dict(
-        #         obs_dim=int(3e3),  # int(3e6),
-        #         action_dim=2,
-        #         episode_step=500,
-        #         reset_time=2,
-        #         step_time=0.1,
-        #     ),
-        #     policy=dict(forward_time=0.02, ),
-        #     actor=dict(n_sample=80, ),
-        # ),
+        dict(
+            size="big",
+            env=dict(
+                obs_dim=int(3e3),  # int(3e6),
+                action_dim=2,
+                episode_step=500,
+                reset_time=2,
+                step_time=0.1,
+            ),
+            policy=dict(forward_time=0.02, ),
+            actor=dict(n_sample=80, ),
+        ),
     ]
     out_str = []
     for cfg in cfgs:
         # Note: 'base' takes much approximately 6 times longer than 'subprocess'
-        envm_list = ['async_subprocess', 'subprocess']  # ['base', 'async_subprocess', 'subprocess']
+        envm_list = ['base']  # ['base', 'async_subprocess', 'subprocess']
         for envm in envm_list:
             reset_list = [1, 5]  # [1, 5]
             for reset_ratio in reset_list:

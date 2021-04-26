@@ -10,19 +10,22 @@ import numpy as np
 from functools import partial
 from easydict import EasyDict
 
+from nervex.data.structure import NaiveReplayBuffer
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger
 
 
-class PrioritizedReplayBuffer:
+class PrioritizedReplayBuffer(NaiveReplayBuffer):
     r"""
     Overview:
-        Prioritized replay buffer, can store and sample data.
-        This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that functions like
-        ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
+        Prioritized replay buffer derived from ``NaiveReplayBuffer``.
+        This replay buffer adds:
+            1) Prioritized experience replay implemented through segment tree.
+            2) Use count and staleness of each data, to guarantee data quality.
+            3) Monitor mechanism to watch in-and-out data flow attributes.
     Interface:
-        __init__, append, extend, sample, update
+        __init__, append, extend, sample, update, clear, close
     Property:
         replay_buffer_size, validlen, beta
     """
@@ -202,8 +205,8 @@ class PrioritizedReplayBuffer:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
-            - sample_data (:obj:`list`): If check fails returns None; Otherwise returns a list with length ``size``, \
-                and each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
+            - sample_data (:obj:`list`): A list of data with length ``size``; \
+                Each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
 
         .. note::
             Before calling this function, ``sample_check`` must be called.
@@ -238,6 +241,7 @@ class PrioritizedReplayBuffer:
                     old element, then it would be replaced by this new input one. using ``self._tail`` to locate.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
+            - cur_collector_envstep (:obj:`int`): Collector's current env step, used to draw tensorboard.
         """
         with self._lock:
             with self._timer:
@@ -284,6 +288,7 @@ class PrioritizedReplayBuffer:
             Add two keys in each data item, you can refer to ``append`` for details.
         Arguments:
             - ori_data (:obj:`List[Any]`): The data list.
+            - cur_collector_envstep (:obj:`int`): Collector's current env step, used to draw tensorboard.
         """
         with self._lock:
             with self._timer:
@@ -595,25 +600,6 @@ class PrioritizedReplayBuffer:
             staleness = cur_learner_iter - collect_iter
             return staleness
 
-    def _generate_id(self, data_id: int) -> str:
-        """
-        Overview:
-            Use ``self.name`` and input ``id`` to generate a unique id for next data to be inserted.
-        Arguments:
-            - data_id (:obj:`int`): Current unique id.
-        Returns:
-            - id (:obj:`str`): Id in format "BufferName_DataId".
-        """
-        return "{}_{}".format(self.name, str(data_id))
-
-    @property
-    def replay_buffer_size(self) -> int:
-        return self._replay_buffer_size
-
-    @property
-    def validlen(self) -> int:
-        return self._valid_count
-
     @property
     def beta(self) -> float:
         return self._beta
@@ -633,10 +619,6 @@ class PrioritizedReplayBuffer:
             return None
 
     @property
-    def push_count(self) -> int:
-        return self._push_count
-
-    @property
     def replay_start_size(self) -> int:
         return self._replay_start_size
 
@@ -651,17 +633,10 @@ class PrioritizedReplayBuffer:
             'head': self._head,
             'next_unique_id': self._next_unique_id,
             'valid_count': self._valid_count,
+            'push_count': self._push_count,
             'sum_tree': self._sum_tree,
             'min_tree': self._min_tree,
         }
-
-    def load_state_dict(self, _state_dict: dict) -> None:
-        assert 'data' in _state_dict
-        if set(_state_dict.keys()) == set(['data']):
-            self.extend(_state_dict['data'])
-        else:
-            for k, v in _state_dict.items():
-                setattr(self, '_{}'.format(k), v)
 
 
 class NaturalMonitor(LoggedModel):

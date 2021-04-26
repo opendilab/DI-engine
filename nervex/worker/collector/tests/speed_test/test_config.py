@@ -7,6 +7,7 @@ test_config = dict(
         manager=dict(
             shared_memory=True,
             wait_num=7,  # 8-1
+            timeout=0.01,
         ),
         collector_env_num=8,
         evaluator_env_num=5,
