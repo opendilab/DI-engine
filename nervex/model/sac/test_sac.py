@@ -38,19 +38,19 @@ def test_sac(obs_dim, action_dim):
     output_check(model._act_dim, model._soft_q_net, q_value)
 
     # compute_value
-    v_value = model(input, mode='compute_value')['v_value']
+    v_value = model(input['obs'], mode='compute_value')['v_value']
     print("v_value: ", v_value)
     assert v_value.shape == (4, )
     output_check(model._act_dim, model._value_net, v_value)
 
     # evaluate
-    eval_data = model(input, mode='evaluate')
+    eval_data = model(input['obs'], mode='evaluate')
     print("evaluate: ", eval_data)
     for k, v in eval_data.items():
         print(k, v.shape)
 
     # compute_action
-    action = model(input, mode='compute_action')['action']
+    action = model(input['obs'], mode='compute_action')['action']
     assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)

@@ -122,16 +122,15 @@ class QAC(QActorCriticBase):
         q = self._critic_forward(state_action_input)
         return {'q_value': q}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        action = self._actor_forward(inputs['obs'])
+    def compute_action(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        action = self._actor_forward(obs)
         return {'action': action}
 
-    def optimize_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        action = self._actor_forward(state_input)
+    def optimize_actor(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        action = self._actor_forward(obs)
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
-        state_action_input = torch.cat([state_input, action], dim=1)
+        state_action_input = torch.cat([obs, action], dim=1)
 
         if self._use_backward_hook:
             for p in self._critic[0].parameters():

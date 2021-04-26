@@ -3,13 +3,14 @@ import time
 import uuid
 from collections import namedtuple, deque
 from threading import Thread
+from functools import partial
 from typing import Dict, Callable, Any, List
 
 import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.envs import get_vec_env_setting, AsyncSubprocessEnvManager, BaseEnvManager
+from nervex.envs import get_vec_env_setting, SyncSubprocessEnvManager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
@@ -59,8 +60,8 @@ class ZerglingCollector(BaseCollector):
         else:
             env_cfg = collector_env_cfg
             episode_num = self._env_kwargs.collector_episode_num
-        env_manager = AsyncSubprocessEnvManager(
-            env_fn=env_fn, env_cfg=env_cfg, env_num=len(env_cfg), episode_num=episode_num, manager_cfg=manager_cfg
+        env_manager = SyncSubprocessEnvManager(
+            env_fn=[partial(env_fn, cfg=c) for c in env_cfg], episode_num=episode_num, **manager_cfg
         )
         env_manager.launch()
         self._predefined_episode_count = episode_num * len(env_cfg)
@@ -85,9 +86,10 @@ class ZerglingCollector(BaseCollector):
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         self._obs_pool.update(obs)
-        env_id, obs = self._policy.data_preprocess(obs)
-        policy_output = self._policy.forward(env_id, obs)
-        policy_output = self._policy.data_postprocess(env_id, policy_output)
+        if self._eval_flag:
+            policy_output = self._policy.forward(obs)
+        else:
+            policy_output = self._policy.forward(obs, **self._cfg.collect_setting)
         self._policy_output_pool.update(policy_output)
         actions = {env_id: output['action'] for env_id, output in policy_output.items()}
         return actions
@@ -189,9 +191,8 @@ class ZerglingCollector(BaseCollector):
                 self.error('Policy update error: {}'.format(e))
                 time.sleep(1)
 
-        handle = self._policy.state_dict_handle()
-        handle['model'].load_state_dict(policy_update_info['model'])
-        self._policy_iter = policy_update_info['iter']
+        self._policy_iter = policy_update_info.pop('iter')
+        self._policy.load_state_dict(policy_update_info)
         self.debug('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
 
     # ******************************** thread **************************************

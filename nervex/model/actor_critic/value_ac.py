@@ -119,7 +119,6 @@ class ValueAC(ValueActorCriticBase):
         Returns:
             - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
         """
-        # for compatible, but we recommend use dict as input format
         if isinstance(inputs, torch.Tensor):
             embedding = self._encoder(inputs)
         else:

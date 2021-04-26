@@ -7,7 +7,7 @@ armor
 BaseArmor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.armor.armor.BaseArmor
-    :members: __init__, forward, mode, state_dict, load_state_dict, reset
+    :members: __init__, forward, state_dict, load_state_dict, reset
 
 Armor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

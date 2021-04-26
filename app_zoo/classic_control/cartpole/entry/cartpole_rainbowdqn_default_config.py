@@ -3,11 +3,15 @@ from easydict import EasyDict
 nstep = 3
 cartpole_rainbowdqn_default_config = dict(
     env=dict(
-        env_manager_type='base',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        collector_env_num=8,
-        evaluator_env_num=5,
+        manager=dict(
+            type='base',
+        ),
+        env_kwargs=dict(
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            env_type='cartpole',
+            collector_env_num=8,
+            evaluator_env_num=5,
+        ),
     ),
     policy=dict(
         use_cuda=False,
@@ -37,7 +41,7 @@ cartpole_rainbowdqn_default_config = dict(
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
-        command=dict(eps=dict(
+        other=dict(eps=dict(
             type='exp',
             start=0.95,
             end=0.1,
@@ -69,7 +73,6 @@ cartpole_rainbowdqn_default_config = dict(
             ),
         ),
     ),
-    commander=dict(),
 )
 cartpole_rainbowdqn_default_config = EasyDict(cartpole_rainbowdqn_default_config)
 main_config = cartpole_rainbowdqn_default_config

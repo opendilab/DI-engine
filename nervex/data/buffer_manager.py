@@ -256,6 +256,10 @@ class BufferManager(IBuffer):
         for buffer in self.buffer.values():
             buffer.close()
 
+    def __del__(self):
+        if not self._end_flag:
+            self.close()
+
     def count(self, buffer_name: Optional[str] = None) -> int:
         """
         Overview:

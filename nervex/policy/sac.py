@@ -1,21 +1,22 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
+from collections import namedtuple, deque
 import sys
 import os
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
-from nervex.policy.base_policy import Policy
-from nervex.policy.common_policy import CommonPolicy
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('sac')
-class SACPolicy(CommonPolicy):
+class SACPolicy(Policy):
     r"""
     Overview:
         Policy class of SAC algorithm.
@@ -49,7 +50,8 @@ class SACPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         # Init auto alpha
-        if algo_cfg.get('is_auto_alpha', None):
+        self._is_auto_alpha = algo_cfg.get('is_auto_alpha', None)
+        if self._is_auto_alpha:
             self._target_entropy = -np.prod(self._cfg.model.action_dim)
             self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha]))
             self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu').requires_grad_()
@@ -68,11 +70,8 @@ class SACPolicy(CommonPolicy):
         # Main and target armors
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -85,7 +84,17 @@ class SACPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         loss_dict = {}
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
 
+        self._armor.model.train()
+        self._armor.target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
@@ -93,21 +102,21 @@ class SACPolicy(CommonPolicy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._armor.forward(data, param={'mode': 'evaluate'})
+        eval_data = self._armor.forward(data['obs'], param={'mode': 'evaluate'})
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
         q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._armor.forward(data, param={'mode': 'compute_value'})['v_value']
+        v_value = self._armor.forward(data['obs'], param={'mode': 'compute_value'})['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_value'})['v_value']
+            next_v_value = self._armor.target_forward(next_obs, param={'mode': 'compute_value'})['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -189,6 +198,25 @@ class SACPolicy(CommonPolicy):
             **loss_dict
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        ret = {
+            'model': self._model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+        }
+        if self._is_auto_alpha:
+            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+        return ret
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        if self._is_auto_alpha:
+            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
@@ -210,23 +238,28 @@ class SACPolicy(CommonPolicy):
             },
             noise_range=None,
         )
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy, set in arguments for consistency.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -249,6 +282,9 @@ class SACPolicy(CommonPolicy):
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
@@ -256,30 +292,28 @@ class SACPolicy(CommonPolicy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
-        return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'sac', ['nervex.model.sac']

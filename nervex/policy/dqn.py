@@ -3,16 +3,18 @@ from collections import namedtuple, deque
 import torch
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, epsilon_greedy, Adder
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, Adder
 from nervex.model import FCDiscreteNet, ConvDiscreteNet
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
-from .common_policy import CommonPolicy
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('dqn')
-class DQNPolicy(CommonPolicy):
+class DQNPolicy(Policy):
     r"""
     Overview:
         Policy class of DQN algorithm.
@@ -36,11 +38,8 @@ class DQNPolicy(CommonPolicy):
         self._armor = Armor(self._model)
         self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
-        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -51,16 +50,19 @@ class DQNPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=True
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # Q-learning forward
         # ====================
-        # Reward reshaping for n-step
-        reward = data['reward']
-        if len(reward.shape) == 1:
-            reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-        reward = reward.permute(1, 0).contiguous()
+        self._armor.model.train()
+        self._armor.target_model.train()
         # Current q value (main armor)
         q_value = self._armor.forward(data['obs'])['logit']
         # Target q value
@@ -70,7 +72,7 @@ class DQNPolicy(CommonPolicy):
             target_q_action = self._armor.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
+            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
 
@@ -95,6 +97,16 @@ class DQNPolicy(CommonPolicy):
             # '[histogram]action_distribution': data['action'],
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
@@ -113,23 +125,28 @@ class DQNPolicy(CommonPolicy):
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_armor = Armor(self._model)
         self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps)
-        return output
+            output = self._collect_armor.forward(data, eps=eps)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
@@ -175,47 +192,28 @@ class DQNPolicy(CommonPolicy):
         """
         self._eval_armor = Armor(self._model)
         self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - data (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data)
-        return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-            Set the eps_greedy rule according to the config for command
-        """
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        r"""
-        Overview:
-            Collect mode setting information including eps
-        Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
-        Returns:
-           - collect_setting (:obj:`dict`): Including eps in collect mode.
-        """
-        # use learner_step
-        step = command_info['learner_step']
-        # use env_step
-        # step = command_info['env_step']
-        return {'eps': self.epsilon_greedy(step)}
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
