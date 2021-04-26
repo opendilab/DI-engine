@@ -4,9 +4,7 @@ from nervex.loader import dict_, is_type, to_type, collection, interval, is_posi
 
 cartpole_ppo_default_loader = dict_(
     env=item('env') >> dict_(
-        manager=item('manager') >> dict_(
-            type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
-        ),
+        manager=item('manager') >> dict_(type=item('type') >> enum('base', 'subprocess', 'async_subprocess'), ),
         env_kwargs=item('env_kwargs') >> dict_(
             import_names=item('import_names') >> collection(str),
             env_type=item('env_type') >> is_type(str),
@@ -43,9 +41,8 @@ cartpole_ppo_default_loader = dict_(
             )
         ),
     ),
-    replay_buffer=item('replay_buffer') >> dict_(
-        replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
-    ),
+    replay_buffer=item('replay_buffer') >>
+    dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
     collector=item('collector') >> dict_(
         n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
         traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200))),

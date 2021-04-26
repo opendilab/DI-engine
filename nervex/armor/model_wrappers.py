@@ -42,6 +42,7 @@ class BaseModelWrapper(IModelWrapper):
     Interfaces:
         register
     """
+
     def reset(self, data_id: List[int] = None) -> None:
         r"""
         Overview

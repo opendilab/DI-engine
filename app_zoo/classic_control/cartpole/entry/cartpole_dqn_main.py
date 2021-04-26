@@ -15,8 +15,12 @@ from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import c
 
 def main(cfg, seed=0):
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(
+        env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(collector_env_num)]
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[lambda: NervexEnvWrapper(gym.make('CartPole-v0')) for _ in range(evaluator_env_num)]
+    )
     # collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(collector_env_num)])
     # evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv() for _ in range(evaluator_env_num)])
 

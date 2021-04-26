@@ -8,9 +8,7 @@ evaluator_env_num = 2
 max_step = 100
 cooperative_navigation_collaq_default_config = dict(
     env=dict(
-        manager=dict(
-            type='subprocess',
-        ),
+        manager=dict(type='subprocess', ),
         env_kwargs=dict(
             import_names=['app_zoo.multiagent_particle.envs.particle_env'],
             env_type='cooperative_navigation',

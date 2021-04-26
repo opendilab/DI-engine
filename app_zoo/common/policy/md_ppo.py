@@ -9,6 +9,7 @@ from nervex.model.actor_critic.value_ac import ValueAC
 
 
 class SepValueAC(ValueAC):
+
     def _setup_encoder(self) -> torch.nn.Module:
         return nn.Identity()
 

@@ -2,9 +2,7 @@ from easydict import EasyDict
 
 pendulum_ppo_default_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
             env_type='pendulum',
@@ -12,7 +10,7 @@ pendulum_ppo_default_config = dict(
             evaluator_env_num=8,
             use_act_scale=True,
             norm_obs=dict(use_norm=False, ),
-            norm_reward=dict(use_norm=False,),
+            norm_reward=dict(use_norm=False, ),
         ),
     ),
     policy=dict(

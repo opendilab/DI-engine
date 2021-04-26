@@ -9,7 +9,9 @@ from nervex.envs import NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetE
                         ClipRewardEnv, FrameStack
 
 
-def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False):
+def wrap_deepmind(
+    env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False
+):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -58,7 +60,9 @@ def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, s
         return wrapper_info
 
 
-def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False):
+def wrap_deepmind_mr(
+    env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True, only_info=False
+):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
