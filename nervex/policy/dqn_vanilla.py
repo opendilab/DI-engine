@@ -5,30 +5,38 @@ from easydict import EasyDict
 from copy import deepcopy
 import numpy as np
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
 from nervex.model import FCDiscreteNet
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('dqn_vanilla')
-class DQNVanillaPolicy(CommonPolicy):
+class DQNVanillaPolicy(Policy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
         self._target_model = deepcopy(self._model)
-        self._model.train()
-        self._target_model.train()
 
         self._update_count = 0
         self._target_update_freq = algo_cfg.target_update_freq
-        self._learn_setting_set = {}
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._model.train()
+        self._target_model.train()
         # forward
         with torch.enable_grad():
             ret = self._model(data['obs'])
@@ -56,25 +64,44 @@ class DQNVanillaPolicy(CommonPolicy):
             'total_loss': loss.item(),
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_setting_set = {'eps'}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict, eps: float) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+
+        self._model.eval()
         with torch.no_grad():
-            logit = self._model(data['obs'])['logit']
+            logit = self._model(data)['logit']
         if isinstance(logit, torch.Tensor):
             logit = [logit]
         action = []
         for i, l in enumerate(logit):
-            if np.random.random() > self._eps:
+            if np.random.random() > eps:
                 action.append(l.argmax(dim=-1))
             else:
                 action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output = {'action': action}
-        return output
+
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -87,11 +114,17 @@ class DQNVanillaPolicy(CommonPolicy):
         return EasyDict(transition)
 
     def _init_eval(self) -> None:
-        self._eval_setting_set = {}
+        pass
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+
+        self._model.eval()
         with torch.no_grad():
-            logit = self._model(data['obs'])['logit']
+            logit = self._model(data)['logit']
         if isinstance(logit, torch.Tensor):
             logit = [logit]
         action = []
@@ -100,15 +133,11 @@ class DQNVanillaPolicy(CommonPolicy):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output = {'action': action}
-        return output
 
-    def _init_command(self) -> None:
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']

@@ -68,6 +68,7 @@ setup(
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
         'readerwriterlock',
+        'namedlist',
     ],
     extras_require={
         'doc': [

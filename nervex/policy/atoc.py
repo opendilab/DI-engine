@@ -3,24 +3,25 @@ from collections import namedtuple, deque
 import torch
 import numpy as np
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
+from nervex.data import default_collate, default_decollate
 from nervex.model import QAC
 from nervex.armor import Armor
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('atoc')
-class ATOCPolicy(CommonPolicy):
+class ATOCPolicy(Policy):
     r"""
     Overview:
         Policy class of ATOC algorithm.
     Interface:
         __init__, set_setting, __repr__, state_dict_handle
     Property:
-        learn_mode, collect_mode, eval_mode, command_mode
+        learn_mode, collect_mode, eval_mode
     """
 
     def _init_learn(self) -> None:
@@ -68,12 +69,9 @@ class ATOCPolicy(CommonPolicy):
                 },
                 noise_range=algo_cfg.noise_range,
             )
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
         self._armor.reset()
         self._armor.target_reset()
 
-        self._learn_setting_set = {}
         self._forward_learn_cnt = 0  # count iterations
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -86,9 +84,14 @@ class ATOCPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
         loss_dict = {}
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # critic learn forward
         # ====================
+        self._armor.model.train()
+        self._armor.target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
@@ -100,8 +103,8 @@ class ATOCPolicy(CommonPolicy):
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_data, param={'mode': 'compute_action'})['action']
-        next_data['action'] = next_action
+            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_action'})['action']
+        next_data = {'obs': next_obs, 'action': next_action}
         with torch.no_grad():
             target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
@@ -123,21 +126,16 @@ class ATOCPolicy(CommonPolicy):
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             if self._use_communication:
-                inputs = self._armor.forward(
-                    {'obs': data['obs']}, param={
-                        'mode': 'compute_action',
-                        'get_delta_q': False
-                    }
-                )
-                inputs['delta_q'] = data['delta_q']
+                output = self._armor.forward(data['obs'], param={'mode': 'compute_action', 'get_delta_q': False})
+                output['delta_q'] = data['delta_q']
                 attention_loss = -self._armor.forward(
-                    inputs, param={'mode': 'optimize_actor_attention'}
+                    output, param={'mode': 'optimize_actor_attention'}
                 )['actor_attention_loss'].mean()
                 loss_dict['attention_loss'] = attention_loss
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
-            actor_loss = -self._armor.forward(data, param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_loss = -self._armor.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -158,6 +156,18 @@ class ATOCPolicy(CommonPolicy):
             **loss_dict,
             **q_value_dict,
         }
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer_actor': self._optimizer_actor.state_dict(),
+            'optimizer_critic': self._optimizer_critic.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
+        self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
     def _init_collect(self) -> None:
         r"""
@@ -180,23 +190,28 @@ class ATOCPolicy(CommonPolicy):
             },
             noise_range=None,  # no noise clip in actor
         )
-        self._collect_armor.mode(train=False)
         self._collect_armor.reset()
-        self._collect_setting_set = {}
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_armor.model.eval()
         with torch.no_grad():
             output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
@@ -246,30 +261,28 @@ class ATOCPolicy(CommonPolicy):
             Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
         """
         self._eval_armor = Armor(self._model)
-        self._eval_armor.mode(train=False)
         self._eval_armor.reset()
-        self._eval_setting_set = {}
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_armor.model.eval()
         with torch.no_grad():
             output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'atoc', ['nervex.model.atoc.atoc_network']
@@ -281,8 +294,7 @@ class ATOCPolicy(CommonPolicy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        ret = [
+        return [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'attention_loss', 'total_loss', 'q_value',
             'action'
         ]
-        return ret

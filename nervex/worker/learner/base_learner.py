@@ -34,7 +34,6 @@ class TickMonitor(LoggedModel):
         time, expire
     """
     data_time = LoggedValue(float)
-    data_preprocess_time = LoggedValue(float)
     train_time = LoggedValue(float)
     total_collect_step = LoggedValue(float)
     total_step = LoggedValue(float)
@@ -78,8 +77,8 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     else:
         attrs = {}
         properties = [
-            'data_time', 'data_preprocess_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step',
-            'total_sample', 'total_episode', 'total_duration'
+            'data_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step', 'total_sample',
+            'total_episode', 'total_duration'
         ] + properties
         for p_name in properties:
             attrs[p_name] = LoggedValue(float)
@@ -100,7 +99,12 @@ class BaseLearner(object):
 
     _name = "BaseLearner"  # override this variable for sub-class learner
 
-    def __init__(self, cfg: EasyDict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
+    def __init__(
+            self,
+            cfg: EasyDict,
+            policy: namedtuple = None,
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
+    ) -> None:
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common learner components,
@@ -146,7 +150,7 @@ class BaseLearner(object):
         # Learner hook. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         # Priority info. Used to update replay buffer according to data's priority.
-        self._priority_info = None
+        self._priority_info = {}
         # Last iteration. Used to record current iter.
         self._last_iter = CountVar(init_val=0)
         self.info(pretty_print({
@@ -154,7 +158,8 @@ class BaseLearner(object):
         }, direct_print=False))
         self._end_flag = False
         self._learner_done = False
-        self._policy = None  # set by outside
+        if policy is not None:
+            self.policy = policy
 
         # Setup wrapper and hook.
         self._setup_wrapper()
@@ -226,19 +231,20 @@ class BaseLearner(object):
         """
         assert hasattr(self, '_policy'), "please set learner policy"
         self.call_hook('before_iter')
-        self._policy.reset()
-        # Pre-process data
-        with self._timer:
-            data, data_info = self._policy.data_preprocess(data)
+
         # Forward
         log_vars = self._policy.forward(data)
-        log_vars['data_preprocess_time'] = self._timer.value
+
         # Update replay buffer's priority info
         priority = log_vars.pop('priority', None)
-        self._priority_info = {
-            'priority': priority,
-            **data_info,
-        }
+        if priority is not None:
+            replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
+            replay_unique_id = [d.get('replay_unique_id', None) for d in data]
+            self._priority_info = {
+                'priority': priority,
+                'replay_buffer_idx': replay_buffer_idx,
+                'replay_unique_id': replay_unique_id,
+            }
         # Discriminate vars in scalar, scalars and histogram type
         # By default, regard a var as scalar type. For scalars and histogram type, must annotate by "[WAHT-TYPE]"
         scalars_vars, histogram_vars = {}, {}
@@ -328,6 +334,9 @@ class BaseLearner(object):
             self._dataloader.close()
         self._tb_logger.flush()
         self._tb_logger.close()
+
+    def __del__(self) -> None:
+        self.close()
 
     def call_hook(self, name: str) -> None:
         """

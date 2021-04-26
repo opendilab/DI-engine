@@ -47,7 +47,7 @@ class TestQAC:
                 self.output_check(model._act_dim, model._critic, q)
 
             # compute_action
-            action = model(inputs, mode='compute_action')['action']
+            action = model(inputs['obs'], mode='compute_action')['action']
             if squeeze(action_dim) == 1:
                 assert action.shape == (B, )
             else:
@@ -57,7 +57,7 @@ class TestQAC:
             # optimize_actor
             for p in model._critic.parameters():
                 p.grad.zero_()
-            actor_loss_pos = model(inputs, mode='optimize_actor')['q_value']
+            actor_loss_pos = model(inputs['obs'], mode='optimize_actor')['q_value']
             assert isinstance(actor_loss_pos, torch.Tensor)
             # actor has grad
             self.output_check(model._act_dim, model._actor, -actor_loss_pos)

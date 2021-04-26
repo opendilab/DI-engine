@@ -11,14 +11,16 @@ from nervex.utils import pretty_print
 def test_real_loader():
     element_loader = dict_(
         env=item('env') >> dict_(
-            env_manager_type=item('env_manager_type') >> enum('base', 'subprocess'),
-            import_names=item('import_names') >> collection(str),
-            env_type=item('env_type') >> is_type(str),
-            collector_env_num=item('collector_env_num') >> is_type(int) >> interval(1, 32),
-            evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
             manager=item('manager') >> dict_(
-                shared_memory=item('shared_memory') >> is_type(bool),
-                context=item('context') >> enum('fork', 'spawn', 'forkserver') | raw('fork')
+                type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
+                # shared_memory=item('shared_memory') >> is_type(bool),
+                # context=item('context') >> enum('fork', 'spawn', 'forkserver') | raw('fork')
+            ),
+            env_kwargs=item('env_kwargs') >> dict_(
+                import_names=item('import_names') >> collection(str),
+                env_type=item('env_type') >> is_type(str),
+                collector_env_num=item('collector_env_num') >> is_type(int) >> interval(1, 32),
+                evaluator_env_num=item('evaluator_env_num') >> is_type(int) >> interval(1, 32),
             ),
         ),
         policy=item('policy') >> dict_(
@@ -43,7 +45,7 @@ def test_real_loader():
                 unroll_len=item('unroll_len') >> is_type(int) >> interval(1, 200),
                 algo=item('algo') >> dict_(nstep=item('nstep') >> (is_type(int) & interval(1, 10))),
             ),
-            command=item('command') >> dict_(
+            other=item('other') >> dict_(
                 eps=item('eps') >> dict_(
                     type=item('type') >> enum('linear', 'exp'),
                     start=item('start') >> interval(0.0, 1.0, left_ok=False),
@@ -55,7 +57,6 @@ def test_real_loader():
         replay_buffer=item('replay_buffer') >>
         dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
         learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str)),
-        commander=item('commander') | raw({}),
         collector=item('collector') >> dict_(
             n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
             traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
@@ -74,7 +75,7 @@ def test_real_loader():
         dict_(
             nstep_check=mcmp(learn_nstep, "==", collect_nstep),
             unroll_len_check=mcmp(policy_unroll_len, "<=", collector_traj_len),
-            eps_check=item('policy') >> item('command') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
+            eps_check=item('policy') >> item('other') >> item('eps') >> mcmp(item('start'), ">=", item('end')),
         )
     )
     cartpole_dqn_loader = element_loader >> relation_loader
@@ -82,4 +83,4 @@ def test_real_loader():
     assert 'context' not in cartpole_dqn_default_config['env']['manager']
     output = cartpole_dqn_loader(cartpole_dqn_default_config)
     pretty_print(output, direct_print=True)
-    assert output['env']['manager']['context'] == 'fork'
+    # assert output['env']['manager']['context'] == 'fork'

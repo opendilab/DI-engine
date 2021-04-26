@@ -222,19 +222,16 @@ class FCPPG(PhasicPolicyGradientBase):
         return self._policy_net(x)
 
     def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        return self._policy_net.compute_action_value(state_input)
+        return self._policy_net.compute_action_value(inputs)
 
     def compute_action(self,
                        inputs: Dict[str, torch.Tensor],
                        deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        logit = self._policy_net.compute_action(state_input)['logit']
+        logit = self._policy_net.compute_action(inputs)['logit']
         return {'logit': logit}
 
     def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        value = self._value_net_forward(state_input)
+        value = self._value_net_forward(inputs)
         return {'value': value}
 
     @property
