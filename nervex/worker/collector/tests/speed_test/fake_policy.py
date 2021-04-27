@@ -4,15 +4,16 @@ import torch
 from easydict import EasyDict
 import time
 
+from nervex.data import default_collate, default_decollate
 from nervex.model import create_model
 from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
-from nervex.policy import Policy, CommonPolicy
+from nervex.policy import Policy
 from nervex.rl_utils import Adder
 
 from nervex.worker.collector.tests.speed_test.utils import random_change
 
 
-class FakePolicy(CommonPolicy):
+class FakePolicy(Policy):
 
     def __init__(
             self,
@@ -56,13 +57,15 @@ class FakePolicy(CommonPolicy):
         pass
 
     # *************************************** collect function ************************************
-    # def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:
-    #     raise NotImplementedError
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
         self.policy_sleep(random_change(self._forward_time))
-        return {'action': torch.ones(data['obs'].shape[0], 2)}
-        # pass
+        output = {'action': torch.ones(data.shape[0], 2)}
+        output = default_decollate(output)
+        output = {i: d for i, d in zip(data_id, output)}
+        return output
 
     def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -74,30 +77,8 @@ class FakePolicy(CommonPolicy):
         }
         return transition
 
-    # def _data_postprocess_collect(self, data_id: List[int], data: dict) -> Dict[int, dict]:
-    #     raise NotImplementedError
-
-    # def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
-    #     return self._adder.get_train_sample(data)
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         pass
-
-    # --- tiasnhou ---
-    # def __init__(self, dict_state=False, need_state=True):
-    #     super().__init__()
-    #     self.dict_state = dict_state
-    #     self.need_state = need_state
-
-    # def forward(self, batch, state=None):
-    #     if self.need_state:
-    #         if state is None:
-    #             state = np.zeros((len(batch.obs), 2))
-    #         else:
-    #             state += 1
-    #     if self.dict_state:
-    #         return Batch(act=np.ones(len(batch.obs['index'])), state=state)
-    #     return Batch(act=np.ones(len(batch.obs)), state=state)
-
-    # def learn(self):
-    #     pass

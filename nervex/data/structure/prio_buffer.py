@@ -10,7 +10,7 @@ import numpy as np
 from functools import partial
 from easydict import EasyDict
 
-from nervex.data.structure import NaiveReplayBuffer
+from nervex.data.structure.naive_buffer import NaiveReplayBuffer
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger

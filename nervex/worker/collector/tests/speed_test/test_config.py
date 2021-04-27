@@ -3,21 +3,20 @@ from easydict import EasyDict
 nstep = 1
 test_config = dict(
     env=dict(
-        env_manager_type='subprocess',
         manager=dict(
-            shared_memory=True,
+            type='async_subprocess',
             wait_num=7,  # 8-1
-            timeout=0.01,
+            step_wait_timeout=0.01,
         ),
-        collector_env_num=8,
-        evaluator_env_num=5,
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
-        obs_dim=8,
-        action_dim=2,
-        episode_step=200,
-        reset_time=0.01,
-        step_time=0.003,
+        env_kwargs=dict(
+            collector_env_num=8,
+            evaluator_env_num=5,
+            obs_dim=8,
+            action_dim=2,
+            episode_step=200,
+            reset_time=0.01,
+            step_time=0.003,
+        ),
     ),
     policy=dict(
         use_cuda=False,

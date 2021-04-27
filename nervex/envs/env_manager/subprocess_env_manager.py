@@ -256,6 +256,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 )
             time.sleep(0.001)
             sleep_count += 1
+        print('ready obs', self._ready_obs[self.ready_env[0]].dtype)
         return {i: self._ready_obs[i] for i in self.ready_env}
 
     def launch(self, reset_param: Optional[List[dict]] = None) -> None:
@@ -432,7 +433,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     reset_thread.start()
             else:
                 self._ready_obs[env_id] = timestep.obs
-
+        print('step', list(timesteps.values())[0].obs.dtype)
         return timesteps
 
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)

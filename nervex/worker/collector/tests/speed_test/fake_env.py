@@ -51,7 +51,7 @@ class FakeEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         env_sleep(random_change(self._step_time))
         self._step_count += 1
-        obs = np.random.randn(self._obs_dim)
+        obs = np.random.randn(self._obs_dim).astype(np.float32)
         rew = np.random.randint(2)
         done = True if self._step_count == self._episode_step else False
         info = {}
@@ -65,17 +65,16 @@ class FakeEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T((self._obs_dim, ), {
-                'dtype': float,
-            }, None, None),
+            obs_space=T((self._obs_dim, ), {'dtype': np.float32}),
             act_space=T((self._action_dim, ), {
                 'min': 0,
                 'max': 2
-            }, None, None),
+            }),
             rew_space=T((1, ), {
                 'min': 0.0,
                 'max': 1.0
-            }, None, None),
+            }),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

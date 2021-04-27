@@ -10,8 +10,6 @@ import numpy as np
 from functools import partial
 from easydict import EasyDict
 
-from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
-from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger
 
 
@@ -170,8 +168,9 @@ class NaiveReplayBuffer:
         Overview:
             Naive Buffer does not need to update any info, but this method is preserved for compatiblity.
         """
-        print('[warning] Naive Buffer does not need to update any info, but `update` method is preserved for compatiblity.')
-        pass
+        print(
+            '[warning] Naive Buffer does not need to update any info, but `update` method is preserved for compatiblity.'
+        )
 
     def clear(self) -> None:
         """

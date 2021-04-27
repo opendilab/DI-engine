@@ -2,6 +2,7 @@ import time
 import logging
 from easydict import EasyDict
 import pytest
+from functools import partial
 
 from nervex.worker import BaseSerialCollector
 from nervex.envs import get_vec_env_setting, create_env_manager
@@ -23,19 +24,9 @@ def compare_test(cfg, out_str, seed):
     duration_list = []
     repeat_times = 1 if FAST_MODE else 3
     for i in range(repeat_times):
-        cfg = deep_merge_dicts(test_config, cfg)
-        cfg.env.collector_env_num = 8
-        if cfg.env.env_manager_type == 'async_subprocess':
-            cfg.env.manager.wait_num = 8 - 1
-        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
-        manager_cfg = cfg.env.get('manager', {})
-        collector_env = create_env_manager(
-            cfg.env.env_manager_type,
-            env_fn=FakeEnv,
-            env_cfg=collector_env_cfg,
-            env_num=len(collector_env_cfg),
-            manager_cfg=manager_cfg
-        )
+        env_fn = FakeEnv
+        collector_env_cfg = [cfg.env.env_kwargs for _ in range(cfg.env.env_kwargs.collector_env_num)]
+        collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
         collector_env.seed(seed)
 
         policy = FakePolicy(cfg.policy)
@@ -60,7 +51,6 @@ def compare_test(cfg, out_str, seed):
 
         collector.close()
         replay_buffer.close()
-    print(cfg)
     print('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
     out_str.append('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
 
@@ -78,24 +68,26 @@ def test_collector_profile():
     cfgs = [
         dict(
             size="small",
-            env=dict(
+            env=dict(env_kwargs=dict(
                 obs_dim=64,
                 action_dim=2,
                 episode_step=500,
                 reset_time=0.1,
                 step_time=0.005,
-            ),
+            ), ),
             policy=dict(forward_time=0.004, ),
             actor=dict(n_sample=80, ),
         ),
         dict(
             size="middle",
             env=dict(
-                obs_dim=int(3e2),  # int(3e3),
-                action_dim=2,
-                episode_step=500,
-                reset_time=0.5,  # 2
-                step_time=0.01,
+                env_kwargs=dict(
+                    obs_dim=int(3e2),  # int(3e3),
+                    action_dim=2,
+                    episode_step=500,
+                    reset_time=0.5,  # 2
+                    step_time=0.01,
+                ),
             ),
             policy=dict(forward_time=0.008, ),
             actor=dict(n_sample=80, ),
@@ -105,11 +97,13 @@ def test_collector_profile():
         dict(
             size="big",
             env=dict(
-                obs_dim=int(3e3),  # int(3e6),
-                action_dim=2,
-                episode_step=500,
-                reset_time=2,
-                step_time=0.1,
+                env_kwargs=dict(
+                    obs_dim=int(3e3),  # int(3e6),
+                    action_dim=2,
+                    episode_step=500,
+                    reset_time=2,
+                    step_time=0.1,
+                ),
             ),
             policy=dict(forward_time=0.02, ),
             actor=dict(n_sample=80, ),
@@ -117,15 +111,21 @@ def test_collector_profile():
     ]
     out_str = []
     for cfg in cfgs:
-        # Note: 'base' takes much approximately 6 times longer than 'subprocess'
-        envm_list = ['base']  # ['base', 'async_subprocess', 'subprocess']
+        # Note: 'base' takes approximately 6 times longer than 'subprocess'
+        envm_list = ['async_subprocess', 'subprocess', 'base']  # ['base', 'async_subprocess', 'subprocess']
         for envm in envm_list:
             reset_list = [1, 5]  # [1, 5]
             for reset_ratio in reset_list:
                 cfg = EasyDict(cfg)
-                cfg.env.reset_time *= reset_ratio
-                cfg.env.env_manager_type = envm
+                cfg = deep_merge_dicts(test_config, cfg)
+                cfg.env.env_kwargs.reset_time *= reset_ratio
+                cfg.env.manager.type = envm
+                if cfg.env.manager.type == 'base':
+                    cfg.env.manager.pop('step_wait_timeout')
+                    cfg.env.manager.pop('wait_num')
+
                 print('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
+                print(cfg)
                 out_str.append('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
                 compare_test(cfg, out_str, seed)
     print('\n'.join(out_str))
