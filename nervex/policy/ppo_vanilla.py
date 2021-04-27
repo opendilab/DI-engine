@@ -38,7 +38,7 @@ class PPOVanillaPolicy(Policy):
             data = to_device(data, self._device)
         # forward
         self._model.train()
-        output = self._model(data['obs'], mode="compute_action_value")
+        output = self._model(data['obs'], mode="compute_actor_critic")
         adv = data['adv']
         # norm adv in total train_batch
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -94,7 +94,7 @@ class PPOVanillaPolicy(Policy):
             data = to_device(data, self._device)
         self._model.eval()
         with torch.no_grad():
-            ret = self._model(data, mode="compute_action_value")
+            ret = self._model(data, mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -142,7 +142,7 @@ class PPOVanillaPolicy(Policy):
             data = to_device(data, self._device)
         self._model.eval()
         with torch.no_grad():
-            ret = self._model(data, mode="compute_action_value")
+            ret = self._model(data, mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit

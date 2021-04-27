@@ -97,16 +97,16 @@ class ATOCPolicy(Policy):
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_critic'})['q_value']
         q_value_dict = {}
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         next_data = {'obs': next_obs}
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_action'})['action']
+            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_actor'})['action']
         next_data = {'obs': next_obs, 'action': next_action}
         with torch.no_grad():
-            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_critic'})['q_value']
         # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
         # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
@@ -126,7 +126,7 @@ class ATOCPolicy(Policy):
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             if self._use_communication:
-                output = self._armor.forward(data['obs'], param={'mode': 'compute_action', 'get_delta_q': False})
+                output = self._armor.forward(data['obs'], param={'mode': 'compute_actor', 'get_delta_q': False})
                 output['delta_q'] = data['delta_q']
                 attention_loss = -self._armor.forward(
                     output, param={'mode': 'optimize_actor_attention'}
@@ -135,7 +135,9 @@ class ATOCPolicy(Policy):
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
-            actor_loss = -self._armor.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
+            output = self._armor.forward(data['obs'], param={'mode': 'compute_actor', 'get_delta_q': False})
+            output['obs'] = data['obs']
+            actor_loss = -self._armor.forward(output, param={'mode': 'compute_critic'})['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -207,7 +209,7 @@ class ATOCPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -278,7 +280,7 @@ class ATOCPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

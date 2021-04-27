@@ -11,26 +11,10 @@ from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
 from nervex.armor import Armor
-from nervex.model import FCDiscreteNet, SQNDiscreteNet
 from nervex.utils import POLICY_REGISTRY
+from nervex.model import SQNModel
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-
-
-class SQNModel(torch.nn.Module):
-
-    def __init__(self, *args, **kwargs) -> None:
-        super(SQNModel, self).__init__()
-        self.q0 = SQNDiscreteNet(*args, **kwargs)
-        self.q1 = SQNDiscreteNet(*args, **kwargs)
-
-    def forward(self, data: dict) -> dict:
-        output0 = self.q0(data)
-        output1 = self.q1(data)
-        return {
-            'q_value': [output0['logit'], output1['logit']],
-            'logit': output0['logit'],
-        }
 
 
 @POLICY_REGISTRY.register('sqn')

@@ -105,10 +105,10 @@ class COMAPolicy(Policy):
         self._armor.target_model.train()
         self._armor.reset(state=data['prev_state'][0])
         self._armor.target_reset(state=data['prev_state'][0])
-        q_value = self._armor.forward(data, param={'mode': 'compute_q_value'})['q_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_critic'})['q_value']
         with torch.no_grad():
-            target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
-        logit = self._armor.forward(data, param={'mode': 'compute_action'})['logit']
+            target_q_value = self._armor.target_forward(data, param={'mode': 'compute_critic'})['q_value']
+        logit = self._armor.forward(data, param={'mode': 'compute_actor'})['logit']
 
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
         coma_loss = coma_error(data, self._gamma, self._lambda)
@@ -180,7 +180,7 @@ class COMAPolicy(Policy):
         data = {'obs': data}
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=eps, data_id=data_id, param={'mode': 'compute_action'})
+            output = self._collect_armor.forward(data, eps=eps, data_id=data_id, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -246,7 +246,7 @@ class COMAPolicy(Policy):
         data = {'obs': data}
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, data_id=data_id, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

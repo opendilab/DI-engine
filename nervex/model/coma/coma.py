@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from functools import reduce
 from nervex.model import FCRDiscreteNet
 from nervex.torch_utils import one_hot
+from nervex.torch_utils.network.nn_module import MLP
 from nervex.utils import squeeze, list_split, MODEL_REGISTRY
 
 
@@ -57,9 +58,10 @@ class ComaCriticNetwork(nn.Module):
         self._act_dim = squeeze(action_dim)
         self._embedding_dim = embedding_dim
         self._act = nn.ReLU()
-        self._fc1 = nn.Linear(self._input_dim, embedding_dim)
-        self._fc2 = nn.Linear(embedding_dim, embedding_dim)
-        self._fc3 = nn.Linear(embedding_dim, action_dim)
+        self._mlp = nn.Sequential(
+            MLP(self._input_dim, embedding_dim, embedding_dim, 2, activation=self._act),
+            nn.Linear(embedding_dim, action_dim)
+        )
 
     def forward(self, data: Dict) -> Dict:
         """
@@ -72,9 +74,7 @@ class ComaCriticNetwork(nn.Module):
             - action (:obj:`torch.Tensor`): the masked action
         """
         x = self._preprocess_data(data)
-        x = self._act(self._fc1(x))
-        x = self._act(self._fc2(x))
-        q = self._fc3(x)
+        q = self._mlp(x)
         return {'q_value': q}
 
     def _preprocess_data(self, data: Dict) -> torch.Tensor:
@@ -104,8 +104,8 @@ class ComaNetwork(nn.Module):
         self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
-        assert mode in ['compute_action', 'compute_q_value'], mode
-        if mode == 'compute_action':
+        assert mode in ['compute_actor', 'compute_critic'], mode
+        if mode == 'compute_actor':
             return self._actor(data)
-        elif mode == 'compute_q_value':
+        elif mode == 'compute_critic':
             return self._critic(data)

@@ -11,52 +11,9 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import PhasicPolicyGradientBase, FCEncoder, ConvEncoder
+from nervex.torch_utils.network.nn_module import MLP
+from ..common import ActorCriticBase, FCEncoder, ConvEncoder
 from ..actor_critic.value_ac import FCValueAC, ConvValueAC
-
-
-class FCPolicyNet(FCValueAC):
-
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            First encode raw observation, then output value and logit.
-            Normal reinforcement learning training, often called by learner to optimize both critic and actor.
-        Arguments:
-            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
-        Returns:
-            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
-        """
-        # for compatible, but we recommend use dict as input format
-        if isinstance(inputs, torch.Tensor):
-            embedding = self._encoder(inputs)
-        else:
-            embedding = self._encoder(inputs['obs'])
-        value = self._critic_forward(embedding)
-
-        return {'value': value}
-
-
-class ConvPolicyNet(ConvValueAC):
-
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            First encode raw observation, then output value and logit.
-            Normal reinforcement learning training, often called by learner to optimize both critic and actor.
-        Arguments:
-            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
-        Returns:
-            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
-        """
-        # for compatible, but we recommend use dict as input format
-        if isinstance(inputs, torch.Tensor):
-            embedding = self._encoder(inputs)
-        else:
-            embedding = self._encoder(inputs['obs'])
-        value = self._critic_forward(embedding)
-
-        return {'value': value}
 
 
 class FCValueNet(nn.Module):
@@ -75,15 +32,10 @@ class FCValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        input_dim = embedding_dim
-        layers = []
-        for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, head_hidden_dim))
-            layers.append(self._act)
-            input_dim = head_hidden_dim
-        layers.append(nn.Linear(input_dim, 1))
-
-        self._critic = nn.Sequential(*layers)
+        self._critic = nn.Sequential(
+            MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+            nn.Linear(head_hidden_dim, 1)
+        )
 
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
@@ -139,15 +91,10 @@ class ConvValueNet(nn.Module):
         self._head_layer_num = 2
 
         # critic head
-        input_dim = embedding_dim
-        layers = []
-        for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, head_hidden_dim))
-            layers.append(self._act)
-            input_dim = head_hidden_dim
-        layers.append(nn.Linear(input_dim, 1))
-
-        self._critic = nn.Sequential(*layers)
+        self._critic = nn.Sequential(
+            MLP(embedding_dim, head_hidden_dim, head_hidden_dim, self._head_layer_num, activation=self._act),
+            nn.Linear(head_hidden_dim, 1)
+        )
 
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
@@ -188,7 +135,7 @@ class ConvValueNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('fc_ppg')
-class FCPPG(PhasicPolicyGradientBase):
+class FCPPG(ActorCriticBase):
 
     def __init__(
             self,
@@ -212,7 +159,7 @@ class FCPPG(PhasicPolicyGradientBase):
         self._value_embedding_dim: int = value_embedding_dim
 
         # build network
-        self._policy_net = FCPolicyNet(self._obs_dim, self._act_dim, self._policy_embedding_dim)
+        self._policy_net = FCValueAC(self._obs_dim, self._act_dim, self._policy_embedding_dim)
         self._value_net = FCValueNet(self._obs_dim, self._value_embedding_dim)
 
     def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -221,16 +168,16 @@ class FCPPG(PhasicPolicyGradientBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        return self._policy_net.compute_action_value(inputs)
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        return self._policy_net.compute_actor_critic(inputs)
 
-    def compute_action(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        logit = self._policy_net.compute_action(inputs)['logit']
+    def compute_actor(self,
+                      inputs: Dict[str, torch.Tensor],
+                      deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+        logit = self._policy_net.compute_actor(inputs)['logit']
         return {'logit': logit}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         value = self._value_net_forward(inputs)
         return {'value': value}
 
@@ -244,7 +191,7 @@ class FCPPG(PhasicPolicyGradientBase):
 
 
 @MODEL_REGISTRY.register('conv_ppg')
-class ConvPPG(PhasicPolicyGradientBase):
+class ConvPPG(ActorCriticBase):
 
     def __init__(
             self,
@@ -268,7 +215,7 @@ class ConvPPG(PhasicPolicyGradientBase):
         self._value_embedding_dim: int = value_embedding_dim
 
         # build network
-        self._policy_net = ConvPolicyNet(self._obs_dim, self._act_dim, self._policy_embedding_dim)
+        self._policy_net = ConvValueAC(self._obs_dim, self._act_dim, self._policy_embedding_dim)
         self._value_net = ConvValueNet(self._obs_dim, self._value_embedding_dim)
 
     def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -277,18 +224,18 @@ class ConvPPG(PhasicPolicyGradientBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         return self._policy_net.compute_action_value(state_input)
 
-    def compute_action(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+    def compute_actor(self,
+                      inputs: Dict[str, torch.Tensor],
+                      deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         logit = self._policy_net.compute_action(state_input)['logit']
         return {'logit': logit}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         state_input = inputs['obs']
         value = self._value_net_forward(state_input)
         return {'value': value}

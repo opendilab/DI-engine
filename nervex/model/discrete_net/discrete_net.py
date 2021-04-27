@@ -1,9 +1,10 @@
 from functools import partial
 from typing import Union, List, Dict, Optional, Tuple, Callable
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
-from nervex.model import DuelingHead, ConvEncoder
+from nervex.model import head_fn_map, ConvEncoder
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze, MODEL_REGISTRY
 
@@ -33,17 +34,29 @@ class DiscreteNet(nn.Module):
             - hidden_dim_list (:obj:`list`): encoder's hidden layer dimension list
         """
         super(DiscreteNet, self).__init__()
+        # parse arguments
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
         embedding_dim = hidden_dim_list[-1]
+        action_dim = squeeze(action_dim)  # if action_dim is '(n,)', transform it in to 'n'.
+        use_multi_discrete = isinstance(action_dim, tuple)
+        head_fn = head_fn_map[head_kwargs.pop('head_type')]
+
+        # build encoder: the encoder encodes different formats of observation into 1d vector.
         self._encoder = Encoder(obs_dim, hidden_dim_list=hidden_dim_list, **encoder_kwargs)
-        self._use_distribution = head_kwargs.get('distribution', False)
+
+        # build lstm: the lstm encodes the history of the observations.
         if lstm_kwargs['lstm_type'] != 'none':
             lstm_kwargs['input_size'] = embedding_dim
             lstm_kwargs['hidden_size'] = embedding_dim
             self._lstm = get_lstm(**lstm_kwargs)
-        self._head = Head(action_dim, embedding_dim, **head_kwargs)
 
-    def forward(self, inputs: Dict, num_quantiles: Union[None, int] = None) -> Dict:
+        # build head: the head encodes the observations into q-value of actions.
+        if use_multi_discrete:
+            self._head = MultiDiscreteHead(embedding_dim, action_dim, head_fn, **head_kwargs)
+        else:
+            self._head = head_fn(embedding_dim, action_dim, **head_kwargs)
+
+    def forward(self, inputs: Dict, num_quantiles: int = None) -> Dict:
         r"""
         Overview:
             Normal forward. Would use lstm between encoder and head if needed
@@ -68,7 +81,10 @@ class DiscreteNet(nn.Module):
             x['next_state'] = next_state
             return x
         else:
-            x = self._head(x)
+            if num_quantiles is not None:
+                x = self._head(x, num_quantiles)
+            else:
+                x = self._head(x)
             return x
 
     def fast_timestep_forward(self, inputs: Dict) -> Dict:
@@ -148,7 +164,7 @@ class Encoder(nn.Module):
         return self.main(x)
 
 
-class Head(nn.Module):
+class MultiDiscreteHead(nn.Module):
     r"""
     Overview:
         The Head used in DQN models. Receive encoded embedding tensor and use it to predict the action.
@@ -158,21 +174,10 @@ class Head(nn.Module):
 
     def __init__(
             self,
-            action_dim: tuple,
             input_dim: int,
-            dueling: bool = True,
-            init_type: str = "xavier",
-            a_layer_num: int = 1,
-            v_layer_num: int = 1,
-            distribution: bool = False,
-            quantile: bool = False,
-            noise: bool = False,
-            v_min: float = -10,
-            v_max: float = 10,
-            n_atom: int = 51,
-            num_quantiles: int = 32,
-            quantile_embedding_dim: int = 128,
-            beta_function_type: str = 'uniform',
+            action_dim: tuple,
+            head_fn: nn.Module,
+            **head_kwargs,
     ) -> None:
         r"""
         Overview:
@@ -181,46 +186,26 @@ class Head(nn.Module):
             - action_dim (:obj:`tuple`): the num of action dim, \
                 note that it can be a tuple containing more than one element
             - input_dim (:obj:`int`): input tensor dim of the head
-            - dueling (:obj:`bool`): whether to use ``DuelingHead`` or ``nn.Linear``
-            - distribution (:obj:`bool`): whether to return the distribution
-            - v_min (:obj:`bool`): the min clamp value
-            - v_max (:obj:`bool`): the max clamp value
-            - n_atom (:obj:`bool`): the atom_num of distribution
-            - a_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute action output
-            - v_layer_num (:obj:`int`): the num of layers in ``DuelingHead`` to compute value output
+            - head_fn: class of head, like dueling_head, distribution_head, quatile_head, etc
+            - head_kwargs: class-specific arguments
         """
-        super(Head, self).__init__()
-        self.action_dim = squeeze(action_dim)
-        self.dueling = dueling
-        self.quantile = quantile
-        self.distribution = distribution
-        self.n_atom = n_atom
-        self.v_min = v_min
-        self.v_max = v_max
-        self.beta_function_type = beta_function_type
-        head_fn = partial(
-            DuelingHead,
-            a_layer_num=a_layer_num,
-            v_layer_num=v_layer_num,
-            init_type=init_type,
-            distribution=distribution,
-            quantile=quantile,
-            noise=noise,
-            v_min=v_min,
-            v_max=v_max,
-            n_atom=n_atom,
-            num_quantiles=num_quantiles,
-            quantile_embedding_dim=quantile_embedding_dim,
-            beta_function_type=beta_function_type,
-        ) if dueling else nn.Linear
-        if isinstance(self.action_dim, tuple):
-            self.pred = nn.ModuleList()
-            for dim in self.action_dim:
-                self.pred.append(head_fn(input_dim, dim))
-        else:
-            self.pred = head_fn(input_dim, self.action_dim)
+        super(MultiDiscreteHead, self).__init__()
+        self.pred = nn.ModuleList()
+        for dim in action_dim:
+            self.pred.append(head_fn(input_dim, dim, **head_kwargs))
 
-    def forward(self, x: torch.Tensor, num_quantiles: Union[None, int] = None) -> Dict:
+    def _collate(self, x: list) -> Dict:
+        r"""
+        Overview:
+            Translate a list of dicts to a dict of lists.
+        Arguments:
+            - x (:obj:`list`): list of dict
+        Returns:
+            - return (:obj:`Dict`): dict of list
+        """
+        return {k: [_[k] for _ in x] for k in x[0].keys()}
+
+    def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
             Use encoded tensor to predict the action.
@@ -229,41 +214,19 @@ class Head(nn.Module):
         Returns:
             - return (:obj:`Dict`): action in logits
         """
-        if isinstance(self.action_dim, tuple):
-            if self.dueling:
-                x = [m(x, num_quantiles=num_quantiles) for m in self.pred]
-            else:
-                x = [m(x) for m in self.pred]
-            if self.distribution or self.quantile:
-                x = list(zip(*x))
-        else:
-            if self.dueling:
-                x = self.pred(x, num_quantiles=num_quantiles)
-            else:
-                x = self.pred(x)
-        if self.distribution:
-            if isinstance(x[0], tuple):
-                x[0] = list(x[0])
-            if isinstance(x[1], tuple):
-                x[1] = list(x[1])
-            return {'logit': x[0], 'distribution': x[1]}
-        elif self.quantile:
-            if isinstance(x[0], tuple):
-                x[0] = list(x[0])
-            if isinstance(x[1], tuple):
-                x[1] = list(x[1])
-            return {'logit': x[0], 'q': x[1], 'quantiles': x[2]}
-        else:
-            return {'logit': x}
+        return self._collate([m(x) for m in self.pred])
 
 
 FCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
-    head_kwargs={'dueling': True}
+    head_kwargs={
+        'head_type': 'dueling',
+        'a_layer_num': 1,
+        'v_layer_num': 1,
+    }
 )
-
 MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
 
 SQNDiscreteNet = partial(
@@ -272,60 +235,97 @@ SQNDiscreteNet = partial(
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
-        'dueling': False,
-        'init_type': None
+        'head_type': 'base',
+        'layer_num': 1
     }
 )
-
 MODEL_REGISTRY.register('sqn_discrete_net', SQNDiscreteNet)
+
+
+class SQNModel(nn.Module):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super(SQNModel, self).__init__()
+        self.q0 = SQNDiscreteNet(*args, **kwargs)
+        self.q1 = SQNDiscreteNet(*args, **kwargs)
+
+    def forward(self, data: dict) -> dict:
+        output0 = self.q0(data)
+        output1 = self.q1(data)
+        return {
+            'q_value': [output0['logit'], output1['logit']],
+            'logit': output0['logit'],
+        }
+
+
+MODEL_REGISTRY.register('sqn_model', SQNModel)
 
 NoiseDistributionFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
-        'dueling': True,
-        'distribution': True,
+        'head_type': 'distribution',
+        'layer_num': 1,
         'noise': True
     }
 )
+MODEL_REGISTRY.register('noise_dist_fc', NoiseDistributionFCDiscreteNet)
+
 NoiseFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
-        'dueling': True,
+        'head_type': 'dueling',
+        'a_layer_num': 1,
+        'v_layer_num': 1,
         'noise': True
     }
 )
-MODEL_REGISTRY.register('noise_dist_fc', NoiseDistributionFCDiscreteNet)
+
 ConvDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'none'},
-    head_kwargs={'dueling': True}
+    head_kwargs={
+        'head_type': 'dueling',
+        'a_layer_num': 1,
+        'v_layer_num': 1
+    }
 )
+
 FCRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'normal'},
-    head_kwargs={'dueling': True}
+    head_kwargs={
+        'head_type': 'dueling',
+        'a_layer_num': 1,
+        'v_layer_num': 1
+    }
 )
 MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
+
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},
     lstm_kwargs={'lstm_type': 'normal'},
-    head_kwargs={'dueling': True}
+    head_kwargs={
+        'head_type': 'dueling',
+        'a_layer_num': 1,
+        'v_layer_num': 1
+    }
 )
 MODEL_REGISTRY.register('convr_discrete_net', ConvRDiscreteNet)
+
 NoiseQuantileFCDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
-        'dueling': True,
-        'quantile': True,
+        'head_type': 'quantile',
+        'layer_num': 1,
         'noise': True,
     }
 )
@@ -386,17 +386,15 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'lstm_type': kwargs.get('lstm_type', 'normal'),
         }
     if 'head_kwargs' in kwargs:
-        head_kwargs = kwargs['head_kwargs']
+        head_kwargs = deepcopy(kwargs['head_kwargs'])
         for k in kwargs:
             if k in head_kwargs_keys:
                 head_kwargs[k] = kwargs[k]
     else:
         head_kwargs = {
-            'dueling': kwargs.get('dueling', True),
+            'head_type': kwargs.get('head_type', 'base'),
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
-            'distribution': kwargs.get('distribution', False),
-            'quantile': kwargs.get('quantile', False),
             'noise': kwargs.get('noise', False),
             'v_max': kwargs.get('v_max', 10),
             'v_min': kwargs.get('v_min', -10),

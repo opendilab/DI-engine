@@ -111,7 +111,7 @@ class PPGPolicy(Policy):
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
         # Policy Phase(Policy)
-        policy_output = self._armor.forward(policy_data, param={'mode': 'compute_action'})
+        policy_output = self._armor.forward(policy_data, param={'mode': 'compute_actor'})
         policy_error_data = ppo_policy_data(
             policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
@@ -123,7 +123,7 @@ class PPGPolicy(Policy):
 
         # Policy Phase(Value)
         return_ = value_data['value'] + value_adv
-        value_output = self._armor.forward(value_data, param={'mode': 'compute_value'})
+        value_output = self._armor.forward(value_data, param={'mode': 'compute_critic'})
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
         self._optimizer_value.zero_grad()
@@ -212,7 +212,7 @@ class PPGPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -287,7 +287,7 @@ class PPGPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -340,7 +340,7 @@ class PPGPolicy(Policy):
         data['weight'] = torch.cat(weights)
         # compute current policy logit_old
         with torch.no_grad():
-            data['logit_old'] = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action'})['logit']
+            data['logit_old'] = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_actor'})['logit']
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
@@ -356,7 +356,7 @@ class PPGPolicy(Policy):
 
         for epoch in range(self._epochs_aux):
             for data in dl:
-                policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
+                policy_output = self._armor.forward(data, param={'mode': 'compute_actor_critic'})
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
@@ -378,7 +378,7 @@ class PPGPolicy(Policy):
 
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
-                values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
+                values = self._armor.forward(data, param={'mode': 'compute_critic'})['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
                 value_loss = ppo_value_error(data_aux, self._clip_ratio)

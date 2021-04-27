@@ -57,7 +57,7 @@ class PPOPolicy(Policy):
         # PPO forward
         # ====================
         self._armor.model.train()
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs'], param={'mode': 'compute_actor_critic'})
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -127,7 +127,7 @@ class PPOPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -195,7 +195,7 @@ class PPOPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

@@ -32,13 +32,13 @@ def test_sac(obs_dim, action_dim):
     input = {'obs': torch.randn(4, obs_dim), 'action': torch.randn(4, squeeze(action_dim))}
     model = SAC(obs_dim, action_dim, use_twin_q=False)
     # compute_q
-    q_value = model(input, mode='compute_q')['q_value']
+    q_value = model(input, mode='compute_critic', qv='q')['q_value']
     print("q_value: ", q_value)
     assert q_value.shape == (4, )
     output_check(model._act_dim, model._soft_q_net, q_value)
 
     # compute_value
-    v_value = model(input['obs'], mode='compute_value')['v_value']
+    v_value = model(input['obs'], mode='compute_critic', qv='v')['v_value']
     print("v_value: ", v_value)
     assert v_value.shape == (4, )
     output_check(model._act_dim, model._value_net, v_value)
@@ -50,7 +50,7 @@ def test_sac(obs_dim, action_dim):
         print(k, v.shape)
 
     # compute_action
-    action = model(input['obs'], mode='compute_action')['action']
+    action = model(input['obs'], mode='compute_actor')['action']
     assert action.shape == (4, squeeze(action_dim))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)

@@ -39,13 +39,13 @@ class TestATOCNets:
         optimize_critic = torch.optim.SGD(model._critic.parameters(), 0.1)
         obs = torch.randn(B, A, obs_dim)
         act = torch.rand(B, A, act_dim)
-        out = model({'obs': obs, 'action': act}, mode='compute_q')
+        out = model({'obs': obs, 'action': act}, mode='compute_critic')
         assert out['q_value'].shape == (B, A)
         q_loss = out['q_value'].sum()
         q_loss.backward()
         optimize_critic.step()
 
-        out = model(obs, mode='compute_action', get_delta_q=True)
+        out = model(obs, mode='compute_actor', get_delta_q=True)
         assert out['delta_q'].shape == (B, A)
         assert out['initiator_prob'].shape == (B, A)
         assert out['is_initiator'].shape == (B, A)
@@ -53,7 +53,7 @@ class TestATOCNets:
         optimizer_att = torch.optim.SGD(model._actor._attention.parameters(), 0.1)
 
         obs = torch.randn(B, A, obs_dim)
-        delta_q = model(obs, mode='compute_action', get_delta_q=True)
+        delta_q = model(obs, mode='compute_actor', get_delta_q=True)
         attention_loss = model(delta_q, mode='optimize_actor_attention')
         optimizer_att.zero_grad()
         loss = attention_loss['actor_attention_loss'].sum()
@@ -61,7 +61,9 @@ class TestATOCNets:
         optimizer_att.step()
 
         weights = dict(model._actor.named_parameters())
-        q_loss = model(obs, mode='optimize_actor')
+        output = model(obs, mode='compute_actor')
+        output['obs'] = obs
+        q_loss = model(output, mode='compute_critic')
         loss = q_loss['q_value'].sum()
         before_update_weights = model._actor.named_parameters()
         optimizer_act.zero_grad()

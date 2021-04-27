@@ -97,7 +97,7 @@ class DDPGPolicy(Policy):
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
+        q_value = self._armor.forward(data, param={'mode': 'compute_critic'})['q_value']
         q_value_dict = {}
         if self._use_twin_critic:
             q_value_dict['q_value'] = q_value[0].mean()
@@ -106,9 +106,9 @@ class DDPGPolicy(Policy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_action'})['action']
+            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_actor'})['action']
             next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_q'})['q_value']
+            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_critic'})['q_value']
         if self._use_twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -139,7 +139,13 @@ class DDPGPolicy(Policy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_loss = -self._armor.forward(data['obs'], param={'mode': 'optimize_actor'})['q_value'].mean()
+            actor_data = self._armor.forward(data['obs'], param={'mode': 'compute_actor'})
+            actor_data['obs'] = data['obs']
+            if self._use_twin_critic:
+                actor_loss = -self._armor.forward(actor_data, param={'mode': 'compute_critic'})['q_value'][0].mean()
+            else:
+                actor_loss = -self._armor.forward(actor_data, param={'mode': 'compute_critic'})['q_value'].mean()
+
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -211,7 +217,7 @@ class DDPGPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -265,7 +271,7 @@ class DDPGPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

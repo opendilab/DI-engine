@@ -99,7 +99,7 @@ class IMPALAPolicy(Policy):
         # IMPALA forward
         # ====================
         self._armor.model.train()
-        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_action_value'})
+        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_actor_critic'})
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -176,7 +176,7 @@ class IMPALAPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_armor.model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
+            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -233,7 +233,7 @@ class IMPALAPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_armor.model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
+            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

@@ -72,6 +72,7 @@ class BaseSerialEvaluator(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self._env_manager.reset()
 
     def close(self) -> None:
         if self._end_flag:
