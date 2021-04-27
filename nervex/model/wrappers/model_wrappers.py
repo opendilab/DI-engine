@@ -13,7 +13,7 @@ from nervex.rl_utils import create_noise_generator
 class IModelWrapper(ABC):
     r"""
     Overview:
-        the base class of Armor Wrappers
+        the base class of Model Wrappers
     Interfaces:
         register
     """
@@ -24,14 +24,11 @@ class IModelWrapper(ABC):
     def __getattr__(self, key: str) -> Any:
         r"""
         Overview:
-            Get the attrbute in armor(model).
+            Get the attrbute in model.
         Arguments:
             - key (:obj:`str`): The key to query.
         Returns:
             - ret (:obj:`Any`): The queried attribute.
-
-        .. note::
-            If you want to get the attribute ``attr`` in ``armor[k]``, you should query "{k}_{attr}".
         """
         return getattr(self._model, key)
 
@@ -39,7 +36,7 @@ class IModelWrapper(ABC):
 class BaseModelWrapper(IModelWrapper):
     r"""
     Overview:
-        the base class of Armor Wrappers
+        the base class of Model Wrappers
     Interfaces:
         register
     """
@@ -47,7 +44,7 @@ class BaseModelWrapper(IModelWrapper):
     def reset(self, data_id: List[int] = None) -> None:
         r"""
         Overview
-            the reset function that the Armor Wrappers with states should implement
+            the reset function that the Model Wrappers with states should implement
             used to reset the stored states
         """
         pass
@@ -61,10 +58,10 @@ class HiddenStateWrapper(IModelWrapper):
         """
         Overview:
             Maintain the hidden state for RNN-base model. Each sample in a batch has its own state. \
-            Init the maintain state and state function; Then wrap the ``armor.foward`` method with auto \
-            saved data ['prev_state'] input, and create the ``armor.reset`` method.
+            Init the maintain state and state function; Then wrap the ``model.foward`` method with auto \
+            saved data ['prev_state'] input, and create the ``model.reset`` method.
         Arguments:
-            - armor(:obj:`Any`): Wrapped armor class, should contain forward method.
+            - model(:obj:`Any`): Wrapped model class, should contain forward method.
             - state_num (:obj:`int`): Number of states to process.
             - save_prev_state (:obj:`bool`): Whether to output the prev state in output['prev_state'].
             - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset. \
@@ -141,7 +138,7 @@ def sample_action(logit=None, prob=None):
 class ArgmaxSampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Used to help the armor to sample argmax action
+        Used to help the model to sample argmax action
     """
 
     def forward(self, *args, **kwargs):
@@ -166,7 +163,7 @@ class ArgmaxSampleWrapper(IModelWrapper):
 class MultinomialSampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Used to helper the armor get the corresponding action from the output['logits']
+        Used to helper the model get the corresponding action from the output['logits']
     Interfaces:
         register
     """
@@ -193,7 +190,7 @@ class MultinomialSampleWrapper(IModelWrapper):
 class EpsGreedySampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Epsilon greedy sampler used in collector_armor to help balance exploratin and exploitation.
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
     Interfaces:
         register
     """
@@ -235,7 +232,7 @@ class ActionNoiseWrapper(IModelWrapper):
     Interfaces:
         register, __init__, add_noise, reset
     Arguments:
-        - armor (:obj:`Any`): Wrapped armor class. Should contain ``forward`` method.
+        - model (:obj:`Any`): Wrapped model class. Should contain ``forward`` method.
         - noise_type (:obj:`str`): The type of noise that should be generated, support ['gauss', 'ou'].
         - noise_kwargs (:obj:`dict`): Keyword args that should be used in noise init. Depends on ``noise_type``.
         - noise_range (:obj:`Optional[dict]`): Range of noise, used for clipping.
@@ -273,7 +270,7 @@ class ActionNoiseWrapper(IModelWrapper):
         Overview:
             Generate noise and clip noise if needed. Add noise to action and clip action if needed.
         Arguments:
-            - action (:obj:`torch.Tensor`): Armor's action output.
+            - action (:obj:`torch.Tensor`): Model's action output.
         Returns:
             - noised_action (:obj:`torch.Tensor`): Action processed after adding noise and clipping.
         """
@@ -319,7 +316,7 @@ class TargetNetworkWrapper(IModelWrapper):
             Update the target network state dict
 
         Arguments:
-            - state_dict (:obj:`dict`): the state_dict from learner armor
+            - state_dict (:obj:`dict`): the state_dict from learner model
             - direct (:obj:`bool`): whether to update the target network directly, \
                 if ture then will simply call the load_state_dict method of the model
         """
@@ -347,7 +344,7 @@ class TargetNetworkWrapper(IModelWrapper):
 class TeacherNetworkWrapper(IModelWrapper):
     r"""
     Overview:
-        Set the teacher Network. Set the armor's armor.teacher_cfg to the input teacher_cfg
+        Set the teacher Network. Set the model's model.teacher_cfg to the input teacher_cfg
 
     Interfaces:
         register
@@ -379,27 +376,13 @@ def model_wrap(model, wrapper_name: str = None, **kwargs):
     return model
 
 
-# def add_wrapper(armor: 'BaseArmor', wrapper_name: str, **kwargs) -> None:  # noqa
-#     r"""
-#     Overview:
-#         Add wrapper with wrapper_name and kwargs to armor
-#     Arguments:
-#         - armor (:obj:`Any`): the armor to register wrapper to
-#         - wrapper_name (:obj:`str`): armor wrapper name, which must be in wrapper_name_map
-#     """
-#     if wrapper_name not in wrapper_name_map:
-#         raise KeyError("invalid armor wrapper name: {}".format(wrapper_name))
-#     else:
-#         wrapper_name_map[wrapper_name].register(armor, **kwargs)
-
-
 def register_wrapper(name: str, wrapper_type: type):
     r"""
     Overview:
         Register new wrapper to wrapper_name_map
     Arguments:
         - name (:obj:`str`): the name of the wrapper
-        - wrapper_type (subclass of :obj:`IArmorWrapper`): the wrapper class added to the plguin_name_map
+        - wrapper_type (subclass of :obj:`IModelWrapper`): the wrapper class added to the plguin_name_map
     """
     assert isinstance(name, str)
     assert issubclass(wrapper_type, IModelWrapper)
