@@ -256,7 +256,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 )
             time.sleep(0.001)
             sleep_count += 1
-        print('ready obs', self._ready_obs[self.ready_env[0]].dtype)
         return {i: self._ready_obs[i] for i in self.ready_env}
 
     def launch(self, reset_param: Optional[List[dict]] = None) -> None:
@@ -371,11 +370,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             act = self._transform(act)
             self._pipe_parents[env_id].send(['step', [act], {}])
 
-        step_args = self._async_args['step']
-        wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
-
         timesteps = {}
         if self._async_args['step']['mode'] == 'async':
+            step_args = self._async_args['step']
+            wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
             rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
             ready_env_ids = []
             cur_rest_env_ids = copy.deepcopy(rest_env_ids)
@@ -411,7 +409,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         timesteps = self._inv_transform(timesteps)
-
+        
         for env_id, timestep in timesteps.items():
             if timestep.info.get('abnormal', False):
                 self._env_states[env_id] = EnvState.RESET
@@ -419,9 +417,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 reset_thread.daemon = True
                 reset_thread.start()
                 continue
-            if self._shared_memory:
-                timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-            timesteps[env_id] = timestep
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] >= self._episode_num:
@@ -433,7 +428,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     reset_thread.start()
             else:
                 self._ready_obs[env_id] = timestep.obs
-        print('step', list(timesteps.values())[0].obs.dtype)
         return timesteps
 
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
