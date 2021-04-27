@@ -4,8 +4,8 @@ Quick Start
 .. toctree::
    :maxdepth: 3
 
-Here we show how to easily deploy a Reinforcement Learning training and evaluating 
-experiment on a simple CartPole environment.
+Here we show how to easily deploy a Reinforcement Learning experiment on a simple `CartPole` 
+environment using nerveX.
 
 NerveX provides config-wise and code-wise specifications to build RL experiments. 
 Both are commonly used by existing RL platforms. In this section we use the code-level
@@ -16,7 +16,7 @@ for training details and NN models pre-defined in a config file.
 Config and entry
 ------------------
 
-NerveX recommends using a config dictionary defined in a python file as input.
+NerveX recommends using a config ``dict`` defined in a python file as input.
 
 .. code-block:: python
 
@@ -41,18 +41,18 @@ NerveX recommends using a config dictionary defined in a python file as input.
         ),
     )
 
-Each namespace belongs to a certain module in NerveX. The module can be specialized defined
+Each namespace belongs to a certain module in nerveX. The module can be specialized defined
 by users or just use our pre-defined modules.
 
 Set up Environments
 ---------------------
 
-NerveX redefines RL environment interfaces derived from the widely used OpenAI Gym. 
+NerveX redefines RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
 For junior users, an environment wrapper is provided to simply wrap the gym env into NerveX form env.
 For advanced users, it is suggested to check our Environment doc for details
 
-The Env manager is used to manage multiple environments, single-process serially and multi-process 
-parallelly. The interfaces of env manager are similar to a single env.
+The :class:`Env Manager <nervex.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
+or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env.
 
 .. code-block:: python
 
@@ -68,11 +68,12 @@ parallelly. The interfaces of env manager are similar to a single env.
 Set up Policy and NN model
 ----------------------------
 
-NerveX supports most of the common policies used in RL training. The user only needs to build a PyTorch
-network structure and pass it into the policy. NerveX also provides default networks to simply apply to
-the environment.
+NerveX supports most of the common policies used in RL training. Each is defined as a :class:`Policy <nervex.policy.CommonPolicy>`
+class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks 
+are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy. 
+NerveX also provides default networks to simply apply to the environment.
 
-For example, a DQN policy and PPO policy for CartPole can be defined as follow.
+For example, a `DQN` policy and `PPO` policy for CartPole can be defined as follow.
 
 .. code-block:: python
 
@@ -91,15 +92,73 @@ For example, a DQN policy and PPO policy for CartPole can be defined as follow.
     policy = PPOPolicy(cfg.policy, model=model)
 
 
-Set up Training modules
+Set up runtime modules
 --------------------------
 
+NerveX needs to build some runtime components to manage an RL training procedure. 
+A :class:`Collector <nervex.worker.BaseSerialCollector>` is used to sample and provide data for training.
+A :class:`Learner <nervex.worker.BaseLearner>` is used to receive training data and conduct 
+the training (including updating networks, strategy and experience pool, etc.).
+An :class:`Evaluator <nervex.worker.BaseSerialEvaluator>` is build to perform the evaluation when needed.
+And other components like :class:`Replay Buffer <nervex.data.BufferManager>` may be required for the
+training process. All these module can be customized by config or rewritten by the user.
 
+An example of setting up all the above is showed as follow.
 
+.. code-block:: python
+
+    from tensorboardX import SummaryWriter    
+    from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
+    from nervex.data import BufferManager
+
+    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
+    learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
 
 Train and evaluate the policy
 ---------------------------------
 
+The training loop in nerveX can be customized arbitrarily. Usually the training process may consist of
+collecting data, updating policy, updating related modules and evaluation.
 
+Here we provide examples of off-policy training (`DQN`) and on-policy training (`PPO`) for a `CartPole`
+environment.
 
+.. code-block:: python
+
+    from nervex.rl_utils import get_epsilon_greedy_fn
+    
+    # DQN training loop
+    epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    while True:
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            if stop:
+                break
+
+        eps = epsilon_greedy(learner.train_iter)
+        new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        for i in range(cfg.policy.learn.train_iteration):
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            if train_data is not None:
+                learner.train(train_data, collector.envstep)
+
+.. code-block:: python
+
+    # PPO training loop
+    while True:
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            if stop:
+                break
+        new_data = collector.collect_data(learner.train_iter)
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        for i in range(cfg.policy.learn.train_iteration):
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            if train_data is not None:
+                learner.train(train_data, collector.envstep)
+                replay_buffer.update(learner.priority_info)
 
