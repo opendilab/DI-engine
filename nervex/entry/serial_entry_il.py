@@ -19,7 +19,7 @@ def serial_pipeline_il(
         seed: int,
         data_path: str,
         model: Optional[torch.nn.Module] = None,
-) -> 'BasePolicy':  # noqa
+) -> Union['BasePolicy', bool]:  # noqa
     r"""
     Overview:
         Serial pipeline entry.
@@ -59,4 +59,4 @@ def serial_pipeline_il(
 
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
-    return policy
+    return policy, stop
