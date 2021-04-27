@@ -7,7 +7,7 @@ import torch.nn as nn
 import numpy as np
 
 from nervex.torch_utils import Adam, to_device, one_hot
-from nervex.armor import model_wrap
+from nervex.model import model_wrap
 from nervex.data import default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -32,7 +32,7 @@ class ILPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init optimizers, algorithm config, main and target armors.
+            Init optimizers, algorithm config, main and target models.
         """
         # algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -41,7 +41,7 @@ class ILPolicy(Policy):
         # actor and critic optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
-        # main and target armors
+        # main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.train()
         self._learn_model.reset()
@@ -95,10 +95,8 @@ class ILPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
-        # algo_cfg = self._cfg.collect.algo
-        # self._collect_armor = Armor(self._expert_model)
         self._collect_model = model_wrap(FootballKaggle5thPlaceModel(), wrapper_name='base')
         self._collect_model.eval()
         self._collect_model.reset()
@@ -123,13 +121,13 @@ class ILPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -137,8 +135,8 @@ class ILPolicy(Policy):
         """
         transition = {
             'obs': obs,
-            'action': armor_output['action'],
-            'logit': armor_output['logit'],
+            'action': model_output['action'],
+            'logit': model_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -163,7 +161,7 @@ class ILPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.train()

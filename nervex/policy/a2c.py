@@ -6,8 +6,7 @@ import copy
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import model_wrap
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -123,7 +122,7 @@ class A2CPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
 
         self._unroll_len = self._cfg.collect.unroll_len
@@ -157,13 +156,13 @@ class A2CPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -173,8 +172,8 @@ class A2CPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -201,13 +200,8 @@ class A2CPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
-
-        # self._eval_armor = Armor(self._model)
-        # self._eval_armor.add_plugin('main', 'argmax_sample')
-        # self._eval_armor.reset()
-
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 

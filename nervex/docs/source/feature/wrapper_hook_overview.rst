@@ -5,7 +5,7 @@ Wrapper & Hook Overview
 Wrapper
 --------------------
 概述：
-    Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper就可以被派上用场。用Wrapper对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。
+    Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper就可以被派上用场。用Wrapper对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于model方面的操作，例如 `.cuda()` 或者 train/eval 模式切换以及不同mode下是否共享模型本身，交给用户在policy中直接对model进行操作。
 
 用处：
     nervex中用到wrapper的地方有三个，分别是 env，model，以及learner
@@ -20,7 +20,7 @@ Wrapper
         - 使用：
             已经定义好的wrapper统一放在 `nervex.armor.model_wrappers.py` 下以方便查看。对于使用 wrapper，可以按照如下规则：
             ```
-            model = wrapper(model, wrapper_name='your_wrapper_name', **kwargs)
+            model = model_wrap(model, wrapper_name='your_wrapper_name', **kwargs)
             ```
             * wrapper可以你所需要使用的任何wrapper
                 * 自定义wrapper使用参考下一节

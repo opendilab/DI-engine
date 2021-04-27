@@ -7,8 +7,7 @@ from easydict import EasyDict
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
-from nervex.model import ComaNetwork
-from nervex.armor import model_wrap
+from nervex.model import ComaNetwork, model_wrap
 from nervex.data import timestep_collate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -20,7 +19,7 @@ class COMAPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Init the learner armor of COMAPolicy
+            Init the learner model of COMAPolicy
 
         Arguments:
             .. note::
@@ -152,8 +151,8 @@ class COMAPolicy(Policy):
         r"""
         Overview:
             Collect mode init moethod. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
-            Armor has eps_greedy_sample plugin and hidden state plugin
+            Init traj and unroll length, adder, collect model.
+            Model has eps_greedy_sample wrapper and hidden state wrapper
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
@@ -194,13 +193,13 @@ class COMAPolicy(Policy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action', 'prev_state']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -209,8 +208,8 @@ class COMAPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'prev_state': armor_output['prev_state'],
-            'action': armor_output['action'],
+            'prev_state': model_output['prev_state'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -220,7 +219,7 @@ class COMAPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy and hidden_state plugin.
+            Init eval model with argmax strategy and hidden_state plugin.
         """
         self._eval_model = model_wrap(
             self._model,

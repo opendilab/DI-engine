@@ -6,8 +6,7 @@ import copy
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, Adder
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import model_wrap
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -24,7 +23,7 @@ class PPOPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main armor.
+            Init the optimizer, algorithm config and the main model.
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
@@ -102,7 +101,7 @@ class PPOPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
@@ -133,13 +132,13 @@ class PPOPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -147,9 +146,9 @@ class PPOPolicy(Policy):
         """
         transition = {
             'obs': obs,
-            'logit': armor_output['logit'],
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -174,7 +173,7 @@ class PPOPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()

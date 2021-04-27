@@ -196,7 +196,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         raise NotImplementedError
 
     @abstractmethod

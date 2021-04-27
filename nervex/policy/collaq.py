@@ -6,8 +6,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
-from nervex.model import CollaQ
-from nervex.armor import model_wrap
+from nervex.model import CollaQ, model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -24,7 +23,7 @@ class CollaQPolicy(Policy):
         """
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the learner armor of CollaQPolicy
+            Init the learner model of CollaQPolicy
         Arguments:
             .. note::
 
@@ -99,7 +98,7 @@ class CollaQPolicy(Policy):
         # ====================
         self._learn_model.train()
         self._target_model.train()
-        # for hidden_state plugin, we need to reset the main armor and target armor
+        # for hidden_state plugin, we need to reset the main model and target model
         self._learn_model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
@@ -150,7 +149,7 @@ class CollaQPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
@@ -190,13 +189,13 @@ class CollaQPolicy(Policy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least \
+            - model_output (:obj:`dict`): Output of collect model, including at least \
                 ['action', 'prev_state', 'agent_colla_alone_q']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                 (here 'obs' indicates obs after env step).
@@ -206,9 +205,9 @@ class CollaQPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'prev_state': armor_output['prev_state'],
-            'action': armor_output['action'],
-            'agent_colla_alone_q': armor_output['agent_colla_alone_q'],
+            'prev_state': model_output['prev_state'],
+            'action': model_output['action'],
+            'agent_colla_alone_q': model_output['agent_colla_alone_q'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -218,7 +217,7 @@ class CollaQPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy and the hidden_state plugin.
+            Init eval model with argmax strategy and the hidden_state plugin.
         """
         self._eval_model = model_wrap(
             self._model,

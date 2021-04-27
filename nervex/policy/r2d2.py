@@ -6,7 +6,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
-from nervex.armor import model_wrap
+from nervex.model import model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -25,7 +25,7 @@ class R2D2Policy(Policy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Init the learner armor of R2D2Policy
+            Init the learner model of R2D2Policy
 
         Arguments:
             .. note::
@@ -174,7 +174,7 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._collect_nstep = self._cfg.collect.algo.nstep
         self._collect_burnin_step = self._cfg.collect.algo.burnin_step
@@ -214,13 +214,13 @@ class R2D2Policy(Policy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action', 'prev_state']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -228,8 +228,8 @@ class R2D2Policy(Policy):
         """
         transition = {
             'obs': obs,
-            'action': armor_output['action'],
-            'prev_state': armor_output['prev_state'],
+            'action': model_output['action'],
+            'prev_state': model_output['prev_state'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -253,7 +253,7 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')

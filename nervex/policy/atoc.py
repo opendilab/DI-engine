@@ -7,8 +7,7 @@ import copy
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.data import default_collate, default_decollate
-from nervex.model import QAC
-from nervex.armor import model_wrap
+from nervex.model import QAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -29,7 +28,7 @@ class ATOCPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target armors.
+            Init actor and critic optimizers, algorithm config, main and target models.
         """
         # algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -56,7 +55,7 @@ class ATOCPolicy(Policy):
             )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
-        # main and target armors
+        # main and target models
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -180,11 +179,11 @@ class ATOCPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        # collect armor
+        # collect model
         algo_cfg = self._cfg.collect.algo
         self._collect_model = model_wrap(
             self._model,
@@ -219,13 +218,13 @@ class ATOCPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -235,8 +234,8 @@ class ATOCPolicy(Policy):
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
-                'action': armor_output['action'],
-                'delta_q': armor_output['delta_q'],
+                'action': model_output['action'],
+                'delta_q': model_output['delta_q'],
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
@@ -244,7 +243,7 @@ class ATOCPolicy(Policy):
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
-                'action': armor_output['action'],
+                'action': model_output['action'],
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
@@ -264,7 +263,7 @@ class ATOCPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()

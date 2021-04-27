@@ -7,8 +7,7 @@ import numpy as np
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.model import QAC
-from nervex.armor import model_wrap
+from nervex.model import QAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -19,7 +18,7 @@ class DDPGPolicy(Policy):
     r"""
     Overview:
         Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
-        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in armor plugin to
+        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in model wrapper to
         switch algorithm.
     Property:
         learn_mode, collect_mode, eval_mode
@@ -29,7 +28,7 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target armors.
+            Init actor and critic optimizers, algorithm config, main and target models.
         """
         # actor and critic optimizer
         self._optimizer_actor = Adam(
@@ -51,7 +50,7 @@ class DDPGPolicy(Policy):
         self._actor_update_freq = algo_cfg.actor_update_freq
         self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
 
-        # main and target armors
+        # main and target models
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -184,7 +183,7 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
@@ -223,13 +222,13 @@ class DDPGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -238,7 +237,7 @@ class DDPGPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -251,7 +250,7 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()

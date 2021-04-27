@@ -8,8 +8,7 @@ from easydict import EasyDict
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, Adder
-from nervex.model import FCDiscreteNet, ConvDiscreteNet
-from nervex.armor import model_wrap
+from nervex.model import FCDiscreteNet, ConvDiscreteNet, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -26,7 +25,7 @@ class DQNPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target armors.
+            Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
@@ -35,13 +34,6 @@ class DQNPolicy(Policy):
         algo_cfg = self._cfg.learn.algo
         self._nstep = algo_cfg.nstep
         self._gamma = algo_cfg.discount_factor
-
-        # Main and target armors
-        # self._armor = Armor(self._model)
-        # self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-        # self._armor.add_plugin('main', 'argmax_sample')
-        # self._armor.reset()
-        # self._armor.target_reset()
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -77,12 +69,12 @@ class DQNPolicy(Policy):
         # ====================
         self._learn_model.train()
         self._target_model.train()
-        # Current q value (main armor)
+        # Current q value (main model)
         q_value = self._learn_model.forward(data['obs'])['logit']
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
-            # Max q value action (main armor)
+            # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
@@ -125,7 +117,7 @@ class DQNPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
@@ -176,13 +168,13 @@ class DQNPolicy(Policy):
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -191,7 +183,7 @@ class DQNPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -201,7 +193,7 @@ class DQNPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
