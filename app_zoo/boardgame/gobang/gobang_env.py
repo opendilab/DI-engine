@@ -322,12 +322,7 @@ class GobangEnv(BaseEnv):
                     obs['action_mask'] = self.get_action_mask()
                 else:
                     obs = obs_board
-                return BaseEnvTimestep(
-                    obs,
-                    rew,
-                    done,
-                    info
-                )
+                return BaseEnvTimestep(obs, rew, done, info)
             if self.board.forbidden(action) > 0:
                 obs_board = self.board.current_state()
                 rew = -1.0

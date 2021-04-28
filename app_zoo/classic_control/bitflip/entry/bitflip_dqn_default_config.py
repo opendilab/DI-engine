@@ -2,9 +2,7 @@ from easydict import EasyDict
 
 bitflip_dqn_default_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
             env_type='bitflip',
@@ -50,9 +48,7 @@ bitflip_dqn_default_config = dict(
             decay=10000,
         ), ),
     ),
-    replay_buffer=dict(
-        replay_buffer_size=5000,
-    ),
+    replay_buffer=dict(replay_buffer_size=5000, ),
     collector=dict(
         n_episode=1,
         traj_len=50,

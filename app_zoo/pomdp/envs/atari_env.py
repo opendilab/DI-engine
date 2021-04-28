@@ -11,25 +11,37 @@ from .atari_wrappers import wrap_deepmind
 
 from pprint import pprint
 
-
 POMDP_INFO_DICT = {
     'Pong-ramNoFrameskip-v4': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(128,), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(128, ),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-        ), 
+            shape=(6, ),
+            value={
+                'min': 0,
+                'max': 6,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': -1, 'max': 1, 'dtype': np.float32}, 
+            shape=1,
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
 }
+
 
 def PomdpEnv(cfg, only_info=False):
     '''

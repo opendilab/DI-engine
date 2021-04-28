@@ -3,9 +3,7 @@ from easydict import EasyDict
 use_twin_q = True
 pendulum_sac_auto_alpha_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.pendulum.envs.pendulum_env'],
             env_type='pendulum',
@@ -13,7 +11,7 @@ pendulum_sac_auto_alpha_config = dict(
             evaluator_env_num=8,
             use_act_scale=True,
             norm_obs=dict(use_norm=False, ),
-            norm_reward=dict(use_norm=False,),
+            norm_reward=dict(use_norm=False, ),
         ),
     ),
     policy=dict(

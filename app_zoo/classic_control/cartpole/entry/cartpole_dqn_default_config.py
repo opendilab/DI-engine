@@ -71,9 +71,7 @@ cartpole_dqn_default_config = dict(
         ),
     ),
     # You can refer to "config/buffer_manager_default_config.py" for details.
-    replay_buffer=dict(
-        replay_buffer_size=20000,
-    ),
+    replay_buffer=dict(replay_buffer_size=20000, ),
     collector=dict(
         # You can use either "n_sample" or "n_episode" in collector.collect.
         # Get "n_sample" samples per collect.

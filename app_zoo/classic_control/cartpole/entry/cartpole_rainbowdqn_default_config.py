@@ -3,9 +3,7 @@ from easydict import EasyDict
 nstep = 3
 cartpole_rainbowdqn_default_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
@@ -48,9 +46,7 @@ cartpole_rainbowdqn_default_config = dict(
             decay=10000,
         ), ),
     ),
-    replay_buffer=dict(
-        replay_buffer_size=20000,
-    ),
+    replay_buffer=dict(replay_buffer_size=20000, ),
     collector=dict(
         n_sample=80,
         traj_len=(8 + nstep),

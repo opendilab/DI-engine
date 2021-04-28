@@ -73,21 +73,28 @@ class BitFlipEnv(BaseEnv):
         return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
-                (2 * self._n_bits, ), {
+                (2 * self._n_bits, ),
+                {
                     'min': [0 for _ in range(self._n_bits)],
                     'max': [1 for _ in range(self._n_bits)],
                     'dtype': float,
                 },
             ),
             # [min, max)
-            act_space=T((self._n_bits, ), {
-                'min': 0,
-                'max': self._n_bits
-            },),
-            rew_space=T((1, ), {
-                'min': 0.0,
-                'max': 1.0
-            },),
+            act_space=T(
+                (self._n_bits, ),
+                {
+                    'min': 0,
+                    'max': self._n_bits
+                },
+            ),
+            rew_space=T(
+                (1, ),
+                {
+                    'min': 0.0,
+                    'max': 1.0
+                },
+            ),
             use_wrappers=None,
         )
 

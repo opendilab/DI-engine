@@ -1,13 +1,13 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 import torch.nn.functional as F
 
 from nervex.torch_utils import Adam, RMSprop, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 
@@ -23,7 +23,7 @@ class IMPALAPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main armor.
+            Init the optimizer, algorithm config and the main model.
         """
         # Optimizer
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
@@ -40,7 +40,7 @@ class IMPALAPolicy(Policy):
             )
         else:
             raise NotImplementedError
-        self._armor = Armor(self._model)
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         self._action_dim = self._cfg.model.action_dim
         self._unroll_len = self._cfg.learn.unroll_len
@@ -55,8 +55,8 @@ class IMPALAPolicy(Policy):
         self._c_clip_ratio = algo_cfg.c_clip_ratio
         self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
 
-        # Main armor
-        self._armor.reset()
+        # Main model
+        self._learn_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
@@ -98,8 +98,8 @@ class IMPALAPolicy(Policy):
         # ====================
         # IMPALA forward
         # ====================
-        self._armor.model.train()
-        output = self._armor.forward(data['obs_plus_1'], param={'mode': 'compute_actor_critic'})
+        self._learn_model.train()
+        output = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor_critic')
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -141,24 +141,23 @@ class IMPALAPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data: dict) -> dict:
@@ -174,21 +173,21 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_actor_critic'})
+            output = self._collect_model.forward(data, mode='compute_actor_critic')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -197,9 +196,9 @@ class IMPALAPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'logit': armor_output['logit'],
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -212,11 +211,10 @@ class IMPALAPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -231,9 +229,9 @@ class IMPALAPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
+            output = self._eval_model.forward(data, mode='compute_actor')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
