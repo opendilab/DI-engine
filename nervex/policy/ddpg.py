@@ -148,9 +148,7 @@ class DDPGPolicy(Policy):
             actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
             actor_data['obs'] = data['obs']
             if self._use_twin_critic:
-                actor_loss = -self._learn_model.forward(
-                    actor_data, mode='compute_critic'
-                )['q_value'][0].mean()
+                actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
             else:
                 actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
 

@@ -67,6 +67,7 @@ class TempLSTM(torch.nn.Module):
 def setup_model():
     return torch.nn.Linear(3, 6)
 
+
 @pytest.mark.unittest
 class TestModelWrappers:
 
@@ -133,7 +134,9 @@ class TestModelWrappers:
         target_model.update(model.state_dict())
         assert model.fc1.weight.eq(target_model.fc1.weight).sum() == 12
 
-        target_model2 = model_wrap(target_model2, wrapper_name='target', update_type='momentum', update_kwargs={'theta': 0.01})
+        target_model2 = model_wrap(
+            target_model2, wrapper_name='target', update_type='momentum', update_kwargs={'theta': 0.01}
+        )
         target_model2.update(model.state_dict(), direct=True)
         assert model.fc1.weight.eq(target_model2.fc1.weight).sum() == 12
         model.fc1.weight.data = torch.randn_like(model.fc1.weight)
@@ -181,17 +184,19 @@ class TestModelWrappers:
         assert output['action'].shape == (4, )
 
     def test_action_noise_wrapper(self):
-        model = model_wrap(ActorMLP(), 
-                           wrapper_name='action_noise',
-                           noise_type='gauss',
-                           noise_range={
-                               'min': -0.1,
-                               'max': 0.1
-                           },
-                           action_range={
-                               'min': -0.05,
-                               'max': 0.05
-                           })
+        model = model_wrap(
+            ActorMLP(),
+            wrapper_name='action_noise',
+            noise_type='gauss',
+            noise_range={
+                'min': -0.1,
+                'max': 0.1
+            },
+            action_range={
+                'min': -0.05,
+                'max': 0.05
+            }
+        )
         data = {'obs': torch.randn(4, 3)}
         output = model.forward(data)
         action = output['action']

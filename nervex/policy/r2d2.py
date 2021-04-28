@@ -5,7 +5,7 @@ import copy
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, epsilon_greedy, Adder
+from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_epsilon_greedy_fn, Adder
 from nervex.model import model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY

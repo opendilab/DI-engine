@@ -31,7 +31,7 @@ def main(cfg, seed=0):
     # Set up RL Policy
     model = FCDiscreteNet(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
-    
+
     # Set up collection, training and evaluation utilities
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
@@ -45,7 +45,7 @@ def main(cfg, seed=0):
 
     # Training & Evaluation loop
     while True:
-        # Evaluating at the beginning and with specific frequency 
+        # Evaluating at the beginning and with specific frequency
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
