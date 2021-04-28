@@ -176,6 +176,8 @@ def compile_config(
     policy_config.other.replay_buffer = buffer.default_config()
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg = deep_merge_dicts(default_config, cfg)
+    # check important key in config
+    assert all([k in cfg.env for k in ['n_episode', 'stop_value']]), cfg.env
     if save_cfg:
         save_config(cfg, save_path)
     return cfg
