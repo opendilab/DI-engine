@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from app_zoo.classic_control.cartpole.entry.cartpole_dqn_default_config import cartpole_dqn_default_config
+from app_zoo.classic_control.cartpole.config.cartpole_dqn_default_config import cartpole_dqn_default_config
 from nervex.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, check_only
 from nervex.utils import pretty_print
 
