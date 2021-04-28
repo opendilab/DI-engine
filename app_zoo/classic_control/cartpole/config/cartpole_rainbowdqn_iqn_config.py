@@ -23,6 +23,7 @@ cartpole_rainbowdqn_iqn_config = dict(
             beta_function_type='CPW',
             num_quantiles=32,
             quantile_embedding_dim=128,
+            head_type='quantile',
         ),
         learn=dict(
             train_iteration=3,

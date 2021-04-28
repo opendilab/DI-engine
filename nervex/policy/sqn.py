@@ -1,40 +1,25 @@
-import sys
-import os
 import math
 import itertools
 import numpy as np
 import torch
 import torch.nn.functional as F
-from collections import namedtuple
+import copy
+from collections import namedtuple, deque
 from typing import List, Dict, Any, Tuple, Union, Optional
-
-from nervex.torch_utils import Adam
-from nervex.rl_utils import Adder
-from nervex.armor import Armor
-from nervex.model import FCDiscreteNet, SQNDiscreteNet
-from nervex.utils import POLICY_REGISTRY
-from nervex.policy.common_policy import CommonPolicy
 from torch.distributions.categorical import Categorical
 
-
-class SQNModel(torch.nn.Module):
-
-    def __init__(self, *args, **kwargs) -> None:
-        super(SQNModel, self).__init__()
-        self.q0 = SQNDiscreteNet(*args, **kwargs)
-        self.q1 = SQNDiscreteNet(*args, **kwargs)
-
-    def forward(self, data: dict) -> dict:
-        output0 = self.q0(data)
-        output1 = self.q1(data)
-        return {
-            'q_value': [output0['logit'], output1['logit']],
-            'logit': output0['logit'],
-        }
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
+from nervex.rl_utils import Adder
+from nervex.model import FCDiscreteNet, SQNDiscreteNet, model_wrap
+from nervex.utils import POLICY_REGISTRY
+from nervex.model import SQNModel
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('sqn')
-class SQNPolicy(CommonPolicy):
+class SQNPolicy(Policy):
     r"""
     Overview:
         Policy class of SQN algorithm (arxiv: 1912.10891).
@@ -44,7 +29,7 @@ class SQNPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target armors.
+            Init q, value and policy's optimizers, algorithm config, main and target models.
         """
         # Optimizers
         self._optimizer_q = Adam(
@@ -64,13 +49,18 @@ class SQNPolicy(CommonPolicy):
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
-        # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
-        self._armor.reset()
-        self._armor.target_reset()
+        # Main and target models
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
+        self._target_model.reset()
+
         self._forward_learn_cnt = 0
 
     def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
@@ -120,14 +110,25 @@ class SQNPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Learn info, including current lr and loss.
         """
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
+
+        self._learn_model.train()
+        self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         action = data.get('action')
         done = data.get('done')
         # Q-function
-        q_value = self._armor.forward({'obs': obs})['q_value']
-        target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']  # TODO:check grad
+        q_value = self._learn_model.forward({'obs': obs})['q_value']
+        target_q_value = self._target_model.forward({'obs': next_obs})['q_value']  # TODO:check grad
 
         num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)  # num of seperate env
 
@@ -169,7 +170,7 @@ class SQNPolicy(CommonPolicy):
         self._optimizer_alpha.step()
 
         # target update
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         self._forward_learn_cnt += 1
         # some useful info
         return {
@@ -181,32 +182,47 @@ class SQNPolicy(CommonPolicy):
             'q_value': np.mean([x.cpu().detach().numpy() for x in itertools.chain(*q_value)], dtype=float),
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_alpha': self._optimizer_alpha.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._optimizer_alpha.load_state_dict(state_dict['optimizer_alpha'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
-        # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
+        self._collect_model.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy, set in arguments for consistency.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        # start with random action for better exploration
-        output = self._collect_armor.forward(data)
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            # start with random action for better exploration
+            output = self._collect_model.forward(data)
         _decay = self._cfg.other.eps.decay
         _act_p = 1 / \
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
@@ -229,15 +245,18 @@ class SQNPolicy(CommonPolicy):
                 pi_action = [torch.randint(0, d, (output["logit"][0].shape[0], )) for d in self._action_dim]
 
         output['action'] = pi_action
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -246,44 +265,48 @@ class SQNPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor, which use argmax for selecting action
+            Init eval model, which use argmax for selecting action
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data)
-        return output
+            output = self._eval_model.forward(data)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _create_model(self, cfg: dict, model: Optional[Union[type, torch.nn.Module]] = None) -> torch.nn.Module:
+    def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         assert model is None
         return SQNModel(**cfg.model)
-
-    def default_model(self) -> None:
-        # placeholder
-        pass
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

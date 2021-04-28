@@ -27,15 +27,15 @@ def output_check(action_dim, model, output):
 @pytest.mark.unittest
 @pytest.mark.parametrize('obs_dim, action_dim', args)
 def test_fc_ppg(obs_dim, action_dim):
-    input = {'obs': torch.randn(4, obs_dim), 'action': torch.randn(4, squeeze(action_dim))}
+    input = torch.randn(4, obs_dim)
     model = FCPPG(obs_dim, action_dim)
     # compute_action_value
-    outputs = model(input, mode='compute_action_value')
+    outputs = model(input, mode='compute_actor_critic')
     value, logit = outputs['value'], outputs['logit']
     output_check(model._act_dim, [model._policy_net._encoder, model._policy_net._critic], value)
 
     # compute_value
-    value = model(input, mode='compute_value')['value']
+    value = model(input, mode='compute_critic')['value']
     print("value: ", value)
     assert value.shape == (4, )
     output_check(model._act_dim, [model._value_net._encoder, model._value_net._critic], value)
@@ -43,7 +43,7 @@ def test_fc_ppg(obs_dim, action_dim):
     for p in model.parameters():
         p.grad = None
     # compute_action
-    logit = model(input, mode='compute_action')['logit']
+    logit = model(input, mode='compute_actor')['logit']
     assert logit.shape == (4, squeeze(action_dim))
     assert logit.eq(logit.clamp(-1, 1)).all()
     output_check(model._act_dim, [model._policy_net._encoder, model._policy_net._actor], logit)

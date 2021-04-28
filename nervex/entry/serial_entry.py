@@ -40,7 +40,7 @@ def serial_pipeline(
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
     collector_env.seed(seed)
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
     # Create components: policy, learner, collector, evaluator, replay buffer, commander.
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])

@@ -181,6 +181,13 @@ class BaseEnvManager(object):
         """
         assert self._closed, "please first close the env manager"
         self._create_state()
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for env, s in zip(self._envs, self._env_seed):
+                if self._env_dynamic_seed is not None:
+                    env.seed(s, self._env_dynamic_seed)
+                else:
+                    env.seed(s)
         self.reset(reset_param)
 
     def _create_state(self) -> None:
@@ -207,10 +214,6 @@ class BaseEnvManager(object):
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for env, s in zip(self._envs, self._env_seed):
-                env.seed(s)
         for i in range(self.env_num):
             self._reset(i)
 
@@ -281,7 +284,7 @@ class BaseEnvManager(object):
             self._env_states[env_id] = EnvState.ERROR
             raise e
 
-    def seed(self, seed: Union[List[int], int]) -> None:
+    def seed(self, seed: Union[List[int], int], dynamic_seed: bool = None) -> None:
         """
         Overview:
             Set the seed for each environment.
@@ -295,6 +298,7 @@ class BaseEnvManager(object):
             assert len(seed) == self._env_num, "len(seed) {:d} != env_num {:d}".format(len(seed), self._env_num)
             seed = seed
         self._env_seed = seed
+        self._env_dynamic_seed = dynamic_seed
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         if isinstance(replay_path, str):

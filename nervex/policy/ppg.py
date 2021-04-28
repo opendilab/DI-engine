@@ -6,14 +6,12 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 from nervex.utils import POLICY_REGISTRY, squeeze
-from nervex.data import default_collate
+from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 class ExperienceDataset(Dataset):
@@ -38,7 +36,7 @@ def create_shuffled_dataloader(data, batch_size):
 
 
 @POLICY_REGISTRY.register('ppg')
-class PPGPolicy(CommonPolicy):
+class PPGPolicy(Policy):
     r"""
     Overview:
         Policy class of PPG algorithm.
@@ -48,12 +46,12 @@ class PPGPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main armor.
+            Init the optimizer, algorithm config and the main model.
         """
         # Optimizer
         self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -62,9 +60,8 @@ class PPGPolicy(CommonPolicy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main armor
-        self._armor.mode(train=True)
-        self._armor.reset()
+        # Main model
+        self._learn_model.reset()
 
         # Auxiliary memories
         self._epochs_aux = algo_cfg.epochs_aux
@@ -72,11 +69,10 @@ class PPGPolicy(CommonPolicy):
         self._aux_memories = []
         self._beta_weight = algo_cfg.beta_weight
 
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Any]) -> dict:
         # TODO(nyz) priority for ppg
         use_priority = self._cfg.get('use_priority', False)
         assert not use_priority, "NotImplement"
-        data_info = {}
         # data preprocess
         for k, data_item in data.items():
             data_item = default_collate(data_item)
@@ -89,7 +85,7 @@ class PPGPolicy(CommonPolicy):
             data[k] = data_item
         if self._use_cuda:
             data = to_device(data, self._device)
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -102,9 +98,11 @@ class PPGPolicy(CommonPolicy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        data = self._data_preprocess_learn(data)
         # ====================
         # PPG forward
         # ====================
+        self._learn_model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
         if self._use_adv_norm:
@@ -112,7 +110,7 @@ class PPGPolicy(CommonPolicy):
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
         # Policy Phase(Policy)
-        policy_output = self._armor.forward(policy_data, param={'mode': 'compute_action'})
+        policy_output = self._learn_model.forward(policy_data, mode='compute_actor')
         policy_error_data = ppo_policy_data(
             policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
@@ -124,7 +122,7 @@ class PPGPolicy(CommonPolicy):
 
         # Policy Phase(Value)
         return_ = value_data['value'] + value_adv
-        value_output = self._armor.forward(value_data, param={'mode': 'compute_value'})
+        value_output = self._learn_model.forward(value_data, mode='compute_critic')
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
         self._optimizer_value.zero_grad()
@@ -170,44 +168,61 @@ class PPGPolicy(CommonPolicy):
                 'clipfrac': ppo_info.clipfrac,
             }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init unroll length, adder, collect armor.
+            Init unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         # TODO continuous action space exploration
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+            output = self._collect_model.forward(data, mode='compute_actor_critic')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -215,9 +230,9 @@ class PPGPolicy(CommonPolicy):
         """
         transition = {
             'obs': obs,
-            'logit': armor_output['logit'],
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -249,26 +264,31 @@ class PPGPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+            output = self._eval_model.forward(data, mode='compute_actor')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         # return 'fc_vac', ['nervex.model.actor_critic.value_ac']
@@ -317,7 +337,7 @@ class PPGPolicy(CommonPolicy):
         data['weight'] = torch.cat(weights)
         # compute current policy logit_old
         with torch.no_grad():
-            data['logit_old'] = self._armor.forward({'obs': data['obs']}, param={'mode': 'compute_action'})['logit']
+            data['logit_old'] = self._model.forward({'obs': data['obs']}, mode='compute_actor')['logit']
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
@@ -333,7 +353,7 @@ class PPGPolicy(CommonPolicy):
 
         for epoch in range(self._epochs_aux):
             for data in dl:
-                policy_output = self._armor.forward(data, param={'mode': 'compute_action_value'})
+                policy_output = self._model.forward(data, mode='compute_actor_critic')
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
@@ -355,7 +375,7 @@ class PPGPolicy(CommonPolicy):
 
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
-                values = self._armor.forward(data, param={'mode': 'compute_value'})['value']
+                values = self._model.forward(data, mode='compute_critic')['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
                 value_loss = ppo_value_error(data_aux, self._clip_ratio)

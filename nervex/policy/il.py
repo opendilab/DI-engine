@@ -2,15 +2,15 @@ import math
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 import torch.nn as nn
 import numpy as np
 
 from nervex.torch_utils import Adam, to_device, one_hot
-from nervex.armor import Armor
+from nervex.model import model_wrap
 from nervex.data import default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 try:
     from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
 except ImportError:
@@ -18,7 +18,7 @@ except ImportError:
 
 
 @POLICY_REGISTRY.register('IL')
-class ILPolicy(CommonPolicy):
+class ILPolicy(Policy):
     r"""
     Overview:
         Policy class of Imitation learning algorithm
@@ -32,7 +32,7 @@ class ILPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init optimizers, algorithm config, main and target armors.
+            Init optimizers, algorithm config, main and target models.
         """
         # algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -41,10 +41,10 @@ class ILPolicy(CommonPolicy):
         # actor and critic optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
-        # main and target armors
-        self._armor = Armor(self._model)
-        self._armor.mode(train=True)
-        self._armor.reset()
+        # main and target models
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.train()
+        self._learn_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
@@ -57,6 +57,10 @@ class ILPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
+        data = default_collate(data, cat_1dim=False)
+        data['done'] = None
+        if self._use_cuda:
+            data = to_device(data, self._device)
         loss_dict = {}
         # ====================
         # imitation learn forward
@@ -65,7 +69,7 @@ class ILPolicy(CommonPolicy):
         action = data.get('action')
         logit = data.get('logit')
         priority = data.get('priority')
-        model_action_logit = self._armor.forward(obs['processed_obs'])['logit']
+        model_action_logit = self._learn_model.forward(obs['processed_obs'])['logit']
         supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
         supervised_loss.backward()
@@ -77,41 +81,53 @@ class ILPolicy(CommonPolicy):
             **loss_dict,
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
-        # algo_cfg = self._cfg.collect.algo
-        # collect armor
-        # TODO
-        # self._collect_armor = Armor(self._expert_model)
-        self._collect_armor = Armor(FootballKaggle5thPlaceModel())
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(FootballKaggle5thPlaceModel(), wrapper_name='base')
+        self._collect_model.eval()
+        self._collect_model.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
         with torch.no_grad():
-            output = self._collect_armor.forward(default_decollate(data['obs']['raw_obs']))
-        return output
+            output = self._collect_model.forward(default_decollate(data['obs']['raw_obs']))
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -119,8 +135,8 @@ class ILPolicy(CommonPolicy):
         """
         transition = {
             'obs': obs,
-            'action': armor_output['action'],
-            'logit': armor_output['logit'],
+            'action': model_output['action'],
+            'logit': model_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -145,47 +161,31 @@ class ILPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.train()
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        with torch.no_grad():
-            output = self._eval_armor.forward(data['obs']['processed_obs'])
-        return output
-
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
-        data_info = {
-            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
-            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
-        }
-        # data preprocess
-        data = default_collate(data, cat_1dim=False)
-        data['done'] = None
-        if self._use_cuda:
-            data = to_device(data, self._device)
-        return data, data_info
-
-    def _data_preprocess_collect(self, data: Dict[int, Any]) -> Tuple[List[int], dict]:
-        # print("before collect data is", data)
         data_id = list(data.keys())
-        data = default_collate(list(data.values()), cat_1dim=False)
+        data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        data = {'obs': data}
-        return data_id, data
+        with torch.no_grad():
+            output = self._eval_model.forward(data['obs']['processed_obs'])
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     # TODO different collect model and learn model
     def default_model(self) -> Tuple[str, List[str]]:
@@ -198,5 +198,4 @@ class ILPolicy(CommonPolicy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        ret = ['cur_lr', 'supervised_loss']
-        return ret
+        return ['cur_lr', 'supervised_loss']

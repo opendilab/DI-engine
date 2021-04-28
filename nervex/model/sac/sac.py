@@ -11,7 +11,8 @@ import torch.nn as nn
 from torch.distributions import Normal
 
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import SoftActorCriticBase
+from nervex.torch_utils import MLP
+from ..common import ActorCriticBase
 
 
 class SoftQNet(nn.Module):
@@ -19,22 +20,12 @@ class SoftQNet(nn.Module):
     def __init__(self, obs_dim, action_dim, soft_q_hidden_dim: int, init_w: float = 3e-3):
         super(SoftQNet, self).__init__()
         self._act = nn.ReLU()
+
         input_dim = squeeze(obs_dim + action_dim)
-        hidden_dim = soft_q_hidden_dim
-        hidden_dim_list = [256] + [hidden_dim]
-
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-
-        output_layer = nn.Linear(input_dim, 1)
+        output_layer = nn.Linear(soft_q_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        layers.append(output_layer)
-
-        self._main = nn.Sequential(*layers)
+        self._main = nn.Sequential(MLP(input_dim, 256, soft_q_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -47,21 +38,10 @@ class ValueNet(nn.Module):
         super(ValueNet, self).__init__()
         self._act = nn.ReLU()
         input_dim = squeeze(obs_dim)
-        hidden_dim = value_hidden_dim
-        hidden_dim_list = [256] + [hidden_dim]
-
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-
-        output_layer = nn.Linear(input_dim, 1)
+        output_layer = nn.Linear(value_hidden_dim, 1)
         output_layer.weight.data.uniform_(-init_w, init_w)
         output_layer.bias.data.uniform_(-init_w, init_w)
-        layers.append(output_layer)
-
-        self._main = nn.Sequential(*layers)
+        self._main = nn.Sequential(MLP(input_dim, 256, value_hidden_dim, 2, activation=self._act), output_layer)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
@@ -83,23 +63,16 @@ class PolicyNet(nn.Module):
         self._log_std_min = log_std_min
         self._log_std_max = log_std_max
         self._act = nn.ReLU()
-        hidden_dim = policy_hidden_dim
         input_dim = squeeze(obs_dim)
         output_dim = squeeze(action_dim)
-        hidden_dim_list = [256] + [hidden_dim]
 
-        layers = []
-        for dim in hidden_dim_list:
-            layers.append(nn.Linear(input_dim, dim))
-            layers.append(self._act)
-            input_dim = dim
-        self._main = nn.Sequential(*layers)
+        self._main = MLP(input_dim, 256, policy_hidden_dim, 2, activation=self._act)
 
-        self._mean_layer = nn.Linear(dim, output_dim)
+        self._mean_layer = nn.Linear(policy_hidden_dim, output_dim)
         self._mean_layer.weight.data.uniform_(-init_w, init_w)
         self._mean_layer.bias.data.uniform_(-init_w, init_w)
 
-        self._log_std_layer = nn.Linear(dim, output_dim)
+        self._log_std_layer = nn.Linear(policy_hidden_dim, output_dim)
         self._log_std_layer.weight.data.uniform_(-init_w, init_w)
         self._log_std_layer.bias.data.uniform_(-init_w, init_w)
 
@@ -113,7 +86,7 @@ class PolicyNet(nn.Module):
 
 
 @MODEL_REGISTRY.register('sac')
-class SAC(SoftActorCriticBase):
+class SAC(ActorCriticBase):
 
     def __init__(
             self,
@@ -125,6 +98,7 @@ class SAC(SoftActorCriticBase):
             use_twin_q: bool = False
     ) -> None:
         super(SAC, self).__init__()
+        self.modes.append('evaluate')
 
         self._act = nn.ReLU()
         # input info
@@ -163,7 +137,7 @@ class SAC(SoftActorCriticBase):
     def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
         return self._policy_net(x)
 
-    def compute_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_critic_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
@@ -171,16 +145,19 @@ class SAC(SoftActorCriticBase):
         q_value = self._soft_q_net_forward(state_action_input)
         return {'q_value': q_value}
 
-    def compute_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        v_value = self._value_net_forward(state_input)
+    def compute_critic_v(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        v_value = self._value_net_forward(obs)
         return {'v_value': v_value}
 
-    def compute_action(self,
-                       inputs: Dict[str, torch.Tensor],
-                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        mean, log_std = self._policy_net_forward(state_input)
+    def compute_critic(self, inputs: Dict[str, torch.Tensor], qv='q') -> Dict[str, torch.Tensor]:
+        assert qv in ['q', 'v'], qv
+        if 'q' == qv:
+            return self.compute_critic_q(inputs)
+        else:
+            return self.compute_critic_v(inputs)
+
+    def compute_actor(self, obs: Dict[str, torch.Tensor], deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
+        mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 
         dist = Normal(mean, std)
@@ -192,9 +169,8 @@ class SAC(SoftActorCriticBase):
 
         return {'action': action}
 
-    def evaluate(self, inputs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        mean, log_std = self._policy_net_forward(state_input)
+    def evaluate(self, obs: Dict[str, torch.Tensor], epsilon=1e-6) -> Dict[str, torch.Tensor]:
+        mean, log_std = self._policy_net_forward(obs)
         std = log_std.exp()
 
         dist = Normal(mean, std)

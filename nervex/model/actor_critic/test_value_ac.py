@@ -29,11 +29,11 @@ class TestValueAC:
         inputs = {'obs': torch.randn(B, C, H, W)}
         model = ConvValueAC((C, H, W), action_dim, embedding_dim)
 
-        outputs = model(inputs, mode='compute_action_value')
+        outputs = model(inputs, mode='compute_actor_critic')
         value, logit = outputs['value'], outputs['logit']
         self.output_check([model._encoder, model._critic], value, model._act_dim)
 
         for p in model.parameters():
             p.grad = None
-        logit = model(inputs, mode='compute_action')['logit']
+        logit = model(inputs, mode='compute_actor')['logit']
         self.output_check([model._encoder, model._actor], logit, model._act_dim)

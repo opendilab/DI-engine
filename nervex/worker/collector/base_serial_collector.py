@@ -177,9 +177,7 @@ class BaseSerialCollector(object):
                 obs = self._env_manager.ready_obs
                 self._obs_pool.update(obs)
                 # Policy forward.
-                env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(env_id, obs, **policy_kwargs)
-                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}

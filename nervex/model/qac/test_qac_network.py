@@ -36,10 +36,9 @@ class TestQAC:
                 state_action_embedding_dim=embedding_dim,
                 state_embedding_dim=embedding_dim,
                 use_twin_critic=twin,
-                use_backward_hook=True,
             )
             # compute_q
-            q = model(inputs, mode='compute_q')['q_value']
+            q = model(inputs, mode='compute_critic')['q_value']
             if twin:
                 self.output_check(model._act_dim, model._critic[0], q[0])
                 self.output_check(model._act_dim, model._critic[1], q[1])
@@ -47,7 +46,7 @@ class TestQAC:
                 self.output_check(model._act_dim, model._critic, q)
 
             # compute_action
-            action = model(inputs, mode='compute_action')['action']
+            action = model(inputs['obs'], mode='compute_actor')['action']
             if squeeze(action_dim) == 1:
                 assert action.shape == (B, )
             else:
@@ -57,13 +56,16 @@ class TestQAC:
             # optimize_actor
             for p in model._critic.parameters():
                 p.grad.zero_()
-            actor_loss_pos = model(inputs, mode='optimize_actor')['q_value']
+            inputs_oa = {'obs': torch.randn(B, N), 'action': action}
+            actor_loss_pos = model(inputs_oa, mode='compute_critic')['q_value']
+            if twin:
+                actor_loss_pos = sum(actor_loss_pos)
             assert isinstance(actor_loss_pos, torch.Tensor)
             # actor has grad
             self.output_check(model._act_dim, model._actor, -actor_loss_pos)
             # critic does not have grad
-            for p in model._critic.parameters():
-                assert p.grad.eq(0).all()
+            # for p in model._critic.parameters():
+            #     assert p.grad.eq(0).all()
 
             # after optimize_actor
             if twin:
@@ -72,7 +74,7 @@ class TestQAC:
             else:
                 for p in model._critic.parameters():
                     p.grad = None
-            q = model(inputs, mode='compute_q')['q_value']
+            q = model(inputs, mode='compute_critic')['q_value']
             if twin:
                 self.output_check(model._act_dim, model._critic[0], q[0])
             else:

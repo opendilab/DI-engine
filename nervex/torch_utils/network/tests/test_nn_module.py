@@ -52,7 +52,6 @@ class TestNnModule:
             padding=padding,
             dilation=dilation,
             groups=groups,
-            init_type=init_type[0],
             activation=act,
             norm_type=norm_type
         )
@@ -71,7 +70,6 @@ class TestNnModule:
                 padding=padding,
                 dilation=dilation,
                 groups=groups,
-                init_type=init_type[0],
                 pad_type=pad_type,
                 activation=act,
                 norm_type=norm_type
@@ -92,7 +90,6 @@ class TestNnModule:
             padding=0,
             output_padding=output_padding,
             groups=1,
-            init_type="xavier",
             activation=act,
             norm_type=norm_type
         )
@@ -107,7 +104,6 @@ class TestNnModule:
             block = fc_block(
                 in_channels,
                 out_channels,
-                init_type=init_type[0],
                 activation=act,
                 norm_type=norm_type,
                 use_dropout=use_dropout,

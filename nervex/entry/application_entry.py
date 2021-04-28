@@ -43,13 +43,13 @@ def eval(
         evaluator_env.enable_save_replay([c['replay_path'] for c in evaluator_env_cfg])
         assert cfg.env.env_manager_type == 'base'
     # Random seed.
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, cfg.policy.use_cuda)
     # Create components.
     policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
-    policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
+    policy.eval_mode.load_state_dict(state_dict)
     evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode)
     # Evaluate
     _, eval_reward = evaluator.eval()
@@ -95,7 +95,7 @@ def collect_demo_data(
     policy = create_policy(cfg.policy, model=model, enable_field=['collect'])
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
-    policy.state_dict_handle()['model'].load_state_dict(state_dict['model'])
+    policy.collect_mode.load_state_dict(state_dict)
     collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode)
     # let's collect some expert demostrations
     exp_data = collector.collect_data(n_sample=collect_count)

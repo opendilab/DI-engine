@@ -72,6 +72,7 @@ class BaseSerialEvaluator(object):
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self._env_manager.reset()
 
     def close(self) -> None:
         if self._end_flag:
@@ -122,9 +123,7 @@ class BaseSerialEvaluator(object):
             while episode_count < n_episode:
                 obs = self._env_manager.ready_obs
                 self._obs_pool.update(obs)
-                env_id, obs = self._policy.data_preprocess(obs)
-                policy_output = self._policy.forward(env_id, obs)
-                policy_output = self._policy.data_postprocess(env_id, policy_output)
+                policy_output = self._policy.forward(obs)
                 self._policy_output_pool.update(policy_output)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 timesteps = self._env_manager.step(actions)
@@ -175,7 +174,7 @@ class BaseSerialEvaluator(object):
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
             self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value
+        stop_flag = eval_reward >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[nerveX serial pipeline] " +

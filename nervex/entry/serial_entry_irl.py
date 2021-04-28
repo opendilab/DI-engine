@@ -41,7 +41,7 @@ def serial_pipeline_irl(
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
     collector_env.seed(seed)
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
     # Create components: policy, learner, collector, evaluator, replay buffer, commander.
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
@@ -53,7 +53,7 @@ def serial_pipeline_irl(
     commander = BaseSerialCommander(
         cfg.get('commander', {}), learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_irl_model(cfg.irl, policy.get_attribute('device'))
+    reward_model = create_irl_model(cfg.irl, policy.collect_mode.get_attribute('device'))
     reward_model.start()
     # ==========
     # Main loop

@@ -93,12 +93,11 @@ class OneVsOneCollector(BaseCollector):
         self._obs_pool.update(obs)
         policy_outputs = []
         for i in range(len(self._policy)):
-            env_id, policy_obs = self._policy[i].data_preprocess(obs[i])
             if self._eval_flag:
-                policy_output = self._policy[i].forward(env_id, policy_obs)
+                policy_output = self._policy[i].forward(obs)
             else:
-                policy_output = self._policy[i].forward(env_id, policy_obs, **self._cfg.collect_setting)
-            policy_outputs.append(self._policy[i].data_postprocess(env_id, policy_output))
+                policy_output = self._policy[i].forward(obs, **self._cfg.collect_setting)
+            policy_outputs.append(policy_output)
         self._policy_output_pool.update(policy_outputs)
         actions = {}
         for env_id in data_id:
@@ -231,9 +230,8 @@ class OneVsOneCollector(BaseCollector):
                     self.error('Policy {} update error: {}'.format(i + 1, e))
                     time.sleep(1)
 
-            handle = self._policy[i].state_dict_handle()
-            handle['model'].load_state_dict(policy_update_info['model'])
-            self._policy_iter[i] = policy_update_info['iter']
+            self._policy_iter[i] = policy_update_info.pop('iter')
+            self._policy[i].load_state_dict(policy_update_info)
             self.debug('Update policy {} with {}(iter{}) in {}'.format(i + 1, path, self._policy_iter, time.time()))
         self._first_update_policy = False
 
