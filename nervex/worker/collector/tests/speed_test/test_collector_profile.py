@@ -3,6 +3,7 @@ import logging
 from easydict import EasyDict
 import pytest
 from functools import partial
+import copy
 
 from nervex.worker import BaseSerialCollector
 from nervex.envs import get_vec_env_setting, create_env_manager
@@ -48,9 +49,11 @@ def compare_test(cfg, out_str, seed):
                 time.time() - start, env_sum, policy.policy_sum, policy.policy_times
             )
         )
-
         collector.close()
         replay_buffer.close()
+        del policy
+        del collector
+        del replay_buffer
     print('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
     out_str.append('avg duration: {}; ({})'.format(sum(duration_list) / len(duration_list), duration_list))
 
@@ -116,16 +119,18 @@ def test_collector_profile():
         for envm in envm_list:
             reset_list = [1, 5]  # [1, 5]
             for reset_ratio in reset_list:
-                cfg = EasyDict(cfg)
-                cfg = deep_merge_dicts(test_config, cfg)
-                cfg.env.env_kwargs.reset_time *= reset_ratio
-                cfg.env.manager.type = envm
-                if cfg.env.manager.type == 'base':
-                    cfg.env.manager.pop('step_wait_timeout')
-                    cfg.env.manager.pop('wait_num')
+                copy_cfg = copy.deepcopy(cfg)
+                copy_test_config = copy.deepcopy(test_config)
+                copy_cfg = EasyDict(copy_cfg)
+                copy_cfg = deep_merge_dicts(copy_test_config, copy_cfg)
+                copy_cfg.env.env_kwargs.reset_time *= reset_ratio
+                copy_cfg.env.manager.type = envm
+                if copy_cfg.env.manager.type == 'base':
+                    copy_cfg.env.manager.pop('step_wait_timeout')
+                    copy_cfg.env.manager.pop('wait_num')
 
-                print('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
-                print(cfg)
-                out_str.append('=={}, {}, reset x{}'.format(cfg.size, envm, reset_ratio))
-                compare_test(cfg, out_str, seed)
+                print('=={}, {}, reset x{}'.format(copy_cfg.size, envm, reset_ratio))
+                print(copy_cfg)
+                out_str.append('=={}, {}, reset x{}'.format(copy_cfg.size, envm, reset_ratio))
+                compare_test(copy_cfg, out_str, seed)
     print('\n'.join(out_str))
