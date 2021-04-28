@@ -58,20 +58,29 @@ class LunarLanderEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T((8, ), {
-                'min': [float("-inf")] * 8,
-                'max': [float("inf")] * 8,
-                'dtype': float,
-            },),
+            obs_space=T(
+                (8, ),
+                {
+                    'min': [float("-inf")] * 8,
+                    'max': [float("inf")] * 8,
+                    'dtype': float,
+                },
+            ),
             # [min, max)
-            act_space=T((4, ), {
-                'min': 0,
-                'max': 4
-            },),
-            rew_space=T((1, ), {
-                'min': -1000,
-                'max': 1000
-            },),
+            act_space=T(
+                (4, ),
+                {
+                    'min': 0,
+                    'max': 4
+                },
+            ),
+            rew_space=T(
+                (1, ),
+                {
+                    'min': -1000,
+                    'max': 1000
+                },
+            ),
             use_wrappers=None,
         )
 

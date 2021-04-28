@@ -29,8 +29,7 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
             loss, td_error_per_sample = [], []
             for i in range(tl_num):
                 td_data = q_nstep_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], next_act[i], reward, data['done'],
-                    data['weight']
+                    q_value[i], target_q_value[i], data['action'][i], next_act[i], reward, data['done'], data['weight']
                 )
                 loss_, td_error_per_sample_ = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
                 loss.append(loss_)

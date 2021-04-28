@@ -54,16 +54,16 @@ Best Practice
 
    -  ``policy``\ 的\ ``_forward_collect``\ 方法中也计算priority，并作为键值对返回出去
 
-   -  ``policy``\ 的\ ``_process_transition``\ 方法中将\ ``armor_output``\ 中的\ ``priority``\ 放入返回数据中，加入buffer后会自动作为初始值
+   -  ``policy``\ 的\ ``_process_transition``\ 方法中将\ ``model_output``\ 中的\ ``priority``\ 放入返回数据中，加入buffer后会自动作为初始值
 
       .. code:: python
 
-         def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+         def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
             transition = {
                'obs': obs,
                'next_obs': timestep.obs,
-               'action': armor_output['action'],
-               'priority': armor_output['priority'],
+               'action': model_output['action'],
+               'priority': model_output['priority'],
                'reward': timestep.reward，
                'done': timestep.done,
             }
@@ -142,29 +142,30 @@ Best Practice
 
 1. 隐状态维护
 
-   使用\ ``HiddenStatePlugin``\ 来进行维护
+   使用\ ``HiddenStateWrapper``\ 来进行维护
 
    .. code:: python
 
       from typing import Any
-      from nervex.armor import Armor
+      from copy import deepcopy
+      from nervex.model import model_wrap
 
       # create plugin
       model: torch.nn.Module
       batch_size = 8
-      armor = Armor(model)
-      armor.add_model('target', update_type='assign', update_kwargs={'freq': 500})
-      armor.add_plugin('main', 'hidden_state', state_num=batch_size)
-      armor.add_plugin('target', 'hidden_state', state_num=batch_size)
+      target_model = deepcopy(mpdel)
+      target_model = model_wrap(target_model, wrapper_name='target', update_type='assign', update_kwargs={'freq': 500})
+      target_model = model_wrap(target_model, wrapper_name='hidden_state', state_num=batch_size)
+      model = model_wrap(model, wrapper_name='hidden_state', state_num=batch_size)
 
       # reset state
       init_state: Any
-      armor.reset(data_id=None, state=init_state)
-      output1 = armor.forward(inputs1)
-      output2 = armor.forward(inputs2)
+      model.reset(data_id=None, state=init_state)
+      output1 = model.forward(inputs1)
+      output2 = model.forward(inputs2)
       # reset the state of sample0 with init_state[1]
-      armor.reset(data_id=[0], state=init_state[1])
-      output3 = armor.forward(inputs3)
+      model.reset(data_id=[0], state=init_state[1])
+      output3 = model.forward(inputs3)
 
 2. collector->learner传递数据
 
@@ -172,14 +173,13 @@ Best Practice
 
    .. code:: python
 
-      from nervex.armor import Armor
+      from nervex.model import model_wrap
 
-      armor = Armor(model)
       # indicate save_prev_state=True
-      armor.add_plugin('main', 'hidden_state', state_num=env_num, save_prev_state=True)
+      model = model_wrap(model, wrapper_name='hidden_state', state_num=env_num, save_prev_state=True)
       init_state: Any
-      armor.reset(data_id=None, state=init_state)
-      output = armor.forward(inputs)
+      model.reset(data_id=None, state=init_state)
+      output = model.forward(inputs)
       prev_state = output['prev_state']
       assert isinstance(list, prev_state) and len(prev_state) == env_num
 
@@ -374,7 +374,7 @@ Best Practice
          r"""
          Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init optimizers, algorithm config, main and target armors.
+            Init optimizers, algorithm config, main and target models.
          """
          # init optimizer
          self._optimizer = Adam(
@@ -402,7 +402,7 @@ Best Practice
          r"""
          Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target armors.
+            Init actor and critic optimizers, algorithm config, main and target models.
          """
          # actor and critic optimizer
          self._optimizer_actor = Adam(

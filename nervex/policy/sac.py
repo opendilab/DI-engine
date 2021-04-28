@@ -4,12 +4,13 @@ import sys
 import os
 import numpy as np
 import torch
+import copy
 import torch.nn.functional as F
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.armor import Armor
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -26,7 +27,7 @@ class SACPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target armors.
+            Init q, value and policy's optimizers, algorithm config, main and target models.
         """
         # Optimizers
         self._optimizer_q = Adam(
@@ -67,11 +68,18 @@ class SACPolicy(Policy):
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
         self._use_twin_q = algo_cfg.use_twin_q
 
-        # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.reset()
-        self._armor.target_reset()
+        # Main and target models
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
+        self._target_model.reset()
+
         self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -93,8 +101,8 @@ class SACPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
-        self._armor.model.train()
-        self._armor.target_model.train()
+        self._learn_model.train()
+        self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
@@ -102,21 +110,21 @@ class SACPolicy(Policy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._armor.forward(data['obs'], param={'mode': 'evaluate'})
+        eval_data = self._learn_model.forward(data['obs'], mode='evaluate')
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._armor.forward(data, param={'mode': 'compute_critic', 'qv': 'q'})['q_value']
-        v_value = self._armor.forward(data['obs'], param={'mode': 'compute_critic', 'qv': 'v'})['v_value']
+        q_value = self._learn_model.forward(data, mode='compute_critic', qv='q')['q_value']
+        v_value = self._learn_model.forward(data['obs'], mode='compute_critic', qv='v')['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward(next_obs, param={'mode': 'compute_critic', 'qv': 'v'})['v_value']
+            next_v_value = self._target_model.forward(next_obs, mode='compute_critic', qv='v')['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -139,7 +147,7 @@ class SACPolicy(Policy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_critic', 'qv': 'q'})['q_value']
+        new_q_value = self._learn_model.forward(eval_data, mode='compute_critic', qv='q')['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
@@ -189,7 +197,7 @@ class SACPolicy(Policy):
         # =============
         self._forward_learn_cnt += 1
         # target update
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_v': self._optimizer_value.defaults['lr'],
@@ -200,7 +208,7 @@ class SACPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_value': self._optimizer_value.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
@@ -210,7 +218,7 @@ class SACPolicy(Policy):
         return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
@@ -221,24 +229,23 @@ class SACPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
         algo_cfg = self._cfg.collect.algo
-        self._collect_armor.add_plugin(
-            'main',
-            'action_noise',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
                 'sigma': algo_cfg.noise_sigma
             },
-            noise_range=None,
+            noise_range=None
         )
-        self._collect_armor.reset()
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -253,21 +260,21 @@ class SACPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
+            output = self._collect_model.forward(data, mode='compute_actor')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -276,7 +283,7 @@ class SACPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -289,10 +296,10 @@ class SACPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -307,9 +314,9 @@ class SACPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_actor', 'deterministic_eval': True})
+            output = self._eval_model.forward(data, mode='compute_actor', deterministic_eval=True)
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

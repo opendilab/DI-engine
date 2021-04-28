@@ -8,21 +8,32 @@ from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 
-
 ATARIENV_INFO_DICT = {
     'PongNoFrameskip-v4': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
-            value={'min': 0, 'max': 255, 'dtype': np.float32},
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
         ),
         act_space=EnvElementInfo(
-            shape=(6,),
-            value={'min': 0, 'max': 6, 'dtype': np.float32},
+            shape=(6, ),
+            value={
+                'min': 0,
+                'max': 6,
+                'dtype': np.float32
+            },
         ),
         rew_space=EnvElementInfo(
             shape=1,
-            value={'min': -1, 'max': 1, 'dtype': np.float32},
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
@@ -30,15 +41,27 @@ ATARIENV_INFO_DICT = {
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
-            value={'min': 0, 'max': 255, 'dtype': np.float32},
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
         ),
         act_space=EnvElementInfo(
-            shape=(6,),
-            value={'min': 0, 'max': 6, 'dtype': np.float32},
+            shape=(6, ),
+            value={
+                'min': 0,
+                'max': 6,
+                'dtype': np.float32
+            },
         ),
         rew_space=EnvElementInfo(
             shape=1,
-            value={'min': -1, 'max': 1, 'dtype': np.float32},
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
@@ -46,15 +69,27 @@ ATARIENV_INFO_DICT = {
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
-            value={'min': 0, 'max': 255, 'dtype': np.float32},
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
         ),
         act_space=EnvElementInfo(
-            shape=(6,),
-            value={'min': 0, 'max': 6, 'dtype': np.float32},
+            shape=(6, ),
+            value={
+                'min': 0,
+                'max': 6,
+                'dtype': np.float32
+            },
         ),
         rew_space=EnvElementInfo(
             shape=1,
-            value={'min': -1, 'max': 1, 'dtype': np.float32},
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
@@ -62,15 +97,27 @@ ATARIENV_INFO_DICT = {
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
-            value={'min': 0, 'max': 255, 'dtype': np.float32},
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
         ),
         act_space=EnvElementInfo(
-            shape=(18,),
-            value={'min': 0, 'max': 18, 'dtype': np.float32},
+            shape=(18, ),
+            value={
+                'min': 0,
+                'max': 18,
+                'dtype': np.float32
+            },
         ),
         rew_space=EnvElementInfo(
             shape=1,
-            value={'min': -1, 'max': 1, 'dtype': np.float32},
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
@@ -129,8 +176,11 @@ class AtariEnv(BaseEnv):
 
     def _make_env(self, only_info=False):
         return wrap_deepmind(
-            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train,
-            clip_rewards=self._cfg.is_train, only_info=only_info
+            self._cfg.env_id,
+            frame_stack=self._cfg.frame_stack,
+            episode_life=self._cfg.is_train,
+            clip_rewards=self._cfg.is_train,
+            only_info=only_info
         )
 
     def __repr__(self) -> str:
@@ -168,8 +218,11 @@ class AtariEnvMR(AtariEnv):
 
     def _make_env(self, only_info=False):
         self._env = wrap_deepmind_mr(
-            self._cfg.env_id, frame_stack=self._cfg.frame_stack, episode_life=self._cfg.is_train,
-            clip_rewards=self._cfg.is_train, only_info=only_info
+            self._cfg.env_id,
+            frame_stack=self._cfg.frame_stack,
+            episode_life=self._cfg.is_train,
+            clip_rewards=self._cfg.is_train,
+            only_info=only_info
         )
 
     def info(self) -> BaseEnvInfo:

@@ -62,14 +62,12 @@ def softmax(x):
 
 
 class Conv(nn.Module):
+
     def __init__(self, filters0, filters1, kernel_size, bn, bias=True):
         super().__init__()
         if bn:
             bias = False
-        self.conv = nn.Conv2d(
-            filters0, filters1, kernel_size,
-            stride=1, padding=kernel_size//2, bias=bias
-        )
+        self.conv = nn.Conv2d(filters0, filters1, kernel_size, stride=1, padding=kernel_size // 2, bias=bias)
         self.bn = nn.BatchNorm2d(filters1) if bn else None
 
     def forward(self, x):
@@ -80,6 +78,7 @@ class Conv(nn.Module):
 
 
 class Dense(nn.Module):
+
     def __init__(self, units0, units1, bnunits=0, bias=True):
         super().__init__()
         if bnunits > 0:
@@ -99,6 +98,7 @@ class Dense(nn.Module):
 
 
 class WideResidualBlock(nn.Module):
+
     def __init__(self, filters, kernel_size, bn):
         super().__init__()
         self.conv1 = Conv(filters, filters, kernel_size, bn, not bn)
@@ -109,11 +109,10 @@ class WideResidualBlock(nn.Module):
 
 
 class WideResNet(nn.Module):
+
     def __init__(self, blocks, filters):
         super().__init__()
-        self.blocks = nn.ModuleList([
-            WideResidualBlock(filters, 3, bn=False) for _ in range(blocks)
-        ])
+        self.blocks = nn.ModuleList([WideResidualBlock(filters, 3, bn=False) for _ in range(blocks)])
 
     def forward(self, x):
         h = x
@@ -123,6 +122,7 @@ class WideResNet(nn.Module):
 
 
 class Encoder(nn.Module):
+
     def __init__(self, input_size, filters):
         super().__init__()
 
@@ -135,6 +135,7 @@ class Encoder(nn.Module):
 
 
 class Head(nn.Module):
+
     def __init__(self, input_size, out_filters, outputs):
         super().__init__()
 
@@ -152,6 +153,7 @@ class Head(nn.Module):
 
 
 class ConvLSTMCell(nn.Module):
+
     def __init__(self, input_dim, hidden_dim, kernel_size, bias):
         super().__init__()
 
@@ -171,10 +173,12 @@ class ConvLSTMCell(nn.Module):
         )
 
     def init_hidden(self, input_size, batch_size):
-        return tuple([
-            torch.zeros(*batch_size, self.hidden_dim, *input_size),
-            torch.zeros(*batch_size, self.hidden_dim, *input_size),
-        ])
+        return tuple(
+            [
+                torch.zeros(*batch_size, self.hidden_dim, *input_size),
+                torch.zeros(*batch_size, self.hidden_dim, *input_size),
+            ]
+        )
 
     def forward(self, input_tensor, cur_state):
         h_cur, c_cur = cur_state
@@ -195,17 +199,17 @@ class ConvLSTMCell(nn.Module):
 
 
 class DRC(nn.Module):
+
     def __init__(self, num_layers, input_dim, hidden_dim, kernel_size=3, bias=True):
         super().__init__()
         self.num_layers = num_layers
 
         blocks = []
         for _ in range(self.num_layers):
-            blocks.append(ConvLSTMCell(
-                input_dim=input_dim,
-                hidden_dim=hidden_dim,
-                kernel_size=(kernel_size, kernel_size),
-                bias=bias)
+            blocks.append(
+                ConvLSTMCell(
+                    input_dim=input_dim, hidden_dim=hidden_dim, kernel_size=(kernel_size, kernel_size), bias=bias
+                )
             )
         self.blocks = nn.ModuleList(blocks)
 
@@ -237,7 +241,9 @@ class DRC(nn.Module):
 
 # simple model
 
+
 class BaseModel(nn.Module):
+
     def __init__(self, env=None, args=None, action_length=None):
         super().__init__()
         self.action_length = env.action_length() if action_length is None else action_length
@@ -260,11 +266,13 @@ class BaseModel(nn.Module):
 
 
 class RandomModel(BaseModel):
+
     def inference(self, x=None, hidden=None):
         return np.zeros(self.action_length), np.zeros(1), np.zeros(1), None
 
 
 class DuelingNet(BaseModel):
+
     def __init__(self, env, args={}):
         super().__init__(env, args)
 

@@ -13,7 +13,6 @@ from .competitive_rl_env_wrapper import BuiltinOpponentWrapper, wrap_env
 from nervex.utils import ENV_REGISTRY
 
 competitive_rl.register_competitive_envs()
-
 """
 The observation spaces:
 cPong-v0: Box(210, 160, 3)
@@ -32,18 +31,30 @@ cPongTournament-v0
 
 COMPETITIVERL_INFO_DICT = {
     'cPongDouble-v0': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(210, 160, 3), 
-            value={'min': 0, 'max': 255, 'dtype': np.float32}, 
-        ), 
+            shape=(210, 160, 3),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(6,),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
-            value={'min': 0, 'max': 6, 'dtype': np.float32}, 
-        ), 
+            shape=(6, ),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
+            value={
+                'min': 0,
+                'max': 6,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32},
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
         ),
         use_wrappers=None,
     ),
@@ -106,13 +117,13 @@ class CompetitiveRlEnv(BaseEnv):
             rew = [rew]
         rew = np.array(rew)
         self._final_eval_reward += rew
-        
+
         obs = to_ndarray(obs)
         obs = self.process_obs(obs)  # process
 
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        
+
         return BaseEnvTimestep(obs, rew, done, info)
 
     # def info(self) -> BaseEnvInfo:
@@ -170,7 +181,7 @@ class CompetitiveRlEnv(BaseEnv):
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.is_evaluator = True
         return [evaluator_cfg for _ in range(evaluator_env_num)]
-    
+
     def process_action(self, action: np.ndarray) -> Union[tuple, dict, np.ndarray]:
         # If in double agent env, transfrom action passed in from outside to tuple or dict type.
         if self._env_id == "cPongDouble-v0" and not self._builtin_wrap:
@@ -179,7 +190,7 @@ class CompetitiveRlEnv(BaseEnv):
             return {0: action[0].squeeze(), 1: action[1].squeeze()}
         else:
             return action.squeeze()
-    
+
     def process_obs(self, obs: Union[tuple, np.ndarray]) -> Union[tuple, np.ndarray]:
         # Copy observation for car racing double agent env, in case to be in alignment with pong double agent env.
         if self._env_id == "cCarRacingDouble-v0":

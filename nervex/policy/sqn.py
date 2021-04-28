@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 import torch
 import torch.nn.functional as F
+import copy
 from collections import namedtuple, deque
 from typing import List, Dict, Any, Tuple, Union, Optional
 from torch.distributions.categorical import Categorical
@@ -10,7 +11,7 @@ from torch.distributions.categorical import Categorical
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
-from nervex.armor import Armor
+from nervex.model import FCDiscreteNet, SQNDiscreteNet, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from nervex.model import SQNModel
 from .base_policy import Policy
@@ -28,7 +29,7 @@ class SQNPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target armors.
+            Init q, value and policy's optimizers, algorithm config, main and target models.
         """
         # Optimizers
         self._optimizer_q = Adam(
@@ -48,11 +49,18 @@ class SQNPolicy(Policy):
         self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
-        # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.reset()
-        self._armor.target_reset()
+        # Main and target models
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
+        self._target_model.reset()
+
         self._forward_learn_cnt = 0
 
     def q_1step_td_loss(self, td_data: dict) -> torch.tensor:
@@ -111,16 +119,16 @@ class SQNPolicy(Policy):
         if self._use_cuda:
             data = to_device(data, self._device)
 
-        self._armor.model.train()
-        self._armor.target_model.train()
+        self._learn_model.train()
+        self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         action = data.get('action')
         done = data.get('done')
         # Q-function
-        q_value = self._armor.forward({'obs': obs})['q_value']
-        target_q_value = self._armor.target_forward({'obs': next_obs})['q_value']  # TODO:check grad
+        q_value = self._learn_model.forward({'obs': obs})['q_value']
+        target_q_value = self._target_model.forward({'obs': next_obs})['q_value']  # TODO:check grad
 
         num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)  # num of seperate env
 
@@ -162,7 +170,7 @@ class SQNPolicy(Policy):
         self._optimizer_alpha.step()
 
         # target update
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         self._forward_learn_cnt += 1
         # some useful info
         return {
@@ -176,13 +184,13 @@ class SQNPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_alpha': self._optimizer_alpha.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_alpha.load_state_dict(state_dict['optimizer_alpha'])
 
@@ -190,14 +198,13 @@ class SQNPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
-        # self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.reset()
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -212,10 +219,10 @@ class SQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
             # start with random action for better exploration
-            output = self._collect_armor.forward(data)
+            output = self._collect_model.forward(data)
         _decay = self._cfg.other.eps.decay
         _act_p = 1 / \
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
@@ -243,13 +250,13 @@ class SQNPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -258,7 +265,7 @@ class SQNPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -271,11 +278,10 @@ class SQNPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor, which use argmax for selecting action
+            Init eval model, which use argmax for selecting action
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -290,9 +296,9 @@ class SQNPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data)
+            output = self._eval_model.forward(data)
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
