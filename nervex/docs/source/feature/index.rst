@@ -17,6 +17,7 @@ Feature
     buffer_manager_overview
     hpc_rl_overview
     armor_overview
+    wrapper_hook_overview
     learner_overview
     collector_overview
     league_overview

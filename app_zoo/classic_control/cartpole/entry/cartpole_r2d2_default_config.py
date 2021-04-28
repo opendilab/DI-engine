@@ -7,9 +7,7 @@ collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_default_config = dict(
     env=dict(
-        manager=dict(
-            type='base',
-        ),
+        manager=dict(type='base', ),
         env_kwargs=dict(
             import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
             env_type='cartpole',
@@ -56,9 +54,7 @@ cartpole_r2d2_default_config = dict(
             decay=10000,
         ), ),
     ),
-    replay_buffer=dict(
-        replay_buffer_size=1000,
-    ),
+    replay_buffer=dict(replay_buffer_size=1000, ),
     collector=dict(
         n_sample=32,
         traj_len=14,

@@ -15,8 +15,8 @@ class PPOILPolicy(PPOPolicy):
 
     def _forward_learn(self, data: dict) -> dict:
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
-        self._armor.model.train()
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_actor_critic'})
+        self._learn_model.train()
+        output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
         value_loss = F.mse_loss(output['value'], data['value'])
         policy_loss = F.smooth_l1_loss(output['logit'], data['logit'])
         total_loss = value_loss + policy_loss

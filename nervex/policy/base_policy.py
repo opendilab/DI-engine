@@ -3,6 +3,7 @@ from collections import namedtuple, deque
 from typing import Optional, List, Dict, Any, Tuple, Union
 
 import torch
+import copy
 from easydict import EasyDict
 
 from nervex.model import create_model
@@ -195,7 +196,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         raise NotImplementedError
 
     @abstractmethod

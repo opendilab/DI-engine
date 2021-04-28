@@ -75,7 +75,7 @@ class PwilRewardModel(BaseRewardModel):
         s2 = s2.view(N, -1)
         s1 = s1.unsqueeze(1).repeat(1, N, 1)
         s2 = s2.unsqueeze(0).repeat(M, 1, 1)
-        return ((s1-s2) ** 2).mean(dim=-1)
+        return ((s1 - s2) ** 2).mean(dim=-1)
 
     def _get_action_distance(self, a1: list, a2: list) -> torch.Tensor:
         # TODO the metric of action distance maybe different from envs

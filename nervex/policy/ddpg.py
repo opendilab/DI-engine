@@ -1,13 +1,13 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 import numpy as np
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.model import QAC
-from nervex.armor import Armor
+from nervex.model import QAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -18,7 +18,7 @@ class DDPGPolicy(Policy):
     r"""
     Overview:
         Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
-        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in armor plugin to
+        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in model wrapper to
         switch algorithm.
     Property:
         learn_mode, collect_mode, eval_mode
@@ -28,7 +28,7 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target armors.
+            Init actor and critic optimizers, algorithm config, main and target models.
         """
         # actor and critic optimizer
         self._optimizer_actor = Adam(
@@ -50,22 +50,28 @@ class DDPGPolicy(Policy):
         self._actor_update_freq = algo_cfg.actor_update_freq
         self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
 
-        # main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
+        # main and target models
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
         if algo_cfg.use_noise:
-            self._armor.add_plugin(
-                'target',
-                'action_noise',
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='action_noise',
                 noise_type='gauss',
                 noise_kwargs={
                     'mu': 0.0,
                     'sigma': algo_cfg.noise_sigma
                 },
-                noise_range=algo_cfg.noise_range,
+                noise_range=algo_cfg.noise_range
             )
-        self._armor.reset()
-        self._armor.target_reset()
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
+        self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
@@ -90,14 +96,14 @@ class DDPGPolicy(Policy):
         # ====================
         # critic learn forward
         # ====================
-        self._armor.model.train()
-        self._armor.target_model.train()
+        self._learn_model.train()
+        self._target_model.train()
         next_obs = data.get('next_obs')
         reward = data.get('reward')
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._armor.forward(data, param={'mode': 'compute_critic'})['q_value']
+        q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
         q_value_dict = {}
         if self._use_twin_critic:
             q_value_dict['q_value'] = q_value[0].mean()
@@ -106,9 +112,9 @@ class DDPGPolicy(Policy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            next_action = self._armor.target_forward(next_obs, param={'mode': 'compute_actor'})['action']
+            next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
             next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._armor.target_forward(next_data, param={'mode': 'compute_critic'})['q_value']
+            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
         if self._use_twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -139,12 +145,12 @@ class DDPGPolicy(Policy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_data = self._armor.forward(data['obs'], param={'mode': 'compute_actor'})
+            actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
             actor_data['obs'] = data['obs']
             if self._use_twin_critic:
-                actor_loss = -self._armor.forward(actor_data, param={'mode': 'compute_critic'})['q_value'][0].mean()
+                actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
             else:
-                actor_loss = -self._armor.forward(actor_data, param={'mode': 'compute_critic'})['q_value'].mean()
+                actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
 
             loss_dict['actor_loss'] = actor_loss
             # actor update
@@ -156,7 +162,7 @@ class DDPGPolicy(Policy):
         # =============
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
@@ -169,13 +175,13 @@ class DDPGPolicy(Policy):
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
-            'model': self._model.state_dict(),
+            'model': self._learn_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
+        self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
@@ -183,24 +189,23 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        # collect armor
-        self._collect_armor = Armor(self._model)
+        # collect model
         algo_cfg = self._cfg.collect.algo
-        self._collect_armor.add_plugin(
-            'main',
-            'action_noise',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
                 'sigma': algo_cfg.noise_sigma
             },
-            noise_range=None,  # no noise clip in actor
+            noise_range=None
         )
-        self._collect_armor.reset()
+        self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -215,21 +220,21 @@ class DDPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._collect_armor.model.eval()
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_actor'})
+            output = self._collect_model.forward(data, mode='compute_actor')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -238,7 +243,7 @@ class DDPGPolicy(Policy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -251,10 +256,10 @@ class DDPGPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.reset()
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -269,9 +274,9 @@ class DDPGPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._use_cuda:
             data = to_device(data, self._device)
-        self._eval_armor.model.eval()
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_actor'})
+            output = self._eval_model.forward(data, mode='compute_actor')
         if self._use_cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

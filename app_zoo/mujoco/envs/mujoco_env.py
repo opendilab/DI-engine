@@ -10,149 +10,247 @@ from nervex.torch_utils import to_tensor, to_ndarray, to_list
 from .mujoco_wrappers import wrap_mujoco
 from nervex.utils import ENV_REGISTRY
 
-
 MUJOCO_INFO_DICT = {
     'Ant-v3': BaseEnvInfo(
-        agent_num=1, 
+        agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(111,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(111, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(8,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(8, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'Hopper-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(11,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(3,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(3, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
-    ), 
+    ),
     'Walker2d-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(17,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
-    ), 
+    ),
     'HalfCheetah-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(17,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'Hopper-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(11,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(3,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(3, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'InvertedPendulum-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(4,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(4, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(1,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(1, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'InvertedDoublePendulum-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(11,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(1,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(1, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'Reacher-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(11,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(2,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(2, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),
     'Walker2d-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(17,), 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf"), 'dtype': np.float32}, 
-        ), 
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
         act_space=EnvElementInfo(
-            shape=(6,), 
-            value={'min': -1.0, 'max': 1.0, 'dtype': np.float32}, 
-        ), 
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
         rew_space=EnvElementInfo(
-            shape=1, 
-            value={'min': np.float64("-inf"), 'max': np.float64("inf")}, 
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
         ),
         use_wrappers=None,
     ),

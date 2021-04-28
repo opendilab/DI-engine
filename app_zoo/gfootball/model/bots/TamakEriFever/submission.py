@@ -16,6 +16,7 @@ env = Environment(config['env_args'])
 model = load_model(env.net()(env), model_path)
 model.eval()
 
+
 def output_think(env, obs, actions, p, v, r):
     pmask = np.ones_like(p)
     pmask[actions] = 0
@@ -36,6 +37,7 @@ def output_think(env, obs, actions, p, v, r):
 
 prev_action = 0
 reserved_action = None
+
 
 def agent(obs):
     global prev_action, reserved_action
