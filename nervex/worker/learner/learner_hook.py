@@ -412,3 +412,8 @@ def merge_hooks(hooks1: Dict[str, List[Hook]], hooks2: Dict[str, List[Hook]]) ->
     for k in hooks1.keys():
         new_hooks[k] = sorted(hooks1[k] + hooks2[k], key=lambda x: x.priority)
     return new_hooks
+
+
+def show_hooks(hooks: Dict[str, List[Hook]]) -> None:
+    for k in hooks.keys():
+        print('{}: {}'.format(k, [x.__class__.__name__ for x in hooks[k]]))

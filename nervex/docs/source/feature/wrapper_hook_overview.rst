@@ -58,6 +58,16 @@ Wrapper
                 "target", "TargetNetworkWrapper", "用于实现 target network"
                 "teacher", "TeacherNetworkWrapper", "用于实现 teacher network"
 
+        - 查看Wrapper嵌套情况
+            调用最外层的model.info()方法即可看到所有当前model所添加的wrapper嵌套情况。
+            ```
+            model = MLP()
+            model = model_wrap(model, wrapper_name='multinomial_sample')
+            model = model_wrap(model, wrapper_name='argmax_sample')
+            print(model.info('forward')) # 查看forward方法在model中的调用情况
+            # MultinomialSampleWrapper ArgmaxSampleWrapper MLP 依次打印出forward方法调用情况
+            ```
+
     - learner
         model中用到wrapper的地方比较少，主要表现为计时相关的time wrapper。
 
@@ -155,6 +165,20 @@ Hook
                 save_ckpt_after_run=True, # 在 after_run 位置添加了名称为 save_ckpt 的 hook，训练完毕的时候会存一次ckpt
             ) 
             hooks = build_learner_hook_by_cfg(hook_cfg)
+            ```
+
+        - 查看hook调用情况：
+            nerveX提供了show_hooks()方法以便查看各个位置的hook调用情况，具体如下：
+            ```
+            from nervex.worker.learner.learner_hook import show_hooks
+            from nervex.worker.learner import build_learner_hook_by_cfg
+            cfg = dict(save_ckpt_after_iter=20, save_ckpt_after_run=True)
+            hooks = build_learner_hook_by_cfg(cfg)
+            show_hooks(hooks)
+            # before_run: []
+            # after_run: ['SaveCkptHook']
+            # before_iter: []
+            # after_iter: ['SaveCkptHook']
             ```
 
 .. note::

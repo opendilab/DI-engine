@@ -32,6 +32,26 @@ class IModelWrapper(ABC):
         """
         return getattr(self._model, key)
 
+    def info(self, attr_name):
+        r"""
+        Overview:
+            get info of attr_name
+        """
+        if attr_name in dir(self):
+            if isinstance(self._model, IModelWrapper):
+                return '{} {}'.format(self.__class__.__name__, self._model.info(attr_name))
+            else:
+                if attr_name in dir(self._model):
+                    return '{} {}'.format(self.__class__.__name__, self._model.__class__.__name__)
+                else:
+                    return '{}'.format(self.__class__.__name__)
+        else:
+            if isinstance(self._model, IWrapper):
+                return '{}'.format(self._model.info(attr_name))
+            else:
+                return '{}'.format(self._model.__class__.__name__)
+        return ''
+
 
 class BaseModelWrapper(IModelWrapper):
     r"""
