@@ -23,7 +23,7 @@ cfg = [
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('irl_config', cfg)
-def test_pdeil(irl_config):
+def test_irl(irl_config):
     # train expert policy
     config = deepcopy(cartpole_ppo_default_config)
     expert_policy = serial_pipeline(config, seed=0)

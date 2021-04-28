@@ -15,4 +15,4 @@ from .time_helper import build_time_helper, EasyTimer
 from .slurm_helper import find_free_port_slurm, node_to_host, node_to_partition
 from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, COLLECTOR_REGISTRY, COMM_COLLECTOR_REGISTRY, \
     LEARNER_REGISTRY, COMM_LEARNER_REGISTRY, COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY, \
-    ENV_MANAGER_REGISTRY
+    ENV_MANAGER_REGISTRY, REWARD_MODEL_REGISTRY

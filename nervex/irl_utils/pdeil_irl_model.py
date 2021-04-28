@@ -7,9 +7,11 @@ try:
 except ImportError:
     SVC = None
 from nervex.torch_utils import cov
+from nervex.utils import REWARD_MODEL_REGISTRY
 from .base_reward_estimate import BaseRewardModel
 
 
+@REWARD_MODEL_REGISTRY.register('pdeil')
 class PdeilRewardModel(BaseRewardModel):
 
     def __init__(self, cfg: dict, device) -> None:
@@ -68,7 +70,6 @@ class PdeilRewardModel(BaseRewardModel):
         self._train(states)
 
     def _batch_mn_pdf(self, x: np.ndarray, mean: np.ndarray, cov: np.ndarray) -> np.ndarray:
-        # pzh: This is identical to previous for-loop implementation.
         return np.asarray(stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32)
 
     def estimate(self, data: list) -> None:

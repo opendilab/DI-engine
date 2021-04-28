@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from nervex.utils import REWARD_MODEL_REGISTRY
 from .base_reward_estimate import BaseRewardModel
 
 
@@ -39,6 +40,7 @@ class RewardModelNetwork(nn.Module):
         return out
 
 
+@REWARD_MODEL_REGISTRY.register('gail')
 class GailRewardModel(BaseRewardModel):
 
     def __init__(self, config: dict, device) -> None:
