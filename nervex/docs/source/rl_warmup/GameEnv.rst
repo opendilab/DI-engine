@@ -11,7 +11,7 @@ OpenAI gym
 
 **简介**
 
-强化学习论文实验最常见的环境，包含\ **Atari游戏、Classic
+gym是强化学习论文实验中最常见的环境，包含\ **Atari游戏、Classic
 Control、Mujuco控制等**\ 。
 
 **接口**
@@ -31,14 +31,14 @@ Control、Mujuco控制等**\ 。
    ob, _ = env.reset()
    ob, r, d, _ = env.step(action)
 
-Mujuco环境需要在官网license认证。
+其中，Mujuco环境的使用需要在官网license认证，也可用pybullet作替代。
 
 `OpenAI gym retro <https://github.com/openai/retro>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **简介**
 
-OpenAI在gym的基础上加入了更多的游戏接入。在Atari之外，还支持任天堂和世嘉的一些游戏。一个经典的案例是OpenAI在2018年举办的\ `Sonic游戏迁移学习比赛 <https://openai.com/blog/retro-contest/>`__\ ，便是建立在Retro环境上。支持的游戏列表如下：
+OpenAI在gym的基础上加入了更多的游戏接入，集成为Retro。在Atari之外，还支持任天堂和世嘉的一些游戏。一个经典的案例是OpenAI在2018年举办的\ `Sonic游戏迁移学习比赛 <https://openai.com/blog/retro-contest/>`__\ ，便是建立在Retro环境上。支持的游戏列表如下：
 
 -  Atari
 
@@ -120,7 +120,7 @@ OpenAI在gym的基础上加入了更多的游戏接入。在Atari之外，还支
 
 **简介**
 
-两个都是强化学习中讨论探索利用问题和多智能体问题常用的环境，即二维走迷宫探索环境，实现简单，且容易修改定制地图本身和目标任务。其中，Gridworld的部分环境支持多智能体环境，MiniGrid只有单智能体相关的环境。
+GridWorld和MiniGrid两个都是强化学习中讨论探索利用问题和多智能体问题常用的环境，即二维走迷宫探索环境，实现简单，且容易修改定制地图本身和目标任务。其中，Gridworld的部分环境支持多智能体环境，MiniGrid只有单智能体相关的环境。
 
 .. image:: images/GridWorld.png
    :alt: 
@@ -173,7 +173,7 @@ MiniGrid直接通过\ ``pip3 install gym-minigrid``\ 安装。
 
 **简介**
 
-在nerveX中已有实现。OpenAI开发的用于验证强化学习模型迁移和泛化能力的环境。包含16个不同类型的小游戏，每款游戏都有相似类型的不同地图，用于验证模型的知识迁移能力。（官方有PPO算法下200M的训练，有收敛保证）
+在nerveX中已有实现。ProcGen是OpenAI开发的用于验证强化学习模型迁移和泛化能力的环境。包含16个不同类型的小游戏，每款游戏都有相似类型的不同地图，用于验证模型的知识迁移能力。（官方有PPO算法下200M的训练，有收敛保证）
 
 .. image:: images/ProcGen.png
    :alt: 
@@ -323,7 +323,7 @@ interface。控制的状态空间为图像，动作空间为离散，包括WSAD�
 `Torcs <https://link.zhihu.com/?target=https%3A//github.com/ugo-nama-kun/gym_torcs>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-一个RL领域比较出名的赛车环境，应该在自动驾驶部门的同事都有尝试过。环境的输入为与现实情况比较接近的路侧距离等传感器信息或者图像信息，车辆本身的各项指标也都可定义，也提供了不同的地图供训练尝试。（官方有DDPG实现）
+Torcs是一个RL领域比较出名的赛车环境。环境的输入为与现实情况比较接近的路侧距离等传感器信息或者图像信息，车辆本身的各项指标也都可定义，也提供了不同的地图供训练尝试。（官方有DDPG实现）
 
 .. image:: images/Torcs.png
    :alt: 
