@@ -46,7 +46,7 @@ class IModelWrapper(ABC):
                 else:
                     return '{}'.format(self.__class__.__name__)
         else:
-            if isinstance(self._model, IWrapper):
+            if isinstance(self._model, IModelWrapper):
                 return '{}'.format(self._model.info(attr_name))
             else:
                 return '{}'.format(self._model.__class__.__name__)
