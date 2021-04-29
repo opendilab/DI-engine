@@ -7,12 +7,14 @@ try:
 except ImportError:
     SVC = None
 from nervex.torch_utils import cov
+from nervex.utils import REWARD_MODEL_REGISTRY
 from .base_reward_estimate import BaseRewardModel
 
 
+@REWARD_MODEL_REGISTRY.register('pdeil')
 class PdeilRewardModel(BaseRewardModel):
 
-    def __init__(self, cfg: dict, device) -> None:
+    def __init__(self, cfg: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(PdeilRewardModel, self).__init__()
         self.config: dict = cfg
         self.e_u_s = None
@@ -30,12 +32,6 @@ class PdeilRewardModel(BaseRewardModel):
         # pedil default use cpu device
         self.device = 'cpu'
 
-    def load_expert_data(self) -> None:
-        expert_data_path: str = self.config["expert_data_path"]
-        with open(expert_data_path, 'rb') as f:
-            self.expert_data: list = pickle.load(f)
-
-    def start(self) -> None:
         self.load_expert_data()
         states: list = []
         actions: list = []
@@ -58,6 +54,11 @@ class PdeilRewardModel(BaseRewardModel):
             self.e_u_s_a = torch.mean(state_actions, axis=0)
             self.e_sigma_s_a = cov(state_actions, rowvar=False)
 
+    def load_expert_data(self) -> None:
+        expert_data_path: str = self.config["expert_data_path"]
+        with open(expert_data_path, 'rb') as f:
+            self.expert_data: list = pickle.load(f)
+
     def _train(self, states: torch.Tensor) -> None:
         # we only need to collect the current policy state
         self.p_u_s = torch.mean(states, axis=0)
@@ -68,7 +69,6 @@ class PdeilRewardModel(BaseRewardModel):
         self._train(states)
 
     def _batch_mn_pdf(self, x: np.ndarray, mean: np.ndarray, cov: np.ndarray) -> np.ndarray:
-        # pzh: This is identical to previous for-loop implementation.
         return np.asarray(stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32)
 
     def estimate(self, data: list) -> None:

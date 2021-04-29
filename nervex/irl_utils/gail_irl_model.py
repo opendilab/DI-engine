@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from nervex.utils import REWARD_MODEL_REGISTRY
 from .base_reward_estimate import BaseRewardModel
 
 
@@ -39,40 +40,43 @@ class RewardModelNetwork(nn.Module):
         return out
 
 
+@REWARD_MODEL_REGISTRY.register('gail')
 class GailRewardModel(BaseRewardModel):
 
-    def __init__(self, config: dict, device) -> None:
+    def __init__(self, config: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(GailRewardModel, self).__init__()
         self.config = config
         assert device in ["cpu", "cuda"]
         self.device = device
+        self.tb_logger = tb_logger
         self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
         self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []
         self.expert_data_loader = None
         self.opt = optim.Adam(self.reward_model.parameters())
+        self.train_iter = 0
+
+        self.load_expert_data()
 
     def load_expert_data(self) -> None:
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
             print("the data size is:", len(self.expert_data_loader))
-
-    def start(self) -> None:
-        self.load_expert_data()
         self.expert_data = concat_state_action_pairs(self.expert_data_loader)
 
-    def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> None:
+    def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
         # calculate loss, here are some hyper-param
         out_1: torch.Tensor = self.reward_model(train_data)
-        loss_1: torch.Tensor = torch.log(out_1 + 1e-5).mean()
+        loss_1: torch.Tensor = torch.log(out_1 + 1e-8).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
-        loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-5).mean()
+        loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-8).mean()
         loss: torch.Tensor = loss_1 + loss_2
 
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
+        return loss.item()
 
     def train(self) -> None:
         for _ in range(self.config['train_iterations']):
@@ -80,7 +84,9 @@ class GailRewardModel(BaseRewardModel):
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
             sample_expert_data = torch.stack(sample_expert_data).to(self.device)
             sample_train_data = torch.stack(sample_train_data).to(self.device)
-            self._train(sample_train_data, sample_expert_data)
+            loss = self._train(sample_train_data, sample_expert_data)
+            self.tb_logger.add_scalar('reward_model/gail_loss', loss, self.train_iter)
+            self.train_iter += 1
 
     def estimate(self, data: list) -> None:
         """

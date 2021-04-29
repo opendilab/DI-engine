@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+import copy
+from nervex.utils import REWARD_MODEL_REGISTRY, import_module
 
 
 class BaseRewardModel(ABC):
@@ -7,7 +9,7 @@ class BaseRewardModel(ABC):
     """
 
     @abstractmethod
-    def estimate(self, s, a) -> float:
+    def estimate(self, data: list) -> None:
         raise NotImplementedError()
 
     @abstractmethod
@@ -19,10 +21,6 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def start(self) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
     def collect_data(self, data) -> None:
         raise NotImplementedError()
 
@@ -31,18 +29,9 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
 
-irl_model_mapping = {}
-
-
-def create_irl_model(cfg: dict, device: str) -> BaseRewardModel:
-    irl_model_type = cfg.type
-    if irl_model_type not in irl_model_mapping:
-        raise KeyError("not support irl model type: {}".format(irl_model_type))
-    else:
-        return irl_model_mapping[irl_model_type](cfg, device)
-
-
-def register_irl_model(name: str, irl_model: type) -> None:
-    assert isinstance(name, str)
-    assert issubclass(irl_model, BaseRewardModel)
-    irl_model_mapping[name] = irl_model
+def create_irl_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa
+    cfg = copy.deepcopy(cfg)
+    if 'import_names' in cfg:
+        import_module(cfg.pop('import_names'))
+    irl_model_type = cfg.pop('type')
+    return REWARD_MODEL_REGISTRY.build(irl_model_type, cfg, device=device, tb_logger=tb_logger)

@@ -16,14 +16,33 @@ cfg = [
         'input_dims': 5,
         'hidden_dims': 64,
         'batch_size': 64,
+        'target_new_data_count': 64,
         'train_iterations': 100
+    },
+    {
+        'type': 'pwil',
+        's_size': 4,
+        'a_size': 2,
+        'sample_size': 500,
+        'alpha': 5,
+        'beta': 5
+    },
+    {
+        'type': 'red',
+        'sample_size': 5000,
+        'input_dims': 5,
+        'hidden_dims': 64,
+        'output_dims': 1,
+        'train_iteration': 200,
+        'batch_size': 128,
+        'sigma': 0.5,
     },
 ]
 
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('irl_config', cfg)
-def test_pdeil(irl_config):
+def test_irl(irl_config):
     # train expert policy
     config = deepcopy(cartpole_ppo_default_config)
     expert_policy = serial_pipeline(config, seed=0)
@@ -37,11 +56,8 @@ def test_pdeil(irl_config):
     )
     # irl + rl training
     config = deepcopy(cartpole_dqn_default_config)
-    config.policy.learn.init_data_count = 10000
     irl_config['expert_data_path'] = expert_data_path
     config.irl = irl_config
-    if irl_config['type'] == 'gail':
-        config.collector.n_sample = irl_config['batch_size']
     serial_pipeline_irl(config, seed=0)
 
 
