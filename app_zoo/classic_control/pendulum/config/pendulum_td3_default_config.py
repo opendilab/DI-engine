@@ -13,6 +13,7 @@ pendulum_td3_default_config = dict(
             norm_obs=dict(use_norm=False, ),
             norm_reward=dict(use_norm=False, ),
         ),
+        wrapper=dict(action_type='list', )
     ),
     policy=dict(
         use_cuda=False,

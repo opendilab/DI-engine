@@ -7,7 +7,7 @@ import numpy as np
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, epsilon_greedy
+from nervex.rl_utils import q_1step_td_data, q_1step_td_error, get_epsilon_greedy_fn
 from nervex.model import FCDiscreteNet
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy

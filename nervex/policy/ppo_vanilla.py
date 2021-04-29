@@ -8,7 +8,7 @@ from torch.distributions import Independent, Normal
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
+from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, get_epsilon_greedy_fn
 from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy

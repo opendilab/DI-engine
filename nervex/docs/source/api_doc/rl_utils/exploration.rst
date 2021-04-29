@@ -4,9 +4,9 @@ rl_utils.exploration
 exploration
 -----------------
 
-epsilon_greedy
+get_epsilon_greedy_fn
 ~~~~~~~~~~~~~~~~
-.. automodule:: nervex.rl_utils.exploration.epsilon_greedy
+.. automodule:: nervex.rl_utils.exploration.get_epsilon_greedy_fn
 
 BaseNoise
 ~~~~~~~~~~~~~~~~~

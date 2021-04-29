@@ -7,7 +7,7 @@ from easydict import EasyDict
 import torch
 
 
-def epsilon_greedy(start: float, end: float, decay: int, type_: str = 'exp') -> Callable:
+def get_epsilon_greedy_fn(start: float, end: float, decay: int, type_: str = 'exp') -> Callable:
     """
     Overview:
         Generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon

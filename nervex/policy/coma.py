@@ -6,7 +6,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import coma_data, coma_error, epsilon_greedy, Adder
+from nervex.rl_utils import coma_data, coma_error, get_epsilon_greedy_fn, Adder
 from nervex.model import ComaNetwork, model_wrap
 from nervex.data import timestep_collate
 from nervex.utils import POLICY_REGISTRY

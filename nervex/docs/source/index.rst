@@ -22,6 +22,7 @@ Online Distributed Reinforcement learning train and evaluate system
    :caption: Table of Contents
 
    installation/index
+   quick_start/index
    tutorial/index
    feature/index
    api_doc/index

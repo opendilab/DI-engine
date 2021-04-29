@@ -641,7 +641,7 @@ DRL Policy Example(DQN)
     from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error
     
     #epsilon_greedy for exploration
-    from nervex.rl_utils import epsilon_greedy
+    from nervex.rl_utils import get_epsilon_greedy_fn
     
     #Adder用于处理collector产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
     from nervex.rl_utils import Adder
@@ -963,7 +963,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 Set the eps_greedy rule according to the config for command
             """
             eps_cfg = self._cfg.command.eps
-            self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
     
         def _get_setting_collect(self, command_info: dict) -> dict:
             r"""

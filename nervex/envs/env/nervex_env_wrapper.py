@@ -16,6 +16,8 @@ class NervexEnvWrapper(BaseEnv):
 
     def __init__(self, env: gym.Env, cfg: dict = None) -> None:
         self._cfg = cfg
+        if self._cfg is None:
+            self._cfg = dict()
         self._env = env
 
     # override
@@ -28,6 +30,7 @@ class NervexEnvWrapper(BaseEnv):
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.0
+        self._action_type = self._cfg.get('action_type', 'scalar')
         return obs
 
     # override
@@ -43,7 +46,7 @@ class NervexEnvWrapper(BaseEnv):
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
+        if action.shape == (1, ) and self._action_type == 'scalar':
             action = action.squeeze()
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
