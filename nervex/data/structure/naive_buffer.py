@@ -169,7 +169,8 @@ class NaiveReplayBuffer:
             Naive Buffer does not need to update any info, but this method is preserved for compatiblity.
         """
         print(
-            '[warning] Naive Buffer does not need to update any info, but `update` method is preserved for compatiblity.'
+            '[warning] Naive Buffer does not need to update any info, \
+                but `update` method is preserved for compatiblity.'
         )
 
     def clear(self) -> None:

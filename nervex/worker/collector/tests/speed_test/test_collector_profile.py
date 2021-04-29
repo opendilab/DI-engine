@@ -16,8 +16,8 @@ from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
 # SLOW MODE: Repeat 3 times; Each time 300 iterations; Approximate duration -- small 5min, middle 10min, big 45min.
-# FAST MODE: Only once; 100 iterations; Approcimate duration is 1/6 of SLOW MODE.
-FAST_MODE = False
+# FAST MODE: Only once; 100 iterations; Approcimate duration is 1/9 of SLOW MODE.
+FAST_MODE = True
 
 
 def compare_test(cfg, out_str, seed):
@@ -37,18 +37,14 @@ def compare_test(cfg, out_str, seed):
         collector.policy = policy.collect_mode
 
         start = time.time()
-        iters = 300  # 150 if FAST_MODE else 300
+        iters = 300  # 100 if FAST_MODE else 300
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
             new_data = collector.collect_data(iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
-        print(
-            '\tduration: {}, env_sleep: {}, policy_sleep: {}({})'.format(
-                time.time() - start, env_sum, policy.policy_sum, policy.policy_times
-            )
-        )
+        print('\tduration: {}'.format(time.time() - start))
         collector.close()
         replay_buffer.close()
         del policy
@@ -88,7 +84,7 @@ def test_collector_profile():
                     obs_dim=int(3e2),  # int(3e3),
                     action_dim=2,
                     episode_step=500,
-                    reset_time=0.5,  # 2
+                    reset_time=0.5,
                     step_time=0.01,
                 ),
             ),
@@ -96,7 +92,7 @@ def test_collector_profile():
             actor=dict(n_sample=80, ),
         ),
 
-        # Big env(45min)  takes much longer time than small(5min) and middle(10min).
+        # Big env(45min) takes much longer time than small(5min) and middle(10min).
         dict(
             size="big",
             env=dict(
@@ -115,7 +111,7 @@ def test_collector_profile():
     out_str = []
     for cfg in cfgs:
         # Note: 'base' takes approximately 6 times longer than 'subprocess'
-        envm_list = ['async_subprocess', 'subprocess', 'base']  # ['base', 'async_subprocess', 'subprocess']
+        envm_list = ['async_subprocess', 'subprocess']  # ['base', 'async_subprocess', 'subprocess']
         for envm in envm_list:
             reset_list = [1, 5]  # [1, 5]
             for reset_ratio in reset_list:

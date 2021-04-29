@@ -194,7 +194,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         ctx = get_context(self._context)
         self._subprocesses[env_id] = ctx.Process(
             # target=self.worker_fn,
-            target=self.worker_fn_robust,
+            target=self.worker_fn_robust,  # We recommend this robust version.
             args=(
                 self._pipe_parents[env_id],
                 self._pipe_children[env_id],
@@ -382,8 +382,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(
                     rest_conn, min(wait_num, len(rest_conn)), timeout
                 )
-                # ready_conn = rest_conn
-                # ready_ids = [ready_conn.index(c) for c in ready_conn]
                 cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
                 assert len(cur_ready_env_ids) == len(ready_conn)
                 timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
@@ -409,7 +407,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         timesteps = self._inv_transform(timesteps)
-        
+
         for env_id, timestep in timesteps.items():
             if timestep.info.get('abnormal', False):
                 self._env_states[env_id] = EnvState.RESET
