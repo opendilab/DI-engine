@@ -27,6 +27,16 @@ cfg = [
         'alpha': 5,
         'beta': 5
     },
+    {
+        'type': 'red',
+        'sample_size': 5000,
+        'input_dims': 5,
+        'hidden_dims': 64,
+        'output_dims': 1,
+        'train_iteration': 200,
+        'batch_size': 128,
+        'sigma': 0.5,
+    },
 ]
 
 
