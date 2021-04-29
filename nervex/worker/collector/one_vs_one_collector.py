@@ -69,6 +69,7 @@ class OneVsOneCollector(BaseCollector):
             env_fn=[partial(env_fn, cfg=c) for c in env_cfg], episode_num=episode_num, **manager_cfg
         )
         env_manager.launch()
+        self._predefined_episode_count = episode_num * len(env_cfg)
         return env_manager
 
     def _start_thread(self) -> None:

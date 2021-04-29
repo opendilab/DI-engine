@@ -3,7 +3,7 @@ from nervex.config import parallel_transform
 
 traj_len = 1
 nstep = 1
-batch_size = 32
+batch_size = 64
 __policy_default_config = dict(
     use_cuda=False,
     policy_type='dqn',
