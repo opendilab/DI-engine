@@ -166,11 +166,55 @@ environment.
 Advanced features
 ------------------
 
+Some advanced features in RL training which well supported by nerveX are listed below.
+
 Epsilon Greedy & Replay start and priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An easy way of deploying epsilon greedy exploration when sampling data has already been shown above. It is
+called by the `epsilon_greedy` function each step.
+
+.. code-block:: python
+
+    from nervex.rl_utils import get_epsilon_greedy_fn
+    
+    epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    while True:
+        eps = epsilon_greedy(learner.train_iter)
+        ...
+
+Initially collecting an amounts of data is supported in the following way. 
+
+
+.. code-block:: python
+
+    if replay_buffer.replay_start_size() > 0:
+        eps = epsilon_greedy(learner.train_iter)
+        new_data = collector.collect_data(learner.train_iter, n_sample=replay_buffer.replay_start_size(), policy_kwargs={'eps': eps})
+        replay_buffer.push(new_data, cur_collector_envstep=0)
+
+
+The priority mechanism is widely used in RL training. Nervex adds easy-used interface to apply priority to replay
+buffer, shown as follow.
+
+.. code-block:: python
+
+    if use_priority:
+        replay_buffer.update(learner.priority_info)
 
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Some environments has a renderd surface or visualization. NerveX adds a switch to save these replays.
 
-Render & saving replay
+.. code-block:: python
+
+    if cfg.env.env_kwargs.get('replay_path', None):
+        evaluator_env.enable_save_replay([cfg.env.env_kwargs.replay_path for _ in range(evaluator_env_num)])
+
+Similar with other Deep Learning platforms, nerveX uses tensorboard to record key parameters and results during
+training. In addition to the default logging parameters, users can add their own logging parameters as follow.
+
+.. code-block:: python
+
+    tb_logger.add_scalar('epsilon_greedy', eps, learner.train_iter)
