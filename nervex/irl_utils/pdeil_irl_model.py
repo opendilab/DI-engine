@@ -14,7 +14,7 @@ from .base_reward_estimate import BaseRewardModel
 @REWARD_MODEL_REGISTRY.register('pdeil')
 class PdeilRewardModel(BaseRewardModel):
 
-    def __init__(self, cfg: dict, device) -> None:
+    def __init__(self, cfg: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(PdeilRewardModel, self).__init__()
         self.config: dict = cfg
         self.e_u_s = None

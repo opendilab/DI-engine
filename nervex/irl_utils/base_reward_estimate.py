@@ -29,9 +29,9 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
 
-def create_irl_model(cfg: dict, device: str) -> BaseRewardModel:
+def create_irl_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa
     cfg = copy.deepcopy(cfg)
     if 'import_names' in cfg:
         import_module(cfg.pop('import_names'))
     irl_model_type = cfg.pop('type')
-    return REWARD_MODEL_REGISTRY.build(irl_model_type, cfg, device=device)
+    return REWARD_MODEL_REGISTRY.build(irl_model_type, cfg, device=device, tb_logger=tb_logger)

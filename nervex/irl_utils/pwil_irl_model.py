@@ -24,7 +24,7 @@ def collect_state_action_pairs(iterator):
 @REWARD_MODEL_REGISTRY.register('pwil')
 class PwilRewardModel(BaseRewardModel):
 
-    def __init__(self, config: Dict, device: str) -> None:
+    def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(PwilRewardModel, self).__init__()
         self.config: Dict = config
         assert device in ["cpu", "cuda"]

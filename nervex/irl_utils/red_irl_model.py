@@ -34,11 +34,12 @@ class RedRewardModel(BaseRewardModel):
        The implement of reward model in RED(https://arxiv.org/abs/1905.06750)
     """
 
-    def __init__(self, config: Dict, device: str) -> None:
+    def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(RedRewardModel, self).__init__()
         self.config: Dict = config
         self.expert_data: List[tuple] = []
         self.device = device
+        self.tb_logger = tb_logger
         self.target_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])
         self.online_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])
         self.target_net.to(device)
@@ -56,7 +57,7 @@ class RedRewardModel(BaseRewardModel):
         self.expert_data = random.sample(self.expert_data, sample_size)
         print('the expert data size is:', len(self.expert_data))
 
-    def _train(self, batch_data: torch.Tensor):
+    def _train(self, batch_data: torch.Tensor) -> float:
         with torch.no_grad():
             target = self.target_net(batch_data)
         hat: torch.Tensor = self.online_net(batch_data)
@@ -64,6 +65,7 @@ class RedRewardModel(BaseRewardModel):
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
+        return loss.item()
 
     def train(self) -> None:
         if self.train_once_flag:
@@ -71,7 +73,7 @@ class RedRewardModel(BaseRewardModel):
                 logging.warning('RED model should be trained once, we do not train it anymore')
                 self.warning_flag = True
         else:
-            for _ in range(self.config['train_iteration']):
+            for i in range(self.config['train_iteration']):
                 sample_batch = random.sample(self.expert_data, self.config['batch_size'])
                 states_data = []
                 actions_data = []
@@ -82,7 +84,8 @@ class RedRewardModel(BaseRewardModel):
                 actions_tensor: torch.Tensor = torch.stack(actions_data).float()
                 states_actions_tensor: torch.Tensor = torch.cat([states_tensor, actions_tensor], dim=1)
                 states_actions_tensor = states_actions_tensor.to(self.device)
-                self._train(states_actions_tensor)
+                loss = self._train(states_actions_tensor)
+                self.tb_logger.add_scalar('reward_model/red_loss', loss, i)
             self.train_once_flag = True
 
     def estimate(self, data: list) -> None:
