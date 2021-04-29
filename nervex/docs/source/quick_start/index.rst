@@ -183,7 +183,7 @@ called by the `epsilon_greedy` function each step.
         eps = epsilon_greedy(learner.train_iter)
         ...
 
-Initially collecting an amounts of data is supported in the following way. 
+Initially collecting an amount of data is supported in the following way. 
 
 
 .. code-block:: python
@@ -205,7 +205,7 @@ buffer, shown as follow.
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some environments has a renderd surface or visualization. NerveX adds a switch to save these replays.
+Some environments have a renderd surface or visualization. NerveX adds a switch to save these replays.
 
 .. code-block:: python
 
