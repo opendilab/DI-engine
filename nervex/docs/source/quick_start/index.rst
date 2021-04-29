@@ -162,3 +162,15 @@ environment.
                 learner.train(train_data, collector.envstep)
                 replay_buffer.update(learner.priority_info)
 
+
+Advanced features
+------------------
+
+Epsilon Greedy & Replay start and priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Visualization & Logging
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Render & saving replay

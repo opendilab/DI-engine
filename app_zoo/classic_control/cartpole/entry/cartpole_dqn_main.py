@@ -52,6 +52,7 @@ def main(cfg, seed=0):
                 break
         # Update other modules
         eps = epsilon_greedy(learner.train_iter)
+        tb_logger.add_scalar('epsilon_greedy', eps, learner.train_iter)
         # Sampling data from environments
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
