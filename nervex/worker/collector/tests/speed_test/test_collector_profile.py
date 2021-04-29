@@ -15,8 +15,16 @@ from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
-# SLOW MODE: Repeat 3 times; Test on small+middle+big env, base+asynnc_subprocess+sync_subprocess env manager.
-# FAST MODE: Only once (No repeat); Test on small+middle env, async_subprocess+sync_subprocess env manager.
+# SLOW MODE: 
+#   - Repeat 3 times; Collect 300 iterations; 
+#   - Test on small + middle + big env
+#   - Test on base + asynnc_subprocess + sync_subprocess env manager
+#   - Test wih reset_ratio = 1 and 5.
+# FAST MODE:
+#   - Only once (No repeat); Collect 50 iterations; 
+#   - Test on small env
+#   - Test on sync_subprocess env manager
+#   - Test with reset_ratio = 1.
 FAST_MODE = True
 
 
@@ -37,7 +45,7 @@ def compare_test(cfg, out_str, seed):
         collector.policy = policy.collect_mode
 
         start = time.time()
-        iters = 300  # 100 if FAST_MODE else 300
+        iters = 50 if FAST_MODE else 300
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
@@ -113,14 +121,18 @@ def test_collector_profile():
     out_str = []
     if FAST_MODE:
         cfgs.pop(-1)
+        cfgs.pop(-1)
     for cfg in cfgs:
         # Note: 'base' takes approximately 6 times longer than 'subprocess'
         if FAST_MODE:
-            envm_list = ['async_subprocess', 'subprocess']
+            envm_list = ['subprocess']
         else:
             envm_list = ['base', 'async_subprocess', 'subprocess']
         for envm in envm_list:
-            reset_list = [1, 5]  # [1, 5]
+            if FAST_MODE:
+                reset_list = [1]
+            else:
+                reset_list = [1, 5]  # [1, 5]
             for reset_ratio in reset_list:
                 copy_cfg = copy.deepcopy(cfg)
                 copy_test_config = copy.deepcopy(test_config)
