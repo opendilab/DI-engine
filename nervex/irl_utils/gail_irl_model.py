@@ -55,13 +55,12 @@ class GailRewardModel(BaseRewardModel):
         self.expert_data_loader = None
         self.opt = optim.Adam(self.reward_model.parameters())
 
+        self.load_expert_data()
+
     def load_expert_data(self) -> None:
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
             print("the data size is:", len(self.expert_data_loader))
-
-    def start(self) -> None:
-        self.load_expert_data()
         self.expert_data = concat_state_action_pairs(self.expert_data_loader)
 
     def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> None:

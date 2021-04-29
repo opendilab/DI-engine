@@ -35,6 +35,8 @@ class PwilRewardModel(BaseRewardModel):
         self.reward_table: Dict = {}
         self.T: int = 0
 
+        self.load_expert_data()
+
     def load_expert_data(self) -> None:
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data = pickle.load(f)
@@ -118,6 +120,3 @@ class PwilRewardModel(BaseRewardModel):
 
     def clear_data(self) -> None:
         self.train_data.clear()
-
-    def start(self):
-        self.load_expert_data()

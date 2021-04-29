@@ -32,12 +32,6 @@ class PdeilRewardModel(BaseRewardModel):
         # pedil default use cpu device
         self.device = 'cpu'
 
-    def load_expert_data(self) -> None:
-        expert_data_path: str = self.config["expert_data_path"]
-        with open(expert_data_path, 'rb') as f:
-            self.expert_data: list = pickle.load(f)
-
-    def start(self) -> None:
         self.load_expert_data()
         states: list = []
         actions: list = []
@@ -59,6 +53,11 @@ class PdeilRewardModel(BaseRewardModel):
             state_actions = torch.cat((states, actions.float()), dim=-1)
             self.e_u_s_a = torch.mean(state_actions, axis=0)
             self.e_sigma_s_a = cov(state_actions, rowvar=False)
+
+    def load_expert_data(self) -> None:
+        expert_data_path: str = self.config["expert_data_path"]
+        with open(expert_data_path, 'rb') as f:
+            self.expert_data: list = pickle.load(f)
 
     def _train(self, states: torch.Tensor) -> None:
         # we only need to collect the current policy state

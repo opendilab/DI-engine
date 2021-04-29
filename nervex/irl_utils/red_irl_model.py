@@ -47,15 +47,14 @@ class RedRewardModel(BaseRewardModel):
         self.train_once_flag = False
         self.warning_flag = False
 
+        self.load_expert_data()
+
     def load_expert_data(self) -> None:
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data = pickle.load(f)
         sample_size = min(len(self.expert_data), self.config['sample_size'])
         self.expert_data = random.sample(self.expert_data, sample_size)
         print('the expert data size is:', len(self.expert_data))
-
-    def start(self):
-        self.load_expert_data()
 
     def _train(self, batch_data: torch.Tensor):
         with torch.no_grad():

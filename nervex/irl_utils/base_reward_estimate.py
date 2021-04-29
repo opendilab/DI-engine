@@ -21,10 +21,6 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def start(self) -> None:
-        raise NotImplementedError()
-
-    @abstractmethod
     def collect_data(self, data) -> None:
         raise NotImplementedError()
 
