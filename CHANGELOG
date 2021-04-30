@@ -1,3 +1,25 @@
+2021.4.30(v0.2.0b0)
+ - IRL PWIL + RED
+ - 重构env基类为gym.Env的超集
+ - 重构env处理函数，统一为gym.Wrapper格式
+ - 重构armor模块为model_wrapper，将多个model的设置开放给用户
+ - 简化hook模块cfg，支持简化版和标准版两种控制方式
+ - 添加一些wrapper/hook的工具方法，便于理解和使用
+ - 添加env manager robustness相关功能
+ - 添加IL(SL)训练入口demo
+ - 添加collector部分性能基准测试代码，并显著优化sync subprocess下的数据收集速度
+ - 添加naive buffer，即最基本的replay buffer，无任何其他特性
+ - 部分重构policy基类，preprocess/postprocess，reset，gettter/setter，common policy
+ - 部分重构model模块，抽象统一的AC接口，分拆之前的dueling head模块为多个单独的head
+ - 修改默认的神经网络初始化方法，和pytorch保持一致
+ - 简化串行入口(serial entry)
+ - 添加DQN/TD3/PPO/QMIX的算法独立入口example
+ - 添加quick start文档
+ - 添加league代码模块设计文档
+ - 添加game AI survey文档
+ - 修复AD训练卡住的问题(环境中初始cuda，初始carla的位置，replay buffer中删除数据时存在循环引用)
+ - 修复一次训练任务多次评测随机种子不一样的bug
+
 2021.4.17(v0.1.1rc2)
  - 支持HPC RL所有算子
  - 修改actor(数据收集)为collector
