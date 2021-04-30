@@ -4,7 +4,7 @@ import os
 from copy import deepcopy
 
 from nervex.entry import serial_pipeline
-from app_zoo.classic_control.bitflip.entry import bitflip_dqn_default_config
+from app_zoo.classic_control.bitflip.config import bitflip_dqn_default_config
 from app_zoo.classic_control.cartpole.config import \
     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \

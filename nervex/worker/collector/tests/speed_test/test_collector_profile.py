@@ -15,13 +15,13 @@ from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
 from nervex.worker.collector.tests.speed_test.test_config import test_config
 
-# SLOW MODE: 
-#   - Repeat 3 times; Collect 300 iterations; 
+# SLOW MODE:
+#   - Repeat 3 times; Collect 300 iterations;
 #   - Test on small + middle + big env
 #   - Test on base + asynnc_subprocess + sync_subprocess env manager
 #   - Test wih reset_ratio = 1 and 5.
 # FAST MODE:
-#   - Only once (No repeat); Collect 50 iterations; 
+#   - Only once (No repeat); Collect 50 iterations;
 #   - Test on small env
 #   - Test on sync_subprocess env manager
 #   - Test with reset_ratio = 1.

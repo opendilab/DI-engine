@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 import torch.nn.functional as F
 
-from app_zoo.classic_control.cartpole.entry import cartpole_ppo_default_config
+from app_zoo.classic_control.cartpole.config import cartpole_ppo_default_config
 from nervex.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
 from nervex.policy import PPOPolicy
 from nervex.policy.common_utils import default_preprocess_learn
