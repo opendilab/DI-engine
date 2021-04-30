@@ -2,15 +2,21 @@ data.structure
 ===================
 
 
-buffer
+replay buffer
 -------------------
 
 Please Reference nervex/data/tests/test_buffer.py for usage
 
-ReplayBuffer
+PrioritizedReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.data.structure.buffer.ReplayBuffer
+.. autoclass:: nervex.data.structure.prio_buffer.PrioritizedReplayBuffer
+    :members: __init__, append, extend, sample, sample_check, update, clear, close
+
+PrioritizedReplayBuffer
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: nervex.data.structure.naive_buffer.NaiveReplayBuffer
     :members: __init__, append, extend, sample, sample_check, update, clear, close
 
 

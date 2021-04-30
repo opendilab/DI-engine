@@ -67,6 +67,7 @@ class TestSubprocessEnvManager:
         with pytest.raises(AssertionError):
             env_manager.step([])
 
+    @pytest.mark.error
     def test_error(self, setup_async_manager_cfg, setup_exception):
         env_manager = SyncSubprocessEnvManager(**setup_async_manager_cfg)
         # Test reset error
@@ -105,9 +106,9 @@ class TestSubprocessEnvManager:
         assert env_manager._closed
 
         env_manager.close()
-        with pytest.raises(AssertionError):
+        with pytest.raises(AssertionError):  # Assert env manager is not closed
             env_manager.reset([])
-        with pytest.raises(AssertionError):
+        with pytest.raises(AssertionError):  # Assert env manager is not closed
             env_manager.step([])
 
     def test_block(self, setup_async_manager_cfg, setup_watchdog, setup_model_type):

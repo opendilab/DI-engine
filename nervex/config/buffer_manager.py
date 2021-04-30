@@ -2,8 +2,9 @@ from easydict import EasyDict
 
 buffer_manager_default_config = dict(
     replay_buffer=dict(
+        buffer_type='priority',
         # Max length of the buffer.
-        replay_buffer_size=4096,
+        replay_buffer_size=10000,
         # start training data count
         replay_start_size=0,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.

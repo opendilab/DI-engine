@@ -65,7 +65,7 @@ Replay Buffer
 代码结构：
     相关的类有以下几个：
 
-        1. ReplayBuffer(nervex/data/structure/buffer.py): buffer主体。
+        1. PrioritizedReplayBuffer(nervex/data/structure/buffer.py): buffer主体。
         2. RecordList(nervex/data/structure/buffer.py): 继承自list，用于记录buffer中由于更新而被移除的旧数据。
         3. NaturalMonitor, InTickMonitor, OutTickMonitor(nervex/data/structure/buffer.py): 来自autolog，用于记录buffer统计数据。
         4. SegmentTree, SumSegmentTree, MinSegmentTree(nervex/data/structure/segment_tree.py): 用于buffer中的prioritized sample。

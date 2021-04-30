@@ -6,7 +6,7 @@ from easydict import EasyDict
 import os
 import pickle
 
-from nervex.data import ReplayBuffer
+from nervex.data import PrioritizedReplayBuffer
 
 monitor_cfg = EasyDict(
     {
@@ -21,14 +21,14 @@ demo_data_path = "test_demo_data.pkl"
 
 @pytest.fixture(scope="function")
 def setup_base_buffer():
-    return ReplayBuffer(
+    return PrioritizedReplayBuffer(
         name="agent", replay_buffer_size=64, max_use=2, min_sample_ratio=2., alpha=0., beta=0., monitor_cfg=monitor_cfg
     )
 
 
 @pytest.fixture(scope="function")
 def setup_prioritized_buffer():
-    return ReplayBuffer(
+    return PrioritizedReplayBuffer(
         name="agent",
         replay_buffer_size=64,
         max_use=1,
@@ -49,7 +49,7 @@ def setup_demo_buffer_factory():
 
     def generator():
         while True:
-            demo_buffer = ReplayBuffer(
+            demo_buffer = PrioritizedReplayBuffer(
                 name="demo",
                 replay_buffer_size=64,
                 max_use=2,
@@ -188,7 +188,25 @@ class TestBaseBuffer:
 
 
 @pytest.mark.unittest
-class TestReplayBuffer:
+class TestPrioritizedReplayBuffer:
+
+    def test_head_tail(self, setup_prioritized_buffer):
+        for i in range(65):
+            setup_prioritized_buffer.append(generate_data())
+        assert setup_prioritized_buffer._head == setup_prioritized_buffer._tail == 1
+        info = {'replay_unique_id': [], 'replay_buffer_idx': [], 'priority': []}
+        for data in setup_prioritized_buffer._data:
+            info['replay_unique_id'].append(data['replay_unique_id'])
+            info['replay_buffer_idx'].append(data['replay_buffer_idx'])
+            info['priority'].append(0.)
+        info['priority'][1] = 1000.
+        setup_prioritized_buffer.update(info)
+        while setup_prioritized_buffer._data[1] is not None:
+            data = setup_prioritized_buffer.sample(1, 0)
+            print(data)
+        setup_prioritized_buffer.append({'index': 1000})
+        assert setup_prioritized_buffer._tail == 2
+        assert setup_prioritized_buffer._head == 2
 
     def test_append(self, setup_prioritized_buffer):
         assert (setup_prioritized_buffer.validlen == 0)  # assert empty buffer

@@ -5,7 +5,7 @@ traj_len = 1
 nstep = 1
 batch_size = 64
 __policy_default_config = dict(
-    use_cuda=False,
+    use_cuda=True,
     policy_type='dqn',
     import_names=['nervex.policy.dqn'],
     on_policy=False,
@@ -41,7 +41,7 @@ __policy_default_config = dict(
 
 __base_learner_default_config = dict(
     load_path='',
-    use_cuda=False,
+    use_cuda=True,
     dataloader=dict(
         batch_size=batch_size,
         chunk_size=batch_size,
