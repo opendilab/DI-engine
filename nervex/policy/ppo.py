@@ -1,18 +1,19 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, Adder
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.data import default_collate, default_decollate
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('ppo')
-class PPOPolicy(CommonPolicy):
+class PPOPolicy(Policy):
     r"""
     Overview:
         Policy class of PPO algorithm.
@@ -22,11 +23,11 @@ class PPOPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main armor.
+            Init the optimizer, algorithm config and the main model.
         """
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
         algo_cfg = self._cfg.learn.algo
@@ -35,10 +36,8 @@ class PPOPolicy(CommonPolicy):
         self._clip_ratio = algo_cfg.clip_ratio
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main armor
-        self._armor.mode(train=True)
-        self._armor.reset()
-        self._learn_setting_set = {}
+        # Main model
+        self._learn_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -51,10 +50,14 @@ class PPOPolicy(CommonPolicy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # PPO forward
         # ====================
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        self._learn_model.train()
+        output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
         adv = data['adv']
         if self._use_adv_norm:
             # Normalize advantage in a total train_batch
@@ -84,44 +87,58 @@ class PPOPolicy(CommonPolicy):
             'clipfrac': ppo_info.clipfrac,
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
-        self._collect_setting_set = {}
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+            output = self._collect_model.forward(data, mode='compute_actor_critic')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
                 - obs (:obj:`Any`): Env observation
-                - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
@@ -129,9 +146,9 @@ class PPOPolicy(CommonPolicy):
         """
         transition = {
             'obs': obs,
-            'logit': armor_output['logit'],
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -156,30 +173,31 @@ class PPOPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
-        self._eval_setting_set = {}
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
-
-    def _init_command(self) -> None:
-        pass
+            output = self._eval_model.forward(data, mode='compute_actor')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

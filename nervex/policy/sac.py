@@ -1,21 +1,23 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
+from collections import namedtuple, deque
 import sys
 import os
 import numpy as np
 import torch
+import copy
 import torch.nn.functional as F
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.armor import Armor
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
-from nervex.policy.base_policy import Policy
-from nervex.policy.common_policy import CommonPolicy
+from .base_policy import Policy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('sac')
-class SACPolicy(CommonPolicy):
+class SACPolicy(Policy):
     r"""
     Overview:
         Policy class of SAC algorithm.
@@ -25,7 +27,7 @@ class SACPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target armors.
+            Init q, value and policy's optimizers, algorithm config, main and target models.
         """
         # Optimizers
         self._optimizer_q = Adam(
@@ -49,7 +51,8 @@ class SACPolicy(CommonPolicy):
         self._algo_cfg_learn = algo_cfg
         self._gamma = algo_cfg.discount_factor
         # Init auto alpha
-        if algo_cfg.get('is_auto_alpha', None):
+        self._is_auto_alpha = algo_cfg.get('is_auto_alpha', None)
+        if self._is_auto_alpha:
             self._target_entropy = -np.prod(self._cfg.model.action_dim)
             self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha]))
             self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu').requires_grad_()
@@ -65,14 +68,18 @@ class SACPolicy(CommonPolicy):
         self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
         self._use_twin_q = algo_cfg.use_twin_q
 
-        # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_theta})
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
-        self._armor.reset()
-        self._armor.target_reset()
-        self._learn_setting_set = {}
+        # Main and target models
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_theta}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
+        self._target_model.reset()
+
         self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -85,7 +92,17 @@ class SACPolicy(CommonPolicy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         loss_dict = {}
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=False
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
 
+        self._learn_model.train()
+        self._target_model.train()
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
@@ -93,21 +110,21 @@ class SACPolicy(CommonPolicy):
         done = data.get('done')
 
         # evaluate to get action distribution
-        eval_data = self._armor.forward(data, param={'mode': 'evaluate'})
+        eval_data = self._learn_model.forward(data['obs'], mode='evaluate')
         mean = eval_data["mean"]
         log_std = eval_data["log_std"]
         log_prob = eval_data["log_prob"]
 
         # predict q value and v value
-        q_value = self._armor.forward(data, param={'mode': 'compute_q'})['q_value']
-        v_value = self._armor.forward(data, param={'mode': 'compute_value'})['v_value']
+        q_value = self._learn_model.forward(data, mode='compute_critic', qv='q')['q_value']
+        v_value = self._learn_model.forward(data['obs'], mode='compute_critic', qv='v')['v_value']
 
         # =================
         # q network
         # =================
         # compute q loss
         with torch.no_grad():
-            next_v_value = self._armor.target_forward({'obs': next_obs}, param={'mode': 'compute_value'})['v_value']
+            next_v_value = self._target_model.forward(next_obs, mode='compute_critic', qv='v')['v_value']
         if self._use_twin_q:
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
@@ -130,7 +147,7 @@ class SACPolicy(CommonPolicy):
         # =================
         # compute value loss
         eval_data['obs'] = obs
-        new_q_value = self._armor.forward(eval_data, param={'mode': 'compute_q'})['q_value']
+        new_q_value = self._learn_model.forward(eval_data, mode='compute_critic', qv='q')['q_value']
         if self._use_twin_q:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
@@ -180,7 +197,7 @@ class SACPolicy(CommonPolicy):
         # =============
         self._forward_learn_cnt += 1
         # target update
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_v': self._optimizer_value.defaults['lr'],
@@ -189,52 +206,75 @@ class SACPolicy(CommonPolicy):
             **loss_dict
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        ret = {
+            'model': self._learn_model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+        }
+        if self._is_auto_alpha:
+            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+        return ret
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        if self._is_auto_alpha:
+            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
         algo_cfg = self._cfg.collect.algo
-        self._collect_armor.add_plugin(
-            'main',
-            'action_noise',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
                 'sigma': algo_cfg.noise_sigma
             },
-            noise_range=None,
+            noise_range=None
         )
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
-        self._collect_setting_set = {}
+        self._collect_model.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy, set in arguments for consistency.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action'})
-        return output
+            output = self._collect_model.forward(data, mode='compute_actor')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step, i.e. next_obs).
         Return:
@@ -243,43 +283,44 @@ class SACPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
+    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+        return self._adder.get_train_sample(data)
+
     def _init_eval(self) -> None:
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor. Unlike learn and collect armor, eval armor does not need noise.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
-        self._eval_setting_set = {}
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action', 'deterministic_eval': True})
-        return output
-
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-        """
-        pass
+            output = self._eval_model.forward(data, mode='compute_actor', deterministic_eval=True)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'sac', ['nervex.model.sac']

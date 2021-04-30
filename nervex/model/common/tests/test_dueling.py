@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from nervex.model import DuelingHead
+from nervex.model.common.head import DuelingHead
 from nervex.torch_utils import is_differentiable
 
 B = 4
@@ -24,6 +24,6 @@ class TestDuelingHead:
     def test_dueling(self):
         inputs = torch.randn(B, embedding_dim)
         model = DuelingHead(embedding_dim, action_dim, 3, 3)
-        outputs = model(inputs)
+        outputs = model(inputs)['logit']
         self.output_check(model, outputs, action_dim)
         assert outputs.shape == (B, action_dim)

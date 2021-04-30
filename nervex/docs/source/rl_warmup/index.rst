@@ -11,5 +11,6 @@ Reinforcement Learning Warmup
      intro
      basic
      algorithm/index
+     GameEnv
      appendix
 

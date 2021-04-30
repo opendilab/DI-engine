@@ -16,9 +16,16 @@ class PendulumEnv(BaseEnv):
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
         self._env = gym.make('Pendulum-v0')
+        self._init_flag = False
 
     def reset(self) -> torch.Tensor:
-        if hasattr(self, '_seed'):
+        if not self._init_flag:
+            self._env = gym.make('Pendulum-v0')
+            self._init_flag = True
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            np_seed = 100 * np.random.randint(1, 1000)
+            self._env.seed(self._seed + np_seed)
+        elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -26,10 +33,14 @@ class PendulumEnv(BaseEnv):
         return obs
 
     def close(self) -> None:
-        self._env.close()
+        if self._init_flag:
+            self._env.close()
+        self._init_flag = False
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
@@ -48,23 +59,31 @@ class PendulumEnv(BaseEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=1,
-            obs_space=T((3, ), {
-                'min': [-1.0, -1.0, -8.0],
-                'max': [1.0, 1.0, 8.0],
-                'dtype': np.float32,
-            }, None, None),
-            act_space=T((1, ), {
-                'min': -2.0,
-                'max': 2.0,
-                'dtype': np.float32
-            }, None, None),
+            obs_space=T(
+                (3, ),
+                {
+                    'min': [-1.0, -1.0, -8.0],
+                    'max': [1.0, 1.0, 8.0],
+                    'dtype': np.float32,
+                },
+            ),
+            act_space=T(
+                (1, ),
+                {
+                    'min': -2.0,
+                    'max': 2.0,
+                    'dtype': np.float32
+                },
+            ),
             rew_space=T(
-                (1, ), {
+                (1, ),
+                {
                     'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
                     'max': -0.0,
                     'dtype': np.float32
-                }, None, None
+                },
             ),
+            use_wrappers=None,
         )
 
     def __repr__(self) -> str:

@@ -1,12 +1,14 @@
+from typing import Dict, Union, Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Union, Optional
+
 from nervex.utils import squeeze, MODEL_REGISTRY
-from ..common import ValueActorCriticBase, ConvEncoder, FCEncoder
+from ..common import ActorCriticBase, ConvEncoder, FCEncoder
 
 
-class ValueAC(ValueActorCriticBase):
+class ValueAC(ActorCriticBase):
     r"""
     Overview:
         Actor-Critic model. Critic part outputs value of current state,
@@ -109,7 +111,7 @@ class ValueAC(ValueActorCriticBase):
         else:
             return self._actor(x)
 
-    def compute_action_value(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             First encode raw observation, then output value and logit.
@@ -119,7 +121,6 @@ class ValueAC(ValueActorCriticBase):
         Returns:
             - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
         """
-        # for compatible, but we recommend use dict as input format
         if isinstance(inputs, torch.Tensor):
             embedding = self._encoder(inputs)
         else:
@@ -136,7 +137,7 @@ class ValueAC(ValueActorCriticBase):
 
         return {'value': value, 'logit': logit}
 
-    def compute_action(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             First encode raw observation, then output logit.
@@ -160,6 +161,25 @@ class ValueAC(ValueActorCriticBase):
             logit = (mu, sigma)
 
         return {'logit': logit}
+
+    def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            First encode raw observation, then output value and logit.
+            Normal reinforcement learning training, often called by learner to optimize both critic and actor.
+        Arguments:
+            - inputs (:obj:`Dict[str, torch.Tensor]`): embedding tensor after encoder
+        Returns:
+            - ret (:obj:`Dict[str, torch.Tensor]`): a dict containing value and logit
+        """
+        # for compatible, but we recommend use dict as input format
+        if isinstance(inputs, torch.Tensor):
+            embedding = self._encoder(inputs)
+        else:
+            embedding = self._encoder(inputs['obs'])
+        value = self._critic_forward(embedding)
+
+        return {'value': value}
 
 
 @MODEL_REGISTRY.register('conv_vac')

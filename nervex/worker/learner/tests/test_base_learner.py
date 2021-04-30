@@ -8,7 +8,7 @@ from typing import Any
 from functools import partial
 
 from nervex.worker import BaseLearner
-from nervex.worker.learner import LearnerHook, register_learner_hook, add_learner_hook, create_learner
+from nervex.worker.learner import LearnerHook, add_learner_hook, create_learner
 from nervex.config import base_learner_default_config
 
 
@@ -37,8 +37,11 @@ class FakePolicy:
     def data_preprocess(self, x):
         return x
 
-    def state_dict_handle(self):
+    def state_dict(self):
         return {'model': self._model}
+
+    def load_state_dict(self, state_dict):
+        pass
 
     def info(self):
         return 'FakePolicy'
@@ -108,16 +111,3 @@ class TestBaseLearner:
         os.popen('rm -rf iteration_5.pth.tar*')
         os.popen('rm -rf ' + dir_name)
         os.popen('rm -rf learner')
-
-
-@pytest.mark.unittest
-class TestLearnerHook:
-
-    def test_register(self):
-
-        class FakeHook(LearnerHook):
-            pass
-
-        register_learner_hook('fake', FakeHook)
-        with pytest.raises(AssertionError):
-            register_learner_hook('placeholder', type)

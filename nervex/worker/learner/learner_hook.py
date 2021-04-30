@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 import torch
 from easydict import EasyDict
 
-from nervex.utils import allreduce
+from nervex.utils import allreduce, read_file, save_file
 
 
 class Hook(ABC):
@@ -111,15 +111,11 @@ class LoadCkptHook(LearnerHook):
         path = engine.load_path
         if path == '':  # not load
             return
-        policy_handle = engine.policy.state_dict_handle()
-        optimizer = policy_handle.get('optimizer', None)
-        engine.checkpoint_manager.load(
-            path,
-            model=policy_handle['model'],
-            optimizer=optimizer,
-            last_iter=engine.last_iter,
-            logger_prefix='({})'.format(engine.name),
-        )
+        state_dict = read_file(path)
+        if 'last_iter' in state_dict:
+            last_iter = state_dict.pop('last_iter')
+            engine.last_iter.update(last_iter)
+        engine.policy.load_state_dict(state_dict)
         engine.info('{} load ckpt in {}'.format(engine.name, path))
 
 
@@ -162,14 +158,9 @@ class SaveCkptHook(LearnerHook):
                     pass
             ckpt_name = engine.ckpt_name if engine.ckpt_name else 'iteration_{}.pth.tar'.format(engine.last_iter.val)
             path = os.path.join(dirname, ckpt_name)
-            policy_handle = engine.policy.state_dict_handle()
-            optimizer = policy_handle.get('optimizer', None)
-            engine.checkpoint_manager.save(
-                path,
-                model=policy_handle['model'],
-                optimizer=optimizer,
-                last_iter=engine.last_iter,
-            )
+            state_dict = engine.policy.state_dict()
+            state_dict.update({'last_iter': engine.last_iter.val})
+            save_file(path, state_dict)
             engine.info('{} save ckpt in {}'.format(engine.name, path))
 
 
@@ -330,6 +321,28 @@ def register_learner_hook(name: str, hook_type: type) -> None:
     hook_mapping[name] = hook_type
 
 
+simplified_hook_mapping = {
+    'log_show_after_iter': lambda freq: hook_mapping['log_show']
+    ('log_show', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
+    'load_ckpt_before_run': lambda _: hook_mapping['load_ckpt']('load_ckpt', 20, position='before_run'),
+    'save_ckpt_after_iter': lambda freq: hook_mapping['save_ckpt']
+    ('save_ckpt_after_iter', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
+    'save_ckpt_after_run': lambda _: hook_mapping['save_ckpt']('save_ckpt_after_run', 20, position='after_run'),
+}
+
+
+def find_char(s: str, flag: str, num: int, reverse: bool = False) -> int:
+    assert num > 0, num
+    count = 0
+    iterable_obj = reversed(range(len(s))) if reverse else range(len(s))
+    for i in iterable_obj:
+        if s[i] == flag:
+            count += 1
+            if count == num:
+                return i
+    return -1
+
+
 def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
     """
     Overview:
@@ -345,17 +358,21 @@ def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
         Lower value means higher priority.
     """
     hooks = {k: [] for k in LearnerHook.positions}
-    for item in cfg.values():
-        priority = item.get('priority', 100)
-        pos = item.position
-        idx = 0
-        for i in reversed(range(len(hooks[pos]))):
-            if priority >= hooks[pos][i].priority:
-                idx = i + 1
-                break
-        ext_args = item.get('ext_args', {})
-        hook = hook_mapping[item.type](item.name, priority, position=pos, ext_args=ext_args)
-        hooks[pos].insert(idx, hook)
+    for key, value in cfg.items():
+        if key in simplified_hook_mapping and not isinstance(value, dict):
+            pos = key[find_char(key, '_', 2, reverse=True) + 1:]
+            hooks[pos].append(simplified_hook_mapping[key](value))
+        else:
+            priority = value.get('priority', 100)
+            pos = value.position
+            idx = 0
+            for i in reversed(range(len(hooks[pos]))):
+                if priority >= hooks[pos][i].priority:
+                    idx = i + 1
+                    break
+            ext_args = value.get('ext_args', {})
+            hook = hook_mapping[value.type](value.name, priority, position=pos, ext_args=ext_args)
+            hooks[pos].insert(idx, hook)
     return hooks
 
 
@@ -395,3 +412,8 @@ def merge_hooks(hooks1: Dict[str, List[Hook]], hooks2: Dict[str, List[Hook]]) ->
     for k in hooks1.keys():
         new_hooks[k] = sorted(hooks1[k] + hooks2[k], key=lambda x: x.priority)
     return new_hooks
+
+
+def show_hooks(hooks: Dict[str, List[Hook]]) -> None:
+    for k in hooks.keys():
+        print('{}: {}'.format(k, [x.__class__.__name__ for x in hooks[k]]))

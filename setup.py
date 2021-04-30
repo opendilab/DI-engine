@@ -20,12 +20,10 @@ from __future__ import print_function
 from setuptools import setup, find_packages
 import os
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 meta = {}
 with open(os.path.join(here, 'nervex', '__init__.py'), 'r') as f:
     exec(f.read(), meta)
-
 
 setup(
     name=meta['__TITLE__'],
@@ -36,15 +34,13 @@ setup(
     keywords='DRL Framework',
     packages=[
         # framework
-        *find_packages(
-            include=('nervex', "nervex.*")
-        ),
+        *find_packages(include=('nervex', "nervex.*")),
         # application
-        *find_packages(
-            include=('app_zoo' 'app_zoo.*')
-        ),
+        *find_packages(include=('app_zoo'
+                                'app_zoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg'] for package_name in find_packages(include=('nervex.*'))},
+    package_data={package_name: ['*.yaml', '*.xml', '*cfg']
+                  for package_name in find_packages(include=('nervex.*'))},
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
@@ -68,6 +64,7 @@ setup(
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
         'readerwriterlock',
+        'namedlist',
     ],
     extras_require={
         'doc': [
@@ -120,11 +117,7 @@ setup(
             'joblib',
         ],
     },
-    entry_points={
-        'console_scripts': [
-            'nervex=nervex.entry.cli:cli'
-        ]
-    },
+    entry_points={'console_scripts': ['nervex=nervex.entry.cli:cli']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research/Developers',

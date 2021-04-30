@@ -5,7 +5,7 @@ import numpy as np
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.utils import ENV_REGISTRY
-from .atari_env import AtariEnv
+from .atari_env import AtariEnv, ATARIENV_INFO_DICT
 
 
 @ENV_REGISTRY.register('atari_multi_discrete')
@@ -17,6 +17,7 @@ class AtariMultiDiscreteEnv(BaseEnv):
         self._env_done = {i: False for i in range(self._multi_env_num)}
         self._done_obs = {i: None for i in range(self._multi_env_num)}
         self._final_eval_reward = 0.
+        self._cfg = cfg
 
     def reset(self) -> np.ndarray:
         obs = []
@@ -65,10 +66,15 @@ class AtariMultiDiscreteEnv(BaseEnv):
     def info(self) -> BaseEnvInfo:
         info = self._env[0].info()
         T = EnvElementInfo
-        obs_shape = list(self._env[0]._env.observation_space.shape)
+        if self._cfg.env_id in ATARIENV_INFO_DICT:
+            obs_shape = list(ATARIENV_INFO_DICT[self._cfg.env_id].obs_space.shape)
+            n = ATARIENV_INFO_DICT[self._cfg.env_id].act_space.shape[0]
+        else:
+            raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
+                .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))
         obs_shape[0] = obs_shape[0] * self._multi_env_num
         obs_space = T(obs_shape, {'dtype': np.float32}, None, None)
-        act_shape = tuple([self._env[0]._env.action_space.n for _ in range(self._multi_env_num)])
+        act_shape = tuple([n for _ in range(self._multi_env_num)])
         act_space = T(act_shape, {'dtype': np.float32}, None, None)
         rew_space = T(1, {'min': -self._multi_env_num, 'max': self._multi_env_num, 'dtype': np.float32}, None, None)
         return BaseEnvInfo(

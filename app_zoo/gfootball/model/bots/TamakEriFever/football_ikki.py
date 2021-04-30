@@ -25,8 +25,7 @@ from .football.util import *
 class MultiHeadAttention(nn.Module):
     # multi head attention for sets
     # https://github.com/akurniawan/pytorch-transformer/blob/master/modules/attention.py
-    def __init__(self, in_dim, out_dim, out_heads, relation_dim=0,
-                 residual=False, projection=True, layer_norm=True):
+    def __init__(self, in_dim, out_dim, out_heads, relation_dim=0, residual=False, projection=True, layer_norm=True):
         super().__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -131,7 +130,9 @@ class MultiHeadAttention(nn.Module):
 
         return output, attention
 
+
 class ResidualBlock(nn.Module):
+
     def __init__(self, in_channels, out_channels, activation='relu'):
         super().__init__()
         self.in_channels, self.out_channels, self.activation = in_channels, out_channels, activation
@@ -141,7 +142,8 @@ class ResidualBlock(nn.Module):
 
     def forward(self, x):
         residual = x
-        if self.should_apply_shortcut: residual = self.shortcut(x)
+        if self.should_apply_shortcut:
+            residual = self.shortcut(x)
         x = self.blocks(x)
         x += residual
         x = self.activate(x)
@@ -151,20 +153,27 @@ class ResidualBlock(nn.Module):
     def should_apply_shortcut(self):
         return self.in_channels != self.out_channels
 
+
 class Conv2dAuto(nn.Conv2d):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.padding =  (self.kernel_size[0] // 2, self.kernel_size[1] // 2) # dynamic add padding based on the kernel_size
+        self.padding = (
+            self.kernel_size[0] // 2, self.kernel_size[1] // 2
+        )  # dynamic add padding based on the kernel_size
 
 
 class ResNetResidualBlock(ResidualBlock):
+
     def __init__(self, in_channels, out_channels, expansion=1, downsampling=1, *args, **kwargs):
         super().__init__(in_channels, out_channels, *args, **kwargs)
-        self.expansion, self.downsampling, self.conv = expansion, downsampling, partial(Conv2dAuto, kernel_size=3, bias=False)
+        self.expansion, self.downsampling, self.conv = expansion, downsampling, partial(
+            Conv2dAuto, kernel_size=3, bias=False
+        )
         self.shortcut = nn.Sequential(
-            nn.Conv2d(self.in_channels, self.expanded_channels, kernel_size=1,
-                      stride=self.downsampling, bias=False),
-            nn.BatchNorm2d(self.expanded_channels)) if self.should_apply_shortcut else None
+            nn.Conv2d(self.in_channels, self.expanded_channels, kernel_size=1, stride=self.downsampling, bias=False),
+            nn.BatchNorm2d(self.expanded_channels)
+        ) if self.should_apply_shortcut else None
 
     @property
     def expanded_channels(self):
@@ -174,23 +183,28 @@ class ResNetResidualBlock(ResidualBlock):
     def should_apply_shortcut(self):
         return self.in_channels != self.expanded_channels
 
+
 def activation_func(activation):
-    return  nn.ModuleDict([
-        ['relu', nn.ReLU(inplace=True)],
-        ['leaky_relu', nn.LeakyReLU(negative_slope=0.01, inplace=True)],
-        ['selu', nn.SELU(inplace=True)],
-        ['none', nn.Identity()]
-    ])[activation]
+    return nn.ModuleDict(
+        [
+            ['relu', nn.ReLU(inplace=True)], ['leaky_relu',
+                                              nn.LeakyReLU(negative_slope=0.01, inplace=True)],
+            ['selu', nn.SELU(inplace=True)], ['none', nn.Identity()]
+        ]
+    )[activation]
+
 
 def conv_bn(in_channels, out_channels, conv, *args, **kwargs):
     conv3x3 = partial(Conv2dAuto, kernel_size=3, bias=False)
     return nn.Sequential(conv3x3(in_channels, out_channels, *args, **kwargs), nn.BatchNorm2d(out_channels))
+
 
 class ResNetBasicBlock(ResNetResidualBlock):
     """
     Basic ResNet block composed by two layers of 3x3conv/batchnorm/activation
     """
     expansion = 1
+
     def __init__(self, in_channels, out_channels, *args, **kwargs):
         super().__init__(in_channels, out_channels, *args, **kwargs)
         self.blocks = nn.Sequential(
@@ -199,8 +213,11 @@ class ResNetBasicBlock(ResNetResidualBlock):
             conv_bn(self.out_channels, self.expanded_channels, conv=self.conv, bias=False),
         )
 
+
 class FootballNet(BaseModel):
+
     class FootballEncoder(nn.Module):
+
         def __init__(self, filters):
             super().__init__()
             self.player_embedding = nn.Embedding(32, 5, padding_idx=0)
@@ -236,22 +253,23 @@ class FootballNet(BaseModel):
             h = F.relu(self.fc(p))
 
             # relation
-            rel = None #x['distance']['p2p']
-            distance = None #x['distance']['p2p']
+            rel = None  #x['distance']['p2p']
+            distance = None  #x['distance']['p2p']
 
             return h, rel, distance
 
     class FootballBlock(nn.Module):
+
         def __init__(self, filters, heads):
             super().__init__()
-            self.attention = MultiHeadAttention(filters, filters, heads, relation_dim=0,
-                                                residual=True, projection=True)
+            self.attention = MultiHeadAttention(filters, filters, heads, relation_dim=0, residual=True, projection=True)
 
         def forward(self, x, rel, distance=None):
             h, _ = self.attention(x, x, relation=rel, distance=distance)
             return h
 
     class FootballControll(nn.Module):
+
         def __init__(self, filters, final_filters):
             super().__init__()
             self.filters = filters
@@ -271,6 +289,7 @@ class FootballNet(BaseModel):
             return h
 
     class FootballHead(nn.Module):
+
         def __init__(self, filters):
             super().__init__()
             self.head_p = nn.Linear(filters, 19, bias=False)
@@ -286,15 +305,13 @@ class FootballNet(BaseModel):
             return torch.cat([p, p2], -1), v, r
 
     class CNNModel(nn.Module):
+
         def __init__(self, final_filters):
             super().__init__()
             self.conv1 = nn.Sequential(
-                nn.Conv2d(53, 128, kernel_size=1, stride=1, bias=False),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(128, 160, kernel_size=1, stride=1, bias=False),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(160, 128, kernel_size=1, stride=1, bias=False),
-                nn.ReLU(inplace=True)
+                nn.Conv2d(53, 128, kernel_size=1, stride=1, bias=False), nn.ReLU(inplace=True),
+                nn.Conv2d(128, 160, kernel_size=1, stride=1, bias=False), nn.ReLU(inplace=True),
+                nn.Conv2d(160, 128, kernel_size=1, stride=1, bias=False), nn.ReLU(inplace=True)
             )
             self.pool1 = nn.AdaptiveAvgPool2d((1, 11))
             self.conv2 = nn.Sequential(
@@ -322,14 +339,14 @@ class FootballNet(BaseModel):
             return x
 
     class SMMEncoder(nn.Module):
+
         class SMMBlock(nn.Module):
+
             def __init__(self, in_filters, out_filters, residuals=2):
                 super().__init__()
                 self.conv1 = nn.Conv2d(in_filters, out_filters, kernel_size=3, stride=1, bias=False)
                 self.pool1 = nn.MaxPool2d(3, stride=2)
-                self.blocks = nn.ModuleList([
-                    ResNetBasicBlock(out_filters, out_filters)
-                    for _ in range(residuals)])
+                self.blocks = nn.ModuleList([ResNetBasicBlock(out_filters, out_filters) for _ in range(residuals)])
 
             def forward(self, x):
                 h = self.conv1(x)
@@ -341,12 +358,14 @@ class FootballNet(BaseModel):
         def __init__(self, filters):
             super().__init__()
             # 4, 72, 96 => filters, 1, 3
-            self.blocks = nn.ModuleList([
-                self.SMMBlock(4, filters),
-                self.SMMBlock(filters, filters),
-                self.SMMBlock(filters, filters),
-                self.SMMBlock(filters, filters),
-            ])
+            self.blocks = nn.ModuleList(
+                [
+                    self.SMMBlock(4, filters),
+                    self.SMMBlock(filters, filters),
+                    self.SMMBlock(filters, filters),
+                    self.SMMBlock(filters, filters),
+                ]
+            )
 
         def forward(self, x):
             x = x['smm']
@@ -357,6 +376,7 @@ class FootballNet(BaseModel):
             return h
 
     class ActionHistoryEncoder(nn.Module):
+
         def __init__(self, input_size=19, hidden_size=64, num_layers=2, bidirectional=True):
             super().__init__()
             self.action_emd = nn.Embedding(19, 8)
@@ -401,16 +421,17 @@ class FootballNet(BaseModel):
         h = self.control(h, e, x['control_flag'])
         rnn_h = self.rnn(x)
 
-#         p, v, r = self.head(torch.cat([h,
-#                                        cnn_h.view(cnn_h.size(0), -1),
-#                                        smm_h.view(smm_h.size(0), -1)], axis=-1))
+        #         p, v, r = self.head(torch.cat([h,
+        #                                        cnn_h.view(cnn_h.size(0), -1),
+        #                                        smm_h.view(smm_h.size(0), -1)], axis=-1))
 
         rnn_h_head_tail = rnn_h[:, 0, :] + rnn_h[:, -1, :]
         rnn_h_plus_stick = torch.cat([rnn_h_head_tail[:, :-4], x['control']], dim=1)
-        p, v, r = self.head(torch.cat([h,
-                                       cnn_h.view(cnn_h.size(0), -1),
-                                       rnn_h_plus_stick,
-                                       ], axis=-1))
+        p, v, r = self.head(torch.cat([
+            h,
+            cnn_h.view(cnn_h.size(0), -1),
+            rnn_h_plus_stick,
+        ], axis=-1))
         # p, v, r = self.head(h)
 
         return p, torch.tanh(v), torch.tanh(r), hidden
@@ -425,25 +446,22 @@ OBS_TEMPLATE = {
             "left_team_tired_factor": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             "right_team_roles": [0, 2, 1, 1, 3, 5, 5, 5, 6, 9, 7],
             "left_team": [
-                [-1.0110293626785278, -0.0],
-                [-0.4266543984413147, -0.19894461333751678],
-                [-0.5055146813392639, -0.06459399312734604],
-                [-0.5055146813392639, 0.06459297984838486],
-                [-0.4266543984413147, 0.19894461333751678],
-                [-0.18624374270439148, -0.10739918798208237],
-                [-0.270525187253952, -0.0],
-                [-0.18624374270439148, 0.10739918798208237],
-                [-0.010110294446349144, -0.21961550414562225],
-                [-0.05055147036910057, -0.0],
+                [-1.0110293626785278, -0.0], [-0.4266543984413147, -0.19894461333751678],
+                [-0.5055146813392639, -0.06459399312734604], [-0.5055146813392639, 0.06459297984838486],
+                [-0.4266543984413147, 0.19894461333751678], [-0.18624374270439148, -0.10739918798208237],
+                [-0.270525187253952, -0.0], [-0.18624374270439148, 0.10739918798208237],
+                [-0.010110294446349144, -0.21961550414562225], [-0.05055147036910057, -0.0],
                 [-0.010110294446349144, 0.21961753070354462]
             ],
             "ball": [0.0, -0.0, 0.11061639338731766],
             "ball_owned_team": -1,
             "right_team_direction": [
-                [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0]
+                [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0],
+                [-0.0, 0.0], [-0.0, 0.0], [-0.0, 0.0]
             ],
             "left_team_direction": [
-                [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0]
+                [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0], [0.0, -0.0],
+                [0.0, -0.0], [0.0, -0.0], [0.0, -0.0]
             ],
             "left_team_roles": [0, 2, 1, 1, 3, 5, 5, 5, 6, 9, 7],
             "score": [0, 0],
@@ -453,16 +471,11 @@ OBS_TEMPLATE = {
             "ball_direction": [-0.0, 0.0, 0.006163952872157097],
             "ball_owned_player": -1,
             "right_team": [
-                [1.0110293626785278, 0.0],
-                [0.4266543984413147, 0.19894461333751678],
-                [0.5055146813392639, 0.06459399312734604],
-                [0.5055146813392639, -0.06459297984838486],
-                [0.4266543984413147, -0.19894461333751678],
-                [0.18624374270439148, 0.10739918798208237],
-                [0.270525187253952, 0.0],
-                [0.18624374270439148, -0.10739918798208237],
-                [0.010110294446349144, 0.21961550414562225],
-                [-0.0, -0.02032535709440708], [-0.0, 0.02032535709440708]
+                [1.0110293626785278, 0.0], [0.4266543984413147, 0.19894461333751678],
+                [0.5055146813392639, 0.06459399312734604], [0.5055146813392639, -0.06459297984838486],
+                [0.4266543984413147, -0.19894461333751678], [0.18624374270439148, 0.10739918798208237],
+                [0.270525187253952, 0.0], [0.18624374270439148, -0.10739918798208237],
+                [0.010110294446349144, 0.21961550414562225], [-0.0, -0.02032535709440708], [-0.0, 0.02032535709440708]
             ],
             "left_team_yellow_card": [False, False, False, False, False, False, False, False, False, False, False],
             "ball_rotation": [0.0, -0.0, 0.0],
@@ -474,9 +487,7 @@ OBS_TEMPLATE = {
     ]
 }
 
-INFO_TEMPLATE = {
-    'half_step': 1500
-}
+INFO_TEMPLATE = {'half_step': 1500}
 
 
 # feature
@@ -490,8 +501,7 @@ def feature_from_states(states, info, player):
     obs = obs_history[0]
 
     action_history_ = [s[player]['action'][0] for s in reversed(states[-HISTORY_LENGTH:])]
-    action_history = action_history_ + [0] * (HISTORY_LENGTH - len(action_history_ ))
-
+    action_history = action_history_ + [0] * (HISTORY_LENGTH - len(action_history_))
     """
     ・left players (x)
     ・left players (y)
@@ -589,8 +599,12 @@ def feature_from_states(states, info, player):
     right_minus_ball_y = (obs_right_team[:, 1][..., None] - obs_ball[1]).repeat(11, axis=1).transpose(1, 0)
 
     # right player - active
-    right_minus_active_x = (obs_right_team[:, 0][..., None] - obs_left_team[active][0]).repeat(11, axis=1).transpose(1, 0)
-    right_minus_active_y = (obs_right_team[:, 1][..., None] - obs_left_team[active][1]).repeat(11, axis=1).transpose(1, 0)
+    right_minus_active_x = (obs_right_team[:, 0][..., None] - obs_left_team[active][0]).repeat(
+        11, axis=1
+    ).transpose(1, 0)
+    right_minus_active_y = (obs_right_team[:, 1][..., None] - obs_left_team[active][1]).repeat(
+        11, axis=1
+    ).transpose(1, 0)
 
     # left player - side line
     left_minus_side_top = np.abs(obs_left_team[:, 1][..., None] - side_line_y[0]).repeat(11, axis=1)
@@ -598,7 +612,9 @@ def feature_from_states(states, info, player):
 
     # right player - side line
     right_minus_side_top = np.abs(obs_right_team[:, 1][..., None] - side_line_y[0]).repeat(11, axis=1).transpose(1, 0)
-    right_minus_side_bottom = np.abs(obs_right_team[:, 1][..., None] - side_line_y[1]).repeat(11, axis=1).transpose(1, 0)
+    right_minus_side_bottom = np.abs(obs_right_team[:, 1][..., None] - side_line_y[1]).repeat(
+        11, axis=1
+    ).transpose(1, 0)
 
     # left players direction
     obs_left_team_direction = np.array(obs['left_team_direction'])
@@ -625,8 +641,12 @@ def feature_from_states(states, info, player):
     left_minus_ball_direction_y = (obs_left_team_direction[:, 1][..., None] - obs_ball_direction[1]).repeat(11, axis=1)
 
     # right players direction - ball direction
-    right_minus_ball_direction_x = (obs_right_team_direction[:, 0][..., None] - obs_ball_direction[0]).repeat(11, axis=1).transpose(1, 0)
-    right_minus_ball_direction_y = (obs_right_team_direction[:, 1][..., None] - obs_ball_direction[1]).repeat(11, axis=1).transpose(1, 0)
+    right_minus_ball_direction_x = (obs_right_team_direction[:, 0][..., None] - obs_ball_direction[0]).repeat(
+        11, axis=1
+    ).transpose(1, 0)
+    right_minus_ball_direction_y = (obs_right_team_direction[:, 1][..., None] - obs_ball_direction[1]).repeat(
+        11, axis=1
+    ).transpose(1, 0)
 
     # ball rotation
     obs_ball_rotation = np.array(obs['ball_rotation'])
@@ -634,61 +654,64 @@ def feature_from_states(states, info, player):
     ball_rotation_y = np.ones((11, 11)) * obs_ball_rotation[1]
     ball_rotation_z = np.ones((11, 11)) * obs_ball_rotation[2]
 
-    cnn_feature = np.stack([
-        left_player_x,
-        left_player_y,
-        right_player_x,
-        right_player_y,
-        ball_x,
-        ball_y,
-        ball_z,
-        left_goal_x,
-        left_goal_y,
-        right_goal_x,
-        right_goal_y,
-        side_line_y_top,
-        side_line_y_bottom,
-        active_player_x,
-        active_player_y,
-        left_minus_right_player_x,
-        left_minus_right_player_y,
-        left_minus_right_goal_x,
-        left_minus_right_goal_y,
-        left_minus_left_goal_x,
-        left_minus_left_goal_y,
-        right_minus_right_goal_x,
-        right_minus_right_goal_y,
-        right_minus_left_goal_x,
-        right_minus_left_goal_y,
-        left_minus_side_top,
-        left_minus_side_bottom,
-        right_minus_side_top,
-        right_minus_side_bottom,
-        right_minus_ball_x,
-        right_minus_ball_y,
-        right_minus_active_x,
-        right_minus_active_y,
-        left_minus_ball_x,
-        left_minus_ball_y,
-        left_minus_active_x,
-        left_minus_active_y,
-        ball_direction_x,
-        ball_direction_y,
-        ball_direction_z,
-        left_minus_ball_direction_x,
-        left_minus_ball_direction_y,
-        right_minus_ball_direction_x,
-        right_minus_ball_direction_y,
-        left_player_direction_x,
-        left_player_direction_y,
-        right_player_direction_x,
-        right_player_direction_y,
-        left_minus_right_player_direction_x,
-        left_minus_right_player_direction_y,
-        ball_rotation_x,
-        ball_rotation_y,
-        ball_rotation_z,
-    ], axis=0)
+    cnn_feature = np.stack(
+        [
+            left_player_x,
+            left_player_y,
+            right_player_x,
+            right_player_y,
+            ball_x,
+            ball_y,
+            ball_z,
+            left_goal_x,
+            left_goal_y,
+            right_goal_x,
+            right_goal_y,
+            side_line_y_top,
+            side_line_y_bottom,
+            active_player_x,
+            active_player_y,
+            left_minus_right_player_x,
+            left_minus_right_player_y,
+            left_minus_right_goal_x,
+            left_minus_right_goal_y,
+            left_minus_left_goal_x,
+            left_minus_left_goal_y,
+            right_minus_right_goal_x,
+            right_minus_right_goal_y,
+            right_minus_left_goal_x,
+            right_minus_left_goal_y,
+            left_minus_side_top,
+            left_minus_side_bottom,
+            right_minus_side_top,
+            right_minus_side_bottom,
+            right_minus_ball_x,
+            right_minus_ball_y,
+            right_minus_active_x,
+            right_minus_active_y,
+            left_minus_ball_x,
+            left_minus_ball_y,
+            left_minus_active_x,
+            left_minus_active_y,
+            ball_direction_x,
+            ball_direction_y,
+            ball_direction_z,
+            left_minus_ball_direction_x,
+            left_minus_ball_direction_y,
+            right_minus_ball_direction_x,
+            right_minus_ball_direction_y,
+            left_player_direction_x,
+            left_player_direction_y,
+            right_player_direction_x,
+            right_player_direction_y,
+            left_minus_right_player_direction_x,
+            left_minus_right_player_direction_y,
+            ball_rotation_x,
+            ball_rotation_y,
+            ball_rotation_z,
+        ],
+        axis=0
+    )
 
     # ball
     BALL_OWEND_1HOT = {-1: [0, 0], 0: [1, 0], 1: [0, 1]}
@@ -706,35 +729,37 @@ def feature_from_states(states, info, player):
         my_ball_owned_player = PLAYER_1HOT[-1]
         op_ball_owned_player = ball_owned_player_
 
-    ball_features = np.concatenate([
-        obs['ball'],
-        obs['ball_direction'],
-        obs['ball_rotation']
-    ]).astype(np.float32)
+    ball_features = np.concatenate([obs['ball'], obs['ball_direction'], obs['ball_rotation']]).astype(np.float32)
 
     # self team
-    left_team_features = np.concatenate([
-        [[1] for _ in obs['left_team']],  # left team flag
-        obs['left_team'],  # position
-        obs['left_team_direction'],
-        [[v] for v in obs['left_team_tired_factor']],
-        [[v] for v in obs['left_team_yellow_card']],
-        [[v] for v in obs['left_team_active']],
-        my_ball_owned_player[...,np.newaxis]
-    ], axis=1).astype(np.float32)
+    left_team_features = np.concatenate(
+        [
+            [[1] for _ in obs['left_team']],  # left team flag
+            obs['left_team'],  # position
+            obs['left_team_direction'],
+            [[v] for v in obs['left_team_tired_factor']],
+            [[v] for v in obs['left_team_yellow_card']],
+            [[v] for v in obs['left_team_active']],
+            my_ball_owned_player[..., np.newaxis]
+        ],
+        axis=1
+    ).astype(np.float32)
 
     left_team_indice = np.arange(0, 11, dtype=np.int32)
 
     # opponent team
-    right_team_features = np.concatenate([
-        [[0] for _ in obs['right_team']],  # right team flag
-        obs['right_team'],  # position
-        obs['right_team_direction'],
-        [[v] for v in obs['right_team_tired_factor']],
-        [[v] for v in obs['right_team_yellow_card']],
-        [[v] for v in obs['right_team_active']],
-        op_ball_owned_player[...,np.newaxis]
-    ], axis=1).astype(np.float32)
+    right_team_features = np.concatenate(
+        [
+            [[0] for _ in obs['right_team']],  # right team flag
+            obs['right_team'],  # position
+            obs['right_team_direction'],
+            [[v] for v in obs['right_team_tired_factor']],
+            [[v] for v in obs['right_team_yellow_card']],
+            [[v] for v in obs['right_team_active']],
+            op_ball_owned_player[..., np.newaxis]
+        ],
+        axis=1
+    ).astype(np.float32)
 
     right_team_indice = np.arange(0, 11, dtype=np.int32)
 
@@ -758,21 +783,17 @@ def feature_from_states(states, info, player):
     b2g_distance = get_distance(ball, goal)
     b2gl_distance = get_line_distance(ball[0][0], goal_line_x)
     b2sl_distance = get_line_distance(ball[0][1], side_line_y)
-    b2o_distance = np.concatenate([
-        b2g_distance, b2gl_distance, b2sl_distance
-    ], axis=-1)
+    b2o_distance = np.concatenate([b2g_distance, b2gl_distance, b2sl_distance], axis=-1)
 
     # player <-> ball, goal, back line, side line distance
-    p2b_distance = get_distance(both_team[:,np.newaxis,:], ball[np.newaxis,:,:])
-    p2g_distance = get_distance(both_team[:,np.newaxis,:], goal[np.newaxis,:,:])
-    p2gl_distance = get_line_distance(both_team[:,:1], goal_line_x[np.newaxis,:])
-    p2sl_distance = get_line_distance(both_team[:,1:], side_line_y[np.newaxis,:])
-    p2bo_distance = np.concatenate([
-        p2b_distance, p2g_distance, p2gl_distance, p2sl_distance
-    ], axis=-1)
+    p2b_distance = get_distance(both_team[:, np.newaxis, :], ball[np.newaxis, :, :])
+    p2g_distance = get_distance(both_team[:, np.newaxis, :], goal[np.newaxis, :, :])
+    p2gl_distance = get_line_distance(both_team[:, :1], goal_line_x[np.newaxis, :])
+    p2sl_distance = get_line_distance(both_team[:, 1:], side_line_y[np.newaxis, :])
+    p2bo_distance = np.concatenate([p2b_distance, p2g_distance, p2gl_distance, p2sl_distance], axis=-1)
 
     # player <-> player distance
-    p2p_distance = get_distance(both_team[:,np.newaxis,:], both_team[np.newaxis,:,:])
+    p2p_distance = get_distance(both_team[:, np.newaxis, :], both_team[np.newaxis, :, :])
 
     # apply Multiscale to distances
     #def concat_multiscale(x, scale):
@@ -785,12 +806,18 @@ def feature_from_states(states, info, player):
 
     # controlled player information
     control_flag_ = np.array(PLAYER_1HOT[obs['active']], dtype=np.float32)
-    control_flag = np.concatenate([control_flag_, np.zeros(len(obs['right_team']))])[...,np.newaxis]
+    control_flag = np.concatenate([control_flag_, np.zeros(len(obs['right_team']))])[..., np.newaxis]
 
     # controlled status information
     DIR = [
-        [-1, 0], [-.707, -.707], [0,  1], [ .707, -.707],  # L, TL, T, TR
-        [ 1, 0], [ .707,  .707], [0, -1], [-.707,  .707]   # R, BR, B, BL
+        [-1, 0],
+        [-.707, -.707],
+        [0, 1],
+        [.707, -.707],  # L, TL, T, TR
+        [1, 0],
+        [.707, .707],
+        [0, -1],
+        [-.707, .707]  # R, BR, B, BL
     ]
     sticky_direction = DIR[obs['sticky_actions'][:8].index(1)] if 1 in obs['sticky_actions'][:8] else [0, 0]
     sticky_flags = obs['sticky_actions'][8:]
@@ -805,13 +832,15 @@ def feature_from_states(states, info, player):
         steps_left_half = obs['steps_left'] - info['half_step']
     else:
         steps_left_half = obs['steps_left']
-    match_features = np.concatenate([
-        multi_scale(obs['score'], [1, 3]).ravel(),
-        multi_scale(obs['score'][0] - obs['score'][1], [1, 3]),
-        multi_scale(obs['steps_left'], [10, 100, 1000, 10000]),
-        multi_scale(steps_left_half, [10, 100, 1000, 10000]),
-        ball_owned_team,
-    ]).astype(np.float32)
+    match_features = np.concatenate(
+        [
+            multi_scale(obs['score'], [1, 3]).ravel(),
+            multi_scale(obs['score'][0] - obs['score'][1], [1, 3]),
+            multi_scale(obs['steps_left'], [10, 100, 1000, 10000]),
+            multi_scale(steps_left_half, [10, 100, 1000, 10000]),
+            ball_owned_team,
+        ]
+    ).astype(np.float32)
 
     mode_index = np.array([obs['game_mode']], dtype=np.int32)
 
@@ -908,6 +937,7 @@ def feature_from_states(states, info, player):
         'action_history': action_history
     }
 
+
 KICK_ACTIONS = {
     Action.LongPass: 20,
     Action.HighPass: 28,
@@ -933,7 +963,8 @@ class Environment:
         self.reset_flag = False
         self.checkpoint = [
             [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05],
-            [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05]]
+            [0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05]
+        ]
         self.states = []
         self.half_step = 1500
         self.reserved_action = [None, None]
@@ -948,17 +979,19 @@ class Environment:
             self.ACTION2STR = {i: j for i, j in enumerate(football_action_set.action_set_v1)}
             self.STR2ACTION = {j: i for i, j in self.ACTION2STR.items()}
 
-#             self.env_map[3000] = make("football", configuration={"scenario_name": "11_vs_11_kaggle"})
-#             self.env_map[1000] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_1000_500"})
-#             self.env_map[500] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_500_250"})
-#             self.env_map[9999] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_random"})
-#             self.env_map[99999] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_random_long"})
+            #             self.env_map[3000] = make("football", configuration={"scenario_name": "11_vs_11_kaggle"})
+            #             self.env_map[1000] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_1000_500"})
+            #             self.env_map[500] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_500_250"})
+            #             self.env_map[9999] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_random"})
+            #             self.env_map[99999] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_random_long"})
 
             self.env_map["real"] = make("football", configuration={"scenario_name": "11_vs_11_kaggle"})
             self.env_map["eval"] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_1000_500"})
             self.env_map["train"] = make("football", configuration={"scenario_name": "11_vs_11_kaggle_train"})
 
         # decide limit steps
+
+
 #         if args.get('role', {}) == 'e':
 #             self.env = self.env_map[1000]
 #         else:
@@ -1092,7 +1125,9 @@ class Environment:
                 checkpoint_reward.append(0)
 
         if scored_player is not None:
-            checkpoint_reward[scored_player] += len(self.checkpoint[scored_player]) * 0.1 # add remain reward when scoring (0.05 per checkpoint)
+            checkpoint_reward[scored_player] += len(
+                self.checkpoint[scored_player]
+            ) * 0.1  # add remain reward when scoring (0.05 per checkpoint)
             self.checkpoint[scored_player] = []
 
         return [rs[p] + checkpoint_reward[p] for p in self.players()]
@@ -1108,8 +1143,7 @@ class Environment:
             return [0, 0]
         obs = self.states[-1]
         return [
-            obs[0]['observation']['players_raw'][0]['score'][0],
-            obs[1]['observation']['players_raw'][0]['score'][0]
+            obs[0]['observation']['players_raw'][0]['score'][0], obs[1]['observation']['players_raw'][0]['score'][0]
         ]
 
     def outcome(self):

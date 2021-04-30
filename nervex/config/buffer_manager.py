@@ -2,8 +2,9 @@ from easydict import EasyDict
 
 buffer_manager_default_config = dict(
     replay_buffer=dict(
+        buffer_type='priority',
         # Max length of the buffer.
-        replay_buffer_size=4096,
+        replay_buffer_size=10000,
         # start training data count
         replay_start_size=0,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.
@@ -30,9 +31,9 @@ buffer_manager_default_config = dict(
             # Logger's save path
             log_path='./log/buffer/agent_buffer/',
             # Natural time expiration. Used for log data smoothing.
-            natural_expire=100,
+            natural_expire=10,
             # Tick time expiration. Used for log data smoothing.
-            tick_expire=100,
+            tick_expire=10,
         ),
     ),
 )

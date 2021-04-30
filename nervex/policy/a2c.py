@@ -1,18 +1,19 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
-from nervex.torch_utils import Adam
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('a2c')
-class A2CPolicy(CommonPolicy):
+class A2CPolicy(Policy):
     r"""
     Overview:
         Policy class of A2C algorithm.
@@ -22,7 +23,7 @@ class A2CPolicy(CommonPolicy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target armors.
+            Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
         self._optimizer = Adam(
@@ -34,15 +35,14 @@ class A2CPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
-        self._learn_gamma = algo_cfg.get('discount_factor', 0.99)
-        self._learn_nstep = algo_cfg.get('nstep', 1)
+        if self._learn_use_nstep_return:
+            self._learn_gamma = algo_cfg.discount_factor
+            self._learn_nstep = algo_cfg.nstep
         self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
 
-        # Main and target armors
-        self._armor = Armor(self._model)
-        self._armor.mode(train=True)
-        self._armor.reset()
-        self._learn_setting_set = {}
+        # Main and target models
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -53,8 +53,14 @@ class A2CPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        data = default_preprocess_learn(
+            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._learn_model.train()
         # forward
-        output = self._armor.forward(data['obs'], param={'mode': 'compute_action_value'})
+        output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
 
         adv = data['adv']
         if self._use_adv_norm:
@@ -64,9 +70,8 @@ class A2CPolicy(CommonPolicy):
         with torch.no_grad():
             if self._learn_use_nstep_return:
                 # use nstep return
-                next_value = self._armor.forward(data['next_obs'], param={'mode': 'compute_action_value'})['value']
-                reward = data['reward'].permute(1, 0).contiguous()
-                nstep_data = nstep_return_data(reward, next_value, data['done'])
+                next_value = self._learn_model.forward(data['next_obs'], mode='compute_actor_critic')['value']
+                nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
                 return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
             else:
                 # Return = value + adv
@@ -86,7 +91,7 @@ class A2CPolicy(CommonPolicy):
         total_loss.backward()
 
         torch.nn.utils.clip_grad_norm_(
-            list(self._model.parameters()),
+            list(self._learn_model.parameters()),
             max_norm=0.5,
         )
         self._optimizer.step()
@@ -103,19 +108,26 @@ class A2CPolicy(CommonPolicy):
             'adv_abs_max': adv.abs().max().item(),
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
         """
 
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'multinomial_sample')
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
-        self._collect_setting_set = {}
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
         self._adder = Adder(self._use_cuda, self._unroll_len)
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
@@ -123,27 +135,34 @@ class A2CPolicy(CommonPolicy):
         self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
         self._collect_nstep = algo_cfg.get('nstep', 1)
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for collect mode
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, param={'mode': 'compute_action_value'})
-        return output
+            output = self._collect_model.forward(data, mode='compute_actor_critic')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -153,8 +172,8 @@ class A2CPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': armor_output['action'],
-            'value': armor_output['value'],
+            'action': model_output['action'],
+            'value': model_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -181,31 +200,31 @@ class A2CPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy.
+            Init eval model with argmax strategy.
         """
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
-        self._eval_setting_set = {}
-
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, param={'mode': 'compute_action'})
-        return output
-
-    def _init_command(self) -> None:
-        pass
+            output = self._eval_model.forward(data, mode='compute_actor')
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']

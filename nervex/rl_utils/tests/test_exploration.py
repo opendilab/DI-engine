@@ -1,17 +1,17 @@
 import pytest
 import torch
-from nervex.rl_utils import epsilon_greedy, create_noise_generator
+from nervex.rl_utils import get_epsilon_greedy_fn, create_noise_generator
 
 
 @pytest.mark.unittest
 def test_eps_greedy():
-    exp_eps = epsilon_greedy(start=0.9, end=0.1, decay=100)
+    exp_eps = get_epsilon_greedy_fn(start=0.9, end=0.1, decay=100)
     assert exp_eps(0) == 0.9
     assert exp_eps(10) > exp_eps(200)
-    lin_eps1 = epsilon_greedy(start=1.0, end=0.1, decay=90, type_='linear')
+    lin_eps1 = get_epsilon_greedy_fn(start=1.0, end=0.1, decay=90, type_='linear')
     assert lin_eps1(9) == 0.91
     assert lin_eps1(100) == 0.1
-    lin_eps2 = epsilon_greedy(start=0.9, end=0.3, decay=20, type_='linear')
+    lin_eps2 = get_epsilon_greedy_fn(start=0.9, end=0.3, decay=20, type_='linear')
     assert pytest.approx(lin_eps2(9), 0.63)
     assert lin_eps2(100) == 0.3
 

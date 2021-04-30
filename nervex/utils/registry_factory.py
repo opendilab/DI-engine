@@ -11,11 +11,13 @@ LEAGUE_REGISTRY = Registry()
 PLAYER_REGISTRY = Registry()
 MODEL_REGISTRY = Registry()
 ENV_MANAGER_REGISTRY = Registry()
+REWARD_MODEL_REGISTRY = Registry()
 
 registries = {
     'policy': POLICY_REGISTRY,
     'env': ENV_REGISTRY,
     'model': MODEL_REGISTRY,
+    'reward_model': REWARD_MODEL_REGISTRY,
     'learner': LEARNER_REGISTRY,
     'collector': COLLECTOR_REGISTRY,
     'env_manager': ENV_MANAGER_REGISTRY,

@@ -6,17 +6,17 @@ from easydict import EasyDict
 import copy
 from torch.distributions import Independent, Normal
 
-from nervex.torch_utils import Adam
-from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, epsilon_greedy
-from nervex.model import FCValueAC, ConvValueAC
-from nervex.armor import Armor
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
+from nervex.rl_utils import ppo_data, ppo_error, ppo_error_continous, get_epsilon_greedy_fn
+from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('ppo_vanilla')
-class PPOVanillaPolicy(CommonPolicy):
+class PPOVanillaPolicy(Policy):
 
     def _init_learn(self) -> None:
         self._optimizer = Adam(
@@ -29,13 +29,15 @@ class PPOVanillaPolicy(CommonPolicy):
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
         self._clip_ratio = algo_cfg.clip_ratio
-        self._model.train()
-        self._learn_setting_set = {}
         self._continous = self._cfg.model.get("continous", False)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # forward
-        output = self._model(data['obs'], mode="compute_action_value")
+        self._model.train()
+        output = self._model(data['obs'], mode="compute_actor_critic")
         adv = data['adv']
         # norm adv in total train_batch
         adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -67,17 +69,31 @@ class PPOVanillaPolicy(CommonPolicy):
             'clipfrac': ppo_info.clipfrac,
         }
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
         assert (self._unroll_len == 1)
-        self._collect_setting_set = {'eps'}
         algo_cfg = self._cfg.collect.algo
         self._gamma = algo_cfg.discount_factor
         self._gae_lambda = algo_cfg.gae_lambda
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._model.eval()
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data, mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -93,15 +109,16 @@ class PPOVanillaPolicy(CommonPolicy):
                 logit, value = [logit], [value]
             action = []
             for i, l in enumerate(logit):
-                if np.random.random() > self._eps:
-                    action.append(l.argmax(dim=-1))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+                prob = torch.softmax(l, dim=-1)
+                action.append(torch.multinomial(prob, 1).squeeze(-1))
 
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, output: dict, timestep: namedtuple) -> dict:
         transition = {
@@ -115,11 +132,16 @@ class PPOVanillaPolicy(CommonPolicy):
         return EasyDict(transition)
 
     def _init_eval(self) -> None:
-        self._eval_setting_set = {}
+        pass
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._model.eval()
         with torch.no_grad():
-            ret = self._model(data['obs'], mode="compute_action_value")
+            ret = self._model(data, mode="compute_actor_critic")
             logit, value = ret['logit'], ret['value']
         if self._continous:
             mu, sigma = logit
@@ -139,18 +161,13 @@ class PPOVanillaPolicy(CommonPolicy):
         if len(action) == 1:
             action, logit, value = action[0], logit[0], value[0]
         output = {'action': action, 'logit': logit, 'value': value}
-        return output
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.actor_critic.value_ac']
-
-    def _init_command(self) -> None:
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         data = self._gae(data, gamma=self._gamma, gae_lambda=self._gae_lambda)

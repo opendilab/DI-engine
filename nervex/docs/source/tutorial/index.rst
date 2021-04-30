@@ -14,9 +14,6 @@ nervex (框架核心)
     .. code:: bash
 
         nervex
-        ├── armor (模型运行时容器)
-        │   ├── armor.py (BaseArmor及Armor类)
-        │   └── armor_plugin.py (armor插件)
         ├── config (配置文件及其工具)
         │   ├── buffer_manager.py (buffer manager配置文件)
         │   ├── config.py (Config类)
@@ -78,7 +75,8 @@ nervex (框架核心)
         │   ├── discrete_net
         │   ├── qac
         │   ├── qmix
-        │   └── sac
+        │   ├── sac
+        │   └── model_wrappers
         ├── policy (强化学习策略库)
         │   ├── a2c.py
         │   ├── base_policy.py
@@ -385,7 +383,7 @@ DRL快速上手指南(串行版本)
 
 .. note::
 
-    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件Armor（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
+    注意一个深度强化学习算法可能包括神经网络模型，运行计算图(训练/数据生成)，优化目标(损失函数)，优化器等多个部分，nerveX在实现上将各个模块进行了解耦设计，所以相关代码可能较为分散，但一般的代码组织体系为：model（神经网络模型），rl_utils（具体的强化学习优化目标函数），以及两种可选功能组件ModelWrapper（神经网络模型在训练/数据生成/测试时的不同动态行为，例如RNN隐状态的维护，Double DQN算法中target network的维护），Adder（将收集到的数据帧整合成训练所需的状态），以及将上述各个模块组织串联起来，完整的强化学习策略定义，Policy模块（例如DQNPolicy）。
 
 环境相关
 -----------
@@ -453,7 +451,7 @@ nerveX为了处理实际问题场景中复杂的环境结构定义，抽象了�
 神经网络模型相关
 --------------------
 
-nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``Model`` （模型）和 ``Armor`` （运行时模型）两部分，若已有的Armor组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
+nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，支持用户自定义各式各样的神经网络，不过，nerveX也根据RL等决策算法的需要，构建了一些抽象层次和API，主要分为 ``Model`` （模型）和 ``ModelWrapper`` （模型包装）两部分，若已有的ModelWrapper组件无法满足需求，使用者也可以完全自定义相关的代码段，其和训练主体代码并无耦合。
 
 模型部分是对一些经典算法的抽象，比如对于Actor-Critic系列算法和Dueling DQN算法，nerveX为其实现了相关的模型基类，并且进行了多层的模块化的封装，详见 
 ``nervex/model/discrete_net/discrete_net.py`` 和其对应的测试文件 ``nervex/model/discrete_net/test_discrete_net.py`` 。
@@ -513,12 +511,12 @@ nerveX基于PyTorch深度学习框架搭建所有的神经网络相关模块，�
     为了便于和其他模块的对接，nerveX限制神经网络的输入输出为dict形式，即键为字符串值为Tensor或一组Tensor。但dict确实存在无法明晰输入输出数据具体内容的问题，故建议使用者为自己的神经网络准备
     相应的单元测试，并在forward方法中注明输入和输出的数据键及值的Tensor维度，格式可参考 `https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/rl_utils/ppo.py#L32`。
 
-Armor 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Armor Overview <../feature/armor_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``Armor Plugin`` （插件）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Armor即可，示例如下， 其中Learner和Collector分别代码训练端和数据生成端：
+ModelWrapper 部分是对模型运行时行为的抽象（例如根据eps-greedy方法对logits进行采样，对于使用RNN的神经网络维护其隐状态等），具体的设计可以参考 `Wrapper Hook Overview <../feature/wrapper_hook_overview.html>`_ 。由于一个神经网络模型可能在多个系统组件内通过不同的方式使用（训练/数据生成/测试），nerveX使用 ``ModelWrapper`` （装饰器）的定义不同的功能，并为各个组件内的模型添加相应的插件，完成定制化。对于CartPole DQN，使用系统预设的默认DQN Wrapper即可，示例如下， 其中Learner和Collector分别代码训练端和数据生成端：
 
 
 .. note::
 
-   如果使用者想要定义自己的armor，请参考 `Armor Overview <../feature/armor_overview.html>`_ 中相关内容。如果使用者觉得Armor的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用Armor。
+   如果使用者想要定义自己的ModelWrapper，请参考 `Wrapper Hook Overview <../feature/wrapper_hook_overview.html>`_ 中相关内容。如果使用者觉得ModelWrapper的现有设计和实现无法满足需求，也可以自定义完成相应的功能，nerveX并不强制要求使用ModelWrapper。
 
 优化目标(损失函数)相关
 -------------------------
@@ -643,17 +641,17 @@ DRL Policy Example(DQN)
     from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error
     
     #epsilon_greedy for exploration
-    from nervex.rl_utils import epsilon_greedy
+    from nervex.rl_utils import get_epsilon_greedy_fn
     
     #Adder用于处理collector产生的数据，生成训练所需的数据内容（Adder是可选使用模块，使用者也可自定义相应的处理模块）
     from nervex.rl_utils import Adder
 
 .. code:: python
 
-    #Armor模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于收集数据的collector部分以及用于eval的evaluator部分
-    #(Armor是可选使用模块，使用者也可自定义相应的处理模块)
-    #Armor具体的使用方式可以参照下面代码中的实例
-    from nervex.armor import Armor
+    #ModelWrapper模块，神经网络的运行时容器，为神经网络在不同使用场景下提供相应功能，包括用于更新策略的learner部分和用于收集数据的collector部分以及用于eval的evaluator部分
+    #(ModelWrapper是可选使用模块，使用者也可自定义相应的处理模块)
+    #ModelWrapper具体的使用方式可以参照下面代码中的实例
+    from nervex.model import model_wrap
 
 .. code:: python
 
@@ -697,8 +695,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 - 初始化learn的optimizer， 即 ``self._optimizer`` 
 - 初始化算法的相关参数 
-- 初始化learn所用的运行时模块learner armor ，即 ``self._armor``
-- 初始化armor的相关model和plugin 
+- 初始化learn所用的运行时模块learner model wrapper ，即 ``self._model``
+- 初始化model的相关model和wrapper
 
   - 如初始化target network(double dqn中的设计)
 
@@ -713,7 +711,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Learn mode init method. Called by ``self.__init__``.
-                Init the optimizer, algorithm config, main and target armors.
+                Init the optimizer, algorithm config, main and target models.
             """
             # Optimizer
             # 初始化learn的optimizer
@@ -725,23 +723,22 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._nstep = algo_cfg.nstep
             self._gamma = algo_cfg.discount_factor
         
-            # Main and target armors
-            # 初始化的模型传入armor
-            self._armor = Armor(self._model)
+            # Main and target models
+            # 初始化的模型
+            self._target_model = copy.deepcopy(self._model)
             
-            # 初始化armor的相关model
-            self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-            # 初始化armor的相关plugin
-            self._armor.add_plugin('main', 'argmax_sample')
-            self._armor.add_plugin('main', 'grad', enable_grad=True)
-            self._armor.add_plugin('target', 'grad', enable_grad=False)
+            # 初始化相关wrapper
+            self._target_model = model_wrap(self._target_model, wrapper_name='target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+            self._target_model = model_wrap(self._target_model, wrapper_name='grad', enable_grad=False)
+            self._model = model_wrap(self._model, wrapper_name='argmax_sample')
+            self._model = model_wrap(self._model, wrapper_name='grad', enable_grad=True)
             
             #常规初始化
-            self._armor.mode(train=True)
-            self._armor.target_mode(train=True)
+            self._model.train()
+            self._target_model.train()
             
-            self._armor.reset()
-            self._armor.target_reset()
+            self._model.reset()
+            self._target_model.reset()
             self._learn_setting_set = {}
 
 我们的learner需要知道如何计算loss，并进行模型的更新等操作
@@ -770,12 +767,12 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 reward = reward.unsqueeze(1)
             assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
             reward = reward.permute(1, 0).contiguous()
-            # Current q value (main armor)
-            q_value = self._armor.forward(data['obs'])['logit']
+            # Current q value (main model)
+            q_value = self._model.forward(data['obs'])['logit']
             # Target q value
-            target_q_value = self._armor.target_forward(data['next_obs'])['logit']
-            # Max q value action (main armor)
-            target_q_action = self._armor.forward(data['next_obs'])['action']
+            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            # Max q value action (main model)
+            target_q_action = self._model.forward(data['next_obs'])['action']
     
             data_n = q_nstep_td_data(
                 q_value, target_q_value, data['action'], target_q_action, reward, data['done'], data['weight']
@@ -792,7 +789,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             # =============
             # after update
             # =============
-            self._armor.target_update(self._armor.state_dict()['model'])
+            self._target_model.update(self._model.state_dict())
             return {
                 'cur_lr': self._optimizer.defaults['lr'],
                 'total_loss': loss.item(),
@@ -801,8 +798,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 我们也需要对collector部分进行初始化，包括： 
 
 - collector数据的收集方式， 包括 ``self._adder`` 等
-- 初始化的模型传入collector armor， 即 ``self._collect_armor`` 
-- 初始化armor的相关plugin 
+- 初始化的模型传入collector model， 即 ``self._collect_model`` 
+- 初始化model的相关wrapper 
 
   - 如collector使用 ``eps_greedy`` 进行sample
 
@@ -814,7 +811,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Collect mode init method. Called by ``self.__init__``.
-                Init traj and unroll length, adder, collect armor.
+                Init traj and unroll length, adder, collect model.
                 Enable the eps_greedy_sample
             """
             # collector数据的收集方式
@@ -825,16 +822,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             self._adder = Adder(self._use_cuda, self._unroll_len)
             self._collect_nstep = self._cfg.collect.algo.nstep
             
-            # 初始化的模型传入collector armor
-            self._collect_armor = Armor(self._model)
-            
-            # 初始化armor的相关plugin
-            self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-            self._collect_armor.add_plugin('main', 'grad', enable_grad=False)
+            # 初始化model的相关plugin
+            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample') 
+            self._collect_model = model_wrap(self._collect_model, wrapper_name='grad', enable_grad=False) 
             
             # 常规初始化
-            self._collect_armor.mode(train=False)
-            self._collect_armor.reset()
+            self._collect_model.eval()
+            self._collect_model.reset()
             self._collect_setting_set = {'eps'}
 
 我们的collector需要根据环境返回的observation获取相关动作数据
@@ -854,7 +848,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - data (:obj:`dict`): The collected data
             """
-            return self._collect_armor.forward(data, eps=self._eps)
+            return self._collect_model.forward(data, eps=self._eps)
 
 我们需要从trajectory（一组数据帧(transition)）中获取需要的训练样本
 
@@ -892,13 +886,13 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 .. code:: python
 
     
-        def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+        def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
             r"""
            Overview:
                Generate dict type transition data from inputs.
            Arguments:
                - obs (:obj:`Any`): Env observation
-               - armor_output (:obj:`dict`): Output of collect armor, including at least ['action']
+               - model_output (:obj:`dict`): Output of collect model, including at least ['action']
                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
                    (here 'obs' indicates obs after env step).
            Returns:
@@ -907,7 +901,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
-                'action': armor_output['action'],
+                'action': model_output['action'],
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
@@ -916,8 +910,8 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
 
 我们需要对evaluator部分进行初始化，包括：
 
--  初始化的模型传入 eval armor， 即 ``self._eval_armor``
--  初始化armor的相关plugin
+-  初始化的模型传入 eval model， 即 ``self._eval_model``
+-  初始化model的相关plugin
 
    -  如使用 ``argmax`` 进行sample
 
@@ -935,13 +929,12 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             r"""
             Overview:
                 Evaluate mode init method. Called by ``self.__init__``.
-                Init eval armor with argmax strategy.
+                Init eval model with argmax strategy.
             """
-            self._eval_armor = Armor(self._model)
-            self._eval_armor.add_plugin('main', 'argmax_sample')
-            self._eval_armor.add_plugin('main', 'grad', enable_grad=False)
-            self._eval_armor.mode(train=False)
-            self._eval_armor.reset()
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample') 
+            self._eval_model = model_wrap(self._model, wrapper_name='grad', enable_grad=False) 
+            self._eval_model.train()
+            self._eval_model.reset()
             self._eval_setting_set = {}
     
         def _forward_eval(self, data_id: List[int], data: dict) -> dict:
@@ -954,7 +947,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
             Returns:
                 - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
             """
-            return self._eval_armor.forward(data)
+            return self._eval_model.forward(data)
 
 在 ``_init_command`` 方法中，我们需要对相关控制模块进行初始化，比如epsilon_greedy的计算模块，使用者无需考虑信息在learner和collector之间如何传递，只需要考虑拿到信息后做怎样的数据处理即可
 
@@ -970,7 +963,7 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 Set the eps_greedy rule according to the config for command
             """
             eps_cfg = self._cfg.command.eps
-            self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
     
         def _get_setting_collect(self, command_info: dict) -> dict:
             r"""

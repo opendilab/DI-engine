@@ -7,7 +7,7 @@ from functools import partial
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from nervex.league import create_league
-from .base_parallel_commander import register_parallel_commander, BaseCommander
+from .base_parallel_commander import BaseCommander
 
 
 @COMMANDER_REGISTRY.register('one_vs_one')

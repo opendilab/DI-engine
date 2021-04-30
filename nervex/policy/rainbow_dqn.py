@@ -1,13 +1,15 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 
-from nervex.torch_utils import Adam
+from nervex.torch_utils import Adam, to_device
+from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder, iqn_nstep_td_data, iqn_nstep_td_error
-from nervex.model import NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet
-from nervex.armor import Armor
+from nervex.model import NoiseDistributionFCDiscreteNet, NoiseQuantileFCDiscreteNet, model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .dqn import DQNPolicy
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('rainbow_dqn')
@@ -28,7 +30,7 @@ class RainbowDQNPolicy(DQNPolicy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Init the learner armor of RainbowDQNPolicy
+            Init the learner model of RainbowDQNPolicy
 
         Arguments:
             .. note::
@@ -43,7 +45,6 @@ class RainbowDQNPolicy(DQNPolicy):
             - n_atom (:obj:`int`): the number of atom sample point
         """
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._use_iqn = algo_cfg.get('use_iqn', False)
         self._gamma = algo_cfg.discount_factor
@@ -58,13 +59,16 @@ class RainbowDQNPolicy(DQNPolicy):
             self._v_min = self._cfg.model.v_min
             self._n_atom = self._cfg.model.n_atom
 
-        self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
-        self._armor.add_plugin('main', 'argmax_sample')
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
-        self._armor.reset()
-        self._armor.target_reset()
-        self._learn_setting_set = {}
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='assign',
+            update_kwargs={'freq': algo_cfg.target_update_freq}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._learn_model.reset()
+        self._target_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         """
@@ -80,39 +84,45 @@ class RainbowDQNPolicy(DQNPolicy):
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
         """
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._cfg.get('use_priority', False),
+            ignore_done=self._cfg.learn.get('ignore_done', False),
+            use_nstep=True
+        )
+        if self._use_cuda:
+            data = to_device(data, self._device)
         # ====================
         # Rainbow forward
         # ====================
-        reward = data['reward']
-        if len(reward.shape) == 1:
-            reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-        reward = reward.permute(1, 0).contiguous()
-        # reset noise of noisenet for both main armor and target armor
-        self._reset_noise(self._armor.model)
-        self._reset_noise(self._armor.target_model)
+        self._learn_model.train()
+        self._target_model.train()
+        # reset noise of noisenet for both main model and target model
+        self._reset_noise(self._learn_model)
+        self._reset_noise(self._target_model)
         if self._use_iqn:
-            ret = self._armor.forward(data['obs'], param={'num_quantiles': self._tau})
+            ret = self._learn_model.forward(data['obs'], num_quantiles=self._tau)
             q = ret['q']
             replay_quantiles = ret['quantiles']
             with torch.no_grad():
-                target_q = self._armor.target_forward(data['next_obs'], param={'num_quantiles': self._tau_prim})['q']
-                self._reset_noise(self._armor.model)
-                target_q_action = self._armor.forward(
-                    data['next_obs'], param={'num_quantiles': self._num_quantiles}
+                target_q = self._target_model.forward(data['next_obs'], num_quantiles=self._tau_prim)['q']
+                self._reset_noise(self._learn_model)
+                target_q_action = self._learn_model.forward(
+                    data['next_obs'], num_quantiles=self._num_quantiles
                 )['action']
             data = iqn_nstep_td_data(
-                q, target_q, data['action'], target_q_action, reward, data['done'], replay_quantiles, data['weight']
+                q, target_q, data['action'], target_q_action, data['reward'], data['done'], replay_quantiles,
+                data['weight']
             )
             loss, td_error_per_sample = iqn_nstep_td_error(data, self._gamma, nstep=self._nstep, kappa=self._kappa)
         else:
-            q_dist = self._armor.forward(data['obs'])['distribution']
+            q_dist = self._learn_model.forward(data['obs'])['distribution']
             with torch.no_grad():
-                target_q_dist = self._armor.target_forward(data['next_obs'])['distribution']
-                self._reset_noise(self._armor.model)
-                target_q_action = self._armor.forward(data['next_obs'])['action']
+                target_q_dist = self._target_model.forward(data['next_obs'])['distribution']
+                self._reset_noise(self._learn_model)
+                target_q_action = self._learn_model.forward(data['next_obs'])['action']
             data = dist_nstep_td_data(
-                q_dist, target_q_dist, data['action'], target_q_action, reward, data['done'], data['weight']
+                q_dist, target_q_dist, data['action'], target_q_action, data['reward'], data['done'], data['weight']
             )
             loss, td_error_per_sample = dist_nstep_td_error(
                 data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
@@ -126,7 +136,7 @@ class RainbowDQNPolicy(DQNPolicy):
         # =============
         # after update
         # =============
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
@@ -137,7 +147,7 @@ class RainbowDQNPolicy(DQNPolicy):
         r"""
         Overview:
             Collect mode init moethod. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
 
             .. note::
                 the rainbow dqn enable the eps_greedy_sample, but might not need to use it, \
@@ -146,28 +156,32 @@ class RainbowDQNPolicy(DQNPolicy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
         self._collect_nstep = self._cfg.collect.algo.nstep
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=True)
-        self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._collect_model.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
             Reset the noise from noise net and collect output according to eps_greedy plugin
 
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
 
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        self._reset_noise(self._collect_armor.model)
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        self._reset_noise(self._collect_model)
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps)
-        return output
+            output = self._collect_model.forward(data, eps=eps)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
         r"""

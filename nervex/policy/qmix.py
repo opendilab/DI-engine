@@ -1,23 +1,22 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
 import torch
+import copy
 from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, epsilon_greedy, Adder
-from nervex.model import QMix
-from nervex.armor import Armor
-from nervex.data import timestep_collate
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
+from nervex.model import QMix, model_wrap
+from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
-from .common_policy import CommonPolicy
 
 
 @POLICY_REGISTRY.register('qmix')
-class QMIXPolicy(CommonPolicy):
+class QMIXPolicy(Policy):
     r"""
     Overview:
-        Policy class of QMIX algorithm. QMIX is a multiarmor reinforcement learning algorithm, \
+        Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
             you can view the paper in the following link <https://arxiv.org/abs/1803.11485>_
     """
 
@@ -25,7 +24,7 @@ class QMIXPolicy(CommonPolicy):
         """
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the learner armor of QMIXPolicy
+            Init the learner model of QMIXPolicy
         Arguments:
             .. note::
 
@@ -37,30 +36,32 @@ class QMIXPolicy(CommonPolicy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
 
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
-        self._armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': algo_cfg.target_update_theta}
+        )
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.add_plugin(
-            'target',
-            'hidden_state',
+        self._learn_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._armor.mode(train=True)
-        self._armor.target_mode(train=True)
-        self._armor.reset()
-        self._armor.target_reset()
-        self._learn_setting_set = {}
+        self._learn_model.reset()
+        self._target_model.reset()
 
-    def _data_preprocess_learn(self, data: List[Any]) -> Tuple[dict, dict]:
+    def _data_preprocess_learn(self, data: List[Any]) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
@@ -71,19 +72,14 @@ class QMIXPolicy(CommonPolicy):
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
-            - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        data_info = {
-            'replay_buffer_idx': [d.get('replay_buffer_idx', None) for d in data],
-            'replay_unique_id': [d.get('replay_unique_id', None) for d in data],
-        }
         # data preprocess
         data = timestep_collate(data)
         if self._use_cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
-        return data, data_info
+        return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -95,17 +91,20 @@ class QMIXPolicy(CommonPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        data = self._data_preprocess_learn(data)
         # ====================
         # Q-mix forward
         # ====================
-        # for hidden_state plugin, we need to reset the main armor and target armor
-        self._armor.reset(state=data['prev_state'][0])
-        self._armor.target_reset(state=data['prev_state'][0])
+        self._learn_model.train()
+        self._target_model.train()
+        # for hidden_state plugin, we need to reset the main model and target model
+        self._learn_model.reset(state=data['prev_state'][0])
+        self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
-        total_q = self._armor.forward(inputs, param={'single_step': False})['total_q']
+        total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
-            target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
+            target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 
         data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
         loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
@@ -118,55 +117,76 @@ class QMIXPolicy(CommonPolicy):
         # =============
         # after update
         # =============
-        self._armor.target_update(self._armor.state_dict()['model'])
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
         }
 
+    def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        self._learn_model.reset(data_id=data_id)
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
     def _init_collect(self) -> None:
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect armor.
+            Init traj and unroll length, adder, collect model.
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_armor = Armor(self._model)
-        self._collect_armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._collect_armor.add_plugin('main', 'eps_greedy_sample')
-        self._collect_armor.mode(train=False)
-        self._collect_armor.reset()
-        self._collect_setting_set = {'eps'}
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model.reset()
 
-    def _forward_collect(self, data_id: List[int], data: dict) -> dict:
+    def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
         Arguments:
-            - data_id (:obj:`List` of :obj:`int`): Not used, set in arguments for consistency
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - data (:obj:`dict`): The collected data
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_armor.forward(data, eps=self._eps, data_id=data_id)
-        return output
+            output = self._collect_model.forward(data, eps=eps, data_id=data_id)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, armor_output: dict, timestep: namedtuple) -> dict:
+    def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        self._collect_model.reset(data_id=data_id)
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - armor_output (:obj:`dict`): Output of collect armor, including at least ['action', 'prev_state']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                 (here 'obs' indicates obs after env step).
         Returns:
@@ -175,8 +195,8 @@ class QMIXPolicy(CommonPolicy):
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'prev_state': armor_output['prev_state'],
-            'action': armor_output['action'],
+            'prev_state': model_output['prev_state'],
+            'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -186,55 +206,42 @@ class QMIXPolicy(CommonPolicy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
-            Init eval armor with argmax strategy and the hidden_state plugin.
+            Init eval model with argmax strategy and the hidden_state plugin.
         """
-        self._eval_armor = Armor(self._model)
-        self._eval_armor.add_plugin(
-            'main',
-            'hidden_state',
+        self._eval_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
             init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
         )
-        self._eval_armor.add_plugin('main', 'argmax_sample')
-        self._eval_armor.mode(train=False)
-        self._eval_armor.reset()
-        self._eval_setting_set = {}
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
 
-    def _forward_eval(self, data_id: List[int], data: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function for eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._use_cuda:
+            data = to_device(data, self._device)
+        data = {'obs': data}
+        self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_armor.forward(data, data_id=data_id)
-        return output
+            output = self._eval_model.forward(data, data_id=data_id)
+        if self._use_cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
-    def _init_command(self) -> None:
-        r"""
-        Overview:
-            Command mode init method. Called by ``self.__init__``.
-            Set the eps_greedy rule according to the config for command
-        """
-        eps_cfg = self._cfg.command.eps
-        self.epsilon_greedy = epsilon_greedy(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    def _get_setting_collect(self, command_info: dict) -> dict:
-        r"""
-        Overview:
-            Collect mode setting information including eps
-        Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
-        Returns:
-           - collect_setting (:obj:`dict`): Including eps in collect mode.
-        """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        self._eval_model.reset(data_id=data_id)
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""

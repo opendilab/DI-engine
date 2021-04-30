@@ -8,9 +8,9 @@ if ! echo $ver | grep -q 0.29.0; then
   exit 1
 fi
 
-yapf --in-place --recursive -p --verbose --style .style.yapf nervex/
+yapf --in-place --recursive -p --verbose --style .style.yapf $1
 
-if [[ "$1" == '--test' ]]; then # Only for CI usage, user should not use --test flag.
+if [[ "$2" == '--test' ]]; then # Only for CI usage, user should not use --test flag.
   if ! git diff --quiet &>/dev/null; then
     echo '*** You have not reformatted your codes! Please run [bash format.sh] at root directory before commit! Thanks! ***'
     exit 1
