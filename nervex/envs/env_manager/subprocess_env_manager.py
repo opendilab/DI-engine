@@ -426,13 +426,13 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 continue
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] >= self._episode_num:
-                    self._env_states[env_id] = EnvState.DONE
-                else:
+                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
                     self._env_states[env_id] = EnvState.RESET
                     reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
+                else:
+                    self._env_states[env_id] = EnvState.DONE
             else:
                 self._ready_obs[env_id] = timestep.obs
         return timesteps
