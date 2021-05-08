@@ -141,6 +141,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         step_timeout: int = 60,
         reset_timeout: int = 60,
         retry_waiting_time: float = 0.1,
+        auto_reset: bool = True,
         # subprocess specified args
         shared_memory: bool = True,
         context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
@@ -155,7 +156,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             - env_fn (:obj:`function`): the function to create environment
             - episode_num (:obj:`int`): maximum episodes to collect in one environment
         """
-        super().__init__(env_fn, episode_num, max_retry, step_timeout, reset_timeout, retry_waiting_time)
+        super().__init__(env_fn, episode_num, max_retry, step_timeout, reset_timeout, retry_waiting_time, auto_reset)
         self._shared_memory = shared_memory
         self._context = context
         self._wait_num = wait_num
@@ -173,6 +174,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         self._env_ref = self._env_fn[0]()
+        self._reset_param = [{} for _ in range(self.env_num)]
         if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
@@ -278,7 +280,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data(ret)
         self.reset(reset_param)
 
-    def reset(self, reset_param: Optional[List[dict]] = None) -> None:
+    def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Reset the environments and hyper-params.
@@ -293,16 +295,20 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._pipe_parents[env_id].recv()
         self._waiting_env['step'].clear()
 
-        if reset_param is None:
-            reset_param = [{} for _ in range(self.env_num)]
-        self._reset_param = reset_param
-
         # reset env
         reset_thread_list = []
-        for env_id in range(self.env_num):
-            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
-            reset_thread.daemon = True
-            reset_thread_list.append(reset_thread)
+        if reset_param is None:
+            for env_id in range(self.env_num):
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                reset_thread.daemon = True
+                reset_thread_list.append(reset_thread)
+        else:
+            for env_id in reset_param:
+                self._reset_param[env_id] = reset_param[env_id]
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+                reset_thread.daemon = True
+                reset_thread_list.append(reset_thread)
+
         for t in reset_thread_list:
             t.start()
         for t in reset_thread_list:

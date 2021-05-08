@@ -13,7 +13,7 @@ class TestBaseEnvManager:
         env_manager = BaseEnvManager(**setup_sync_manager_cfg)
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         assert env_manager._closed
-        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         assert all([env_manager._env_states[env_id] == EnvState.RUN for env_id in range(env_manager.env_num)])
         # Test basic
         name = env_manager._name
@@ -61,10 +61,10 @@ class TestBaseEnvManager:
         env_manager = BaseEnvManager(**setup_sync_manager_cfg)
         # Test reset error
         with pytest.raises(RuntimeError):
-            reset_param = [{'stat': 'error'} for _ in range(env_manager.env_num)]
+            reset_param = {i: {'stat': 'error'} for i in range(env_manager.env_num)}
             obs = env_manager.launch(reset_param=reset_param)
         assert env_manager._closed
-        reset_param = [{'stat': 'stat_test'} for _ in range(env_manager.env_num)]
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
         obs = env_manager.launch(reset_param=reset_param)
         assert not env_manager._closed
 
@@ -99,10 +99,10 @@ class TestBaseEnvManager:
         # Test reset timeout
         watchdog.start()
         with pytest.raises(RuntimeError):
-            reset_param = [{'stat': 'block'} for _ in range(env_manager.env_num)]
+            reset_param = {i: {'stat': 'block'} for i in range(env_manager.env_num)}
             obs = env_manager.launch(reset_param=reset_param)
         assert env_manager._closed
-        reset_param = [{'stat': 'stat_test'} for _ in range(env_manager.env_num)]
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
         reset_param[0]['stat'] = 'timeout'
 
         obs = env_manager.launch(reset_param=reset_param)

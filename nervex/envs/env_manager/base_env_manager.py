@@ -94,6 +94,7 @@ class BaseEnvManager(object):
         step_timeout: int = 60,
         reset_timeout: int = 60,
         retry_waiting_time: float = 0.1,
+        auto_reset: bool = True,
     ) -> None:
         """
         Overview:
@@ -107,6 +108,7 @@ class BaseEnvManager(object):
         if episode_num == "inf":
             episode_num = float("inf")
         self._episode_num = episode_num
+        self._auto_reset = auto_reset
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
@@ -194,6 +196,7 @@ class BaseEnvManager(object):
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [e() for e in self._env_fn]
+        self._reset_param = [{} for _ in range(self.env_num)]
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
@@ -203,7 +206,7 @@ class BaseEnvManager(object):
                 e.enable_save_replay(s)
         self._closed = False
 
-    def reset(self, reset_param: List[dict] = None) -> None:
+    def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Reset the environments and hyper-params.
@@ -212,10 +215,12 @@ class BaseEnvManager(object):
         """
         self._check_closed()
         if reset_param is None:
-            reset_param = [{} for _ in range(self.env_num)]
-        self._reset_param = reset_param
-        for i in range(self.env_num):
-            self._reset(i)
+            for i in range(self.env_num):
+                self._reset(i)
+        else:
+            for env_id in reset_param:
+                self._reset_param[env_id] = reset_param[env_id]
+                self._reset(env_id)
 
     def _reset(self, env_id: int) -> None:
 
@@ -257,11 +262,12 @@ class BaseEnvManager(object):
             act = self._transform(act)
             timesteps[env_id] = self._step(env_id, act)
             if timesteps[env_id].info.get('abnormal', False):
-                self._env_states[env_id] = EnvState.RESET
-                self._reset(env_id)
+                if self._auto_reset:
+                    self._env_states[env_id] = EnvState.RESET
+                    self._reset(env_id)
             elif timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._episode_num:
+                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
                     self._env_states[env_id] = EnvState.RESET
                     self._reset(env_id)
                 else:
