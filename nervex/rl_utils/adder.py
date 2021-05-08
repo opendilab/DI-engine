@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import deque
 import copy
 import numpy as np
@@ -62,7 +62,7 @@ class Adder(object):
         else:
             return copy.deepcopy(template)
 
-    def get_traj(self, data: deque, traj_len: int, return_num: int = 0) -> List:
+    def get_traj(self, data: deque, traj_len: Union[int, float] = float("inf"), return_num: int = 0) -> List:
         """
         Overview:
             Get part of original deque type ``data`` as traj data for further process and sampling.
