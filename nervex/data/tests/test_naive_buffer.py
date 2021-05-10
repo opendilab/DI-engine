@@ -11,7 +11,7 @@ from nervex.data import NaiveReplayBuffer
 
 @pytest.fixture(scope="function")
 def setup_naive_buffer():
-    return NaiveReplayBuffer(name="agent", replay_buffer_size=64)
+    return NaiveReplayBuffer(name="agent", cfg=EasyDict(dict(replay_buffer_size=64)))
 
 
 def generate_data():

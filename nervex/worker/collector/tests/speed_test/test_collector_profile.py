@@ -41,8 +41,8 @@ def compare_test(cfg, out_str, seed):
         policy = FakePolicy(cfg.policy)
         collector = BaseSerialCollector(cfg.collector)
         replay_buffer = BufferManager(cfg.replay_buffer)
-        collector.env = collector_env
         collector.policy = policy.collect_mode
+        collector.env = collector_env
 
         start = time.time()
         iters = 50 if FAST_MODE else 300
@@ -84,7 +84,7 @@ def test_collector_profile():
                 reset_time=0.1,
                 step_time=0.005,
             ), ),
-            policy=dict(forward_time=0.004, ),
+            policy=dict(forward_time=0.004, collect=dict(n_sample=1, traj_len=1)),
             actor=dict(n_sample=80, ),
         ),
         dict(
@@ -98,7 +98,7 @@ def test_collector_profile():
                     step_time=0.01,
                 ),
             ),
-            policy=dict(forward_time=0.008, ),
+            policy=dict(forward_time=0.008, collect=dict(n_sample=1, traj_len=1)),
             actor=dict(n_sample=80, ),
         ),
 
@@ -114,7 +114,7 @@ def test_collector_profile():
                     step_time=0.1,
                 ),
             ),
-            policy=dict(forward_time=0.02, ),
+            policy=dict(forward_time=0.02, collect=dict(n_sample=1, traj_len=1)),
             actor=dict(n_sample=80, ),
         ),
     ]

@@ -15,12 +15,16 @@ from nervex.worker.collector.tests.speed_test.utils import random_change
 
 class FakePolicy(Policy):
 
+    def default_config(cls: type) -> EasyDict:
+        return EasyDict({})
+
     def __init__(
             self,
             cfg: dict,
             model: Optional[Union[type, torch.nn.Module]] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
+        self._cfg = cfg
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._init_collect()
         self._forward_time = cfg.get('forward_time', 0.)
@@ -39,9 +43,6 @@ class FakePolicy(Policy):
         self._adder = Adder(self._use_cuda, 1)
 
     def _init_eval(self) -> None:
-        pass
-
-    def _init_command(self) -> None:
         pass
 
     def default_model(self) -> Tuple[str, List[str]]:

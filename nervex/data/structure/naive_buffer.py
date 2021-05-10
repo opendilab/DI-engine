@@ -10,7 +10,7 @@ import numpy as np
 from functools import partial
 from easydict import EasyDict
 
-from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger
+from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger, deep_merge_dicts
 
 
 class NaiveReplayBuffer:
@@ -26,26 +26,36 @@ class NaiveReplayBuffer:
         replay_buffer_size, validlen, beta
     """
 
+    @classmethod
+    def default_config(cls) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
+
+    config = dict(
+        replay_buffer_size=10000,
+        deepcopy=False,
+    )
+
     def __init__(
             self,
             name: str,
-            replay_buffer_size: int = 10000,
-            deepcopy: bool = False,
+            cfg: dict,
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
     ) -> int:
         """
         Overview:
             Initialize the buffer
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
-            - replay_buffer_size (:obj:`int`): The maximum value of the buffer length.
+            - cfg (:obj:`dict`): cfg dict
             - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data
         """
         self.name = name
-        self._replay_buffer_size = replay_buffer_size
-        self._deepcopy = deepcopy
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._replay_buffer_size = self._cfg.replay_buffer_size
+        self._deepcopy = self._cfg.deepcopy
 
         # ``_data`` is a circular queue to store data (or data's reference/file path)
-        self._data = [None for _ in range(replay_buffer_size)]
+        self._data = [None for _ in range(self._replay_buffer_size)]
         # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
         # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
