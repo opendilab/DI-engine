@@ -12,9 +12,11 @@ from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_R
 
 class Policy(ABC):
 
-    @abstractclassmethod
+    @classmethod
     def default_config(cls: type) -> EasyDict:
-        raise NotImplementedError
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
     learn_function = namedtuple(
         'learn_function', [
@@ -58,15 +60,15 @@ class Policy(ABC):
             model: Optional[Union[type, torch.nn.Module]] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
-        self._cfg = cfg
+        self._cfg = deep_merge_dicts(self.default_config(), cfg)
         model = self._create_model(cfg, model)
-        self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
-        self._use_distributed = cfg.get('use_distributed', False)
-        self._rank = get_rank() if self._use_distributed else 0
-        if self._use_distributed:
+        self._cuda = cfg.cuda and torch.cuda.is_available()
+        self._multi_gpu = self._cfg.multi_gpu
+        self._rank = get_rank() if self._multi_gpu else 0
+        if self._multi_gpu:
             self._init_multi_gpu_setting(model)
-        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._use_cuda else 'cpu'
-        if self._use_cuda:
+        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
+        if self._cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model

@@ -30,8 +30,8 @@ def main(cfg, seed=0):
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
-    evaluator_env.seed(seed)
-    set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
+    evaluator_env.seed(seed, dynamic_seed=False)
+    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
     model = FCDiscreteNet(**cfg.policy.model)
@@ -61,7 +61,7 @@ def main(cfg, seed=0):
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Training
-        for i in range(cfg.policy.learn.train_iteration):
+        for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)

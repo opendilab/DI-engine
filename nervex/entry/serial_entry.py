@@ -46,7 +46,7 @@ def serial_pipeline(
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
-    set_pkg_seed(seed, use_cuda=cfg.policy.use_cuda)
+    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
@@ -82,7 +82,7 @@ def serial_pipeline(
         new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.train_iteration):
+        for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``train_iteration`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
@@ -93,7 +93,7 @@ def serial_pipeline(
                 )
                 break
             learner.train(train_data, collector.envstep)
-            if cfg.policy.get('use_priority', False):
+            if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.

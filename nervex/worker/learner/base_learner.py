@@ -162,7 +162,7 @@ class BaseLearner(object):
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
         self._use_distributed = self._cfg.use_distributed
-        self._use_cuda = False
+        self._cuda = False
         self._device = 'cpu'
 
         # Learner rank. Used to discriminate which GPU it uses.
@@ -499,7 +499,7 @@ class BaseLearner(object):
             Monitor is set alongside with policy, because variables in monitor are determined by specific policy.
         """
         self._policy = _policy
-        self._use_cuda = self._policy.get_attribute('use_cuda')
+        self._cuda = self._policy.get_attribute('cuda')
         self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)

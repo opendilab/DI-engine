@@ -8,6 +8,8 @@ import torch
 from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
 
+INF = float("inf")
+
 
 class BaseSerialCollector(object):
     """
@@ -41,10 +43,10 @@ class BaseSerialCollector(object):
             - cfg (:obj:`EasyDict`): Config dict
         """
         self._collect_print_freq = cfg.collect_print_freq
-        if policy is not None:
-            self.policy = policy
         if env is not None:
             self.env = env
+        if policy is not None:
+            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
@@ -64,7 +66,6 @@ class BaseSerialCollector(object):
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
-        self.reset()
 
     @property
     def policy(self) -> namedtuple:
@@ -72,24 +73,31 @@ class BaseSerialCollector(object):
 
     @policy.setter
     def policy(self, _policy: namedtuple) -> None:
+        assert hasattr(self, '_env_manager'), "please set env first"
         self._policy = _policy
         self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
         self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        self._unroll_len = _policy.get_attribute('cfg').collect.unroll_len
         assert any(
             [t is None for t in [self._default_n_sample, self._default_n_episode]]
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"
-        self._traj_len = _policy.get_attribute('cfg').collect.traj_len
-        if self._traj_len != "inf":
-            self._traj_cache_length = self._traj_len
+        if self._default_n_episode is not None:
+            self._traj_len = INF
+        elif self._default_n_sample is not None:
+            self._traj_len = max(
+                self._unroll_len,
+                self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
+            )
         else:
-            self._traj_len = float('inf')
-            self._traj_cache_length = None
+            self._traj_len = INF
+        self.reset()
 
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
-        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
+        traj_len = self._traj_len if self._traj_len != INF else None
+        self._traj_cache = {env_id: deque(maxlen=traj_len) for env_id in range(self._env_num)}
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
         self._episode_info = []
         self._total_envstep_count = 0

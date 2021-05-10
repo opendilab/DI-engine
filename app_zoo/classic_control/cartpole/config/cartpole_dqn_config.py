@@ -8,7 +8,7 @@ cartpole_dqn_config = dict(
         evaluator_env_num=5,
     ),
     policy=dict(
-        use_cuda=False,
+        cuda=False,
         model=dict(
             obs_dim=4,
             action_dim=2,
@@ -18,13 +18,11 @@ cartpole_dqn_config = dict(
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            algo=dict(
-                discount_factor=0.97,
-                nstep=nstep,
-            ),
+            discount_factor=0.97,
+            nstep=nstep,
         ),
         collect=dict(
-            algo=dict(nstep=nstep, ),
+            nstep=nstep,
         ),
         eval=dict(
             evaluator=dict(

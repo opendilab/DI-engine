@@ -11,7 +11,7 @@ from nervex.envs import get_vec_env_setting, create_env_manager
 from nervex.config import read_config
 from nervex.policy import create_policy
 from nervex.data import NaiveRLDataset
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def serial_pipeline_il(

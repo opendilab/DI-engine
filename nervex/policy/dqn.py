@@ -7,8 +7,8 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import q_1step_td_data, q_1step_td_error, q_nstep_td_data, q_nstep_td_error, Adder
-from nervex.model import FCDiscreteNet, ConvDiscreteNet, model_wrap
+from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, Adder
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -21,44 +21,51 @@ class DQNPolicy(Policy):
         Policy class of DQN algorithm.
     """
 
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
-
     config = dict(
-        # RL policy register name (refer to function "register_policy").
-        policy_type='dqn',
+        # RL policy register name (refer to function "POLICY_REGISTRY").
+        type='dqn',
         # Whether to use cuda for network.
-        use_cuda=False,
+        cuda=False,
+        # Whether to use multi gpu
+        multi_gpu=False,
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
+        # Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
         learn=dict(
-            # How many iterations to train after collector's one collection.
-            # Bigger "train_iteration" means bigger off-policy.
-            # collect data -> train fixed iterations -> collect data -> ...
-            train_iteration=3,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
+            update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
             # L2 norm weight for network parameters.
             weight_decay=0.0,
-            algo=dict(
-                # Frequence of target network update.
-                target_update_freq=100,
-                # Reward's future discount facotr, aka. gamma.
-                discount_factor=0.97,
-                # How many steps in td error.
-                nstep=1,
-            ),
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # Frequence of target network update.
+            target_update_freq=100,
+            # Reward's future discount factor, aka. gamma.
+            discount_factor=0.97,
+            # N-step reward for target q_value estimation
+            nstep=1,
+            # Whether ignore done(usually for max step termination env)
+            ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
+            # only one of [n_sample, n_step, n_episode] shoule be set
             n_sample=8,
-            traj_len=1,
-            # Cut trajectories into pieces with length "unrol_len".
+            # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            algo=dict(nstep=1, ),
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # Frequence of target network update.
+            nstep=1,
+            # Whether to use hindsight experience replay
+            her=False,
         ),
         eval=dict(),
         # other config
@@ -80,13 +87,12 @@ class DQNPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init the optimizer, algorithm config, main and target models.
         """
+        self._priority = self._cfg.priority
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
-        # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._nstep = algo_cfg.nstep
-        self._gamma = algo_cfg.discount_factor
+        self._gamma = self._cfg.learn.discount_factor
+        self._nstep_learn = self._cfg.learn.nstep
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -94,7 +100,7 @@ class DQNPolicy(Policy):
             self._target_model,
             wrapper_name='target',
             update_type='assign',
-            update_kwargs={'freq': algo_cfg.target_update_freq}
+            update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
@@ -110,12 +116,9 @@ class DQNPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data,
-            use_priority=self._cfg.get('use_priority', False),
-            ignore_done=self._cfg.learn.get('ignore_done', False),
-            use_nstep=True
+            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
         )
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         # ====================
         # Q-learning forward
@@ -133,14 +136,14 @@ class DQNPolicy(Policy):
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
-        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep)
+        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep_learn)
 
         # ====================
         # Q-learning update
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._use_distributed:
+        if self._multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 
@@ -174,14 +177,14 @@ class DQNPolicy(Policy):
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._use_her = self._cfg.collect.algo.get('use_her', False)
-        if self._use_her:
-            her_strategy = self._cfg.collect.algo.get('her_strategy', 'future')
-            her_replay_k = self._cfg.collect.algo.get('her_replay_k', 1)
-            self._adder = Adder(self._use_cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
+        self._her = self._cfg.collect.her
+        if self._her:
+            her_strategy = self._cfg.collect.get('her_strategy', 'future')
+            her_replay_k = self._cfg.collect.get('her_replay_k', 1)
+            self._adder = Adder(self._cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
         else:
-            self._adder = Adder(self._use_cuda, self._unroll_len)
-        self._collect_nstep = self._cfg.collect.algo.nstep
+            self._adder = Adder(self._cuda, self._unroll_len)
+        self._collect_nstep = self._cfg.collect.nstep
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -196,12 +199,12 @@ class DQNPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -217,7 +220,7 @@ class DQNPolicy(Policy):
         """
         # adder is defined in _init_collect
         data = self._adder.get_nstep_return_data(data, self._collect_nstep)
-        if self._use_her:
+        if self._cfg.collect.her:
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
@@ -262,12 +265,12 @@ class DQNPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
