@@ -36,12 +36,8 @@ cartpole_ppo_create_config = dict(
         type='cartpole',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(
-        type='base'
-    ),
-    policy=dict(
-        type='ppo'
-    ),
+    env_manager=dict(type='base'),
+    policy=dict(type='ppo'),
 )
 cartpole_ppo_create_config = EasyDict(cartpole_ppo_create_config)
 create_config = cartpole_ppo_create_config

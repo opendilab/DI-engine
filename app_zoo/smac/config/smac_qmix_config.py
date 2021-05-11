@@ -49,9 +49,7 @@ smac_qmix_create_config = dict(
         type='smac',
         import_names=['app_zoo.smac.envs.smac_env'],
     ),
-    env_manager=dict(
-        type='subprocess'
-    ),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='qmix'),
 )
 smac_qmix_create_config = EasyDict(smac_qmix_create_config)

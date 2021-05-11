@@ -371,9 +371,7 @@ class TD3Policy(DDPGPolicy):
         multi_gpu=False,
         on_policy=False,
         priority=False,
-        model=dict(
-            twin_critic=True,
-        ),
+        model=dict(twin_critic=True, ),
         learn=dict(
             update_per_collect=2,
             batch_size=128,

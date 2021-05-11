@@ -47,14 +47,12 @@ cooperative_navigation_qmix_config = dict(
             agent_num=agent_num,
             env_num=evaluator_env_num,
         ),
-        other=dict(
-            eps=dict(
-                type='exp',
-                start=1.0,
-                end=0.05,
-                decay=100000,
-            ),
-        ),
+        other=dict(eps=dict(
+            type='exp',
+            start=1.0,
+            end=0.05,
+            decay=100000,
+        ), ),
     ),
 )
 cooperative_navigation_qmix_config = EasyDict(cooperative_navigation_qmix_config)
@@ -64,12 +62,8 @@ cooperative_navigation_qmix_create_config = dict(
         import_names=['app_zoo.multiagent_particle.envs.particle_env'],
         type='cooperative_navigation',
     ),
-    env_manager=dict(
-        type='subprocess'
-    ),
-    policy=dict(
-        type='qmix'
-    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='qmix'),
 )
 cooperative_navigation_qmix_create_config = EasyDict(cooperative_navigation_qmix_create_config)
 create_config = cooperative_navigation_qmix_create_config

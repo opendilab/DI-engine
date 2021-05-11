@@ -37,7 +37,11 @@ class TestApplication:
         collect_count = 10
         expert_data_path = './expert.data'
         collect_demo_data(
-            config, seed=0, state_dict=setup_state_dict['collect'], collect_count=collect_count, expert_data_path=expert_data_path
+            config,
+            seed=0,
+            state_dict=setup_state_dict['collect'],
+            collect_count=collect_count,
+            expert_data_path=expert_data_path
         )
         with open(expert_data_path, 'rb') as f:
             exp_data = pickle.load(f)

@@ -21,14 +21,8 @@ cartpole_dqn_config = dict(
             discount_factor=0.97,
             nstep=nstep,
         ),
-        collect=dict(
-            nstep=nstep,
-        ),
-        eval=dict(
-            evaluator=dict(
-                eval_freq=50,
-            )
-        ),
+        collect=dict(nstep=nstep, ),
+        eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(
             eps=dict(
                 type='exp',
@@ -36,9 +30,7 @@ cartpole_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=20000,
-            ),
+            replay_buffer=dict(replay_buffer_size=20000, ),
         ),
     ),
 )
@@ -49,12 +41,8 @@ cartpole_dqn_create_config = dict(
         type='cartpole',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(
-        type='base'
-    ),
-    policy=dict(
-        type='dqn'
-    ),
+    env_manager=dict(type='base'),
+    policy=dict(type='dqn'),
 )
 cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config

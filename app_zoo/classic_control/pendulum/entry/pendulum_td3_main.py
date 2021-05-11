@@ -18,15 +18,26 @@ def main(cfg, seed=0):
     def wrapped_pendulum_env():
         return NervexEnvWrapper(gym.make('Pendulum-v0'), cfg=cfg.env.wrapper)
 
-    cfg = compile_config(cfg, PendulumEnv, BaseEnvManager, DDPGPolicy, BaseLearner,
-                         BaseSerialCollector, BaseSerialEvaluator, BufferManager, save_cfg=True)
-    
+    cfg = compile_config(
+        cfg,
+        PendulumEnv,
+        BaseEnvManager,
+        DDPGPolicy,
+        BaseLearner,
+        BaseSerialCollector,
+        BaseSerialEvaluator,
+        BufferManager,
+        save_cfg=True
+    )
+
     # Set up envs for collection and evaluation
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[lambda: PendulumEnv(cfg.env)
-                                           for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[lambda: PendulumEnv(cfg.env)
-                                           for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
