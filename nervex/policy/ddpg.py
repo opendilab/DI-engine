@@ -55,7 +55,8 @@ class DDPGPolicy(Policy):
             target_theta=0.005,
             # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.99,
-            # (int) When critic network updates once, how many times will actor network update. Should be 1 for DDPG, 2 for TD3.
+            # (int) When critic network updates once, how many times will actor network update.
+            # Should be 1 for DDPG, 2 for TD3.
             actor_update_freq=1,
             # (bool) Whether to add noise on target network's action.
             use_noise=True,
@@ -359,7 +360,8 @@ class DDPGPolicy(Policy):
 class TD3Policy(DDPGPolicy):
     r"""
     Overview:
-        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3 class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
+        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3
+        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
     Property:
         learn_mode, collect_mode, eval_mode
     """

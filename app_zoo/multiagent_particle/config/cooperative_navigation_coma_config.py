@@ -6,19 +6,14 @@ evaluator_env_num = 2
 num_agents = agent_num
 num_landmarks = agent_num
 max_step = 100
-cooperative_navigation_coma_default_config = dict(
+cooperative_navigation_coma_config = dict(
     env=dict(
-        manager=dict(type='subprocess', ),
-        env_kwargs=dict(
-            import_names=['app_zoo.multiagent_particle.envs.particle_env'],
-            env_type='cooperative_navigation',
-            num_agents=num_agents,
-            num_landmarks=num_landmarks,
-            max_step=max_step,
-            agent_num=agent_num,
-            collector_env_num=collector_env_num,
-            evaluator_env_num=evaluator_env_num,
-        ),
+        num_agents=num_agents,
+        num_landmarks=num_landmarks,
+        max_step=max_step,
+        agent_num=agent_num,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
     ),
     policy=dict(
         use_cuda=True,
@@ -26,14 +21,14 @@ cooperative_navigation_coma_default_config = dict(
         on_policy=True,
         model=dict(
             agent_num=agent_num,
-            obs_dim=dict(
+            obs_shape=dict(
                 agent_state=[agent_num, 2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2],
                 global_state=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             ),
-            act_dim=[
+            act_shape=[
                 5,
             ],
-            hidden_dim_list=[128, 128, 64],
+            hidden_size_list=[128, 128, 64],
         ),
         learn=dict(
             train_iteration=1,
@@ -91,5 +86,19 @@ cooperative_navigation_coma_default_config = dict(
         ),
     ),
 )
-cooperative_navigation_coma_default_config = EasyDict(cooperative_navigation_coma_default_config)
-main_config = cooperative_navigation_coma_default_config
+cooperative_navigation_coma_config = EasyDict(cooperative_navigation_coma_config)
+main_config = cooperative_navigation_coma_config
+cooperative_navigation_coma_create_config = dict(
+    env=dict(
+        import_names=['app_zoo.multiagent_particle.envs.particle_env'],
+        type='cooperative_navigation',
+    ),
+    env_manager=dict(
+        type='subprocess'
+    ),
+    policy=dict(
+        type='coma'
+    ),
+)
+cooperative_navigation_coma_create_config = EasyDict(cooperative_navigation_coma_create_config)
+create_config = cooperative_navigation_coma_create_config
