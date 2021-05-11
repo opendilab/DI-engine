@@ -25,7 +25,7 @@ policy:
     model:
         obs_dim: 17
         action_dim: 6
-        use_twin_critic: True
+        twin_critic: True
     learn:
         train_iteration: 4
         batch_size: 128
@@ -37,7 +37,7 @@ policy:
             target_theta: 0.005
             discount_factor: 0.99
             collector_update_freq: 2
-            use_twin_critic: True
+            twin_critic: True
             use_noise: True
             noise_sigma: 0.2
             noise_range:

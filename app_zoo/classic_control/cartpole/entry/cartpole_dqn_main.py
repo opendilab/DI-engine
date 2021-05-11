@@ -9,7 +9,7 @@ from nervex.data import BufferManager
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
-from nervex.utils import set_pkg_seed, deep_merge_dicts
+from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config

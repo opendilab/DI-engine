@@ -12,6 +12,11 @@ from nervex.torch_utils import to_tensor, to_ndarray, to_list
 @ENV_REGISTRY.register('pendulum')
 class PendulumEnv(BaseEnv):
 
+    config = dict(
+        n_episode=5,
+        stop_value=-250,
+    )
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
