@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 6
 starpilot_ppo_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -35,7 +34,6 @@ starpilot_ppo_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -53,7 +51,6 @@ starpilot_ppo_default_config = dict(
     ),
     collector=dict(
         n_sample=16,
-        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(

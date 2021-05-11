@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 11
 nstep = 3
 starpilot_dqn_default_config = dict(
     env=dict(
@@ -36,7 +35,6 @@ starpilot_dqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
@@ -56,7 +54,6 @@ starpilot_dqn_default_config = dict(
     ),
     collectorctor=dict(
         n_sample=100,
-        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(

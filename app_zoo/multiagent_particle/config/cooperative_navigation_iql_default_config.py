@@ -68,7 +68,6 @@ cooperative_navigation_iql_default_config = dict(
     ),
     collector=dict(
         n_episode=6,
-        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(

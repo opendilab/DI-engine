@@ -45,7 +45,6 @@ pendulum_sac_auto_alpha_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=1,
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
@@ -56,7 +55,6 @@ pendulum_sac_auto_alpha_config = dict(
     ),
     collector=dict(
         n_sample=64,
-        traj_len=1,
         collect_print_freq=1000,
     ),
     evaluator=dict(

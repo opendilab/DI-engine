@@ -66,7 +66,6 @@ cooperative_navigation_coma_config = dict(
     ),
     collector=dict(
         n_episode=6,
-        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
@@ -93,12 +92,8 @@ cooperative_navigation_coma_create_config = dict(
         import_names=['app_zoo.multiagent_particle.envs.particle_env'],
         type='cooperative_navigation',
     ),
-    env_manager=dict(
-        type='subprocess'
-    ),
-    policy=dict(
-        type='coma'
-    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='coma'),
 )
 cooperative_navigation_coma_create_config = EasyDict(cooperative_navigation_coma_create_config)
 create_config = cooperative_navigation_coma_create_config

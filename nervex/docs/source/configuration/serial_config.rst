@@ -6,7 +6,6 @@ cartpole_dqn_default_config.py
 .. code:: python
 
     nstep = 1
-    traj_len = 1
     cartpole_dqn_default_config = dict(
         common=dict(
             name='CartpoleDqnConfig',
@@ -92,7 +91,6 @@ cartpole_dqn_default_config.py
             n_sample=8,
             # Get "n_episode" complete episodic trajectories per collect.
             # n_episode=8,
-            traj_len=traj_len,
             collect_print_freq=100,
         ),
         evaluator=dict(

@@ -55,7 +55,6 @@ cartpole_rainbowdqn_iqn_config = dict(
     replay_buffer=dict(replay_buffer_size=100000, ),
     collector=dict(
         n_sample=80,
-        traj_len=(8 + nstep),
         collect_print_freq=100,
     ),
     evaluator=dict(

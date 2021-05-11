@@ -69,7 +69,6 @@ cooperative_navigation_collaq_default_config = dict(
     ),
     collector=dict(
         n_episode=6,
-        traj_len='inf',
         collect_print_freq=4,
     ),
     evaluator=dict(

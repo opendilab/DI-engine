@@ -84,8 +84,8 @@ def test_collector_profile():
                 reset_time=0.1,
                 step_time=0.005,
             ), ),
-            policy=dict(forward_time=0.004, collect=dict(n_sample=1, traj_len=1)),
-            actor=dict(n_sample=80, ),
+            policy=dict(forward_time=0.004),
+            collector=dict(n_sample=80, ),
         ),
         dict(
             size="middle",
@@ -98,8 +98,8 @@ def test_collector_profile():
                     step_time=0.01,
                 ),
             ),
-            policy=dict(forward_time=0.008, collect=dict(n_sample=1, traj_len=1)),
-            actor=dict(n_sample=80, ),
+            policy=dict(forward_time=0.008),
+            collector=dict(n_sample=80, ),
         ),
 
         # Big env(45min) takes much longer time than small(5min) and middle(10min).
@@ -114,8 +114,8 @@ def test_collector_profile():
                     step_time=0.1,
                 ),
             ),
-            policy=dict(forward_time=0.02, collect=dict(n_sample=1, traj_len=1)),
-            actor=dict(n_sample=80, ),
+            policy=dict(forward_time=0.02),
+            collector=dict(n_sample=80, ),
         ),
     ]
     out_str = []

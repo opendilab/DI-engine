@@ -36,7 +36,6 @@ cartpole_ppg_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -57,7 +56,6 @@ cartpole_ppg_default_config = dict(
     ),
     collector=dict(
         n_sample=16,
-        traj_len=200,  # cartpole max episode len
         collect_print_freq=100,
     ),
     evaluator=dict(

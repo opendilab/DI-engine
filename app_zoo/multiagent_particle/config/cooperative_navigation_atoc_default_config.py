@@ -72,7 +72,6 @@ cooperative_navigation_atoc_default_config = dict(
     collector=dict(
         # n_episode=4,
         n_sample=500,
-        traj_len='inf',
         collect_print_freq=4,
     ),
     evaluator=dict(

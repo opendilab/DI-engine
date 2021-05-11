@@ -52,7 +52,6 @@ __zergling_collector_default_config = dict(
     collector_type='zergling',
     import_names=['nervex.worker.collector.zergling_collector'],
     print_freq=10,
-    traj_len=1,
     compressor='lz4',
     policy_update_freq=3,
     env_kwargs=dict(
@@ -81,12 +80,10 @@ __coordinator_default_config = dict(
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
         collector_cfg=__zergling_collector_default_config,
-        replay_buffer_cfg=dict(
-            buffer_name=['agent'], agent=dict(
-                meta_maxlen=100000,
-                max_reuse=10,
-            )
-        ),
+        replay_buffer_cfg=dict(buffer_name=['agent'], agent=dict(
+            meta_maxlen=100000,
+            max_reuse=10,
+        )),
         policy=__policy_default_config,
         max_iterations=int(1e9),
         eval_interval=500,

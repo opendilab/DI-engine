@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 6
 spaceinvaders_a2c_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -35,7 +34,6 @@ spaceinvaders_a2c_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
                 gae_lambda=0.99,
@@ -53,7 +51,6 @@ spaceinvaders_a2c_default_config = dict(
     ),
     collector=dict(
         n_sample=80,
-        traj_len=traj_len,
         collect_print_freq=10000,
     ),
     evaluator=dict(

@@ -23,7 +23,6 @@ __policy_default_config = dict(
         ),
     ),
     collect=dict(
-        traj_len=39,
         unroll_len=1,
         algo=dict(nstep=3),
     ),

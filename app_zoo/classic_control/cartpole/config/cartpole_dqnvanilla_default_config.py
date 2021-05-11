@@ -44,7 +44,6 @@ cartpole_dqnvanilla_default_config = dict(
     replay_buffer=dict(replay_buffer_size=20000, ),
     collector=dict(
         n_sample=8,
-        traj_len=1,
         collect_print_freq=100,
     ),
     evaluator=dict(

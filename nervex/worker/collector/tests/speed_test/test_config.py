@@ -25,7 +25,6 @@ test_config = dict(
     collector=dict(
         n_sample=80,
         # n_episode=8,
-        traj_len=1,
         collect_print_freq=5000,
     ),
     replay_buffer=dict(

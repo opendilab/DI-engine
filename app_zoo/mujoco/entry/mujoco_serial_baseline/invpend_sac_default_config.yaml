@@ -50,7 +50,6 @@ policy:
             is_auto_alpha: True
         init_data_count: 10000
     collect:
-        traj_len: 1
         unroll_len: 1
         algo:
             noise_sigma: 0.1
@@ -63,7 +62,6 @@ replay_buffer:
         max_use: 2400000
 collector:
     n_sample: 64
-    traj_len: 1
     collect_print_freq: 1000
 evaluator:
     n_episode: 8

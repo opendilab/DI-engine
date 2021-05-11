@@ -38,7 +38,6 @@ cartpole_r2d2_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(2 * unroll_len + nstep),
             unroll_len=(2 * nstep + burnin_step),
             env_num=collector_env_num,
             algo=dict(
@@ -57,7 +56,6 @@ cartpole_r2d2_default_config = dict(
     replay_buffer=dict(replay_buffer_size=1000, ),
     collector=dict(
         n_sample=32,
-        traj_len=14,
         collect_print_freq=100,
     ),
     evaluator=dict(

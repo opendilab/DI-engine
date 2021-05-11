@@ -37,7 +37,6 @@ pendulum_ppo_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -51,7 +50,6 @@ pendulum_ppo_default_config = dict(
     ),
     collector=dict(
         n_episode=16,
-        traj_len=200,
         collect_print_freq=1000,
     ),
     evaluator=dict(

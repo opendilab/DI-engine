@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 32
 nstep = 3
 spaceinvaders_dqn_default_config = dict(
     env=dict(
@@ -37,7 +36,6 @@ spaceinvaders_dqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
@@ -57,7 +55,6 @@ spaceinvaders_dqn_default_config = dict(
     ),
     collector=dict(
         n_sample=100,
-        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(

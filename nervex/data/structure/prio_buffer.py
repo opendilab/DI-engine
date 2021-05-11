@@ -193,9 +193,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                     break
             if self._valid_count < size:
                 self._logger.info(
-                    "No enough elements for sampling (expect: {} / current: {})".format(
-                        size, self._valid_count
-                    )
+                    "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
                 )
                 return False
             else:

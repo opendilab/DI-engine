@@ -45,7 +45,6 @@ spaceinvaders_impala_default_config = dict(
             ignore_done=True,
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=64,
             algo=dict(discount_factor=discount_factor, ),
         ),
@@ -60,7 +59,6 @@ spaceinvaders_impala_default_config = dict(
     ),
     collector=dict(
         n_sample=16,
-        traj_len=128,
         collect_print_freq=100,
     ),
     evaluator=dict(

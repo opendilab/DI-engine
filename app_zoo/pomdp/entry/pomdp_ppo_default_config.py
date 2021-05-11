@@ -42,7 +42,6 @@ pomdp_ppo_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -60,7 +59,6 @@ pomdp_ppo_default_config = dict(
     ),
     collectorctorctor=dict(
         n_sample=16,
-        traj_len=2000,  # cartpole max episode len
         collect_print_freq=100,
     ),
     evaluator=dict(

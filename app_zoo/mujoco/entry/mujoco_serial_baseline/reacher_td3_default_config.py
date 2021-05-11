@@ -49,7 +49,6 @@ reacher_td3_default_config = dict(
             init_data_count=5000,
         ),
         collect=dict(
-            traj_len=1,
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
@@ -64,7 +63,6 @@ reacher_td3_default_config = dict(
     ),
     collector=dict(
         n_sample=48,
-        traj_len=1,
         collect_print_freq=1000,
     ),
     evaluator=dict(

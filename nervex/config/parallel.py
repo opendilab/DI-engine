@@ -1,8 +1,5 @@
 from easydict import EasyDict
-
 from .serial import base_learner_default_config
-
-traj_len = 1
 
 # You can refer to policy config in serial pipeline config for details
 policy_default_config = dict(
@@ -24,7 +21,6 @@ policy_default_config = dict(
         ),
     ),
     collect=dict(
-        traj_len=traj_len,
         unroll_len=1,
         algo=dict(nstep=1, ),
     ),
@@ -33,7 +29,6 @@ policy_default_config = dict(
 zergling_collector_default_config = dict(
     collector_type='zergling',
     print_freq=10,
-    traj_len=traj_len,
     # The function to compress data.
     compressor='lz4',
     # Frequency for collector to update its own policy according learner's saved one.

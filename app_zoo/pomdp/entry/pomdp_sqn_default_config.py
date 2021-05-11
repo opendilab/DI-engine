@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 64
 update_freq = 50
 # update_freq = 50
 pomdp_sqn_default_config = dict(
@@ -68,8 +67,6 @@ pomdp_sqn_default_config = dict(
         ),
         # collect_mode config
         collect=dict(
-            # Will collect trajectory with length "traj_len".
-            traj_len=traj_len,
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
         ),
@@ -99,7 +96,6 @@ pomdp_sqn_default_config = dict(
         n_sample=update_freq,  # training freq
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
-        traj_len=traj_len,
         traj_print_freq=500,
         collect_print_freq=500,
     ),

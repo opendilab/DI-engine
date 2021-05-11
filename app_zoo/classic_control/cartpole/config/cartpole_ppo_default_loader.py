@@ -33,7 +33,6 @@ cartpole_ppo_default_loader = dict_(
             ),
         ),
         collect=item('collect') >> dict_(
-            traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200)) | (enum("inf") >> to_type(float))),
             unroll_len=item('unroll_len') >> is_type(int) >> interval(1, 200),
             algo=item('algo') >> dict_(
                 discount_factor=item('discount_factor') >> (is_type(float) & interval(0.9, 0.999)),
@@ -45,7 +44,6 @@ cartpole_ppo_default_loader = dict_(
     dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
     collector=item('collector') >> dict_(
         n_sample=item('n_sample') >> is_type(int) >> interval(8, 128),
-        traj_len=item('traj_len') >> ((is_type(int) >> interval(1, 200))),
         collect_print_freq=item('collect_print_freq') >> is_type(int) >> interval(1, 1000),
     ),
     evaluator=item('evaluator') >> dict_(
@@ -55,15 +53,6 @@ cartpole_ppo_default_loader = dict_(
         stop_value=item('stop_value') >> is_type(int),
     ),
     learner=item('learner') >> dict_(load_path=item('load_path') >> is_type(str), hook=item('hook')),
-)
-policy_traj_len = item('policy') >> item('collect') >> item('traj_len')
-policy_unroll_len = item('policy') >> item('collect') >> item('unroll_len')
-collector_traj_len = item('collector') >> item('traj_len')
-relation_loader = check_only(
-    dict_(
-        unroll_len_check=mcmp(policy_unroll_len, "<=", policy_traj_len),
-        traj_len_check=mcmp(policy_traj_len, ">=", collector_traj_len),
-    )
 )
 
 cartpole_ppo_default_loader = cartpole_ppo_default_loader >> relation_loader

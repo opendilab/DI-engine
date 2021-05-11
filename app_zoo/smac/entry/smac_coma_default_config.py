@@ -43,7 +43,6 @@ smac_coma_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=16,
             agent_num=agent_num,
             env_num=collector_env_num,
@@ -68,7 +67,6 @@ smac_coma_default_config = dict(
     ),
     collector=dict(
         n_episode=4,
-        traj_len=1000,  # smac_episode_max_length
         collect_print_freq=100,
     ),
     evaluator=dict(

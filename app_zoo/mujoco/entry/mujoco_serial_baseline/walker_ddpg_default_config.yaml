@@ -45,7 +45,6 @@ policy:
                 max: 0.5
         init_data_count: 5000
     collect:
-        traj_len: 1
         unroll_len: 1
         algo:
             noise_sigma: 0.1
@@ -58,7 +57,6 @@ replay_buffer:
         max_use: 16
 collector:
     n_sample: 48
-    traj_len: 1
     collect_print_freq: 1000
 evaluator:
     n_episode: 8

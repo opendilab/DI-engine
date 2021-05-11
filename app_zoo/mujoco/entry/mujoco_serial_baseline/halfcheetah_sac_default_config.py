@@ -50,7 +50,6 @@ halfcheetah_sac_default_config = dict(
             init_data_count=5000,
         ),
         collect=dict(
-            traj_len=1,
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
@@ -65,7 +64,6 @@ halfcheetah_sac_default_config = dict(
     ),
     collector=dict(
         n_sample=64,
-        traj_len=1,
         collect_print_freq=1000,
     ),
     evaluator=dict(

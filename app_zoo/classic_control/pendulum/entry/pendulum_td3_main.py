@@ -17,6 +17,7 @@ from app_zoo.classic_control.pendulum.config.pendulum_td3_config import pendulum
 def wrapped_pendulum_env():
     return NervexEnvWrapper(gym.make('Pendulum-v0'))
 
+
 def main(cfg, seed=0):
     cfg = compile_config(
         cfg,

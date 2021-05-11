@@ -51,7 +51,6 @@ bitflip_dqn_default_config = dict(
     replay_buffer=dict(replay_buffer_size=5000, ),
     collector=dict(
         n_episode=1,
-        traj_len=50,
         collect_print_freq=100,
     ),
     evaluator=dict(

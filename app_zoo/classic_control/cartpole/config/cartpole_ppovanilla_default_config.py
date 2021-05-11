@@ -42,7 +42,6 @@ cartpole_ppovanilla_default_config = dict(
     replay_buffer=dict(replay_buffer_size=1000, ),
     collector=dict(
         n_sample=16,
-        traj_len='inf',
         collect_print_freq=100,
     ),
     evaluator=dict(
