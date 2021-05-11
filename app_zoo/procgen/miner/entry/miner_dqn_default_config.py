@@ -52,7 +52,6 @@ miner_dqn_default_config = dict(
         agent=dict(
             meta_maxlen=10000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(

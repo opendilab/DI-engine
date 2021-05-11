@@ -24,7 +24,6 @@ def setup_base_buffer():
     cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
     cfg.replay_buffer_size = 64
     cfg.max_use = 2
-    cfg.min_sample_ratio = 2.
     cfg.alpha = 0.
     cfg.beta = 0.
     cfg.monitor = monitor_cfg
@@ -37,7 +36,6 @@ def setup_prioritized_buffer():
     cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
     cfg.replay_buffer_size = 64
     cfg.max_use = 1
-    cfg.min_sample_ratio = 2.
     cfg.max_staleness = 1000
     cfg.enable_track_used_data = True
     cfg.monitor = monitor_cfg
@@ -56,7 +54,6 @@ def setup_demo_buffer_factory():
             cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
             cfg.replay_buffer_size = 64
             cfg.max_use = 2
-            cfg.min_sample_ratio = 2.
             cfg.max_staleness = 1000
             cfg.alpha = 0.6
             cfg.beta = 0.6

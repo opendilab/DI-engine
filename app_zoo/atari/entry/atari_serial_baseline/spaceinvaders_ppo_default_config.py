@@ -47,7 +47,6 @@ space_ppo_default_config = dict(
         agent=dict(
             meta_maxlen=100000,
             max_use=3,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(

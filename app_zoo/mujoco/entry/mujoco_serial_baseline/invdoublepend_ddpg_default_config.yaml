@@ -59,7 +59,6 @@ replay_buffer:
     agent:
         replay_buffer_size: 20000
         max_use: 1024
-        min_sample_ratio: 1
 collector:
     n_sample: 24
     traj_len: 1

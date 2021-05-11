@@ -56,7 +56,6 @@ pomdp_ppo_default_config = dict(
         agent=dict(
             meta_maxlen=1000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collectorctorctor=dict(

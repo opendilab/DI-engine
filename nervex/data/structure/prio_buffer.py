@@ -46,8 +46,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         # Max staleness time duration of one data in the buffer; Data will be removed if
         # the duration from collecting to training is too long, i.e. The data is too stale.
         max_staleness=float("inf"),
-        # Min ratio of "data count in buffer" / "sample count". If ratio is less than this, sample will return None.
-        min_sample_ratio=1.,
         # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
         alpha=0.6,
         # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -121,8 +119,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._replay_buffer_start_size = self._cfg.replay_buffer_start_size
         self._max_use = self._cfg.max_use
         self._max_staleness = self._cfg.max_staleness
-        self.min_sample_ratio = self._cfg.min_sample_ratio
-        assert self.min_sample_ratio >= 1, self.min_sample_ratio
         self.alpha = self._cfg.alpha
         assert 0 <= self.alpha <= 1, self.alpha
         self._beta = self._cfg.beta
@@ -167,8 +163,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         Overview:
             Do preparations for sampling and check whther data is enough for sampling
             Preparation includes removing stale transition in ``self._data``.
-            Check includes judging whether this buffer satisfies the sample condition:
-            current elements count / planning sample count >= min_sample_ratio.
+            Check includes judging whether this buffer has more than ``size`` datas to sample.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
@@ -196,10 +191,10 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 if p == self._tail:
                     # Traverse a circle and go back to the tail, which means can stop staleness checking now
                     break
-            if self._valid_count / size < self.min_sample_ratio:
+            if self._valid_count < size:
                 self._logger.info(
-                    "No enough elements for sampling (expect: {}/current have: {}, min_sample_ratio: {})".format(
-                        size, self._valid_count, self.min_sample_ratio
+                    "No enough elements for sampling (expect: {} / current: {})".format(
+                        size, self._valid_count
                     )
                 )
                 return False

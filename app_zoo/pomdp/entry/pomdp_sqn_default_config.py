@@ -91,7 +91,6 @@ pomdp_sqn_default_config = dict(
         agent=dict(
             meta_maxlen=100_000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collectorctor=dict(

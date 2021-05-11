@@ -56,7 +56,6 @@ qbert_impala_default_config = dict(
         agent=dict(
             replay_buffer_size=10000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(

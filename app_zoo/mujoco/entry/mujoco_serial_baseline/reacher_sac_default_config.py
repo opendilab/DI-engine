@@ -59,7 +59,6 @@ reacher_sac_default_config = dict(
         agent=dict(
             replay_buffer_size=100000,
             max_use=256,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
