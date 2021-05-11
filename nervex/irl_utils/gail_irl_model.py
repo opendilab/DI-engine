@@ -79,7 +79,7 @@ class GailRewardModel(BaseRewardModel):
         return loss.item()
 
     def train(self) -> None:
-        for _ in range(self.config['train_iterations']):
+        for _ in range(self.config.update_per_collect):
             sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
             sample_expert_data = torch.stack(sample_expert_data).to(self.device)
