@@ -84,7 +84,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
         """
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         # ``_data`` is a circular queue to store data (or data's reference/file path)
         self._data = [None for _ in range(self._cfg.replay_buffer_size)]
         self._enable_track_used_data = self._cfg.enable_track_used_data

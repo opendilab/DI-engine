@@ -82,9 +82,9 @@ class BufferManager(IBuffer):
         self.cfg = {}
         for name in self.buffer_name:
             if name in cfg:
-                self.cfg[name] = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), cfg.pop(name))
+                self.cfg[name] = cfg.pop(name)
             else:
-                self.cfg[name] = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), cfg)
+                self.cfg[name] = cfg
         # ``self.buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
         self._enable_track_used_data = {}

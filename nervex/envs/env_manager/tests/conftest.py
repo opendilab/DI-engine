@@ -7,11 +7,12 @@ import torch
 import numpy as np
 from easydict import EasyDict
 from functools import partial
+from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.env_manager.base_env_manager import EnvState
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
+from nervex.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils.time_helper import WatchDog
+from nervex.utils import WatchDog, deep_merge_dicts
 
 
 class EnvException(Exception):
@@ -161,11 +162,19 @@ def get_manager_cfg(env_num=4):
 
 
 @pytest.fixture(scope='function')
+def setup_base_manager_cfg():
+    manager_cfg = get_manager_cfg(4)
+    env_cfg = manager_cfg.pop('env_cfg')
+    manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
+    return deep_merge_dicts(BaseEnvManager.default_config(), EasyDict(manager_cfg))
+
+
+@pytest.fixture(scope='function')
 def setup_sync_manager_cfg():
     manager_cfg = get_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
-    return EasyDict(manager_cfg)
+    return deep_merge_dicts(SyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))
 
 
 @pytest.fixture(scope='function')
@@ -175,4 +184,4 @@ def setup_async_manager_cfg():
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
     manager_cfg['connect_timeout'] = 30
-    return EasyDict(manager_cfg)
+    return deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))

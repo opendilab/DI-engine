@@ -45,7 +45,7 @@ class BaseSerialEvaluator(object):
         Arguments:
             - cfg (:obj:`EasyDict`)
         """
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         if env is not None:
             self.env = env
         if policy is not None:

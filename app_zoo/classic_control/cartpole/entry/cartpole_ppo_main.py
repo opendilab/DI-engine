@@ -21,10 +21,10 @@ def wrapped_cartpole_env():
 def main(cfg, seed=0):
     cfg = compile_config(cfg, CartPoleEnv, BaseEnvManager, PPOPolicy, BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BufferManager, save_cfg=True)
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
-    # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
-    collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(evaluator_env_num)])
+    # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[lambda: CartPoleEnv({}) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

@@ -158,7 +158,7 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         self._learner_uid = get_task_uid()
         self._load_path = self._cfg.load_path
         self._use_distributed = self._cfg.use_distributed

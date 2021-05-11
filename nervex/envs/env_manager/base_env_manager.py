@@ -112,7 +112,7 @@ class BaseEnvManager(object):
         Arguments:
             - env_fn (:obj:`List[Callable]`): the function to create environment
         """
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
         self._transform = partial(to_ndarray)

@@ -60,7 +60,7 @@ class Policy(ABC):
             model: Optional[Union[type, torch.nn.Module]] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         model = self._create_model(cfg, model)
         self._cuda = cfg.cuda and torch.cuda.is_available()
         self._multi_gpu = self._cfg.multi_gpu

@@ -173,7 +173,7 @@ def compile_config(
     policy_config.learn.learner = learner.default_config()
     policy_config.collect.collector = collector.default_config()
     policy_config.eval.evaluator = evaluator.default_config()
-    policy_config.other.buffer = buffer.default_config()
+    policy_config.other.replay_buffer = buffer.default_config()
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg = deep_merge_dicts(default_config, cfg)
     if save_cfg:

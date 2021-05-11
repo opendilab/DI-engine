@@ -58,7 +58,6 @@ class OneVsOneLeague(BaseLeague):
 
     # override
     def _init_cfg(self, cfg: EasyDict) -> None:
-        cfg = deep_merge_dicts(self.default_config(), cfg)
         self.cfg = cfg
         # self.model_config = cfg.get('model', EasyDict())
 

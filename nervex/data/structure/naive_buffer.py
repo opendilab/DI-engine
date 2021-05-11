@@ -52,7 +52,7 @@ class NaiveReplayBuffer:
             - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data
         """
         self.name = name
-        self._cfg = deep_merge_dicts(self.default_config(), cfg)
+        self._cfg = cfg
         self._replay_buffer_size = self._cfg.replay_buffer_size
         self._deepcopy = self._cfg.deepcopy
 
