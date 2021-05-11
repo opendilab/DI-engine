@@ -47,7 +47,7 @@ def eval(
     else:
         env_fn, _, evaluator_env_cfg = env_setting
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
     if state_dict is None:

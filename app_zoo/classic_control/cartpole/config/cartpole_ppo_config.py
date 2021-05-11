@@ -15,7 +15,7 @@ cartpole_ppo_config = dict(
         ),
         learn=dict(
             update_per_collect=5,
-            batch_size=32,
+            batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,
             entropy_weight=0.01,

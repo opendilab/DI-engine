@@ -13,11 +13,11 @@ from app_zoo.classic_control.pendulum.envs import PendulumEnv
 from app_zoo.classic_control.pendulum.config.pendulum_td3_config import pendulum_td3_config
 
 
+# Get nerveX form env class
+def wrapped_pendulum_env():
+    return NervexEnvWrapper(gym.make('Pendulum-v0'))
+
 def main(cfg, seed=0):
-
-    def wrapped_pendulum_env():
-        return NervexEnvWrapper(gym.make('Pendulum-v0'), cfg=cfg.env.wrapper)
-
     cfg = compile_config(
         cfg,
         PendulumEnv,
@@ -41,7 +41,7 @@ def main(cfg, seed=0):
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
-    evaluator_env.seed(seed)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
