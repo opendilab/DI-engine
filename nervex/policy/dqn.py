@@ -76,7 +76,7 @@ class DQNPolicy(Policy):
                 type='exp',
                 start=0.95,
                 end=0.1,
-                # (int) decay length(env step)
+                # (int) Decay length(env step)
                 decay=10000,
             ),
             replay_buffer=dict(replay_buffer_size=10000, )

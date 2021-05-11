@@ -21,6 +21,7 @@ class BaseEnv(gym.Env):
     """
 
     config = dict()
+
     @classmethod
     def default_config(cls: type) -> EasyDict:
         cfg = EasyDict(cls.config)

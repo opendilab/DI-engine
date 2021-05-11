@@ -1,7 +1,9 @@
 from collections import namedtuple
 from typing import Any, Optional
-import torch
+from easydict import EasyDict
+import copy
 import numpy as np
+import torch
 
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
@@ -142,6 +144,16 @@ CNEnvInfo = namedtuple('CNEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew
 # same structure as smac env
 @ENV_REGISTRY.register('cooperative_navigation')
 class CooperativeNavigation(BaseEnv):
+
+    config=dict(
+        n_episode=5,
+        stop_value=0,
+    )
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
