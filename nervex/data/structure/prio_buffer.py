@@ -40,7 +40,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         # Max length of the buffer.
         replay_buffer_size=4096,
         # start training data count
-        replay_start_size=0,
+        replay_buffer_start_size=0,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.
         max_use=float("inf"),
         # Max staleness time duration of one data in the buffer; Data will be removed if
@@ -118,7 +118,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
 
         self.name = name
         self._replay_buffer_size = self._cfg.replay_buffer_size
-        self._replay_start_size = self._cfg.replay_start_size
+        self._replay_buffer_start_size = self._cfg.replay_buffer_start_size
         self._max_use = self._cfg.max_use
         self._max_staleness = self._cfg.max_staleness
         self.min_sample_ratio = self._cfg.min_sample_ratio
@@ -628,8 +628,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             return None
 
     @property
-    def replay_start_size(self) -> int:
-        return self._replay_start_size
+    def replay_buffer_start_size(self) -> int:
+        return self._replay_buffer_start_size
 
     def state_dict(self) -> dict:
         return {

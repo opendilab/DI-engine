@@ -65,10 +65,10 @@ def serial_pipeline(
     learner.call_hook('before_run')
 
     # Accumulate plenty of data at the beginning of training.
-    if replay_buffer.replay_start_size() > 0:
+    if replay_buffer.replay_buffer_start_size() > 0:
         collect_kwargs = commander.step()
         new_data = collector.collect_data(
-            learner.train_iter, n_sample=replay_buffer.replay_start_size(), policy_kwargs=collect_kwargs
+            learner.train_iter, n_sample=replay_buffer.replay_buffer_start_size(), policy_kwargs=collect_kwargs
         )
         replay_buffer.push(new_data, cur_collector_envstep=0)
     while True:

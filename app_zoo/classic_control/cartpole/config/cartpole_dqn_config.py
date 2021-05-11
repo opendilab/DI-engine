@@ -10,9 +10,9 @@ cartpole_dqn_config = dict(
     policy=dict(
         cuda=False,
         model=dict(
-            obs_dim=4,
-            action_dim=2,
-            hidden_dim_list=[128, 128, 64],
+            obs_shape=4,
+            action_shape=2,
+            hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
         learn=dict(

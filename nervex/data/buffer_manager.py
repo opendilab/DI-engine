@@ -9,9 +9,6 @@ import numpy as np
 
 from nervex.data.structure import PrioritizedReplayBuffer, NaiveReplayBuffer, Cache, SumSegmentTree
 from nervex.utils import deep_merge_dicts, remove_file
-from nervex.config import buffer_manager_default_config
-
-default_config = buffer_manager_default_config.replay_buffer
 
 
 class IBuffer(ABC):
@@ -53,7 +50,7 @@ class IBuffer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def replay_start_size(self) -> int:
+    def replay_buffer_start_size(self) -> int:
         raise NotImplementedError
 
 
@@ -281,11 +278,11 @@ class BufferManager(IBuffer):
             if n in self.buffer.keys():
                 self.buffer[n].load_state_dict(v)
 
-    def replay_start_size(self, buffer_name: Optional[str] = None) -> int:
+    def replay_buffer_start_size(self, buffer_name: Optional[str] = None) -> int:
         if buffer_name is None:
-            return max([self.buffer[n].replay_start_size for n in self.buffer_name])
+            return max([self.buffer[n].replay_buffer_start_size for n in self.buffer_name])
         else:
-            return self.buffer[buffer_name].replay_start_size
+            return self.buffer[buffer_name].replay_buffer_start_size
 
     def _delete_used_data(self, name: str) -> None:
         while not self._end_flag:
