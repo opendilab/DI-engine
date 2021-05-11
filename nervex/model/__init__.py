@@ -1,6 +1,6 @@
 from .common import *
 from .discrete_net import *
-from .actor_critic import *
+from .vac import *
 from .qac import *
 from .qmix import *
 from .coma import *

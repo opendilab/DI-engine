@@ -22,15 +22,15 @@ class DQNPolicy(Policy):
     """
 
     config = dict(
-        # RL policy register name (refer to function "POLICY_REGISTRY").
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='dqn',
-        # Whether to use cuda for network.
+        # (bool) Whether to use cuda for network.
         cuda=False,
-        # Whether to use multi gpu
+        # (bool) Whether to use multi gpu
         multi_gpu=False,
-        # Whether the RL algorithm is on-policy or off-policy.
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
-        # Whether use priority(priority sample, IS weight, update priority)
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
             # How many updates(iterations) to train after collector's one collection.
@@ -39,32 +39,32 @@ class DQNPolicy(Policy):
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
-            # L2 norm weight for network parameters.
+            # (float) L2 norm weight for network parameters.
             weight_decay=0.0,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
-            # Frequence of target network update.
+            # (int) Frequence of target network update.
             target_update_freq=100,
-            # Reward's future discount factor, aka. gamma.
+            # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.97,
-            # N-step reward for target q_value estimation
+            # (int) N-step reward for target q_value estimation
             nstep=1,
-            # Whether ignore done(usually for max step termination env)
+            # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
-            # only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
             n_sample=8,
-            # Cut trajectories into pieces with length "unroll_len".
+            # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
-            # Frequence of target network update.
+            # (int) Frequence of target network update.
             nstep=1,
-            # Whether to use hindsight experience replay
+            # (bool) Whether to use hindsight experience replay
             her=False,
         ),
         eval=dict(),
@@ -72,12 +72,14 @@ class DQNPolicy(Policy):
         other=dict(
             # Epsilon greedy with decay.
             eps=dict(
-                # Decay type. Support ['exp', 'linear'].
+                # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
                 start=0.95,
                 end=0.1,
+                # (int) decay length(env step)
                 decay=10000,
             ),
+            replay_buffer=dict(replay_buffer_size=10000, )
         ),
     )
 

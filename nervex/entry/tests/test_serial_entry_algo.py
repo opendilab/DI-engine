@@ -16,6 +16,7 @@ from nervex.entry import serial_pipeline
 #     cooperative_navigation_coma_default_config, cooperative_navigation_iql_default_config, \
 #     cooperative_navigation_qmix_default_config
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -89,24 +90,13 @@ def test_dqn_vanilla():
 
 @pytest.mark.algotest
 def test_ppo():
-    config = deepcopy(cartpole_ppo_default_config)  # noqa
+    config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("7. ppo\n")
-
-
-@pytest.mark.algotest
-def test_ppo_vanilla():
-    config = deepcopy(cartpole_ppovanilla_default_config)  # noqa
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("8. ppo vanilla\n")
 
 
 @pytest.mark.algotest
@@ -156,17 +146,6 @@ def test_a2c_with_nstep_return():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("14. a2c with nstep return\n")
-
-
-# @pytest.mark.algotest
-def test_ppo_vanilla_continous():
-    config = deepcopy(pendulum_ppo_default_config)  # noqa
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("15. ppo vanilla continuous\n")
 
 
 @pytest.mark.algotest

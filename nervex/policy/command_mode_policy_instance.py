@@ -42,9 +42,9 @@ class EpsCommandModePolicy(CommandModePolicy):
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
         # use learner_step
-        step = command_info['learner_step']
+        # step = command_info['learner_step']
         # use env_step
-        # step = command_info['env_step']
+        step = command_info['env_step']
         return {'eps': self.epsilon_greedy(step)}
 
     def _get_setting_learn(self, command_info: dict) -> dict:

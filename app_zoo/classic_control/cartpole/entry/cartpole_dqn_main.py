@@ -56,7 +56,7 @@ def main(cfg, seed=0):
             if stop:
                 break
         # Update other modules
-        eps = epsilon_greedy(learner.train_iter)
+        eps = epsilon_greedy(collector.envstep)
         # Sampling data from environments
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)

@@ -13,7 +13,7 @@ from torch.distributions import Normal
 from nervex.utils import squeeze, MODEL_REGISTRY
 from nervex.torch_utils.network.nn_module import MLP
 from ..common import ActorCriticBase, FCEncoder, ConvEncoder
-from ..actor_critic.value_ac import FCValueAC, ConvValueAC
+from ..vac.value_ac import FCValueAC, ConvValueAC
 
 
 class FCValueNet(nn.Module):
