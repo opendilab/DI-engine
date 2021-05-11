@@ -57,7 +57,7 @@ class QAC(ActorCriticBase):
             action_dim: Union[int, tuple],
             state_action_embedding_dim: int = 64,
             state_embedding_dim: int = 64,
-            use_twin_critic: bool = False,
+            twin_critic: bool = False,
     ) -> None:
         """
         Overview:
@@ -68,7 +68,7 @@ class QAC(ActorCriticBase):
             - state_action_embedding_dim (:obj:`int`): the dim of state + action that will be embedded into, \
                 i.e. hidden dim
             - state_embedding_dim (:obj:`int`): the dim of state that will be embedded into, i.e. hidden dim
-            - use_twin_critic (:obj:`bool`): whether to use a pair of critic networks. If True, it is TD3 model; \
+            - twin_critic (:obj:`bool`): whether to use a pair of critic networks. If True, it is TD3 model; \
                 Otherwise, it is DDPG model.
         """
         super(QAC, self).__init__()
@@ -81,19 +81,19 @@ class QAC(ActorCriticBase):
         self._state_action_embedding_dim = state_action_embedding_dim
         self._state_embedding_dim = state_embedding_dim
         # network
-        self._use_twin_critic = use_twin_critic
+        self._twin_critic = twin_critic
         self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._state_embedding_dim, use_final_tanh=True)
-        critic_num = 2 if use_twin_critic else 1
+        critic_num = 2 if twin_critic else 1
         self._critic = nn.ModuleList(
             [
                 FCContinuousNet(self._obs_dim + self._act_dim, 1, self._state_action_embedding_dim)
                 for _ in range(critic_num)
             ]
         )
-        self._use_twin_critic = use_twin_critic
+        self._twin_critic = twin_critic
 
     def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
-        if self._use_twin_critic and not single:
+        if self._twin_critic and not single:
             return [self._critic[i](x) for i in range(2)]
         else:
             return self._critic[0](x)

@@ -35,7 +35,7 @@ class TestQAC:
                 action_dim=action_dim,
                 state_action_embedding_dim=embedding_dim,
                 state_embedding_dim=embedding_dim,
-                use_twin_critic=twin,
+                twin_critic=twin,
             )
             # compute_q
             q = model(inputs, mode='compute_critic')['q_value']

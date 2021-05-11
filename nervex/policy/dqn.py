@@ -42,7 +42,7 @@ class DQNPolicy(Policy):
             # (float) L2 norm weight for network parameters.
             weight_decay=0.0,
             # ==============================================================
-            # The following configs is algorithm-specific
+            # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
