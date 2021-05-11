@@ -15,6 +15,58 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('coma')
 class COMAPolicy(Policy):
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='coma',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=True,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        learn=dict(
+            update_per_collect=1,
+            batch_size=32,
+            learning_rate=0.0005,
+            weight_decay=0.00001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) target network update weight, theta * new_w + (1 - theta) * old_w, defaults in [0, 0.1]
+            target_update_theta=0.001,
+            # (float) discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.99,
+            # (float) the trade-off factor of td-lambda, which balances 1step td and mc(nstep td in practice)
+            td_lambda=0.8,
+            # (float) the loss weight of value network, policy network weight is set to 1
+            value_weight=1.0,
+            # (float) the loss weight of entropy regularization, policy network weight is set to 1
+            entropy_weight=0.01,
+        ),
+        collect=dict(
+            # (int) collect n_episode data, train model n_iteration time
+            n_episode=6,
+            # (int) unroll length of a train iteration(gradient update step)
+            unroll_len=16,
+        ),
+        eval=dict(),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=0.5,
+                end=0.01,
+                decay=100000,
+            ),
+            replay_buffer=dict(
+                # (int) max size of replay buffer
+                replay_buffer_size=64,
+                # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer
+                max_use=100,
+            ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         """
@@ -35,6 +87,8 @@ class COMAPolicy(Policy):
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
+        self._priority = self._cfg.priority
+        assert not self._priority, "not implemented priority in PPO"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
@@ -80,7 +134,7 @@ class COMAPolicy(Policy):
         # data preprocess
         data = timestep_collate(data)
         assert set(data.keys()) > set(['obs', 'action', 'reward'])
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
@@ -155,7 +209,7 @@ class COMAPolicy(Policy):
             Model has eps_greedy_sample wrapper and hidden state wrapper
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
@@ -179,13 +233,13 @@ class COMAPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps, data_id=data_id, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -244,13 +298,13 @@ class COMAPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, data_id=data_id, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
