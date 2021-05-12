@@ -66,6 +66,8 @@ class DQNPolicy(Policy):
             nstep=1,
             # (bool) Whether to use hindsight experience replay
             her=False,
+            her_strategy='future',
+            her_replay_k=1,
         ),
         eval=dict(),
         # other config
@@ -181,8 +183,8 @@ class DQNPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._her = self._cfg.collect.her
         if self._her:
-            her_strategy = self._cfg.collect.get('her_strategy', 'future')
-            her_replay_k = self._cfg.collect.get('her_replay_k', 1)
+            her_strategy = self._cfg.collect.her_strategy
+            her_replay_k = self._cfg.collect.her_replay_k
             self._adder = Adder(self._cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
         else:
             self._adder = Adder(self._cuda, self._unroll_len)

@@ -32,23 +32,36 @@ class A2CPolicy(Policy):
             # (int) for a2c, update_per_collect must be 1.
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,
-            # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
             learning_rate=0.001,
             weight_decay=0,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
+            # (bool) Whether to normalize advantage. Default to False.
+            normalize_advantage=False,
+            # (bool) Whether to use nstep return for value network target
+            nstep_return=False,
+            ignore_done=False,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=80,
             unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
+            # (bool) Whether to use nstep return for value network target
+            nstep_return=False,
+            # (int) N-step td
+            nstep=1,
         ),
         eval=dict(),
         other=dict(),
@@ -69,8 +82,8 @@ class A2CPolicy(Policy):
         self._priority = self._cfg.priority
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
-        self._use_adv_norm = self._cfg.learn.get('normalize_advantage', False)
-        self._learn_nstep_return = self._cfg.learn.get('nstep_return', False)
+        self._adv_norm = self._cfg.learn.normalize_advantage
+        self._learn_nstep_return = self._cfg.learn.nstep_return
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -86,7 +99,7 @@ class A2CPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_nstep_return
+            data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._learn_nstep_return
         )
         if self._cuda:
             data = to_device(data, self._device)
@@ -95,7 +108,7 @@ class A2CPolicy(Policy):
         output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
 
         adv = data['adv']
-        if self._use_adv_norm:
+        if self._adv_norm:
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         with torch.no_grad():
@@ -156,8 +169,8 @@ class A2CPolicy(Policy):
         # Algorithm
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
-        self._collect_nstep_return = self._cfg.collect.get('nstep_return', False)
-        self._collect_nstep = self._cfg.collect.get('nstep', 1)
+        self._collect_nstep_return = self._cfg.collect.nstep_return
+        self._collect_nstep = self._cfg.collect.nstep
 
     def _forward_collect(self, data: dict) -> dict:
         r"""

@@ -13,9 +13,10 @@ from nervex.entry import serial_pipeline
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
-from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
+from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
@@ -60,7 +61,7 @@ def test_td3():
 
 @pytest.mark.algotest
 def test_a2c():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]  # noqa
+    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -207,10 +208,9 @@ def test_iqn():
 
 @pytest.mark.algotest
 def test_her_dqn():
-    config = deepcopy(bitflip_dqn_default_config)  # noqa
+    config = [deepcopy(bitflip_dqn_config), deepcopy(bitflip_dqn_create_config)]
     try:
         serial_pipeline(config, seed=0)
-        os.popen('rm -rf log ckpt*')
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
