@@ -18,7 +18,7 @@ def serial_pipeline(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-) -> 'BasePolicy':  # noqa
+) -> 'Policy':  # noqa
     r"""
     Overview:
         Serial pipeline entry.
@@ -30,6 +30,8 @@ def serial_pipeline(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+    Returns:
+        - policy (:obj:`Policy`): Converged policy.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
