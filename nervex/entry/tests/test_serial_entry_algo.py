@@ -15,7 +15,9 @@ from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
+from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
+from app_zoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -77,17 +79,6 @@ def test_rainbow_dqn():
 
 
 @pytest.mark.algotest
-def test_dqn_vanilla():
-    config = deepcopy(cartpole_dqnvanilla_default_config)  # noqa
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("6. dqn vanilla\n")
-
-
-@pytest.mark.algotest
 def test_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     try:
@@ -95,7 +86,18 @@ def test_ppo():
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
-        f.write("7. ppo\n")
+        f.write("6. ppo\n")
+
+
+# @pytest.mark.algotest
+def test_collaq():
+    config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("8. collaq\n")
 
 
 # @pytest.mark.algotest
@@ -155,7 +157,18 @@ def test_a2c_with_nstep_return():
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
-        f.write("14. a2c with nstep return\n")
+        f.write("12. a2c with nstep return\n")
+
+
+# @pytest.mark.algotest
+def test_vdn():
+    config = [deepcopy(cooperative_navigation_vdn_config), deepcopy(cooperative_navigation_vdn_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("14. vdn\n")
 
 
 # @pytest.mark.algotest

@@ -1,11 +1,11 @@
 from easydict import EasyDict
 
 agent_num = 5
-collector_env_num = 4
-evaluator_env_num = 2
 num_agents = agent_num
 num_landmarks = agent_num
-cooperative_navigation_qmix_config = dict(
+collector_env_num = 4
+evaluator_env_num = 2
+cooperative_navigation_collaq_config = dict(
     env=dict(
         num_agents=num_agents,
         num_landmarks=num_landmarks,
@@ -14,26 +14,29 @@ cooperative_navigation_qmix_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         manager=dict(
-            type='subprocess',
             shared_memory=False,
         ),
     ),
     policy=dict(
-        cuda=False,
-        on_policy=False,
+        cuda=True,
+        on_policy=True,
         model=dict(
             agent_num=agent_num,
             obs_shape=2 + 2 + (agent_num - 1) * 2 + num_landmarks * 2,
+            alone_obs_shape=2 + 2 + (num_landmarks) * 2,
             global_obs_shape=agent_num * 2 + num_landmarks * 2 + agent_num * 2,
             action_shape=5,
             hidden_size_list=[128, 128, 64],
-            mixer=True,
+            attention=True,
+            self_feature_range=[2, 4],  # placeholder
+            ally_feature_range=[4, agent_num * 2 + 2],  # placeholder
+            attention_size=32,
         ),
         learn=dict(
             update_per_collect=100,
             batch_size=32,
             agent_num=agent_num,
-            learning_rate=0.0005,
+            learning_rate=0.0001,
             target_update_theta=0.001,
             discount_factor=0.99,
         ),
@@ -55,15 +58,15 @@ cooperative_navigation_qmix_config = dict(
         ), ),
     ),
 )
-cooperative_navigation_qmix_config = EasyDict(cooperative_navigation_qmix_config)
-main_config = cooperative_navigation_qmix_config
-cooperative_navigation_qmix_create_config = dict(
+cooperative_navigation_collaq_config = EasyDict(cooperative_navigation_collaq_config)
+main_config = cooperative_navigation_collaq_config
+cooperative_navigation_collaq_create_config = dict(
     env=dict(
         import_names=['app_zoo.multiagent_particle.envs.particle_env'],
         type='cooperative_navigation',
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='qmix'),
+    policy=dict(type='collaq'),
 )
-cooperative_navigation_qmix_create_config = EasyDict(cooperative_navigation_qmix_create_config)
-create_config = cooperative_navigation_qmix_create_config
+cooperative_navigation_collaq_create_config = EasyDict(cooperative_navigation_collaq_create_config)
+create_config = cooperative_navigation_collaq_create_config

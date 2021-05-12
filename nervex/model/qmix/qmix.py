@@ -268,18 +268,18 @@ class CollaQ(nn.Module):
             global_obs_shape: int,
             action_shape: int,
             hidden_size_list: list,
-            enable_attention: bool = False,
+            attention: bool = False,
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
             attention_size: int = 32,
             mixer: bool = True
     ) -> None:
         super(CollaQ, self).__init__()
-        self.enable_attention = enable_attention
+        self.attention = attention
         self.attention_size = attention_size
         self._act = nn.ReLU()
         self.mixer = mixer
-        if not self.enable_attention:
+        if not self.attention:
             self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
         else:
             #TODO set the attention layer here beautifully
@@ -345,7 +345,7 @@ class CollaQ(nn.Module):
             ), agent_alone_state.unsqueeze(0), agent_alone_padding_state.unsqueeze(0), global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
 
-        if self.enable_attention:
+        if self.attention:
             agent_state = self._self_attention(agent_state)
             agent_alone_padding_state = self._self_attention(agent_alone_padding_state)
 

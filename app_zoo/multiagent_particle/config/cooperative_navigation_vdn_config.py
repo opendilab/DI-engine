@@ -5,7 +5,7 @@ collector_env_num = 4
 evaluator_env_num = 2
 num_agents = agent_num
 num_landmarks = agent_num
-cooperative_navigation_qmix_config = dict(
+cooperative_navigation_vdn_config = dict(
     env=dict(
         num_agents=num_agents,
         num_landmarks=num_landmarks,
@@ -55,9 +55,9 @@ cooperative_navigation_qmix_config = dict(
         ), ),
     ),
 )
-cooperative_navigation_qmix_config = EasyDict(cooperative_navigation_qmix_config)
-main_config = cooperative_navigation_qmix_config
-cooperative_navigation_qmix_create_config = dict(
+cooperative_navigation_vdn_config = EasyDict(cooperative_navigation_vdn_config)
+main_config = cooperative_navigation_vdn_config
+cooperative_navigation_vdn_create_config = dict(
     env=dict(
         import_names=['app_zoo.multiagent_particle.envs.particle_env'],
         type='cooperative_navigation',
@@ -65,5 +65,5 @@ cooperative_navigation_qmix_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='qmix'),
 )
-cooperative_navigation_qmix_create_config = EasyDict(cooperative_navigation_qmix_create_config)
-create_config = cooperative_navigation_qmix_create_config
+cooperative_navigation_vdn_create_config = EasyDict(cooperative_navigation_vdn_create_config)
+create_config = cooperative_navigation_vdn_create_config

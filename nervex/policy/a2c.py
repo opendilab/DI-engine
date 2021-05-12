@@ -62,9 +62,7 @@ class A2CPolicy(Policy):
         """
         # Optimizer
         self._optimizer = Adam(
-            self._model.parameters(),
-            lr=self._cfg.learn.learning_rate,
-            weight_decay=self._cfg.learn.weight_decay
+            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
         )
 
         # Algorithm config
