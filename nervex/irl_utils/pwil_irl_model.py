@@ -27,7 +27,7 @@ class PwilRewardModel(BaseRewardModel):
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(PwilRewardModel, self).__init__()
         self.config: Dict = config
-        assert device in ["cpu", "cuda"]
+        assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.expert_data: List[tuple] = []
         self.train_data: List[tuple] = []

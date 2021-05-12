@@ -28,7 +28,7 @@ class PdeilRewardModel(BaseRewardModel):
         self.p_sigma_s = None
         self.expert_data = None
         self.train_data: list = []
-        assert device in ["cpu", "cuda"]
+        assert device in ["cpu", "cuda"] or "cuda" in device
         # pedil default use cpu device
         self.device = 'cpu'
 

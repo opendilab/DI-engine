@@ -46,7 +46,7 @@ class GailRewardModel(BaseRewardModel):
     def __init__(self, config: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(GailRewardModel, self).__init__()
         self.config = config
-        assert device in ["cpu", "cuda"]
+        assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
         self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
