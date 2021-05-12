@@ -3,7 +3,7 @@ from nervex.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy
-from .rainbow_dqn import RainbowDQNPolicy
+from .rainbow import RainbowDQNPolicy, IQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy
@@ -16,9 +16,6 @@ from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
-
-from .dqn_vanilla import DQNVanillaPolicy
-from .ppo_vanilla import PPOVanillaPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -74,13 +71,13 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('dqn_vanilla_command')
-class DQNVanillaCommandModePolicy(DQNVanillaPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('rainbow_command')
+class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('rainbow_dqn_command')
-class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('iqn_command')
+class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -96,11 +93,6 @@ class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_command')
 class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
-    pass
-
-
-@POLICY_REGISTRY.register('ppo_vanilla_command')
-class PPOVanillaCommandModePolicy(PPOVanillaPolicy, DummyCommandModePolicy):
     pass
 
 

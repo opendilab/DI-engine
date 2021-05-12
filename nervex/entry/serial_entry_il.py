@@ -32,7 +32,7 @@ def serial_pipeline_il(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
-        - convergence (:obj:`bool`): 
+        - convergence (:obj:`bool`): whether il training is converged
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)

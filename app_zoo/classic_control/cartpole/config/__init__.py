@@ -2,8 +2,7 @@ from .cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from .cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
 from .cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config
 from .cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-# from .cartpole_dqnvanilla_default_config import cartpole_dqnvanilla_default_config
-# from .cartpole_ppovanilla_default_config import cartpole_ppovanilla_default_config
+from .cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config
 # from .cartpole_r2d2_default_config import cartpole_r2d2_default_config
 # from .cartpole_rainbowdqn_default_config import cartpole_rainbowdqn_default_config
 # from .cartpole_rainbowdqn_iqn_config import cartpole_rainbowdqn_iqn_config

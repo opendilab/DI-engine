@@ -14,6 +14,8 @@ from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
@@ -71,8 +73,8 @@ def test_a2c():
 
 
 @pytest.mark.algotest
-def test_rainbow_dqn():
-    config = deepcopy(cartpole_rainbowdqn_default_config)  # noqa
+def test_rainbow():
+    config = [deepcopy(cartpole_rainbow_config), deepcopy(cartpole_rainbow_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -185,7 +187,7 @@ def test_qmix():
 
 @pytest.mark.algotest
 def test_impala():
-    config = [deepcopy(cartpole_impala_config), deepcopy(cartpole_impala_create_config)]  # noqa
+    config = [deepcopy(cartpole_impala_config), deepcopy(cartpole_impala_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -196,8 +198,7 @@ def test_impala():
 
 @pytest.mark.algotest
 def test_iqn():
-    config = deepcopy(cartpole_rainbowdqn_iqn_config)  # noqa
-    config.evaluator.stop_value = 30  # for save time
+    config = [deepcopy(cartpole_iqn_config), deepcopy(cartpole_iqn_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
