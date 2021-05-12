@@ -12,6 +12,8 @@ from nervex.entry import serial_pipeline
 #     cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
@@ -56,7 +58,7 @@ def test_td3():
 
 @pytest.mark.algotest
 def test_a2c():
-    config = deepcopy(cartpole_a2c_default_config)  # noqa
+    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -144,12 +146,10 @@ def test_r2d2():
 
 @pytest.mark.algotest
 def test_a2c_with_nstep_return():
-    config = deepcopy(cartpole_a2c_default_config)  # noqa
-    config.policy.learn.algo.use_nstep_return = True
-    config.policy.learn.algo.discount_factor = config.policy.collect.algo.discount_factor
-    config.policy.learn.algo.nstep = 3
-    config.policy.collect.algo.use_nstep_return = config.policy.learn.algo.use_nstep_return
-    config.policy.collect.algo.nstep = config.policy.learn.algo.nstep
+    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
+    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
+    config[0].policy.collect.discount_factor = 0.9
+    config[0].policy.collect.nstep = 3
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -171,7 +171,7 @@ def test_qmix():
 
 @pytest.mark.algotest
 def test_impala():
-    config = deepcopy(cartpole_impala_default_config)  # noqa
+    config = [deepcopy(cartpole_impala_config), deepcopy(cartpole_impala_create_config)]  # noqa
     try:
         serial_pipeline(config, seed=0)
     except Exception:

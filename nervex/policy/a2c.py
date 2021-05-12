@@ -72,7 +72,7 @@ class A2CPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._use_adv_norm = self._cfg.learn.get('normalize_advantage', False)
-        self._learn_use_nstep_return = self._cfg.learn.get('use_nstep_return', False)
+        self._learn_nstep_return = self._cfg.learn.get('nstep_return', False)
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -88,7 +88,7 @@ class A2CPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
+            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_nstep_return
         )
         if self._cuda:
             data = to_device(data, self._device)
@@ -100,16 +100,8 @@ class A2CPolicy(Policy):
         if self._use_adv_norm:
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-
         with torch.no_grad():
-            if self._learn_use_nstep_return:
-                # use nstep return
-                next_value = self._learn_model.forward(data['next_obs'], mode='compute_actor_critic')['value']
-                nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
-                return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
-            else:
-                # Return = value + adv
-                return_ = data['value'] + adv
+            return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
 
         # Calculate A2C loss
@@ -166,7 +158,7 @@ class A2CPolicy(Policy):
         # Algorithm
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
-        self._collect_use_nstep_return = self._cfg.collect.get('use_nstep_return', False)
+        self._collect_nstep_return = self._cfg.collect.get('nstep_return', False)
         self._collect_nstep = self._cfg.collect.get('nstep', 1)
 
     def _forward_collect(self, data: dict) -> dict:
@@ -226,7 +218,7 @@ class A2CPolicy(Policy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
-        if self._collect_use_nstep_return:
+        if self._collect_nstep_return:
             data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
