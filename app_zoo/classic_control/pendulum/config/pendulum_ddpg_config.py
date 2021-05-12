@@ -6,14 +6,14 @@ pendulum_ddpg_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         # (bool) Scale output action into legal range.
-        use_act_scale=True,
+        act_scale=True,
     ),
     policy=dict(
         cuda=False,
         priority=False,
         model=dict(
-            obs_dim=3,
-            action_dim=1,
+            obs_shape=3,
+            action_shape=1,
             twin_critic=False,
         ),
         learn=dict(
@@ -23,12 +23,7 @@ pendulum_ddpg_config = dict(
             learning_rate_critic=0.001,
             ignore_done=True,
             actor_update_freq=1,
-            use_noise=True,
-            noise_sigma=0.2,
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
+            noise=False,
         ),
         collect=dict(
             n_sample=48,

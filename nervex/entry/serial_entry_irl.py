@@ -38,9 +38,8 @@ def serial_pipeline_irl(
         cfg, create_cfg = input_cfg
     # TODO(nyz) when env_setting is not None
     assert env_setting is None  # temporally
-    create_cfg.policy.type += '_command'
+    create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
-
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -53,7 +52,7 @@ def serial_pipeline_irl(
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
-    # Create components: learner, collector, evaluator, replay buffer, commander.
+    # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
@@ -69,6 +68,7 @@ def serial_pipeline_irl(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
+
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_buffer_start_size() > 0:
         collect_kwargs = commander.step()
@@ -107,11 +107,12 @@ def serial_pipeline_irl(
             # update train_data reward
             reward_model.estimate(train_data)
             learner.train(train_data, collector.envstep)
-            if cfg.policy.get('priority', False):
+            if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.
             replay_buffer.clear()
+
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy

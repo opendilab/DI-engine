@@ -5,10 +5,9 @@ import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
-from nervex.config import compile_config
 from nervex.envs import get_vec_env_setting, create_env_manager
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
-from nervex.config import read_config
+from nervex.config import read_config, compile_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.utils import set_pkg_seed
@@ -24,9 +23,12 @@ def serial_pipeline(
     Overview:
         Serial pipeline entry.
     Arguments:
-        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. ``str`` type means config file path.
+        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
+            ``str`` type means config file path. \
+            ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
-        - env_setting (:obj:`Optional[List[Any]]`): Subclass of ``BaseEnv``, and config dict.
+        - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
+            ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     """
     if isinstance(input_cfg, str):
@@ -83,10 +85,10 @@ def serial_pipeline(
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
-            # Learner will train ``train_iteration`` times in one iteration.
+            # Learner will train ``update_per_collect`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
-                # It is possible that replay buffer's data count is too few to train ``train_iteration`` times
+                # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
                     "Replay buffer's data can only train for {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."

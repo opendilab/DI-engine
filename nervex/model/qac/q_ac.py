@@ -11,7 +11,7 @@ class FCContinuousNet(nn.Module):
     """
     Overview:
         FC continuous network which is used in ``QAC``.
-        A main feature is that it uses ``_use_final_tanh`` to control whether
+        A main feature is that it uses ``_final_tanh`` to control whether
         add a tanh layer to scale the output to (-1, 1).
     Interface:
         __init__, forward
@@ -19,23 +19,23 @@ class FCContinuousNet(nn.Module):
 
     def __init__(
             self,
-            input_dim: int,
-            output_dim: int,
-            embedding_dim: int = 64,
-            use_final_tanh: bool = False,
+            input_size: int,
+            output_size: int,
+            embedding_size: int = 64,
+            final_tanh: bool = False,
             layer_num: int = 1,
     ) -> None:
         super(FCContinuousNet, self).__init__()
         self._act = nn.ReLU()
         self._main = nn.Sequential(
-            MLP(input_dim, embedding_dim, embedding_dim, layer_num + 1, activation=self._act),
-            nn.Linear(embedding_dim, output_dim)
+            MLP(input_size, embedding_size, embedding_size, layer_num + 1, activation=self._act),
+            nn.Linear(embedding_size, output_size)
         )
-        self._use_final_tanh = use_final_tanh
+        self._final_tanh = final_tanh
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self._main(x)
-        if self._use_final_tanh:
+        if self._final_tanh:
             x = torch.tanh(x)
         if x.shape[1] == 1:
             x = x.squeeze(1)
@@ -53,21 +53,21 @@ class QAC(ActorCriticBase):
 
     def __init__(
             self,
-            obs_dim: tuple,
-            action_dim: Union[int, tuple],
-            state_action_embedding_dim: int = 64,
-            state_embedding_dim: int = 64,
+            obs_shape: tuple,
+            action_shape: Union[int, tuple],
+            obs_action_embedding_size: int = 64,
+            obs_embedding_size: int = 64,
             twin_critic: bool = False,
     ) -> None:
         """
         Overview:
             Init actor network and critic network(s).
         Arguments:
-            - obs_dim (:obj:`tuple`): tuple type observation dim
-            - action_dim (:obj:`Union[int, tuple]`): int or tuple type action dim
-            - state_action_embedding_dim (:obj:`int`): the dim of state + action that will be embedded into, \
-                i.e. hidden dim
-            - state_embedding_dim (:obj:`int`): the dim of state that will be embedded into, i.e. hidden dim
+            - obs_shape (:obj:`tuple`): tuple type observation shape
+            - action_shape (:obj:`Union[int, tuple]`): int or tuple type action shape
+            - obs_action_embedding_size (:obj:`int`): the size of obs + action that will be embedded into, \
+                i.e. hidden size
+            - obs_embedding_size (:obj:`int`): the size of obs that will be embedded into
             - twin_critic (:obj:`bool`): whether to use a pair of critic networks. If True, it is TD3 model; \
                 Otherwise, it is DDPG model.
         """
@@ -75,18 +75,18 @@ class QAC(ActorCriticBase):
 
         self._act = nn.ReLU()
         # input info
-        self._obs_dim: int = squeeze(obs_dim)
-        self._act_dim: int = squeeze(action_dim)
-        # embedding_dim
-        self._state_action_embedding_dim = state_action_embedding_dim
-        self._state_embedding_dim = state_embedding_dim
+        self._obs_shape: int = squeeze(obs_shape)
+        self._act_shape: int = squeeze(action_shape)
+        # embedding_size
+        self._obs_action_embedding_size = obs_action_embedding_size
+        self._obs_embedding_size = obs_embedding_size
         # network
         self._twin_critic = twin_critic
-        self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._state_embedding_dim, use_final_tanh=True)
+        self._actor = FCContinuousNet(self._obs_shape, self._act_shape, self._obs_embedding_size, final_tanh=True)
         critic_num = 2 if twin_critic else 1
         self._critic = nn.ModuleList(
             [
-                FCContinuousNet(self._obs_dim + self._act_dim, 1, self._state_action_embedding_dim)
+                FCContinuousNet(self._obs_shape + self._act_shape, 1, self._obs_action_embedding_size)
                 for _ in range(critic_num)
             ]
         )
@@ -105,8 +105,8 @@ class QAC(ActorCriticBase):
         action = inputs['action']
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
-        state_action_input = torch.cat([inputs['obs'], action], dim=1)
-        q = self._critic_forward(state_action_input)
+        obs_action_input = torch.cat([inputs['obs'], action], dim=1)
+        q = self._critic_forward(obs_action_input)
         return {'q_value': q}
 
     def compute_actor(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:

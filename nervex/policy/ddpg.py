@@ -59,19 +59,14 @@ class DDPGPolicy(Policy):
             # Should be 1 for DDPG, 2 for TD3.
             actor_update_freq=1,
             # (bool) Whether to add noise on target network's action.
-            use_noise=True,
-            noise_sigma=0.2,
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
+            noise=False,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
             n_sample=48,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # It is a must to add noise during collection. So here omits "use_noise" and only set "noise_sigma".
+            # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
@@ -114,7 +109,7 @@ class DDPGPolicy(Policy):
             update_type='momentum',
             update_kwargs={'theta': self._cfg.learn.target_theta}
         )
-        if self._cfg.learn.use_noise:
+        if self._cfg.learn.noise:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='action_noise',
@@ -384,7 +379,7 @@ class TD3Policy(DDPGPolicy):
             target_theta=0.005,
             discount_factor=0.99,
             actor_update_freq=2,
-            use_noise=True,
+            noise=True,
             noise_sigma=0.2,
             noise_range=dict(
                 min=-0.5,

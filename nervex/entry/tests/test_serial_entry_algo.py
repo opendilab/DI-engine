@@ -10,10 +10,10 @@ from nervex.entry import serial_pipeline
 #     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
 #     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
 #     cartpole_ppg_default_config, cartpole_sqn_default_config
-# from app_zoo.classic_control.pendulum.entry import pendulum_ddpg_default_config, pendulum_ppo_default_config, \
-#     pendulum_sac_auto_alpha_config, pendulum_sac_default_config, pendulum_td3_default_config
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
+from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 
@@ -34,7 +34,7 @@ def test_dqn():
 
 @pytest.mark.algotest
 def test_ddpg():
-    config = deepcopy(pendulum_ddpg_default_config)  # noqa
+    config = [deepcopy(pendulum_ddpg_config), deepcopy(pendulum_ddpg_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -45,7 +45,7 @@ def test_ddpg():
 
 @pytest.mark.algotest
 def test_td3():
-    config = deepcopy(pendulum_td3_default_config)  # noqa
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

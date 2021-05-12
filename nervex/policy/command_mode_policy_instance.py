@@ -10,7 +10,7 @@ from .ppo import PPOPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
-from .ddpg import DDPGPolicy
+from .ddpg import DDPGPolicy, TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
@@ -121,6 +121,11 @@ class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ddpg_command')
 class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_command')
+class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
     pass
 
 
