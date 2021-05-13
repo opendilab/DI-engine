@@ -1,9 +1,6 @@
 import time
-import sys
 import copy
 from typing import Optional, Union
-from collections import defaultdict
-from easydict import EasyDict
 
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
