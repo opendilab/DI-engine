@@ -295,19 +295,28 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._pipe_parents[env_id].recv()
         self._waiting_env['step'].clear()
 
-        # reset env
-        reset_thread_list = []
         if reset_param is None:
-            for env_id in range(self.env_num):
-                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
-                reset_thread.daemon = True
-                reset_thread_list.append(reset_thread)
+            reset_env_list = [env_id for env_id in range(self._env_num)]
         else:
+            reset_env_list = reset_param.keys()
             for env_id in reset_param:
                 self._reset_param[env_id] = reset_param[env_id]
-                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
-                reset_thread.daemon = True
-                reset_thread_list.append(reset_thread)
+        
+        sleep_count = 0
+        while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
+            if sleep_count % 1000 == 0:
+                logging.warning(
+                    'VEC_ENV_MANAGER: not all the envs finish resetting, sleep {} times'.format(sleep_count)
+                )
+            time.sleep(0.001)
+            sleep_count += 1
+
+        # reset env
+        reset_thread_list = []
+        for env_id in reset_env_list:
+            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
+            reset_thread.daemon = True
+            reset_thread_list.append(reset_thread)
 
         for t in reset_thread_list:
             t.start()
@@ -343,6 +352,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         try:
             reset_fn()
         except Exception as e:
+            logging.error(
+                    'VEC_ENV_MANAGER: env {} reset error'.format(env_id)
+                )
             if self._closed:  # exception cased by main thread closing parent_remote
                 return
             else:
@@ -555,6 +567,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             except Exception as e:
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
+                print("Sub env '{} error when executing {}".format(str(env), cmd))
                 child.send(
                     e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
                 )

@@ -34,6 +34,9 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
     if func is None:
         return partial(retry_wrapper, max_retry=max_retry)
 
+    if max_retry == 1:
+        return func
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         exceptions = []

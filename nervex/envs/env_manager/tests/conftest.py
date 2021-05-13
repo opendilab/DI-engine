@@ -121,6 +121,9 @@ class FakeEnv(object):
     def user_defined(self):
         pass
 
+    def __repr__(self):
+        return self._name
+
 
 class FakeAsyncEnv(FakeEnv):
 

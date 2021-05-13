@@ -160,3 +160,10 @@ class TestSubprocessEnvManager:
         watchdog.stop()
 
         env_manager.close()
+    
+    def test_reset(self, setup_async_manager_cfg):
+        env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+        obs = env_manager.launch(reset_param=reset_param)
+        for i in range(5):
+            env_manager.reset(reset_param=reset_param)
