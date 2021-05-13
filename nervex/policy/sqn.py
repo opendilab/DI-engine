@@ -25,28 +25,69 @@ class SQNPolicy(Policy):
         Policy class of SQN algorithm (arxiv: 1912.10891).
     """
 
+    update_per_collect = 16
+    config = dict(
+        cuda=False,
+        multi_gpu=False,
+        policy_type='sqn',
+        on_policy=False,
+        priority=False,
+        learn=dict(
+            update_per_collect=update_per_collect,
+            batch_size=64,
+            learning_rate_q=0.001,
+            learning_rate_alpha=0.001,
+            weight_decay=0.0,
+            # ==============================================================
+            # The following configs are algorithm-specific
+            # ==============================================================
+            target_theta=0.005,
+            alpha=0.2,
+            discount_factor=0.99,
+            # If env's action shape is int type, we recommend `self._action_shape / 10`; else, we recommend 0.2
+            target_entropy=0.2,
+            # (bool) Whether ignore done(usually for max step termination env)
+            ignore_done=False,
+        ),
+        collect=dict(
+            n_sample=update_per_collect,
+            # Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (int) Frequence of target network update.
+            nstep=1,
+        ),
+        eval=dict(),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=1.,
+                end=0.8,
+                decay=2000,
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, )
+        ),
+    )
+
     def _init_learn(self) -> None:
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Init q, value and policy's optimizers, algorithm config, main and target models.
         """
+        self._priority = self._cfg.priority
         # Optimizers
         self._optimizer_q = Adam(
             self._model.parameters(), lr=self._cfg.learn.learning_rate_q, weight_decay=self._cfg.learn.weight_decay
         )
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
-        self._action_dim = self._cfg.model.action_dim
-        if isinstance(self._action_dim, int):
-            self._target_entropy = algo_cfg.get('target_entropy', self._action_dim / 10)
-        else:
-            self._target_entropy = algo_cfg.get('target_entropy', 0.2)
-
-        self._log_alpha = torch.FloatTensor([math.log(algo_cfg.alpha)]).to(self._device).requires_grad_(True)
+        self._gamma = self._cfg.learn.discount_factor
+        self._action_shape = self._cfg.model.action_shape
+        self._target_entropy = self._cfg.learn.target_entropy
+        self._log_alpha = torch.FloatTensor([math.log(self._cfg.learn.alpha)]).to(self._device).requires_grad_(True)
         self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
         # Main and target models
@@ -55,7 +96,7 @@ class SQNPolicy(Policy):
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_theta}
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -116,7 +157,7 @@ class SQNPolicy(Policy):
             ignore_done=self._cfg.learn.get('ignore_done', False),
             use_nstep=False
         )
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
@@ -130,10 +171,10 @@ class SQNPolicy(Policy):
         q_value = self._learn_model.forward({'obs': obs})['q_value']
         target_q_value = self._target_model.forward({'obs': next_obs})['q_value']  # TODO:check grad
 
-        num_s_env = 1 if isinstance(self._action_dim, int) else len(self._action_dim)  # num of seperate env
+        num_s_env = 1 if isinstance(self._action_shape, int) else len(self._action_shape)  # num of seperate env
 
         for s_env_id in range(num_s_env):
-            if isinstance(self._action_dim, int):
+            if isinstance(self._action_shape, int):
                 td_data = {
                     "q_value": q_value,
                     "target_q_value": target_q_value,
@@ -202,7 +243,7 @@ class SQNPolicy(Policy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 
@@ -217,7 +258,7 @@ class SQNPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
@@ -228,7 +269,7 @@ class SQNPolicy(Policy):
             (_decay - self._forward_learn_cnt) if self._forward_learn_cnt < _decay - 1000 else 0.999
 
         if np.random.random(1) < _act_p:
-            if isinstance(self._action_dim, int):
+            if isinstance(self._action_shape, int):
                 logits = output['logit'] / math.exp(self._log_alpha.item())
                 prob = torch.softmax(logits - logits.max(axis=-1, keepdim=True).values, dim=-1)
                 pi_action = torch.multinomial(prob, 1)
@@ -239,13 +280,13 @@ class SQNPolicy(Policy):
                 ]
                 pi_action = [torch.multinomial(_prob, 1) for _prob in prob]
         else:
-            if isinstance(self._action_dim, int):
-                pi_action = torch.randint(0, self._action_dim, (output["logit"].shape[0], ))
+            if isinstance(self._action_shape, int):
+                pi_action = torch.randint(0, self._action_shape, (output["logit"].shape[0], ))
             else:
-                pi_action = [torch.randint(0, d, (output["logit"][0].shape[0], )) for d in self._action_dim]
+                pi_action = [torch.randint(0, d, (output["logit"][0].shape[0], )) for d in self._action_shape]
 
         output['action'] = pi_action
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -294,12 +335,12 @@ class SQNPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
