@@ -4,12 +4,6 @@ import os
 from copy import deepcopy
 
 from nervex.entry import serial_pipeline
-# from app_zoo.classic_control.bitflip.entry import bitflip_dqn_default_config
-# from app_zoo.classic_control.cartpole.entry import \
-#     cartpole_a2c_default_config, cartpole_dqn_default_config, cartpole_dqnvanilla_default_config, \
-#     cartpole_impala_default_config, cartpole_ppo_default_config, cartpole_ppovanilla_default_config, \
-#     cartpole_r2d2_default_config, cartpole_rainbowdqn_default_config, cartpole_rainbowdqn_iqn_config, \
-#     cartpole_ppg_default_config, cartpole_sqn_default_config
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
@@ -17,6 +11,7 @@ from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartp
 from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
@@ -233,7 +228,7 @@ def test_her_dqn():
 
 @pytest.mark.algotest
 def test_ppg():
-    config = deepcopy(cartpole_ppg_default_config)  # noqa
+    config = [deepcopy(cartpole_ppg_config), deepcopy(cartpole_ppg_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -243,9 +238,8 @@ def test_ppg():
 
 
 @pytest.mark.algotest
-@pytest.mark.sqn
 def test_sqn():
-    config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]  # noqa
+    config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

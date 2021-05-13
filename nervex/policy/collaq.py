@@ -92,7 +92,7 @@ class CollaQPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in PPO"
+        assert not self._priority, "not implemented priority in collaq"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
         self._alpha = self._cfg.learn.collaq_loss_weight
