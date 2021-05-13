@@ -90,18 +90,17 @@ class COMAPolicy(Policy):
         self._priority = self._cfg.priority
         assert not self._priority, "not implemented priority in PPO"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        algo_cfg = self._cfg.learn.algo
-        self._gamma = algo_cfg.discount_factor
-        self._lambda = algo_cfg.td_lambda
-        self._value_weight = algo_cfg.value_weight
-        self._entropy_weight = algo_cfg.entropy_weight
+        self._gamma = self._cfg.learn.discount_factor
+        self._lambda = self._cfg.learn.td_lambda
+        self._value_weight = self._cfg.learn.value_weight
+        self._entropy_weight = self._cfg.learn.entropy_weight
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_update_theta}
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
         self._target_model = model_wrap(
             self._target_model,
