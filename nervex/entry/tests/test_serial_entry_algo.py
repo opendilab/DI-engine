@@ -23,6 +23,7 @@ from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_confi
 from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
+from app_zoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -161,6 +162,17 @@ def test_a2c_with_nstep_return():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("12. a2c with nstep return\n")
+
+
+# @pytest.mark.algotest
+def test_atoc():
+    config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("13. atoc\n")
 
 
 # @pytest.mark.algotest
