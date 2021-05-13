@@ -301,7 +301,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             reset_env_list = reset_param.keys()
             for env_id in reset_param:
                 self._reset_param[env_id] = reset_param[env_id]
-        
+
         sleep_count = 0
         while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
             if sleep_count % 1000 == 0:
@@ -352,9 +352,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         try:
             reset_fn()
         except Exception as e:
-            logging.error(
-                    'VEC_ENV_MANAGER: env {} reset error'.format(env_id)
-                )
+            logging.error('VEC_ENV_MANAGER: env {} reset error'.format(env_id))
             if self._closed:  # exception cased by main thread closing parent_remote
                 return
             else:
