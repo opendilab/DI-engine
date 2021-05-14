@@ -168,5 +168,10 @@ class TestSubprocessEnvManager:
         env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
         reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
         obs = env_manager.launch(reset_param=reset_param)
-        for i in range(5):
+        for i in range(4):
+            reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+            reset_param[i] = {'stat': 'timeout'}
             env_manager.reset(reset_param=reset_param)
+            time.sleep(1)
+            assert env_manager._env_states[i] == EnvState.RESET
+            assert env_manager._reset_param[i]['state'] == 'timeout'

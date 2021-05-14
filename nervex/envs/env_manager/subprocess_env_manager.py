@@ -141,6 +141,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         episode_num=float("inf"),
         max_retry=1,
         step_timeout=60,
+        auto_reset=True,
         reset_timeout=60,
         retry_waiting_time=0.1,
         # subprocess specified args
@@ -302,14 +303,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._waiting_env['step'].clear()
 
         if reset_param is None:
-            reset_param = [{} for _ in range(self.env_num)]
-        self._reset_param = reset_param
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for i in range(self.env_num):
-                self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
-            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-            self._check_data(ret)
+            reset_env_list = [env_id for env_id in range(self._env_num)]
+        else:
+            reset_env_list = reset_param.keys()
+            for env_id in reset_param:
+                self._reset_param[env_id] = reset_param[env_id]
 
         sleep_count = 0
         while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
@@ -572,6 +570,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     raise KeyError("not support env cmd: {}".format(cmd))
                 child.send(ret)
             except Exception as e:
+                print("Sub env '{} error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
                 print("Sub env '{} error when executing {}".format(str(env), cmd))

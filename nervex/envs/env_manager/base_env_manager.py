@@ -32,6 +32,9 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
         Retry the function until exceeding the maximum retry times.
     """
 
+    if max_retry == 1:
+        return func
+
     if func is None:
         return partial(retry_wrapper, max_retry=max_retry)
 
@@ -100,6 +103,7 @@ class BaseEnvManager(object):
         episode_num=float("inf"),
         max_retry=1,
         step_timeout=60,
+        auto_reset=True,
         reset_timeout=60,
         retry_waiting_time=0.1,
     )
@@ -129,6 +133,7 @@ class BaseEnvManager(object):
         self._episode_num = self._cfg.episode_num
         self._max_retry = self._cfg.max_retry
         self._step_timeout = self._cfg.step_timeout
+        self._auto_reset = self._cfg.auto_reset
         self._reset_timeout = self._cfg.reset_timeout
         self._retry_waiting_time = self._cfg.retry_waiting_time
 
