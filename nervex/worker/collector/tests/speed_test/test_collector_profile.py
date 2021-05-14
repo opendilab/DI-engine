@@ -7,9 +7,8 @@ import copy
 
 from nervex.worker import BaseSerialCollector
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.entry.utils import set_pkg_seed
 from nervex.data import BufferManager
-from nervex.utils import deep_merge_dicts
+from nervex.utils import deep_merge_dicts, set_pkg_seed
 
 from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
