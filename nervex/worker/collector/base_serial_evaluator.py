@@ -201,7 +201,7 @@ class VectorEvalMonitor(object):
         self._n_episode = n_episode
         each_env_episode = [n_episode // env_num for _ in range(env_num)]
         for i in range(n_episode % env_num):
-            each_env_episode += 1
+            each_env_episode[i] += 1
         self._data = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
     def is_finished(self) -> bool:

@@ -139,7 +139,7 @@ def save_config(config_: dict, path: str, type_: str = 'py') -> NoReturn:
 
 
 def deal_with_multi_buffer(default_config: EasyDict, cfg: EasyDict) -> EasyDict:
-    if 'buffer_name' in cfg.policy.other.replay_buffer:
+    if 'other' in cfg.policy and 'replay_buffer' in cfg.policy.other and 'buffer_name' in cfg.policy.other.replay_buffer:
         buffer_name = cfg.policy.other.replay_buffer.buffer_name
         single_buffer_default_config = default_config.policy.other.pop('replay_buffer')
         multi_replay_buffer_config = EasyDict({k: copy.deepcopy(single_buffer_default_config) for k in buffer_name})
@@ -185,6 +185,7 @@ def compile_config(
     policy_config.collect.collector = collector.default_config()
     policy_config.eval.evaluator = evaluator.default_config()
     policy_config.other.replay_buffer = buffer.default_config()
+    print('=== replay buffer', policy_config.other.replay_buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
