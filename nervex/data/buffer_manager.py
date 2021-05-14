@@ -91,7 +91,7 @@ class BufferManager(IBuffer):
         self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
-            buffer_type = buffer_cfg.get('buffer_type', 'priority')
+            buffer_type = buffer_cfg.buffer_type
             if buffer_type == 'priority':
                 buffer_cls = PrioritizedReplayBuffer
             elif buffer_type == 'naive':

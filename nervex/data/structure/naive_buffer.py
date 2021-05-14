@@ -33,6 +33,7 @@ class NaiveReplayBuffer:
         return copy.deepcopy(cfg)
 
     config = dict(
+        buffer_type='naive',
         replay_buffer_size=10000,
         deepcopy=False,
     )

@@ -24,7 +24,7 @@ from nervex.worker.collector.tests.speed_test.test_config import test_config
 #   - Test on small env
 #   - Test on sync_subprocess env manager
 #   - Test with reset_ratio = 1.
-FAST_MODE = False
+FAST_MODE = True
 
 
 def compare_test(cfg, out_str, seed):
@@ -56,7 +56,7 @@ def compare_test(cfg, out_str, seed):
         replay_buffer = BufferManager(buffer_cfg)
 
         start = time.time()
-        iters = 50 if FAST_MODE else 5
+        iters = 50 if FAST_MODE else 300
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
