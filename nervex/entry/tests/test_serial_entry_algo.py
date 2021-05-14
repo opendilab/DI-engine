@@ -12,6 +12,7 @@ from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cart
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
@@ -137,7 +138,7 @@ def test_sac_auto_alpha():
 
 # @pytest.mark.algotest
 def test_r2d2():
-    config = deepcopy(cartpole_r2d2_default_config)  # noqa
+    config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

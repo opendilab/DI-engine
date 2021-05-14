@@ -21,6 +21,71 @@ class R2D2Policy(Policy):
         R2D2 proposed that several tricks should be used to improve upon DRQN,
         namely some recurrent experience replay trick such as burn-in.
     """
+    default_nstep = 3
+    default_burnin_step = 2
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='r2d2',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        learn=dict(
+            update_per_collect=1,
+            batch_size=64,
+            learning_rate=0.0001,
+            # ==============================================================
+            # The following configs are algorithm-specific
+            # ==============================================================
+            # (int) Frequence of target network update.
+            target_update_freq=100,
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.97,
+            # (int) N-step reward for target q_value estimation
+            nstep=default_nstep,
+            # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
+            # caused by off-policy
+            burnin_step=default_burnin_step,
+            # (bool) whether use value_rescale function for predicted value
+            value_rescale=True,
+            ignore_done=False,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            n_sample=64,
+            # (int) Cut trajectories into pieces with length "unroll_len", r2d2 should be 2*nstep + buin
+            unroll_len=(2 * default_nstep + default_burnin_step),
+            # ==============================================================
+            # The following configs are algorithm-specific
+            # ==============================================================
+            # (int) N-step reward for target q_value estimation
+            nstep=default_nstep,
+            # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
+            # caused by off-policy
+            burnin_step=default_burnin_step,
+            # `env_num` is used in hidden state, should equal to that one in env config.
+            # User should specify this value in user config.
+            env_num=None,
+        ),
+        eval=dict(
+            # `env_num` is used in hidden state, should equal to that one in env config.
+            # User should specify this value in user config.
+            env_num=None,
+        ),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=0.95,
+                end=0.05,
+                decay=10000,
+            ),
+            replay_buffer=dict(replay_buffer_size=10000, ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -35,22 +100,22 @@ class R2D2Policy(Policy):
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
-            - use_value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
+            - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
             - burnin_step (:obj:`int`): The num of step of burnin
         """
+        self._priority = self._cfg.priority
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        algo_cfg = self._cfg.learn.algo
-        self._gamma = algo_cfg.discount_factor
-        self._nstep = algo_cfg.nstep
-        self._use_value_rescale = algo_cfg.use_value_rescale
-        self._burnin_step = algo_cfg.burnin_step
+        self._gamma = self._cfg.learn.discount_factor
+        self._nstep = self._cfg.learn.nstep
+        self._value_rescale = self._cfg.learn.value_rescale
+        self._burnin_step = self._cfg.learn.burnin_step
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
             update_type='assign',
-            update_kwargs={'freq': algo_cfg.target_update_freq}
+            update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._target_model = model_wrap(
             self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size
@@ -75,12 +140,12 @@ class R2D2Policy(Policy):
         """
         # data preprocess
         data = timestep_collate(data)
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
         bs = self._burnin_step
         data['weight'] = data.get('weight', [None for _ in range(self._nstep)])
-        ignore_done = self._cfg.learn.get('ignore_done', False)
+        ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
             data['done'] = [None for _ in range(self._nstep)]
         else:
@@ -135,7 +200,7 @@ class R2D2Policy(Policy):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
-            if self._use_value_rescale:
+            if self._value_rescale:
                 l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep)
                 loss.append(l)
                 td_error.append(e.abs())
@@ -176,11 +241,11 @@ class R2D2Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, adder, collect model.
         """
-        self._collect_nstep = self._cfg.collect.algo.nstep
-        self._collect_burnin_step = self._cfg.collect.algo.burnin_step
+        self._collect_nstep = self._cfg.collect.nstep
+        self._collect_burnin_step = self._cfg.collect.burnin_step
         self._unroll_len = self._cfg.collect.unroll_len
         assert self._unroll_len == self._collect_burnin_step + 2 * self._collect_nstep
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
@@ -200,13 +265,13 @@ class R2D2Policy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, data_id=data_id, eps=eps)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -272,13 +337,13 @@ class R2D2Policy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, data_id=data_id)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

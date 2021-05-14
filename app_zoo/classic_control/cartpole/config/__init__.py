@@ -6,5 +6,5 @@ from .cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_c
 from .cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config
 from .cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config
 from .cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config
-# from .cartpole_r2d2_default_config import cartpole_r2d2_default_config
+from .cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config
 # from .cartpole_ppo_default_loader import cartpole_ppo_default_loader
