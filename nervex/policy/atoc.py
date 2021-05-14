@@ -75,6 +75,7 @@ class ATOCPolicy(Policy):
                 min=-0.5,
                 max=0.5,
             ),
+            # (bool) Whether to use reward batch norm in the total batch
             reward_batch_norm=False,
             ignore_done=False,
         ),

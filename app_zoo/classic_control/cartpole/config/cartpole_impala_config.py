@@ -5,7 +5,7 @@ cartpole_impala_config = dict(
         n_episode=8,
         stop_value=195,
         collector_env_num=8,
-        evaluator_env_num=8,
+        evaluator_env_num=5,
     ),
     policy=dict(
         cuda=False,

@@ -4,7 +4,7 @@ pendulum_ddpg_config = dict(
     seed=0,
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=8,
+        evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
     ),

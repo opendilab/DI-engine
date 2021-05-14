@@ -61,8 +61,7 @@ class SQNPolicy(Policy):
                 start=1.,
                 end=0.8,
                 decay=2000,
-            ),
-            replay_buffer=dict(replay_buffer_size=100000, )
+            ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     )
 

@@ -11,9 +11,7 @@ cooperative_navigation_qmix_config = dict(
         n_agent=n_agent,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        manager=dict(
-            shared_memory=False,
-        ),
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=False,

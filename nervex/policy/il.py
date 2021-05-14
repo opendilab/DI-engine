@@ -27,6 +27,41 @@ class ILPolicy(Policy):
     Property:
         learn_mode, collect_mode, eval_mode
     """
+    config = dict(
+        type='IL',
+        cuda=True,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        on_policy=False,
+        multi_gpu=False,
+        priority=False,
+        model=dict(),
+        learn=dict(
+            # (int) collect n_episode data, train model n_iteration time
+            update_per_collect=20,
+            # (int) the number of data for a train iteration
+            batch_size=64,
+            # (float) gradient-descent step size
+            learning_rate=0.0002,
+            # (float) weight decay of optimizer
+            weight_decay=0.0,
+        ),
+        collect=dict(
+            # (int) collect n_episode data, train model n_iteration time
+            n_episode=2,
+            # (float) discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.99,
+        ),
+        eval=dict(evaluator=dict(eval_freq=800, ), ),
+        other=dict(
+            replay_buffer=dict(
+                replay_buffer_size=100000,
+                # (int) max use count of data, if count is bigger than this value,
+                # the data will be removed from buffer
+                max_reuse=10,
+            ),
+            command=dict(),
+        ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -34,10 +69,6 @@ class ILPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init optimizers, algorithm config, main and target models.
         """
-        # algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
         # actor and critic optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
 
@@ -68,7 +99,6 @@ class ILPolicy(Policy):
         obs = data.get('obs')
         action = data.get('action')
         logit = data.get('logit')
-        priority = data.get('priority')
         model_action_logit = self._learn_model.forward(obs['processed_obs'])['logit']
         supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
@@ -77,7 +107,6 @@ class ILPolicy(Policy):
         loss_dict['supervised_loss'] = supervised_loss
         return {
             'cur_lr': self._optimizer.defaults['lr'],
-            'priority': priority,
             **loss_dict,
         }
 
@@ -98,6 +127,7 @@ class ILPolicy(Policy):
             Init traj and unroll length, adder, collect model.
         """
         self._collect_model = model_wrap(FootballKaggle5thPlaceModel(), wrapper_name='base')
+        self._gamma = self._cfg.collect.discount_factor
         self._collect_model.eval()
         self._collect_model.reset()
 
