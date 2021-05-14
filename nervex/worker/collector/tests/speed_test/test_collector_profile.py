@@ -24,7 +24,7 @@ from nervex.worker.collector.tests.speed_test.test_config import test_config
 #   - Test on small env
 #   - Test on sync_subprocess env manager
 #   - Test with reset_ratio = 1.
-FAST_MODE = True
+FAST_MODE = False
 
 
 def compare_test(cfg, out_str, seed):
@@ -38,16 +38,13 @@ def compare_test(cfg, out_str, seed):
         collector_env_cfg.pop('manager')
         collector_env_fns = [partial(env_fn, cfg=collector_env_cfg) for _ in range(collector_env_num)]
         if cfg.env.manager.type == 'base':
-            cfg.env.manager.pop('step_wait_timeout')
-            cfg.env.manager.pop('wait_num')
-            env_manager_cfg = deep_merge_dicts(BaseEnvManager.default_config(), cfg.env.manager)
-            collector_env = BaseEnvManager(collector_env_fns, env_manager_cfg)
+            env_manager_type = BaseEnvManager
         elif cfg.env.manager.type == 'async_subprocess':
-            env_manager_cfg = deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), cfg.env.manager)
-            collector_env = AsyncSubprocessEnvManager(collector_env_fns, env_manager_cfg)
+            env_manager_type = AsyncSubprocessEnvManager
         elif cfg.env.manager.type == 'subprocess':
-            env_manager_cfg = deep_merge_dicts(SyncSubprocessEnvManager.default_config(), cfg.env.manager)
-            collector_env = SyncSubprocessEnvManager(collector_env_fns, env_manager_cfg)
+            env_manager_type = SyncSubprocessEnvManager
+        env_manager_cfg = deep_merge_dicts(env_manager_type.default_config(), cfg.env.manager)
+        collector_env = env_manager_type(collector_env_fns, env_manager_cfg)
         collector_env.seed(seed)
 
         # cfg.policy.collect.collector = deep_merge_dicts(
@@ -59,7 +56,7 @@ def compare_test(cfg, out_str, seed):
         replay_buffer = BufferManager(buffer_cfg)
 
         start = time.time()
-        iters = 50 if FAST_MODE else 300
+        iters = 50 if FAST_MODE else 5
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
@@ -154,7 +151,9 @@ def test_collector_profile():
                 copy_cfg = deep_merge_dicts(copy_test_config, copy_cfg)
                 copy_cfg.env.reset_time *= reset_ratio
                 copy_cfg.env.manager.type = envm
-
+                if copy_cfg.env.manager.type == 'base':
+                    copy_cfg.env.manager.pop('step_wait_timeout')
+                    copy_cfg.env.manager.pop('wait_num')
                 print('=={}, {}, reset x{}'.format(copy_cfg.size, envm, reset_ratio))
                 print(copy_cfg)
                 out_str.append('=={}, {}, reset x{}'.format(copy_cfg.size, envm, reset_ratio))
