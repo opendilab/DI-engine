@@ -136,7 +136,7 @@ def test_sac_auto_alpha():
         f.write("10. sac with auto alpha\n")
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     try:
