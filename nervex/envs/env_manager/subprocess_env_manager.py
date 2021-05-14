@@ -181,7 +181,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         self._env_ref = self._env_fn[0]()
-        self._reset_param = [{} for _ in range(self.env_num)]
+        self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
@@ -267,7 +267,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             sleep_count += 1
         return self._inv_transform({i: self._ready_obs[i] for i in self.ready_env})
 
-    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
@@ -285,7 +285,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
             ret = {i: p.recv() for i, p in self._pipe_parents.items()}
             self._check_data(ret)
-        self.reset(reset_param)
+        self._reset_param.update(reset_param)
+        self.reset(self._reset_param)
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
@@ -318,9 +319,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             time.sleep(0.001)
             sleep_count += 1
 
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for i in range(self.env_num):
+                self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
+            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
+            self._check_data(ret)
+
         # reset env
         reset_thread_list = []
         for env_id in reset_env_list:
+            self._env_states[env_id] == EnvState.RESET
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
@@ -570,10 +579,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     raise KeyError("not support env cmd: {}".format(cmd))
                 child.send(ret)
             except Exception as e:
-                print("Sub env '{} error when executing {}".format(str(env), cmd))
+                #print("Sub env '{}' error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
-                print("Sub env '{} error when executing {}".format(str(env), cmd))
                 child.send(
                     e.__class__('\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
                 )

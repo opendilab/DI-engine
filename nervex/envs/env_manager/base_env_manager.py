@@ -189,7 +189,7 @@ class BaseEnvManager(object):
         """
         assert not self._closed, "env manager is closed, please use the alive env manager"
 
-    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
@@ -211,7 +211,7 @@ class BaseEnvManager(object):
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [e() for e in self._env_fn]
-        self._reset_param = [{} for _ in range(self.env_num)]
+        self._reset_param = {i: {} for i in range(self.env_num)}
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
@@ -231,10 +231,12 @@ class BaseEnvManager(object):
         self._check_closed()
         if reset_param is None:
             for i in range(self.env_num):
+                self._env_states[i] = EnvState.RESET
                 self._reset(i)
         else:
             for env_id in reset_param:
                 self._reset_param[env_id] = reset_param[env_id]
+                self._env_states[env_id] = EnvState.RESET
                 self._reset(env_id)
 
     def _reset(self, env_id: int) -> None:
