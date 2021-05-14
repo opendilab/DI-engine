@@ -12,9 +12,14 @@ from nervex.torch_utils import to_tensor, to_ndarray, to_list
 @ENV_REGISTRY.register('pendulum')
 class PendulumEnv(BaseEnv):
 
+    config = dict(
+        n_episode=5,
+        stop_value=-250,
+    )
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self._use_act_scale = cfg.use_act_scale
+        self._act_scale = cfg.act_scale
         self._env = gym.make('Pendulum-v0')
         self._init_flag = False
 
@@ -44,7 +49,7 @@ class PendulumEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if self._use_act_scale:
+        if self._act_scale:
             action_range = self.info().act_space.value
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)

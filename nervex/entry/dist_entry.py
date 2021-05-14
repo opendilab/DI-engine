@@ -2,7 +2,7 @@ import pickle
 import logging
 from nervex.worker import Coordinator, create_comm_collector, create_comm_learner
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def dist_prepare_config(

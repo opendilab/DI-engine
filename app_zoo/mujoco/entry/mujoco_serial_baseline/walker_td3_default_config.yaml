@@ -25,7 +25,7 @@ policy:
     model:
         obs_dim: 17
         action_dim: 6
-        use_twin_critic: True
+        twin_critic: True
     learn:
         train_iteration: 4
         batch_size: 128
@@ -37,7 +37,7 @@ policy:
             target_theta: 0.005
             discount_factor: 0.99
             collector_update_freq: 2
-            use_twin_critic: True
+            twin_critic: True
             use_noise: True
             noise_sigma: 0.2
             noise_range:
@@ -45,7 +45,6 @@ policy:
                 max: 0.5
         init_data_count: 5000
     collect:
-        traj_len: 1
         unroll_len: 1
         algo:
             noise_sigma: 0.1
@@ -56,10 +55,8 @@ replay_buffer:
     agent:
         replay_buffer_size: 20000
         max_use: 16
-        min_sample_ratio: 1
 collectorctor:
     n_sample: 48
-    traj_len: 1
     collect_print_freq: 1000
 evaluator:
     n_episode: 8

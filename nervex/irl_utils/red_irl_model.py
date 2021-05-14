@@ -39,6 +39,7 @@ class RedRewardModel(BaseRewardModel):
         self.config: Dict = config
         self.expert_data: List[tuple] = []
         self.device = device
+        assert device in ["cpu", "cuda"] or "cuda" in device
         self.tb_logger = tb_logger
         self.target_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])
         self.online_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])

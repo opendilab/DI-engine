@@ -9,7 +9,6 @@ from functools import partial
 
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, add_learner_hook, create_learner
-from nervex.config import base_learner_default_config
 
 
 class FakeLearner(BaseLearner):
@@ -65,7 +64,7 @@ class FakePolicy:
 class TestBaseLearner:
 
     def _get_cfg(self, path):
-        cfg = EasyDict({'learner': base_learner_default_config}).learner
+        cfg = BaseLearner.default_config()
         cfg.load_path = path
         cfg.import_names = []
         cfg.learner_type = 'fake'

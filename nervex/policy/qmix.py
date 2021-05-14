@@ -19,6 +19,59 @@ class QMIXPolicy(Policy):
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
             you can view the paper in the following link <https://arxiv.org/abs/1803.11485>_
     """
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='qmix',
+        # (bool) Whether to use cuda for network.
+        cuda=True,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        learn=dict(
+            update_per_collect=20,
+            batch_size=64,
+            learning_rate=0.0005,
+            weight_decay=0.0001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Target network update momentum parameter.
+            # in [0, 1].
+            target_update_theta=0.001,
+            # (float) The discount factor for future rewards,
+            # in [0, 1].
+            discount_factor=0.99,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            n_episode=8,
+            # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
+            # in each forward when training. In qmix, it is greater than 1 because there is RNN.
+            unroll_len=20,
+        ),
+        eval=dict(),
+        other=dict(
+            eps=dict(
+                # (str) Type of epsilon decay
+                type='exp',
+                # (float) Start value for epsilon decay, in [0, 1].
+                # 0 means not use epsilon decay.
+                start=1,
+                # (float) Start value for epsilon decay, in [0, 1].
+                end=0.05,
+                # (int) Decay length(env step)
+                decay=20000,
+            ),
+            replay_buffer=dict(
+                replay_buffer_size=5000,
+                # (int) The maximum reuse times of each data
+                max_reuse=10,
+            ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         """
@@ -35,16 +88,17 @@ class QMIXPolicy(Policy):
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
+        self._priority = self._cfg.priority
+        assert not self._priority, "not implemented priority in QMIX"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        algo_cfg = self._cfg.learn.algo
-        self._gamma = algo_cfg.discount_factor
+        self._gamma = self._cfg.learn.discount_factor
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_update_theta}
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
         self._target_model = model_wrap(
             self._target_model,
@@ -75,7 +129,7 @@ class QMIXPolicy(Policy):
         """
         # data preprocess
         data = timestep_collate(data)
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
@@ -144,7 +198,7 @@ class QMIXPolicy(Policy):
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
@@ -166,13 +220,13 @@ class QMIXPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps, data_id=data_id)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -229,13 +283,13 @@ class QMIXPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, data_id=data_id)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

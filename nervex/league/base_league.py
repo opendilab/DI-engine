@@ -1,4 +1,5 @@
 import uuid
+import copy
 from abc import ABC, abstractmethod
 
 from easydict import EasyDict
@@ -15,6 +16,10 @@ class BaseLeague(ABC):
     Interface:
         __init__, get_job_info, judge_snapshot, update_active_player, finish_job
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        return copy.deepcopy(EasyDict(cls.config))
 
     def __init__(self, cfg: EasyDict) -> None:
         """

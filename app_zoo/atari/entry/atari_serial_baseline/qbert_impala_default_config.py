@@ -45,7 +45,6 @@ qbert_impala_default_config = dict(
             ignore_done=True,
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=64,
             algo=dict(discount_factor=discount_factor, ),
         ),
@@ -56,12 +55,10 @@ qbert_impala_default_config = dict(
         agent=dict(
             replay_buffer_size=10000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=16,
-        traj_len=128,
         collect_print_freq=100,
     ),
     evaluator=dict(

@@ -11,7 +11,8 @@ from ..subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEn
 class TestSubprocessEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
-        env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
+        env_fn = setup_async_manager_cfg.pop('env_fn')
+        env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         model = setup_model_type()
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
@@ -69,7 +70,8 @@ class TestSubprocessEnvManager:
 
     @pytest.mark.error
     def test_error(self, setup_async_manager_cfg, setup_exception):
-        env_manager = SyncSubprocessEnvManager(**setup_async_manager_cfg)
+        env_fn = setup_async_manager_cfg.pop('env_fn')
+        env_manager = SyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         # Test reset error
         with pytest.raises(AssertionError):
             env_manager.reset(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
@@ -112,7 +114,8 @@ class TestSubprocessEnvManager:
             env_manager.step([])
 
     def test_block(self, setup_async_manager_cfg, setup_watchdog, setup_model_type):
-        env_manager = AsyncSubprocessEnvManager(**setup_async_manager_cfg)
+        env_fn = setup_async_manager_cfg.pop('env_fn')
+        env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         watchdog = setup_watchdog(60)
         model = setup_model_type()
         # Test reset timeout
@@ -147,8 +150,8 @@ class TestSubprocessEnvManager:
                 obs = env_manager.ready_obs
         time.sleep(0.5)
 
-        obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
-        time.sleep(0.5)
+        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        time.sleep(1)
         action[0] = 'timeout'
         timestep = env_manager.step(action)
         obs = env_manager.ready_obs

@@ -3,8 +3,6 @@ Parallel Pipeline Config
 
 .. code:: python
 
-    traj_len=1
-
     # You can refer to policy config in serial pipeline config for details
     policy_default_config = dict(
         use_cuda=False,
@@ -26,7 +24,6 @@ Parallel Pipeline Config
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
                 nstep=1,
@@ -38,7 +35,6 @@ Parallel Pipeline Config
         collector_type='zergling',
         import_names=['nervex.worker.collector.zergling_collector'],
         print_freq=10,
-        traj_len=traj_len,
         # The function to compress data.
         compressor='lz4',
         # Frequency for collector to update its own policy according learner's saved one.

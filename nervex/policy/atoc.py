@@ -24,18 +24,95 @@ class ATOCPolicy(Policy):
         learn_mode, collect_mode, eval_mode
     """
 
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='atoc',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        model=dict(
+            # (bool) Whether to use communication module in ATOC, if not, it is a multi-agent DDPG
+            communication=True,
+            # (int) The number of thought size
+            thought_size=8,
+            # (int) The number of agent for each communication group
+            agent_per_group=2,
+            # (int) The frequency(update) of communication group reinitialization
+            group_init_freq=5,
+        ),
+        learn=dict(
+            # (int) Collect n_sample data, update model n_iteration time
+            update_per_collect=5,
+            # (int) The number of data for a train iteration
+            batch_size=64,
+            # (float) Gradient-descent step size of actor
+            learning_rate_actor=0.001,
+            # (float) Gradient-descent step size of critic
+            learning_rate_critic=0.001,
+            weight_decay=0.00001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Target network update weight, theta * new_w + (1 - theta) * old_w, defaults in [0, 0.1]
+            target_theta=0.005,
+            # (float) Discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.99,
+            # (bool) Whether to use communication module in ATOC, if not, it is a multi-agent DDPG
+            communication=True,
+            # (int) The frequency of actor update, each critic update
+            actor_update_freq=1,
+            # (bool) Whether use noise in action output when learning
+            noise=True,
+            # (float) The std of noise distribution for target policy smooth
+            noise_sigma=0.15,
+            # (float, float) The minimum and maximum value of noise
+            noise_range=dict(
+                min=-0.5,
+                max=0.5,
+            ),
+            # (bool) Whether to use reward batch norm in the total batch
+            reward_batch_norm=False,
+            ignore_done=False,
+        ),
+        collect=dict(
+            # (int) Collect n_sample data, update model n_iteration time
+            n_sample=64,
+            # (int) Unroll length of a train iteration(gradient update step)
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) The std of noise distribution for exploration
+            noise_sigma=0.4,
+        ),
+        eval=dict(),
+        other=dict(
+            replay_buffer=dict(
+                # (int) The max size of replay buffer
+                replay_buffer_size=100000,
+                # (int) The max use count of data, if count is bigger than this value, the data will be removed
+                max_use=10,
+            ),
+        ),
+    )
+
     def _init_learn(self) -> None:
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target models.
         """
+        self._priority = self._cfg.priority
+        assert not self._priority
         # algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._use_communication = algo_cfg.use_communication
-        self._gamma = algo_cfg.discount_factor
-        self._actor_update_freq = algo_cfg.actor_update_freq
+        self._communication = self._cfg.learn.communication
+        self._gamma = self._cfg.learn.discount_factor
+        self._actor_update_freq = self._cfg.learn.actor_update_freq
         # actor and critic optimizer
         self._optimizer_actor = Adam(
             self._model._actor.parameters(),
@@ -47,13 +124,13 @@ class ATOCPolicy(Policy):
             lr=self._cfg.learn.learning_rate_critic,
             weight_decay=self._cfg.learn.weight_decay
         )
-        if self._use_communication:
+        if self._communication:
             self._optimizer_actor_attention = Adam(
                 self._model._actor._attention.parameters(),
                 lr=self._cfg.learn.learning_rate_actor,
                 weight_decay=self._cfg.learn.weight_decay
             )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
+        self._reward_batch_norm = self._cfg.learn.reward_batch_norm
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
@@ -61,18 +138,18 @@ class ATOCPolicy(Policy):
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_theta}
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
-        if algo_cfg.use_noise:
+        if self._cfg.learn.noise:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='action_noise',
                 noise_type='gauss',
                 noise_kwargs={
                     'mu': 0.0,
-                    'sigma': algo_cfg.noise_sigma
+                    'sigma': self._cfg.learn.noise_sigma
                 },
-                noise_range=algo_cfg.noise_range
+                noise_range=self._cfg.learn.noise_range
             )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -90,17 +167,17 @@ class ATOCPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
         loss_dict = {}
-        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
-        if self._use_cuda:
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
+        if self._cuda:
             data = to_device(data, self._device)
         # ====================
         # critic learn forward
         # ====================
         self._learn_model.train()
         self._target_model.train()
-        next_obs = data.get('next_obs')
-        reward = data.get('reward')
-        if self._use_reward_batch_norm:
+        next_obs = data['next_obs']
+        reward = data['reward']
+        if self._reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
@@ -131,7 +208,7 @@ class ATOCPolicy(Policy):
         # ===============================
         # actor updates every ``self._actor_update_freq`` iters
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            if self._use_communication:
+            if self._communication:
                 output = self._learn_model.forward(data['obs'], mode='compute_actor', get_delta_q=False)
                 output['delta_q'] = data['delta_q']
                 attention_loss = -self._learn_model.forward(
@@ -184,16 +261,15 @@ class ATOCPolicy(Policy):
             Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         # collect model
-        algo_cfg = self._cfg.collect.algo
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
-                'sigma': algo_cfg.noise_sigma
+                'sigma': self._cfg.collect.noise_sigma
             },
             noise_range=None,  # no noise clip in actor
         )
@@ -210,12 +286,12 @@ class ATOCPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -232,7 +308,7 @@ class ATOCPolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        if self._use_communication:
+        if self._communication:
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
@@ -253,7 +329,7 @@ class ATOCPolicy(Policy):
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         # adder is defined in _init_collect
-        if self._use_communication:
+        if self._communication:
             delta_q_batch = [d['delta_q'] for d in data]
             delta_min = torch.stack(delta_q_batch).min()
             delta_max = torch.stack(delta_q_batch).max()
@@ -281,12 +357,12 @@ class ATOCPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

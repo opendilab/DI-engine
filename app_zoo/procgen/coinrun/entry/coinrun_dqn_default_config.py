@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 11
 nstep = 3
 coinrun_dqn_default_config = dict(
     env=dict(
@@ -36,7 +35,6 @@ coinrun_dqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
@@ -52,12 +50,10 @@ coinrun_dqn_default_config = dict(
         agent=dict(
             meta_maxlen=10000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collectorctor=dict(
         n_sample=100,
-        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(

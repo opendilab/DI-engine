@@ -18,6 +18,56 @@ class A2CPolicy(Policy):
     Overview:
         Policy class of A2C algorithm.
     """
+    config = dict(
+        # (string) RL policy register name (refer to function "register_policy").
+        type='a2c',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        on_policy=True,  # for a2c strictly on policy algorithm, this line should not be seen by users
+        priority=False,
+        learn=dict(
+            # (int) for a2c, update_per_collect must be 1.
+            update_per_collect=1,  # this line should not be seen by users
+            batch_size=64,
+            learning_rate=0.001,
+            weight_decay=0,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) loss weight of the value network, the weight of policy network is set to 1
+            value_weight=0.5,
+            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            entropy_weight=0.01,
+            # (bool) Whether to normalize advantage. Default to False.
+            normalize_advantage=False,
+            # (bool) Whether to use nstep return for value network target
+            nstep_return=False,
+            ignore_done=False,
+        ),
+        collect=dict(
+            # (int) collect n_sample data, train model n_iteration times
+            n_sample=80,
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.9,
+            # (float) the trade-off factor lambda to balance 1step td and mc
+            gae_lambda=0.95,
+            # (bool) Whether to use nstep return for value network target
+            nstep_return=False,
+            # (int) N-step td
+            nstep=1,
+        ),
+        eval=dict(),
+        # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
+        # Note replay_buffer_size must be greater than n_sample.
+        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -31,14 +81,11 @@ class A2CPolicy(Policy):
         )
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._value_weight = algo_cfg.value_weight
-        self._entropy_weight = algo_cfg.entropy_weight
-        self._learn_use_nstep_return = algo_cfg.get('use_nstep_return', False)
-        if self._learn_use_nstep_return:
-            self._learn_gamma = algo_cfg.discount_factor
-            self._learn_nstep = algo_cfg.nstep
-        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
+        self._priority = self._cfg.priority
+        self._value_weight = self._cfg.learn.value_weight
+        self._entropy_weight = self._cfg.learn.entropy_weight
+        self._adv_norm = self._cfg.learn.normalize_advantage
+        self._learn_nstep_return = self._cfg.learn.nstep_return
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -54,28 +101,20 @@ class A2CPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=self._learn_use_nstep_return
+            data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._learn_nstep_return
         )
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
         # forward
         output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
 
         adv = data['adv']
-        if self._use_adv_norm:
+        if self._adv_norm:
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-
         with torch.no_grad():
-            if self._learn_use_nstep_return:
-                # use nstep return
-                next_value = self._learn_model.forward(data['next_obs'], mode='compute_actor_critic')['value']
-                nstep_data = nstep_return_data(data['reward'], next_value, data['done'])
-                return_ = nstep_return(nstep_data, self._learn_gamma, self._learn_nstep).detach()
-            else:
-                # Return = value + adv
-                return_ = data['value'] + adv
+            return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
 
         # Calculate A2C loss
@@ -128,12 +167,12 @@ class A2CPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
-        self._adder = Adder(self._use_cuda, self._unroll_len)
-        algo_cfg = self._cfg.collect.algo
-        self._gamma = algo_cfg.discount_factor
-        self._gae_lambda = algo_cfg.gae_lambda
-        self._collect_use_nstep_return = algo_cfg.get('use_nstep_return', False)
-        self._collect_nstep = algo_cfg.get('nstep', 1)
+        self._adder = Adder(self._cuda, self._unroll_len)
+        # Algorithm
+        self._gamma = self._cfg.collect.discount_factor
+        self._gae_lambda = self._cfg.collect.gae_lambda
+        self._collect_nstep_return = self._cfg.collect.nstep_return
+        self._collect_nstep = self._cfg.collect.nstep
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -146,12 +185,12 @@ class A2CPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor_critic')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -192,7 +231,7 @@ class A2CPolicy(Policy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
-        if self._collect_use_nstep_return:
+        if self._collect_nstep_return:
             data = self._adder.get_nstep_return_data(data, self._collect_nstep)
         return self._adder.get_train_sample(data)
 
@@ -216,18 +255,18 @@ class A2CPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
+        return 'fc_vac', ['nervex.model.vac.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']

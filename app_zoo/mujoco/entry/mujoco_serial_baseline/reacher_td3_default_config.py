@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-use_twin_critic = True
+twin_critic = True
 reacher_td3_default_config = dict(
     env=dict(
         env_id='Reacher-v2',
@@ -25,7 +25,7 @@ reacher_td3_default_config = dict(
         model=dict(
             obs_dim=111,
             action_dim=8,
-            use_twin_critic=use_twin_critic,
+            twin_critic=twin_critic,
         ),
         learn=dict(
             train_iteration=2,
@@ -38,7 +38,7 @@ reacher_td3_default_config = dict(
                 target_theta=0.005,
                 discount_factor=0.99,
                 collector_update_freq=2,
-                use_twin_critic=use_twin_critic,
+                twin_critic=twin_critic,
                 use_noise=True,
                 noise_sigma=0.2,
                 noise_range=dict(
@@ -49,7 +49,6 @@ reacher_td3_default_config = dict(
             init_data_count=5000,
         ),
         collect=dict(
-            traj_len=1,
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
@@ -60,12 +59,10 @@ reacher_td3_default_config = dict(
         agent=dict(
             replay_buffer_size=20000,
             max_use=16,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=48,
-        traj_len=1,
         collect_print_freq=1000,
     ),
     evaluator=dict(

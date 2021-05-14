@@ -8,7 +8,7 @@ from easydict import EasyDict
 
 from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
 from nervex.config import read_config, parallel_transform, parallel_transform_slurm
-from .utils import set_pkg_seed
+from nervex.utils import set_pkg_seed
 
 
 def parallel_pipeline(

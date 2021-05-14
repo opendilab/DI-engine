@@ -21,24 +21,26 @@ demo_data_path = "test_demo_data.pkl"
 
 @pytest.fixture(scope="function")
 def setup_base_buffer():
-    return PrioritizedReplayBuffer(
-        name="agent", replay_buffer_size=64, max_use=2, min_sample_ratio=2., alpha=0., beta=0., monitor_cfg=monitor_cfg
-    )
+    cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
+    cfg.replay_buffer_size = 64
+    cfg.max_use = 2
+    cfg.alpha = 0.
+    cfg.beta = 0.
+    cfg.monitor = monitor_cfg
+
+    return PrioritizedReplayBuffer(name="agent", cfg=cfg)
 
 
 @pytest.fixture(scope="function")
 def setup_prioritized_buffer():
-    return PrioritizedReplayBuffer(
-        name="agent",
-        replay_buffer_size=64,
-        max_use=1,
-        min_sample_ratio=2.,
-        max_staleness=1000,
-        alpha=0.6,
-        beta=0.6,
-        enable_track_used_data=True,
-        monitor_cfg=monitor_cfg
-    )
+    cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
+    cfg.replay_buffer_size = 64
+    cfg.max_use = 1
+    cfg.max_staleness = 1000
+    cfg.enable_track_used_data = True
+    cfg.monitor = monitor_cfg
+
+    return PrioritizedReplayBuffer(name="agent", cfg=cfg)
 
 
 @pytest.fixture(scope="function")
@@ -49,16 +51,15 @@ def setup_demo_buffer_factory():
 
     def generator():
         while True:
-            demo_buffer = PrioritizedReplayBuffer(
-                name="demo",
-                replay_buffer_size=64,
-                max_use=2,
-                min_sample_ratio=1.,
-                alpha=0.6,
-                beta=0.6,
-                enable_track_used_data=True,
-                monitor_cfg=monitor_cfg
-            )
+            cfg = copy.deepcopy(PrioritizedReplayBuffer.default_config())
+            cfg.replay_buffer_size = 64
+            cfg.max_use = 2
+            cfg.max_staleness = 1000
+            cfg.alpha = 0.6
+            cfg.beta = 0.6
+            cfg.enable_track_used_data = True
+            cfg.monitor_cfg = monitor_cfg
+            demo_buffer = PrioritizedReplayBuffer(name="demo", cfg=cfg)
             yield demo_buffer
 
     return generator()
@@ -230,7 +231,7 @@ class TestPrioritizedReplayBuffer:
             setup_prioritized_buffer.append(tmp)
 
         assert (setup_prioritized_buffer.replay_buffer_size == 64)
-        assert (setup_prioritized_buffer.beta == 0.6)
+        assert (setup_prioritized_buffer.beta == 0.4)
         assert (setup_prioritized_buffer.alpha == 0.6)
         assert (hasattr(setup_prioritized_buffer, '_sum_tree'))
         assert (hasattr(setup_prioritized_buffer, '_min_tree'))
