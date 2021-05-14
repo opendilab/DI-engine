@@ -18,6 +18,115 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):
+    config = dict(
+        cuda=True,
+        multi_gpu=False,
+        # (str type) policy_type: Determine the version of sac to use.
+        # policy_type in ['sac_v1', 'sac_v2']
+        # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
+        # using sac_v1 needs to set learning_rate_value, learning_rate_q and learning_rate_policy in `cfg.policy.learn`.
+        # sac_v2: learns soft q function and actor.
+        # Note that: Please consistent with the model type setting.
+        # policy_type='sac_v2',
+        # import_names=['nervex.policy.sac'],
+        # (bool type) on_policy: Determine whether on-policy or off-policy.
+        # on-policy setting influences the behaviour of buffer.
+        # Please use False in sac.
+        on_policy=False,
+        # (bool type) priority: Determine whether to use priority in buffer sample.
+        # Please use False in sac.
+        priority=False,
+        model=dict(
+            obs_shape=17,
+            action_shape=6,
+            policy_embedding_size=256,
+            # (int type) value_embedding_size: linear layer size for value network.
+            # `value_embedding_size` should be initialized, when you use `sac_v1` and model.
+            # Default to 256 when value_network is ture.
+            value_embedding_size=256,
+            soft_q_embedding_size=256,
+
+            # (bool type) twin_q: Determine whether to use double-soft-q-net for target q computation.
+            # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
+            # Default to True.
+            twin_q=True,
+
+            # (bool type) value_network: Determine whether to use value network as the
+            # original SAC paper (arXiv 1801.01290).
+            # using value_network needs to set learning_rate_value, learning_rate_q,
+            # and learning_rate_policy in `cfg.policy.learn`.
+            # Default to False.
+            value_network=False,
+        ),
+        learn=dict(
+            update_per_collect=1,
+            batch_size=256,
+
+            # (float type) learning_rate_q: Learning rate for soft q network.
+            # Default to 3e-4 in sac_v1.
+            # Default to 1e-3 in sac_v2.
+            learning_rate_q=3e-4,
+            # (float type) learning_rate_policy: Learning rate for policy network.
+            # Default to 3e-4 in sac_v1.
+            # Default to 1e-3 in sac_v2.
+            learning_rate_policy=3e-4,
+            # (float type) learning_rate_value: Learning rate for value network.
+            # `learning_rate_value` should be initialized, when you use `sac_v1` policy.
+            # Default to 3e-4 in sac_v1.
+            learning_rate_value=3e-4,
+
+            # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
+            # Default to 3e-4.
+            learning_rate_alpha=3e-4,
+            weight_decay=0.0,
+            # (float type) target_theta: Used for soft update of the target network.
+            # Default to 0.005.
+            target_theta=0.005,
+            discount_factor=0.99,
+
+            # (float type) alpha: Entropy regularization coefficient.
+            # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
+            # If is_auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
+            # Default to 0.2.
+            alpha=0.2,
+
+            # (bool type) reparameterization: Determine whether to use reparameterization trick.
+            # Please check out the original SAC paper (arXiv 1801.01290): Eq 11 for more details.
+            # Default to True.
+            reparameterization=True,
+
+            # (bool type) is_auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
+            # Temperature parameter determines the relative importance of the entropy term against the reward.
+            # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
+            # Default to False.
+            # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
+            is_auto_alpha=True,
+            ignore_done=False,
+        ),
+        collect=dict(
+            # You can use either "n_sample" or "n_episode" in actor.collect.
+            # Get "n_sample" samples per collect.
+            # Default n_sample to 1.
+            n_sample=1,
+            unroll_len=1,
+            # (float) The std of noise for exploration
+            noise_sigma=0.2,
+        ),
+        eval=dict(),
+        other=dict(
+            replay_buffer=dict(
+                # (int type) replay_buffer_size: Max size of replay buffer.
+                replay_buffer_size=1000000,
+                # (int type) replay_start_size: Number of experiences in replay buffer
+                # when training begins. Default to 10000.
+                replay_buffer_start_size=10000,
+                # (int type) max_use: Max use times of one data in the buffer.
+                # Data will be removed once used for too many times.
+                # Default to infinite.
+                # max_use=256,
+            ),
+        ),
+    )
     r"""
     Overview:
         Policy class of SAC algorithm.
@@ -29,15 +138,21 @@ class SACPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init q, value and policy's optimizers, algorithm config, main and target models.
         """
+        # Init
+        self._priority = self._cfg.priority
+        self._value_network = self._model._value_network
+        self._twin_q = self._model._twin_q
+
         # Optimizers
+        if self._value_network:
+            self._optimizer_value = Adam(
+                self._model.value_net.parameters(),
+                lr=self._cfg.learn.learning_rate_value,
+                weight_decay=self._cfg.learn.weight_decay
+            )
         self._optimizer_q = Adam(
             self._model.q_net.parameters(),
             lr=self._cfg.learn.learning_rate_q,
-            weight_decay=self._cfg.learn.weight_decay
-        )
-        self._optimizer_value = Adam(
-            self._model.value_net.parameters(),
-            lr=self._cfg.learn.learning_rate_value,
             weight_decay=self._cfg.learn.weight_decay
         )
         self._optimizer_policy = Adam(
@@ -47,26 +162,20 @@ class SACPolicy(Policy):
         )
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
+        self._gamma = self._cfg.learn.discount_factor
         # Init auto alpha
-        self._is_auto_alpha = algo_cfg.get('is_auto_alpha', None)
-        if self._is_auto_alpha:
-            self._target_entropy = -np.prod(self._cfg.model.action_dim)
-            self._log_alpha = torch.log(torch.tensor([algo_cfg.alpha]))
-            self._log_alpha = self._log_alpha.to(device='cuda' if self._use_cuda else 'cpu').requires_grad_()
+        if self._cfg.learn.is_auto_alpha:
+            self._target_entropy = -np.prod(self._cfg.model.action_shape)
+            self._log_alpha = torch.log(torch.tensor([self._cfg.learn.alpha]))
+            self._log_alpha = self._log_alpha.to(device='cuda' if self._cuda else 'cpu').requires_grad_()
             self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
             self._is_auto_alpha = True
             assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
             self._alpha = self._log_alpha.detach().exp()
         else:
-            self._alpha = algo_cfg.alpha
+            self._alpha = torch.tensor(self._cfg.learn.alpha, requires_grad=False)
             self._is_auto_alpha = False
-        self._reparameterization = algo_cfg.reparameterization
-        self._policy_std_reg_weight = algo_cfg.policy_std_reg_weight
-        self._policy_mean_reg_weight = algo_cfg.policy_mean_reg_weight
-        self._use_twin_q = algo_cfg.use_twin_q
+        self._reparameterization = self._cfg.learn.reparameterization
 
         # Main and target models
         self._target_model = copy.deepcopy(self._model)
@@ -74,7 +183,7 @@ class SACPolicy(Policy):
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_theta}
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -93,12 +202,9 @@ class SACPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data,
-            use_priority=self._cfg.get('use_priority', False),
-            ignore_done=self._cfg.learn.get('ignore_done', False),
-            use_nstep=False
+            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
         )
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
@@ -109,55 +215,76 @@ class SACPolicy(Policy):
         action = data.get('action')
         done = data.get('done')
 
-        # evaluate to get action distribution
-        eval_data = self._learn_model.forward(data['obs'], mode='evaluate')
-        mean = eval_data["mean"]
-        log_std = eval_data["log_std"]
-        log_prob = eval_data["log_prob"]
-
-        # predict q value and v value
+        # predict q value
         q_value = self._learn_model.forward(data, mode='compute_critic', qv='q')['q_value']
-        v_value = self._learn_model.forward(data['obs'], mode='compute_critic', qv='v')['v_value']
+
+        # predict target value depend self._value_network.
+        if self._value_network:
+            # predict v value
+            v_value = self._learn_model.forward(obs, mode='compute_critic', qv='v')['v_value']
+            with torch.no_grad():
+                next_v_value = self._target_model.forward(next_obs, mode='compute_critic', qv='v')['v_value']
+        else:
+            # target q value. SARSA: first predict next action, then calculate next q value
+            with torch.no_grad():
+                next_data = {'obs': next_obs}
+                next_action = self._learn_model.forward(data['obs'], mode='compute_actor', deterministic_eval=False)
+                next_data['action'] = next_action['action']
+                next_data['log_prob'] = next_action['log_prob']
+                target_q_value = self._target_model.forward(next_data, mode='compute_critic', qv='q')['q_value']
+                # the value of a policy according to the maximum entropy objective
+                if self._twin_q:
+                    # find min one as target q value
+                    target_q_value = torch.min(target_q_value[0],
+                                               target_q_value[1]) - self._alpha * next_data['log_prob'].squeeze(-1)
+                else:
+                    target_q_value = target_q_value - self._alpha * next_data['log_prob'].squeeze(-1)
+        target_value = next_v_value if self._value_network else target_q_value
 
         # =================
         # q network
         # =================
         # compute q loss
-        with torch.no_grad():
-            next_v_value = self._target_model.forward(next_obs, mode='compute_critic', qv='v')['v_value']
-        if self._use_twin_q:
-            q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
+        if self._twin_q:
+            q_data0 = v_1step_td_data(q_value[0], target_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
-            q_data1 = v_1step_td_data(q_value[1], next_v_value, reward, done, data['weight'])
+            q_data1 = v_1step_td_data(q_value[1], target_value, reward, done, data['weight'])
             loss_dict['q_twin_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
             td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
-            q_data = v_1step_td_data(q_value, next_v_value, reward, done, data['weight'])
+            q_data = v_1step_td_data(q_value, target_value, reward, done, data['weight'])
             loss_dict['q_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
         # update q network
         self._optimizer_q.zero_grad()
         loss_dict['q_loss'].backward()
-        if self._use_twin_q:
+        if self._twin_q:
             loss_dict['q_twin_loss'].backward()
         self._optimizer_q.step()
+
+        # evaluate to get action distribution
+        eval_data = self._learn_model.forward(data['obs'], mode='compute_actor', deterministic_eval=False)
+        mean = eval_data["mean"]
+        log_std = eval_data["log_std"]
+        log_prob = eval_data["log_prob"]
+        eval_data['obs'] = obs
+        new_q_value = self._learn_model.forward(eval_data, mode='compute_critic', qv='q')['q_value']
+        if self._twin_q:
+            new_q_value = torch.min(new_q_value[0], new_q_value[1])
 
         # =================
         # value network
         # =================
         # compute value loss
-        eval_data['obs'] = obs
-        new_q_value = self._learn_model.forward(eval_data, mode='compute_critic', qv='q')['q_value']
-        if self._use_twin_q:
-            new_q_value = torch.min(new_q_value[0], new_q_value[1])
-        # new_q_value: (bs, ), log_prob: (bs, act_dim) -> target_v_value: (bs, )
-        target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
-        loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
+        if self._value_network:
+            # new_q_value: (bs, ), log_prob: (bs, act_shape) -> target_v_value: (bs, )
+            target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
+            loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
 
-        # update value network
-        self._optimizer_value.zero_grad()
-        loss_dict['value_loss'].backward()
-        self._optimizer_value.step()
+            # update value network
+            self._optimizer_value.zero_grad()
+            loss_dict['value_loss'].backward()
+            self._optimizer_value.step()
 
         # =================
         # policy network
@@ -169,10 +296,6 @@ class SACPolicy(Policy):
         else:
             policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
 
-        std_reg_loss = self._policy_std_reg_weight * (log_std ** 2).mean()
-        mean_reg_loss = self._policy_mean_reg_weight * (mean ** 2).mean()
-
-        policy_loss += std_reg_loss + mean_reg_loss
         loss_dict['policy_loss'] = policy_loss
 
         # update policy network
@@ -180,7 +303,7 @@ class SACPolicy(Policy):
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
 
-        #  compute alpha loss
+        # compute alpha loss
         if self._is_auto_alpha:
             log_prob = log_prob.detach() + self._target_entropy
             loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
@@ -192,6 +315,10 @@ class SACPolicy(Policy):
 
         loss_dict['total_loss'] = sum(loss_dict.values())
 
+        info_dict = {}
+        if self._value_network:
+            info_dict['cur_lr_v'] = self._optimizer_value.defaults['lr']
+
         # =============
         # after update
         # =============
@@ -200,9 +327,12 @@ class SACPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
-            'cur_lr_v': self._optimizer_value.defaults['lr'],
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
             'priority': td_error_per_sample.abs().tolist(),
+            'td_error': td_error_per_sample.detach().mean().item(),
+            'alpha': self._alpha.item(),
+            'target_value': target_value.detach().mean().item(),
+            **info_dict,
             **loss_dict
         }
 
@@ -210,9 +340,10 @@ class SACPolicy(Policy):
         ret = {
             'model': self._learn_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
-            'optimizer_value': self._optimizer_value.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
+        if self._value_network:
+            ret.update({'optimizer_value': self._optimizer_value.state_dict()})
         if self._is_auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
         return ret
@@ -233,15 +364,15 @@ class SACPolicy(Policy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
-        algo_cfg = self._cfg.collect.algo
+        self._adder = Adder(self._cuda, self._unroll_len)
+        #TODO remove noise
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
-                'sigma': algo_cfg.noise_sigma
+                'sigma': self._cfg.collect.noise_sigma
             },
             noise_range=None
         )
@@ -258,12 +389,12 @@ class SACPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+            output = self._collect_model.forward(data, mode='compute_actor', deterministic_eval=False)
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -312,12 +443,12 @@ class SACPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor', deterministic_eval=True)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -332,12 +463,14 @@ class SACPolicy(Policy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        q_twin = ['q_twin_loss'] if self._use_twin_q else []
+        q_twin = ['q_twin_loss'] if self._twin_q else []
         if self._is_auto_alpha:
             return super()._monitor_vars_learn() + [
-                'alpha_loss', 'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+                'alpha_loss', 'policy_loss', 'q_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'td_error',
+                'q_value_1', 'q_value_2', 'alpha', 'target_value'
             ] + q_twin
         else:
             return super()._monitor_vars_learn() + [
-                'policy_loss', 'value_loss', 'q_loss', 'cur_lr_q', 'cur_lr_v', 'cur_lr_p'
+                'policy_loss', 'q_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'q_value_1', 'q_value_2', 'alpha',
+                'td_error', 'target_value'
             ] + q_twin

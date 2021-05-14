@@ -15,6 +15,7 @@ from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole
 from app_zoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
+from app_zoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
@@ -116,24 +117,13 @@ def test_coma():
 
 @pytest.mark.algotest
 def test_sac():
-    config = deepcopy(pendulum_sac_default_config)  # noqa
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("9. sac\n")
-
-
-@pytest.mark.algotest
-def test_sac_auto_alpha():
-    config = deepcopy(pendulum_sac_auto_alpha_config)  # noqa
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("10. sac with auto alpha\n")
 
 
 @pytest.mark.algotest
