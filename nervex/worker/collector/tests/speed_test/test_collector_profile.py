@@ -6,7 +6,7 @@ from functools import partial
 import copy
 
 from nervex.worker import BaseSerialCollector
-from nervex.envs import get_vec_env_setting, create_env_manager
+from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager, BaseEnvManager
 from nervex.data import BufferManager
 from nervex.utils import deep_merge_dicts, set_pkg_seed
 
@@ -33,15 +33,30 @@ def compare_test(cfg, out_str, seed):
     repeat_times = 1 if FAST_MODE else 3
     for i in range(repeat_times):
         env_fn = FakeEnv
-        collector_env_cfg = [cfg.env.env_kwargs for _ in range(cfg.env.env_kwargs.collector_env_num)]
-        collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
+        collector_env_cfg = copy.deepcopy(cfg.env)
+        collector_env_num = collector_env_cfg.pop('collector_env_num')
+        collector_env_cfg.pop('manager')
+        collector_env_fns = [partial(env_fn, cfg=collector_env_cfg) for _ in range(collector_env_num)]
+        if cfg.env.manager.type == 'base':
+            cfg.env.manager.pop('step_wait_timeout')
+            cfg.env.manager.pop('wait_num')
+            env_manager_cfg = deep_merge_dicts(BaseEnvManager.default_config(), cfg.env.manager)
+            collector_env = BaseEnvManager(collector_env_fns, env_manager_cfg)
+        elif cfg.env.manager.type == 'async_subprocess':
+            env_manager_cfg = deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), cfg.env.manager)
+            collector_env = AsyncSubprocessEnvManager(collector_env_fns, env_manager_cfg)
+        elif cfg.env.manager.type == 'subprocess':
+            env_manager_cfg = deep_merge_dicts(SyncSubprocessEnvManager.default_config(), cfg.env.manager)
+            collector_env = SyncSubprocessEnvManager(collector_env_fns, env_manager_cfg)
         collector_env.seed(seed)
 
+        # cfg.policy.collect.collector = deep_merge_dicts(
+        #     BaseSerialCollector.default_config(), cfg.policy.collect.collector)
         policy = FakePolicy(cfg.policy)
-        collector = BaseSerialCollector(cfg.collector)
-        replay_buffer = BufferManager(cfg.replay_buffer)
-        collector.policy = policy.collect_mode
-        collector.env = collector_env
+        collector_cfg = deep_merge_dicts(BaseSerialCollector.default_config(), cfg.policy.collect.collector)
+        collector = BaseSerialCollector(collector_cfg, collector_env, policy.collect_mode)
+        buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, BufferManager.default_config())
+        replay_buffer = BufferManager(buffer_cfg)
 
         start = time.time()
         iters = 50 if FAST_MODE else 300
@@ -137,11 +152,8 @@ def test_collector_profile():
                 copy_test_config = copy.deepcopy(test_config)
                 copy_cfg = EasyDict(copy_cfg)
                 copy_cfg = deep_merge_dicts(copy_test_config, copy_cfg)
-                copy_cfg.env.env_kwargs.reset_time *= reset_ratio
+                copy_cfg.env.reset_time *= reset_ratio
                 copy_cfg.env.manager.type = envm
-                if copy_cfg.env.manager.type == 'base':
-                    copy_cfg.env.manager.pop('step_wait_timeout')
-                    copy_cfg.env.manager.pop('wait_num')
 
                 print('=={}, {}, reset x{}'.format(copy_cfg.size, envm, reset_ratio))
                 print(copy_cfg)
