@@ -14,11 +14,12 @@ Env Manager
     一般来说，:class:`BaseEnvManager <nervex.envs.BaseEnvManager>` 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用 
     :class:`SyncSubProcessEnvManager <nervex.envs.SyncSubProcessEnvManager>` 和 :class:`AsyncSubProcessEnvManager <nervex.envs.AsyncSubProcessEnvManager>` 进行加速。
 
-    如果对 env 模块还不够了解，建议先查阅 NerveX 的 `环境文档 <./env_overview.html>`_
+    如果对 env 模块还不够了解，建议先查阅 NerveX 的 `Env Overview <./env_overview.html>`_
 
 用法：
     - init
         env manager 的初始化需要传入每个 env 的实例化调用接口和 config 字典，可通过 lambda 函数或者偏函数 ``functools.partial`` 来对 env 的实例化函数进行包装，指定其运行参数。
+
 
         .. code:: python
 
