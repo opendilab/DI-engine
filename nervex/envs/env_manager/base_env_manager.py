@@ -64,10 +64,13 @@ def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         watchdog = WatchDog(timeout)
-        watchdog.start()
         try:
-            ret = func(*args, **kwargs)
-            return ret
+            watchdog.start()
+        except ValueError as e:
+            # watchdog invalid case
+            return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
         except BaseException as e:
             raise e
         finally:

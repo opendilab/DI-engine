@@ -210,6 +210,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
         Arguments:
             - state_dict (:obj:`dict`): State dict of the policy.
         """
+        if not os.path.exists(self._path_policy):
+            os.mkdir(self._path_policy)
         path = os.path.join(self._path_policy, self._policy_id)
         setattr(self, "_latest_policy_path", path)
         save_file(path, state_dict, use_lock=True)

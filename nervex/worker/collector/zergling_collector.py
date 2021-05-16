@@ -11,7 +11,7 @@ import torch
 from easydict import EasyDict
 
 from nervex.policy import create_policy, Policy
-from nervex.envs import get_vec_env_setting, SyncSubprocessEnvManager, BaseEnvManager
+from nervex.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
@@ -105,13 +105,11 @@ class ZerglingCollector(BaseCollector):
 
     def _setup_env_manager(self, cfg: EasyDict) -> BaseEnvManager:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg)
-        manager_cfg = cfg.manager
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
         else:
             env_cfg = collector_env_cfg
-        # TODO (create_env_manager)
-        env_manager = SyncSubprocessEnvManager(env_fn=[partial(env_fn, cfg=c) for c in env_cfg], cfg=manager_cfg)
+        env_manager = create_env_manager(cfg.manager, [partial(env_fn, cfg=c) for c in env_cfg])
         return env_manager
 
     def _start_thread(self) -> None:

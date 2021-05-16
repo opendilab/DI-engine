@@ -77,6 +77,7 @@ class SoloCommander(BaseCommander):
             cur_time = time.time()
             if cur_time - self._last_eval_time > self._commander_cfg.eval_interval:
                 eval_flag = True
+                self._last_eval_time = time.time()
             else:
                 eval_flag = False
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
@@ -136,7 +137,6 @@ class SoloCommander(BaseCommander):
         self._collector_task_space.release_space()
         if finished_task['eval_flag']:
             self._eval_step += 1
-            self._last_eval_time = time.time()
             self._evaluator_info.append(finished_task)
             # TODO real train_iter from evaluator
             train_iter = self._eval_step

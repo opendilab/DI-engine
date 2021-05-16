@@ -127,7 +127,10 @@ def read_config(cfg: str) -> Tuple[dict, dict]:
     if suffix == 'py':
         cfg = Config.file_to_dict(cfg).cfg_dict
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
-        return cfg['main_config'], cfg['create_config']
+        if 'system_config' in cfg:
+            return cfg['main_config'], cfg['create_config'], cfg['system_config']
+        else:
+            return cfg['main_config'], cfg['create_config']
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 

@@ -1,15 +1,15 @@
 import pytest
 from copy import deepcopy
 from nervex.entry import parallel_pipeline
-from app_zoo.classic_control.cartpole.entry.parallel.cartpole_dqn_default_config import main_config
+from app_zoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import main_config, create_config,\
+    system_config
 
 
 @pytest.mark.unittest
 @pytest.mark.execution_timeout(120.0, method='thread')
 def test_dqn():
-    config = deepcopy(main_config)
-    config.coordinator.commander.collector_cfg.env_kwargs.eval_stop_value = 15
-    config.coordinator.commander.eval_interval = 5
+    config = tuple([deepcopy(main_config), deepcopy(create_config), deepcopy(system_config)])
+    config[0].env.stop_value = 15
     try:
         parallel_pipeline(config, seed=0)
     except Exception:
