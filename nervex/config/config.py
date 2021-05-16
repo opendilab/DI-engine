@@ -122,10 +122,12 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
         f.write('exp_config=' + config_string)
 
 
-def read_config(cfg: str) -> Tuple[dict, dict]:
+def read_config(cfg: str, direct=False) -> Tuple[dict, dict]:
     suffix = cfg.split('.')[-1]
     if suffix == 'py':
         cfg = Config.file_to_dict(cfg).cfg_dict
+        if direct:
+            return cfg
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
         if 'system_config' in cfg:
             return cfg['main_config'], cfg['create_config'], cfg['system_config']

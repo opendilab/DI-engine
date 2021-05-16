@@ -39,10 +39,10 @@ class TestConfigHelper():
                 }
             }
         )
-        yaml_path = tempfile.mktemp(suffix=".yaml")
-        save_config(old_config, yaml_path)
-        assert os.path.exists(yaml_path)
-        config = read_config(yaml_path)
+        cfg_path = tempfile.mktemp(suffix=".py")
+        save_config(old_config, cfg_path)
+        assert os.path.exists(cfg_path)
+        config = read_config(cfg_path, direct=True)["exp_config"]
 
         def assert_equal(item1, iterm2):
             if isinstance(item1, list):
