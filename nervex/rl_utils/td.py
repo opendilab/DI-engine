@@ -236,6 +236,7 @@ def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
         nstep: int = 1,
+        cum_reward: bool = False,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
 ) -> torch.Tensor:
     """
@@ -244,6 +245,7 @@ def q_nstep_td_error(
     Arguments:
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
         - criterion (:obj:`torch.nn.modules`): loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
@@ -269,7 +271,10 @@ def q_nstep_td_error(
     q_s_a = q[batch_range, action]
     target_q_s_a = next_n_q[batch_range, next_n_action]
 
-    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
+    if cum_reward:
+        target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
