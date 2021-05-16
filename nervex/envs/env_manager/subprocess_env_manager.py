@@ -181,7 +181,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         self._env_ref = self._env_fn[0]()
-        self._reset_param = {i: None for i in range(self.env_num)}
+        self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._env_ref.info().obs_space
             shape = obs_space.shape
@@ -275,6 +275,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             - reset_param (:obj:`List`): list of reset parameters for each environment.
         """
         assert self._closed, "please first close the env manager"
+        if reset_param is not None:
+            assert len(reset_param) == len(self._env_fn)
         self._create_state()
         # set seed
         if hasattr(self, '_env_seed'):
@@ -340,7 +342,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _reset(self, env_id: int) -> None:
 
-        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
+        #@retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         def reset_fn():
             if self._pipe_parents[env_id].poll():
                 recv_data = self._pipe_parents[env_id].recv()

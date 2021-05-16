@@ -32,9 +32,6 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
         Retry the function until exceeding the maximum retry times.
     """
 
-    if max_retry == 1:
-        return func
-
     if func is None:
         return partial(retry_wrapper, max_retry=max_retry)
 
@@ -201,7 +198,8 @@ class BaseEnvManager(object):
                 value is the cooresponding reset param.
         """
         assert self._closed, "please first close the env manager"
-        assert len(reset_param) == len(self._env_fn)
+        if reset_param is not None:
+            assert len(reset_param) == len(self._env_fn)
         self._create_state()
         # set seed
         if hasattr(self, '_env_seed'):
@@ -219,7 +217,7 @@ class BaseEnvManager(object):
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
-        self._reset_param = {i: None for i in range(self.env_num)}
+        self._reset_param = {i: {} for i in range(self.env_num)}
         self._env_states = {i: EnvState.INIT for i in range(self.env_num)}
         if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
