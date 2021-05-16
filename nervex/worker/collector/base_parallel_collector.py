@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import copy
 from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
 from typing import Any, Union, Tuple
@@ -8,6 +9,7 @@ from functools import partial
 from easydict import EasyDict
 
 from nervex.policy import Policy
+from nervex.envs import BaseEnvManager
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, COLLECTOR_REGISTRY
 from nervex.torch_utils import build_log_buffer
@@ -57,6 +59,12 @@ class BaseCollector(ABC):
     Property:
         policy
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     def __init__(self, cfg: EasyDict) -> None:
         """
@@ -213,8 +221,20 @@ class BaseCollector(ABC):
     def policy(self, _policy: Policy) -> None:
         self._policy = _policy
 
+    @property
+    def env_manager(self) -> BaseEnvManager:
+        return self._env_manager
 
-def create_collector(cfg: dict) -> BaseCollector:
-    cfg = EasyDict(cfg)
+    @env_manager.setter
+    def env_manager(self, _env_manager: BaseEnvManager) -> None:
+        self._env_manager = _env_manager
+
+
+def create_collector(cfg: EasyDict) -> BaseCollector:
     import_module(cfg.get('import_names', []))
-    return COLLECTOR_REGISTRY.build(cfg.collector_type, cfg=cfg)
+    return COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)
+
+
+def get_parallel_collector_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return COLLECTOR_REGISTRY.get(cfg.type)

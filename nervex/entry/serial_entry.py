@@ -20,7 +20,7 @@ def serial_pipeline(
         model: Optional[torch.nn.Module] = None,
         max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
-    r"""
+    """
     Overview:
         Serial pipeline entry.
     Arguments:
@@ -31,7 +31,8 @@ def serial_pipeline(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop when reaching this iteration.
+        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
+            when reaching this iteration.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """

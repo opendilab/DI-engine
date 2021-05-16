@@ -29,7 +29,7 @@ def test_main_config():
             learn=item('learn') >> dict_(
                 update_per_collect=item('update_per_collect') | raw(1) >> (is_type(int) & interval(1, 500)),
                 batch_size=item('batch_size') | raw(64) >> (is_type(int) & interval(1, 128)),
-                learning_rate=item('learning_rate') | raw(0.001)>> interval(0.0001, 0.01),
+                learning_rate=item('learning_rate') | raw(0.001) >> interval(0.0001, 0.01),
                 weight_decay=item('weight_decay') | raw(0.) >> interval(0., 1.),
                 target_update_freq=item('target_update_freq') | raw(200) >> (is_type(int) & interval(100, 2000)),
                 discount_factor=item('discount_factor') | raw(0.99) >> interval(0.9, 1.0),

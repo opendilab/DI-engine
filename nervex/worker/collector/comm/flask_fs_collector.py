@@ -96,7 +96,7 @@ class FlaskFileSystemCollector(BaseCommCollector):
                 os.mkdir(self._path_data)
             except Exception as e:
                 pass
-        self._metadata_queue = Queue(cfg.queue_maxsize)
+        self._metadata_queue = Queue(8)
         self._collector_close_flag = False
         self._collector = None
 

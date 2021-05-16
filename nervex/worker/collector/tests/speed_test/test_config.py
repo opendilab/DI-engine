@@ -26,12 +26,10 @@ test_config = dict(
             collector=dict(),
         ),
         eval=dict(),
-        other=dict(
-            replay_buffer=dict(
-                buffer_type='naive',
-                replay_buffer_size=10000,
-            ),
-        ),
+        other=dict(replay_buffer=dict(
+            buffer_type='naive',
+            replay_buffer_size=10000,
+        ), ),
     ),
 )
 test_config = EasyDict(test_config)

@@ -15,6 +15,12 @@ class BaseCommander(ABC):
         get_collector_task
     """
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
     @abstractmethod
     def get_collector_task(self) -> dict:
         raise NotImplementedError
@@ -42,8 +48,13 @@ class NaiveCommander(BaseCommander):
         A naive implementation of parallel commander.
     Interface:
         __init__, get_collector_task, get_learner_task, finsh_collector_task, finish_learner_task,
-        notify_fail_collector_task, notify_fail_learner_task, get_learner_info
+        notify_fail_collector_task, notify_fail_learner_task, update_learner_info
     """
+    config = dict(
+        collector_task_space=1,
+        learner_task_space=1,
+        eval_interval=60,
+    )
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -54,8 +65,15 @@ class NaiveCommander(BaseCommander):
                 "collector_task_space" and "learner_task_space".
         """
         self._cfg = cfg
-        self.collector_task_space = cfg.collector_task_space
-        self.learner_task_space = cfg.learner_task_space
+        commander_cfg = self._cfg.policy.other.commander
+        self.collector_task_space = commander_cfg.collector_task_space
+        self.learner_task_space = commander_cfg.learner_task_space
+
+        self._collector_env_cfg = copy.deepcopy(self._cfg.env)
+        self._collector_env_cfg.pop('collector_episode_num')
+        self._collector_env_cfg.pop('evaluator_episode_num')
+        self._collector_env_cfg.manager.episode_num = self._cfg.env.collector_episode_num
+
         self.collector_task_count = 0
         self.learner_task_count = 0
         self._learner_info = defaultdict(list)
@@ -71,14 +89,16 @@ class NaiveCommander(BaseCommander):
         """
         if self.collector_task_count < self.collector_task_space:
             self.collector_task_count += 1
-            collector_cfg = self._cfg.collector_cfg
+            collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             collector_cfg.collect_setting = {'eps': 0.9}
             collector_cfg.eval_flag = False
+            collector_cfg.policy = copy.deepcopy(self._cfg.policy)
+            collector_cfg.policy_update_path = 'test.pth'
+            collector_cfg.env = self._collector_env_cfg
             return {
                 'task_id': 'collector_task_id{}'.format(self.collector_task_count),
                 'buffer_id': 'test',
                 'collector_cfg': collector_cfg,
-                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
@@ -92,14 +112,13 @@ class NaiveCommander(BaseCommander):
         """
         if self.learner_task_count < self.learner_task_space:
             self.learner_task_count += 1
-            learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = self._cfg.max_iterations
+            learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
             return {
                 'task_id': 'learner_task_id{}'.format(self.learner_task_count),
                 'policy_id': 'test.pth',
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
+                'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
@@ -136,7 +155,7 @@ class NaiveCommander(BaseCommander):
         """
         pass
 
-    def get_learner_info(self, task_id: str, info: dict) -> None:
+    def update_learner_info(self, task_id: str, info: dict) -> None:
         r"""
         Overview:
             append the info to learner:
@@ -147,7 +166,7 @@ class NaiveCommander(BaseCommander):
         self._learner_info[task_id].append(info)
 
 
-def create_parallel_commander(cfg: dict) -> BaseCommander:
+def create_parallel_commander(cfg: EasyDict) -> BaseCommander:
     r"""
     Overview:
         create the commander according to cfg
@@ -155,5 +174,12 @@ def create_parallel_commander(cfg: dict) -> BaseCommander:
         - cfg (:obj:`dict`): the commander cfg to create, should include import_names and parallel_commander_type
     """
     cfg = EasyDict(cfg)
+    import_names = cfg.policy.other.commander.import_names
+    import_module(import_names)
+    return COMMANDER_REGISTRY.build(cfg.policy.other.commander.type, cfg=cfg)
+
+
+def get_parallel_commander_cls(cfg: EasyDict) -> type:
+    cfg = EasyDict(cfg)
     import_module(cfg.get('import_names', []))
-    return COMMANDER_REGISTRY.build(cfg.parallel_commander_type, cfg=cfg)
+    return COMMANDER_REGISTRY.get(cfg.type)

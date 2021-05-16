@@ -89,8 +89,8 @@ class Policy(ABC):
             setattr(param, 'grad', torch.zeros_like(param))
 
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
-        model_cfg = cfg.model
         if model is None:
+            model_cfg = cfg.model
             if 'model_type' not in model_cfg:
                 model_type, import_names = self.default_model()
                 model_cfg.model_type = model_type

@@ -3,6 +3,7 @@ import sys
 import copy
 from typing import Optional, Union
 from collections import defaultdict
+from easydict import EasyDict
 
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
@@ -16,8 +17,13 @@ class SoloCommander(BaseCommander):
         Parallel commander for solo games.
     Interface:
         __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
-        notify_fail_collector_task, notify_fail_learner_task, get_learner_info
+        notify_fail_collector_task, notify_fail_learner_task, update_learner_info
     """
+    config = dict(
+        collector_task_space=1,
+        learner_task_space=1,
+        eval_interval=60,
+    )
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -27,9 +33,23 @@ class SoloCommander(BaseCommander):
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
-        self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
-        self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
+        commander_cfg = self._cfg.policy.other.commander
+        self._commander_cfg = commander_cfg
+
+        self._collector_env_cfg = copy.deepcopy(self._cfg.env)
+        self._collector_env_cfg.pop('collector_episode_num')
+        self._collector_env_cfg.pop('evaluator_episode_num')
+        self._collector_env_cfg.manager.episode_num = self._cfg.env.collector_episode_num
+        self._evaluator_env_cfg = copy.deepcopy(self._cfg.env)
+        self._evaluator_env_cfg.pop('collector_episode_num')
+        self._evaluator_env_cfg.pop('evaluator_episode_num')
+        self._evaluator_env_cfg.manager.episode_num = self._cfg.env.evaluator_episode_num
+
+        self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
+        self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
+        # TODO(nyz) accumulate collect info
+        self._collect_info = [{'env_step': 0}]
         self._evaluator_info = []
         self._current_buffer_id = None
         self._current_policy_id = None
@@ -55,19 +75,26 @@ class SoloCommander(BaseCommander):
                 self._collector_task_space.release_space()
                 return None
             cur_time = time.time()
-            if cur_time - self._last_eval_time > self._cfg.eval_interval:
+            if cur_time - self._last_eval_time > self._commander_cfg.eval_interval:
                 eval_flag = True
             else:
                 eval_flag = False
-            collector_cfg = self._cfg.collector_cfg
-            collector_cfg.collect_setting = self._policy.get_setting_collect(self._learner_info[-1])
+            collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
+            # the newest info
+            info = self._learner_info[-1]
+            info.update(self._collect_info[-1])
+            collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             collector_cfg.policy_update_path = self._current_policy_id
             collector_cfg.eval_flag = eval_flag
+            collector_cfg.policy = copy.deepcopy(self._cfg.policy)
+            if eval_flag:
+                collector_cfg.env = self._collector_env_cfg
+            else:
+                collector_cfg.env = self._evaluator_env_cfg
             return {
                 'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
                 'collector_cfg': collector_cfg,
-                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
@@ -82,14 +109,13 @@ class SoloCommander(BaseCommander):
         if self._end_flag:
             return None
         if self._learner_task_space.acquire_space():
-            learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = self._cfg.max_iterations
+            learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
             return {
                 'task_id': 'learner_task_{}'.format(get_task_uid()),
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
+                'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
@@ -131,7 +157,7 @@ class SoloCommander(BaseCommander):
                 if k in ['train_iter']:
                     continue
                 self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
-            eval_stop_value = self._cfg.collector_cfg.env_kwargs.eval_stop_value
+            eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_value: {}".
@@ -174,7 +200,7 @@ class SoloCommander(BaseCommander):
         """
         self._learner_task_space.release_space()
 
-    def get_learner_info(self, task_id: str, info: dict) -> None:
+    def update_learner_info(self, task_id: str, info: dict) -> None:
         r"""
         Overview:
             Append the info to learner_info:

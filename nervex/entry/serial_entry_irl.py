@@ -19,6 +19,7 @@ def serial_pipeline_irl(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
+        max_iterations: Optional[int] = int(1e10),
 ) -> 'BasePolicy':  # noqa
     r"""
     Overview:
@@ -31,6 +32,10 @@ def serial_pipeline_irl(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
+            when reaching this iteration.
+    Returns:
+        - policy (:obj:`Policy`): Converged policy.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -76,7 +81,7 @@ def serial_pipeline_irl(
             learner.train_iter, n_sample=replay_buffer.replay_buffer_start_size(), policy_kwargs=collect_kwargs
         )
         replay_buffer.push(new_data, cur_collector_envstep=0)
-    while True:
+    for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):

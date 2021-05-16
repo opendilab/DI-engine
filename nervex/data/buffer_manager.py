@@ -79,6 +79,7 @@ class BufferManager(IBuffer):
             self.buffer_name = cfg['buffer_name']
         else:
             self.buffer_name = ['agent']
+            cfg.buffer_type = 'priority'
         self.cfg = {}
         for name in self.buffer_name:
             if name in cfg:

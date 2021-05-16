@@ -1,4 +1,4 @@
-from .base_parallel_collector import BaseCollector, create_collector
+from .base_parallel_collector import BaseCollector, create_collector, get_parallel_collector_cls
 from .zergling_collector import ZerglingCollector
 from .comm import BaseCommCollector, FlaskFileSystemCollector, create_comm_collector, NaiveCollector
 from .base_serial_collector import BaseSerialCollector

@@ -6,7 +6,8 @@ from functools import partial
 import copy
 
 from nervex.worker import BaseSerialCollector
-from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager, BaseEnvManager
+from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
+    BaseEnvManager
 from nervex.data import BufferManager
 from nervex.utils import deep_merge_dicts, set_pkg_seed
 
