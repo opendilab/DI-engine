@@ -49,7 +49,8 @@ class SoloCommander(BaseCommander):
         self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
         # TODO(nyz) accumulate collect info
-        self._collect_info = [{'env_step': 0}]
+        self._collect_info = []
+        self._total_collector_env_step = 0
         self._evaluator_info = []
         self._current_buffer_id = None
         self._current_policy_id = None
@@ -58,7 +59,6 @@ class SoloCommander(BaseCommander):
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        self._eval_step = -1
         self._end_flag = False
 
     def get_collector_task(self) -> Optional[dict]:
@@ -83,7 +83,7 @@ class SoloCommander(BaseCommander):
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             # the newest info
             info = self._learner_info[-1]
-            info.update(self._collect_info[-1])
+            info['env_step'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             collector_cfg.policy_update_path = self._current_policy_id
             collector_cfg.eval_flag = eval_flag
@@ -136,10 +136,8 @@ class SoloCommander(BaseCommander):
         """
         self._collector_task_space.release_space()
         if finished_task['eval_flag']:
-            self._eval_step += 1
             self._evaluator_info.append(finished_task)
-            # TODO real train_iter from evaluator
-            train_iter = self._eval_step
+            train_iter = finished_task['train_iter']
             info = {
                 'train_iter': train_iter,
                 'episode_count': finished_task['real_episode_count'],
@@ -165,6 +163,10 @@ class SoloCommander(BaseCommander):
                 )
                 self._end_flag = True
                 return True
+        else:
+            self._collect_info.append(finished_task)
+            # TODO collector tb and log
+            self._total_collector_env_step += finished_task['step_count']
         return False
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:

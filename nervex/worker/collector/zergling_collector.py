@@ -113,11 +113,14 @@ class ZerglingCollector(BaseCollector):
         return env_manager
 
     def _start_thread(self) -> None:
-        self._update_policy_thread.start()
+        # evaluator doesn't need to update policy periodically, only updating policy when starts
+        if not self._eval_flag:
+            self._update_policy_thread.start()
 
     def _join_thread(self) -> None:
-        self._update_policy_thread.join()
-        del self._update_policy_thread
+        if not self._eval_flag:
+            self._update_policy_thread.join()
+            del self._update_policy_thread
 
     # override
     def close(self) -> None:
@@ -205,6 +208,7 @@ class ZerglingCollector(BaseCollector):
             'eval_flag': self._eval_flag,
             'env_num': self._env_num,
             'duration': duration,
+            'train_iter': self._policy_iter,
             'collector_done': self._env_manager.done,
             'predefined_episode_count': self._predefined_episode_count,
             'real_episode_count': self._total_episode,

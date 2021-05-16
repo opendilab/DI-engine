@@ -40,7 +40,7 @@ cartpole_dqn_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=10000,
+                decay=100000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=100000,
@@ -49,7 +49,7 @@ cartpole_dqn_config = dict(
             commander=dict(
                 collector_task_space=2,
                 learner_task_space=1,
-                eval_interval=10,
+                eval_interval=5,
             ),
         ),
     ),
