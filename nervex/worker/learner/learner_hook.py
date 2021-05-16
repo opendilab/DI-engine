@@ -100,6 +100,7 @@ class LoadCkptHook(LearnerHook):
             - ext_args (:obj:`EasyDict`): Extended arguments. Use ``ext_args.freq`` to set ``load_ckpt_freq``.
         """
         super().__init__(*args, **kwargs)
+        self._load_path = ext_args['load_path']
 
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
@@ -108,7 +109,7 @@ class LoadCkptHook(LearnerHook):
         Arguments:
             - engine (:obj:`BaseLearner`): The BaseLearner to load checkpoint to.
         """
-        path = engine.load_path
+        path = self._load_path
         if path == '':  # not load
             return
         state_dict = read_file(path)
@@ -234,7 +235,7 @@ class LogShowHook(LearnerHook):
 class LogReduceHook(LearnerHook):
     """
     Overview:
-        Hook to reduce the distributed logs
+        Hook to reduce the distributed(multi-gpu) logs
     Interfaces:
         __init__, __call__
     Property:
@@ -253,7 +254,7 @@ class LogReduceHook(LearnerHook):
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
         Overview:
-            reduce the logs from distributed learners
+            reduce the logs from distributed(multi-gpu) learners
         Arguments:
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
@@ -324,7 +325,8 @@ def register_learner_hook(name: str, hook_type: type) -> None:
 simplified_hook_mapping = {
     'log_show_after_iter': lambda freq: hook_mapping['log_show']
     ('log_show', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
-    'load_ckpt_before_run': lambda _: hook_mapping['load_ckpt']('load_ckpt', 20, position='before_run'),
+    'load_ckpt_before_run': lambda path: hook_mapping['load_ckpt']
+    ('load_ckpt', 20, position='before_run', ext_args=EasyDict({'load_path': path})),
     'save_ckpt_after_iter': lambda freq: hook_mapping['save_ckpt']
     ('save_ckpt_after_iter', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
     'save_ckpt_after_run': lambda _: hook_mapping['save_ckpt']('save_ckpt_after_run', 20, position='after_run'),

@@ -94,7 +94,7 @@ class BaseLearner(object):
         __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
         learn_info, priority_info, last_iter, name, rank, policy
-        tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
+        tick_time, monitor, log_buffer, logger, tb_logger, checkpoint_manager
     """
 
     @classmethod
@@ -104,8 +104,7 @@ class BaseLearner(object):
         return copy.deepcopy(cfg)
 
     config = dict(
-        load_path='',
-        use_distributed=False,
+        train_iterations=int(1e9),
         dataloader=dict(
             batch_size=2,
             chunk_size=2,
@@ -113,25 +112,10 @@ class BaseLearner(object):
         ),
         # --- Hooks ---
         hook=dict(
-            load_ckpt=dict(
-                name='load_ckpt',
-                type='load_ckpt',
-                priority=20,
-                position='before_run',
-            ),
-            log_show=dict(
-                name='log_show',
-                type='log_show',
-                priority=20,
-                position='after_iter',
-                ext_args=dict(freq=100),
-            ),
-            save_ckpt_after_run=dict(
-                name='save_ckpt_after_run',
-                type='save_ckpt',
-                priority=20,
-                position='after_run',
-            )
+            load_ckpt_before_run='',
+            log_show_after_iter=100,
+            save_ckpt_after_iter=10000,
+            save_ckpt_after_run=True,
         ),
     )
 
@@ -160,8 +144,6 @@ class BaseLearner(object):
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
         self._cfg = cfg
         self._learner_uid = get_task_uid()
-        self._load_path = self._cfg.load_path
-        self._use_distributed = self._cfg.use_distributed
         self._cuda = False
         self._device = 'cpu'
 
@@ -264,7 +246,7 @@ class BaseLearner(object):
 
         .. note::
             ``_policy`` must be set before calling this method.
-            ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and
+            ``_policy.forward`` method contains: forward, backward, grad sync(if in multi-gpu mode) and
             parameter update.
         """
         assert hasattr(self, '_policy'), "please set learner policy"
@@ -315,8 +297,8 @@ class BaseLearner(object):
         # before run hook
         self.call_hook('before_run')
 
-        max_iterations = self._cfg.get('max_iterations', int(1e10))
-        for i in range(max_iterations):
+        train_iterations = self._cfg.train_iterations
+        for i in range(train_iterations):
             data = self._next_data()
             if self._end_flag:
                 break
@@ -469,14 +451,6 @@ class BaseLearner(object):
         return self._tb_logger
 
     @property
-    def load_path(self) -> str:
-        return self._load_path
-
-    @load_path.setter
-    def load_path(self, _load_path: str) -> None:
-        self._load_path = _load_path
-
-    @property
     def checkpoint_manager(self) -> Any:
         return self._checkpointer_manager
 
@@ -535,4 +509,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    return LEARNER_REGISTRY.build(cfg.get('learner_type', 'base'), cfg=cfg)
+    return LEARNER_REGISTRY.build(cfg.type, cfg=cfg)

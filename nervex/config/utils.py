@@ -131,6 +131,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
     path_policy = cfg.system.path_policy
     communication_mode = cfg.system.communication_mode
     assert communication_mode in ['auto'], communication_mode
+    learner_multi_gpu = cfg.system.learner_multi_gpu
     new_cfg = dict(coordinator=dict(
         host='auto',
         port='auto',
@@ -143,6 +144,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
             port='auto',
             path_data=path_data,
             path_policy=path_policy,
+            multi_gpu=learner_multi_gpu,
         )
     for i in range(collector_num):
         new_cfg[f'collector{i}'] = dict(
@@ -203,6 +205,10 @@ parallel_test_create_config = dict(
         type='flask_fs',
         import_names=['nervex.worker.collector.comm.flask_fs_collector'],
     ),
+    learner=dict(
+        type='base',
+        import_names=['nervex.worker.learner.base_learner'],
+    ),
     collector=dict(
         type='zergling',
         import_names=['nervex.worker.collector.zergling_collector'],
@@ -217,5 +223,6 @@ parallel_test_system_config = dict(
     path_data='.',
     path_policy='.',
     communication_mode='auto',
+    learner_multi_gpu=False,
 )
 parallel_test_system_config = EasyDict(parallel_test_system_config)

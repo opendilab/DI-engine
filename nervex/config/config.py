@@ -215,6 +215,7 @@ def compile_config_parallel(
     policy_config.other.replay_buffer = BufferManager.default_config()
     collector = get_parallel_collector_cls(create_cfg.collector)
     policy_config.collect.collector = collector.default_config()
+    policy_config.learn.learner = BaseLearner.default_config()
     commander = get_parallel_commander_cls(create_cfg.commander)
     policy_config.other.commander = commander.default_config()
 
@@ -223,6 +224,7 @@ def compile_config_parallel(
     cfg.env.manager = {}
     cfg.env.manager.update(create_cfg.env_manager)
     cfg.policy.update(create_cfg.policy)
+    cfg.policy.learn.learner.update(create_cfg.learner)
     cfg.policy.collect.collector.update(create_cfg.collector)
     cfg.policy.other.commander.update(create_cfg.commander)
     default_config = deal_with_multi_buffer(default_config, cfg)
