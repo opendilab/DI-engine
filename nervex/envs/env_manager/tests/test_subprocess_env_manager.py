@@ -16,7 +16,7 @@ class TestSubprocessEnvManager:
         model = setup_model_type()
 
         env_manager.seed([314 for _ in range(env_manager.env_num)])
-        env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         assert all([s == 314 for s in env_manager._seed])
         assert all([s == 'stat_test'] for s in env_manager._stat)
         # Test basic
@@ -74,12 +74,12 @@ class TestSubprocessEnvManager:
         env_manager = SyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         # Test reset error
         with pytest.raises(AssertionError):
-            env_manager.reset(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+            env_manager.reset(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         with pytest.raises(RuntimeError):
-            obs = env_manager.launch(reset_param=[{'stat': 'error'} for _ in range(env_manager.env_num)])
+            obs = env_manager.launch(reset_param={i: {'stat': 'error'} for i in range(env_manager.env_num)})
         assert env_manager._closed
         time.sleep(0.5)  # necessary time interval
-        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         assert not env_manager._closed
 
         timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
@@ -121,13 +121,13 @@ class TestSubprocessEnvManager:
         # Test reset timeout
         watchdog.start()
         with pytest.raises(RuntimeError):
-            reset_param = [{'stat': 'block'} for _ in range(env_manager.env_num)]
+            reset_param = {i: {'stat': 'block'} for i in range(env_manager.env_num)}
             obs = env_manager.launch(reset_param=reset_param)
         assert env_manager._closed
         time.sleep(0.5)
-        reset_param = [{'stat': 'stat_test'} for _ in range(env_manager.env_num)]
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
         reset_param[0]['stat'] = 'timeout'
-        obs = env_manager.launch(reset_param=reset_param)
+        env_manager.launch(reset_param=reset_param)
         time.sleep(0.5)
         assert not env_manager._closed
 
@@ -138,7 +138,7 @@ class TestSubprocessEnvManager:
 
         # Test step timeout
         watchdog.start()
-        obs = env_manager.reset([{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.reset({i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         action = {i: torch.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
         with pytest.raises(TimeoutError):
@@ -150,7 +150,7 @@ class TestSubprocessEnvManager:
                 obs = env_manager.ready_obs
         time.sleep(0.5)
 
-        obs = env_manager.launch(reset_param=[{'stat': 'stat_test'} for _ in range(env_manager.env_num)])
+        obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         time.sleep(1)
         action[0] = 'timeout'
         timestep = env_manager.step(action)
@@ -163,3 +163,18 @@ class TestSubprocessEnvManager:
         watchdog.stop()
 
         env_manager.close()
+
+    def test_reset(self, setup_async_manager_cfg, setup_model_type):
+        env_fn = setup_async_manager_cfg.pop('env_fn')
+        setup_async_manager_cfg['auto_reset'] = False
+        env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
+        model = setup_model_type()
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+        obs = env_manager.launch(reset_param=reset_param)
+        while True:
+            obs = env_manager.ready_obs
+            action = model.forward(obs)
+            timestep = env_manager.step(action)
+            if env_manager.done:
+                break
+        assert all(env_manager._env_episode_count[i] == 1 for i in range(env_manager.env_num))

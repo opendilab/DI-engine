@@ -32,8 +32,14 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
         Retry the function until exceeding the maximum retry times.
     """
 
+    if max_retry == 1:
+        return func
+
     if func is None:
         return partial(retry_wrapper, max_retry=max_retry)
+
+    if max_retry == 1:
+        return func
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -100,6 +106,7 @@ class BaseEnvManager(object):
         episode_num=float("inf"),
         max_retry=1,
         step_timeout=60,
+        auto_reset=True,
         reset_timeout=60,
         retry_waiting_time=0.1,
     )
@@ -129,6 +136,7 @@ class BaseEnvManager(object):
         self._episode_num = self._cfg.episode_num
         self._max_retry = self._cfg.max_retry
         self._step_timeout = self._cfg.step_timeout
+        self._auto_reset = self._cfg.auto_reset
         self._reset_timeout = self._cfg.reset_timeout
         self._retry_waiting_time = self._cfg.retry_waiting_time
 
@@ -184,14 +192,16 @@ class BaseEnvManager(object):
         """
         assert not self._closed, "env manager is closed, please use the alive env manager"
 
-    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
         Arguments:
-            - reset_param (:obj:`Optional[List[dict]]`): List of reset parameters for each environment.
+            - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \
+                value is the cooresponding reset param.
         """
         assert self._closed, "please first close the env manager"
+        assert len(reset_param) == len(self._env_fn)
         self._create_state()
         # set seed
         if hasattr(self, '_env_seed'):
@@ -209,13 +219,14 @@ class BaseEnvManager(object):
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
-        self._env_states = {i: EnvState.INIT for i in range(self._env_num)}
+        self._reset_param = {i: None for i in range(self.env_num)}
+        self._env_states = {i: EnvState.INIT for i in range(self.env_num)}
         if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
                 e.enable_save_replay(s)
         self._closed = False
 
-    def reset(self, reset_param: List[dict] = None) -> None:
+    def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Reset the environments and hyper-params.
@@ -224,10 +235,14 @@ class BaseEnvManager(object):
         """
         self._check_closed()
         if reset_param is None:
-            reset_param = [{} for _ in range(self.env_num)]
-        self._reset_param = reset_param
-        for i in range(self.env_num):
-            self._reset(i)
+            for env_id in range(self.env_num):
+                self._env_states[env_id] = EnvState.RESET
+                self._reset(env_id)
+        else:
+            for env_id in reset_param:
+                self._reset_param[env_id] = reset_param[env_id]
+                self._env_states[env_id] = EnvState.RESET
+                self._reset(env_id)
 
     def _reset(self, env_id: int) -> None:
 
@@ -269,11 +284,12 @@ class BaseEnvManager(object):
             act = self._transform(act)
             timesteps[env_id] = self._step(env_id, act)
             if timesteps[env_id].info.get('abnormal', False):
-                self._env_states[env_id] = EnvState.RESET
-                self._reset(env_id)
+                if self._auto_reset:
+                    self._env_states[env_id] = EnvState.RESET
+                    self._reset(env_id)
             elif timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._episode_num:
+                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
                     self._env_states[env_id] = EnvState.RESET
                     self._reset(env_id)
                 else:

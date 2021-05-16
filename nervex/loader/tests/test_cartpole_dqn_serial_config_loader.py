@@ -49,9 +49,8 @@ def test_main_config():
                     end=item('end') >> interval(0.0, 1.0, right_ok=False),
                     decay=item('decay') >> (is_type(int) | (is_type(float) >> to_type(int))) >> is_positive(),
                 ),
-                replay_buffer=item('replay_buffer') >> dict_(
-                    replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf),
-                ),
+                replay_buffer=item('replay_buffer') >>
+                dict_(replay_buffer_size=item('replay_buffer_size') >> is_type(int) >> interval(1, math.inf), ),
             ),
         ),
     )
@@ -80,9 +79,7 @@ def test_create_config():
             type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
             shared_memory=item('shared_memory') | raw(True) >> is_type(bool),
         ),
-        policy=item('policy') >> dict_(
-            type=item('type') >> is_type(str),
-        ),
+        policy=item('policy') >> dict_(type=item('type') >> is_type(str), ),
     )
     cartpole_dqn_create_loader = element_loader
 
