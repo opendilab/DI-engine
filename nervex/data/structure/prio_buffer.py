@@ -13,7 +13,7 @@ from easydict import EasyDict
 from nervex.data.structure.naive_buffer import NaiveReplayBuffer
 from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger
+from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger, deep_merge_dicts
 
 
 class PrioritizedReplayBuffer(NaiveReplayBuffer):
@@ -30,21 +30,51 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         replay_buffer_size, validlen, beta
     """
 
+    @classmethod
+    def default_config(cls) -> EasyDict:
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
+
+    config = dict(
+        buffer_type='priority',
+        # Max length of the buffer.
+        replay_buffer_size=4096,
+        # start training data count
+        replay_buffer_start_size=0,
+        # Max use times of one data in the buffer. Data will be removed once used for too many times.
+        max_use=float("inf"),
+        # Max staleness time duration of one data in the buffer; Data will be removed if
+        # the duration from collecting to training is too long, i.e. The data is too stale.
+        max_staleness=float("inf"),
+        # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+        alpha=0.6,
+        # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+        beta=0.4,
+        # Anneal step for beta: 0 means no annealing
+        anneal_step=int(1e5),
+        # Whether to track the used data or not. Buffer will use a new data structure to track data if set True.
+        enable_track_used_data=False,
+        # Whether to deepcopy data when willing to insert and sample data. For security purpose.
+        deepcopy=False,
+        eps=0.01,
+        # Monitor configuration for monitor and logger to use. This part does not affect buffer's function.
+        monitor=dict(
+            # Frequency of logging
+            log_freq=2000,
+            # Logger's save path
+            log_path='./log/buffer/default/',
+            # Natural time expiration. Used for log data smoothing.
+            natural_expire=10,
+            # Tick time expiration. Used for log data smoothing.
+            tick_expire=10,
+        ),
+    )
+
     def __init__(
             self,
             name: str,
-            replay_buffer_size: int = 10000,
-            replay_start_size: int = 0,
-            max_use: Optional[int] = None,
-            max_staleness: Optional[int] = None,
-            min_sample_ratio: float = 1.,
-            alpha: float = 0.6,
-            beta: float = 0.4,
-            anneal_step: int = int(1e5),
-            enable_track_used_data: bool = False,
-            deepcopy: bool = False,
-            monitor_cfg: Optional[EasyDict] = None,
-            eps: float = 0.01,
+            cfg: dict,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
     ) -> int:
         """
@@ -52,25 +82,11 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             Initialize the buffer
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
-            - replay_buffer_size (:obj:`int`): The maximum value of the buffer length.
-            - replay_start_size (:obj:`int`): The number of data in buffer when start training
-            - max_use (:obj:`int` or None): The maximum use times of each element in buffer. Once a data is \
-                sampled(used) ``max_use`` times, it would be removed out of buffer.
-            - min_sample_ratio (:obj:`float`): The minimum ratio restriction for sampling, only when \
-                "current element number in buffer" / "sample size" is greater than this, can start sampling.
-            - alpha (:obj:`float`): How much prioritization is used (0: no prioritization, 1: full prioritization).
-            - beta (:obj:`float`): How much correction is used (0: no correction, 1: full correction).
-            - anneal_step (:obj:`Optional[Union[int, float]]`): Anneal step for beta, i.e. Beta takes \
-                how many steps to come to 1. ``float("inf")`` means no annealing. Here, one step means \
-                training for one iteration, i.e. sampling from buffer once.
-            - enable_track_used_data (:obj:`bool`): Whether to track the used data or not.
-            - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data.
-            - monitor_cfg (:obj:`EasyDict`): Monitor's dict config.
-            - eps (:obj:`float`): A small positive number to avoid edge case.
         """
+        self._cfg = cfg
         # ``_data`` is a circular queue to store data (or data's reference/file path)
-        self._data = [None for _ in range(replay_buffer_size)]
-        self._enable_track_used_data = enable_track_used_data
+        self._data = [None for _ in range(self._cfg.replay_buffer_size)]
+        self._enable_track_used_data = self._cfg.enable_track_used_data
         if self._enable_track_used_data:
             self._used_data = Queue()
             self._using_data = set()
@@ -89,32 +105,31 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self._next_unique_id = 0
         # {position_idx: use_count}
-        self._use_count = {idx: 0 for idx in range(replay_buffer_size)}
+        self._use_count = {idx: 0 for idx in range(self._cfg.replay_buffer_size)}
         # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data.
         self._max_priority = 1.0
         # A small positive number to avoid edge-case, e.g. "priority" == 0.
-        self._eps = eps
+        self._eps = self._cfg.eps
         # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict.
         self.check_list = [lambda x: isinstance(x, dict)]
         # Lock to guarantee thread safe
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
         self.name = name
-        self._replay_buffer_size = replay_buffer_size
-        self._replay_start_size = replay_start_size
-        self._max_use = max_use if max_use is not None else float("inf")
-        self._max_staleness = max_staleness if max_staleness is not None else float("inf")
-        assert min_sample_ratio >= 1, min_sample_ratio
-        self.min_sample_ratio = min_sample_ratio
-        self._deepcopy = deepcopy
+        self._replay_buffer_size = self._cfg.replay_buffer_size
+        self._replay_buffer_start_size = self._cfg.replay_buffer_start_size
+        self._max_use = self._cfg.max_use
+        self._max_staleness = self._cfg.max_staleness
+        self.alpha = self._cfg.alpha
+        assert 0 <= self.alpha <= 1, self.alpha
+        self._beta = self._cfg.beta
+        assert 0 <= self._beta <= 1, self._beta
+        self._anneal_step = self._cfg.anneal_step
+        if self._anneal_step != 0:
+            self._beta_anneal_step = (1 - self._beta) / self._anneal_step
+        self._deepcopy = self._cfg.deepcopy
 
         # Prioritized sample.
-        assert 0 <= alpha <= 1, alpha
-        self.alpha = alpha
-        assert 0 <= beta <= 1, beta
-        self._beta = beta
-        self._anneal_step = anneal_step
-        self._beta_anneal_one_step = (1 - self._beta) / self._anneal_step
         # Capacity needs to be the power of 2.
         capacity = int(np.power(2, np.ceil(np.log2(self.replay_buffer_size))))
         # Sum segtree and min segtree are used to sample data according to priority.
@@ -122,16 +137,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._min_tree = MinSegmentTree(capacity)
 
         # Monitor & Logger
-        if monitor_cfg is None:
-            monitor_cfg = EasyDict(
-                {
-                    'log_freq': 1000,
-                    'log_path': './log/buffer/default',
-                    'natural_expire': 10,
-                    'tick_expire': 10,
-                }
-            )
-        self.monitor_cfg = monitor_cfg
+        self.monitor_cfg = self._cfg.monitor
         # To record in & out time.
         self._timer = EasyTimer()
         self._natural_monitor = NaturalMonitor(NaturalTime(), expire=self.monitor_cfg.natural_expire)
@@ -158,8 +164,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         Overview:
             Do preparations for sampling and check whther data is enough for sampling
             Preparation includes removing stale transition in ``self._data``.
-            Check includes judging whether this buffer satisfies the sample condition:
-            current elements count / planning sample count >= min_sample_ratio.
+            Check includes judging whether this buffer has more than ``size`` datas to sample.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
@@ -187,11 +192,9 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 if p == self._tail:
                     # Traverse a circle and go back to the tail, which means can stop staleness checking now
                     break
-            if self._valid_count / size < self.min_sample_ratio:
+            if self._valid_count < size:
                 self._logger.info(
-                    "No enough elements for sampling (expect: {}/current have: {}, min_sample_ratio: {})".format(
-                        size, self._valid_count, self.min_sample_ratio
-                    )
+                    "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
                 )
                 return False
             else:
@@ -502,7 +505,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             if self._use_count[idx] >= self._max_use:
                 self._remove(idx)
         # Beta annealing
-        self._beta = min(1.0, self._beta + self._beta_anneal_one_step)
+        self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
 
     def _monitor_update_of_push(self, add_count: int, add_time: float, cur_collector_envstep: int = -1) -> None:
@@ -619,8 +622,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             return None
 
     @property
-    def replay_start_size(self) -> int:
-        return self._replay_start_size
+    def replay_buffer_start_size(self) -> int:
+        return self._replay_buffer_start_size
 
     def state_dict(self) -> dict:
         return {

@@ -19,29 +19,29 @@ class Mixer(nn.Module):
         __init__, forward
     """
 
-    def __init__(self, agent_num: int, embedding_dim: int, w_layers: int = 2) -> None:
+    def __init__(self, agent_num: int, embedding_size: int, w_layers: int = 2) -> None:
         """
         Overview:
             initialize mixer network
         Arguments:
             - agent_num (:obj:`int`): the number of agent
-            - embedding_dim (:obj:`int`): the dimension of state emdedding
+            - embedding_size (:obj:`int`): the dimension of state emdedding
             - w_layers (:obj:`int`): the number of fully-connected layers of mixer weight
         """
         super(Mixer, self).__init__()
         self._agent_num = agent_num
-        self._embedding_dim = embedding_dim
+        self._embedding_size = embedding_size
         self._act = nn.ReLU()
         self._w1 = nn.Sequential(
-            MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
-            nn.Linear(embedding_dim, embedding_dim * agent_num)
+            MLP(embedding_size, embedding_size, embedding_size, w_layers - 1, activation=self._act),
+            nn.Linear(embedding_size, embedding_size * agent_num)
         )
         self._w2 = nn.Sequential(
-            MLP(embedding_dim, embedding_dim, embedding_dim, w_layers - 1, activation=self._act),
-            nn.Linear(embedding_dim, embedding_dim)
+            MLP(embedding_size, embedding_size, embedding_size, w_layers - 1, activation=self._act),
+            nn.Linear(embedding_size, embedding_size)
         )
-        self._b1 = nn.Linear(embedding_dim, embedding_dim)
-        self._b2 = nn.Sequential(nn.Linear(embedding_dim, embedding_dim), self._act, nn.Linear(embedding_dim, 1))
+        self._b1 = nn.Linear(embedding_size, embedding_size)
+        self._b2 = nn.Sequential(nn.Linear(embedding_size, embedding_size), self._act, nn.Linear(embedding_size, 1))
 
     def forward(self, agent_q: torch.Tensor, state_embedding: torch.Tensor) -> torch.Tensor:
         """
@@ -54,16 +54,16 @@ class Mixer(nn.Module):
             - total_q (:obj:`torch.FloatTensor`): the total mixed q_value
         Shapes:
             - agent_q (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is agent_num
-            - state_embedding (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_dim
+            - state_embedding (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size
             - total_q (:obj:`torch.FloatTensor`): :math:`(B, )`
         """
         agent_q = agent_q.reshape(-1, 1, self._agent_num)
         # first layer
-        w1 = torch.abs(self._w1(state_embedding)).reshape(-1, self._agent_num, self._embedding_dim)
-        b1 = self._b1(state_embedding).reshape(-1, 1, self._embedding_dim)
-        hidden = F.elu(torch.bmm(agent_q, w1) + b1)  # bs, 1, embedding_dim
+        w1 = torch.abs(self._w1(state_embedding)).reshape(-1, self._agent_num, self._embedding_size)
+        b1 = self._b1(state_embedding).reshape(-1, 1, self._embedding_size)
+        hidden = F.elu(torch.bmm(agent_q, w1) + b1)  # bs, 1, embedding_size
         # second layer
-        w2 = torch.abs(self._w2(state_embedding)).reshape(-1, self._embedding_dim, 1)
+        w2 = torch.abs(self._w2(state_embedding)).reshape(-1, self._embedding_size, 1)
         b2 = self._b2(state_embedding).reshape(-1, 1, 1)
         hidden = torch.bmm(hidden, w2) + b2
         return hidden.squeeze(-1).squeeze(-1)
@@ -81,21 +81,21 @@ class QMix(nn.Module):
     def __init__(
             self,
             agent_num: int,
-            obs_dim: int,
-            global_obs_dim: int,
-            action_dim: int,
-            hidden_dim_list: list,
-            use_mixer: bool = True
+            obs_shape: int,
+            global_obs_shape: int,
+            action_shape: int,
+            hidden_size_list: list,
+            mixer: bool = True
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
-        embedding_dim = hidden_dim_list[-1]
-        self.use_mixer = use_mixer
-        if self.use_mixer:
-            self._mixer = Mixer(agent_num, embedding_dim)
-            global_obs_dim = squeeze(global_obs_dim)
-            self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+        self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
+        embedding_size = hidden_size_list[-1]
+        self.mixer = mixer
+        if self.mixer:
+            self._mixer = Mixer(agent_num, embedding_size)
+            global_obs_shape = squeeze(global_obs_shape)
+            self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -117,12 +117,12 @@ class QMix(nn.Module):
                 - next_state (:obj:`list`): next rnn state
         Shapes:
             - agent_state (:obj:`torch.Tensor`): :math:`(T, B, A, N)`, where T is timestep, B is batch_size\
-                A is agent_num, N is obs_dim
-            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_dim
+                A is agent_num, N is obs_shape
+            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_shape
             - prev_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
             - action (:obj:`torch.Tensor`): :math:`(T, B, A)`
             - total_q (:obj:`torch.Tensor`): :math:`(T, B)`
-            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_dim
+            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
         agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
@@ -149,7 +149,7 @@ class QMix(nn.Module):
             agent_q[action_mask == 0.0] = -9999999
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
-        if self.use_mixer:
+        if self.mixer:
             global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
         else:
@@ -163,8 +163,8 @@ class QMix(nn.Module):
             'action_mask': data['obs']['action_mask']
         }
 
-    def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
-        return MLP(global_obs_dim, embedding_dim, embedding_dim, 2, activation=self._act)
+    def _setup_global_encoder(self, global_obs_shape: int, embedding_size: int) -> torch.nn.Module:
+        return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)
 
 
 class CollaQMultiHeadAttention(nn.Module):
@@ -219,21 +219,25 @@ class CollaQMultiHeadAttention(nn.Module):
 
 class CollaQSMACAttentionModule(nn.Module):
 
-    def __init__(self, each_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_dim: int):
+    def __init__(
+        self, each_size: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
+    ):
         super(CollaQSMACAttentionModule, self).__init__()
-        self.each_dim = each_dim
+        self.each_size = each_size
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
-        self.attention_layer = CollaQMultiHeadAttention(1, self.each_dim, attention_dim, attention_dim, attention_dim)
+        self.attention_layer = CollaQMultiHeadAttention(
+            1, self.each_size, attention_size, attention_size, attention_size
+        )
 
     def _cut_obs(self, obs: torch.Tensor):
-        # obs shape = (T, B, A, obs_dim)
+        # obs shape = (T, B, A, obs_shape)
         self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
         ally_features = obs[:, :, :, self.ally_feature_range[0]:self.ally_feature_range[1]]
         return self_features, ally_features
 
     def forward(self, inputs: torch.Tensor):
-        # obs shape = (T, B ,A, obs_dim)
+        # obs shape = (T, B ,A, obs_shape)
         obs = inputs
         self_features, ally_features = self._cut_obs(obs)
         T, B, A, _ = self_features.shape
@@ -259,43 +263,43 @@ class CollaQ(nn.Module):
     def __init__(
             self,
             agent_num: int,
-            obs_dim: int,
-            obs_alone_dim: int,
-            global_obs_dim: int,
-            action_dim: int,
-            hidden_dim_list: list,
-            enable_attention: bool = False,
+            obs_shape: int,
+            alone_obs_shape: int,
+            global_obs_shape: int,
+            action_shape: int,
+            hidden_size_list: list,
+            attention: bool = False,
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
-            attention_dim: int = 32,
-            use_mixer: bool = True
+            attention_size: int = 32,
+            mixer: bool = True
     ) -> None:
         super(CollaQ, self).__init__()
-        self.enable_attention = enable_attention
-        self.attention_dim = attention_dim
+        self.attention = attention
+        self.attention_size = attention_size
         self._act = nn.ReLU()
-        self.use_mixer = use_mixer
-        if not self.enable_attention:
-            self._q_network = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
+        self.mixer = mixer
+        if not self.attention:
+            self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
         else:
             #TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
-                self_feature_range[1] - self_feature_range[0], self_feature_range, ally_feature_range, attention_dim
+                self_feature_range[1] - self_feature_range[0], self_feature_range, ally_feature_range, attention_size
             )
-            #TODO get the obs_dim_after_attention here beautifully
-            obs_dim_after_attention = self._self_attention(
+            #TODO get the obs_shape_after_attention here beautifully
+            obs_shape_after_attention = self._self_attention(
                 torch.randn(
                     1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
-                    (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
+                    (self_feature_range[1] - self_feature_range[0]) + 1, obs_shape
                 )
             ).shape[-1]
-            self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, hidden_dim_list)
-        self._q_alone_network = FCRDiscreteNet(obs_alone_dim, action_dim, hidden_dim_list)
-        embedding_dim = hidden_dim_list[-1]
-        if self.use_mixer:
-            self._mixer = Mixer(agent_num, embedding_dim)
-            global_obs_dim = squeeze(global_obs_dim)
-            self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+            self._q_network = FCRDiscreteNet(obs_shape_after_attention, action_shape, hidden_size_list)
+        self._q_alone_network = FCRDiscreteNet(alone_obs_shape, action_shape, hidden_size_list)
+        embedding_size = hidden_size_list[-1]
+        if self.mixer:
+            self._mixer = Mixer(agent_num, embedding_size)
+            global_obs_shape = squeeze(global_obs_shape)
+            self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -320,12 +324,12 @@ class CollaQ(nn.Module):
                 - next_state (:obj:`list`): next rnn state
         Shapes:
             - agent_state (:obj:`torch.Tensor`): :math:`(T, B, A, N)`, where T is timestep, B is batch_size\
-                A is agent_num, N is obs_dim
-            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_dim
+                A is agent_num, N is obs_shape
+            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_shape
             - prev_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
             - action (:obj:`torch.Tensor`): :math:`(T, B, A)`
             - total_q (:obj:`torch.Tensor`): :math:`(T, B)`
-            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_dim
+            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
         agent_state, agent_alone_state, agent_alone_padding_state, global_state, prev_state = data['obs'][
@@ -341,7 +345,7 @@ class CollaQ(nn.Module):
             ), agent_alone_state.unsqueeze(0), agent_alone_padding_state.unsqueeze(0), global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
 
-        if self.enable_attention:
+        if self.attention:
             agent_state = self._self_attention(agent_state)
             agent_alone_padding_state = self._self_attention(agent_alone_padding_state)
 
@@ -419,7 +423,7 @@ class CollaQ(nn.Module):
         if action is None:
             action = total_q_before_mix.argmax(dim=-1)
         agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
-        if self.use_mixer:
+        if self.mixer:
             global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
         else:
@@ -436,5 +440,5 @@ class CollaQ(nn.Module):
             'action_mask': data['obs']['action_mask']
         }
 
-    def _setup_global_encoder(self, global_obs_dim: int, embedding_dim: int) -> torch.nn.Module:
-        return MLP(global_obs_dim, embedding_dim, embedding_dim, 2, activation=self._act)
+    def _setup_global_encoder(self, global_obs_shape: int, embedding_size: int) -> torch.nn.Module:
+        return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)

@@ -4,6 +4,7 @@ import logging
 import gym
 import copy
 import numpy as np
+from easydict import EasyDict
 from namedlist import namedlist
 from collections import namedtuple
 from nervex.utils import import_module, ENV_REGISTRY
@@ -18,6 +19,14 @@ class BaseEnv(gym.Env):
     Interface: __init__
     Property: timestep
     """
+
+    config = dict()
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
@@ -86,7 +95,12 @@ class BaseEnv(gym.Env):
 
 def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
     import_module(cfg.get('import_names', []))
-    env_fn = ENV_REGISTRY[cfg.env_type]
+    env_fn = ENV_REGISTRY.get(cfg.type)
     collector_env_cfg = env_fn.create_collector_env_cfg(cfg)
     evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
     return env_fn, collector_env_cfg, evaluator_env_cfg
+
+
+def get_env_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return ENV_REGISTRY.get(cfg.type)

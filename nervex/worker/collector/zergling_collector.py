@@ -10,11 +10,14 @@ import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.envs import get_vec_env_setting, SyncSubprocessEnvManager, BaseEnvManager
+from nervex.policy import create_policy, Policy
+from nervex.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
 from .base_serial_collector import CachePool
+
+INF = float("inf")
 
 
 @COLLECTOR_REGISTRY.register('zergling')
@@ -28,51 +31,96 @@ class ZerglingCollector(BaseCollector):
       - periodic policy update
       - metadata + stepdata
     """
+    config = dict(
+        print_freq=5,
+        compressor='lz4',
+        update_policy_second=3,
+        # The following keys is set by the commander
+        # env
+        # policy
+        # collect_setting
+        # eval_flag
+        # policy_update_path
+    )
 
     # override
     def __init__(self, cfg: dict) -> None:
         super().__init__(cfg)
         self._update_policy_thread = Thread(target=self._update_policy_periodically, args=(), name='update_policy')
         self._update_policy_thread.deamon = True
-
         self._start_time = time.time()
-        self._traj_len = self._cfg.traj_len
-        self._traj_cache_length = self._traj_len
-        self._env_kwargs = self._cfg.env_kwargs
         self._compressor = get_data_compressor(self._cfg.compressor)
-        self._env_manager = self._setup_env_manager()
-        self._env_num = self._env_manager.env_num
+
+        # create env
+        self._env_cfg = self._cfg.env
+        env_manager = self._setup_env_manager(self._env_cfg)
+        self.env_manager = env_manager
+
+        # create policy
+        if self._eval_flag:
+            policy = create_policy(self._cfg.policy, enable_field=['eval']).eval_mode
+        else:
+            policy = create_policy(self._cfg.policy, enable_field=['collect']).collect_mode
+        self.policy = policy
 
         self._episode_result = [[] for k in range(self._env_num)]
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self._traj_cache_length = self._traj_len if self._traj_len != INF else None
         self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
         self._total_step = 0
         self._total_sample = 0
         self._total_episode = 0
 
-    def _setup_env_manager(self) -> BaseEnvManager:
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
-        manager_cfg = self._env_kwargs.get('manager', {})
+    @property
+    def policy(self) -> Policy:
+        return self._policy
+
+    # override
+    @policy.setter
+    def policy(self, _policy: Policy) -> None:
+        self._policy = _policy
+        self._n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
+        self._n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        assert any(
+            [t is None for t in [self._n_sample, self._n_episode]]
+        ), "n_episode/n_sample in policy cfg can't be not None at the same time"
+        # TODO(nyz) the same definition of traj_len in serial and parallel
+        if self._n_episode is not None:
+            self._traj_len = INF
+        elif self._n_sample is not None:
+            self._traj_len = self._n_sample
+
+    @property
+    def env_manager(self, _env_manager) -> None:
+        self._env_manager = _env_manager
+
+    # override
+    @env_manager.setter
+    def env_manager(self, _env_manager: BaseEnvManager) -> None:
+        self._env_manager = _env_manager
+        self._env_manager.launch()
+        self._env_num = self._env_manager.env_num
+        self._predefined_episode_count = self._env_num * self._env_manager._episode_num
+
+    def _setup_env_manager(self, cfg: EasyDict) -> BaseEnvManager:
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg)
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
-            episode_num = self._env_kwargs.evaluator_episode_num
         else:
             env_cfg = collector_env_cfg
-            episode_num = self._env_kwargs.collector_episode_num
-        env_manager = SyncSubprocessEnvManager(
-            env_fn=[partial(env_fn, cfg=c) for c in env_cfg], episode_num=episode_num, **manager_cfg
-        )
-        env_manager.launch()
-        self._predefined_episode_count = episode_num * len(env_cfg)
+        env_manager = create_env_manager(cfg.manager, [partial(env_fn, cfg=c) for c in env_cfg])
         return env_manager
 
     def _start_thread(self) -> None:
-        self._update_policy_thread.start()
+        # evaluator doesn't need to update policy periodically, only updating policy when starts
+        if not self._eval_flag:
+            self._update_policy_thread.start()
 
     def _join_thread(self) -> None:
-        self._update_policy_thread.join()
-        del self._update_policy_thread
+        if not self._eval_flag:
+            self._update_policy_thread.join()
+            del self._update_policy_thread
 
     # override
     def close(self) -> None:
@@ -160,6 +208,7 @@ class ZerglingCollector(BaseCollector):
             'eval_flag': self._eval_flag,
             'env_num': self._env_num,
             'duration': duration,
+            'train_iter': self._policy_iter,
             'collector_done': self._env_manager.done,
             'predefined_episode_count': self._predefined_episode_count,
             'real_episode_count': self._total_episode,
@@ -202,8 +251,8 @@ class ZerglingCollector(BaseCollector):
         while not self._end_flag:
             cur = time.time()
             interval = cur - last
-            if interval < self._cfg.policy_update_freq:
-                time.sleep(self._cfg.policy_update_freq * 0.1)
+            if interval < self._cfg.update_policy_second:
+                time.sleep(self._cfg.update_policy_second * 0.1)
                 continue
             else:
                 self._update_policy()

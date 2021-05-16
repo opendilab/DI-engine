@@ -10,47 +10,41 @@ from nervex.model import SAC
 from nervex.torch_utils import is_differentiable
 from nervex.utils import squeeze
 
-obs_dim = [
+obs_shape = [
     32,
 ]
-action_dim = [6, 1]
+action_shape = [6, 1]
 
-args = [item for item in product(*[obs_dim, action_dim])]
+args = [item for item in product(*[obs_shape, action_shape])]
 
 
-def output_check(action_dim, model, output):
-    if isinstance(action_dim, tuple):
+def output_check(action_shape, model, output):
+    if isinstance(action_shape, tuple):
         loss = sum([t.sum() for t in output])
-    elif np.isscalar(action_dim):
+    elif np.isscalar(action_shape):
         loss = output.sum()
     is_differentiable(loss, model)
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('obs_dim, action_dim', args)
-def test_sac(obs_dim, action_dim):
-    input = {'obs': torch.randn(4, obs_dim), 'action': torch.randn(4, squeeze(action_dim))}
-    model = SAC(obs_dim, action_dim, use_twin_q=False)
+@pytest.mark.parametrize('obs_shape, action_shape', args)
+def test_sac(obs_shape, action_shape):
+    input = {'obs': torch.randn(4, obs_shape), 'action': torch.randn(4, squeeze(action_shape))}
+    model = SAC(obs_shape, action_shape, twin_q=False, value_network=True)
     # compute_q
     q_value = model(input, mode='compute_critic', qv='q')['q_value']
     print("q_value: ", q_value)
     assert q_value.shape == (4, )
-    output_check(model._act_dim, model._soft_q_net, q_value)
+    output_check(model._act_shape, model._soft_q_net, q_value)
 
     # compute_value
     v_value = model(input['obs'], mode='compute_critic', qv='v')['v_value']
     print("v_value: ", v_value)
     assert v_value.shape == (4, )
-    output_check(model._act_dim, model._value_net, v_value)
-
-    # evaluate
-    eval_data = model(input['obs'], mode='evaluate')
-    print("evaluate: ", eval_data)
-    for k, v in eval_data.items():
-        print(k, v.shape)
+    output_check(model._act_shape, model._value_net, v_value)
 
     # compute_action
     action = model(input['obs'], mode='compute_actor')['action']
-    assert action.shape == (4, squeeze(action_dim))
+    assert action.shape == (4, squeeze(action_shape))
     assert action.eq(action.clamp(-1, 1)).all()
     print("action: ", action)

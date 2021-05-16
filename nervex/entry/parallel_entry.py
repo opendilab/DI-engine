@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 import subprocess
 import time
 import pickle
@@ -7,12 +7,12 @@ from threading import Thread, Event
 from easydict import EasyDict
 
 from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
-from nervex.config import read_config, parallel_transform, parallel_transform_slurm
-from .utils import set_pkg_seed
+from nervex.config import read_config, compile_config_parallel
+from nervex.utils import set_pkg_seed
 
 
 def parallel_pipeline(
-        config: Union[str, dict],
+        input_cfg: Union[str, Tuple[dict, dict, dict]],
         seed: int,
         enable_total_log: Optional[bool] = False,
         disable_flask_log: Optional[bool] = True,
@@ -36,21 +36,21 @@ def parallel_pipeline(
         log.disabled = True
     set_pkg_seed(seed)
     # Parallel job launch.
-    if isinstance(config, str):
-        config = read_config(config)
-    elif isinstance(config, dict):
-        config = config
+    if isinstance(input_cfg, str):
+        main_cfg, create_cfg, system_cfg = read_config(input_cfg)
+    elif isinstance(input_cfg, tuple) or isinstance(input_cfg, list):
+        main_cfg, create_cfg, system_cfg = input_cfg
     else:
-        raise TypeError("invalid config type: {}".format(config))
-    config = parallel_transform(config)
+        raise TypeError("invalid config type: {}".format(input_cfg))
+    config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg)
     learner_handle = []
     collector_handle = []
-    for k, v in config.items():
+    for k, v in config.system.items():
         if 'learner' in k:
             learner_handle.append(launch_learner(seed, v))
         elif 'collector' in k:
             collector_handle.append(launch_collector(seed, v))
-    launch_coordinator(seed, config.coordinator, learner_handle=learner_handle, collector_handle=collector_handle)
+    launch_coordinator(seed, config, learner_handle=learner_handle, collector_handle=collector_handle)
 
 
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
@@ -110,7 +110,7 @@ def launch_coordinator(
     set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
-            config = pickle.load(f).coordinator
+            config = pickle.load(f)
     coordinator = Coordinator(config)
     for _, start_event, _ in learner_handle:
         start_event.wait()

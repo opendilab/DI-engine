@@ -30,7 +30,6 @@ sumo_ppo_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len='inf',
             unroll_len=1,
             algo=dict(
                 discount_factor=0.9,
@@ -44,12 +43,10 @@ sumo_ppo_default_config = dict(
         agent=dict(
             meta_maxlen=1000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=16,
-        traj_len=200,  # max episode len
         collect_print_freq=100,
     ),
     evaluator=dict(

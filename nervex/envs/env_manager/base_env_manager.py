@@ -2,6 +2,7 @@ from abc import ABC
 from types import MethodType
 from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
 from functools import partial, wraps
+from easydict import EasyDict
 import copy
 from collections import namedtuple
 import numbers
@@ -11,7 +12,7 @@ import time
 import traceback
 import signal
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import ENV_MANAGER_REGISTRY, import_module
+from nervex.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts
 from nervex.envs.env.base_env import BaseEnvTimestep
 from nervex.utils.time_helper import WatchDog
 
@@ -63,10 +64,13 @@ def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         watchdog = WatchDog(timeout)
-        watchdog.start()
         try:
-            ret = func(*args, **kwargs)
-            return ret
+            watchdog.start()
+        except ValueError as e:
+            # watchdog invalid case
+            return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
         except BaseException as e:
             raise e
         finally:
@@ -86,27 +90,34 @@ class BaseEnvManager(object):
         env_num, ready_obs, done, method_name_list
     """
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
+
+    config = dict(
+        episode_num=float("inf"),
+        max_retry=1,
+        step_timeout=60,
+        reset_timeout=60,
+        retry_waiting_time=0.1,
+    )
+
     def __init__(
-        self,
-        env_fn: List[Callable],
-        episode_num: Optional[Union[int, float]] = float('inf'),
-        max_retry: int = 1,
-        step_timeout: int = 60,
-        reset_timeout: int = 60,
-        retry_waiting_time: float = 0.1,
+            self,
+            env_fn: List[Callable],
+            cfg: EasyDict = EasyDict({}),
     ) -> None:
         """
         Overview:
             Initialize the BaseEnvManager.
         Arguments:
             - env_fn (:obj:`List[Callable]`): the function to create environment
-            - episode_num (:obj:`Optional[Union[int, float]]`): maximum episodes to collect in one environment
         """
+        self._cfg = cfg
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
-        if episode_num == "inf":
-            episode_num = float("inf")
-        self._episode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
@@ -115,10 +126,11 @@ class BaseEnvManager(object):
         self._env_ref = self._env_fn[0]()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
 
-        self._max_retry = max_retry
-        self._step_timeout = step_timeout
-        self._reset_timeout = reset_timeout
-        self._retry_waiting_time = retry_waiting_time
+        self._episode_num = self._cfg.episode_num
+        self._max_retry = self._cfg.max_retry
+        self._step_timeout = self._cfg.step_timeout
+        self._reset_timeout = self._cfg.reset_timeout
+        self._retry_waiting_time = self._cfg.retry_waiting_time
 
     @property
     def env_num(self) -> int:
@@ -322,10 +334,18 @@ class BaseEnvManager(object):
     def env_info(self) -> namedtuple:
         return self._env_ref.info()
 
+    def env_default_config(self) -> EasyDict:
+        return self._env_ref.default_config()
+
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:
     manager_cfg = copy.deepcopy(manager_cfg)
     if 'import_names' in manager_cfg:
         import_module(manager_cfg.pop('import_names'))
     manager_type = manager_cfg.pop('type')
-    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, **manager_cfg)
+    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, cfg=manager_cfg)
+
+
+def get_env_manager_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return ENV_MANAGER_REGISTRY.get(cfg.type)

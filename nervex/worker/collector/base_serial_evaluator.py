@@ -1,9 +1,11 @@
 from typing import List, Dict, Any, Optional, Callable, Tuple
-from collections import namedtuple
+from collections import namedtuple, deque
+from easydict import EasyDict
+from functools import reduce
 import copy
 import numpy as np
 import torch
-from nervex.utils import build_logger, EasyTimer
+from nervex.utils import build_logger, EasyTimer, deep_merge_dicts
 from nervex.envs import BaseEnvManager
 from .base_serial_collector import CachePool
 
@@ -17,6 +19,17 @@ class BaseSerialEvaluator(object):
     Property:
         env, policy
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(cls.config)
+        cfg.cfg_type = cls.__name__ + 'Config'
+        return copy.deepcopy(cfg)
+
+    config = dict(
+        # Evaluate every "eval_freq" training iterations.
+        eval_freq=50,
+    )
 
     def __init__(
             self,
@@ -33,8 +46,7 @@ class BaseSerialEvaluator(object):
         Arguments:
             - cfg (:obj:`EasyDict`)
         """
-        self._default_n_episode = cfg.get('n_episode', None)
-        self._stop_value = cfg.stop_value
+        self._cfg = cfg
         if env is not None:
             self.env = env
         if policy is not None:
@@ -45,7 +57,6 @@ class BaseSerialEvaluator(object):
         else:
             self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
         self._timer = EasyTimer()
-        self._cfg = cfg
         self._max_eval_reward = float("-inf")
         self._end_flag = False
         self._last_eval_iter = 0
@@ -60,6 +71,8 @@ class BaseSerialEvaluator(object):
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
+        self._default_n_episode = _env_manager.env_default_config().n_episode
+        self._stop_value = _env_manager.env_default_config().stop_value
 
     @property
     def policy(self) -> namedtuple:
@@ -70,8 +83,6 @@ class BaseSerialEvaluator(object):
         self._policy = _policy
 
     def reset(self) -> None:
-        self._obs_pool = CachePool('obs', self._env_num)
-        self._policy_output_pool = CachePool('policy_output', self._env_num)
         self._env_manager.reset()
 
     def close(self) -> None:
@@ -113,49 +124,47 @@ class BaseSerialEvaluator(object):
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
-        episode_count = 0
         envstep_count = 0
-        episode_reward = []
         info = {}
-        self.reset()
+        eval_monitor = VectorEvalMonitor(self._env_manager.env_num, n_episode)
+        self._env_manager.reset()
         self._policy.reset()
+
         with self._timer:
-            while episode_count < n_episode:
+            while not eval_monitor.is_finished():
                 obs = self._env_manager.ready_obs
-                self._obs_pool.update(obs)
                 policy_output = self._policy.forward(obs)
-                self._policy_output_pool.update(policy_output)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 timesteps = self._env_manager.step(actions)
-                for i, t in timesteps.items():
+                for env_id, t in timesteps.items():
                     if t.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
-                        self._policy.reset([i])
+                        self._policy.reset([env_id])
                         continue
                     if t.done:
                         # Env reset is done by env_manager automatically.
-                        self._policy.reset([i])
+                        self._policy.reset([env_id])
                         reward = t.info['final_eval_reward']
                         if isinstance(reward, torch.Tensor):
                             reward = reward.item()
-                        episode_reward.append(reward)
+                        eval_monitor.update_reward(env_id, reward)
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
-                                i, reward, episode_count
+                                env_id, reward, eval_monitor.get_current_episode()
                             )
                         )
-                        episode_count += 1
                     envstep_count += 1
         duration = self._timer.value
+        episode_reward = eval_monitor.get_episode_reward()
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
-            'episode_count': episode_count,
+            'episode_count': n_episode,
             'envstep_count': envstep_count,
-            'avg_envstep_per_episode': envstep_count / episode_count,
+            'avg_envstep_per_episode': envstep_count / n_episode,
             'evaluate_time': duration,
             'avg_envstep_per_sec': envstep_count / duration,
-            'avg_time_per_episode': episode_count / duration,
+            'avg_time_per_episode': n_episode / duration,
             'reward_mean': np.mean(episode_reward),
             'reward_std': np.std(episode_reward),
             'each_reward': episode_reward,
@@ -182,3 +191,27 @@ class BaseSerialEvaluator(object):
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, eval_reward
+
+
+class VectorEvalMonitor(object):
+
+    def __init__(self, env_num: int, n_episode: int) -> None:
+        assert n_episode >= env_num, "n_episode < env_num, please decrease the number of eval env"
+        self._env_num = env_num
+        self._n_episode = n_episode
+        each_env_episode = [n_episode // env_num for _ in range(env_num)]
+        for i in range(n_episode % env_num):
+            each_env_episode[i] += 1
+        self._data = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
+
+    def is_finished(self) -> bool:
+        return all([len(v) == v.maxlen for v in self._data.values()])
+
+    def update_reward(self, env_id: int, reward: Any) -> None:
+        self._data[env_id].append(reward)
+
+    def get_episode_reward(self) -> list:
+        return sum([list(v) for v in self._data.values()], [])  # sum(iterable, start)
+
+    def get_current_episode(self) -> int:
+        return sum([len(v) for v in self._data.values()])

@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 6
 qbert_a2c_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -35,7 +34,6 @@ qbert_a2c_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=traj_len,
             unroll_len=1,
             algo=dict(
                 gae_lambda=0.99,
@@ -49,12 +47,10 @@ qbert_a2c_default_config = dict(
         agent=dict(
             replay_buffer_size=10000,
             max_use=1,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=80,
-        traj_len=traj_len,
         collect_print_freq=1000,
     ),
     evaluator=dict(

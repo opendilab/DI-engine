@@ -1,1 +1,1 @@
-from .bitflip_dqn_default_config import bitflip_dqn_default_config
+from .bitflip_dqn_config import bitflip_dqn_config, bitflip_dqn_create_config

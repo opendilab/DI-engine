@@ -1,7 +1,7 @@
-from .base_policy import Policy, CommandModePolicy, create_policy
+from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
 from .dqn import DQNPolicy
-from .rainbow_dqn import RainbowDQNPolicy
-from .ddpg import DDPGPolicy
+from .rainbow import RainbowDQNPolicy, IQNPolicy
+from .ddpg import DDPGPolicy, TD3Policy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
 from .sac import SACPolicy
@@ -18,5 +18,3 @@ from .atoc import ATOCPolicy
 from .il import ILPolicy
 
 from .command_mode_policy_instance import *
-from .dqn_vanilla import DQNVanillaPolicy
-from .ppo_vanilla import PPOVanillaPolicy

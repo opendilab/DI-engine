@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-traj_len = 3000
 gfootball_il_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -30,12 +29,10 @@ gfootball_il_default_config = dict(
         agent=dict(
             meta_maxlen=100000,
             max_reuse=10,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_episode=2,
-        traj_len=traj_len,
         traj_print_freq=100,
         collect_print_freq=100,
     ),

@@ -1406,3 +1406,4 @@ htmlcov
 policy_*
 /data
 .vscode
+*total_config.py

@@ -14,6 +14,7 @@ import ctypes
 import pickle
 import cloudpickle
 from functools import partial
+from easydict import EasyDict
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 
@@ -120,7 +121,10 @@ class CloudPickleWrapper(object):
         return cloudpickle.dumps(self.data)
 
     def __setstate__(self, data: bytes) -> None:
-        self.data = cloudpickle.loads(data)
+        if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
+            self.data = pickle.loads(data)
+        else:
+            self.data = cloudpickle.loads(data)
 
 
 @ENV_MANAGER_REGISTRY.register('async_subprocess')
@@ -133,36 +137,39 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         seed, launch, ready_obs, step, reset, env_info
     """
 
-    def __init__(
-        self,
-        env_fn: List[Callable],
-        episode_num: Optional[Union[int, float]] = float('inf'),
-        max_retry: int = 1,
-        step_timeout: int = 60,
-        reset_timeout: int = 60,
-        retry_waiting_time: float = 0.1,
+    config = dict(
+        episode_num=float("inf"),
+        max_retry=1,
+        step_timeout=60,
+        reset_timeout=60,
+        retry_waiting_time=0.1,
         # subprocess specified args
-        shared_memory: bool = True,
-        context: Optional[str] = 'spawn' if platform.system().lower() == 'windows' else 'fork',
-        wait_num: int = 2,
+        shared_memory=True,
+        context='spawn' if platform.system().lower() == 'windows' else 'fork',
+        wait_num=2,
         step_wait_timeout=0.01,
-        connect_timeout: int = 60,
+        connect_timeout=60,
+    )
+
+    def __init__(
+            self,
+            env_fn: List[Callable],
+            cfg: EasyDict = EasyDict({}),
     ) -> None:
         """
         Overview:
             Initialize the AsyncSubprocessEnvManager.
         Arguments:
             - env_fn (:obj:`function`): the function to create environment
-            - episode_num (:obj:`int`): maximum episodes to collect in one environment
         """
-        super().__init__(env_fn, episode_num, max_retry, step_timeout, reset_timeout, retry_waiting_time)
-        self._shared_memory = shared_memory
-        self._context = context
-        self._wait_num = wait_num
-        self._step_wait_timeout = step_wait_timeout
+        super().__init__(env_fn, cfg)
+        self._shared_memory = self._cfg.shared_memory
+        self._context = self._cfg.context
+        self._wait_num = self._cfg.wait_num
+        self._step_wait_timeout = self._cfg.step_wait_timeout
 
         self._lock = LockContext(LockContextType.THREAD_LOCK)
-        self._connect_timeout = connect_timeout
+        self._connect_timeout = self._cfg.connect_timeout
         self._connect_timeout = np.max([self._connect_timeout, self._step_timeout + 0.5, self._reset_timeout + 0.5])
 
     def _create_state(self) -> None:
@@ -194,7 +201,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         ctx = get_context(self._context)
         self._subprocesses[env_id] = ctx.Process(
             # target=self.worker_fn,
-            target=self.worker_fn_robust,  # We recommend this robust version.
+            target=self.worker_fn_robust,
             args=(
                 self._pipe_parents[env_id],
                 self._pipe_children[env_id],
@@ -256,7 +263,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 )
             time.sleep(0.001)
             sleep_count += 1
-        return {i: self._ready_obs[i] for i in self.ready_env}
+        return self._inv_transform({i: self._ready_obs[i] for i in self.ready_env})
 
     def launch(self, reset_param: Optional[List[dict]] = None) -> None:
         """
@@ -296,6 +303,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if reset_param is None:
             reset_param = [{} for _ in range(self.env_num)]
         self._reset_param = reset_param
+        # set seed
+        if hasattr(self, '_env_seed'):
+            for i in range(self.env_num):
+                self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
+            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
+            self._check_data(ret)
 
         # reset env
         reset_thread_list = []
@@ -579,9 +592,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             raise RuntimeError("env getattr doesn't supports method({}), please override method_name_list".format(key))
         for _, p in self._pipe_parents.items():
             p.send(['getattr', [key], {}])
-        ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-        self._check_data(ret)
-        return list(ret.values())
+        data = {i: p.recv() for i, p in self._pipe_parents.items()}
+        self._check_data(data)
+        ret = [data[i] for i in self._pipe_parents.keys()]
+        return ret
 
     # override
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:

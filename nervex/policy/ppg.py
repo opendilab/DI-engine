@@ -41,6 +41,61 @@ class PPGPolicy(Policy):
     Overview:
         Policy class of PPG algorithm.
     """
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='ppg',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether to use multi gpu
+        multi_gpu=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
+        on_policy=True,
+        priority=False,
+        learn=dict(
+            update_per_collect=5,
+            batch_size=64,
+            learning_rate=0.001,
+            weight_decay=0.0001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) The loss weight of value network, policy network weight is set to 1
+            value_weight=0.5,
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            entropy_weight=0.01,
+            # (float) PPO clip ratio, defaults to 0.2
+            clip_ratio=0.2,
+            # (bool) Whether to use advantage norm in a whole training batch
+            adv_norm=False,
+            # (int) The frequency(normal update times) of auxiliary phase training
+            aux_freq=5,
+            # (int) The training epochs of auxiliary phase
+            aux_train_epoch=6,
+            # (int) The loss weight of behavioral_cloning in auxiliary phase
+            aux_bc_weight=1,
+            ignore_done=False,
+        ),
+        collect=dict(
+            n_sample=64,
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.99,
+            # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
+            gae_lambda=0.95,
+        ),
+        eval=dict(),
+        other=dict(
+            replay_buffer=dict(
+                # PPG use two seperate buffer for different reuse
+                buffer_name=['policy', 'value'],
+                policy=dict(replay_buffer_size=1000, ),
+                value=dict(replay_buffer_size=1000, ),
+            ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -54,36 +109,34 @@ class PPGPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._value_weight = algo_cfg.value_weight
-        self._entropy_weight = algo_cfg.entropy_weight
-        self._clip_ratio = algo_cfg.clip_ratio
-        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
+        self._value_weight = self._cfg.learn.value_weight
+        self._entropy_weight = self._cfg.learn.entropy_weight
+        self._clip_ratio = self._cfg.learn.clip_ratio
+        self._adv_norm = self._cfg.learn.adv_norm
 
         # Main model
         self._learn_model.reset()
 
         # Auxiliary memories
-        self._epochs_aux = algo_cfg.epochs_aux
+        self._aux_train_epoch = self._cfg.learn.aux_train_epoch
         self._train_iteration = 0
         self._aux_memories = []
-        self._beta_weight = algo_cfg.beta_weight
+        self._aux_bc_weight = self._cfg.learn.aux_bc_weight
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
-        # TODO(nyz) priority for ppg
-        use_priority = self._cfg.get('use_priority', False)
-        assert not use_priority, "NotImplement"
+        self._priority = self._cfg.priority
+        assert not self._priority, "not implemented priority in PPG"
         # data preprocess
         for k, data_item in data.items():
             data_item = default_collate(data_item)
-            ignore_done = self._cfg.learn.get('ignore_done', False)
+            ignore_done = self._cfg.learn.ignore_done
             if ignore_done:
                 data_item['done'] = None
             else:
                 data_item['done'] = data_item['done'].float()
             data_item['weight'] = None
             data[k] = data_item
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         return data
 
@@ -105,7 +158,7 @@ class PPGPolicy(Policy):
         self._learn_model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
-        if self._use_adv_norm:
+        if self._adv_norm:
             # Normalize advantage in a total train_batch
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
@@ -141,7 +194,7 @@ class PPGPolicy(Policy):
         self._aux_memories.append(copy.deepcopy(data))
 
         self._train_iteration += 1
-        if self._train_iteration % self._cfg.learn.algo.aux_freq == 0:
+        if self._train_iteration % self._cfg.learn.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
                 'policy_cur_lr': self._optimizer_policy.defaults['lr'],
@@ -190,10 +243,9 @@ class PPGPolicy(Policy):
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         # TODO continuous action space exploration
         self._collect_model.reset()
-        self._adder = Adder(self._use_cuda, self._unroll_len)
-        algo_cfg = self._cfg.collect.algo
-        self._gamma = algo_cfg.discount_factor
-        self._gae_lambda = algo_cfg.gae_lambda
+        self._adder = Adder(self._cuda, self._unroll_len)
+        self._gamma = self._cfg.collect.discount_factor
+        self._gae_lambda = self._cfg.collect.gae_lambda
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -206,12 +258,12 @@ class PPGPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor_critic')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -280,19 +332,19 @@ class PPGPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
         # return 'fc_vac', ['nervex.model.actor_critic.value_ac']
-        return 'ppg', ['nervex.model.ppg']
+        return 'fc_ppg', ['nervex.model.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
         return [
@@ -351,7 +403,7 @@ class PPGPolicy(Policy):
         behavioral_cloning_loss_ = 0
         value_loss_ = 0
 
-        for epoch in range(self._epochs_aux):
+        for epoch in range(self._aux_train_epoch):
             for data in dl:
                 policy_output = self._model.forward(data, mode='compute_actor_critic')
 
@@ -361,7 +413,7 @@ class PPGPolicy(Policy):
                     data['return_'], data['weight']
                 )
                 ppg_joint_loss = ppg_joint_error(data_ppg, self._clip_ratio)
-                wb = self._beta_weight
+                wb = self._aux_bc_weight
                 total_loss = ppg_joint_loss.auxiliary_loss + wb * ppg_joint_loss.behavioral_cloning_loss
 
                 # # policy network loss copmoses of both the kl div loss as well as the auxiliary loss

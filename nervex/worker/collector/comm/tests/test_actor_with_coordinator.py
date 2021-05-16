@@ -9,22 +9,23 @@ from nervex.worker import Coordinator, create_comm_collector
 from nervex.worker.learner.comm import NaiveLearner
 from nervex.utils import lists_to_dicts
 from nervex.interaction.slave import Slave, TaskFail
-from nervex.config import parallel_local_default_config, parallel_transform
+from nervex.config import compile_config_parallel
+from nervex.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
 
 DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_COLLECTOR_TEST'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    cfg = parallel_local_default_config
-    cfg = parallel_transform(cfg)
-    return cfg
+    return compile_config_parallel(
+        parallel_test_main_config, create_cfg=parallel_test_create_config, system_cfg=parallel_test_system_config
+    )
 
 
 @pytest.fixture(scope='function')
 def setup_collector(setup_config):
     collector = {}
-    for k, v in setup_config.items():
+    for k, v in setup_config.system.items():
         if 'collector' in k:
             collector[k] = create_comm_collector(v)
             collector[k].start()
@@ -35,7 +36,7 @@ def setup_collector(setup_config):
 
 @pytest.fixture(scope='function')
 def setup_learner(setup_config):
-    cfg = setup_config.coordinator.interaction.learner
+    cfg = setup_config.system.coordinator.learner
     learner = {}
     for _, (name, host, port) in cfg.items():
         learner[name] = NaiveLearner(host, port, prefix=DATA_PREFIX)
@@ -52,9 +53,9 @@ class TestCollectorWithCoordinator:
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
         os.popen('rm -rf env_*_*')
         os.popen('rm -rf test.pth')
-        assert len(setup_collector) == len(setup_config.coordinator.interaction.collector)
+        assert len(setup_collector) == len(setup_config.system.coordinator.collector)
         try:
-            coordinator = Coordinator(setup_config.coordinator)
+            coordinator = Coordinator(setup_config)
             coordinator.start()
             while True:
                 if setup_collector['collector0']._collector is not None:

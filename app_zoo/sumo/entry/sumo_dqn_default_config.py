@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
 nstep = 1
-traj_len = 1
 sumo_dqn_default_config = dict(
     env=dict(
         env_manager_type='subprocess',
@@ -49,8 +48,6 @@ sumo_dqn_default_config = dict(
         ),
         # collect_mode config
         collect=dict(
-            # Will collect trajectory with length "traj_len".
-            traj_len=traj_len,
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
             algo=dict(nstep=nstep, ),
@@ -73,7 +70,6 @@ sumo_dqn_default_config = dict(
         agent=dict(
             meta_maxlen=100000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
@@ -82,7 +78,6 @@ sumo_dqn_default_config = dict(
         n_sample=8,
         # Get "n_episode" complete episodic trajectories per collect.
         # n_episode=8,
-        traj_len=traj_len,
         collect_print_freq=100,
     ),
     evaluator=dict(

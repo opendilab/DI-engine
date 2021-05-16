@@ -23,7 +23,6 @@ __policy_default_config = dict(
         ),
     ),
     collect=dict(
-        traj_len=39,
         unroll_len=1,
         algo=dict(nstep=3),
     ),
@@ -104,7 +103,6 @@ __coordinator_default_config = dict(
             replay_buffer_size=10000,
             max_use=100,
             unroll_len=1,
-            min_sample_ratio=1,
             monitor=dict(log_freq=1000),
         ),
         policy=__policy_default_config,
