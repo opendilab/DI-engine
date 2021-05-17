@@ -20,13 +20,13 @@ class COMAPolicy(Policy):
         type='coma',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=True,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             update_per_collect=1,
             batch_size=32,
             learning_rate=0.0005,

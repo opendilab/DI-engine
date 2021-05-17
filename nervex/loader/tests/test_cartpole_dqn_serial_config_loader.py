@@ -17,7 +17,6 @@ def test_main_config():
         policy=item('policy') >> dict_(
             type=item('type') | raw('dqn') >> is_type(str),
             cuda=item('cuda') >> is_type(bool),
-            multi_gpu=item('multi_gpu') | raw(False) >> is_type(bool),
             on_policy=item('on_policy') | raw(False) >> is_type(bool),
             priority=item('priority') | raw(False) >> is_type(bool),
             model=item('model') >> dict_(
@@ -27,6 +26,7 @@ def test_main_config():
                 dueling=item('dueling') >> is_type(bool),
             ),
             learn=item('learn') >> dict_(
+                multi_gpu=item('multi_gpu') | raw(False) >> is_type(bool),
                 update_per_collect=item('update_per_collect') | raw(1) >> (is_type(int) & interval(1, 500)),
                 batch_size=item('batch_size') | raw(64) >> (is_type(int) & interval(1, 128)),
                 learning_rate=item('learning_rate') | raw(0.001) >> interval(0.0001, 0.01),

@@ -23,12 +23,12 @@ class A2CPolicy(Policy):
         type='a2c',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=True,  # for a2c strictly on policy algorithm, this line should not be seen by users
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # (int) for a2c, update_per_collect must be 1.
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,

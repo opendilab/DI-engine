@@ -43,7 +43,7 @@ def serial_pipeline(
     # TODO(nyz) when env_setting is not None
     assert env_setting is None  # temporally
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
+    cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -51,9 +51,9 @@ def serial_pipeline(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    collector_env.seed(seed)
-    evaluator_env.seed(seed, dynamic_seed=False)
-    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
+    collector_env.seed(cfg.seed)
+    evaluator_env.seed(cfg.seed, dynamic_seed=False)
+    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.

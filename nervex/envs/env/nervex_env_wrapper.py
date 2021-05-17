@@ -20,6 +20,9 @@ class NervexEnvWrapper(BaseEnv):
             self._cfg = dict()
         self._env = env
 
+    def default_config(self):
+        return self._cfg
+
     # override
     def reset(self) -> None:
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:

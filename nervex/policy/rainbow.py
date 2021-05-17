@@ -32,8 +32,6 @@ class RainbowDQNPolicy(DQNPolicy):
         type='rainbow',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -50,6 +48,8 @@ class RainbowDQNPolicy(DQNPolicy):
             n_atom=51,
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -314,8 +314,6 @@ class IQNPolicy(RainbowDQNPolicy):
         type='iqn',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -325,6 +323,8 @@ class IQNPolicy(RainbowDQNPolicy):
             beta_function_type='uniform',
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

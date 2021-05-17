@@ -23,9 +23,9 @@ class BaseSerialCollector(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     config = dict(collect_print_freq=100, )
 

@@ -64,10 +64,7 @@ cartpole_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
-    learner=dict(
-        type='base',
-        import_names=['nervex.worker.learner.base_learner']
-    ),
+    learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
     collector=dict(
         type='zergling',
         import_names=['nervex.worker.collector.zergling_collector'],

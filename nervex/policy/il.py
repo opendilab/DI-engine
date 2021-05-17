@@ -32,10 +32,10 @@ class ILPolicy(Policy):
         cuda=True,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=False,
-        multi_gpu=False,
         priority=False,
         model=dict(),
         learn=dict(
+            multi_gpu=False,
             # (int) collect n_episode data, train model n_iteration time
             update_per_collect=20,
             # (int) the number of data for a train iteration

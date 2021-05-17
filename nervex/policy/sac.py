@@ -20,7 +20,6 @@ from .common_utils import default_preprocess_learn
 class SACPolicy(Policy):
     config = dict(
         cuda=True,
-        multi_gpu=False,
         # (str type) policy_type: Determine the version of sac to use.
         # policy_type in ['sac_v1', 'sac_v2']
         # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
@@ -59,6 +58,7 @@ class SACPolicy(Policy):
             value_network=False,
         ),
         learn=dict(
+            multi_gpu=False,
             update_per_collect=1,
             batch_size=256,
 

@@ -10,7 +10,6 @@ cartpole_sqn_config = dict(
     ),
     policy=dict(
         cuda=False,
-        multi_gpu=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -19,6 +18,7 @@ cartpole_sqn_config = dict(
             dueling=True,
         ),
         learn=dict(
+            multi_gpu=False,
             update_per_collect=update_per_collect,
             batch_size=64,
             learning_rate_q=0.001,

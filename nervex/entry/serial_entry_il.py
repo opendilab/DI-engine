@@ -38,14 +38,14 @@ def serial_pipeline_il(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
+    cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
     # Env, Policy
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
-    evaluator_env.seed(seed, dynamic_seed=False)
-    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
+    evaluator_env.seed(cfg.seed, dynamic_seed=False)
+    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
     # Main components

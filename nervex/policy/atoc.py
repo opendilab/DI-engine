@@ -29,8 +29,6 @@ class ATOCPolicy(Policy):
         type='atoc',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -46,6 +44,8 @@ class ATOCPolicy(Policy):
             group_init_freq=5,
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # (int) Collect n_sample data, update model n_iteration time
             update_per_collect=5,
             # (int) The number of data for a train iteration

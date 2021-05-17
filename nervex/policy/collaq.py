@@ -23,13 +23,13 @@ class CollaQPolicy(Policy):
         type='collaq',
         # (bool) Whether to use cuda for network.
         cuda=True,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # (int) Collect n_episode data, update_model n_iteration times
             update_per_collect=20,
             # (int) The number of data for a train iteration
