@@ -200,12 +200,13 @@ class R2D2Policy(Policy):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
+            value_gamma = data.get('value_gamma', None)
             if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep)
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma)
                 loss.append(l)
                 td_error.append(e.abs())
             else:
-                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep)
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma)
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)

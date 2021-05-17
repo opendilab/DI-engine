@@ -135,6 +135,7 @@ class Adder(object):
             data: deque,
             nstep: int,
             cum_reward=False,
+            correct_terminate_gamma=True,
             gamma=0.99,
     ) -> deque:
         """
@@ -157,10 +158,12 @@ class Adder(object):
             if next_obs_flag:
                 data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
             if cum_reward:
-                data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(self._nstep)])
+                data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
                 data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
             data[i]['done'] = data[i + nstep - 1]['done']
+            if correct_terminate_gamma:
+                data[i]['value_gamma'] = gamma ** nstep
         for i in range(max(0, len(data) - nstep), len(data)):
             if next_obs_flag:
                 data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
@@ -172,6 +175,8 @@ class Adder(object):
                      for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
                 )
             data[i]['done'] = data[-1]['done']
+            if correct_terminate_gamma:
+                data[i]['value_gamma'] = gamma ** (len(data) - i - 1)
         return data
 
     def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

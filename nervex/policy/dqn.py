@@ -64,6 +64,8 @@ class DQNPolicy(Policy):
             # ==============================================================
             # (int) Frequence of target network update.
             nstep=1,
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.97,
             # (bool) Whether to use hindsight experience replay
             her=False,
             her_strategy='future',
@@ -96,7 +98,7 @@ class DQNPolicy(Policy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
         self._gamma = self._cfg.learn.discount_factor
-        self._nstep_learn = self._cfg.learn.nstep
+        self._nstep = self._cfg.learn.nstep
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -140,7 +142,8 @@ class DQNPolicy(Policy):
         data_n = q_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
-        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep_learn)
+        value_gamma = data.get('value_gamma')
+        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
 
         # ====================
         # Q-learning update
@@ -181,6 +184,8 @@ class DQNPolicy(Policy):
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
+        self._gamma = self._cfg.collect.discount_factor  # necessary for parallel
+        self._nstep = self._cfg.collect.nstep  # necessary for parallel
         self._her = self._cfg.collect.her
         if self._her:
             her_strategy = self._cfg.collect.her_strategy
@@ -188,7 +193,6 @@ class DQNPolicy(Policy):
             self._adder = Adder(self._cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
         else:
             self._adder = Adder(self._cuda, self._unroll_len)
-        self._collect_nstep = self._cfg.collect.nstep
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -223,7 +227,7 @@ class DQNPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_nstep_return_data(data, self._collect_nstep)
+        data = self._adder.get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         if self._cfg.collect.her:
             data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)

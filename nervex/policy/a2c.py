@@ -85,7 +85,7 @@ class A2CPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._adv_norm = self._cfg.learn.normalize_advantage
-        self._learn_nstep_return = self._cfg.learn.nstep_return
+        self._nstep_return = self._cfg.learn.nstep_return
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -100,9 +100,7 @@ class A2CPolicy(Policy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        data = default_preprocess_learn(
-            data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._learn_nstep_return
-        )
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._nstep_return)
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
@@ -171,8 +169,8 @@ class A2CPolicy(Policy):
         # Algorithm
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
-        self._collect_nstep_return = self._cfg.collect.nstep_return
-        self._collect_nstep = self._cfg.collect.nstep
+        self._nstep_return = self._cfg.collect.nstep_return
+        self._nstep = self._cfg.collect.nstep
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -231,8 +229,8 @@ class A2CPolicy(Policy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
-        if self._collect_nstep_return:
-            data = self._adder.get_nstep_return_data(data, self._collect_nstep)
+        if self._nstep_return:
+            data = self._adder.get_nstep_return_data(data, self._nstep)
         return self._adder.get_train_sample(data)
 
     def _init_eval(self) -> None:
