@@ -22,13 +22,13 @@ class IMPALAPolicy(Policy):
     config = dict(
         type='impala',
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         # here we follow ppo serial pipeline, the original is False
         on_policy=True,
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow ppo serial pipeline
             update_per_collect=4,

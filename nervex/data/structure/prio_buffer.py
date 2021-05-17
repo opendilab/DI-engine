@@ -37,7 +37,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         return cfg
 
     config = dict(
-        buffer_type='priority',
+        type='priority',
         # Max length of the buffer.
         replay_buffer_size=4096,
         # start training data count

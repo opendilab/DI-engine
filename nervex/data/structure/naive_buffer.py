@@ -33,7 +33,7 @@ class NaiveReplayBuffer:
         return cfg
 
     config = dict(
-        buffer_type='naive',
+        type='naive',
         replay_buffer_size=10000,
         deepcopy=False,
     )
