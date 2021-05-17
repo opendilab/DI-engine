@@ -89,9 +89,9 @@ class SoloCommander(BaseCommander):
             collector_cfg.eval_flag = eval_flag
             collector_cfg.policy = copy.deepcopy(self._cfg.policy)
             if eval_flag:
-                collector_cfg.env = self._collector_env_cfg
-            else:
                 collector_cfg.env = self._evaluator_env_cfg
+            else:
+                collector_cfg.env = self._collector_env_cfg
             return {
                 'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
@@ -135,26 +135,28 @@ class SoloCommander(BaseCommander):
                 If True, the pipeline can be finished.
         """
         self._collector_task_space.release_space()
-        if finished_task['eval_flag']:
-            self._evaluator_info.append(finished_task)
-            train_iter = finished_task['train_iter']
-            info = {
-                'train_iter': train_iter,
-                'episode_count': finished_task['real_episode_count'],
-                'step_count': finished_task['step_count'],
-                'avg_step_per_episode': finished_task['avg_time_per_episode'],
-                'avg_time_per_step': finished_task['avg_time_per_step'],
-                'avg_time_per_episode': finished_task['avg_step_per_episode'],
-                'reward_mean': finished_task['reward_mean'],
-                'reward_std': finished_task['reward_std'],
-            }
-            self._logger.info(
-                "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+        evaluator_or_collector = "EVALUATOR" if finished_task['eval_flag'] else "COLLECTOR"
+        self._evaluator_info.append(finished_task)
+        train_iter = finished_task['train_iter']
+        info = {
+            'train_iter': train_iter,
+            'episode_count': finished_task['real_episode_count'],
+            'step_count': finished_task['step_count'],
+            'avg_step_per_episode': finished_task['avg_time_per_episode'],
+            'avg_time_per_step': finished_task['avg_time_per_step'],
+            'avg_time_per_episode': finished_task['avg_step_per_episode'],
+            'reward_mean': finished_task['reward_mean'],
+            'reward_std': finished_task['reward_std'],
+        }
+        self._logger.info(
+            "[{}] Task ends:\n{}".format(evaluator_or_collector.upper(), '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
-            for k, v in info.items():
-                if k in ['train_iter']:
-                    continue
-                self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
+        for k, v in info.items():
+            if k in ['train_iter']:
+                continue
+            self._tb_logger.add_scalar('{}_iter/'.format(evaluator_or_collector) + k, v, train_iter)
+            self._tb_logger.add_scalar('{}_step/'.format(evaluator_or_collector) + k, v, self._total_collector_env_step)
+        if finished_task['eval_flag']:
             eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
@@ -165,7 +167,6 @@ class SoloCommander(BaseCommander):
                 return True
         else:
             self._collect_info.append(finished_task)
-            # TODO collector tb and log
             self._total_collector_env_step += finished_task['step_count']
         return False
 

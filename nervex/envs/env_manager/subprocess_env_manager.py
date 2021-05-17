@@ -342,7 +342,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _reset(self, env_id: int) -> None:
 
-        #@retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
+        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         def reset_fn():
             if self._pipe_parents[env_id].poll():
                 recv_data = self._pipe_parents[env_id].recv()

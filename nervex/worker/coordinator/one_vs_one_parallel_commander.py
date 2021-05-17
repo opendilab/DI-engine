@@ -1,5 +1,5 @@
 import time
-import sys
+import copy
 from typing import Optional, Union
 from collections import defaultdict
 from functools import partial
@@ -19,6 +19,11 @@ class OneVsOneCommander(BaseCommander):
         __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
         notify_fail_collector_task, notify_fail_learner_task, get_learner_info
     """
+    config = dict(
+        collector_task_space=1,
+        learner_task_space=1,
+        eval_interval=60,
+    )
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -28,23 +33,38 @@ class OneVsOneCommander(BaseCommander):
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
+        commander_cfg = self._cfg.policy.other.commander
+        self._commander_cfg = commander_cfg
+        self._collector_env_cfg = copy.deepcopy(self._cfg.env)
+        self._collector_env_cfg.pop('collector_episode_num')
+        self._collector_env_cfg.pop('evaluator_episode_num')
+        self._collector_env_cfg.manager.episode_num = self._cfg.env.collector_episode_num
+        self._evaluator_env_cfg = copy.deepcopy(self._cfg.env)
+        self._evaluator_env_cfg.pop('collector_episode_num')
+        self._evaluator_env_cfg.pop('evaluator_episode_num')
+        self._evaluator_env_cfg.manager.episode_num = self._cfg.env.evaluator_episode_num
+
         self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
         self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
+        self._learner_info = [{'learner_step': 0}]
+        # TODO accumulate collect info
+        self._collect_info = []
+        self._total_collector_env_step = 0
+        self._evaluator_info = []
+        self._current_buffer_id = None
+        self._current_policy_id = []
+        self._last_eval_time = 0
+        # policy_cfg must be deepcopyed
+        policy_cfg = copy.deepcopy(self._cfg.policy)
+        self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
+        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
+        self._eval_times = -1  # todo
+        self._end_flag = False
 
         # League
         self._league = create_league(cfg.league)
         self._active_player = self._league.active_players[0]
         self._current_player_id = None
-
-        self._learner_info = [{'learner_step': 0}]
-        self._evaluator_info = []
-        self._current_buffer_id = None
-        self._current_policy_id = []
-        self._last_eval_time = 0
-        self._policy = create_policy(self._cfg.policy, enable_field=['command']).command_mode
-        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        self._eval_step = -1
-        self._end_flag = False
 
     def get_collector_task(self) -> Optional[dict]:
         r"""
@@ -65,24 +85,27 @@ class OneVsOneCommander(BaseCommander):
             else:
                 eval_flag = False
             collector_cfg = self._cfg.collector_cfg
-            collector_cfg.collect_setting = self._policy.get_setting_collect(self._learner_info[-1])
+            info = self._learner_info[-1]
+            info['env_step'] = self._total_collector_env_step
+            collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             league_job_dict = self._league.get_job_info(self._active_player.player_id, eval_flag)
             self._current_player_id = league_job_dict['player_id']
             collector_cfg.policy_update_path = league_job_dict['checkpoint_path']
             collector_cfg.policy_update_flag = league_job_dict['player_active_flag']
             collector_cfg.eval_flag = eval_flag
             if eval_flag:
-                policy = [self._cfg.policy]
-                collector_cfg.env_kwargs.eval_opponent = league_job_dict['eval_opponent']
+                collector_cfg.policy = copy.deepcopy([self._cfg.policy])
+                collector_cfg.env = self._evaluator_env_cfg
+                collector_cfg.env.eval_opponent = league_job_dict['eval_opponent']
             else:
-                policy = [self._cfg.policy for _ in range(2)]
+                collector_cfg.policy = copy.deepcopy([self._cfg.policy for _ in range(2)])
+                collector_cfg.env = self._collector_env_cfg
             collector_command = {
                 'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
                 'collector_cfg': collector_cfg,
-                'policy': policy,
             }
-            log_str = "EVALUATOR" if eval_flag else "Collector"
+            log_str = "EVALUATOR" if eval_flag else "COLLECTOR"
             self._logger.info(
                 "[{}] Task starts:\n{}".format(
                     log_str, '\n'.join(
@@ -95,7 +118,7 @@ class OneVsOneCommander(BaseCommander):
             )
             return collector_command
         else:
-            # self._logger.info("[{}] Fails to start because of no launch space".format(log_str.upper()))
+            # self._logger.info("[{}] Fails to start because of no launch space".format(log_str))
             return None
 
     def get_learner_task(self) -> Optional[dict]:
@@ -116,7 +139,7 @@ class OneVsOneCommander(BaseCommander):
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
-                'policy': self._cfg.policy,
+                'policy': copy.deepcopy(self._cfg.policy),
                 'league_save_checkpoint_path': self._active_player.checkpoint_path,
             }
             self._logger.info(
@@ -147,17 +170,9 @@ class OneVsOneCommander(BaseCommander):
                 If True, the pipeline can be finished. It is only effective for an evaluator finish task.
         """
         self._collector_task_space.release_space()
-        if not finished_task['eval_flag']:
-            # If collector task ends, league payoff should be updated.
-            payoff_update_dict = {
-                'player_id': self._current_player_id,
-                'result': finished_task['game_result'],
-            }
-            self._league.finish_job(payoff_update_dict)  # issue
-            self._logger.info("[Collector] Task ends")
         if finished_task['eval_flag']:
             # If evaluator task ends, whether to stop training should be judged.
-            self._eval_step += 1
+            self._eval_times += 1
             self._last_eval_time = time.time()
             self._evaluator_info.append(finished_task)
             # Evaluate difficulty increment
@@ -176,7 +191,7 @@ class OneVsOneCommander(BaseCommander):
             difficulty_inc = self._league.update_active_player(player_update_info)
             is_hardest = eval_win and difficulty_inc
             # Print log
-            train_iter = self._eval_step
+            train_iter = finished_task['train_iter']
             info = {
                 'train_iter': train_iter,
                 'episode_count': finished_task['real_episode_count'],
@@ -203,6 +218,18 @@ class OneVsOneCommander(BaseCommander):
                 )
                 self._end_flag = True
                 return True
+        else:
+            self._collect_info.append(finished_task)
+            # TODO(zlx) collector tb and log
+            self._total_collector_env_step += finished_task['step_count']
+            # If collector task ends, league payoff should be updated.
+            payoff_update_dict = {
+                'player_id': self._current_player_id,
+                'result': finished_task['game_result'],
+            }
+            self._league.finish_job(payoff_update_dict)
+            self._logger.info("[Collector] Task ends")
+            return False
         return False
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:

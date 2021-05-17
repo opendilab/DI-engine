@@ -24,13 +24,13 @@ class QMIXPolicy(Policy):
         type='qmix',
         # (bool) Whether to use cuda for network.
         cuda=True,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             update_per_collect=20,
             batch_size=64,
             learning_rate=0.0005,

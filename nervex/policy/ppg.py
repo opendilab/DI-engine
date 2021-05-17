@@ -46,12 +46,12 @@ class PPGPolicy(Policy):
         type='ppg',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
         on_policy=True,
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,

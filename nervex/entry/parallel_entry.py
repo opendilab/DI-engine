@@ -34,7 +34,6 @@ def parallel_pipeline(
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True
-    set_pkg_seed(seed)
     # Parallel job launch.
     if isinstance(input_cfg, str):
         main_cfg, create_cfg, system_cfg = read_config(input_cfg)
@@ -42,15 +41,17 @@ def parallel_pipeline(
         main_cfg, create_cfg, system_cfg = input_cfg
     else:
         raise TypeError("invalid config type: {}".format(input_cfg))
-    config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg)
+    config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg, seed=seed)
+    print(config)
+    set_pkg_seed(config.seed)
     learner_handle = []
     collector_handle = []
     for k, v in config.system.items():
         if 'learner' in k:
-            learner_handle.append(launch_learner(seed, v))
+            learner_handle.append(launch_learner(config.seed, v))
         elif 'collector' in k:
-            collector_handle.append(launch_collector(seed, v))
-    launch_coordinator(seed, config, learner_handle=learner_handle, collector_handle=collector_handle)
+            collector_handle.append(launch_collector(config.seed, v))
+    launch_coordinator(config.seed, config, learner_handle=learner_handle, collector_handle=collector_handle)
 
 
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).

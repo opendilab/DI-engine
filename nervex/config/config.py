@@ -165,6 +165,7 @@ def compile_config(
         collector=BaseSerialCollector,
         evaluator=BaseSerialEvaluator,
         buffer=BufferManager,
+        seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
         save_cfg: bool = False,
@@ -196,6 +197,7 @@ def compile_config(
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
+    cfg.seed = seed
     # check important key in config
     assert all([k in cfg.env for k in ['n_episode', 'stop_value']]), cfg.env
     if save_cfg:
@@ -207,6 +209,7 @@ def compile_config_parallel(
         cfg: EasyDict,
         create_cfg: EasyDict,
         system_cfg: EasyDict,
+        seed: int = 0,
         save_cfg: bool = True,
         save_path: str = 'total_config.py'
 ) -> EasyDict:
@@ -238,6 +241,7 @@ def compile_config_parallel(
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
     cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    cfg.seed = seed
 
     cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)
     if save_cfg:
