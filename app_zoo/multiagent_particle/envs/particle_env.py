@@ -207,10 +207,8 @@ class CooperativeNavigation(BaseEnv):
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
-            [
-                obs[:, 0:4],
-                np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]
-            ], 1
+            [obs[:, 0:4],
+             np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]], 1
         )
         ret['action_mask'] = np.ones((self._n_agent, self.action_dim))
         return ret

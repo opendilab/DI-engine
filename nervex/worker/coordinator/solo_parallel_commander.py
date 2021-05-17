@@ -149,8 +149,10 @@ class SoloCommander(BaseCommander):
             'reward_std': finished_task['reward_std'],
         }
         self._logger.info(
-            "[{}] Task ends:\n{}".format(evaluator_or_collector.upper(), '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            "[{}] Task ends:\n{}".format(
+                evaluator_or_collector.upper(), '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])
             )
+        )
         for k, v in info.items():
             if k in ['train_iter']:
                 continue

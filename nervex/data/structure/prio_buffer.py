@@ -65,7 +65,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             # Tick time expiration. Used for log data smoothing.
             tick_expire=10,
             print_freq=dict(
-                in_out_count=5,  # seconds  todo
+                in_out_count=60,  # seconds
                 sampled_attr=100,  # times
             ),
         ),
@@ -168,7 +168,9 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._in_count = 0
         self._out_count = 0
         self._remove_count = 0
-        self._count_print_thread = threading.Thread(target=self._count_print_periodically, args=(), name='print_in_out_count')
+        self._count_print_thread = threading.Thread(
+            target=self._count_print_periodically, args=(), name='print_in_out_count'
+        )
         self._count_print_thread.daemon = True
         self._count_print_thread.start()
 
@@ -615,7 +617,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 self._count_print_times += 1
             else:
                 time.sleep(self._count_print_per_seconds * 0.2)
-    
+
     @property
     def beta(self) -> float:
         return self._beta

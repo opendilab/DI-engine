@@ -47,9 +47,7 @@ cartpole_ppo_create_loader = dict_(
         type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
         shared_memory=item('shared_memory') | raw(True) >> is_type(bool),
     ),
-    policy=item('policy') >> dict_(
-        type=item('type') >> is_type(str),
-    ),
+    policy=item('policy') >> dict_(type=item('type') >> is_type(str), ),
 )
 
 if __name__ == "__main__":
