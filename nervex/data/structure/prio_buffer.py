@@ -61,7 +61,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         # Monitor configuration for monitor and logger to use. This part does not affect buffer's function.
         monitor=dict(
             # Logger's save path
-            log_path='./log/buffer/agent_buffer/',
+            log_path='./log/buffer/default_buffer/',
             # Tick time expiration. Used for log data smoothing.
             tick_expire=10,
             print_freq=dict(
@@ -137,16 +137,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._min_tree = MinSegmentTree(capacity)
 
         # Monitor & Logger
-        monitor_cfg = self._cfg.get('monitor', None)
-        if monitor_cfg is None:
-            monitor_cfg = dict(
-                log_path='./log/buffer/agent_buffer/',
-                tick_expire=10,
-                print_freq=dict(
-                    in_out_count=60,  # seconds
-                    sampled_attr=100,  # times
-                ),
-            ),
+        monitor_cfg = self._cfg.monitor
         if tb_logger is not None:
             self._logger, _ = build_logger(monitor_cfg.log_path, self.name + '_buffer', need_tb=False)
             self._tb_logger = tb_logger
@@ -168,6 +159,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._in_count = 0
         self._out_count = 0
         self._remove_count = 0
+        self._end_flag = False
         self._count_print_thread = threading.Thread(
             target=self._count_print_periodically, args=(), name='print_in_out_count'
         )
@@ -406,14 +398,15 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self.clear()
         self._tb_logger.flush()
         self._tb_logger.close()
-        self._count_print_thread.join()
+        self._end_flag = True
 
     def __del__(self) -> None:
         """
         Overview:
             Call ``close`` to delete the object.
         """
-        self.close()
+        if not self._end_flag:
+            self.close()
 
     def _set_weight(self, data: Dict) -> None:
         r"""
@@ -597,7 +590,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             return staleness
 
     def _count_print_periodically(self) -> None:
-        while True:
+        while not self._end_flag:
             time_passed = time.time() - self._start_time
             if time_passed >= self._count_print_per_seconds:  # todo
                 self._logger.info('In the past {:.1f} seconds, buffer statistics is as follows:'.format(time_passed))
@@ -616,7 +609,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 self._start_time = time.time()
                 self._count_print_times += 1
             else:
-                time.sleep(self._count_print_per_seconds * 0.2)
+                time.sleep(min(1, self._count_print_per_seconds * 0.2))
 
     @property
     def beta(self) -> float:

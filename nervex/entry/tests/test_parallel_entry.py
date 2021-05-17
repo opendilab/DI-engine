@@ -5,7 +5,7 @@ from app_zoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import
     system_config
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 @pytest.mark.execution_timeout(120.0, method='thread')
 def test_dqn():
     config = tuple([deepcopy(main_config), deepcopy(create_config), deepcopy(system_config)])
