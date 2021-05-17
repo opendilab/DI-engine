@@ -24,9 +24,9 @@ class BaseEnv(gym.Env):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
