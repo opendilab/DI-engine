@@ -49,7 +49,7 @@ class SoloCommander(BaseCommander):
         self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
         # TODO(nyz) accumulate collect info
-        self._collect_info = []
+        self._collector_info = []
         self._total_collector_env_step = 0
         self._evaluator_info = []
         self._current_buffer_id = None
@@ -136,7 +136,6 @@ class SoloCommander(BaseCommander):
         """
         self._collector_task_space.release_space()
         evaluator_or_collector = "EVALUATOR" if finished_task['eval_flag'] else "COLLECTOR"
-        self._evaluator_info.append(finished_task)
         train_iter = finished_task['train_iter']
         info = {
             'train_iter': train_iter,
@@ -159,6 +158,7 @@ class SoloCommander(BaseCommander):
             self._tb_logger.add_scalar('{}_iter/'.format(evaluator_or_collector) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(evaluator_or_collector) + k, v, self._total_collector_env_step)
         if finished_task['eval_flag']:
+            self._evaluator_info.append(finished_task)
             eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
@@ -168,7 +168,7 @@ class SoloCommander(BaseCommander):
                 self._end_flag = True
                 return True
         else:
-            self._collect_info.append(finished_task)
+            self._collector_info.append(finished_task)
             self._total_collector_env_step += finished_task['step_count']
         return False
 
