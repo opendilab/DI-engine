@@ -40,7 +40,7 @@ cartpole_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=3000,
+                decay=100000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=5000,
