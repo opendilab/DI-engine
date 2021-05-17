@@ -1,7 +1,7 @@
 import time
 import traceback
 import copy
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Optional
 from queue import Queue
 from threading import Thread
 from collections import defaultdict
@@ -44,6 +44,7 @@ class Coordinator(object):
     config = dict(
         collector_task_timeout=30,
         learner_task_timeout=600,
+        operator_server=dict(),
     )
 
     @classmethod

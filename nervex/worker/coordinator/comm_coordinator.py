@@ -5,8 +5,8 @@ import requests
 from typing import Dict, Callable
 from threading import Thread
 
-from nervex.utils import LockContext, LockContextType
-from nervex.interaction.master import Master
+from nervex.utils import LockContext, LockContextType, get_operator_server_kwargs
+from nervex.interaction import Master, OperatorServer
 from nervex.interaction.master.task import TaskStatus
 from .resource_manager import NaiveResourceManager
 
@@ -31,60 +31,125 @@ class CommCoordinator(object):
         self._cfg = cfg
         self._callback_fn = callback_fn
         self._logger = logger
+        self._max_retry_second = 120
+        self._end_flag = True
+
         self._connection_collector = {}
         self._connection_learner = {}
+        self._connection_lock = LockContext(LockContextType.THREAD_LOCK)
         self._resource_manager = NaiveResourceManager()
-        self._end_flag = True
-        self._remain_lock = LockContext(LockContextType.THREAD_LOCK)
+
+        self._remain_task_lock = LockContext(LockContextType.THREAD_LOCK)
         self._remain_collector_task = set()
         self._remain_learner_task = set()
+
+        if self._cfg.operator_server:
+            server_kwargs = get_operator_server_kwargs(self._cfg.operator_server)
+            self._operator_server = OperatorServer()
+        else:
+            self._operator_server = None
+
+        # for update resource
+        self._resource_lock = LockContext(LockContextType.THREAD_LOCK)
+
+        # failed connection
+        self._failed_learner_conn = set()
+        self._failed_collector_conn = set()
 
     def start(self) -> None:
         r"""
         Overview:
             start the coordinator interactor and manage resources and connections
         """
-        max_retry_time = 120
-        start_time = time.time()
-        while time.time() - start_time <= max_retry_time:
-            self._end_flag = False
-            self._master = Master(self._cfg.host, self._cfg.port)
-            try:
-                self._master.start()
-                self._master.ping()
-                for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
-                    conn = self._master.new_connection(learner_id, learner_host, learner_port)
-                    conn.connect()
-                    assert conn.is_connected
-                    resource_task = self._get_resource(conn)
-                    if resource_task.status != TaskStatus.COMPLETED:
-                        self._logger.error("can't acquire resource for learner({})".format(learner_id))
-                        continue
-                    else:
-                        self._resource_manager.update('learner', learner_id, resource_task.result)
-                        self._connection_learner[learner_id] = conn
-                for _, (collector_id, collector_host, collector_port) in self._cfg.collector.items():
-                    conn = self._master.new_connection(collector_id, collector_host, collector_port)
-                    conn.connect()
-                    assert conn.is_connected
-                    resource_task = self._get_resource(conn)
-                    if resource_task.status != TaskStatus.COMPLETED:
-                        self._logger.error("can't acquire resource for collector({})".format(collector_id))
-                        continue
-                    else:
-                        self._resource_manager.update('collector', collector_id, resource_task.result)
-                        self._connection_collector[collector_id] = conn
-                break
-            except Exception as e:
-                self.close()
-                self._logger.error(
-                    "connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) + repr(e) +
-                    '\nAuto Retry...'
-                )
-                time.sleep(5)
+        self._end_flag = False
+        self._master = Master(self._cfg.host, self._cfg.port)
+        self._master.start()
+        self._master.ping()
+
+        # new connection from config
+        for _, (learner_id, learner_host, learner_port) in self._cfg.learner.items():
+            self._new_connection_learner(learner_id, learner_host, learner_port)
+        for _, (collector_id, collector_host, collector_port) in self._cfg.collector.items():
+            self._new_connection_collector(collector_id, collector_host, collector_port)
+
+        # create sync learner/collector thread
+        if self._operator_server:
+            self._period_sync_with_server_thread = Thread(
+                target=self._period_sync_with_server, name="period_sync", daemon=True
+            )
+            self._period_sync_with_server_thread.start()
+
         if self._end_flag:
             self._logger.error("connection max retries failed")
             sys.exit(1)
+
+    def _new_connection_collector(self, collector_id: str, collector_host: str, collector_port: int) -> None:
+        start_time = time.time()
+        conn = None
+        while time.time() - start_time <= self._max_retry_second and not self._end_flag:
+            try:
+                if conn is None or not conn.is_connected:
+                    conn = self._master.new_connection(collector_id, collector_host, collector_port)
+                    conn.connect()
+                    assert conn.is_connected
+                resource_task = self._get_resource(conn)
+                if resource_task.status != TaskStatus.COMPLETED:
+                    self._logger.error("can't acquire resource for collector({})".format(collector_id))
+                    continue
+                else:
+                    with self._resource_lock:
+                        self._resource_manager.update('collector', collector_id, resource_task.result)
+                    with self._connection_lock:
+                        self._connection_collector[collector_id] = conn
+                    break
+
+            except Exception as e:
+                self._logger.error(
+                    f"Collector({collector_id}) connection start error:\n" +
+                    ''.join(traceback.format_tb(e.__traceback__)) + repr(e) + '\nAuto Retry...'
+                )
+                time.sleep(2)
+
+        with self._connection_lock:
+            if collector_id in self._connection_collector:
+                self._logger.info(f"Succeed to connect to collector({collector_id})")
+            else:
+                self._logger.info(f"Fail to connect to collector({collector_id})")
+                self._failed_collector_conn.add(collector_id)
+
+    def _new_connection_learner(self, learner_id: str, learner_host: str, learner_port: int) -> None:
+        start_time = time.time()
+        conn = None
+        while time.time() - start_time <= self._max_retry_second and not self._end_flag:
+            try:
+                if conn is None or not conn.is_connected:
+                    conn = self._master.new_connection(learner_id, learner_host, learner_port)
+                    conn.connect()
+                    assert conn.is_connected
+                resource_task = self._get_resource(conn)
+                if resource_task.status != TaskStatus.COMPLETED:
+                    self._logger.error("can't acquire resource for learner({})".format(learner_id))
+                    continue
+                else:
+                    with self._resource_lock:
+                        self._resource_manager.update('learner', learner_id, resource_task.result)
+                    with self._connection_lock:
+                        self._connection_learner[learner_id] = conn
+                    break
+
+            except Exception as e:
+                self._logger.error(
+                    f"learner({learner_id}) connection start error:\n" + ''.join(traceback.format_tb(e.__traceback__)) +
+                    repr(e) + '\nAuto Retry...'
+                )
+                time.sleep(2)
+
+        with self._connection_lock:
+            if learner_id in self._connection_learner:
+                self._logger.info(f"Succeed to connect to learner({learner_id})")
+            else:
+                self._logger.info(f"Fail to connect to learner({learner_id})")
+                self._failed_learner_conn.add(learner_id)
 
     def close(self) -> None:
         r"""
@@ -159,7 +224,7 @@ class CommCoordinator(object):
             return False
         else:
             self._logger.info('collector task({}) is assigned to collector({})'.format(task_id, collector_id))
-            with self._remain_lock:
+            with self._remain_task_lock:
                 self._remain_collector_task.add(task_id)
             collector_task_thread = Thread(
                 target=self._execute_collector_task, args=(collector_task, ), name='coordinator_collector_task'
@@ -219,7 +284,7 @@ class CommCoordinator(object):
                 else:
                     raise e
 
-        with self._remain_lock:
+        with self._remain_task_lock:
             self._remain_collector_task.remove(task_id)
 
     def send_learner_task(self, learner_task: dict) -> bool:
@@ -251,7 +316,7 @@ class CommCoordinator(object):
             return False
         else:
             self._logger.info('learner task({}) is assigned to learner({})'.format(task_id, learner_id))
-            with self._remain_lock:
+            with self._remain_task_lock:
                 self._remain_learner_task.add(task_id)
             learner_task_thread = Thread(
                 target=self._execute_learner_task, args=(learner_task, ), name='coordinator_learner_task'
@@ -328,5 +393,40 @@ class CommCoordinator(object):
                 else:
                     raise e
 
-        with self._remain_lock:
+        with self._remain_task_lock:
             self._remain_learner_task.remove(task_id)
+
+    def _period_sync_with_server(self) -> None:
+        start_time = time.time()
+        while not self._end_flag:
+            # First: send failed list to notify nerveX-server which replicas are failed, then terminate such replicas.
+            # self._logger.info("failed list:", list(self._failed_collector_conn), list(self._failed_learner_conn))
+            if len(self._failed_learner_conn) > 0 or len(self._failed_collector_conn) > 0:
+                success, _, message, _ = self._operator_server.post_replicas_failed(
+                    learners=list(self._failed_learner_conn), collectors=list(self._failed_collector_conn)
+                )
+                if success:
+                    # do not update collector or learner instantly, update at /GET replicas
+                    self._failed_collector_conn.clear()
+                    self._failed_learner_conn.clear()
+                else:
+                    self._logger.error("Failed to send failed list to server, message: {}".format(message))
+
+            # get list from server
+            success, _, message, data = self._operator_server.get_replicas()
+            if success:
+                cur_collectors = data["collectors"]
+                cur_learners = data["learners"]
+                # self._logger.info("current list:", cur_collectors, cur_learners)
+                self._update_connection_collector(cur_collectors)
+                self._update_connection_learner(cur_learners)
+            else:
+                self._logger.error("Failed to sync with server, message: {}".format(message))
+
+            time.sleep(2)
+
+    def _update_connection_collector(self, cur_collectors) -> None:
+        raise NotImplementedError
+
+    def _update_connection_learner(self, cur_learners) -> None:
+        raise NotImplementedError

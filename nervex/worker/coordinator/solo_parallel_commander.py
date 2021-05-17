@@ -89,9 +89,9 @@ class SoloCommander(BaseCommander):
             collector_cfg.eval_flag = eval_flag
             collector_cfg.policy = copy.deepcopy(self._cfg.policy)
             if eval_flag:
-                collector_cfg.env = self._collector_env_cfg
-            else:
                 collector_cfg.env = self._evaluator_env_cfg
+            else:
+                collector_cfg.env = self._collector_env_cfg
             return {
                 'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
