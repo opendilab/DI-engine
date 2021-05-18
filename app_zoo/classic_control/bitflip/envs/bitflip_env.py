@@ -12,11 +12,6 @@ from nervex.utils import ENV_REGISTRY
 @ENV_REGISTRY.register('bitflip')
 class BitFlipEnv(BaseEnv):
 
-    config = dict(
-        n_episode=16,
-        stop_value=0.9,
-    )
-
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._n_bits = cfg.n_bits

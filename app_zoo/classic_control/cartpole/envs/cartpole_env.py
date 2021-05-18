@@ -29,11 +29,6 @@ def disable_gym_view_window():
 @ENV_REGISTRY.register('cartpole')
 class CartPoleEnv(BaseEnv):
 
-    config = dict(
-        n_episode=5,
-        stop_value=195,
-    )
-
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg
         self._init_flag = False

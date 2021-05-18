@@ -158,13 +158,14 @@ def deal_with_multi_buffer(default_config: EasyDict, cfg: EasyDict) -> EasyDict:
 
 def compile_config(
         cfg,
-        env=None,
         env_manager=None,
         policy=None,
         learner=BaseLearner,
         collector=BaseSerialCollector,
         evaluator=BaseSerialEvaluator,
         buffer=BufferManager,
+        env=None,
+        seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
         save_cfg: bool = False,
@@ -178,7 +179,10 @@ def compile_config(
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
             policy = get_policy_cls(create_cfg.policy)
-        env_config = env.default_config()
+        if 'default_config' in dir(env):
+            env_config = env.default_config()
+        else:
+            env_config = EasyDict()  # env does not have default_config
         env_config.update(create_cfg.env)
         env_config.manager = env_manager.default_config()
         env_config.manager.update(create_cfg.env_manager)
@@ -186,7 +190,10 @@ def compile_config(
         policy_config.update(create_cfg.policy)
         policy_config.other.commander = BaseSerialCommander.default_config()
     else:
-        env_config = env.default_config()
+        if 'default_config' in dir(env):
+            env_config = env.default_config()
+        else:
+            env_config = EasyDict()  # env does not have default_config
         env_config.manager = env_manager.default_config()
         policy_config = policy.default_config()
     policy_config.learn.learner = learner.default_config()
@@ -196,8 +203,11 @@ def compile_config(
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
+    cfg.seed = seed
     # check important key in config
-    assert all([k in cfg.env for k in ['n_episode', 'stop_value']]), cfg.env
+    assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
+    cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
+    cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
     if save_cfg:
         save_config(cfg, save_path)
     return cfg
@@ -207,14 +217,18 @@ def compile_config_parallel(
         cfg: EasyDict,
         create_cfg: EasyDict,
         system_cfg: EasyDict,
+        seed: int = 0,
         save_cfg: bool = True,
         save_path: str = 'total_config.py'
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
+    if 'default_config' in dir(env):
+        env_config = env.default_config()
+    else:
+        env_config = EasyDict()  # env does not have default_config
     policy = get_policy_cls(create_cfg.policy)
     env_manager = get_env_manager_cls(create_cfg.env_manager)
-    env_config = env.default_config()
     env_config.manager = env_manager.default_config()
     policy_config = policy.default_config()
     policy_config.other.replay_buffer = BufferManager.default_config()
@@ -238,6 +252,7 @@ def compile_config_parallel(
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
     cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    cfg.seed = seed
 
     cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)
     if save_cfg:

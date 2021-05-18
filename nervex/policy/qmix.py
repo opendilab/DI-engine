@@ -24,13 +24,13 @@ class QMIXPolicy(Policy):
         type='qmix',
         # (bool) Whether to use cuda for network.
         cuda=True,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             update_per_collect=20,
             batch_size=64,
             learning_rate=0.0005,
@@ -104,13 +104,13 @@ class QMIXPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -204,7 +204,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -267,7 +267,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.learn.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()

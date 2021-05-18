@@ -1,10 +1,11 @@
 from easydict import EasyDict
 
-nstep = 3
 cartpole_iqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,
@@ -15,13 +16,13 @@ cartpole_iqn_config = dict(
             action_shape=2,
             hidden_size_list=[128, 128, 64],
         ),
+        discount_factor=0.97,
+        nstep=3,
         learn=dict(
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
             target_update_freq=100,
-            discount_factor=0.97,
-            nstep=nstep,
             iqn=True,
             quantile_thresholds_N=8,
             quantile_thresholds_N_prime=8,
@@ -30,7 +31,6 @@ cartpole_iqn_config = dict(
         collect=dict(
             n_sample=80,
             unroll_len=1,
-            nstep=nstep,
         ),
         other=dict(
             eps=dict(

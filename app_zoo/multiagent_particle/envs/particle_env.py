@@ -145,17 +145,6 @@ CNEnvInfo = namedtuple('CNEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew
 @ENV_REGISTRY.register('cooperative_navigation')
 class CooperativeNavigation(BaseEnv):
 
-    config = dict(
-        n_episode=5,
-        stop_value=0,
-    )
-
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(copy.deepcopy(cls.config))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
-
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = 'simple_spread'
@@ -207,10 +196,8 @@ class CooperativeNavigation(BaseEnv):
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
-            [
-                obs[:, 0:4],
-                np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]
-            ], 1
+            [obs[:, 0:4],
+             np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]], 1
         )
         ret['action_mask'] = np.ones((self._n_agent, self.action_dim))
         return ret

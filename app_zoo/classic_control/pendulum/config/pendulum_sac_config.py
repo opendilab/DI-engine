@@ -7,6 +7,8 @@ pendulum_sac_config = dict(
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
+        n_evaluator_episode=5,
+        stop_value=-250,
     ),
     policy=dict(
         cuda=False,

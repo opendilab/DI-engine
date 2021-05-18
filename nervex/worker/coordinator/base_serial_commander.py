@@ -15,7 +15,9 @@ class BaseSerialCommander(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        return copy.deepcopy(EasyDict(cls.config))
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     config = {}
 

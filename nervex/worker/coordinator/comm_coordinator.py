@@ -239,6 +239,7 @@ class CommCoordinator(object):
         Arguments:
             - collector_task (:obj:`dict`): the collector task to execute
         """
+        close_flag = False
         collector_id = collector_task['collector_id']
         while not self._end_flag:
             try:
@@ -277,6 +278,7 @@ class CommCoordinator(object):
                     resource_task = self._get_resource(self._connection_collector[collector_id])
                     if resource_task.status == TaskStatus.COMPLETED:
                         self._resource_manager.update('collector', collector_id, resource_task.result)
+                    close_flag = True
                     break
             except requests.exceptions.HTTPError as e:
                 if self._end_flag:
@@ -284,6 +286,9 @@ class CommCoordinator(object):
                 else:
                     raise e
 
+        if not close_flag:
+            close_task = self._connection_collector[collector_id].new_task({'name': 'collector_close_task'})
+            close_task.start().join()
         with self._remain_task_lock:
             self._remain_collector_task.remove(task_id)
 
@@ -331,6 +336,7 @@ class CommCoordinator(object):
         Arguments:
             - learner_task (:obj:`dict`): the learner task to execute
         """
+        close_flag = False
         learner_id = learner_task['learner_id']
         while not self._end_flag:
             try:
@@ -382,6 +388,7 @@ class CommCoordinator(object):
                     resource_task = self._get_resource(self._connection_learner[learner_id])
                     if resource_task.status == TaskStatus.COMPLETED:
                         self._resource_manager.update('learner', learner_id, resource_task.result)
+                    close_flag = True
                     break
                 else:
                     # update info
@@ -393,6 +400,9 @@ class CommCoordinator(object):
                 else:
                     raise e
 
+        if not close_flag:
+            close_task = self._connection_learner[learner_id].new_task({'name': 'learner_close_task'})
+            close_task.start().join()
         with self._remain_task_lock:
             self._remain_learner_task.remove(task_id)
 

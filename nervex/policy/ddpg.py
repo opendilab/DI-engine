@@ -27,8 +27,6 @@ class DDPGPolicy(Policy):
         type='ddpg',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -39,6 +37,8 @@ class DDPGPolicy(Policy):
             twin_critic=False,
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -365,11 +365,11 @@ class TD3Policy(DDPGPolicy):
     config = dict(
         type='td3',
         cuda=False,
-        multi_gpu=False,
         on_policy=False,
         priority=False,
         model=dict(twin_critic=True, ),
         learn=dict(
+            multi_gpu=False,
             update_per_collect=2,
             batch_size=128,
             learning_rate_actor=0.001,

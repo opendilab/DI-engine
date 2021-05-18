@@ -32,8 +32,6 @@ class RainbowDQNPolicy(DQNPolicy):
         type='rainbow',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -49,7 +47,13 @@ class RainbowDQNPolicy(DQNPolicy):
             # value distribution. Default to 51.
             n_atom=51,
         ),
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.99,
+        # (int) N-step reward for target q_value estimation
+        nstep=3,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -63,10 +67,6 @@ class RainbowDQNPolicy(DQNPolicy):
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) N-step reward for target q_value estimation
-            nstep=3,
             # (bool) Whether to use iqn for distribution loss
             iqn=False,
             # (bool) Whether ignore done(usually for max step termination env)
@@ -75,14 +75,9 @@ class RainbowDQNPolicy(DQNPolicy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_sample=10,
+            n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (int) Frequence of target network update.
-            nstep=3,
         ),
         eval=dict(),
         # other config
@@ -129,8 +124,8 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         self._priority = self._cfg.priority
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._gamma = self._cfg.learn.discount_factor
-        self._nstep = self._cfg.learn.nstep
+        self._gamma = self._cfg.discount_factor
+        self._nstep = self._cfg.nstep
         self._iqn = self._cfg.learn.iqn
         if self._iqn:
             self._huber_loss_threshold = self._cfg.learn.huber_loss_threshold
@@ -192,12 +187,13 @@ class RainbowDQNPolicy(DQNPolicy):
                 target_q_action = self._learn_model.forward(
                     data['next_obs'], num_quantiles=self._quantile_thresholds_K
                 )['action']
+            value_gamma = data.get('value_gamma', None)
             data = iqn_nstep_td_data(
                 q, target_q, data['action'], target_q_action, data['reward'], data['done'], replay_quantiles,
                 data['weight']
             )
             loss, td_error_per_sample = iqn_nstep_td_error(
-                data, self._gamma, nstep=self._nstep, kappa=self._huber_loss_threshold
+                data, self._gamma, nstep=self._nstep, kappa=self._huber_loss_threshold, value_gamma=value_gamma
             )
         else:
             q_dist = self._learn_model.forward(data['obs'])['distribution']
@@ -205,11 +201,12 @@ class RainbowDQNPolicy(DQNPolicy):
                 target_q_dist = self._target_model.forward(data['next_obs'])['distribution']
                 self._reset_noise(self._learn_model)
                 target_q_action = self._learn_model.forward(data['next_obs'])['action']
+            value_gamma = data.get('value_gamma', None)
             data = dist_nstep_td_data(
                 q_dist, target_q_dist, data['action'], target_q_action, data['reward'], data['done'], data['weight']
             )
             loss, td_error_per_sample = dist_nstep_td_error(
-                data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep
+                data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep, value_gamma=value_gamma
             )
         # ====================
         # Rainbow update
@@ -239,7 +236,8 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._cuda, self._unroll_len)
-        self._collect_nstep = self._cfg.collect.nstep
+        self._nstep = self._cfg.nstep
+        self._gamma = self._cfg.discount_factor
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -279,7 +277,7 @@ class RainbowDQNPolicy(DQNPolicy):
             - samples (:obj:`dict`): The training samples generated
         """
         # adder is defined in _init_collect
-        data = self._adder.get_nstep_return_data(traj, self._collect_nstep)
+        data = self._adder.get_nstep_return_data(traj, self._nstep, gamma=self._gamma)
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -309,8 +307,6 @@ class IQNPolicy(RainbowDQNPolicy):
         type='iqn',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether to use multi gpu
-        multi_gpu=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
@@ -319,7 +315,13 @@ class IQNPolicy(RainbowDQNPolicy):
             # (str) Type of beta function, chosen from ['uniform', 'CPW', 'CVaR','Pow']. Default to 'uniform'.
             beta_function_type='uniform',
         ),
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.99,
+        # (int) N-step reward for target q_value estimation
+        nstep=3,
         learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -333,10 +335,6 @@ class IQNPolicy(RainbowDQNPolicy):
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) N-step reward for target q_value estimation
-            nstep=3,
             # (bool) Whether to use iqn for distribution loss
             iqn=True,
             # (int) Number of quantile thresholds used in quantile regression. Default to 64.
@@ -354,14 +352,9 @@ class IQNPolicy(RainbowDQNPolicy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_sample=10,
+            n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (int) Frequence of target network update.
-            nstep=3,
         ),
         eval=dict(),
         # other config

@@ -95,9 +95,9 @@ class BaseEnvManager(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     config = dict(
         episode_num=float("inf"),
@@ -347,9 +347,6 @@ class BaseEnvManager(object):
 
     def env_info(self) -> namedtuple:
         return self._env_ref.info()
-
-    def env_default_config(self) -> EasyDict:
-        return self._env_ref.default_config()
 
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:

@@ -28,11 +28,11 @@ class SQNPolicy(Policy):
     update_per_collect = 16
     config = dict(
         cuda=False,
-        multi_gpu=False,
         policy_type='sqn',
         on_policy=False,
         priority=False,
         learn=dict(
+            multi_gpu=False,
             update_per_collect=update_per_collect,
             batch_size=64,
             learning_rate_q=0.001,

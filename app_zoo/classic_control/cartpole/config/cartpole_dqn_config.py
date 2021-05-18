@@ -1,11 +1,11 @@
 from easydict import EasyDict
 
-nstep = 1
 cartpole_dqn_config = dict(
-    seed=0,
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,
@@ -15,13 +15,13 @@ cartpole_dqn_config = dict(
             hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
+        nstep=1,
+        discount_factor=0.97,
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            discount_factor=0.97,
-            nstep=nstep,
         ),
-        collect=dict(nstep=nstep, ),
+        collect=dict(),
         eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(
             eps=dict(

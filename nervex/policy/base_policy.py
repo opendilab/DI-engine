@@ -14,9 +14,9 @@ class Policy(ABC):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     learn_function = namedtuple(
         'learn_function', [
@@ -63,7 +63,7 @@ class Policy(ABC):
         self._cfg = cfg
         model = self._create_model(cfg, model)
         self._cuda = cfg.cuda and torch.cuda.is_available()
-        self._multi_gpu = self._cfg.multi_gpu
+        self._multi_gpu = self._cfg.learn.multi_gpu
         self._rank = get_rank() if self._multi_gpu else 0
         if self._multi_gpu:
             self._init_multi_gpu_setting(model)

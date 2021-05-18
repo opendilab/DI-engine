@@ -27,7 +27,7 @@ test_config = dict(
         ),
         eval=dict(),
         other=dict(replay_buffer=dict(
-            buffer_type='naive',
+            type='naive',
             replay_buffer_size=10000,
         ), ),
     ),

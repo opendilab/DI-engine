@@ -1,12 +1,12 @@
 from easydict import EasyDict
 
-nstep = 3
 cartpole_dqn_config = dict(
     env=dict(
         collector_env_num=8,
         collector_episode_num=2,
         evaluator_env_num=5,
         evaluator_episode_num=1,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,
@@ -16,11 +16,11 @@ cartpole_dqn_config = dict(
             hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
+        nstep=3,
+        discount_factor=0.97,
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            discount_factor=0.97,
-            nstep=nstep,
             learner=dict(
                 learner_num=1,
                 send_policy_freq=1,
@@ -28,7 +28,6 @@ cartpole_dqn_config = dict(
         ),
         collect=dict(
             n_sample=16,
-            nstep=nstep,
             collector=dict(
                 collector_num=2,
                 update_policy_second=3,
@@ -64,10 +63,7 @@ cartpole_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
-    learner=dict(
-        type='base',
-        import_names=['nervex.worker.learner.base_learner']
-    ),
+    learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
     collector=dict(
         type='zergling',
         import_names=['nervex.worker.collector.zergling_collector'],

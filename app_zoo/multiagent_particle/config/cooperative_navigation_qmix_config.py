@@ -12,6 +12,8 @@ cooperative_navigation_qmix_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         manager=dict(shared_memory=False, ),
+        n_evaluator_episode=5,
+        stop_value=0,
     ),
     policy=dict(
         cuda=False,
@@ -24,10 +26,10 @@ cooperative_navigation_qmix_config = dict(
             hidden_size_list=[128, 128, 64],
             mixer=True,
         ),
+        agent_num=n_agent,
         learn=dict(
             update_per_collect=100,
             batch_size=32,
-            agent_num=n_agent,
             learning_rate=0.0005,
             target_update_theta=0.001,
             discount_factor=0.99,
@@ -35,11 +37,9 @@ cooperative_navigation_qmix_config = dict(
         collect=dict(
             n_episode=6,
             unroll_len=16,
-            agent_num=n_agent,
             env_num=collector_env_num,
         ),
         eval=dict(
-            agent_num=n_agent,
             env_num=evaluator_env_num,
         ),
         other=dict(eps=dict(

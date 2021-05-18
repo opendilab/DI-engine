@@ -22,9 +22,9 @@ class BaseSerialEvaluator(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     config = dict(
         # Evaluate every "eval_freq" training iterations.
@@ -60,6 +60,8 @@ class BaseSerialEvaluator(object):
         self._max_eval_reward = float("-inf")
         self._end_flag = False
         self._last_eval_iter = 0
+        self._default_n_episode = cfg.n_episode
+        self._stop_value = cfg.stop_value
 
     @property
     def env(self) -> BaseEnvManager:
@@ -71,8 +73,6 @@ class BaseSerialEvaluator(object):
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
-        self._default_n_episode = _env_manager.env_default_config().n_episode
-        self._stop_value = _env_manager.env_default_config().stop_value
 
     @property
     def policy(self) -> namedtuple:

@@ -23,9 +23,9 @@ class BaseSerialCollector(object):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(cls.config)
-        cfg.cfg_type = cls.__name__ + 'Config'
-        return copy.deepcopy(cfg)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     config = dict(collect_print_freq=100, )
 
@@ -77,7 +77,7 @@ class BaseSerialCollector(object):
         self._policy = _policy
         self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
         self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
-        self._unroll_len = _policy.get_attribute('cfg').collect.unroll_len
+        self._unroll_len = _policy.get_attribute('unroll_len')
         assert any(
             [t is None for t in [self._default_n_sample, self._default_n_episode]]
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"

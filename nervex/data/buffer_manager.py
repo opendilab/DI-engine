@@ -79,7 +79,7 @@ class BufferManager(IBuffer):
             self.buffer_name = cfg['buffer_name']
         else:
             self.buffer_name = ['agent']
-            cfg.buffer_type = 'priority'
+            cfg.type = 'priority'
         self.cfg = {}
         for name in self.buffer_name:
             if name in cfg:
@@ -92,7 +92,7 @@ class BufferManager(IBuffer):
         self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
-            buffer_type = buffer_cfg.buffer_type
+            buffer_type = buffer_cfg.type
             if buffer_type == 'priority':
                 buffer_cls = PrioritizedReplayBuffer
             elif buffer_type == 'naive':

@@ -11,7 +11,6 @@ cartpole_ppo_main_loader = dict_(
     policy=item('policy') >> dict_(
         type=item('type') | raw('dqn') >> is_type(str),
         cuda=item('cuda') >> is_type(bool),
-        multi_gpu=item('multi_gpu') | raw(False) >> is_type(bool),
         on_policy=item('on_policy') | raw(False) >> is_type(bool),
         priority=item('priority') | raw(False) >> is_type(bool),
         model=item('model') >> dict_(
@@ -20,6 +19,7 @@ cartpole_ppo_main_loader = dict_(
             embedding_dim=item('embedding_size') >> (is_type(int) | collection(int)),
         ),
         learn=item('learn') >> dict_(
+            multi_gpu=item('multi_gpu') | raw(False) >> is_type(bool),
             update_per_collect=item('update_per_collect') | raw(1) >> is_type(int) & interval(1, 500),
             batch_size=item('batch_size') >> (is_type(int) & interval(1, 128)),
             learning_rate=item('learning_rate') >> interval(0.00001, 0.01),
@@ -47,9 +47,7 @@ cartpole_ppo_create_loader = dict_(
         type=item('type') >> enum('base', 'subprocess', 'async_subprocess'),
         shared_memory=item('shared_memory') | raw(True) >> is_type(bool),
     ),
-    policy=item('policy') >> dict_(
-        type=item('type') >> is_type(str),
-    ),
+    policy=item('policy') >> dict_(type=item('type') >> is_type(str), ),
 )
 
 if __name__ == "__main__":
