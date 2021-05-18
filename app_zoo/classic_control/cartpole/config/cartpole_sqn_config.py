@@ -3,10 +3,10 @@ from easydict import EasyDict
 update_per_collect = 16
 cartpole_sqn_config = dict(
     env=dict(
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
-        env_type='cartpole',
         collector_env_num=8,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,

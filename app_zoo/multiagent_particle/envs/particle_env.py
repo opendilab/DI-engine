@@ -145,17 +145,6 @@ CNEnvInfo = namedtuple('CNEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew
 @ENV_REGISTRY.register('cooperative_navigation')
 class CooperativeNavigation(BaseEnv):
 
-    config = dict(
-        n_episode=5,
-        stop_value=0,
-    )
-
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(copy.deepcopy(cls.config))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
-
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = 'simple_spread'

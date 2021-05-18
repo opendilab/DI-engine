@@ -5,6 +5,8 @@ cartpole_iqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,

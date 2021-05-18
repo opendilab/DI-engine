@@ -7,7 +7,6 @@ num_agents = n_agent
 num_landmarks = n_agent
 cooperative_navigation_vdn_config = dict(
     env=dict(
-        num_agents=num_agents,
         num_landmarks=num_landmarks,
         max_step=100,
         n_agent=n_agent,
@@ -17,6 +16,8 @@ cooperative_navigation_vdn_config = dict(
             type='subprocess',
             shared_memory=False,
         ),
+        n_evaluator_episode=5,
+        stop_value=0,
     ),
     policy=dict(
         cuda=False,

@@ -7,6 +7,7 @@ cartpole_dqn_config = dict(
         collector_episode_num=2,
         evaluator_env_num=5,
         evaluator_episode_num=1,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,

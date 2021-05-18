@@ -20,14 +20,6 @@ class BaseEnv(gym.Env):
     Property: timestep
     """
 
-    config = dict()
-
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(copy.deepcopy(cls.config))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
-
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
         """

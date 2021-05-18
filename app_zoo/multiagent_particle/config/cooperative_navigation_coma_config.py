@@ -11,6 +11,8 @@ cooperative_navigation_coma_config = dict(
         n_agent=n_agent,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
+        n_evaluator_episode=5,
+        stop_value=0,
     ),
     policy=dict(
         cuda=False,

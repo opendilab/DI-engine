@@ -5,6 +5,8 @@ cartpole_dqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,
@@ -21,7 +23,9 @@ cartpole_dqn_config = dict(
             nstep=nstep,
         ),
         collect=dict(nstep=nstep, ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(
+            evaluator=dict(eval_freq=50, )
+        ),
         other=dict(
             eps=dict(
                 type='exp',

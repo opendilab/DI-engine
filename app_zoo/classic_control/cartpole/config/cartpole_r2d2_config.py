@@ -8,6 +8,8 @@ cartpole_r2d2_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
+        n_evaluator_episode=5,
+        stop_value=195,
     ),
     policy=dict(
         cuda=False,
@@ -34,7 +36,9 @@ cartpole_r2d2_config = dict(
             burnin_step=burnin_step,
             nstep=nstep,
         ),
-        eval=dict(env_num=evaluator_env_num, ),
+        eval=dict(
+            env_num=evaluator_env_num,
+        ),
         other=dict(
             eps=dict(
                 type='exp',

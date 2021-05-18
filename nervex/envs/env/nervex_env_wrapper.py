@@ -20,9 +20,6 @@ class NervexEnvWrapper(BaseEnv):
             self._cfg = dict()
         self._env = env
 
-    def default_config(self):
-        return self._cfg
-
     # override
     def reset(self) -> None:
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -95,8 +92,8 @@ class NervexEnvWrapper(BaseEnv):
         return "nerveX Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num')
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
         return [cfg for _ in range(actor_env_num)]

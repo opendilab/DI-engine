@@ -4,7 +4,10 @@ pendulum_td3_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        # (bool) Scale output action into legal range.
         act_scale=True,
+        n_evaluator_episode=5,
+        stop_value=-250,
     ),
     policy=dict(
         cuda=False,
@@ -33,7 +36,9 @@ pendulum_td3_config = dict(
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=100, ), ),
+        eval=dict(
+            evaluator=dict(eval_freq=100, ),
+        ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=20000,
             max_use=16,
