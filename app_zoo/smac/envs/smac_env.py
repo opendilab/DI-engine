@@ -1163,7 +1163,7 @@ class SMACEnv(SC2Env, BaseEnv):
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
                     'global_state': (self.get_state_size(is_opponent), ),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None, None, None
+                }, None,
             ),
             act_space=self.action_helper.info(),
             rew_space=self.reward_helper.info(),

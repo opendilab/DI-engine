@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import torch
 
 from app_zoo.smac.envs import SMACEnv
 
@@ -95,11 +94,11 @@ def main(policy, map_name="3m", two_player=True):
             t = env.step(actions)
             obs, reward, terminated, infos = t.obs, t.reward, t.done, t.info
             assert set(obs.keys()) == set(['agent_state', 'global_state', 'action_mask'])
-            assert isinstance(obs['agent_state'], torch.Tensor)
+            assert isinstance(obs['agent_state'], np.ndarray)
             assert obs['agent_state'].shape == env_info.obs_space.shape['agent_state']  # n_agents, agent_state_dim
-            assert isinstance(obs['global_state'], torch.Tensor)
+            assert isinstance(obs['global_state'], np.ndarray)
             assert obs['global_state'].shape == env_info.obs_space.shape['global_state']  # global_state_dim
-            assert isinstance(reward, torch.Tensor)
+            assert isinstance(reward, np.ndarray)
             assert reward.shape == (1, )
             assert isinstance(terminated, bool)
             episode_reward_me += reward["me"] if two_player else reward
