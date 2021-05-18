@@ -204,6 +204,7 @@ class ZerglingCollector(BaseCollector):
     # override
     def get_finish_info(self) -> dict:
         duration = max(time.time() - self._start_time, 1e-8)
+        episode_result = sum(self._episode_result, [])
         finish_info = {
             'eval_flag': self._eval_flag,
             'env_num': self._env_num,
@@ -219,9 +220,9 @@ class ZerglingCollector(BaseCollector):
             'avg_time_per_train_sample': duration / max(1, self._total_sample),
             'avg_step_per_episode': self._total_step / self._total_episode,
             'avg_sample_per_episode': self._total_sample / self._total_episode,
-            'reward_mean': np.mean(self._episode_result),
-            'reward_std': np.std(self._episode_result),
-            'reward_raw': self._episode_result,
+            'reward_mean': np.mean(episode_result),
+            'reward_std': np.std(episode_result),
+            'reward_raw': episode_result,
             'finish_time': time.time()
         }
         if not self._eval_flag:
@@ -239,6 +240,8 @@ class ZerglingCollector(BaseCollector):
             except Exception as e:
                 self.error('Policy update error: {}'.format(e))
                 time.sleep(1)
+        if policy_update_info is None:
+            return
 
         self._policy_iter = policy_update_info.pop('iter')
         self._policy.load_state_dict(policy_update_info)
