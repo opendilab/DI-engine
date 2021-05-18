@@ -30,6 +30,10 @@ class DQNPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.97,
+        # (int) N-step reward for target q_value estimation
+        nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -46,10 +50,6 @@ class DQNPolicy(Policy):
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.97,
-            # (int) N-step reward for target q_value estimation
-            nstep=1,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
         ),
@@ -62,10 +62,6 @@ class DQNPolicy(Policy):
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
-            # (int) Frequence of target network update.
-            nstep=1,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.97,
             # (bool) Whether to use hindsight experience replay
             her=False,
             her_strategy='future',
@@ -97,8 +93,8 @@ class DQNPolicy(Policy):
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
-        self._gamma = self._cfg.learn.discount_factor
-        self._nstep = self._cfg.learn.nstep
+        self._gamma = self._cfg.discount_factor
+        self._nstep = self._cfg.nstep
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -184,8 +180,8 @@ class DQNPolicy(Policy):
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.collect.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.collect.nstep  # necessary for parallel
+        self._gamma = self._cfg.discount_factor  # necessary for parallel
+        self._nstep = self._cfg.nstep  # necessary for parallel
         self._her = self._cfg.collect.her
         if self._her:
             her_strategy = self._cfg.collect.her_strategy

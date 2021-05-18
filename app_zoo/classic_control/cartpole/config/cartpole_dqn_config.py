@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-nstep = 1
 cartpole_dqn_config = dict(
     env=dict(
         collector_env_num=8,
@@ -16,16 +15,14 @@ cartpole_dqn_config = dict(
             hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
+        nstep=1,
+        discount_factor=0.97,
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            discount_factor=0.97,
-            nstep=nstep,
         ),
-        collect=dict(nstep=nstep, ),
-        eval=dict(
-            evaluator=dict(eval_freq=50, )
-        ),
+        collect=dict(),
+        eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(
             eps=dict(
                 type='exp',

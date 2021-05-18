@@ -12,8 +12,11 @@ monitor_cfg = EasyDict(
     {
         'log_freq': 2000,
         'log_path': './log/buffer/a_buffer/',
-        'natural_expire': 100,
         'tick_expire': 100,
+        'print_freq': {
+            'in_out_count': 60,
+            'sampled_attr': 100,
+        }
     }
 )
 demo_data_path = "test_demo_data.pkl"

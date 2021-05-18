@@ -43,8 +43,6 @@ class A2CPolicy(Policy):
             entropy_weight=0.01,
             # (bool) Whether to normalize advantage. Default to False.
             normalize_advantage=False,
-            # (bool) Whether to use nstep return for value network target
-            nstep_return=False,
             ignore_done=False,
         ),
         collect=dict(
@@ -85,7 +83,6 @@ class A2CPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._adv_norm = self._cfg.learn.normalize_advantage
-        self._nstep_return = self._cfg.learn.nstep_return
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -100,7 +97,7 @@ class A2CPolicy(Policy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._nstep_return)
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()

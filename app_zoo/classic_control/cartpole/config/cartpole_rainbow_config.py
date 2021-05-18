@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-nstep = 3
 cartpole_rainbow_config = dict(
     env=dict(
         collector_env_num=8,
@@ -12,6 +11,8 @@ cartpole_rainbow_config = dict(
         cuda=False,
         on_policy=False,
         priority=True,
+        discount_factor=0.97,
+        nstep=3,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -22,13 +23,10 @@ cartpole_rainbow_config = dict(
             batch_size=64,
             learning_rate=0.001,
             target_update_freq=100,
-            discount_factor=0.97,
-            nstep=nstep,
         ),
         collect=dict(
             n_sample=80,
             unroll_len=1,
-            nstep=nstep,
         ),
         other=dict(
             eps=dict(
