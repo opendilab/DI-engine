@@ -30,6 +30,15 @@ map_param_registry = {
         "unit_type_bits": 2,
         "map_type": "stalkers_and_zealots",
     },
+    "infestor_viper": {
+        "n_agents": 2,
+        "n_enemies": 9,
+        "limit": 150,
+        "a_race": "Z",
+        "b_race": "Z",
+        "unit_type_bits": 2,
+        "map_type": "infestor_viper"
+    },
 }
 
 for name in map_param_registry.keys():

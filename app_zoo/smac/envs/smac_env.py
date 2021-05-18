@@ -31,6 +31,7 @@ OPPONENT_AGENT = "opponent"
 SUPPORT_MAPS = [
     "SMAC_Maps_two_player/3s5z.SC2Map",
     "SMAC_Maps_two_player/3m.SC2Map",
+    "GBU_Maps/infestor_viper.sc2map",
 ]
 
 FORCE_RESTART_INTERVAL = 50000
@@ -280,6 +281,7 @@ class SMACEnv(SC2Env, BaseEnv):
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
             # Avoid hitting the real episode limit of SC2 env
             print("We are full restarting the environment! save_replay_episodes: ", self.save_replay_episodes)
+            self.save_replay(replay_dir='.', prefix=self._map_name)
             self.full_restart()
             old_unit_tags = set()
             self._next_reset_steps += FORCE_RESTART_INTERVAL
@@ -571,7 +573,13 @@ class SMACEnv(SC2Env, BaseEnv):
             return unit.unit_type - self._min_unit_type_opponent
         else:
             if ally:  # use new SC2 unit types
-                type_id = unit.unit_type - self._min_unit_type
+                if self.map_type == "infestor_viper":
+                    if unit.unit_type == 393:
+                        type_id = 0
+                    else:
+                        type_id = 1
+                else:
+                    type_id = unit.unit_type - self._min_unit_type
             else:  # use default SC2 unit types
                 if self.map_type == "stalkers_and_zealots":
                     # id(Stalker) = 74, id(Zealot) = 73
@@ -596,6 +604,11 @@ class SMACEnv(SC2Env, BaseEnv):
                         type_id = 1
                     else:
                         type_id = 2
+                elif self.map_type == "infestor_viper":
+                    if unit.unit_type == 393:
+                        type_id = 0
+                    else:
+                        type_id = 1
                 else:
                     raise ValueError()
             return type_id

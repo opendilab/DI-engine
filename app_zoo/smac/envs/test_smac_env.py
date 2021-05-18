@@ -71,9 +71,16 @@ def fix_policy(env, n_agents, me=0, opponent=0):
     return actions
 
 
-def main(policy, map_name="3m", two_player=True):
-    env = SMACEnv(two_player=two_player, map_name=map_name)
-    n_agents = 8 if map_name == "3s5z" else 3
+def main(policy, map_name="infestor_viper", two_player=True):
+    env = SMACEnv(two_player=two_player, map_name=map_name, save_replay_episodes=1)
+    if map_name == "3s5z":
+        n_agents = 8
+    elif map_name == "3m":
+        n_agents = 3
+    elif map_name == "infestor_viper":
+        n_agents = 2
+    else:
+        raise ValueError(f"invalid type: {map_name}")
     n_episodes = 2
     me_win = 0
     draw = 0
@@ -124,7 +131,7 @@ def main(policy, map_name="3m", two_player=True):
 
 @pytest.mark.env_test
 def test_automation():
-    main(automation, map_name="3s5z", two_player=False)
+    main(automation, map_name="infestor_viper", two_player=False)
 
 
 if __name__ == "__main__":
