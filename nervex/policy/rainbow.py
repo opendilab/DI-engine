@@ -47,6 +47,10 @@ class RainbowDQNPolicy(DQNPolicy):
             # value distribution. Default to 51.
             n_atom=51,
         ),
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.99,
+        # (int) N-step reward for target q_value estimation
+        nstep=3,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -63,10 +67,6 @@ class RainbowDQNPolicy(DQNPolicy):
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) N-step reward for target q_value estimation
-            nstep=3,
             # (bool) Whether to use iqn for distribution loss
             iqn=False,
             # (bool) Whether ignore done(usually for max step termination env)
@@ -78,13 +78,6 @@ class RainbowDQNPolicy(DQNPolicy):
             n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) Frequence of target network update.
-            nstep=3,
         ),
         eval=dict(),
         # other config
@@ -131,8 +124,8 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         self._priority = self._cfg.priority
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._gamma = self._cfg.learn.discount_factor
-        self._nstep = self._cfg.learn.nstep
+        self._gamma = self._cfg.discount_factor
+        self._nstep = self._cfg.nstep
         self._iqn = self._cfg.learn.iqn
         if self._iqn:
             self._huber_loss_threshold = self._cfg.learn.huber_loss_threshold
@@ -243,8 +236,8 @@ class RainbowDQNPolicy(DQNPolicy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._cuda, self._unroll_len)
-        self._nstep = self._cfg.collect.nstep
-        self._gamma = self._cfg.collect.discount_factor
+        self._nstep = self._cfg.nstep
+        self._gamma = self._cfg.discount_factor
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -322,6 +315,10 @@ class IQNPolicy(RainbowDQNPolicy):
             # (str) Type of beta function, chosen from ['uniform', 'CPW', 'CVaR','Pow']. Default to 'uniform'.
             beta_function_type='uniform',
         ),
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.99,
+        # (int) N-step reward for target q_value estimation
+        nstep=3,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -338,10 +335,6 @@ class IQNPolicy(RainbowDQNPolicy):
             # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) N-step reward for target q_value estimation
-            nstep=3,
             # (bool) Whether to use iqn for distribution loss
             iqn=True,
             # (int) Number of quantile thresholds used in quantile regression. Default to 64.
@@ -362,13 +355,6 @@ class IQNPolicy(RainbowDQNPolicy):
             n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) Reward's future discount factor, aka. gamma.
-            discount_factor=0.99,
-            # (int) Frequence of target network update.
-            nstep=3,
         ),
         eval=dict(),
         # other config

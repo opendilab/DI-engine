@@ -126,7 +126,7 @@ def test_sac():
         f.write("9. sac\n")
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     try:

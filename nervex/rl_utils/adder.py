@@ -203,6 +203,8 @@ class Adder(object):
                 template = copy.deepcopy(residual[0])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
+                if 'value_gamma' in template:
+                    template['value_gamma'] = 0.
                 null_data = [self._get_null_transition(template) for _ in range(miss_num)]
                 return null_data
 

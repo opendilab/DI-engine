@@ -108,13 +108,13 @@ class CollaQPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -216,7 +216,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -281,7 +281,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
