@@ -158,13 +158,13 @@ def deal_with_multi_buffer(default_config: EasyDict, cfg: EasyDict) -> EasyDict:
 
 def compile_config(
         cfg,
-        env=None,
         env_manager=None,
         policy=None,
         learner=BaseLearner,
         collector=BaseSerialCollector,
         evaluator=BaseSerialEvaluator,
         buffer=BufferManager,
+        env=None,
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
@@ -179,7 +179,10 @@ def compile_config(
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
             policy = get_policy_cls(create_cfg.policy)
-        env_config = EasyDict()  # env does not have default_config
+        if 'default_config' in dir(env):
+            env_config = env.default_config()
+        else:
+            env_config = EasyDict()  # env does not have default_config
         env_config.update(create_cfg.env)
         env_config.manager = env_manager.default_config()
         env_config.manager.update(create_cfg.env_manager)
@@ -187,7 +190,10 @@ def compile_config(
         policy_config.update(create_cfg.policy)
         policy_config.other.commander = BaseSerialCommander.default_config()
     else:
-        env_config = EasyDict()  # env does not have default_config
+        if 'default_config' in dir(env):
+            env_config = env.default_config()
+        else:
+            env_config = EasyDict()  # env does not have default_config
         env_config.manager = env_manager.default_config()
         policy_config = policy.default_config()
     policy_config.learn.learner = learner.default_config()
@@ -217,9 +223,12 @@ def compile_config_parallel(
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
+    if 'default_config' in dir(env):
+        env_config = env.default_config()
+    else:
+        env_config = EasyDict()  # env does not have default_config
     policy = get_policy_cls(create_cfg.policy)
     env_manager = get_env_manager_cls(create_cfg.env_manager)
-    env_config = EasyDict()  # env does not have default_config
     env_config.manager = env_manager.default_config()
     policy_config = policy.default_config()
     policy_config.other.replay_buffer = BufferManager.default_config()

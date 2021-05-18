@@ -10,7 +10,6 @@ from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import PPOPolicy
 from nervex.model import FCValueAC
 from nervex.utils import set_pkg_seed, deep_merge_dicts
-from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config
 
 
@@ -21,7 +20,6 @@ def wrapped_cartpole_env():
 def main(cfg, seed=0):
     cfg = compile_config(
         cfg,
-        CartPoleEnv,
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
@@ -31,14 +29,8 @@ def main(cfg, seed=0):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    collector_env = BaseEnvManager(
-        env_fn=[lambda: CartPoleEnv({}) for _ in range(collector_env_num)], cfg=cfg.env.manager
-    )
-    evaluator_env = BaseEnvManager(
-        env_fn=[lambda: CartPoleEnv({}) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
-    )
+    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

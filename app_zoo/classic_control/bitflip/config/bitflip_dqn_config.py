@@ -5,7 +5,7 @@ bitflip_dqn_config = dict(
         collector_env_num=1,
         evaluator_env_num=8,
         n_bits=5,
-        evaluator_n_episode=16,
+        n_evaluator_episode=16,
         stop_value=0.9,
     ),
     policy=dict(

@@ -348,9 +348,6 @@ class BaseEnvManager(object):
     def env_info(self) -> namedtuple:
         return self._env_ref.info()
 
-    def env_default_config(self) -> EasyDict:
-        return self._env_ref.default_config()
-
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:
     manager_cfg = copy.deepcopy(manager_cfg)

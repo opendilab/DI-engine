@@ -41,6 +41,7 @@ class FakePolicy(Policy):
 
     def _init_collect(self) -> None:
         self._adder = Adder(self._use_cuda, 1)
+        self._unroll_len = 1
 
     def _init_eval(self) -> None:
         pass

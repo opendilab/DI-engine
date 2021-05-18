@@ -22,7 +22,6 @@ def main(cfg, seed=0):
 
     cfg = compile_config(
         cfg,
-        CooperativeNavigation,
         SyncSubprocessEnvManager,
         QMIXPolicy,
         BaseLearner,

@@ -11,7 +11,6 @@ from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
-from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 
 
@@ -23,7 +22,6 @@ def wrapped_cartpole_env():
 def main(cfg, seed=0):
     cfg = compile_config(
         cfg,
-        CartPoleEnv,
         BaseEnvManager,
         DQNPolicy,
         BaseLearner,
@@ -33,14 +31,8 @@ def main(cfg, seed=0):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    # collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    # evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    collector_env = BaseEnvManager(
-        env_fn=[lambda: CartPoleEnv({}) for _ in range(collector_env_num)], cfg=cfg.env.manager
-    )
-    evaluator_env = BaseEnvManager(
-        env_fn=[lambda: CartPoleEnv({}) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
-    )
+    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
