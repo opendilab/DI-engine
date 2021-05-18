@@ -19,42 +19,42 @@ class DiscreteNet(nn.Module):
 
     def __init__(
             self,
-            obs_dim: Union[int, tuple],
-            action_dim: tuple,
-            hidden_dim_list: list = [128, 128, 64],
+            obs_shape: Union[int, tuple],
+            action_shape: tuple,
+            hidden_size_list: list = [128, 128, 64],
             **kwargs,
     ) -> None:
         r"""
         Overview:
             Init the DiscreteNet according to arguments, including encoder, lstm(if needed) and head.
         Arguments:
-            - obs_dim (:obj:`Union[int, tuple]`): a tuple of observation dim
-            - action_dim (:obj:`int`): the num of action dim, \
+            - obs_shape (:obj:`Union[int, tuple]`): a tuple of observation shape
+            - action_shape (:obj:`int`): the num of action shape, \
                 note that it can be a tuple containing more than one element
-            - hidden_dim_list (:obj:`list`): encoder's hidden layer dimension list
+            - hidden_size_list (:obj:`list`): encoder's hidden layer size list
         """
         super(DiscreteNet, self).__init__()
         # parse arguments
         encoder_kwargs, lstm_kwargs, head_kwargs = get_kwargs(kwargs)
-        embedding_dim = hidden_dim_list[-1]
-        action_dim = squeeze(action_dim)  # if action_dim is '(n,)', transform it in to 'n'.
-        use_multi_discrete = isinstance(action_dim, tuple)
+        embedding_size = hidden_size_list[-1]
+        action_shape = squeeze(action_shape)  # if action_shape is '(n,)', transform it in to 'n'.
+        use_multi_discrete = isinstance(action_shape, tuple)
         head_fn = head_fn_map[head_kwargs.pop('head_type')]
 
         # build encoder: the encoder encodes different formats of observation into 1d vector.
-        self._encoder = Encoder(obs_dim, hidden_dim_list=hidden_dim_list, **encoder_kwargs)
+        self._encoder = Encoder(obs_shape, hidden_size_list=hidden_size_list, **encoder_kwargs)
 
         # build lstm: the lstm encodes the history of the observations.
         if lstm_kwargs['lstm_type'] != 'none':
-            lstm_kwargs['input_size'] = embedding_dim
-            lstm_kwargs['hidden_size'] = embedding_dim
+            lstm_kwargs['input_size'] = embedding_size
+            lstm_kwargs['hidden_size'] = embedding_size
             self._lstm = get_lstm(**lstm_kwargs)
 
         # build head: the head encodes the observations into q-value of actions.
         if use_multi_discrete:
-            self._head = MultiDiscreteHead(embedding_dim, action_dim, head_fn, **head_kwargs)
+            self._head = MultiDiscreteHead(embedding_size, action_shape, head_fn, **head_kwargs)
         else:
-            self._head = head_fn(embedding_dim, action_dim, **head_kwargs)
+            self._head = head_fn(embedding_size, action_shape, **head_kwargs)
 
     def forward(self, inputs: Dict, num_quantiles: int = None) -> Dict:
         r"""
@@ -125,32 +125,32 @@ class Encoder(nn.Module):
 
     def __init__(
             self,
-            obs_dim: Union[int, tuple],
+            obs_shape: Union[int, tuple],
             encoder_type: str,
-            hidden_dim_list: list = [128, 128, 64],
+            hidden_size_list: list = [128, 128, 64],
     ) -> None:
         r"""
         Overview:
             Init the Encoder according to arguments.
         Arguments:
-            - obs_dim (:obj:`Union[int, tuple]`): a tuple of observation dim
+            - obs_shape (:obj:`Union[int, tuple]`): a tuple of observation shape
             - encoder_type (:obj:`str`): type of encoder, now supports ['fc', 'conv2d']
-            - hidden_dim_list (:obj:`list`): encoder's hidden layer dimension list
+            - hidden_size_list (:obj:`list`): encoder's hidden layer size list
         """
         super(Encoder, self).__init__()
         self.act = nn.ReLU()
         assert encoder_type in ['fc', 'conv2d'], encoder_type
-        embedding_dim = hidden_dim_list[-1]
+        embedding_size = hidden_size_list[-1]
         if encoder_type == 'fc':
-            input_dim = squeeze(obs_dim)
+            input_size = squeeze(obs_shape)
             layers = []
-            for dim in hidden_dim_list:
-                layers.append(nn.Linear(input_dim, dim))
+            for size in hidden_size_list:
+                layers.append(nn.Linear(input_size, size))
                 layers.append(self.act)
-                input_dim = dim
+                input_size = size
             self.main = nn.Sequential(*layers)
         elif encoder_type == 'conv2d':
-            self.main = ConvEncoder(obs_dim, embedding_dim)
+            self.main = ConvEncoder(obs_shape, embedding_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
@@ -174,8 +174,8 @@ class MultiDiscreteHead(nn.Module):
 
     def __init__(
             self,
-            input_dim: int,
-            action_dim: tuple,
+            input_size: int,
+            action_shape: tuple,
             head_fn: nn.Module,
             **head_kwargs,
     ) -> None:
@@ -183,16 +183,16 @@ class MultiDiscreteHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - action_dim (:obj:`tuple`): the num of action dim, \
+            - action_shape (:obj:`tuple`): the num of action size, \
                 note that it can be a tuple containing more than one element
-            - input_dim (:obj:`int`): input tensor dim of the head
+            - input_size (:obj:`int`): input tensor size of the head
             - head_fn: class of head, like dueling_head, distribution_head, quatile_head, etc
             - head_kwargs: class-specific arguments
         """
         super(MultiDiscreteHead, self).__init__()
         self.pred = nn.ModuleList()
-        for dim in action_dim:
-            self.pred.append(head_fn(input_dim, dim, **head_kwargs))
+        for size in action_shape:
+            self.pred.append(head_fn(input_size, size, **head_kwargs))
 
     def _collate(self, x: list) -> Dict:
         r"""
@@ -231,7 +231,7 @@ MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
 
 SQNDiscreteNet = partial(
     DiscreteNet,
-    hidden_dim_list=[512, 64],
+    hidden_size_list=[512, 64],
     encoder_kwargs={'encoder_type': 'fc'},
     lstm_kwargs={'lstm_type': 'none'},
     head_kwargs={
@@ -372,7 +372,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
-    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type', 'num_quantiles', 'quantile_embedding_dim']
+    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type', 'num_quantiles', 'quantile_embedding_size']
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
@@ -401,6 +401,6 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
             'n_atom': kwargs.get('n_atom', 51),
             'beta_function_type': kwargs.get('beta_function_type', 'uniform'),
             'num_quantiles': kwargs.get('num_quantiles', 32),
-            'quantile_embedding_dim': kwargs.get('quantile_embedding_dim', 128),
+            'quantile_embedding_size': kwargs.get('quantile_embedding_size', 128),
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs

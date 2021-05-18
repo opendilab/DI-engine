@@ -1,9 +1,11 @@
 import time
 import traceback
+import copy
 from typing import Dict, Callable, List
 from queue import Queue
 from threading import Thread
 from collections import defaultdict
+from easydict import EasyDict
 
 from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
 from nervex.data import BufferManager
@@ -39,6 +41,16 @@ class Coordinator(object):
     Property:
         system_shutdown_flag
     """
+    config = dict(
+        collector_task_timeout=30,
+        learner_task_timeout=600,
+    )
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -48,9 +60,9 @@ class Coordinator(object):
             - cfg (:obj:`dict`): the config file to init the coordinator
         """
         self._coordinator_uid = get_task_uid()
-        self._cfg = cfg
-        self._collector_task_timeout = cfg.collector_task_timeout
-        self._learner_task_timeout = cfg.learner_task_timeout
+        coor_cfg = cfg.system.coordinator
+        self._collector_task_timeout = coor_cfg.collector_task_timeout
+        self._learner_task_timeout = coor_cfg.learner_task_timeout
 
         self._callback = {
             'deal_with_collector_send_data': self.deal_with_collector_send_data,
@@ -62,10 +74,10 @@ class Coordinator(object):
             'deal_with_learner_finish_task': self.deal_with_learner_finish_task,
         }
         self._logger, _ = build_logger(path='./log', name='coordinator', need_tb=False)
-        self._interaction = CommCoordinator(cfg.interaction, self._callback, self._logger)
+        self._interaction = CommCoordinator(coor_cfg, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._collector_task_queue = Queue()
-        self._commander = create_parallel_commander(cfg.commander)
+        self._commander = create_parallel_commander(cfg.main)  # commander can access all the main config
         self._commander_lock = LockContext(LockContextType.THREAD_LOCK)
         # ############## Thread #####################
         # Assign thread todo
@@ -371,7 +383,7 @@ class Coordinator(object):
             return
         self._replay_buffer[buffer_id].update(info['priority_info'])
         with self._commander_lock:
-            self._commander.get_learner_info(task_id, info)
+            self._commander.update_learner_info(task_id, info)
         self.info("learner task({}) send info".format(task_id))
 
     def deal_with_learner_judge_finish(self, task_id: str, info: dict) -> bool:

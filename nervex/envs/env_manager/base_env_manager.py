@@ -2,6 +2,7 @@ from abc import ABC
 from types import MethodType
 from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
 from functools import partial, wraps
+from easydict import EasyDict
 import copy
 from collections import namedtuple
 import numbers
@@ -11,7 +12,7 @@ import time
 import traceback
 import signal
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import ENV_MANAGER_REGISTRY, import_module
+from nervex.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts
 from nervex.envs.env.base_env import BaseEnvTimestep
 from nervex.utils.time_helper import WatchDog
 
@@ -33,6 +34,9 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
 
     if func is None:
         return partial(retry_wrapper, max_retry=max_retry)
+
+    if max_retry == 1:
+        return func
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -63,10 +67,13 @@ def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
     @wraps(func)
     def wrapper(*args, **kwargs):
         watchdog = WatchDog(timeout)
-        watchdog.start()
         try:
-            ret = func(*args, **kwargs)
-            return ret
+            watchdog.start()
+        except ValueError as e:
+            # watchdog invalid case
+            return func(*args, **kwargs)
+        try:
+            return func(*args, **kwargs)
         except BaseException as e:
             raise e
         finally:
@@ -86,27 +93,35 @@ class BaseEnvManager(object):
         env_num, ready_obs, done, method_name_list
     """
 
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = dict(
+        episode_num=float("inf"),
+        max_retry=1,
+        step_timeout=60,
+        auto_reset=True,
+        reset_timeout=60,
+        retry_waiting_time=0.1,
+    )
+
     def __init__(
-        self,
-        env_fn: List[Callable],
-        episode_num: Optional[Union[int, float]] = float('inf'),
-        max_retry: int = 1,
-        step_timeout: int = 60,
-        reset_timeout: int = 60,
-        retry_waiting_time: float = 0.1,
+            self,
+            env_fn: List[Callable],
+            cfg: EasyDict = EasyDict({}),
     ) -> None:
         """
         Overview:
             Initialize the BaseEnvManager.
         Arguments:
             - env_fn (:obj:`List[Callable]`): the function to create environment
-            - episode_num (:obj:`Optional[Union[int, float]]`): maximum episodes to collect in one environment
         """
+        self._cfg = cfg
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
-        if episode_num == "inf":
-            episode_num = float("inf")
-        self._episode_num = episode_num
         self._transform = partial(to_ndarray)
         self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
@@ -115,10 +130,12 @@ class BaseEnvManager(object):
         self._env_ref = self._env_fn[0]()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
 
-        self._max_retry = max_retry
-        self._step_timeout = step_timeout
-        self._reset_timeout = reset_timeout
-        self._retry_waiting_time = retry_waiting_time
+        self._episode_num = self._cfg.episode_num
+        self._max_retry = self._cfg.max_retry
+        self._step_timeout = self._cfg.step_timeout
+        self._auto_reset = self._cfg.auto_reset
+        self._reset_timeout = self._cfg.reset_timeout
+        self._retry_waiting_time = self._cfg.retry_waiting_time
 
     @property
     def env_num(self) -> int:
@@ -172,14 +189,17 @@ class BaseEnvManager(object):
         """
         assert not self._closed, "env manager is closed, please use the alive env manager"
 
-    def launch(self, reset_param: Optional[List[dict]] = None) -> None:
+    def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Set up the environments and hyper-params.
         Arguments:
-            - reset_param (:obj:`Optional[List[dict]]`): List of reset parameters for each environment.
+            - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \
+                value is the cooresponding reset param.
         """
         assert self._closed, "please first close the env manager"
+        if reset_param is not None:
+            assert len(reset_param) == len(self._env_fn)
         self._create_state()
         # set seed
         if hasattr(self, '_env_seed'):
@@ -197,13 +217,14 @@ class BaseEnvManager(object):
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
         assert len(self._envs) == self._env_num
-        self._env_states = {i: EnvState.INIT for i in range(self._env_num)}
+        self._reset_param = {i: {} for i in range(self.env_num)}
+        self._env_states = {i: EnvState.INIT for i in range(self.env_num)}
         if self._env_replay_path is not None:
             for e, s in zip(self._envs, self._env_replay_path):
                 e.enable_save_replay(s)
         self._closed = False
 
-    def reset(self, reset_param: List[dict] = None) -> None:
+    def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
             Reset the environments and hyper-params.
@@ -212,10 +233,14 @@ class BaseEnvManager(object):
         """
         self._check_closed()
         if reset_param is None:
-            reset_param = [{} for _ in range(self.env_num)]
-        self._reset_param = reset_param
-        for i in range(self.env_num):
-            self._reset(i)
+            for env_id in range(self.env_num):
+                self._env_states[env_id] = EnvState.RESET
+                self._reset(env_id)
+        else:
+            for env_id in reset_param:
+                self._reset_param[env_id] = reset_param[env_id]
+                self._env_states[env_id] = EnvState.RESET
+                self._reset(env_id)
 
     def _reset(self, env_id: int) -> None:
 
@@ -257,11 +282,12 @@ class BaseEnvManager(object):
             act = self._transform(act)
             timesteps[env_id] = self._step(env_id, act)
             if timesteps[env_id].info.get('abnormal', False):
-                self._env_states[env_id] = EnvState.RESET
-                self._reset(env_id)
+                if self._auto_reset:
+                    self._env_states[env_id] = EnvState.RESET
+                    self._reset(env_id)
             elif timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._episode_num:
+                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
                     self._env_states[env_id] = EnvState.RESET
                     self._reset(env_id)
                 else:
@@ -328,4 +354,9 @@ def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvMana
     if 'import_names' in manager_cfg:
         import_module(manager_cfg.pop('import_names'))
     manager_type = manager_cfg.pop('type')
-    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, **manager_cfg)
+    return ENV_MANAGER_REGISTRY.build(manager_type, env_fn=env_fn, cfg=manager_cfg)
+
+
+def get_env_manager_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return ENV_MANAGER_REGISTRY.get(cfg.type)

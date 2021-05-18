@@ -58,7 +58,7 @@ class NaiveCollector(Slave):
             {
                 'obs': torch.rand(4),
                 'next_obs': torch.randn(4),
-                'reward': torch.randint(0, 2, size=(1, )).float(),
+                'reward': torch.randint(0, 2, size=(3, )).float(),
                 'action': torch.randint(0, 2, size=(1, )),
                 'done': False,
             }

@@ -3,6 +3,7 @@ import sys
 import copy
 from typing import Optional, Union
 from collections import defaultdict
+from easydict import EasyDict
 
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
@@ -16,8 +17,13 @@ class SoloCommander(BaseCommander):
         Parallel commander for solo games.
     Interface:
         __init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
-        notify_fail_collector_task, notify_fail_learner_task, get_learner_info
+        notify_fail_collector_task, notify_fail_learner_task, update_learner_info
     """
+    config = dict(
+        collector_task_space=1,
+        learner_task_space=1,
+        eval_interval=60,
+    )
 
     def __init__(self, cfg: dict) -> None:
         r"""
@@ -27,9 +33,24 @@ class SoloCommander(BaseCommander):
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
-        self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
-        self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
+        commander_cfg = self._cfg.policy.other.commander
+        self._commander_cfg = commander_cfg
+
+        self._collector_env_cfg = copy.deepcopy(self._cfg.env)
+        self._collector_env_cfg.pop('collector_episode_num')
+        self._collector_env_cfg.pop('evaluator_episode_num')
+        self._collector_env_cfg.manager.episode_num = self._cfg.env.collector_episode_num
+        self._evaluator_env_cfg = copy.deepcopy(self._cfg.env)
+        self._evaluator_env_cfg.pop('collector_episode_num')
+        self._evaluator_env_cfg.pop('evaluator_episode_num')
+        self._evaluator_env_cfg.manager.episode_num = self._cfg.env.evaluator_episode_num
+
+        self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
+        self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
+        # TODO(nyz) accumulate collect info
+        self._collector_info = []
+        self._total_collector_env_step = 0
         self._evaluator_info = []
         self._current_buffer_id = None
         self._current_policy_id = None
@@ -38,7 +59,6 @@ class SoloCommander(BaseCommander):
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        self._eval_step = -1
         self._end_flag = False
 
     def get_collector_task(self) -> Optional[dict]:
@@ -55,19 +75,27 @@ class SoloCommander(BaseCommander):
                 self._collector_task_space.release_space()
                 return None
             cur_time = time.time()
-            if cur_time - self._last_eval_time > self._cfg.eval_interval:
+            if cur_time - self._last_eval_time > self._commander_cfg.eval_interval:
                 eval_flag = True
+                self._last_eval_time = time.time()
             else:
                 eval_flag = False
-            collector_cfg = self._cfg.collector_cfg
-            collector_cfg.collect_setting = self._policy.get_setting_collect(self._learner_info[-1])
+            collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
+            # the newest info
+            info = self._learner_info[-1]
+            info['env_step'] = self._total_collector_env_step
+            collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             collector_cfg.policy_update_path = self._current_policy_id
             collector_cfg.eval_flag = eval_flag
+            collector_cfg.policy = copy.deepcopy(self._cfg.policy)
+            if eval_flag:
+                collector_cfg.env = self._evaluator_env_cfg
+            else:
+                collector_cfg.env = self._collector_env_cfg
             return {
                 'task_id': 'collector_task_{}'.format(get_task_uid()),
                 'buffer_id': self._current_buffer_id,
                 'collector_cfg': collector_cfg,
-                'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
             return None
@@ -82,14 +110,13 @@ class SoloCommander(BaseCommander):
         if self._end_flag:
             return None
         if self._learner_task_space.acquire_space():
-            learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = self._cfg.max_iterations
+            learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
             return {
                 'task_id': 'learner_task_{}'.format(get_task_uid()),
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
+                'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
             }
         else:
@@ -108,30 +135,31 @@ class SoloCommander(BaseCommander):
                 If True, the pipeline can be finished.
         """
         self._collector_task_space.release_space()
-        if finished_task['eval_flag']:
-            self._eval_step += 1
-            self._last_eval_time = time.time()
-            self._evaluator_info.append(finished_task)
-            # TODO real train_iter from evaluator
-            train_iter = self._eval_step
-            info = {
-                'train_iter': train_iter,
-                'episode_count': finished_task['real_episode_count'],
-                'step_count': finished_task['step_count'],
-                'avg_step_per_episode': finished_task['avg_time_per_episode'],
-                'avg_time_per_step': finished_task['avg_time_per_step'],
-                'avg_time_per_episode': finished_task['avg_step_per_episode'],
-                'reward_mean': finished_task['reward_mean'],
-                'reward_std': finished_task['reward_std'],
-            }
-            self._logger.info(
-                "[EVALUATOR]evaluate end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+        evaluator_or_collector = "EVALUATOR" if finished_task['eval_flag'] else "COLLECTOR"
+        train_iter = finished_task['train_iter']
+        info = {
+            'train_iter': train_iter,
+            'episode_count': finished_task['real_episode_count'],
+            'step_count': finished_task['step_count'],
+            'avg_step_per_episode': finished_task['avg_time_per_episode'],
+            'avg_time_per_step': finished_task['avg_time_per_step'],
+            'avg_time_per_episode': finished_task['avg_step_per_episode'],
+            'reward_mean': finished_task['reward_mean'],
+            'reward_std': finished_task['reward_std'],
+        }
+        self._logger.info(
+            "[{}] Task ends:\n{}".format(
+                evaluator_or_collector.upper(), '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])
             )
-            for k, v in info.items():
-                if k in ['train_iter']:
-                    continue
-                self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
-            eval_stop_value = self._cfg.collector_cfg.env_kwargs.eval_stop_value
+        )
+        for k, v in info.items():
+            if k in ['train_iter']:
+                continue
+            self._tb_logger.add_scalar('{}_iter/'.format(evaluator_or_collector) + k, v, train_iter)
+            self._tb_logger.add_scalar('{}_step/'.format(evaluator_or_collector) + k, v, self._total_collector_env_step)
+        if finished_task['eval_flag']:
+            self._evaluator_info.append(finished_task)
+            eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
                     "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_value: {}".
@@ -139,6 +167,9 @@ class SoloCommander(BaseCommander):
                 )
                 self._end_flag = True
                 return True
+        else:
+            self._collector_info.append(finished_task)
+            self._total_collector_env_step += finished_task['step_count']
         return False
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
@@ -174,7 +205,7 @@ class SoloCommander(BaseCommander):
         """
         self._learner_task_space.release_space()
 
-    def get_learner_info(self, task_id: str, info: dict) -> None:
+    def update_learner_info(self, task_id: str, info: dict) -> None:
         r"""
         Overview:
             Append the info to learner_info:

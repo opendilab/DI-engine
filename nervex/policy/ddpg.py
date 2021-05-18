@@ -17,12 +17,65 @@ from .common_utils import default_preprocess_learn
 class DDPGPolicy(Policy):
     r"""
     Overview:
-        Policy class of DDPG and TD3 algorithm. Since DDPG and TD3 share many common things, this Policy supports
-        both algorithms. You can change ``_actor_update_freq``, ``_use_twin_critic`` and noise in model wrapper to
-        switch algorithm.
+        Policy class of DDPG algorithm.
     Property:
         learn_mode, collect_mode, eval_mode
     """
+
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='ddpg',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        model=dict(
+            # Whether to use two critic networks or only one.
+            # Should be False for DDPG, True for TD3.
+            twin_critic=False,
+        ),
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
+            update_per_collect=2,
+            batch_size=128,
+            # Learning rates for actor and critic network can be different.
+            learning_rate_actor=0.001,
+            learning_rate_critic=0.001,
+            # (float) L2 norm weight for network parameters.
+            weight_decay=0.0001,
+            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
+            ignore_done=True,
+            # (int) Frequence of target network update.
+            target_theta=0.005,
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.99,
+            # (int) When critic network updates once, how many times will actor network update.
+            # Should be 1 for DDPG, 2 for TD3.
+            actor_update_freq=1,
+            # (bool) Whether to add noise on target network's action.
+            noise=False,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            n_sample=48,
+            # (int) Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+            # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
+            noise_sigma=0.1,
+            collector=dict(collect_print_freq=1000, ),
+        ),
+        eval=dict(evaluator=dict(eval_freq=100, ), ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=20000,
+            max_use=16,
+        ), ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -30,6 +83,7 @@ class DDPGPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target models.
         """
+        self._priority = self._cfg.priority
         # actor and critic optimizer
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
@@ -43,12 +97,9 @@ class DDPGPolicy(Policy):
         )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
-        # algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._algo_cfg_learn = algo_cfg
-        self._gamma = algo_cfg.discount_factor
-        self._actor_update_freq = algo_cfg.actor_update_freq
-        self._use_twin_critic = algo_cfg.use_twin_critic  # True for TD3, False for DDPG
+        self._gamma = self._cfg.learn.discount_factor
+        self._actor_update_freq = self._cfg.learn.actor_update_freq
+        self._twin_critic = self._cfg.model.twin_critic  # True for TD3, False for DDPG
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
@@ -56,18 +107,18 @@ class DDPGPolicy(Policy):
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_theta}
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
-        if algo_cfg.use_noise:
+        if self._cfg.learn.noise:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='action_noise',
                 noise_type='gauss',
                 noise_kwargs={
                     'mu': 0.0,
-                    'sigma': algo_cfg.noise_sigma
+                    'sigma': self._cfg.learn.noise_sigma
                 },
-                noise_range=algo_cfg.noise_range
+                noise_range=self._cfg.learn.noise_range
             )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -91,7 +142,7 @@ class DDPGPolicy(Policy):
             ignore_done=self._cfg.learn.get('ignore_done', False),
             use_nstep=False
         )
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         # ====================
         # critic learn forward
@@ -105,7 +156,7 @@ class DDPGPolicy(Policy):
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
         q_value_dict = {}
-        if self._use_twin_critic:
+        if self._twin_critic:
             q_value_dict['q_value'] = q_value[0].mean()
             q_value_dict['q_value_twin'] = q_value[1].mean()
         else:
@@ -115,7 +166,7 @@ class DDPGPolicy(Policy):
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
             next_data = {'obs': next_obs, 'action': next_action}
             target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
-        if self._use_twin_critic:
+        if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
             # network1
@@ -147,7 +198,7 @@ class DDPGPolicy(Policy):
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
             actor_data['obs'] = data['obs']
-            if self._use_twin_critic:
+            if self._twin_critic:
                 actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
             else:
                 actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
@@ -192,16 +243,15 @@ class DDPGPolicy(Policy):
             Init traj and unroll length, adder, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         # collect model
-        algo_cfg = self._cfg.collect.algo
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='action_noise',
             noise_type='gauss',
             noise_kwargs={
                 'mu': 0.0,
-                'sigma': algo_cfg.noise_sigma
+                'sigma': self._cfg.collect.noise_sigma
             },
             noise_range=None
         )
@@ -218,12 +268,12 @@ class DDPGPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -272,12 +322,12 @@ class DDPGPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -296,6 +346,55 @@ class DDPGPolicy(Policy):
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
             'action'
         ]
-        if self._use_twin_critic:
+        if self._twin_critic:
             ret += ['critic_twin_loss']
         return ret
+
+
+@POLICY_REGISTRY.register('td3')
+class TD3Policy(DDPGPolicy):
+    r"""
+    Overview:
+        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3
+        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
+    Property:
+        learn_mode, collect_mode, eval_mode
+    """
+
+    # You can refer to DDPG's default config for more details.
+    config = dict(
+        type='td3',
+        cuda=False,
+        on_policy=False,
+        priority=False,
+        model=dict(twin_critic=True, ),
+        learn=dict(
+            multi_gpu=False,
+            update_per_collect=2,
+            batch_size=128,
+            learning_rate_actor=0.001,
+            learning_rate_critic=0.001,
+            weight_decay=0.0001,
+            ignore_done=True,
+            target_theta=0.005,
+            discount_factor=0.99,
+            actor_update_freq=2,
+            noise=True,
+            noise_sigma=0.2,
+            noise_range=dict(
+                min=-0.5,
+                max=0.5,
+            ),
+        ),
+        collect=dict(
+            n_sample=48,
+            unroll_len=1,
+            noise_sigma=0.1,
+            collector=dict(collect_print_freq=1000, ),
+        ),
+        eval=dict(evaluator=dict(eval_freq=100, ), ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=20000,
+            max_use=16,
+        ), ),
+    )

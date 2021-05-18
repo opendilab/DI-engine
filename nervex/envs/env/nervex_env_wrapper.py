@@ -92,8 +92,8 @@ class NervexEnvWrapper(BaseEnv):
         return "nerveX Env({})".format(self._cfg.env_id)
 
     @staticmethod
-    def create_actor_env_cfg(cfg: dict) -> List[dict]:
-        actor_env_num = cfg.pop('actor_env_num')
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        actor_env_num = cfg.pop('collector_env_num')
         cfg = copy.deepcopy(cfg)
         cfg.is_train = True
         return [cfg for _ in range(actor_env_num)]

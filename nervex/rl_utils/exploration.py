@@ -10,14 +10,15 @@ import torch
 def get_epsilon_greedy_fn(start: float, end: float, decay: int, type_: str = 'exp') -> Callable:
     """
     Overview:
-        Generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon
+        Generate an epsilon_greedy function with decay, which inputs current timestep and outputs current epsilon.
     Arguments:
-        - start (:obj:`float`): epsilon start value, for 'linear' it should be 1.0
-        - end (:obj:`float`): epsilon end value
-        - decay (:obj:`int`): controls the speed that epsilon decreases from ``start`` to ``end``
-        - type (:obj:`str`): how epsilon decays, now supports ['linear', 'exp'(exponential)]
+        - start (:obj:`float`): Epsilon start value. For 'linear', it should be 1.0.
+        - end (:obj:`float`): Epsilon end value.
+        - decay (:obj:`int`): Controls the speed that epsilon decreases from ``start`` to ``end``. \
+            We recommend epsilon decays according to env step rather than iteration.
+        - type (:obj:`str`): How epsilon decays, now supports ['linear', 'exp'(exponential)]
     Returns:
-        - eps_fn (:obj:`function`): the epsilon greedy function with decay
+        - eps_fn (:obj:`function`): The epsilon greedy function with decay
     """
     assert type_ in ['linear', 'exp'], type_
     if type_ == 'exp':

@@ -17,8 +17,6 @@ Buffer Manager Config
                 # Max staleness time duration of one data in the buffer; Data will be removed if
                 # the duration from collecting to training is too long, i.e. The data is too stale.
                 max_staleness=10000,
-                # Min ratio of "data count in buffer" / "sample count". If ratio is less than this, sample will return None.
-                min_sample_ratio=1.5,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -47,7 +45,6 @@ Buffer Manager Config
                 replay_buffer_size=4096,
                 max_use=16,
                 max_staleness=10000,
-                min_sample_ratio=1.5,
                 alpha=0.6,
                 beta=0.4,
                 anneal_step=0,

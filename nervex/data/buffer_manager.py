@@ -4,13 +4,11 @@ import copy
 import os.path as osp
 from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
+from easydict import EasyDict
 import numpy as np
 
-from nervex.data.structure import PrioritizedReplayBuffer, Cache, SumSegmentTree
+from nervex.data.structure import PrioritizedReplayBuffer, NaiveReplayBuffer, Cache, SumSegmentTree
 from nervex.utils import deep_merge_dicts, remove_file
-from nervex.config import buffer_manager_default_config
-
-default_config = buffer_manager_default_config.replay_buffer
 
 
 class IBuffer(ABC):
@@ -52,7 +50,7 @@ class IBuffer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def replay_start_size(self) -> int:
+    def replay_buffer_start_size(self) -> int:
         raise NotImplementedError
 
 
@@ -63,6 +61,11 @@ class BufferManager(IBuffer):
     Interface:
         __init__, push, sample, update, clear, count, start, close, state_dict, load_state_dict
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        # TODO(nyz) buffer type
+        return PrioritizedReplayBuffer.default_config()
 
     def __init__(self, cfg: dict, tb_logger: Optional['SummaryWriter'] = None) -> None:  # noqa
         """
@@ -76,46 +79,36 @@ class BufferManager(IBuffer):
             self.buffer_name = cfg['buffer_name']
         else:
             self.buffer_name = ['agent']
+            cfg.type = 'priority'
         self.cfg = {}
         for name in self.buffer_name:
             if name in cfg:
-                self.cfg[name] = deep_merge_dicts(default_config, cfg.pop(name))
+                self.cfg[name] = cfg.pop(name)
             else:
-                self.cfg[name] = deep_merge_dicts(default_config, cfg)
+                self.cfg[name] = cfg
         # ``self.buffer`` is a dict {buffer_name: prioritized_buffer}, where prioritized_buffer guarantees thread safety
         self.buffer = {}
         self._enable_track_used_data = {}
         self._delete_used_data_thread = {}
         for name in self.buffer_name:
             buffer_cfg = self.cfg[name]
-            buffer_type = buffer_cfg.get('buffer_type', 'priority')
+            buffer_type = buffer_cfg.type
             if buffer_type == 'priority':
-                enable_track_used_data = buffer_cfg.get('enable_track_used_data', False)
-                self.buffer[name] = PrioritizedReplayBuffer(
-                    name=name,
-                    replay_buffer_size=buffer_cfg['replay_buffer_size'],
-                    replay_start_size=buffer_cfg.get('replay_start_size', 0),
-                    max_use=buffer_cfg.get('max_use', float("inf")),
-                    max_staleness=buffer_cfg.get('max_staleness', float("inf")),
-                    min_sample_ratio=buffer_cfg.get('min_sample_ratio', 1.),
-                    alpha=buffer_cfg.get('alpha', 0.6),
-                    beta=buffer_cfg.get('beta', 0.4),
-                    anneal_step=buffer_cfg.get('anneal_step', int(1e5)),
-                    enable_track_used_data=enable_track_used_data,
-                    deepcopy=buffer_cfg.get('deepcopy', False),
-                    monitor_cfg=buffer_cfg.get('monitor', None),
-                    tb_logger=tb_logger,
-                )
-                self._enable_track_used_data[name] = enable_track_used_data
-                if self._enable_track_used_data[name]:
-                    self._delete_used_data_thread[name] = Thread(
-                        target=self._delete_used_data, args=(name, ), name='delete_used_data'
-                    )
+                buffer_cls = PrioritizedReplayBuffer
             elif buffer_type == 'naive':
-                self.buffer[name] = PrioritizedReplayBuffer(
-                    name=name,
-                    replay_buffer_size=buffer_cfg['replay_buffer_size'],
-                    deepcopy=buffer_cfg.get('deepcopy', False),
+                buffer_cls = NaiveReplayBuffer
+            else:
+                raise TypeError("invalid buffer type: {}".format(buffer_type))
+            self.buffer[name] = buffer_cls(
+                name=name,
+                cfg=buffer_cfg,
+                tb_logger=tb_logger,
+            )
+            enable_track_used_data = buffer_cfg.enable_track_used_data
+            self._enable_track_used_data[name] = enable_track_used_data
+            if self._enable_track_used_data[name]:
+                self._delete_used_data_thread[name] = Thread(
+                    target=self._delete_used_data, args=(name, ), name='delete_used_data'
                 )
 
         # Cache mechanism: First push data into cache, then(on some conditions) put forward to meta buffer.
@@ -286,11 +279,11 @@ class BufferManager(IBuffer):
             if n in self.buffer.keys():
                 self.buffer[n].load_state_dict(v)
 
-    def replay_start_size(self, buffer_name: Optional[str] = None) -> int:
+    def replay_buffer_start_size(self, buffer_name: Optional[str] = None) -> int:
         if buffer_name is None:
-            return max([self.buffer[n].replay_start_size for n in self.buffer_name])
+            return max([self.buffer[n].replay_buffer_start_size for n in self.buffer_name])
         else:
-            return self.buffer[buffer_name].replay_start_size
+            return self.buffer[buffer_name].replay_buffer_start_size
 
     def _delete_used_data(self, name: str) -> None:
         while not self._end_flag:

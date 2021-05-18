@@ -18,6 +18,57 @@ class IMPALAPolicy(Policy):
     Overview:
         Policy class of IMPALA algorithm.
     """
+    unroll_len = 32
+    config = dict(
+        type='impala',
+        cuda=False,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        # here we follow ppo serial pipeline, the original is False
+        on_policy=True,
+        priority=False,
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            # (int) collect n_sample data, train model update_per_collect times
+            # here we follow ppo serial pipeline
+            update_per_collect=4,
+            # (int) the number of data for a train iteration
+            batch_size=16,
+            learning_rate=0.0005,
+            weight_decay=0.0001,
+            # (float) loss weight of the value network, the weight of policy network is set to 1
+            value_weight=0.5,
+            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            entropy_weight=0.0001,
+            # (float) discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.9,
+            # (float) additional discounting parameter
+            lambda_=0.95,
+            # (int) the trajectory length to calculate v-trace target
+            unroll_len=unroll_len,
+            # (float) clip ratio of importance weights
+            rho_clip_ratio=1.0,
+            # (float) clip ratio of importance weights
+            c_clip_ratio=1.0,
+            # (float) clip ratio of importance sampling
+            rho_pg_clip_ratio=1.0,
+        ),
+        collect=dict(
+            # (int) collect n_sample data, train model n_iteration times
+            n_sample=16,
+            # (int) the trajectory length to calculate v-trace target
+            unroll_len=unroll_len,
+            # (float) discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.9,
+            gae_lambda=0.95,
+            collector=dict(collect_print_freq=1000, ),
+        ),
+        eval=dict(evaluator=dict(eval_freq=200, ), ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=1000,
+            max_use=16,
+        ), ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -42,18 +93,18 @@ class IMPALAPolicy(Policy):
             raise NotImplementedError
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
-        self._action_dim = self._cfg.model.action_dim
+        self._action_shape = self._cfg.model.action_shape
         self._unroll_len = self._cfg.learn.unroll_len
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._value_weight = algo_cfg.value_weight
-        self._entropy_weight = algo_cfg.entropy_weight
-        self._gamma = algo_cfg.discount_factor
-        self._lambda = algo_cfg.lambda_
-        self._rho_clip_ratio = algo_cfg.rho_clip_ratio
-        self._c_clip_ratio = algo_cfg.c_clip_ratio
-        self._rho_pg_clip_ratio = algo_cfg.rho_pg_clip_ratio
+        self._priority = self._cfg.priority
+        self._value_weight = self._cfg.learn.value_weight
+        self._entropy_weight = self._cfg.learn.entropy_weight
+        self._gamma = self._cfg.learn.discount_factor
+        self._lambda = self._cfg.learn.lambda_
+        self._rho_clip_ratio = self._cfg.learn.rho_clip_ratio
+        self._c_clip_ratio = self._cfg.learn.c_clip_ratio
+        self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
 
         # Main model
         self._learn_model.reset()
@@ -69,7 +120,7 @@ class IMPALAPolicy(Policy):
             - data (:obj:`dict`)
         """
         data = default_collate(data)
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         use_priority = self._cfg.get('use_priority', False)
@@ -78,7 +129,7 @@ class IMPALAPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)
-        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1, self._action_dim)
+        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
         data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
         data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
@@ -127,7 +178,7 @@ class IMPALAPolicy(Policy):
             Obtain weights for loss calculating, where should be 0 for done positions
             Update values and rewards with the weight
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_dim)[:-1]
+        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_shape)[:-1]
         values = output['value'].reshape(self._unroll_len + 1, -1)
         behaviour_logit = data['logit']
         actions = data['action']
@@ -158,7 +209,7 @@ class IMPALAPolicy(Policy):
         self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
-        self._adder = Adder(self._use_cuda, self._collect_unroll_len)
+        self._adder = Adder(self._cuda, self._collect_unroll_len)
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -171,12 +222,12 @@ class IMPALAPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor_critic')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -227,18 +278,18 @@ class IMPALAPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
+        return 'fc_vac', ['nervex.model.vac.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

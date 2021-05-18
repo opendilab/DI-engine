@@ -6,19 +6,24 @@ from multiprocessing import Process
 from nervex.worker import Coordinator, create_comm_learner
 from nervex.worker.collector.comm import NaiveCollector
 from nervex.utils import lists_to_dicts
-from nervex.config import parallel_local_default_config, parallel_transform
+from nervex.config import compile_config_parallel
+from nervex.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
 
 DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_LEARNER_TEST'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    return parallel_transform(parallel_local_default_config)
+    cfg = compile_config_parallel(
+        parallel_test_main_config, create_cfg=parallel_test_create_config, system_cfg=parallel_test_system_config
+    )
+    cfg.main.policy.learn.learner.train_iterations = 100
+    return cfg
 
 
 @pytest.fixture(scope='function')
 def setup_collector(setup_config):
-    cfg = setup_config.coordinator.interaction.collector
+    cfg = setup_config.system.coordinator.collector
     collector = {}
     for _, (name, host, port) in cfg.items():
         collector[name] = NaiveCollector(host, port, prefix=DATA_PREFIX)
@@ -31,7 +36,7 @@ def setup_collector(setup_config):
 @pytest.fixture(scope='function')
 def setup_learner(setup_config):
     learner = {}
-    for k, v in setup_config.items():
+    for k, v in setup_config.system.items():
         if 'learner' in k:
             learner[k] = create_comm_learner(v)
             learner[k].start()
@@ -45,9 +50,9 @@ class TestLearnerWithCoordinator:
 
     def test_naive(self, setup_config, setup_collector, setup_learner):
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
-        assert len(setup_collector) == len(setup_config.coordinator.interaction.collector)
+        assert len(setup_collector) == len(setup_config.system.coordinator.collector)
         try:
-            coordinator = Coordinator(setup_config.coordinator)
+            coordinator = Coordinator(setup_config)
             coordinator.start()
             while True:
                 if coordinator._commander._learner_task_finish_count == 1:
@@ -65,5 +70,7 @@ class TestLearnerWithCoordinator:
         assert len(coordinator._replay_buffer) == 0
         learner_task_ids = [i for i in coordinator._historical_task if 'learner' in i]
         for i in learner_task_ids:
-            assert len(coordinator._commander._learner_info[i]) == setup_config.coordinator.commander.max_iterations
+            assert len(
+                coordinator._commander._learner_info[i]
+            ) == setup_config.main.policy.learn.learner.train_iterations
         os.popen('rm -rf {}*'.format(DATA_PREFIX))

@@ -16,7 +16,6 @@ from copy import deepcopy
 # from pstats import SortKey
 
 from nervex.data import BufferManager
-from nervex.config import buffer_manager_default_config
 
 BATCH_SIZE = 8
 PRODUCER_NUM = 16
@@ -28,14 +27,14 @@ np.random.seed(1)
 
 @pytest.fixture(scope="function")
 def setup_config():
-    cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    cfg = BufferManager.default_config()
     cfg.enable_track_used_data = True
     return cfg
 
 
 @pytest.fixture(scope="function")
 def setup_demo_config():
-    buffer_cfg = deepcopy(buffer_manager_default_config.replay_buffer)
+    buffer_cfg = BufferManager.default_config()
     cfg = {
         'buffer_name': ['agent', 'demo'],
         'agent': buffer_cfg,

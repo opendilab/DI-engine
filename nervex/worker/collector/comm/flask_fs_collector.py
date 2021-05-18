@@ -96,7 +96,7 @@ class FlaskFileSystemCollector(BaseCommCollector):
                 os.mkdir(self._path_data)
             except Exception as e:
                 pass
-        self._metadata_queue = Queue(cfg.queue_maxsize)
+        self._metadata_queue = Queue(8)
         self._collector_close_flag = False
         self._collector = None
 
@@ -159,6 +159,8 @@ class FlaskFileSystemCollector(BaseCommCollector):
         Arguments:
             - path (:obj:`str`): path to policy update information.
         """
+        if self._collector_close_flag:
+            return
         path = os.path.join(self._path_policy, path)
         return read_file(path, use_lock=True)
 
@@ -213,11 +215,9 @@ class FlaskFileSystemCollector(BaseCommCollector):
         """
         if self._end_flag:
             return
-        if self._collector is not None:
-            self._collector.close()
-            self._collector_thread.join()
-            del self._collector_thread
-            self._collector = None
+        while self._collector is not None:
+            self._collector.info("please first close collector")
+            time.sleep(1)
         self._slave.close()
         BaseCommCollector.close(self)
 

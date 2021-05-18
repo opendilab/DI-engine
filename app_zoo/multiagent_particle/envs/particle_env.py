@@ -1,7 +1,9 @@
 from collections import namedtuple
 from typing import Any, Optional
-import torch
+from easydict import EasyDict
+import copy
 import numpy as np
+import torch
 
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
@@ -146,18 +148,18 @@ class CooperativeNavigation(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = 'simple_spread'
-        self.agent_num = cfg.get("num_agents", 3)
+        self._n_agent = cfg.n_agent
         self._num_landmarks = cfg.get("num_landmarks", 3)
-        self._env = make_env(self._env_name, self.agent_num, self._num_landmarks, True)
+        self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
-        self._collide_penalty = cfg.get('collide_penal', self.agent_num)
+        self._collide_penalty = cfg.get('collide_penal', self._n_agent)
         self._agent_obs_only = cfg.get('agent_obs_only', False)
         self._env.force_discrete_action = cfg.get('force_discrete_action', False)
         self.action_dim = 5
         # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
-        self.obs_dim = 2 + 2 + (self.agent_num - 1) * 2 + self._num_landmarks * 2
-        self.global_obs_dim = self.agent_num * 2 + self._num_landmarks * 2 + self.agent_num * 2
+        self.obs_dim = 2 + 2 + (self._n_agent - 1) * 2 + self._num_landmarks * 2
+        self.global_obs_dim = self._n_agent * 2 + self._num_landmarks * 2 + self._n_agent * 2
         self.obs_alone_dim = 2 + 2 + (self._num_landmarks) * 2
 
     def reset(self) -> torch.Tensor:
@@ -194,12 +196,10 @@ class CooperativeNavigation(BaseEnv):
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
-            [
-                obs[:, 0:4],
-                np.zeros((self.agent_num, (self.agent_num - 1) * 2), float), obs[:, -self._num_landmarks * 2:]
-            ], 1
+            [obs[:, 0:4],
+             np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]], 1
         )
-        ret['action_mask'] = np.ones((self.agent_num, self.action_dim))
+        ret['action_mask'] = np.ones((self._n_agent, self.action_dim))
         return ret
 
     # note: the reward is shared between all the agents
@@ -214,13 +214,13 @@ class CooperativeNavigation(BaseEnv):
         info = info_n
 
         collide_sum = 0
-        for i in range(self.agent_num):
+        for i in range(self._n_agent):
             collide_sum += info['n'][i][1]
         rew_n += collide_sum * (1.0 - self._collide_penalty)
-        rew_n = rew_n / (self._max_step * self.agent_num)
+        rew_n = rew_n / (self._max_step * self._n_agent)
         self._sum_reward += rew_n
         occupied_landmarks = info['n'][0][3]
-        if self._step_count >= self._max_step or occupied_landmarks >= self.agent_num or occupied_landmarks >= self._num_landmarks:
+        if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent or occupied_landmarks >= self._num_landmarks:
             done_n = True
         else:
             done_n = False
@@ -232,13 +232,13 @@ class CooperativeNavigation(BaseEnv):
         T = EnvElementInfo
         if self._agent_obs_only:
             return CNEnvInfo(
-                agent_num=self.agent_num,
+                agent_num=self._n_agent,
                 obs_space=T(
-                    (self.agent_num, self.obs_dim),
+                    (self._n_agent, self.obs_dim),
                     None,
                 ),
                 act_space=T(
-                    (self.agent_num, self.action_dim),
+                    (self._n_agent, self.action_dim),
                     None,
                 ),
                 rew_space=T(
@@ -247,19 +247,19 @@ class CooperativeNavigation(BaseEnv):
                 )
             )
         return CNEnvInfo(
-            agent_num=self.agent_num,
+            agent_num=self._n_agent,
             obs_space=T(
                 {
-                    'agent_state': (self.agent_num, self.obs_dim),
-                    'agent_alone_state': (self.agent_num, self.obs_alone_dim),
-                    'agent_alone_padding_state': (self.agent_num, self.obs_dim),
+                    'agent_state': (self._n_agent, self.obs_dim),
+                    'agent_alone_state': (self._n_agent, self.obs_alone_dim),
+                    'agent_alone_padding_state': (self._n_agent, self.obs_dim),
                     'global_state': (self.global_obs_dim, ),
-                    'action_mask': (self.agent_num, self.action_dim)
+                    'action_mask': (self._n_agent, self.action_dim)
                 },
                 None,
             ),
             act_space=T(
-                (self.agent_num, self.action_dim),
+                (self._n_agent, self.action_dim),
                 None,
             ),
             rew_space=T(

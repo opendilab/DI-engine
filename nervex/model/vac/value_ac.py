@@ -13,7 +13,7 @@ class ValueAC(ActorCriticBase):
     Overview:
         Actor-Critic model. Critic part outputs value of current state,
         and that is why it is called "ValueAC", which is in comparison with "QAC".
-        Actor part outputs n-dim probability of selecting corresponding discrete action.
+        Actor part outputs the size of N probability of selecting corresponding discrete action.
         It is the model adopted in A2C.
     Interface:
         __init__, forward, set_seed, compute_action_value, compute_action
@@ -21,10 +21,10 @@ class ValueAC(ActorCriticBase):
 
     def __init__(
             self,
-            obs_dim: tuple,
-            action_dim: Union[int, list],
-            embedding_dim: int,
-            head_hidden_dim: int = 128,
+            obs_shape: tuple,
+            action_shape: Union[int, list],
+            embedding_size: int,
+            head_hidden_size: int = 128,
             continous=False,
             fixed_sigma_value=None,
     ) -> None:
@@ -32,55 +32,55 @@ class ValueAC(ActorCriticBase):
         Overview:
             Init the ValueAC according to arguments.
         Arguments:
-            - obs_dim (:obj:`tuple`): a tuple of observation dim
-            - action_dim (:obj:`Union[int, list]`): the num of actions
-            - embedding_dim (:obj:`int`): encoder's embedding dim (output dim)
-            - head_hidden_dim (:obj:`int`): the hidden dim in actor and critic heads
+            - obs_shape (:obj:`tuple`): a tuple of observation sh
+            - action_shape (:obj:`Union[int, list]`): the num of actions
+            - embedding_size (:obj:`int`): encoder's embedding size (output size)
+            - head_hidden_size (:obj:`int`): the hidden size in actor and critic heads
         """
         super(ValueAC, self).__init__()
         self._act = nn.ReLU()
-        self._obs_dim = squeeze(obs_dim)
-        self._act_dim = squeeze(action_dim)
-        self._embedding_dim = embedding_dim
+        self._obs_shape = squeeze(obs_shape)
+        self._act_shape = squeeze(action_shape)
+        self._embedding_size = embedding_size
         self._encoder = self._setup_encoder()
         self._head_layer_num = 2
-        self._head_hidden_dim = head_hidden_dim
+        self._head_hidden_size = head_hidden_size
         self.continous = continous
         self.fixed_sigma_value = fixed_sigma_value
         # actor head
-        if isinstance(self._act_dim, tuple):
-            self._actor = nn.ModuleList([self._setup_actor(a) for a in self._act_dim])
+        if isinstance(self._act_shape, tuple):
+            self._actor = nn.ModuleList([self._setup_actor(a) for a in self._act_shape])
         else:
-            self._actor = self._setup_actor(self._act_dim)
+            self._actor = self._setup_actor(self._act_shape)
         # sigma head
         if continous and self.fixed_sigma_value is None:
-            input_dim = embedding_dim
+            input_size = embedding_size
             layers = []
             for _ in range(self._head_layer_num):
-                layers.append(nn.Linear(input_dim, head_hidden_dim))
+                layers.append(nn.Linear(input_size, head_hidden_size))
                 layers.append(self._act)
-                input_dim = head_hidden_dim
-            layers.append(nn.Linear(input_dim, self._act_dim))
+                input_size = head_hidden_size
+            layers.append(nn.Linear(input_size, self._act_shape))
             self._log_sigma = nn.Sequential(*layers)
         # critic head
-        input_dim = embedding_dim
+        input_size = embedding_size
         layers = []
         for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, head_hidden_dim))
+            layers.append(nn.Linear(input_size, head_hidden_size))
             layers.append(self._act)
-            input_dim = head_hidden_dim
-        layers.append(nn.Linear(input_dim, 1))
+            input_size = head_hidden_size
+        layers.append(nn.Linear(input_size, 1))
 
         self._critic = nn.Sequential(*layers)
 
-    def _setup_actor(self, act_dim: int) -> torch.nn.Module:
-        input_dim = self._embedding_dim
+    def _setup_actor(self, act_shape: int) -> torch.nn.Module:
+        input_size = self._embedding_size
         layers = []
         for _ in range(self._head_layer_num):
-            layers.append(nn.Linear(input_dim, self._head_hidden_dim))
+            layers.append(nn.Linear(input_size, self._head_hidden_size))
             layers.append(self._act)
-            input_dim = self._head_hidden_dim
-        layers.append(nn.Linear(input_dim, act_dim))
+            input_size = self._head_hidden_size
+        layers.append(nn.Linear(input_size, act_shape))
         return nn.Sequential(*layers)
 
     def _setup_encoder(self) -> torch.nn.Module:
@@ -102,11 +102,11 @@ class ValueAC(ActorCriticBase):
     def _actor_forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            Use actor head to output q-value of n-dim discrete actions.
+            Use actor head to output q-value of the size of N discrete actions.
         Arguments:
             - x (:obj:`torch.Tensor`): embedding tensor after encoder
         """
-        if isinstance(self._act_dim, tuple):
+        if isinstance(self._act_shape, tuple):
             return [m(x) for m in self._actor]
         else:
             return self._actor(x)
@@ -198,7 +198,7 @@ class ConvValueAC(ValueAC):
         Returns:
             - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
         """
-        return ConvEncoder(self._obs_dim, self._embedding_dim)
+        return ConvEncoder(self._obs_shape, self._embedding_size)
 
 
 @MODEL_REGISTRY.register('fc_vac')
@@ -213,8 +213,8 @@ class FCValueAC(ValueAC):
     def _setup_encoder(self) -> torch.nn.Module:
         r"""
         Overview:
-            Setup an ``ConvEncoder`` to encode 2-dim observation
+            Setup an ``FCEncoder`` to encode 1-dim observation
         Returns:
             - encoder (:obj:`torch.nn.Module`): ``ConvEncoder``
         """
-        return FCEncoder(self._obs_dim, self._embedding_dim)
+        return FCEncoder(self._obs_shape, self._embedding_size)

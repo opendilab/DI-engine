@@ -2,7 +2,9 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import torch
+import copy
 import numpy as np
+from easydict import EasyDict
 from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElementInfo
 from nervex.torch_utils import to_tensor, to_ndarray, to_list

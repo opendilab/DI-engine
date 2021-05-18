@@ -18,6 +18,62 @@ class CollaQPolicy(Policy):
     Overview:
         Policy class of CollaQ algorithm. CollaQ is a multi-agent reinforcement learning algorithm
     """
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='collaq',
+        # (bool) Whether to use cuda for network.
+        cuda=True,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            # (int) Collect n_episode data, update_model n_iteration times
+            update_per_collect=20,
+            # (int) The number of data for a train iteration
+            batch_size=32,
+            # (float) Gradient-descent step size
+            learning_rate=0.0005,
+            weight_decay=0.0001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Target network update weight, theta * new_w + (1 - theta) * old_w, defaults in [0, 0.1]
+            target_update_theta=0.001,
+            # (float) Discount factor for future reward, defaults int [0, 1]
+            discount_factor=0.99,
+            # (float) The weight of collaq MARA loss
+            collaq_loss_weight=1.0,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            n_episode=8,
+            # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
+            # in each forward when training. In qmix, it is greater than 1 because there is RNN.
+            unroll_len=20,
+        ),
+        eval=dict(),
+        other=dict(
+            eps=dict(
+                # (str) Type of epsilon decay
+                type='exp',
+                # (float) Start value for epsilon decay, in [0, 1].
+                # 0 means not use epsilon decay.
+                start=1,
+                # (float) Start value for epsilon decay, in [0, 1].
+                end=0.05,
+                # (int) Decay length(env step)
+                decay=20000,
+            ),
+            replay_buffer=dict(
+                # (int) max size of replay buffer
+                replay_buffer_size=5000,
+                max_reuse=10,
+            ),
+        ),
+    )
 
     def _init_learn(self) -> None:
         """
@@ -35,29 +91,30 @@ class CollaQPolicy(Policy):
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
+        self._priority = self._cfg.priority
+        assert not self._priority, "not implemented priority in collaq"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        algo_cfg = self._cfg.learn.algo
-        self._gamma = algo_cfg.discount_factor
-        self._alpha = algo_cfg.get("collaQ_loss_factor", 1.0)
+        self._gamma = self._cfg.learn.discount_factor
+        self._alpha = self._cfg.learn.collaq_loss_weight
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
             update_type='momentum',
-            update_kwargs={'theta': algo_cfg.target_update_theta}
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -76,7 +133,7 @@ class CollaQPolicy(Policy):
         """
         # data preprocess
         data = timestep_collate(data)
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         data['done'] = data['done'].float()
@@ -153,13 +210,13 @@ class CollaQPolicy(Policy):
             Enable the eps_greedy_sample and the hidden_state plugin.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._use_cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -175,13 +232,13 @@ class CollaQPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps, data_id=data_id)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -224,7 +281,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.learn.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -240,13 +297,13 @@ class CollaQPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, data_id=data_id)
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

@@ -1,11 +1,14 @@
 from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import namedtuple, deque
+from easydict import EasyDict
 import copy
 import numpy as np
 import torch
 
 from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
+
+INF = float("inf")
 
 
 class BaseSerialCollector(object):
@@ -17,6 +20,14 @@ class BaseSerialCollector(object):
     Property:
         env, policy
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = dict(collect_print_freq=100, )
 
     def __init__(
             self,
@@ -31,14 +42,6 @@ class BaseSerialCollector(object):
         Arguments:
             - cfg (:obj:`EasyDict`): Config dict
         """
-        self._default_n_episode = cfg.get('n_episode', None)
-        self._default_n_sample = cfg.get('n_sample', None)
-        self._traj_len = cfg.traj_len
-        if self._traj_len != "inf":
-            self._traj_cache_length = self._traj_len
-        else:
-            self._traj_len = float('inf')
-            self._traj_cache_length = None
         self._collect_print_freq = cfg.collect_print_freq
         if env is not None:
             self.env = env
@@ -63,7 +66,6 @@ class BaseSerialCollector(object):
         self._env_manager = _env_manager
         self._env_manager.launch()
         self._env_num = self._env_manager.env_num
-        self.reset()
 
     @property
     def policy(self) -> namedtuple:
@@ -71,13 +73,31 @@ class BaseSerialCollector(object):
 
     @policy.setter
     def policy(self, _policy: namedtuple) -> None:
+        assert hasattr(self, '_env_manager'), "please set env first"
         self._policy = _policy
+        self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
+        self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        self._unroll_len = _policy.get_attribute('unroll_len')
+        assert any(
+            [t is None for t in [self._default_n_sample, self._default_n_episode]]
+        ), "n_episode/n_sample in policy cfg can't be not None at the same time"
+        if self._default_n_episode is not None:
+            self._traj_len = INF
+        elif self._default_n_sample is not None:
+            self._traj_len = max(
+                self._unroll_len,
+                self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
+            )
+        else:
+            self._traj_len = INF
+        self.reset()
 
     def reset(self) -> None:
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
-        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
+        traj_len = self._traj_len if self._traj_len != INF else None
+        self._traj_cache = {env_id: deque(maxlen=traj_len) for env_id in range(self._env_num)}
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
         self._episode_info = []
         self._total_envstep_count = 0

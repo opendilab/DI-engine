@@ -46,7 +46,7 @@ class GailRewardModel(BaseRewardModel):
     def __init__(self, config: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(GailRewardModel, self).__init__()
         self.config = config
-        assert device in ["cpu", "cuda"]
+        assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
         self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
@@ -79,7 +79,7 @@ class GailRewardModel(BaseRewardModel):
         return loss.item()
 
     def train(self) -> None:
-        for _ in range(self.config['train_iterations']):
+        for _ in range(self.config.update_per_collect):
             sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
             sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
             sample_expert_data = torch.stack(sample_expert_data).to(self.device)

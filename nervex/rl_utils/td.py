@@ -30,7 +30,7 @@ def q_1step_td_error(
 nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'done'])
 
 
-def nstep_return(data: namedtuple, gamma: float, nstep: int):
+def nstep_return(data: namedtuple, gamma: float, nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
@@ -38,7 +38,10 @@ def nstep_return(data: namedtuple, gamma: float, nstep: int):
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
-    return_ = reward + (gamma ** nstep) * next_value * (1 - done)
+    if value_gamma is None:
+        return_ = reward + (gamma ** nstep) * next_value * (1 - done)
+    else:
+        return_ = reward + value_gamma * next_value * (1 - done)
     return return_
 
 
@@ -125,6 +128,7 @@ def dist_nstep_td_error(
         v_max: float,
         n_atom: int,
         nstep: int = 1,
+        value_gamma: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -163,7 +167,11 @@ def dist_nstep_td_error(
 
     next_n_dist = next_n_dist[batch_range, next_n_act].detach()
 
-    target_z = reward + (1 - done) * (gamma ** nstep) * support
+    if value_gamma is None:
+        target_z = reward + (1 - done) * (gamma ** nstep) * support
+    else:
+        value_gamma = value_gamma.unsqueeze(-1)
+        target_z = reward + (1 - done) * value_gamma * support
     target_z = target_z.clamp(min=v_min, max=v_max)
     b = (target_z - v_min) / delta_z
     l = b.floor().long()
@@ -236,6 +244,8 @@ def q_nstep_td_error(
         data: namedtuple,
         gamma: float,
         nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
 ) -> torch.Tensor:
     """
@@ -244,6 +254,8 @@ def q_nstep_td_error(
     Arguments:
         - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
         - criterion (:obj:`torch.nn.modules`): loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
@@ -269,7 +281,13 @@ def q_nstep_td_error(
     q_s_a = q[batch_range, action]
     target_q_s_a = next_n_q[batch_range, next_n_action]
 
-    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+        else:
+            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
@@ -297,6 +315,7 @@ def q_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
     nstep: int = 1,
+    value_gamma: Optional[torch.Tensor] = None,
     criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
     trans_fn: Callable = value_transform,
     inv_trans_fn: Callable = value_inv_transform,
@@ -335,7 +354,7 @@ def q_nstep_td_error_with_rescale(
     target_q_s_a = next_n_q[batch_range, next_n_action]
 
     target_q_s_a = inv_trans_fn(target_q_s_a)
-    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep)
+    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
     target_q_s_a = trans_fn(target_q_s_a)
 
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
@@ -352,6 +371,7 @@ def iqn_nstep_td_error(
         gamma: float,
         nstep: int = 1,
         kappa: float = 1.0,
+        value_gamma: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """
     Overview:
@@ -406,7 +426,11 @@ def iqn_nstep_td_error(
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
-    target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
+    if value_gamma is None:
+        target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
+    else:
+        value_gamma = value_gamma.unsqueeze(-1)
+        target_q_s_a = reward.unsqueeze(-1) + value_gamma * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
     target_q_s_a = target_q_s_a.unsqueeze(-1)
 
     # shape: batch_size x tau' x tau x 1.

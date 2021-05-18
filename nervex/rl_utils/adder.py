@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Union
 from collections import deque
 import copy
 import numpy as np
@@ -62,7 +62,7 @@ class Adder(object):
         else:
             return copy.deepcopy(template)
 
-    def get_traj(self, data: deque, traj_len: int, return_num: int = 0) -> List:
+    def get_traj(self, data: deque, traj_len: Union[int, float] = float("inf"), return_num: int = 0) -> List:
         """
         Overview:
             Get part of original deque type ``data`` as traj data for further process and sampling.
@@ -130,7 +130,14 @@ class Adder(object):
             last_value = last_data['value']
         return self.get_gae(data, last_value, gamma, gae_lambda)
 
-    def get_nstep_return_data(self, data: deque, nstep: int) -> deque:
+    def get_nstep_return_data(
+            self,
+            data: deque,
+            nstep: int,
+            cum_reward=False,
+            correct_terminate_gamma=True,
+            gamma=0.99,
+    ) -> deque:
         """
         Overview:
             Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
@@ -150,16 +157,26 @@ class Adder(object):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
             if next_obs_flag:
                 data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
-            data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
+            if cum_reward:
+                data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
+            else:
+                data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
             data[i]['done'] = data[i + nstep - 1]['done']
+            if correct_terminate_gamma:
+                data[i]['value_gamma'] = gamma ** nstep
         for i in range(max(0, len(data) - nstep), len(data)):
             if next_obs_flag:
                 data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
-            data[i]['reward'] = torch.cat(
-                [data[i + j]['reward']
-                 for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
-            )
+            if cum_reward:
+                data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(len(data) - i)])
+            else:
+                data[i]['reward'] = torch.cat(
+                    [data[i + j]['reward']
+                     for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+                )
             data[i]['done'] = data[-1]['done']
+            if correct_terminate_gamma:
+                data[i]['value_gamma'] = gamma ** (len(data) - i - 1)
         return data
 
     def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -186,6 +203,8 @@ class Adder(object):
                 template = copy.deepcopy(residual[0])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
+                if 'value_gamma' in template:
+                    template['value_gamma'] = 0.
                 null_data = [self._get_null_transition(template) for _ in range(miss_num)]
                 return null_data
 
