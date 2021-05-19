@@ -8,7 +8,16 @@ OPPONENT_AGENT = "opponent"
 class SMACReward:
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
-    def __init__(self, n_agents, n_enemies, two_player, reward_type, reward_scale=True, reduce_agent=True, reward_only_positive=True):
+    def __init__(
+        self,
+        n_agents,
+        n_enemies,
+        two_player,
+        reward_type,
+        reward_scale=True,
+        reduce_agent=True,
+        reward_only_positive=True
+    ):
         self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
         self.reward_death_value = 10
@@ -136,7 +145,8 @@ class SMACReward:
                     normed_delta_health = prev_health / (e_unit.health_max + e_unit.shield_max)
                     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
                 else:
-                    normed_delta_health = (prev_health - e_unit.health - e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
+                    normed_delta_health = (prev_health - e_unit.health -
+                                           e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
                     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
 
         if self.reward_type == 'original':
@@ -172,7 +182,10 @@ class SMACReward:
             if self.reduce_agent:
                 value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies * 2}
             else:
-                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents * 2}
+                value = {
+                    'min': 0,
+                    'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents * 2
+                }
         elif self.reward_type == 'new':
             if self.reduce_agent:
                 value = {'min': 0, 'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies}
