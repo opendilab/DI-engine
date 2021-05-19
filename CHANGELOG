@@ -1,3 +1,14 @@
+2021.5.20(v0.2.0b1)
+ - 重构config系统(重大改动)，请参见各个算法单元测试所用config进行适配
+ - 提供在mujoco上训练收敛的SAC算法实现(内部有两个版本，区别在于是否使用额外的value network)
+ - 修复nstep td target value gamma值的误差bug
+ - 提供在collect部分计算nstep reward前向和的接口
+ - 修复并行训练关闭collector时有概率卡住的bug
+ - 优化buffer相关log，改为定时输出，增加更多必要内容
+ - eps-greedy的decay默认改成按照env step计数
+ - 为subprocess env manager添加auto_reset开关
+ - 部分变量命名修改
+
 2021.4.30(v0.2.0b0)
  - IRL PWIL + RED
  - 重构env基类为gym.Env的超集
