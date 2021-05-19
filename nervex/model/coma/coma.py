@@ -14,16 +14,16 @@ class ComaActorNetwork(nn.Module):
 
     def __init__(
         self,
-        obs_dim: int,
-        action_dim: int,
-        hidden_dim_list: list = [128, 128, 64],
+        obs_shape: int,
+        action_shape: int,
+        hidden_size_list: list = [128, 128, 64],
     ):
         super(ComaActorNetwork, self).__init__()
-        self._obs_dim = squeeze(obs_dim)
-        self._act_dim = action_dim
-        self._embedding_dim = hidden_dim_list[-1]
+        self._obs_shape = squeeze(obs_shape)
+        self._act_shape = action_shape
+        self._embedding_size = hidden_size_list[-1]
         # rnn discrete network
-        self._main = FCRDiscreteNet(obs_dim, action_dim, hidden_dim_list)
+        self._main = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
 
     def forward(self, inputs: Dict) -> Dict:
         agent_state = inputs['obs']['agent_state']
@@ -49,18 +49,18 @@ class ComaCriticNetwork(nn.Module):
 
     def __init__(
         self,
-        input_dim: int,
-        action_dim: int,
-        embedding_dim: int = 128,
+        input_size: int,
+        action_shape: int,
+        embedding_size: int = 128,
     ):
         super(ComaCriticNetwork, self).__init__()
-        self._input_dim = squeeze(input_dim)
-        self._act_dim = squeeze(action_dim)
-        self._embedding_dim = embedding_dim
+        self._input_size = squeeze(input_size)
+        self._act_shape = squeeze(action_shape)
+        self._embedding_size = embedding_size
         self._act = nn.ReLU()
         self._mlp = nn.Sequential(
-            MLP(self._input_dim, embedding_dim, embedding_dim, 2, activation=self._act),
-            nn.Linear(embedding_dim, action_dim)
+            MLP(self._input_size, embedding_size, embedding_size, 2, activation=self._act),
+            nn.Linear(embedding_size, action_shape)
         )
 
     def forward(self, data: Dict) -> Dict:
@@ -80,10 +80,10 @@ class ComaCriticNetwork(nn.Module):
     def _preprocess_data(self, data: Dict) -> torch.Tensor:
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
         agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
-        action = one_hot(data['action'], self._act_dim)  # T, B, A，N
-        action = action.reshape(t_size, batch_size, -1, agent_num * self._act_dim).repeat(1, 1, agent_num, 1)
+        action = one_hot(data['action'], self._act_shape)  # T, B, A，N
+        action = action.reshape(t_size, batch_size, -1, agent_num * self._act_shape).repeat(1, 1, agent_num, 1)
         action_mask = (1 - torch.eye(agent_num).to(action.device))
-        action_mask = action_mask.view(-1, 1).repeat(1, self._act_dim).view(agent_num, -1)  # A, A*N
+        action_mask = action_mask.view(-1, 1).repeat(1, self._act_shape).view(agent_num, -1)  # A, A*N
         action = (action_mask.unsqueeze(0).unsqueeze(0)) * action  # T, B, A, A*N
         global_state = global_state.unsqueeze(2).repeat(1, 1, agent_num, 1)
 
@@ -94,14 +94,14 @@ class ComaCriticNetwork(nn.Module):
 @MODEL_REGISTRY.register('coma')
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, hidden_dim_list: list):
+    def __init__(self, agent_num: int, obs_shape: dict, act_shape: Tuple, hidden_size_list: list):
         super(ComaNetwork, self).__init__()
-        act_dim = act_dim[-1]
-        actor_input_dim = obs_dim['agent_state'][-1]
-        critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + agent_num * act_dim
-        embedding_dim = hidden_dim_list[-1]
-        self._actor = ComaActorNetwork(actor_input_dim, act_dim, hidden_dim_list)
-        self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
+        act_shape = act_shape[-1]
+        actor_input_size = obs_shape['agent_state'][-1]
+        critic_input_size = obs_shape['agent_state'][-1] + squeeze(obs_shape['global_state']) + agent_num * act_shape
+        embedding_size = hidden_size_list[-1]
+        self._actor = ComaActorNetwork(actor_input_size, act_shape, hidden_size_list)
+        self._critic = ComaCriticNetwork(critic_input_size, act_shape, embedding_size)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
         assert mode in ['compute_actor', 'compute_critic'], mode

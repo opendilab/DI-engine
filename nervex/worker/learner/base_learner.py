@@ -6,6 +6,7 @@ Main Function:
 """
 import os
 import time
+import copy
 from typing import Any, Union, Callable, List, Dict, Optional
 from functools import partial
 from easydict import EasyDict
@@ -13,7 +14,6 @@ import torch
 from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
-from nervex.config import base_learner_default_config
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
 from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module, LEARNER_REGISTRY, \
     deep_merge_dicts, get_rank
@@ -94,8 +94,30 @@ class BaseLearner(object):
         __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
         learn_info, priority_info, last_iter, name, rank, policy
-        tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
+        tick_time, monitor, log_buffer, logger, tb_logger, checkpoint_manager
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = dict(
+        train_iterations=int(1e9),
+        dataloader=dict(
+            batch_size=2,
+            chunk_size=2,
+            num_workers=0,
+        ),
+        # --- Hooks ---
+        hook=dict(
+            load_ckpt_before_run='',
+            log_show_after_iter=100,
+            save_ckpt_after_iter=10000,
+            save_ckpt_after_run=True,
+        ),
+    )
 
     _name = "BaseLearner"  # override this variable for sub-class learner
 
@@ -120,11 +142,9 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
-        self._cfg = deep_merge_dicts(base_learner_default_config, cfg)
+        self._cfg = cfg
         self._learner_uid = get_task_uid()
-        self._load_path = self._cfg.load_path
-        self._use_distributed = self._cfg.use_distributed
-        self._use_cuda = False
+        self._cuda = False
         self._device = 'cpu'
 
         # Learner rank. Used to discriminate which GPU it uses.
@@ -226,7 +246,7 @@ class BaseLearner(object):
 
         .. note::
             ``_policy`` must be set before calling this method.
-            ``_policy.forward`` method contains: forward, backward, grad sync(if in distributed mode) and
+            ``_policy.forward`` method contains: forward, backward, grad sync(if in multi-gpu mode) and
             parameter update.
         """
         assert hasattr(self, '_policy'), "please set learner policy"
@@ -277,8 +297,8 @@ class BaseLearner(object):
         # before run hook
         self.call_hook('before_run')
 
-        max_iterations = self._cfg.get('max_iterations', int(1e10))
-        for i in range(max_iterations):
+        train_iterations = self._cfg.train_iterations
+        for i in range(train_iterations):
             data = self._next_data()
             if self._end_flag:
                 break
@@ -431,14 +451,6 @@ class BaseLearner(object):
         return self._tb_logger
 
     @property
-    def load_path(self) -> str:
-        return self._load_path
-
-    @load_path.setter
-    def load_path(self, _load_path: str) -> None:
-        self._load_path = _load_path
-
-    @property
     def checkpoint_manager(self) -> Any:
         return self._checkpointer_manager
 
@@ -461,7 +473,7 @@ class BaseLearner(object):
             Monitor is set alongside with policy, because variables in monitor are determined by specific policy.
         """
         self._policy = _policy
-        self._use_cuda = self._policy.get_attribute('use_cuda')
+        self._cuda = self._policy.get_attribute('cuda')
         self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
@@ -497,4 +509,4 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    return LEARNER_REGISTRY.build(cfg.get('learner_type', 'base'), cfg=cfg)
+    return LEARNER_REGISTRY.build(cfg.type, cfg=cfg)

@@ -26,11 +26,11 @@ class BaseCommLearner(ABC):
         self._cfg = cfg
         self._learner_uid = get_task_uid()
         self._timer = EasyTimer()
-        if cfg.use_distributed:
+        if cfg.multi_gpu:
             self._rank, self._world_size = dist_init()
         else:
             self._rank, self._world_size = 0, 1
-        self._use_distributed = cfg.use_distributed
+        self._multi_gpu = cfg.multi_gpu
         self._end_flag = True
 
     @abstractmethod
@@ -81,7 +81,7 @@ class BaseCommLearner(ABC):
             Close comm learner.
         """
         self._end_flag = True
-        if self._use_distributed:
+        if self._multi_gpu:
             dist_finalize()
 
     @abstractproperty
@@ -110,14 +110,12 @@ class BaseCommLearner(ABC):
         """
         # Prepare learner config and instantiate a learner object.
         learner_cfg = EasyDict(task_info['learner_cfg'])
-        learner_cfg['use_distributed'] = self._use_distributed
         learner = create_learner(learner_cfg)
         # Set 3 methods and dataloader in created learner that are necessary in parallel setting.
         for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))
         # Set policy in created learner.
         policy_cfg = task_info['policy']
-        policy_cfg['use_distributed'] = self._use_distributed
         learner.policy = create_policy(policy_cfg, enable_field=['learn']).learn_mode
         learner.setup_dataloader()
         return learner
@@ -136,4 +134,4 @@ def create_comm_learner(cfg: EasyDict) -> BaseCommLearner:
             comm_map's values.
     """
     import_module(cfg.get('import_names', []))
-    return COMM_LEARNER_REGISTRY.build(cfg.comm_learner_type, cfg=cfg)
+    return COMM_LEARNER_REGISTRY.build(cfg.type, cfg=cfg)

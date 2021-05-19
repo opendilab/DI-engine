@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractclassmethod
 from collections import namedtuple, deque
 from typing import Optional, List, Dict, Any, Tuple, Union
 
@@ -7,10 +7,17 @@ import copy
 from easydict import EasyDict
 
 from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
+from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
 
 
 class Policy(ABC):
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
     learn_function = namedtuple(
         'learn_function', [
             'forward',
@@ -55,13 +62,13 @@ class Policy(ABC):
     ) -> None:
         self._cfg = cfg
         model = self._create_model(cfg, model)
-        self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
-        self._use_distributed = cfg.get('use_distributed', False)
-        self._rank = get_rank() if self._use_distributed else 0
-        if self._use_distributed:
+        self._cuda = cfg.cuda and torch.cuda.is_available()
+        self._multi_gpu = self._cfg.learn.multi_gpu
+        self._rank = get_rank() if self._multi_gpu else 0
+        if self._multi_gpu:
             self._init_multi_gpu_setting(model)
-        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._use_cuda else 'cpu'
-        if self._use_cuda:
+        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
+        if self._cuda:
             torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model
@@ -82,8 +89,8 @@ class Policy(ABC):
             setattr(param, 'grad', torch.zeros_like(param))
 
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
-        model_cfg = cfg.model
         if model is None:
+            model_cfg = cfg.model
             if 'model_type' not in model_cfg:
                 model_type, import_names = self.default_model()
                 model_cfg.model_type = model_type
@@ -94,6 +101,10 @@ class Policy(ABC):
                 return model
             else:
                 raise RuntimeError("invalid model: {}".format(type(model)))
+
+    @property
+    def cfg(self) -> EasyDict:
+        return self._cfg
 
     @abstractmethod
     def _init_learn(self) -> None:
@@ -260,4 +271,9 @@ class CommandModePolicy(Policy):
 def create_policy(cfg: dict, **kwargs) -> Policy:
     cfg = EasyDict(cfg)
     import_module(cfg.get('import_names', []))
-    return POLICY_REGISTRY.build(cfg.policy_type, cfg=cfg, **kwargs)
+    return POLICY_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
+
+
+def get_policy_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return POLICY_REGISTRY.get(cfg.type)

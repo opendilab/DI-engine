@@ -3,22 +3,19 @@ from nervex.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy
-from .rainbow_dqn import RainbowDQNPolicy
+from .rainbow import RainbowDQNPolicy, IQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
-from .ddpg import DDPGPolicy
+from .ddpg import DDPGPolicy, TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
-
-from .dqn_vanilla import DQNVanillaPolicy
-from .ppo_vanilla import PPOVanillaPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -41,10 +38,10 @@ class EpsCommandModePolicy(CommandModePolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        # use learner_step
-        step = command_info['learner_step']
-        # use env_step
-        # step = command_info['env_step']
+        # Decay according to `learner_step`
+        # step = command_info['learner_step']
+        # Decay according to `env_step`
+        step = command_info['env_step']
         return {'eps': self.epsilon_greedy(step)}
 
     def _get_setting_learn(self, command_info: dict) -> dict:
@@ -74,13 +71,13 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('dqn_vanilla_command')
-class DQNVanillaCommandModePolicy(DQNVanillaPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('rainbow_command')
+class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('rainbow_dqn_command')
-class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('iqn_command')
+class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -96,11 +93,6 @@ class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_command')
 class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
-    pass
-
-
-@POLICY_REGISTRY.register('ppo_vanilla_command')
-class PPOVanillaCommandModePolicy(PPOVanillaPolicy, DummyCommandModePolicy):
     pass
 
 
@@ -121,6 +113,11 @@ class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ddpg_command')
 class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_command')
+class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
     pass
 
 

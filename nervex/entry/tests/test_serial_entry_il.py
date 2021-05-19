@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 import torch.nn.functional as F
 
-from app_zoo.classic_control.cartpole.config import cartpole_ppo_default_config
+from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config
 from nervex.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
 from nervex.policy import PPOPolicy
 from nervex.policy.common_utils import default_preprocess_learn
@@ -37,19 +37,21 @@ class PPOILPolicy(PPOPolicy):
 @pytest.mark.unittest
 def test_serial_pipeline_il():
     # train expert policy
-    config = deepcopy(cartpole_ppo_default_config)
-    expert_policy = serial_pipeline(config, seed=0)
+    train_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    expert_policy = serial_pipeline(train_config, seed=0)
+
     # collect expert demo data
     collect_count = 10000
     expert_data_path = 'expert_data.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
-    config = deepcopy(cartpole_ppo_default_config)
+    collect_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     collect_demo_data(
-        config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+        collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
+
     # il training
-    config = deepcopy(cartpole_ppo_default_config)
-    config.policy.learn.train_epoch = 10
-    config.policy.policy_type = 'ppo_il'
-    _, converge_stop_flag = serial_pipeline_il(config, seed=314, data_path=expert_data_path)
+    il_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    il_config[0].policy.learn.train_epoch = 10
+    il_config[0].policy.type = 'ppo_il'
+    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag

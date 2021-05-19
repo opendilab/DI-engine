@@ -44,7 +44,6 @@ pong_rainbowdqn_default_config = dict(
             ),
         ),
         collect=dict(
-            traj_len=(8 + nstep),
             unroll_len=1,
             algo=dict(nstep=nstep, ),
         ),
@@ -60,12 +59,10 @@ pong_rainbowdqn_default_config = dict(
         agent=dict(
             replay_buffer_size=100000,
             max_use=100,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=400,
-        traj_len=(8 + nstep),
         collect_print_freq=100,
     ),
     evaluator=dict(

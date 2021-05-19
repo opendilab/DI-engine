@@ -100,18 +100,6 @@ class BaseCommCollector(ABC):
         collector = create_collector(collector_cfg)
         for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info']:
             setattr(collector, item, getattr(self, item))
-        eval_flag = collector_cfg.eval_flag
-        if eval_flag:
-            if isinstance(task_info['policy'], list):
-                policy = [create_policy(cfg, enable_field=['eval']).eval_mode for cfg in task_info['policy']]
-            else:
-                policy = create_policy(task_info['policy'], enable_field=['eval']).eval_mode
-        else:
-            if isinstance(task_info['policy'], list):
-                policy = [create_policy(cfg, enable_field=['collect']).collect_mode for cfg in task_info['policy']]
-            else:
-                policy = create_policy(task_info['policy'], enable_field=['collect']).collect_mode
-        collector.policy = policy
         return collector
 
 
@@ -128,4 +116,4 @@ def create_comm_collector(cfg: EasyDict) -> BaseCommCollector:
         comm_map's values.
     """
     import_module(cfg.get('import_names', []))
-    return COMM_COLLECTOR_REGISTRY.build(cfg.comm_collector_type, cfg=cfg)
+    return COMM_COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)

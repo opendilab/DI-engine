@@ -5,26 +5,22 @@ from nervex.worker import Coordinator
 from nervex.worker.learner.comm import NaiveLearner
 from nervex.worker.collector.comm import NaiveCollector
 from nervex.utils import find_free_port
-from nervex.config import coordinator_default_config, parallel_transform
-from nervex.config.utils import default_host
+from nervex.config import compile_config_parallel
+from nervex.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
 
 DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_COORDINATOR_TEST'
 
 
 @pytest.fixture(scope='function')
 def setup_config():
-    cfg = parallel_transform({'coordinator': coordinator_default_config}).coordinator
-    cfg.interaction.learner = dict(learner0=('learner0', default_host, find_free_port(default_host)))
-    cfg.interaction.collector = dict(
-        collector0=('collector0', default_host, find_free_port(default_host)),
-        collector1=('collector1', default_host, find_free_port(default_host))
+    return compile_config_parallel(
+        parallel_test_main_config, create_cfg=parallel_test_create_config, system_cfg=parallel_test_system_config
     )
-    return cfg
 
 
 @pytest.fixture(scope='function')
 def setup_collector(setup_config):
-    cfg = setup_config.interaction.collector
+    cfg = setup_config.system.coordinator.collector
     collector = {}
     for _, (name, host, port) in cfg.items():
         collector[name] = NaiveCollector(host, port, prefix=DATA_PREFIX)
@@ -36,7 +32,7 @@ def setup_collector(setup_config):
 
 @pytest.fixture(scope='function')
 def setup_learner(setup_config):
-    cfg = setup_config.interaction.learner
+    cfg = setup_config.system.coordinator.learner
     learner = {}
     for _, (name, host, port) in cfg.items():
         learner[name] = NaiveLearner(host, port, prefix=DATA_PREFIX)
@@ -51,8 +47,8 @@ class TestCoordinator:
 
     def test_naive(self, setup_config, setup_collector, setup_learner):
         os.popen('rm -rf {}*'.format(DATA_PREFIX))
-        assert len(setup_collector) == len(setup_config.interaction.collector)
-        assert len(setup_learner) == len(setup_config.interaction.learner)
+        assert len(setup_collector) == len(setup_config.system.coordinator.collector)
+        assert len(setup_learner) == len(setup_config.system.coordinator.learner)
         try:
             coordinator = Coordinator(setup_config)
             coordinator.start()

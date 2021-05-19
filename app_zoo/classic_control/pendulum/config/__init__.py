@@ -1,5 +1,3 @@
-from .pendulum_ddpg_default_config import pendulum_ddpg_default_config
-from .pendulum_ppo_default_config import pendulum_ppo_default_config
-from .pendulum_sac_auto_alpha_config import pendulum_sac_auto_alpha_config
-from .pendulum_sac_default_config import pendulum_sac_default_config
-from .pendulum_td3_default_config import pendulum_td3_default_config
+from .pendulum_ddpg_config import pendulum_ddpg_config, pendulum_ddpg_create_config
+from .pendulum_td3_config import pendulum_td3_config, pendulum_td3_create_config
+from .pendulum_sac_config import pendulum_sac_config, pendulum_sac_create_config

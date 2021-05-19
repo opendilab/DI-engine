@@ -7,11 +7,13 @@ import os
 import pickle
 
 from nervex.data import NaiveReplayBuffer
+from nervex.utils import deep_merge_dicts
 
 
 @pytest.fixture(scope="function")
 def setup_naive_buffer():
-    return NaiveReplayBuffer(name="agent", replay_buffer_size=64)
+    cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
+    return NaiveReplayBuffer(name="agent", cfg=cfg)
 
 
 def generate_data():

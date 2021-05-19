@@ -4,6 +4,9 @@ Copyright 2020 Sensetime X-lab. All Rights Reserved
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 import copy
 import logging
+import random
+import numpy as np
+import torch
 
 
 def lists_to_dicts(
@@ -329,3 +332,11 @@ def flatten_dict(data: dict, delimiter: str = "/") -> dict:
         for k in remove:
             del data[k]
     return data
+
+
+def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if use_cuda and torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)

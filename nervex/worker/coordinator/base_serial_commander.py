@@ -1,4 +1,6 @@
 from collections import namedtuple
+from easydict import EasyDict
+import copy
 
 
 class BaseSerialCommander(object):
@@ -10,6 +12,14 @@ class BaseSerialCommander(object):
     Property:
         policy
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
+
+    config = {}
 
     def __init__(
             self,

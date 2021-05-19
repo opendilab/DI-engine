@@ -48,7 +48,6 @@ reacher_sac_default_config = dict(
             init_data_count=5000,
         ),
         collect=dict(
-            traj_len=1,
             unroll_len=1,
             algo=dict(noise_sigma=0.1, ),
         ),
@@ -59,12 +58,10 @@ reacher_sac_default_config = dict(
         agent=dict(
             replay_buffer_size=100000,
             max_use=256,
-            min_sample_ratio=1,
         ),
     ),
     collector=dict(
         n_sample=64,
-        traj_len=1,
         collect_print_freq=1000,
     ),
     evaluator=dict(

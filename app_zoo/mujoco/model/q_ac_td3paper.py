@@ -43,7 +43,7 @@ class QAC_Td3paper(QActorCriticBase):
             self,
             obs_dim: tuple,
             action_dim: Union[int, tuple],
-            use_twin_critic: bool = False,
+            twin_critic: bool = False,
             use_backward_hook: bool = False,
     ) -> None:
         super(QAC_Td3paper, self).__init__()
@@ -62,19 +62,19 @@ class QAC_Td3paper(QActorCriticBase):
         # That is why we implement a new version of QAC and FCContinuousNet here.
         self._hidden_dim = [400, 300]
         # network
-        self._use_twin_critic = use_twin_critic
+        self._twin_critic = twin_critic
         self._actor = FCContinuousNet(self._obs_dim, self._act_dim, self._hidden_dim, use_final_tanh=True)
-        critic_num = 2 if use_twin_critic else 1
+        critic_num = 2 if twin_critic else 1
         self._critic = nn.ModuleList(
             [FCContinuousNet(self._obs_dim + self._act_dim, 1, self._hidden_dim) for _ in range(critic_num)]
         )
-        self._use_twin_critic = use_twin_critic
+        self._twin_critic = twin_critic
         self._use_backward_hook = use_backward_hook
         if self._use_backward_hook:
             self._critic[0].register_backward_hook(backward_hook)
 
     def _critic_forward(self, x: torch.Tensor, single: bool = False) -> Union[List[torch.Tensor], torch.Tensor]:
-        if self._use_twin_critic and not single:
+        if self._twin_critic and not single:
             return [self._critic[i](x) for i in range(2)]
         else:
             return self._critic[0](x)

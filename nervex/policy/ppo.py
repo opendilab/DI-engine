@@ -7,7 +7,7 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, Adder
 from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC, model_wrap
-from nervex.utils import POLICY_REGISTRY
+from nervex.utils import POLICY_REGISTRY, deep_merge_dicts
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -18,6 +18,55 @@ class PPOPolicy(Policy):
     Overview:
         Policy class of PPO algorithm.
     """
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='dqn',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
+        on_policy=True,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
+            update_per_collect=5,
+            batch_size=64,
+            learning_rate=0.001,
+            weight_decay=0.0001,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) The loss weight of value network, policy network weight is set to 1
+            value_weight=0.5,
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            entropy_weight=0.01,
+            # (float) PPO clip ratio, defaults to 0.2
+            clip_ratio=0.2,
+            # (bool) Whether to use advantage norm in a whole training batch
+            adv_norm=False,
+        ),
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            n_sample=64,
+            # (int) Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+            # ==============================================================
+            # The following configs is algorithm-specific
+            # ==============================================================
+            # (float) Reward's future discount factor, aka. gamma.
+            discount_factor=0.99,
+            # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
+            gae_lambda=0.95,
+        ),
+        eval=dict(),
+        # Although ppo is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
+        # Note replay_buffer_size must be greater than n_sample.
+        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
+    )
 
     def _init_learn(self) -> None:
         r"""
@@ -25,16 +74,17 @@ class PPOPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init the optimizer, algorithm config and the main model.
         """
+        self._priority = self._cfg.priority
+        assert not self._priority, "not implemented priority in PPO"
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
-        algo_cfg = self._cfg.learn.algo
-        self._value_weight = algo_cfg.value_weight
-        self._entropy_weight = algo_cfg.entropy_weight
-        self._clip_ratio = algo_cfg.clip_ratio
-        self._use_adv_norm = algo_cfg.get('use_adv_norm', False)
+        self._value_weight = self._cfg.learn.value_weight
+        self._entropy_weight = self._cfg.learn.entropy_weight
+        self._clip_ratio = self._cfg.learn.clip_ratio
+        self._adv_norm = self._cfg.learn.adv_norm
 
         # Main model
         self._learn_model.reset()
@@ -51,7 +101,7 @@ class PPOPolicy(Policy):
                         adv_abs_max, approx_kl, clipfrac
         """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         # ====================
         # PPO forward
@@ -59,7 +109,7 @@ class PPOPolicy(Policy):
         self._learn_model.train()
         output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
         adv = data['adv']
-        if self._use_adv_norm:
+        if self._adv_norm:
             # Normalize advantage in a total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
         return_ = data['value'] + adv
@@ -106,10 +156,9 @@ class PPOPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
-        self._adder = Adder(self._use_cuda, self._unroll_len)
-        algo_cfg = self._cfg.collect.algo
-        self._gamma = algo_cfg.discount_factor
-        self._gae_lambda = algo_cfg.gae_lambda
+        self._adder = Adder(self._cuda, self._unroll_len)
+        self._gamma = self._cfg.collect.discount_factor
+        self._gae_lambda = self._cfg.collect.gae_lambda
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -122,12 +171,12 @@ class PPOPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor_critic')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -189,18 +238,18 @@ class PPOPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.actor_critic.value_ac']
+        return 'fc_vac', ['nervex.model.vac.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

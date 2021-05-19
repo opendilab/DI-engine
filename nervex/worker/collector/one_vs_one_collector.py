@@ -30,6 +30,17 @@ class OneVsOneCollector(BaseCollector):
 
       - two policies
     """
+    config = dict(
+        print_freq=5,
+        compressor='lz4',
+        update_policy_second=3,
+        # The following keys is set by the commander
+        # env
+        # policy
+        # collect_setting
+        # eval_flag
+        # policy_update_path
+    )
 
     # override
     def __init__(self, cfg: dict) -> None:

@@ -23,7 +23,7 @@ repeat
   :policy process_transition;
   |collector|
   :collector save transition in cache;
-  if (for every env: \n - env i is done? <b>OR</b> \n - cache length is not smaller than traj_len?) then (yes)
+  if (for every env: \n - env i is done?) then (yes)
     |#orange|policy|
     :policy get_train_sample from cache;
     |collector|

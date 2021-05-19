@@ -1,7 +1,6 @@
 from easydict import EasyDict
 from nervex.config import parallel_transform
 
-traj_len = 1
 nstep = 1
 batch_size = 64
 __policy_default_config = dict(
@@ -27,7 +26,6 @@ __policy_default_config = dict(
         ),
     ),
     collect=dict(
-        traj_len=traj_len,
         unroll_len=1,
         algo=dict(nstep=nstep),
     ),
@@ -74,7 +72,6 @@ __one_vs_one_collector_default_config = dict(
     collector_type='one_vs_one',
     import_names=['nervex.worker.collector.one_vs_one_collector'],
     print_freq=100,
-    traj_len=traj_len,
     compressor='lz4',
     policy_update_freq=10,
     env_kwargs=dict(
@@ -108,7 +105,6 @@ __coordinator_default_config = dict(
             meta_maxlen=10000,
             max_use=100,
             unroll_len=1,
-            min_sample_ratio=1,
             monitor=dict(log_freq=1000),
         ),
         policy=__policy_default_config,

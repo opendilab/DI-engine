@@ -103,7 +103,6 @@ class FlaskFileSystemLearner(BaseCommLearner):
 
         self._path_data = cfg.path_data  # path to read data from
         self._path_policy = cfg.path_policy  # path to save policy
-        self._send_policy_freq = cfg.send_policy_freq
 
         # Queues to store info dicts. Only one info is needed to pass between learner and coordinator at a time.
         self._data_demand_queue = Queue(maxsize=1)
@@ -211,6 +210,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
         Arguments:
             - state_dict (:obj:`dict`): State dict of the policy.
         """
+        if not os.path.exists(self._path_policy):
+            os.mkdir(self._path_policy)
         path = os.path.join(self._path_policy, self._policy_id)
         setattr(self, "_latest_policy_path", path)
         save_file(path, state_dict, use_lock=True)
@@ -306,9 +307,7 @@ class FlaskFileSystemLearner(BaseCommLearner):
         """
         return [
             SendPolicyHook('send_policy', 100, position='before_run', ext_args={}),
-            SendPolicyHook(
-                'send_policy', 100, position='after_iter', ext_args={'send_policy_freq': self._send_policy_freq}
-            ),
+            SendPolicyHook('send_policy', 100, position='after_iter', ext_args={'send_policy_freq': 1}),
             SendLearnInfoHook(
                 'send_learn_info',
                 100,

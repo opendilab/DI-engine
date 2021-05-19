@@ -9,7 +9,6 @@ from functools import partial
 
 from nervex.worker import BaseLearner
 from nervex.worker.learner import LearnerHook, add_learner_hook, create_learner
-from nervex.config import base_learner_default_config
 
 
 class FakeLearner(BaseLearner):
@@ -50,7 +49,7 @@ class FakePolicy:
         return ['total_loss', 'cur_lr']
 
     def get_attribute(self, name):
-        if name == 'use_cuda':
+        if name == 'cuda':
             return False
         elif name == 'device':
             return 'cpu'
@@ -65,11 +64,11 @@ class FakePolicy:
 class TestBaseLearner:
 
     def _get_cfg(self, path):
-        cfg = EasyDict({'learner': base_learner_default_config}).learner
-        cfg.load_path = path
+        cfg = BaseLearner.default_config()
         cfg.import_names = []
         cfg.learner_type = 'fake'
-        cfg.max_iterations = 10
+        cfg.train_iterations = 10
+        cfg.hook.load_ckpt_before_run = path
         cfg.hook.save_ckpt_after_iter = dict(
             name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5}
         )
@@ -79,6 +78,8 @@ class TestBaseLearner:
         os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
+        with pytest.raises(KeyError):
+            create_learner(EasyDict({'type': 'placeholder', 'import_names': []}))
         path = os.path.join(os.path.dirname(__file__), './iteration_5.pth.tar')
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
@@ -86,8 +87,6 @@ class TestBaseLearner:
         learner = FakeLearner(cfg)
         learner.setup_dataloader()
         learner.policy = FakePolicy()
-        with pytest.raises(KeyError):
-            create_learner(EasyDict({'learner_type': 'placeholder', 'import_names': []}))
         learner.start()
         time.sleep(2)
         assert learner.last_iter.val == 10 + 5
