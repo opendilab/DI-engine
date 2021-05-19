@@ -209,7 +209,6 @@ class SMACAction:
                     target_unit = engine.enemies[target_id]
                     target_loc = (target_unit.pos.x, target_unit.pos.y)
                     action_name = "fungal_growth"
-                print("action: {}, {}, {}".format(type_id, target_unit.health, action_name))
             else:
                 target_unit = (engine.agents[target_id] if is_opponent else engine.enemies[target_id])
                 action_name = "attack"

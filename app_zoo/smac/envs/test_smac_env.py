@@ -25,7 +25,7 @@ def automation(env, n_agents):
         # Let OPPONENT attack ME at the first place
         # if sum(avail_actions[6:]) > 0:
         #     action = max(avail_actions_ind)
-            # print("ME start attacking OP")
+        # print("ME start attacking OP")
         # print("Available action for ME: ", avail_actions_ind)
         actions["me"].append(action)
         print('ava', avail_actions, action)
@@ -80,7 +80,7 @@ def fix_policy(env, n_agents, me=0, opponent=0):
 
 
 def main(policy, map_name="3m", two_player=False):
-    cfg = EasyDict({'two_player': two_player, 'map_name': map_name, 'save_replay_episodes': None})
+    cfg = EasyDict({'two_player': two_player, 'map_name': map_name, 'save_replay_episodes': None, 'obs_alone': True})
     env = SMACEnv(cfg)
     if map_name == "3s5z":
         n_agents = 8
@@ -109,9 +109,13 @@ def main(policy, map_name="3m", two_player=False):
                 actions = actions["me"]
             t = env.step(actions)
             obs, reward, terminated, infos = t.obs, t.reward, t.done, t.info
-            assert set(obs.keys()) == set(['agent_state', 'global_state', 'action_mask'])
+            assert set(obs.keys()) == set(
+                ['agent_state', 'global_state', 'action_mask', 'agent_alone_state', 'agent_alone_padding_state']
+            )
             assert isinstance(obs['agent_state'], np.ndarray)
             assert obs['agent_state'].shape == env_info.obs_space.shape['agent_state']  # n_agents, agent_state_dim
+            assert isinstance(obs['agent_alone_state'], np.ndarray)
+            assert obs['agent_alone_state'].shape == env_info.obs_space.shape['agent_alone_state']
             assert isinstance(obs['global_state'], np.ndarray)
             assert obs['global_state'].shape == env_info.obs_space.shape['global_state']  # global_state_dim
             assert isinstance(reward, np.ndarray)
