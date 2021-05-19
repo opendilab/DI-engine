@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from easydict import EasyDict
 
 from app_zoo.smac.envs import SMACEnv
 
@@ -13,14 +14,21 @@ def automation(env, n_agents):
         avail_actions = env.get_avail_agent_actions(agent_id, is_opponent=False)
         avail_actions_ind = np.nonzero(avail_actions)[0]
         action = np.random.choice(avail_actions_ind)
-        if MOVE_EAST in avail_actions_ind:
+        if avail_actions[0] != 0:
+            action = 0
+        elif len(np.nonzero(avail_actions[6:])[0]) == 0:
             action = MOVE_EAST
+        else:
+            action = np.random.choice(avail_actions_ind)
+        # if MOVE_EAST in avail_actions_ind:
+        #     action = MOVE_EAST
         # Let OPPONENT attack ME at the first place
-        if sum(avail_actions[6:]) > 0:
-            action = max(avail_actions_ind)
+        # if sum(avail_actions[6:]) > 0:
+        #     action = max(avail_actions_ind)
             # print("ME start attacking OP")
         # print("Available action for ME: ", avail_actions_ind)
         actions["me"].append(action)
+        print('ava', avail_actions, action)
     for agent_id in range(n_agents):
         avail_actions = env.get_avail_agent_actions(agent_id, is_opponent=True)
         avail_actions_ind = np.nonzero(avail_actions)[0]
@@ -71,8 +79,9 @@ def fix_policy(env, n_agents, me=0, opponent=0):
     return actions
 
 
-def main(policy, map_name="infestor_viper", two_player=True):
-    env = SMACEnv(two_player=two_player, map_name=map_name, save_replay_episodes=1)
+def main(policy, map_name="3m", two_player=False):
+    cfg = EasyDict({'two_player': two_player, 'map_name': map_name, 'save_replay_episodes': None})
+    env = SMACEnv(cfg)
     if map_name == "3s5z":
         n_agents = 8
     elif map_name == "3m":
@@ -107,6 +116,7 @@ def main(policy, map_name="infestor_viper", two_player=True):
             assert obs['global_state'].shape == env_info.obs_space.shape['global_state']  # global_state_dim
             assert isinstance(reward, np.ndarray)
             assert reward.shape == (1, )
+            print('reward', reward)
             assert isinstance(terminated, bool)
             episode_reward_me += reward["me"] if two_player else reward
             episode_reward_op += reward["opponent"] if two_player else 0
@@ -131,6 +141,7 @@ def main(policy, map_name="infestor_viper", two_player=True):
 
 @pytest.mark.env_test
 def test_automation():
+    # main(automation, map_name="3m", two_player=False)
     main(automation, map_name="infestor_viper", two_player=False)
 
 

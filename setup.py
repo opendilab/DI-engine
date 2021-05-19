@@ -59,7 +59,7 @@ setup(
         'cloudpickle',
         'tabulate',
         'sortedcontainers',
-        'click',
+        'click<8.0',
         'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',

@@ -16,6 +16,8 @@ actions = {
     "attack": 23,  # target: PointOrUnit
     "stop": 4,  # target: None
     "heal": 386,  # Unit
+    "parasitic_bomb": 2542,  # target: Unit
+    'fungal_growth': 74,  # target: PointOrUnit
 }
 
 
@@ -132,7 +134,7 @@ class SMACAction:
         """
         avail_actions = self.get_avail_agent_actions(a_id, engine, is_opponent=is_opponent, skip_mirror=True)
         assert avail_actions[action] == 1, \
-            "Agent {} cannot perform action {}".format(a_id, action)
+            "Agent {} cannot perform action {} in ava {}".format(a_id, action, avail_actions)
         unit = self.get_unit_by_id(a_id, engine, is_opponent=is_opponent)
 
         # if is_opponent:
@@ -140,6 +142,7 @@ class SMACAction:
 
         # ===== The follows is intact to the original =====
         tag = unit.tag
+        type_id = unit.unit_type
         x = unit.pos.x
         y = unit.pos.y
 
@@ -196,6 +199,17 @@ class SMACAction:
                                                                if is_opponent else engine.medivac_id):
                 target_unit = (engine.enemies[target_id] if is_opponent else engine.agents[target_id])
                 action_name = "heal"
+            elif engine.map_type == 'infestor_viper':
+                # viper
+                if type_id == 499:
+                    target_unit = engine.enemies[target_id]
+                    action_name = "parasitic_bomb"
+                # infestor
+                else:
+                    target_unit = engine.enemies[target_id]
+                    target_loc = (target_unit.pos.x, target_unit.pos.y)
+                    action_name = "fungal_growth"
+                print("action: {}, {}, {}".format(type_id, target_unit.health, action_name))
             else:
                 target_unit = (engine.agents[target_id] if is_opponent else engine.enemies[target_id])
                 action_name = "attack"
@@ -232,7 +246,7 @@ class SMACAction:
                 avail_actions[5] = 1
 
             # Can attack only alive units that are alive in the shooting range
-            shoot_range = self.unit_shoot_range(agent_id)
+            shoot_range = self.unit_shoot_range(unit)
 
             target_items = engine.enemies.items() if not is_opponent else engine.agents.items()
             self_items = engine.agents.items() if not is_opponent else engine.enemies.items()
@@ -290,9 +304,15 @@ class SMACAction:
         vals = [self.terrain_height[x, y] if self.check_bounds(x, y) else 1 for x, y in points]
         return vals
 
-    def unit_shoot_range(self, agent_id):
+    def unit_shoot_range(self, unit):
         """Returns the shooting range for an agent."""
-        return 6
+        type_id = unit.unit_type
+        if type_id == 499:
+            return 8
+        elif type_id == 111:
+            return 10
+        else:
+            return 6
 
     def get_surrounding_points(self, unit, include_self=False):
         """Returns the surrounding points of the unit in 8 directions."""

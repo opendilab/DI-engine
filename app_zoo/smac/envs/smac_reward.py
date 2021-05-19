@@ -8,8 +8,8 @@ OPPONENT_AGENT = "opponent"
 class SMACReward:
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
-    def __init__(self, n_agents, n_enemies, two_player, reward_type, reward_scale=True, reduce_agent=True):
-        self.reward_only_positive = True
+    def __init__(self, n_agents, n_enemies, two_player, reward_type, reward_scale=True, reduce_agent=True, reward_only_positive=True):
+        self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
         self.reward_death_value = 10
         self.reward_win = 200
@@ -133,13 +133,16 @@ class SMACReward:
                     death_tracker[e_id] += 1
                     # delta_deaths[e_id] += self.reward_death_value
                     delta_death_enemy[e_id] += self.reward_death_value
-                    delta_enemy[e_id] += prev_health
+                    normed_delta_health = prev_health / (e_unit.health_max + e_unit.shield_max)
+                    delta_enemy[e_id] += normed_delta_health * self.reward_death_value
                 else:
-                    delta_enemy[e_id] += prev_health - e_unit.health - e_unit.shield
+                    normed_delta_health = (prev_health - e_unit.health - e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
+                    delta_enemy[e_id] += normed_delta_health * self.reward_death_value
 
         if self.reward_type == 'original':
             if self.reduce_agent:
                 total_reward = abs(sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy))
+                return total_reward
             else:
                 total_reward = abs(sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy)) / num_agents
                 return np.ones(num_agents) * total_reward
@@ -167,9 +170,9 @@ class SMACReward:
         elif self.reward_type == 'original':
             # TODO(nyz) health + shield range
             if self.reduce_agent:
-                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies}
+                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies * 2}
             else:
-                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents}
+                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents * 2}
         elif self.reward_type == 'new':
             if self.reduce_agent:
                 value = {'min': 0, 'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies}
