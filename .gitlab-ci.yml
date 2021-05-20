@@ -78,8 +78,8 @@ test_cudatest:
   tags:
     - nervex-gitlab-ci-runner-k8s
   variables:
-    KUBERNETES_RESOURCES_LIMITS_NVIDIA.COM/GPU: "8"
-    KUBERNETES_RESOURCES_REQUESTS_NVIDIA.COM/GPU: "8"
+    KUBERNETES_RESOURCES_LIMITS_NVIDIA.COM/GPU: "1"
+    KUBERNETES_RESOURCES_REQUESTS_NVIDIA.COM/GPU: "1"
   image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
   script:
     - yum -y install gcc automake autoconf libtool libsm6 make
