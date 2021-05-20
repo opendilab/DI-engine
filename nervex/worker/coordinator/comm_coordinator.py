@@ -46,6 +46,8 @@ class CommCoordinator(object):
         if self._cfg.operator_server:
             server_kwargs = get_operator_server_kwargs(self._cfg.operator_server)
             self._operator_server = OperatorServer()
+            self._collector_target_num = cfg.collector_target_num
+            self._learner_target_num = cfg.learner_target_num
         else:
             self._operator_server = None
 
@@ -78,6 +80,24 @@ class CommCoordinator(object):
                 target=self._period_sync_with_server, name="period_sync", daemon=True
             )
             self._period_sync_with_server_thread.start()
+
+            # wait for enough collector/learner
+            start_time = time.time()
+            enough_flag = False
+            while time.time() - start_time <= self._max_retry_second:
+                if len(self._connection_collector) < self._collector_target_num and len(self._connection_learner) < self._learner_target_num:
+                    self._logger.info("Only can connect {} collectors, {} learners.".format(len(self._connection_collector), len(self._connection_learner)))
+                    time.sleep(2)
+                else:
+                    self._logger.info("Have connected {} collectors, {} learners, match limit requests.".format(len(self._connection_collector), len(self._connection_learner)))
+                    self._logger.info("Total nervex pipeline start...")
+                    enough_flag = True
+                    break
+
+            if not enough_flag:
+                self._logger.error("Exit since only can connect {} collectors, {} learners.".format(len(self._connection_collector), len(self._connection_learner)))
+                self.close()
+                sys.exit(1)
 
         if self._end_flag:
             self._logger.error("connection max retries failed")
@@ -161,6 +181,11 @@ class CommCoordinator(object):
         self._end_flag = True
         # wait for execute thread
         start_time = time.time()
+        # TODO
+        if self._operator_server:
+            self._period_sync_with_server_thread.join()
+            # wait from all slave receive DELETE
+            time.sleep(5)
         while time.time() - start_time <= 60:
             if len(self._remain_learner_task) == 0 and len(self._remain_collector_task) == 0:
                 break
