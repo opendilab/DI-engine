@@ -36,7 +36,6 @@ class CommCoordinator(object):
 
         self._connection_collector = {}
         self._connection_learner = {}
-        self._connection_lock = LockContext(LockContextType.THREAD_LOCK)
         self._resource_manager = NaiveResourceManager()
 
         self._remain_task_lock = LockContext(LockContextType.THREAD_LOCK)
@@ -74,8 +73,25 @@ class CommCoordinator(object):
         for _, (collector_id, collector_host, collector_port) in self._cfg.collector.items():
             self._new_connection_collector(collector_id, collector_host, collector_port)
 
-        # create sync learner/collector thread
         if self._operator_server:
+            # post init learner/collector demand
+            start_time, init_flag = time.time(), False
+            while time.time() - start_time <= self._max_retry_second and not self._end_flag:
+                success, _, message, _ = self._server_conn.post_replicas(self._cfg.init_replicas_request)
+                if success:
+                    self._logger.info("Post replicas demand to server successfully")
+                    init_flag = True
+                    break
+                else:
+                    self._logger.info("Failed to post replicas request to server, message: {}".format(message))
+                    time.sleep(2)
+
+            if not init_flag:
+                self._logger.info('Exit since cannot request replicas to operator-server...')
+                self.close()
+                sys.exit(1)
+
+            # create sync learner/collector thread
             self._period_sync_with_server_thread = Thread(
                 target=self._period_sync_with_server, name="period_sync", daemon=True
             )
@@ -85,17 +101,30 @@ class CommCoordinator(object):
             start_time = time.time()
             enough_flag = False
             while time.time() - start_time <= self._max_retry_second:
-                if len(self._connection_collector) < self._collector_target_num and len(self._connection_learner) < self._learner_target_num:
-                    self._logger.info("Only can connect {} collectors, {} learners.".format(len(self._connection_collector), len(self._connection_learner)))
+                if len(self._connection_collector) < self._collector_target_num and len(self._connection_learner
+                                                                                        ) < self._learner_target_num:
+                    self._logger.info(
+                        "Only can connect {} collectors, {} learners.".format(
+                            len(self._connection_collector), len(self._connection_learner)
+                        )
+                    )
                     time.sleep(2)
                 else:
-                    self._logger.info("Have connected {} collectors, {} learners, match limit requests.".format(len(self._connection_collector), len(self._connection_learner)))
+                    self._logger.info(
+                        "Have connected {} collectors, {} learners, match limit requests.".format(
+                            len(self._connection_collector), len(self._connection_learner)
+                        )
+                    )
                     self._logger.info("Total nervex pipeline start...")
                     enough_flag = True
                     break
 
             if not enough_flag:
-                self._logger.error("Exit since only can connect {} collectors, {} learners.".format(len(self._connection_collector), len(self._connection_learner)))
+                self._logger.error(
+                    "Exit since only can connect {} collectors, {} learners.".format(
+                        len(self._connection_collector), len(self._connection_learner)
+                    )
+                )
                 self.close()
                 sys.exit(1)
 
@@ -119,8 +148,7 @@ class CommCoordinator(object):
                 else:
                     with self._resource_lock:
                         self._resource_manager.update('collector', collector_id, resource_task.result)
-                    with self._connection_lock:
-                        self._connection_collector[collector_id] = conn
+                    self._connection_collector[collector_id] = conn
                     break
 
             except Exception as e:
@@ -130,12 +158,11 @@ class CommCoordinator(object):
                 )
                 time.sleep(2)
 
-        with self._connection_lock:
-            if collector_id in self._connection_collector:
-                self._logger.info(f"Succeed to connect to collector({collector_id})")
-            else:
-                self._logger.info(f"Fail to connect to collector({collector_id})")
-                self._failed_collector_conn.add(collector_id)
+        if collector_id in self._connection_collector:
+            self._logger.info(f"Succeed to connect to collector({collector_id})")
+        else:
+            self._logger.info(f"Fail to connect to collector({collector_id})")
+            self._failed_collector_conn.add(collector_id)
 
     def _new_connection_learner(self, learner_id: str, learner_host: str, learner_port: int) -> None:
         start_time = time.time()
@@ -153,8 +180,7 @@ class CommCoordinator(object):
                 else:
                     with self._resource_lock:
                         self._resource_manager.update('learner', learner_id, resource_task.result)
-                    with self._connection_lock:
-                        self._connection_learner[learner_id] = conn
+                    self._connection_learner[learner_id] = conn
                     break
 
             except Exception as e:
@@ -164,12 +190,11 @@ class CommCoordinator(object):
                 )
                 time.sleep(2)
 
-        with self._connection_lock:
-            if learner_id in self._connection_learner:
-                self._logger.info(f"Succeed to connect to learner({learner_id})")
-            else:
-                self._logger.info(f"Fail to connect to learner({learner_id})")
-                self._failed_learner_conn.add(learner_id)
+        if learner_id in self._connection_learner:
+            self._logger.info(f"Succeed to connect to learner({learner_id})")
+        else:
+            self._logger.info(f"Fail to connect to learner({learner_id})")
+            self._failed_learner_conn.add(learner_id)
 
     def close(self) -> None:
         r"""
@@ -460,8 +485,58 @@ class CommCoordinator(object):
 
             time.sleep(2)
 
-    def _update_connection_collector(self, cur_collectors) -> None:
-        raise NotImplementedError
+    def _update_connection_collector(self, cur_collectors: list) -> None:
+        conn_collectors = list(self._connection_collector.keys())
+        new_c = set(cur_collectors) - set(conn_collectors)
+        del_c = set(conn_collectors) - (set(cur_collectors) | self._failed_collector_conn)
+        # conns which have terminated in server side, clear up
+        self._failed_collector_conn = self._failed_collector_conn & set(cur_collectors)
+
+        # connect to each new collector
+        for collector_id in new_c:
+            collector_host, collector_port = collector_id.split(':')
+            self._new_connection_collector(collector_id, collector_host, int(collector_port))
+
+        for collector_id in del_c:
+            if collector_id in conn_collectors:
+                # TODO(nyz) whether to need to close task first
+                with self._resource_lock:
+                    if not self._resource_manager.have_assigned('collector', collector_id):
+                        self._resource_manager.delete("collector", collector_id)
+
+                if self._connection_collector[collector_id].is_connected:
+                    conn = self._connection_collector.pop(collector_id)
+                    conn.disconnect()
+                    assert not conn.is_connected
+                else:
+                    # ignore the operation of disconnect, since the pod will be terminated by server,
+                    # just throw the connection
+                    self._connection_collector.pop(collector_id)
 
     def _update_connection_learner(self, cur_learners) -> None:
-        raise NotImplementedError
+        conn_learners = list(self._connection_learner.keys())
+        new_c = set(cur_learners) - set(conn_learners)
+        del_c = set(conn_learners) - (set(cur_learners) | self._failed_learner_conn)
+        # conns which have terminated in server side, clear up
+        self._failed_learner_conn = self._failed_learner_conn & set(cur_learners)
+
+        # connect to each new learner
+        for learner_id in new_c:
+            learner_host, learner_port = learner_id.split(':')
+            self._new_connection_learner(learner_id, learner_host, int(learner_port))
+
+        for learner_id in del_c:
+            if learner_id in conn_learners:
+                # TODO(nyz) whether to need to close task first
+                with self._resource_lock:
+                    if not self._resource_manager.have_assigned('learner', learner_id):
+                        self._resource_manager.delete("learner", learner_id)
+
+                if self._connection_learner[learner_id].is_connected:
+                    conn = self._connection_learner.pop(learner_id)
+                    conn.disconnect()
+                    assert not conn.is_connected
+                else:
+                    # ignore the operation of disconnect, since the pod will be terminated by server,
+                    # just throw the connection
+                    self._connection_learner.pop(learner_id)
