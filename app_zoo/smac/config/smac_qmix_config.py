@@ -12,7 +12,9 @@ smac_qmix_config = dict(
         stop_value=0.999,
         n_evaluator_episode=4,
         manager=dict(
-            reset_timeout=600,
+            reset_timeout=6000,
+            connect_timeout=6000,
+            shared_memory=False,
         )
     ),
     policy=dict(
