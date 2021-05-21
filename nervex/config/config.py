@@ -219,7 +219,8 @@ def compile_config_parallel(
         system_cfg: EasyDict,
         seed: int = 0,
         save_cfg: bool = True,
-        save_path: str = 'total_config.py'
+        save_path: str = 'total_config.py',
+        platform: str = 'local',
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)

@@ -42,7 +42,6 @@ def parallel_pipeline(
     else:
         raise TypeError("invalid config type: {}".format(input_cfg))
     config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg, seed=seed)
-    print(config)
     set_pkg_seed(config.seed)
     learner_handle = []
     collector_handle = []

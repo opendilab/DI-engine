@@ -127,6 +127,7 @@ class ZerglingCollector(BaseCollector):
         if self._end_flag:
             return
         self._end_flag = True
+        time.sleep(1)
         if hasattr(self, '_env_manager'):
             self._env_manager.close()
         self._join_thread()
