@@ -88,6 +88,7 @@ class BaseSerialCollector(object):
                 self._unroll_len,
                 self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
             )
+            print('traj_len', self._default_n_sample, self._env_num, self._traj_len)
         else:
             self._traj_len = INF
         self.reset()
