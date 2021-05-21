@@ -83,12 +83,21 @@ class BaseSerialCollector(object):
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"
         if self._default_n_episode is not None:
             self._traj_len = INF
+            self._logger.info(
+                'Set default n_episode mode(n_sample({}), env_num({}), traj_len({}))'.format(
+                    self._default_n_episode, self._env_num, self._traj_len
+                )
+            )
         elif self._default_n_sample is not None:
             self._traj_len = max(
                 self._unroll_len,
                 self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
             )
-            print('traj_len', self._default_n_sample, self._env_num, self._traj_len)
+            self._logger.info(
+                'Set default n_sample mode(n_sample({}), env_num({}), traj_len({}))'.format(
+                    self._default_n_sample, self._env_num, self._traj_len
+                )
+            )
         else:
             self._traj_len = INF
         self.reset()
@@ -213,7 +222,7 @@ class BaseSerialCollector(object):
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._var_reset(env_id)
-                        print('env_id abnormal step', env_id, timestep.info)
+                        self._logger.info('env_id abnormal step', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
