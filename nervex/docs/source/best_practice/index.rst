@@ -64,7 +64,7 @@ Best Practice
                'next_obs': timestep.obs,
                'action': model_output['action'],
                'priority': model_output['priority'],
-               'reward': timestep.reward，
+               'reward': timestep.reward,
                'done': timestep.done,
             }
             return transition
