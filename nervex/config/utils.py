@@ -60,9 +60,9 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
             cfg[k].node = node
             cfg[k].partition = node_to_partition(node)
             repeat_num = cfg[k].get('repeat_num', 1)
-            if cfg[k].host != 'auto':
+            if cfg[k].host == 'auto':
                 cfg[k].host = node_to_host(node)
-            if cfg[k].port != 'auto':
+            if cfg[k].port == 'auto':
                 if repeat_num == 1:
                     cfg[k].port = find_free_port_slurm(node)
                     learner_multi[k] = False
@@ -74,9 +74,9 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
             node = collector_node[collector_count % len(collector_node)]
             cfg[k].node = node
             cfg[k].partition = node_to_partition(node)
-            if cfg[k].host != 'auto':
+            if cfg[k].host == 'auto':
                 cfg[k].host = node_to_host(node)
-            if cfg[k].port != 'auto':
+            if cfg[k].port == 'auto':
                 cfg[k].port = find_free_port_slurm(node)
             collector_count += 1
     for k, flag in learner_multi.items():
@@ -182,9 +182,10 @@ def parallel_transform_slurm(
         collector_node: Optional[List[str]] = None
 ) -> None:
     cfg = EasyDict(cfg)
-    cfg = set_host_port_slurm(cfg, coordinator_host, learner_node, collector_node)
-    cfg = set_learner_interaction_for_coordinator(cfg)
-    cfg = set_collector_interaction_for_coordinator(cfg)
+    cfg.system = set_system_cfg(cfg)
+    cfg.system = set_host_port_slurm(cfg.system, coordinator_host, learner_node, collector_node)
+    cfg.system = set_learner_interaction_for_coordinator(cfg.system)
+    cfg.system = set_collector_interaction_for_coordinator(cfg.system)
     pretty_print(cfg)
     return cfg
 

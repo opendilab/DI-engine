@@ -12,7 +12,14 @@ def dist_prepare_config(
 ) -> str:
     main_cfg, create_cfg, system_cfg = read_config(filename)
     config = compile_config_parallel(
-        main_cfg, create_cfg=create_cfg, system_cfg=system_cfg, seed=seed, platform=platform
+        main_cfg,
+        create_cfg=create_cfg,
+        system_cfg=system_cfg,
+        seed=seed,
+        platform=platform,
+        coordinator_host=coordinator_host,
+        learner_host=learner_host,
+        collector_host=collector_host
     )
     # Pickle dump config to disk for later use.
     real_filename = filename + '.pkl'
