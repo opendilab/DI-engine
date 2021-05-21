@@ -905,7 +905,6 @@ Policy中只需实现与具体算法策略相关的内容，其编写需要实�
                 'reward': timestep.reward,
                 'done': timestep.done,
             }
-            return EasyDict(transition)
 
 
 我们需要对evaluator部分进行初始化，包括：
