@@ -295,7 +295,7 @@ class R2D2Policy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return EasyDict(transition)
+        return transition
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
         r"""
