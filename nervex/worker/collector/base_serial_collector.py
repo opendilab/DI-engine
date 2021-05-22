@@ -43,15 +43,15 @@ class BaseSerialCollector(object):
             - cfg (:obj:`EasyDict`): Config dict
         """
         self._collect_print_freq = cfg.collect_print_freq
-        if env is not None:
-            self.env = env
-        if policy is not None:
-            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
         else:
             self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
+        if env is not None:
+            self.env = env
+        if policy is not None:
+            self.policy = policy
         self._timer = EasyTimer()
         self._cfg = cfg
         self._end_flag = False

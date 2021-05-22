@@ -110,7 +110,7 @@ def try_import_link():
     else:
         from .fake_linklink import link
         linklink_flag = False
-        
+
     return link
 
 

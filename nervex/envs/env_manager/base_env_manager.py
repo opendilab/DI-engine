@@ -4,8 +4,10 @@ from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
+import platform
 from collections import namedtuple
 import numbers
+import logging
 import torch
 import enum
 import time
@@ -63,6 +65,11 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
 def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
     if func is None:
         return partial(timeout_wrapper, timeout=timeout)
+
+    windows_flag = platform.system().lower() == 'windows'
+    if windows_flag:
+        logging.warning("Timeout wrapper is not implemented in windows platform, so ignore it default")
+        return func
 
     @wraps(func)
     def wrapper(*args, **kwargs):
