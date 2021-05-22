@@ -247,7 +247,7 @@ class DQNPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return EasyDict(transition)
+        return transition
 
     def _init_eval(self) -> None:
         r"""

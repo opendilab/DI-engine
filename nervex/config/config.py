@@ -15,7 +15,7 @@ from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator,
 from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
-from .utils import parallel_transform
+from .utils import parallel_transform, parallel_transform_slurm
 
 
 class Config(object):
@@ -219,7 +219,11 @@ def compile_config_parallel(
         system_cfg: EasyDict,
         seed: int = 0,
         save_cfg: bool = True,
-        save_path: str = 'total_config.py'
+        save_path: str = 'total_config.py',
+        platform: str = 'local',
+        coordinator_host: Optional[str] = None,
+        learner_host: Optional[str] = None,
+        collector_host: Optional[str] = None,
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
@@ -251,7 +255,17 @@ def compile_config_parallel(
 
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
-    cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    if platform == 'local':
+        cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    elif platform == 'slurm':
+        cfg = parallel_transform_slurm(
+            EasyDict({
+                'main': cfg,
+                'system': system_cfg
+            }), coordinator_host, learner_host, collector_host
+        )
+    else:
+        raise KeyError("not support platform type: {}".format(platform))
     cfg.seed = seed
 
     cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)

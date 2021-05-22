@@ -64,10 +64,10 @@ Best Practice
                'next_obs': timestep.obs,
                'action': model_output['action'],
                'priority': model_output['priority'],
-               'reward': timestep.reward，
+               'reward': timestep.reward,
                'done': timestep.done,
             }
-            return EasyDict(transition)
+            return transition
 
    
    -  对于A-pex中的多个Collector使用不同的探索策略，目前仅支持在nervex
