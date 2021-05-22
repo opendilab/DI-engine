@@ -94,13 +94,12 @@ class ComaCriticNetwork(nn.Module):
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: dict, act_dim: Tuple, embedding_dim: int):
+    def __init__(self, agent_num: int, obs_dim: int,global_obs_dim:int, action_dim: int, rnn_hidden_dim: int, critic_dim: int):
         super(ComaNetwork, self).__init__()
-        act_dim = act_dim[-1]
-        actor_input_dim = obs_dim['agent_state'][-1]
-        critic_input_dim = obs_dim['agent_state'][-1] + squeeze(obs_dim['global_state']) + agent_num * act_dim
-        self._actor = ComaActorNetwork(actor_input_dim, act_dim, embedding_dim)
-        self._critic = ComaCriticNetwork(critic_input_dim, act_dim, embedding_dim)
+        actor_input_dim = obs_dim
+        critic_input_dim = obs_dim + global_obs_dim + agent_num * action_dim
+        self._actor = ComaActorNetwork(actor_input_dim, action_dim, rnn_hidden_dim)
+        self._critic = ComaCriticNetwork(critic_input_dim, action_dim, critic_dim)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
         assert mode in ['compute_action', 'compute_q_value'], mode

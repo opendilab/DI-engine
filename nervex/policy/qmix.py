@@ -35,8 +35,10 @@ class QMIXPolicy(CommonPolicy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         # self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate,grad_clip_type='clip_norm',clip_value=10)
+        if self._cfg.learn.clip:
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, grad_clip_type='clip_norm', clip_value=10)
+        else:
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
@@ -246,8 +248,10 @@ class QMIXPolicy(CommonPolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        # learner_step = command_info['learner_step']
+        # return {'eps': self.epsilon_greedy(learner_step)}
+        env_step = command_info['env_step']
+        return {'eps': self.epsilon_greedy(env_step)}
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""

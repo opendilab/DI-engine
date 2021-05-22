@@ -1406,3 +1406,4 @@ htmlcov
 policy_*
 /data
 **/exp
+**/benchmark
