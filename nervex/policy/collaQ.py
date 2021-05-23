@@ -104,7 +104,7 @@ class CollaQPolicy(CommonPolicy):
         ret = self._armor.forward(inputs, param={'single_step': False})
         total_q = ret['total_q']
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
-        total_q = self._armor.forward(inputs, param={'single_step': False})['total_q']
+        # total_q = self._armor.forward(inputs, param={'single_step': False})['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
             target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
@@ -245,8 +245,10 @@ class CollaQPolicy(CommonPolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        # learner_step = command_info['learner_step']
+        # return {'eps': self.epsilon_greedy(learner_step)}
+        env_step = command_info['env_step']
+        return {'eps': self.epsilon_greedy(env_step)}
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""

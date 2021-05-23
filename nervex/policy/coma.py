@@ -250,8 +250,10 @@ class COMAPolicy(CommonPolicy):
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        learner_step = command_info['learner_step']
-        return {'eps': self.epsilon_greedy(learner_step)}
+        # learner_step = command_info['learner_step']
+        # return {'eps': self.epsilon_greedy(learner_step)}
+        env_step = command_info['env_step']
+        return {'eps': self.epsilon_greedy(env_step)}
 
     def _get_train_sample(self, traj_cache: deque) -> Union[None, List[Any]]:
         r"""

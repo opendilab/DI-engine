@@ -73,6 +73,7 @@ class SMACEnv(SC2Env, BaseEnv):
         map_params = get_map_params(map_name)
         self.reward_only_positive = cfg.get('reward_only_positive', True)
         self.difficulty = cfg.get('difficulty', 7)
+        self.obs_alone=cfg.get('obs_alone', False)
         mirror_opponent = cfg.get('mirror_opponent', True)
         self.players, self.num_players = self._get_players(
             "agent_vs_agent" if self.two_player else "game_vs_bot",
@@ -313,11 +314,21 @@ class SMACEnv(SC2Env, BaseEnv):
         assert all(u.health > 0 for u in self.enemies.values())
 
         if not self.two_player:
-            return {
-                'agent_state': self.get_obs(),
-                'global_state': self.get_state(),
-                'action_mask': self.get_avail_actions()
-            }
+            if self.obs_alone:
+                agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
+                return {
+                    'agent_state': agent_state,
+                    'agent_alone_state': agent_alone_state,
+                    'agent_alone_padding_state': agent_alone_padding_state,
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
+            else:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
 
         return {
             'agent_state': {
@@ -399,11 +410,22 @@ class SMACEnv(SC2Env, BaseEnv):
             new_infos['final_eval_reward'] = infos['final_eval_reward']
             new_infos['fake_final_eval_reward'] = infos['fake_final_eval_reward']
             infos = new_infos
-            obs = {
-                'agent_state': self.get_obs(),
-                'global_state': self.get_state(),
-                'action_mask': self.get_avail_actions()
-            }
+            if self.obs_alone:
+                agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
+                obs = {
+                    'agent_state': agent_state,
+                    'agent_alone_state': agent_alone_state,
+                    'agent_alone_padding_state': agent_alone_padding_state,
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
+            else:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
+
         else:
             raise NotImplementedError
 
@@ -686,7 +708,14 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if not self.flatten_observation:
             agents_obs_list = self._flatten_obs(agents_obs_list)
-        return np.array(agents_obs_list).astype(np.float32)
+        if self.obs_alone:
+            agents_obs_list, agents_obs_alone_list, agents_obs_alone_padding_list = list(zip(*agents_obs_list))
+            return np.array(agents_obs_list).astype(np.float32), np.array(agents_obs_alone_list).astype(
+                np.float32
+            ), np.array(agents_obs_alone_padding_list).astype(np.float32)
+        else:
+            return np.array(agents_obs_list).astype(np.float32)
+
 
     def get_obs_agent(self, agent_id, is_opponent=False):
         unit = self.get_unit_by_id(agent_id, is_opponent=is_opponent)
@@ -813,6 +842,33 @@ class SMACEnv(SC2Env, BaseEnv):
             )
             if self.obs_timestep_number:
                 agent_obs = np.append(agent_obs, self._episode_steps / self.episode_limit)
+            if self.obs_alone:
+                agent_obs_alone = np.concatenate(
+                    (
+                        move_feats.flatten(),
+                        enemy_feats.flatten(),
+                        own_feats.flatten(),
+                        agent_id_feats,
+                    )
+                )
+                agent_obs_alone_padding = np.concatenate(
+                    (
+                        move_feats.flatten(),
+                        enemy_feats.flatten(),
+                        np.zeros_like(ally_feats.flatten()),
+                        own_feats.flatten(),
+                        agent_id_feats,
+                    )
+                )
+                if self.obs_timestep_number:
+                    agent_obs_alone = np.append(agent_obs_alone, self._episode_steps / self.episode_limit)
+                    agent_obs_alone_padding = np.append(
+                        agent_obs_alone_padding, self._episode_steps / self.episode_limit
+                    )
+                return agent_obs, agent_obs_alone, agent_obs_alone_padding
+            else:
+                return agent_obs
+
         else:
             agent_obs = dict(
                 move_feats=move_feats,
@@ -915,6 +971,23 @@ class SMACEnv(SC2Env, BaseEnv):
         else:
             agent_id_feats = self.n_agents
         return move_feats + enemy_feats + ally_feats + own_feats + agent_id_feats
+
+    def get_obs_alone_size(self, is_opponent=False):
+        # TODO suppose the agents formation are same for both opponent and me. This can be extended in future.
+        """Returns the size of the observation."""
+        own_feats = self.get_obs_own_feats_size()
+        move_feats = self.get_obs_move_feats_size()
+
+        n_enemies, n_enemy_feats = self.get_obs_enemy_feats_size()
+
+        enemy_feats = n_enemies * n_enemy_feats
+
+        if is_opponent:
+            agent_id_feats = self.n_enemies
+        else:
+            agent_id_feats = self.n_agents
+        return move_feats + enemy_feats + own_feats + agent_id_feats
+
 
     def get_state(self, is_opponent=False):
         if self.obs_instead_of_state:
@@ -1166,15 +1239,27 @@ class SMACEnv(SC2Env, BaseEnv):
     def info(self, is_opponent=False):
         T = EnvElementInfo
         agent_num = self.n_enemies if is_opponent else self.n_agents
-        return self.SMACEnvInfo(
-            agent_num=agent_num,
+        if self.obs_alone:
+            obs_space=T(
+                {
+                    'agent_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'agent_alone_state': (agent_num, self.get_obs_alone_size(is_opponent)),
+                    'agent_alone_padding_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'global_state': (self.get_state_size(is_opponent),),
+                    'action_mask': (agent_num, *self.action_helper.info().shape),
+                }, None, None, None
+            )
+        else:
             obs_space=T(
                 {
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
                     'global_state': (self.get_state_size(is_opponent),),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
                 }, None, None, None
-            ),
+            )
+        return self.SMACEnvInfo(
+            agent_num=agent_num,
+            obs_space=obs_space,
             act_space=self.action_helper.info(),
             rew_space=self.reward_helper.info(),
             episode_limit=self.episode_limit,

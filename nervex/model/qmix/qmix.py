@@ -191,8 +191,8 @@ class CollaQMultiHeadAttention(nn.Module):
         self.d_v = d_v
 
         self.w_qs = nn.Linear(d_model, n_head * d_k)
-        self.w_ks = nn.Linear(d_model, n_head * d_k)
-        self.w_vs = nn.Linear(d_model, n_head * d_v)
+        self.w_ks = nn.Linear(d_model*2, n_head * d_k)
+        self.w_vs = nn.Linear(d_model*2, n_head * d_v)
 
         self.fc1 = fc_block(n_head * d_v, n_head * d_v, activation=self.act)
         self.fc2 = fc_block(n_head * d_v, d_out)
@@ -297,7 +297,7 @@ class CollaQ(nn.Module):
             obs_dim_after_attention = self._self_attention(
                 torch.randn(
                     1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
-                    (self_feature_range[1] - self_feature_range[0]) + 1, obs_dim
+                          ((self_feature_range[1] - self_feature_range[0])*2) + 1, obs_dim
                 )
             ).shape[-1]
             self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
@@ -424,11 +424,19 @@ class CollaQ(nn.Module):
         agent_colla_q = agent_colla_q.reshape(T, B, A, -1)
 
         total_q_before_mix = agent_alone_q + agent_colla_q - agent_colla_alone_q
+        # total_q_before_mix = agent_colla_q
+        # total_q_before_mix = agent_alone_q
         agent_q = total_q_before_mix
 
         if action is None:
-            action = total_q_before_mix.argmax(dim=-1)
-        agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
+            # For target forward process
+            if len(data['obs']['action_mask'].shape)==3:
+                action_mask=data['obs']['action_mask'].unsqueeze(0)
+            else:
+                action_mask = data['obs']['action_mask']
+            agent_q[action_mask == 0.0] = - 9999999
+            action = agent_q.argmax(dim=-1)
+        agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         if self.use_mixer:
             global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
