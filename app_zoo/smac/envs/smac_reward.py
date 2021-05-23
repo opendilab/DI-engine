@@ -14,7 +14,7 @@ class SMACReward:
         n_enemies,
         two_player,
         reward_type,
-        reward_scale=True,
+        reward_scale=False,
         reduce_agent=True,
         reward_only_positive=True
     ):

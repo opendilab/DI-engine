@@ -63,6 +63,7 @@ class SMACEnv(SC2Env, BaseEnv):
         reward_death_value=10,
         reward_win=200,
         obs_alone=False,
+        game_steps_per_episode=None,
     )
 
     def __init__(
@@ -78,6 +79,7 @@ class SMACEnv(SC2Env, BaseEnv):
         self.two_player = cfg.two_player
         self.difficulty = cfg.difficulty
         self.obs_alone = cfg.obs_alone
+        self.game_steps_per_episode = cfg.game_steps_per_episode
 
         map_name = cfg.map_name
         assert map_name is not None
@@ -124,7 +126,6 @@ class SMACEnv(SC2Env, BaseEnv):
         self.reward_death_value = cfg.reward_death_value
         self.reward_win = cfg.reward_win
         self.reward_defeat = 0
-        self.reward_negative_scale = 0.5
         self.max_reward = (self.n_enemies * self.reward_death_value * 2 + self.reward_win)
 
         self.obs_pathing_grid = False
@@ -215,7 +216,7 @@ class SMACEnv(SC2Env, BaseEnv):
             save_replay_episodes=self.save_replay_episodes,
             replay_dir=None if self.save_replay_episodes is None else ".",
             replay_prefix=None,
-            game_steps_per_episode=None,
+            game_steps_per_episode=self.game_steps_per_episode,
             score_index=None,
             score_multiplier=None,
             random_seed=self._seed,
@@ -474,6 +475,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 info[OPPONENT_AGENT]["episode_limit"] = True
             self.battles_game += 1
             self.timeouts += 1
+            info['final_eval_reward'] = 0.5
 
             if sum(u.health + u.shield for u in self.agents.values()) >= \
                     sum(u.health + u.shield for u in self.enemies.values()):

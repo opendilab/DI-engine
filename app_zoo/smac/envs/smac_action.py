@@ -133,8 +133,14 @@ class SMACAction:
         We use skip_mirror=True in get_avail_agent_actions to avoid error.
         """
         avail_actions = self.get_avail_agent_actions(a_id, engine, is_opponent=is_opponent, skip_mirror=True)
-        assert avail_actions[action] == 1, \
-            "Agent {} cannot perform action {} in ava {}".format(a_id, action, avail_actions)
+        try:
+            assert avail_actions[action] == 1, \
+                "Agent {} cannot perform action {} in ava {}".format(a_id, action, avail_actions)
+        except Exception as e:
+            if action == 0:
+                action = 1
+            else:
+                raise e
         unit = self.get_unit_by_id(a_id, engine, is_opponent=is_opponent)
 
         # if is_opponent:

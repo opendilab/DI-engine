@@ -7,14 +7,16 @@ smac_qmix_config = dict(
         map_name='infestor_viper',
         difficulty=3,
         mirror_opponent=False,
-        collector_env_num=8,
+        collector_env_num=4,
         evaluator_env_num=1,
         stop_value=0.999,
         n_evaluator_episode=4,
         manager=dict(
-            reset_timeout=6000,
-            connect_timeout=6000,
+            max_retry=3,
+            reset_timeout=300,
+            connect_timeout=300,
             shared_memory=False,
+            game_steps_per_episode=140,
         )
     ),
     policy=dict(
@@ -50,11 +52,16 @@ smac_qmix_config = dict(
             learning_rate=0.0005,
             target_update_theta=0.001,
             discount_factor=0.99,
+            learner=dict(
+                hook=dict(
+                    save_ckpt_after_iter=50,
+                )
+            )
         ),
         collect=dict(
-            n_episode=16,
+            n_episode=8,
             unroll_len=16,
-            env_num=8,
+            env_num=4,
         ),
         eval=dict(
             env_num=1,
