@@ -1,6 +1,6 @@
 from typing import Optional, Mapping, Any
 from requests.exceptions import RequestException
-from ..base import get_http_engine_class, get_values_from_response
+from nervex.interaction.base import get_http_engine_class, get_values_from_response
 
 
 class OperatorServer:
@@ -30,10 +30,10 @@ class OperatorServer:
     def get_replicas(self, name: str = None):
         try:
             if name is None:
-                params = {"namespace": self.__namespace, "coordinator": self.__my_name}
+                data = {"namespace": self.__namespace, "coordinator": self.__my_name}
             else:
-                params = {"namespace": self.__namespace, "name": name}
-            response = self.__http_engine.request('GET', self.__prefix_with_api_version('/replicas'), params=params)
+                data = {"namespace": self.__namespace, "name": name}
+            response = self.__http_engine.request('GET', self.__prefix_with_api_version('/replicas'), data=data)
         except RequestException as err:
             return self._error_request(err)
         else:
@@ -87,4 +87,4 @@ class OperatorServer:
 
     def _error_request(self, error: RequestException) -> Any:
         # raise error
-        pass
+        raise RequestException

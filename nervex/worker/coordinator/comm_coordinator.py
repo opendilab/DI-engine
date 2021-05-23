@@ -6,9 +6,10 @@ from typing import Dict, Callable
 from threading import Thread
 
 from nervex.utils import LockContext, LockContextType, get_operator_server_kwargs
-from nervex.interaction import Master, OperatorServer
+from nervex.interaction import Master
 from nervex.interaction.master.task import TaskStatus
 from .resource_manager import NaiveResourceManager
+from .operator_server import OperatorServer
 
 
 class CommCoordinator(object):
@@ -44,9 +45,9 @@ class CommCoordinator(object):
 
         if self._cfg.operator_server:
             server_kwargs = get_operator_server_kwargs(self._cfg.operator_server)
-            self._operator_server = OperatorServer()
-            self._collector_target_num = cfg.collector_target_num
-            self._learner_target_num = cfg.learner_target_num
+            self._operator_server = OperatorServer(**server_kwargs)
+            self._collector_target_num = self._cfg.operator_server.collector_target_num
+            self._learner_target_num = self._cfg.operator_server.learner_target_num
         else:
             self._operator_server = None
 
@@ -77,7 +78,9 @@ class CommCoordinator(object):
             # post init learner/collector demand
             start_time, init_flag = time.time(), False
             while time.time() - start_time <= self._max_retry_second and not self._end_flag:
-                success, _, message, _ = self._server_conn.post_replicas(self._cfg.init_replicas_request)
+                success, _, message, _ = self._operator_server.post_replicas(
+                    self._cfg.operator_server.init_replicas_request
+                )
                 if success:
                     self._logger.info("Post replicas demand to server successfully")
                     init_flag = True
@@ -483,7 +486,7 @@ class CommCoordinator(object):
             else:
                 self._logger.error("Failed to sync with server, message: {}".format(message))
 
-            time.sleep(2)
+            time.sleep(1)
 
     def _update_connection_collector(self, cur_collectors: list) -> None:
         conn_collectors = list(self._connection_collector.keys())
