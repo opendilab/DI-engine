@@ -54,7 +54,7 @@ class BaseLeague(ABC):
         """
         # Add different types of active players for each player category, according to ``cfg.active_players``.
         for cate in self.cfg.player_category:  # Player's category (Depends on the env)
-            for k, n in self.cfg.active_players.items():  # Active player's type (Different in solo and battle)
+            for k, n in self.cfg.active_players.items():  # Active player's type
                 for i in range(n):  # This type's active player number
                     name = '{}_{}_{}_{}'.format(k, cate, i, self.league_uid)
                     ckpt_path = '{}_ckpt.pth'.format(name)
@@ -204,8 +204,8 @@ class BaseLeague(ABC):
             - src_checkpoint (:obj:`str`): Source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
             - dst_checkpoint (:obj:`str`): Destination checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
         '''
-        checkpoint = read_file(src_checkpoint)
-        save_file(dst_checkpoint, checkpoint)
+        checkpoint = read_file('./policy/' + src_checkpoint)
+        save_file('./policy/' + dst_checkpoint, checkpoint)
 
 
 def create_league(cfg: EasyDict, *args) -> BaseLeague:

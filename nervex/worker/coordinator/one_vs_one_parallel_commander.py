@@ -1,3 +1,4 @@
+from nervex.utils.default_helper import deep_merge_dicts
 import time
 import copy
 from typing import Optional, Union
@@ -7,7 +8,7 @@ from functools import partial
 from nervex.utils import pretty_print
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
-from nervex.league import create_league
+from nervex.league import create_league, OneVsOneLeague
 from .base_parallel_commander import BaseCommander
 
 
@@ -46,8 +47,8 @@ class OneVsOneCommander(BaseCommander):
         self._evaluator_env_cfg.pop('evaluator_episode_num')
         self._evaluator_env_cfg.manager.episode_num = self._cfg.env.evaluator_episode_num
 
-        self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
-        self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
+        self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
+        self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
         # TODO accumulate collect info
         self._collector_info = []
@@ -69,7 +70,8 @@ class OneVsOneCommander(BaseCommander):
         self._end_flag = False
 
         # League
-        self._league = create_league(cfg.league)
+        commander_cfg.league = deep_merge_dicts(OneVsOneLeague.default_config(), commander_cfg.league)
+        self._league = create_league(commander_cfg.league)
         self._active_player = self._league.active_players[0]
         self._current_player_id = {}
 
@@ -87,7 +89,7 @@ class OneVsOneCommander(BaseCommander):
                 self._collector_task_space.release_space()
                 return None
             cur_time = time.time()
-            if cur_time - self._last_eval_time > self._cfg.eval_interval:
+            if cur_time - self._last_eval_time > self._commander_cfg.eval_interval:
                 eval_flag = True
                 self._last_eval_time = time.time()
             else:
@@ -143,7 +145,7 @@ class OneVsOneCommander(BaseCommander):
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
-                'league_save_checkpoint_path': self._active_player.checkpoint_path,
+                'league_save_checkpoint_path': './policy/' + self._active_player.checkpoint_path,
             }
             # self._logger.info(
             #     "[LEARNER] Task starts:\n{}".format(
@@ -216,7 +218,7 @@ class OneVsOneCommander(BaseCommander):
                 self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
                 self._tb_logger.add_scalar('evaluator_step/' + k, v, self._total_collector_env_step)
             # If evaluator task ends, whether to stop training should be judged.
-            eval_stop_value = self._cfg.collector_cfg.env_kwargs.eval_stop_value
+            eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
                     "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".

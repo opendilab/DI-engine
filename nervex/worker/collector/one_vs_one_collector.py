@@ -60,17 +60,20 @@ class OneVsOneCollector(BaseCollector):
         if self._eval_flag:
             assert len(self._cfg.policy) == 1
             policy = [create_policy(self._cfg.policy[0], enable_field=['eval']).eval_mode]
+            self.policy = policy
             self._policy_is_active = [None]
             self._policy_iter = [None]
+            self._traj_cache_length = self._traj_len if self._traj_len != INF else None
             self._traj_cache = {env_id: [deque(maxlen=self._traj_cache_length)] for env_id in range(self._env_num)}
         else:
             assert len(self._cfg.policy) == 2
             policy = [create_policy(self._cfg.policy[i], enable_field=['collect']).collect_mode for i in range(2)]
+            self.policy = policy
             self._policy_is_active = [None for _ in range(2)]
             self._policy_iter = [None for _ in range(2)]
+            self._traj_cache_length = self._traj_len if self._traj_len != INF else None
             self._traj_cache = {env_id: [deque(maxlen=self._traj_cache_length) for _ in range(len(policy))] for env_id in range(self._env_num)}
-        self.policy = policy
-        self._first_update_policy = True
+        # self._first_update_policy = True
 
         self._episode_result = [[] for k in range(self._env_num)]
         self._obs_pool = CachePool('obs', self._env_num)
@@ -111,7 +114,7 @@ class OneVsOneCollector(BaseCollector):
         self._predefined_episode_count = self._env_num * self._env_manager._episode_num
 
     def _setup_env_manager(self, cfg: EasyDict) -> BaseEnvManager:
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(self._env_kwargs)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg)
         if self._eval_flag:
             env_cfg = evaluator_env_cfg
         else:
@@ -150,9 +153,9 @@ class OneVsOneCollector(BaseCollector):
         policy_outputs = []
         for i in range(len(self._policy)):
             if self._eval_flag:
-                policy_output = self._policy[i].forward(obs)
+                policy_output = self._policy[i].forward(obs[i])
             else:
-                policy_output = self._policy[i].forward(obs, **self._cfg.collect_setting)
+                policy_output = self._policy[i].forward(obs[i], **self._cfg.collect_setting)
             policy_outputs.append(policy_output)
         self._policy_output_pool.update(policy_outputs)
         actions = {}
@@ -222,7 +225,7 @@ class OneVsOneCollector(BaseCollector):
                     )
                 )
             self._total_step += 1
-        dones = [t[0].done for t in timestep.values()]
+        dones = [t.done for t in timestep.values()]
         if any(dones):
             collector_info = self._get_collector_info()
             self.send_metadata(collector_info)
@@ -272,7 +275,8 @@ class OneVsOneCollector(BaseCollector):
         path = self._cfg.policy_update_path
         self._policy_is_active = self._cfg.policy_update_flag
         for i in range(len(path)):
-            if not self._first_update_policy and not self._policy_is_active[i]:
+            # if not self._first_update_policy and not self._policy_is_active[i]:
+            if not self._policy_is_active[i]:
                 # For the first time, all policies should be updated(i.e. initialized);
                 # For other times, only active player's policies should be updated.
                 continue
@@ -288,7 +292,7 @@ class OneVsOneCollector(BaseCollector):
             self._policy_iter[i] = policy_update_info.pop('iter')
             self._policy[i].load_state_dict(policy_update_info)
             self.debug('Update policy {} with {}(iter{}) in {}'.format(i + 1, path, self._policy_iter, time.time()))
-        self._first_update_policy = False
+        # self._first_update_policy = False
 
     # ******************************** thread **************************************
 
@@ -297,8 +301,8 @@ class OneVsOneCollector(BaseCollector):
         while not self._end_flag:
             cur = time.time()
             interval = cur - last
-            if interval < self._cfg.policy_update_freq:
-                time.sleep(self._cfg.policy_update_freq * 0.1)
+            if interval < self._cfg.update_policy_second:
+                time.sleep(self._cfg.update_policy_second * 0.1)
                 continue
             else:
                 self._update_policy()

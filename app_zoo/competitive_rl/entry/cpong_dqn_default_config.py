@@ -22,7 +22,7 @@ cpong_dqn_config = dict(
         nstep=1,
         discount_factor=0.99,
         learn=dict(
-            batch_size=64,
+            batch_size=16,
             learning_rate=0.001,
             learner=dict(
                 learner_num=1,
@@ -52,6 +52,7 @@ cpong_dqn_config = dict(
                 collector_task_space=2,
                 learner_task_space=1,
                 eval_interval=5,
+                league=dict(),
             ),
         ),
     )
@@ -63,7 +64,7 @@ main_config = cpong_dqn_config
 cpong_dqn_create_config = dict(
     env=dict(
         import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
-        env_type='competitive_rl',
+        type='competitive_rl',
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),

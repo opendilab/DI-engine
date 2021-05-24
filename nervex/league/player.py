@@ -54,7 +54,7 @@ class Player:
         return self._category
 
     @property
-    def payoff(self) -> Union['BattleSharedPayoff', 'SoloSharedPayoff']:  # noqa
+    def payoff(self) -> Union['BattleSharedPayoff']:  # noqa
         return self._payoff
 
     @property
