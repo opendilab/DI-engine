@@ -105,11 +105,7 @@ class BaseLearner(object):
 
     config = dict(
         train_iterations=int(1e9),
-        dataloader=dict(
-            batch_size=2,
-            chunk_size=2,
-            num_workers=0,
-        ),
+        dataloader=dict(num_workers=0, ),
         # --- Hooks ---
         hook=dict(
             load_ckpt_before_run='',
@@ -320,13 +316,10 @@ class BaseLearner(object):
             Users don't need to know the related details if not necessary.
         """
         cfg = self._cfg.dataloader
+        batch_size = self._policy.get_attribute('batch_size')
+        chunk_size = cfg.chunk_size if 'chunk_size' in cfg else batch_size
         self._dataloader = AsyncDataLoader(
-            self.get_data,
-            cfg.batch_size,
-            self._device,
-            cfg.chunk_size,
-            collate_fn=lambda x: x,
-            num_workers=cfg.num_workers
+            self.get_data, batch_size, self._device, chunk_size, collate_fn=lambda x: x, num_workers=cfg.num_workers
         )
         self._next_data = self._time_wrapper(self._next_data, 'scalar', 'data_time')
 
