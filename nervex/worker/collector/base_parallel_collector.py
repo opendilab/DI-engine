@@ -7,12 +7,13 @@ from collections import namedtuple
 from typing import Any, Union, Tuple
 from functools import partial
 from easydict import EasyDict
+import torch
 
 from nervex.policy import Policy
 from nervex.envs import BaseEnvManager
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, COLLECTOR_REGISTRY
-from nervex.torch_utils import build_log_buffer
+from nervex.torch_utils import build_log_buffer, to_tensor, to_ndarray
 
 
 class TickMonitor(LoggedModel):
@@ -152,8 +153,11 @@ class BaseCollector(ABC):
         self._start_thread()
         while not self._end_flag:
             obs = self._env_manager.ready_obs
+            obs = to_tensor(obs, dtype=torch.float32)
             action = self._policy_inference(obs)
+            action = to_ndarray(action)
             timestep = self._env_step(action)
+            timestep = to_tensor(timestep, dtype=torch.float32)
             self._process_timestep(timestep)
             self._iter_after_hook()
             if self._env_manager.done:

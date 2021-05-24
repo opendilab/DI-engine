@@ -7,6 +7,7 @@ import torch
 
 from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer
+from nervex.torch_utils import to_tensor, to_ndarray
 
 INF = float("inf")
 
@@ -205,13 +206,16 @@ class BaseSerialCollector(object):
             with self._timer:
                 # Get current env obs.
                 obs = self._env_manager.ready_obs
+                obs = to_tensor(obs, dtype=torch.float32)
                 self._obs_pool.update(obs)
                 # Policy forward.
                 policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+                actions = to_ndarray(actions)
                 timesteps = self._env_manager.step(actions)
+                timesteps = to_tensor(timesteps, dtype=torch.float32)
             single_env_pre_duration = self._timer.value / len(timesteps)
             # For each env:
             # 1) Form a transition and store it in cache;
