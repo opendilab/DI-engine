@@ -168,7 +168,7 @@ def compile_config(
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
-        save_cfg: bool = False,
+        save_cfg: bool = True,
         save_path: str = 'total_config.py',
 ) -> EasyDict:
     if auto:
@@ -244,7 +244,8 @@ def compile_config_parallel(
 
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg.env.update(create_cfg.env)
-    cfg.env.manager = {}
+    if 'manager' not in cfg.env:
+        cfg.env.manager = {}
     cfg.env.manager.update(create_cfg.env_manager)
     cfg.policy.update(create_cfg.policy)
     cfg.policy.learn.learner.update(create_cfg.learner)
