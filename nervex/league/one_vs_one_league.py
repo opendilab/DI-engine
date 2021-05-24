@@ -58,11 +58,6 @@ class OneVsOneLeague(BaseLeague):
     )
 
     # override
-    def _init_cfg(self, cfg: EasyDict) -> None:
-        self.cfg = cfg
-        # self.model_config = cfg.get('model', EasyDict())
-
-    # override
     def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
         """
         Overview:
