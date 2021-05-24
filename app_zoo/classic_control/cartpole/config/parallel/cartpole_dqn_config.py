@@ -85,6 +85,7 @@ cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
 
 cartpole_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',

@@ -92,6 +92,7 @@ qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
 create_config = qbert_dqn_create_config
 
 qbert_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',

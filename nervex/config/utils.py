@@ -10,6 +10,7 @@ from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition
 from app_zoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
 
 default_host = '0.0.0.0'
+default_port = 22270
 
 
 def set_host_port(cfg: EasyDict, coordinator_host: str, learner_host: str, collector_host: str) -> EasyDict:
@@ -103,6 +104,18 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
     return cfg
 
 
+def set_host_port_k8s(cfg: EasyDict) -> EasyDict:
+    count = 0
+    cfg.coordinator.port = default_port + count
+    count += 1
+    for k in cfg.keys():
+        if k.startswith('learner') or k.startswith('collector'):
+            cfg[k].port = default_port + count
+            count += 1
+
+    return cfg
+
+
 def set_learner_interaction_for_coordinator(cfg: EasyDict) -> EasyDict:
     cfg.coordinator.learner = {}
     for k in cfg.keys():
@@ -129,6 +142,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
     collector_num = cfg.main.policy.collect.collector.collector_num
     path_data = cfg.system.path_data
     path_policy = cfg.system.path_policy
+    coordinator_cfg = cfg.system.coordinator
     communication_mode = cfg.system.communication_mode
     assert communication_mode in ['auto'], communication_mode
     learner_multi_gpu = cfg.system.learner_multi_gpu
@@ -136,6 +150,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
         host='auto',
         port='auto',
     ))
+    new_cfg['coordinator'].update(coordinator_cfg)
     for i in range(learner_num):
         new_cfg[f'learner{i}'] = dict(
             type=cfg.system.comm_learner.type,
@@ -186,6 +201,17 @@ def parallel_transform_slurm(
     cfg.system = set_host_port_slurm(cfg.system, coordinator_host, learner_node, collector_node)
     cfg.system = set_learner_interaction_for_coordinator(cfg.system)
     cfg.system = set_collector_interaction_for_coordinator(cfg.system)
+    pretty_print(cfg)
+    return cfg
+
+
+def parallel_transform_k8s(cfg: dict) -> None:
+    cfg = EasyDict(cfg)
+    cfg.system = set_system_cfg(cfg)
+    cfg.system = set_host_port_k8s(cfg.system)
+    # learner/collector is created by opereator, so the following field is placeholder
+    cfg.system.coordinator.collector = {}
+    cfg.system.coordinator.learner = {}
     pretty_print(cfg)
     return cfg
 

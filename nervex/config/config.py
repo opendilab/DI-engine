@@ -15,7 +15,7 @@ from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator,
 from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
-from .utils import parallel_transform, parallel_transform_slurm
+from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s
 
 
 class Config(object):
@@ -265,6 +265,8 @@ def compile_config_parallel(
                 'system': system_cfg
             }), coordinator_host, learner_host, collector_host
         )
+    elif platform == 'k8s':
+        cfg = parallel_transform_k8s(EasyDict({'main': cfg, 'system': system_cfg}))
     else:
         raise KeyError("not support platform type: {}".format(platform))
     cfg.seed = seed
