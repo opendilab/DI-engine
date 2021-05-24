@@ -6,7 +6,6 @@ from typing import Union, Optional
 from collections import deque
 from competitive_rl.pong.builtin_policies import get_builtin_agent_names, single_obs_space, single_act_space, get_random_policy, get_rule_based_policy
 from competitive_rl.utils.policy_serving import Policy
-from nervex.envs import ObsTransposeWrapper, WarpFrame, FrameStack
 
 
 def get_compute_action_function_ours(agent_name, num_envs=1):
@@ -89,8 +88,7 @@ class BuiltinOpponentWrapper(gym.Wrapper):
         self.env.seed(s)
 
 
-# def wrap_env(env_id, builtin_wrap, opponent, frame_stack=4, warp_frame=True):
-def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False, only_info=False):
+def wrap_env(env_id, builtin_wrap, opponent, frame_stack=4, warp_frame=True, only_info=False):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -107,21 +105,124 @@ def wrap_env(env_id, builtin_wrap, opponent, frame_stack=0, warp_frame=False, on
         if builtin_wrap:
             env = BuiltinOpponentWrapper(env)
             env.reset_opponent(opponent)
-        env = ObsTransposeWrapper(env)
 
         if warp_frame:
-            env = WarpFrame(env)
+            env = WarpFrameCompetitveRl(env, builtin_wrap)
         if frame_stack:
-            env = FrameStack(env, frame_stack)
+            env = FrameStackCompetitiveRl(env, frame_stack, builtin_wrap)
         return env
     else:
         wrapper_info = ''
         if builtin_wrap:
             wrapper_info += BuiltinOpponentWrapper.__name__ + '\n'
-        wrapper_info += ObsTransposeWrapper.__name__ + '\n'
-
         if warp_frame:
-            wrapper_info = WarpFrame.__name__ + '\n'
+            wrapper_info = WarpFrameCompetitveRl.__name__ + '\n'
         if frame_stack:
-            wrapper_info = FrameStack.__name__ + '\n'
+            wrapper_info = FrameStackCompetitiveRl.__name__ + '\n'
         return wrapper_info
+
+
+class WarpFrameCompetitveRl(gym.ObservationWrapper):
+    """Warp frames to 84x84 as done in the Nature paper and later work.
+
+    :param gym.Env env: the environment to wrap.
+    """
+
+    def __init__(self, env, builtin_wrap):
+        super().__init__(env)
+        self.size = 84
+        obs_space = env.observation_space
+        self.builtin_wrap = builtin_wrap
+        if builtin_wrap:
+            # single player
+            self.observation_space = gym.spaces.Box(
+                low=np.min(obs_space.low),
+                high=np.max(obs_space.high),
+                shape=(self.size, self.size),
+                dtype=obs_space.dtype
+            )
+        else:
+            # double player
+            self.observation_space = gym.spaces.tuple.Tuple(
+                [
+                    gym.spaces.Box(
+                        low=np.min(obs_space[0].low),
+                        high=np.max(obs_space[0].high),
+                        shape=(self.size, self.size),
+                        dtype=obs_space[0].dtype
+                    ) for _ in range(len(obs_space))
+                ]
+            )
+
+    def observation(self, frame):
+        """returns the current observation from a frame"""
+        if self.builtin_wrap:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+        else:
+            frames = []
+            for one_frame in frame:
+                one_frame = cv2.cvtColor(one_frame, cv2.COLOR_RGB2GRAY)
+                one_frame = cv2.resize(one_frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+                frames.append(one_frame)
+            return frames
+
+
+class FrameStackCompetitiveRl(gym.Wrapper):
+    """Stack n_frames last frames.
+
+    :param gym.Env env: the environment to wrap.
+    :param int n_frames: the number of frames to stack.
+    """
+
+    def __init__(self, env, n_frames, builtin_wrap):
+        super().__init__(env)
+        self.n_frames = n_frames
+        
+        self.builtin_wrap = builtin_wrap
+        obs_space = env.observation_space
+        if self.builtin_wrap:
+            self.frames = deque([], maxlen=n_frames)
+            shape = (n_frames, ) + obs_space.shape
+            self.observation_space = gym.spaces.Box(
+                low=np.min(obs_space.low), high=np.max(obs_space.high), shape=shape, dtype=obs_space.dtype
+            )
+        else:
+            self.frames = [deque([], maxlen=n_frames) for _ in range(len(obs_space))]
+            shape = (n_frames, ) + obs_space[0].shape
+            self.observation_space = gym.spaces.tuple.Tuple(
+                [
+                    gym.spaces.Box(
+                        low=np.min(obs_space[0].low), high=np.max(obs_space[0].high), shape=shape, dtype=obs_space[0].dtype
+                    ) for _ in range(len(obs_space))
+                ]
+            )
+
+    def reset(self):
+        if self.builtin_wrap:
+            obs = self.env.reset()
+            for _ in range(self.n_frames):
+                self.frames.append(obs)
+            return self._get_ob(self.frames)
+        else:
+            obs = self.env.reset()
+            for i, one_obs in enumerate(obs):
+                for _ in range(self.n_frames):
+                    self.frames[i].append(one_obs)
+            return np.stack([self._get_ob(self.frames[i]) for i in range(len(obs))])
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        if self.builtin_wrap:
+            self.frames.append(obs)
+            return self._get_ob(self.frames), reward, done, info
+        else:
+            for i, one_obs in enumerate(obs):
+                self.frames[i].append(one_obs)
+            return np.stack([self._get_ob(self.frames[i]) for i in range(len(obs))], axis=0), reward, done, info
+
+    @staticmethod
+    def _get_ob(frames):
+        # the original wrapper use `LazyFrames` but since we use np buffer,
+        # it has no effect
+        return np.stack(frames, axis=0)
