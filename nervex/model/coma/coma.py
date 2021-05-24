@@ -13,10 +13,10 @@ from ..common import register_model
 class ComaActorNetwork(nn.Module):
 
     def __init__(
-        self,
-        obs_dim: int,
-        action_dim: int,
-        embedding_dim: int = 64,
+            self,
+            obs_dim: int,
+            action_dim: int,
+            embedding_dim: int = 64,
     ):
         super(ComaActorNetwork, self).__init__()
         self._obs_dim = squeeze(obs_dim)
@@ -48,10 +48,10 @@ class ComaActorNetwork(nn.Module):
 class ComaCriticNetwork(nn.Module):
 
     def __init__(
-        self,
-        input_dim: int,
-        action_dim: int,
-        embedding_dim: int = 128,
+            self,
+            input_dim: int,
+            action_dim: int,
+            embedding_dim: int = 128,
     ):
         super(ComaCriticNetwork, self).__init__()
         self._input_dim = squeeze(input_dim)
@@ -80,7 +80,14 @@ class ComaCriticNetwork(nn.Module):
 
     def _preprocess_data(self, data: Dict) -> torch.Tensor:
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
-        agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
+        agent_state_ori, global_state = data['obs']['agent_state'], data['obs']['global_state']
+
+        # splite obs, last_action and agent_id
+        # TODO splite here beautifully or in env
+        agent_state = agent_state_ori[:, :, :, :-self._act_dim - agent_num]
+        last_action = agent_state_ori[:, :, :, -self._act_dim - agent_num:-agent_num].reshape(t_size, batch_size,1,-1).repeat(1, 1, agent_num, 1)
+        agent_id = agent_state_ori[:, :, :, -agent_num:]
+
         action = one_hot(data['action'], self._act_dim)  # T, B, A，N
         action = action.reshape(t_size, batch_size, -1, agent_num * self._act_dim).repeat(1, 1, agent_num, 1)
         action_mask = (1 - torch.eye(agent_num).to(action.device))
@@ -88,13 +95,14 @@ class ComaCriticNetwork(nn.Module):
         action = (action_mask.unsqueeze(0).unsqueeze(0)) * action  # T, B, A, A*N
         global_state = global_state.unsqueeze(2).repeat(1, 1, agent_num, 1)
 
-        x = torch.cat([global_state, agent_state, action], -1)
+        x = torch.cat([global_state, agent_state, last_action, action, agent_id], -1)
         return x
 
 
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_dim: int,global_obs_dim:int, action_dim: int, rnn_hidden_dim: int, critic_dim: int):
+    def __init__(self, agent_num: int, obs_dim: int, global_obs_dim: int, action_dim: int, rnn_hidden_dim: int,
+                 critic_dim: int):
         super(ComaNetwork, self).__init__()
         actor_input_dim = obs_dim
         critic_input_dim = obs_dim + global_obs_dim + agent_num * action_dim

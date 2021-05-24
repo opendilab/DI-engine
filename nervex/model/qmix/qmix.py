@@ -147,8 +147,8 @@ class QMix(nn.Module):
         agent_q = agent_q.reshape(T, B, A, -1)
         if action is None:
             # For target forward process
-            if len(data['obs']['action_mask'].shape)==3:
-                action_mask=data['obs']['action_mask'].unsqueeze(0)
+            if len(data['obs']['action_mask'].shape) == 3:
+                action_mask = data['obs']['action_mask'].unsqueeze(0)
             else:
                 action_mask = data['obs']['action_mask']
             agent_q[action_mask == 0.0] = - 9999999
@@ -181,7 +181,8 @@ class QMix(nn.Module):
 
 class CollaQMultiHeadAttention(nn.Module):
 
-    def __init__(self, n_head: int, d_model: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.):
+    def __init__(self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int,
+                 dropout: float = 0.):
         super(CollaQMultiHeadAttention, self).__init__()
 
         self.act = nn.ReLU()
@@ -190,9 +191,9 @@ class CollaQMultiHeadAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
 
-        self.w_qs = nn.Linear(d_model, n_head * d_k)
-        self.w_ks = nn.Linear(d_model*2, n_head * d_k)
-        self.w_vs = nn.Linear(d_model*2, n_head * d_v)
+        self.w_qs = nn.Linear(d_model_q, n_head * d_k)
+        self.w_ks = nn.Linear(d_model_v, n_head * d_k)
+        self.w_vs = nn.Linear(d_model_v, n_head * d_v)
 
         self.fc1 = fc_block(n_head * d_v, n_head * d_v, activation=self.act)
         self.fc2 = fc_block(n_head * d_v, d_out)
@@ -231,12 +232,14 @@ class CollaQMultiHeadAttention(nn.Module):
 
 class CollaQSMACAttentionModule(nn.Module):
 
-    def __init__(self, each_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_dim: int):
+    def __init__(self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int],
+                 attention_dim: int):
         super(CollaQSMACAttentionModule, self).__init__()
-        self.each_dim = each_dim
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
-        self.attention_layer = CollaQMultiHeadAttention(1, self.each_dim, attention_dim, attention_dim, attention_dim)
+        self.attention_layer = CollaQMultiHeadAttention(1, q_dim,
+                                                        v_dim, attention_dim,
+                                                        attention_dim, attention_dim)
 
     def _cut_obs(self, obs: torch.Tensor):
         # obs shape = (T, B, A, obs_dim)
@@ -289,15 +292,20 @@ class CollaQ(nn.Module):
         if not self.enable_attention:
             self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
         else:
-            #TODO set the attention layer here beautifully
+            # TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
-                self_feature_range[1] - self_feature_range[0], self_feature_range, ally_feature_range, attention_dim
+                self_feature_range[1] - self_feature_range[0],
+                (ally_feature_range[1] - ally_feature_range[0]) // (agent_num - 1), self_feature_range,
+                ally_feature_range, attention_dim
             )
-            #TODO get the obs_dim_after_attention here beautifully
+            # TODO get the obs_dim_after_attention here beautifully
             obs_dim_after_attention = self._self_attention(
+                # torch.randn(
+                #     1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
+                #           ((self_feature_range[1] - self_feature_range[0])*2) + 1, obs_dim
+                # )
                 torch.randn(
-                    1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
-                          ((self_feature_range[1] - self_feature_range[0])*2) + 1, obs_dim
+                    1, 1, agent_num, obs_dim
                 )
             ).shape[-1]
             self._q_network = FCRDiscreteNet(obs_dim_after_attention, action_dim, embedding_dim)
@@ -339,8 +347,14 @@ class CollaQ(nn.Module):
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
         agent_state, agent_alone_state, agent_alone_padding_state, global_state, prev_state = data['obs'][
-            'agent_state'], data['obs']['agent_alone_state'], data['obs']['agent_alone_padding_state'], data['obs'][
-                'global_state'], data['prev_state']
+                                                                                                  'agent_state'], \
+                                                                                              data['obs'][
+                                                                                                  'agent_alone_state'], \
+                                                                                              data['obs'][
+                                                                                                  'agent_alone_padding_state'], \
+                                                                                              data['obs'][
+                                                                                                  'global_state'], data[
+                                                                                                  'prev_state']
 
         # TODO find a better way to implement agent_along_padding_state
 
@@ -430,8 +444,8 @@ class CollaQ(nn.Module):
 
         if action is None:
             # For target forward process
-            if len(data['obs']['action_mask'].shape)==3:
-                action_mask=data['obs']['action_mask'].unsqueeze(0)
+            if len(data['obs']['action_mask'].shape) == 3:
+                action_mask = data['obs']['action_mask'].unsqueeze(0)
             else:
                 action_mask = data['obs']['action_mask']
             agent_q[action_mask == 0.0] = - 9999999
