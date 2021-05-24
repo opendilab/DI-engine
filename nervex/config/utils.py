@@ -105,13 +105,12 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
 
 
 def set_host_port_k8s(cfg: EasyDict) -> EasyDict:
-    count = 0
-    cfg.coordinator.port = default_port + count
-    count += 1
+    cfg.coordinator.port = default_port
     for k in cfg.keys():
-        if k.startswith('learner') or k.startswith('collector'):
-            cfg[k].port = default_port + count
-            count += 1
+        if k.startswith('learner'):
+            cfg[k].port = default_port + 1
+        elif k.startswith('collector'):
+            cfg[k].port = default_port + 2
 
     return cfg
 
