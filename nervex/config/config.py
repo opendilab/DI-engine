@@ -10,7 +10,7 @@ from typing import Optional, Tuple, NoReturn
 import yaml
 from easydict import EasyDict
 from nervex.utils import deep_merge_dicts
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls
 from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
@@ -161,7 +161,7 @@ def compile_config(
         env_manager=None,
         policy=None,
         learner=BaseLearner,
-        collector=BaseSerialCollector,
+        collector=SampleCollector,
         evaluator=BaseSerialEvaluator,
         buffer=BufferManager,
         env=None,

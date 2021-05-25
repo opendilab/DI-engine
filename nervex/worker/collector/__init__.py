@@ -1,5 +1,7 @@
 from .base_parallel_collector import BaseCollector, create_collector, get_parallel_collector_cls
 from .zergling_collector import ZerglingCollector
 from .comm import BaseCommCollector, FlaskFileSystemCollector, create_comm_collector, NaiveCollector
-from .base_serial_collector import BaseSerialCollector
+from .base_serial_collector import ISerialCollector
+from .sample_serial_collector import SampleCollector
+from .episode_serial_collector import EpisodeCollector
 from .base_serial_evaluator import BaseSerialEvaluator
