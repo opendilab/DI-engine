@@ -10,12 +10,13 @@ from nervex.data import PrioritizedReplayBuffer
 
 monitor_cfg = EasyDict(
     {
-        'log_freq': 2000,
-        'log_path': './log/buffer/a_buffer/',
-        'tick_expire': 100,
-        'print_freq': {
-            'in_out_count': 60,
-            'sampled_attr': 100,
+        'log_path': './log/buffer/',
+        'sampled_data_attr': {
+            'average_range': 5,
+            'print_freq': 200,  # times
+        },
+        'periodic_thruput': {
+            'seconds': 60,
         }
     }
 )

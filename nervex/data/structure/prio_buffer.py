@@ -133,6 +133,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             self._beta_anneal_step = (1 - self._beta) / self._anneal_step
         self._deepcopy = self._cfg.deepcopy
 
+        self._end_flag = False
+
         # Prioritized sample.
         # Capacity needs to be the power of 2.
         capacity = int(np.power(2, np.ceil(np.log2(self.replay_buffer_size))))
@@ -160,16 +162,15 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._thruput_print_seconds = monitor_cfg.periodic_thruput.seconds
         self._thruput_print_times = 0
         self._thruput_start_time = time.time()
-        self._push_count = 0
-        self._sample_count = 0
-        self._remove_count = 0
+        self._push_data_count = 0
+        self._sample_data_count = 0
+        self._remove_data_count = 0
         self._thruput_log_thread = threading.Thread(
             target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
         )
         self._thruput_log_thread.daemon = True
         self._thruput_log_thread.start()
 
-        self._end_flag = False
 
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
@@ -471,7 +472,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._track_used_data(self._data[idx])
         if self._data[idx] is not None:
             self._valid_count -= 1
-            self._remove_count += 1
+            self._remove_data_count += 1
         self._data[idx] = None
         self._sum_tree[idx] = self._sum_tree.neutral_element
         self._min_tree[idx] = self._min_tree.neutral_element
@@ -527,7 +528,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             - add_count (:obj:`int`): How many datas are added into buffer.
             - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.
         """
-        self._push_count += add_count
+        self._push_data_count += add_count
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -540,7 +541,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 e.g. use, priority, staleness, etc.
             - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.
         """
-        self._sample_count += len(sample_data)
+        self._sample_data_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
         use = sum([d['use'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
@@ -600,24 +601,24 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
     def _thrput_print_periodically(self) -> None:
         while not self._end_flag:
             time_passed = time.time() - self._thruput_start_time
-            if time_passed >= self._count_print_per_seconds:
+            if time_passed >= self._thruput_print_seconds:
                 self._logger.info('In the past {:.1f} seconds, buffer statistics is as follows:'.format(time_passed))
                 count_dict = {
-                    'pushed_in': self._push_count,
-                    'sampled_out': self._sample_count,
-                    'removed': self._remove_count,
+                    'pushed_in': self._push_data_count,
+                    'sampled_out': self._sample_data_count,
+                    'removed': self._remove_data_count,
                     'current_have': self._valid_count,
                 }
                 self._logger.print_vars(count_dict)
                 for k, v in count_dict.items():
                     self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._count_print_times)
-                self._push_count = 0
-                self._sample_count = 0
-                self._remove_count = 0
+                self._push_data_count = 0
+                self._sample_data_count = 0
+                self._remove_data_count = 0
                 self._thruput_start_time = time.time()
                 self._count_print_times += 1
             else:
-                time.sleep(min(1, self._count_print_per_seconds * 0.2))
+                time.sleep(min(1, self._thruput_print_seconds * 0.2))
 
     @property
     def beta(self) -> float:
