@@ -173,7 +173,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._thruput_log_thread.daemon = True
         self._thruput_log_thread.start()
 
-
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
         Overview:
