@@ -53,7 +53,9 @@ class BaseLeague(ABC):
                     ckpt_path = '{}_ckpt.pth'.format(name)
                     player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
                     if self.cfg.use_pretrain:
-                        self.save_checkpoint(self.cfg.pretrain_checkpoint_path[cate], osp.join(self.path_policy, player.checkpoint_path))
+                        self.save_checkpoint(
+                            self.cfg.pretrain_checkpoint_path[cate], osp.join(self.path_policy, player.checkpoint_path)
+                        )
                     self.active_players.append(player)
                     self.payoff.add_player(player)
 
@@ -132,7 +134,9 @@ class BaseLeague(ABC):
             if player.is_trained_enough():
                 # Snapshot
                 hp = player.snapshot()
-                self.save_checkpoint(osp.join(self.path_policy, player.checkpoint_path), osp.join(self.path_policy, hp.checkpoint_path))
+                self.save_checkpoint(
+                    osp.join(self.path_policy, player.checkpoint_path), osp.join(self.path_policy, hp.checkpoint_path)
+                )
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
                 # Mutate

@@ -70,7 +70,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             ),
             periodic_thruput=dict(
                 # Every `seconds` seconds, thruput(push/sample/remove count) will be printed.
-                seconds=60,  # seconds 
+                seconds=60,
             ),
         ),
     )
@@ -156,7 +156,9 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._cur_learner_iter = -1
         self._cur_collector_envstep = -1
         self._sampled_data_attr_print_count = 0
-        self._sampled_data_attr_monitor = SampledDataAttrMonitor(TickTime(), expire=monitor_cfg.sampled_data_attr.average_range)
+        self._sampled_data_attr_monitor = SampledDataAttrMonitor(
+            TickTime(), expire=monitor_cfg.sampled_data_attr.average_range
+        )
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
         self._thruput_print_seconds = monitor_cfg.periodic_thruput.seconds
@@ -561,7 +563,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         }
         if self._sampled_data_attr_print_count % self._sampled_data_attr_print_freq == 0:
             self._logger.info("=== Sample data {} Times ===".format(self._sampled_data_attr_print_count))
-            self._logger.print_vars(out_dict)
+            self._logger.print_vars_hor(out_dict)
             for k, v in out_dict.items():
                 iter_metric = self._cur_learner_iter if self._cur_learner_iter != -1 else None
                 step_metric = self._cur_collector_envstep if self._cur_collector_envstep != -1 else None

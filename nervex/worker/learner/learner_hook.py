@@ -217,7 +217,7 @@ class LogShowHook(LearnerHook):
                     tb_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
                     if attr != "avg":
                         text_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-            engine.logger.print_vars(text_var_dict)
+            engine.logger.print_vars_hor(text_var_dict)
             for k, v in tb_var_dict.items():
                 engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
                 engine.tb_logger.add_scalar('learner_step/' + k, v, engine._collector_envstep)

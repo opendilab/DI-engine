@@ -146,10 +146,7 @@ class SQNPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Learn info, including current lr and loss.
         """
         data = default_preprocess_learn(
-            data,
-            use_priority=self._cfg.get('use_priority', False),
-            ignore_done=self._cfg.learn.get('ignore_done', False),
-            use_nstep=False
+            data, use_priority=self._cfg.priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

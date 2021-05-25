@@ -72,7 +72,10 @@ class OneVsOneCollector(BaseCollector):
             self._policy_is_active = [None for _ in range(2)]
             self._policy_iter = [None for _ in range(2)]
             self._traj_cache_length = self._traj_len if self._traj_len != INF else None
-            self._traj_cache = {env_id: [deque(maxlen=self._traj_cache_length) for _ in range(len(policy))] for env_id in range(self._env_num)}
+            self._traj_cache = {
+                env_id: [deque(maxlen=self._traj_cache_length) for _ in range(len(policy))]
+                for env_id in range(self._env_num)
+            }
         # self._first_update_policy = True
 
         self._episode_result = [[] for k in range(self._env_num)]
