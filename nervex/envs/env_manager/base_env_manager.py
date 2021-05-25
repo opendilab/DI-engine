@@ -129,8 +129,6 @@ class BaseEnvManager(object):
         self._cfg = cfg
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
-        # self._transform = partial(to_ndarray)
-        # self._inv_transform = partial(to_tensor, dtype=torch.float32)
         self._closed = True
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
@@ -159,12 +157,7 @@ class BaseEnvManager(object):
             >>>     obs_dict = env_manager.ready_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
         """
-        # return self._inv_transform(
-        #     {i: self._ready_obs[i]
-        #      for i in range(self.env_num) if self._env_episode_count[i] < self._episode_num}
-        # )
-        return {i: self._ready_obs[i]
-                for i in range(self.env_num) if self._env_episode_count[i] < self._episode_num}
+        return {i: self._ready_obs[i] for i in range(self.env_num) if self._env_episode_count[i] < self._episode_num}
 
     @property
     def done(self) -> bool:
@@ -288,7 +281,6 @@ class BaseEnvManager(object):
         self._check_closed()
         timesteps = {}
         for env_id, act in actions.items():
-            # act = self._transform(act)
             timesteps[env_id] = self._step(env_id, act)
             if timesteps[env_id].info.get('abnormal', False):
                 if self._auto_reset:
@@ -303,7 +295,6 @@ class BaseEnvManager(object):
                     self._env_states[env_id] = EnvState.DONE
             else:
                 self._ready_obs[env_id] = timesteps[env_id].obs
-        # return self._inv_transform(timesteps)
         return timesteps
 
     def _step(self, env_id: int, act: Any) -> namedtuple:

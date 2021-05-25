@@ -50,7 +50,7 @@ class DDPGPolicy(Policy):
             # (float) L2 norm weight for network parameters.
             weight_decay=0.0001,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
-            ignore_done=True,
+            ignore_done=False,
             # (int) Frequence of target network update.
             target_theta=0.005,
             # (float) Reward's future discount factor, aka. gamma.
@@ -137,10 +137,7 @@ class DDPGPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data,
-            use_priority=self._cfg.get('use_priority', False),
-            ignore_done=self._cfg.learn.get('ignore_done', False),
-            use_nstep=False
+            data, use_priority=self._cfg.priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

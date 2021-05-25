@@ -213,9 +213,7 @@ class OneVsOneCommander(BaseCommander):
                 'difficulty_inc': difficulty_inc,
             }
             self._sub_logger['evaluator'].info(
-                "[EVALUATOR] Task ends:\n{}".format(
-                    '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])
-                )
+                "[EVALUATOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
             for k, v in info.items():
                 if k in ['train_iter', 'game_result', 'eval_win', 'difficulty_inc']:
@@ -254,9 +252,7 @@ class OneVsOneCommander(BaseCommander):
                 'game_result': finished_task['game_result'],
             }
             self._sub_logger['collector'].info(
-                "[COLLECTOR] Task ends:\n{}".format(
-                    '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])
-                )
+                "[COLLECTOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
             for k, v in info.items():
                 if k in ['train_iter', 'game_result']:

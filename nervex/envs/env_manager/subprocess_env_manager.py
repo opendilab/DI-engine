@@ -265,7 +265,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 )
             time.sleep(0.001)
             sleep_count += 1
-        # return self._inv_transform({i: self._ready_obs[i] for i in self.ready_env})
         return {i: self._ready_obs[i] for i in self.ready_env}
 
     def launch(self, reset_param: Optional[Dict] = None) -> None:
@@ -365,7 +364,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 obs = self._obs_buffers[env_id].get()
             # Because each thread updates the corresponding env_id value, they won't lead to a thread-safe problem.
             self._env_states[env_id] = EnvState.RUN
-            # self._ready_obs[env_id] = self._inv_transform(obs)
             self._ready_obs[env_id] = obs
 
         try:
@@ -405,7 +403,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                    )
 
         for env_id, act in actions.items():
-            # act = self._transform(act)
             self._pipe_parents[env_id].send(['step', [act], {}])
 
         timesteps = {}
@@ -444,7 +441,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if self._shared_memory:
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
-        # timesteps = self._inv_transform(timesteps)
 
         for env_id, timestep in timesteps.items():
             if timestep.info.get('abnormal', False):
