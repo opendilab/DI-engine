@@ -30,10 +30,10 @@ class OperatorServer:
     def get_replicas(self, name: str = None):
         try:
             if name is None:
-                data = {"namespace": self.__namespace, "coordinator": self.__my_name}
+                params = {"namespace": self.__namespace, "coordinator": self.__my_name}
             else:
-                data = {"namespace": self.__namespace, "name": name}
-            response = self.__http_engine.request('GET', self.__prefix_with_api_version('/replicas'), data=data)
+                params = {"namespace": self.__namespace, "name": name}
+            response = self.__http_engine.request('GET', self.__prefix_with_api_version('/replicas'), params=params)
         except RequestException as err:
             return self._error_request(err)
         else:
