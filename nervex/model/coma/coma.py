@@ -105,7 +105,7 @@ class ComaNetwork(nn.Module):
                  critic_dim: int):
         super(ComaNetwork, self).__init__()
         actor_input_dim = obs_dim
-        critic_input_dim = obs_dim + global_obs_dim + agent_num * action_dim
+        critic_input_dim = obs_dim + global_obs_dim + agent_num * action_dim + (agent_num - 1) * action_dim
         self._actor = ComaActorNetwork(actor_input_dim, action_dim, rnn_hidden_dim)
         self._critic = ComaCriticNetwork(critic_input_dim, action_dim, critic_dim)
 

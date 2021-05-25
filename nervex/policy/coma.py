@@ -112,7 +112,7 @@ class COMAPolicy(CommonPolicy):
         with torch.no_grad():
             target_q_value = self._armor.target_forward(data, param={'mode': 'compute_q_value'})['q_value']
         logit = self._armor.forward(data, param={'mode': 'compute_action'})['logit']
-
+        logit[data['obs']['action_mask'] == 0.0] = - 9999999
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
         coma_loss = coma_error(data, self._gamma, self._lambda)
         total_loss = coma_loss.policy_loss + self._value_weight * coma_loss.q_value_loss - self._entropy_weight * \
