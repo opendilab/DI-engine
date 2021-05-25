@@ -55,7 +55,7 @@ class Master(ControllableService):
             http_error_gene=get_master_exception_by_error,
         # )()('localhost', self.__port, False)
         )()(self.__host, self.__port, False)   # TODO: Confirm how to ping itself
-        # self.__self_token = random_token()
+        self.__self_token = random_token()
 
         # slave-connection part
         self.__channel = channel or DEFAULT_CHANNEL
