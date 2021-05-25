@@ -5,8 +5,10 @@ from functools import reduce
 import copy
 import numpy as np
 import torch
+
 from nervex.utils import build_logger, EasyTimer, deep_merge_dicts
 from nervex.envs import BaseEnvManager
+from nervex.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import CachePool
 
 
@@ -133,9 +135,12 @@ class BaseSerialEvaluator(object):
         with self._timer:
             while not eval_monitor.is_finished():
                 obs = self._env_manager.ready_obs
+                obs = to_tensor(obs, dtype=torch.float32)
                 policy_output = self._policy.forward(obs)
                 actions = {i: a['action'] for i, a in policy_output.items()}
+                actions = to_ndarray(actions)
                 timesteps = self._env_manager.step(actions)
+                timesteps = to_tensor(timesteps, dtype=torch.float32)
                 for env_id, t in timesteps.items():
                     if t.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).

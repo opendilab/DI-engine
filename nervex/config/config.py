@@ -254,6 +254,8 @@ def compile_config_parallel(
     default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
 
+    cfg.policy.other.commander.path_policy = system_cfg.path_policy  # league may use 'path_policy'
+
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
     if platform == 'local':

@@ -1,9 +1,11 @@
+from sys import path
 from nervex.utils.default_helper import deep_merge_dicts
 import time
 import copy
 from typing import Optional, Union
 from collections import defaultdict
 from functools import partial
+import os
 
 from nervex.utils import pretty_print
 from nervex.policy import create_policy
@@ -70,6 +72,9 @@ class OneVsOneCommander(BaseCommander):
         self._end_flag = False
 
         # League
+        path_policy = commander_cfg.path_policy
+        self._path_policy = path_policy
+        commander_cfg.league.path_policy = path_policy
         commander_cfg.league = deep_merge_dicts(OneVsOneLeague.default_config(), commander_cfg.league)
         self._league = create_league(commander_cfg.league)
         self._active_player = self._league.active_players[0]
@@ -145,7 +150,7 @@ class OneVsOneCommander(BaseCommander):
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
-                'league_save_checkpoint_path': './policy/' + self._active_player.checkpoint_path,
+                'league_save_checkpoint_path': os.path.join(self._path_policy, self._active_player.checkpoint_path),
             }
             # self._logger.info(
             #     "[LEARNER] Task starts:\n{}".format(

@@ -61,12 +61,16 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         # Monitor configuration for monitor and logger to use. This part does not affect buffer's function.
         monitor=dict(
             # Logger's save path
-            log_path='./log/buffer/default_buffer/',
-            # Tick time expiration. Used for log data smoothing.
-            tick_expire=10,
-            print_freq=dict(
-                in_out_count=60,  # seconds
-                sampled_attr=100,  # times
+            log_path='./log/buffer/',
+            sampled_data_attr=dict(
+                # Past datas will be used for moving average.
+                average_range=5,
+                # Print data attributes every `print_freq` samples.
+                print_freq=200,  # times
+            ),
+            periodic_thruput=dict(
+                # Every `seconds` seconds, thruput(push/sample/remove count) will be printed.
+                seconds=60,  # seconds 
             ),
         ),
     )
@@ -146,25 +150,26 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 monitor_cfg.log_path,
                 self.name + '_buffer',
             )
+        # Sampled data attributes.
         self._cur_learner_iter = -1
         self._cur_collector_envstep = -1
-        # Sampled data attributes.
         self._sampled_data_attr_print_count = 0
-        self._sampled_data_attr_monitor = SampledDataAttrMonitor(TickTime(), expire=monitor_cfg.tick_expire)
-        self._sampled_data_attr_print_freq = monitor_cfg.print_freq.sampled_attr
-        # Periodic in and out data count.
-        self._count_print_per_seconds = monitor_cfg.print_freq.in_out_count
-        self._count_print_times = 0
-        self._start_time = time.time()
-        self._in_count = 0
-        self._out_count = 0
+        self._sampled_data_attr_monitor = SampledDataAttrMonitor(TickTime(), expire=monitor_cfg.sampled_data_attr.average_range)
+        self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
+        # Periodic thruput.
+        self._thruput_print_seconds = monitor_cfg.periodic_thruput.seconds
+        self._thruput_print_times = 0
+        self._thruput_start_time = time.time()
+        self._push_count = 0
+        self._sample_count = 0
         self._remove_count = 0
-        self._end_flag = False
-        self._count_print_thread = threading.Thread(
-            target=self._count_print_periodically, args=(), name='print_in_out_count'
+        self._thruput_log_thread = threading.Thread(
+            target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
         )
-        self._count_print_thread.daemon = True
-        self._count_print_thread.start()
+        self._thruput_log_thread.daemon = True
+        self._thruput_log_thread.start()
+
+        self._end_flag = False
 
     def sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
@@ -522,7 +527,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             - add_count (:obj:`int`): How many datas are added into buffer.
             - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.
         """
-        self._in_count += add_count
+        self._push_count += add_count
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -535,7 +540,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 e.g. use, priority, staleness, etc.
             - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.
         """
-        self._out_count += len(sample_data)
+        self._sample_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
         use = sum([d['use'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
@@ -557,10 +562,12 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             self._logger.info("=== Sample data {} Times ===".format(self._sampled_data_attr_print_count))
             self._logger.print_vars_hor(out_dict)
             for k, v in out_dict.items():
-                iter_metric = self._cur_learner_iter if self._cur_learner_iter != -1 else self._in_count
-                step_metric = self._cur_collector_envstep if self._cur_collector_envstep != -1 else self._in_count
-                self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, iter_metric)
-                self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, step_metric)
+                iter_metric = self._cur_learner_iter if self._cur_learner_iter != -1 else None
+                step_metric = self._cur_collector_envstep if self._cur_collector_envstep != -1 else None
+                if iter_metric is not None:
+                    self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, iter_metric)
+                if step_metric is not None:
+                    self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, step_metric)
         self._sampled_data_attr_print_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:
@@ -590,24 +597,24 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             staleness = cur_learner_iter - collect_iter
             return staleness
 
-    def _count_print_periodically(self) -> None:
+    def _thrput_print_periodically(self) -> None:
         while not self._end_flag:
-            time_passed = time.time() - self._start_time
-            if time_passed >= self._count_print_per_seconds:  # todo
+            time_passed = time.time() - self._thruput_start_time
+            if time_passed >= self._count_print_per_seconds:
                 self._logger.info('In the past {:.1f} seconds, buffer statistics is as follows:'.format(time_passed))
                 count_dict = {
-                    'pushed_in': self._in_count,
-                    'sampled_out': self._out_count,
+                    'pushed_in': self._push_count,
+                    'sampled_out': self._sample_count,
                     'removed': self._remove_count,
                     'current_have': self._valid_count,
                 }
                 self._logger.print_vars(count_dict)
                 for k, v in count_dict.items():
                     self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._count_print_times)
-                self._in_count = 0
-                self._out_count = 0
+                self._push_count = 0
+                self._sample_count = 0
                 self._remove_count = 0
-                self._start_time = time.time()
+                self._thruput_start_time = time.time()
                 self._count_print_times += 1
             else:
                 time.sleep(min(1, self._count_print_per_seconds * 0.2))

@@ -2,6 +2,7 @@ import time
 import signal
 import pytest
 import torch
+import numpy as np
 
 from ..base_env_manager import EnvState
 from ..subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager
@@ -82,11 +83,11 @@ class TestSubprocessEnvManager:
         obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         assert not env_manager._closed
 
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
 
         # Test step catched error
-        action = {i: torch.randn(4) for i in range(env_manager.env_num)}
+        action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'catched_error'
         timestep = env_manager.step(action)
 
@@ -99,7 +100,7 @@ class TestSubprocessEnvManager:
             time.sleep(0.1)
         assert env_manager._env_states[0] == EnvState.RUN
         assert len(env_manager.ready_obs) == 4
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
 
         # Test step error
         action[0] = 'error'
@@ -131,7 +132,7 @@ class TestSubprocessEnvManager:
         time.sleep(0.5)
         assert not env_manager._closed
 
-        timestep = env_manager.step({i: torch.randn(4) for i in range(env_manager.env_num)})
+        timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         obs = env_manager.ready_obs
         assert len(obs) >= 1
         watchdog.stop()
@@ -139,7 +140,7 @@ class TestSubprocessEnvManager:
         # Test step timeout
         watchdog.start()
         obs = env_manager.reset({i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
-        action = {i: torch.randn(4) for i in range(env_manager.env_num)}
+        action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
         with pytest.raises(TimeoutError):
             timestep = env_manager.step(action)
