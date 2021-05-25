@@ -113,6 +113,19 @@ class TextLogger(object):
         if level >= logging.INFO:
             self.info(s)
 
+    def print_vars_hor(self, vars: Dict[str, Any], level: int = logging.INFO) -> None:
+        datak = []
+        datav = []
+        datak.append("Name")
+        datav.append("Value")
+        for k, v in vars.items():
+            datak.append(k)
+            datav.append("{:.6f}".format(v))
+        data = [datak, datav]
+        s = "\n" + tabulate(data, tablefmt='grid')
+        if level >= logging.INFO:
+            self.info(s)
+
     def info(self, s: str) -> None:
         r"""
         Overview:
