@@ -12,7 +12,7 @@
 | vdn         |        |      |        |      |                                                              |
 | qmix        |        |      | 0.53   | 0.66 | [cfg](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/tree/lj-smac-dev/app_zoo/smac/optimal_config/smac_3s5z_qmix_config5.py) |
 | collaq      |        |      | 0.34   | 0.34 | [cfg](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/tree/lj-smac-dev/app_zoo/smac/optimal_config/smac_3s5z_collaQ_config.py) |
-| coma        |        |      |        |      | [cfg](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/tree/lj-smac-dev/app_zoo/smac/optimal_config/smac_3s5z_coma_config4.py) |
+| coma        |        |      | 0.88   | 0.9  | [cfg](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/tree/lj-smac-dev/app_zoo/smac/optimal_config/smac_3s5z_coma_config4.py) |
 | qtrans      |        |      |        |      |                                                              |
 | wqmix(sota) |        |      |        |      |                                                              |
 
