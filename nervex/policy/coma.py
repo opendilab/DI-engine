@@ -38,6 +38,7 @@ class COMAPolicy(CommonPolicy):
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
         self._lambda = algo_cfg.td_lambda
+        self._policy_weight = algo_cfg.policy_weight
         self._value_weight = algo_cfg.value_weight
         self._entropy_weight = algo_cfg.entropy_weight
 
@@ -115,7 +116,7 @@ class COMAPolicy(CommonPolicy):
         logit[data['obs']['action_mask'] == 0.0] = - 9999999
         data = coma_data(logit, data['action'], q_value, target_q_value, data['reward'], data['weight'])
         coma_loss = coma_error(data, self._gamma, self._lambda)
-        total_loss = coma_loss.policy_loss + self._value_weight * coma_loss.q_value_loss - self._entropy_weight * \
+        total_loss = self._policy_weight * coma_loss.policy_loss + self._value_weight * coma_loss.q_value_loss - self._entropy_weight * \
             coma_loss.entropy_loss
 
         # update

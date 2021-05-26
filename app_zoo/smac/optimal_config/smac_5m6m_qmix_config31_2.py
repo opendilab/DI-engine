@@ -16,6 +16,7 @@ smac_5m6m_qmix_config31_2 = dict(
         actor_env_num=actor_env_num,
         evaluator_env_num=evaluator_env_num,
         shared_memory=False,
+        obs_alone=False
     ),
     policy=dict(
         use_cuda=True,
@@ -32,6 +33,7 @@ smac_5m6m_qmix_config31_2 = dict(
         learn=dict(
             train_step=5,
             batch_size=32,
+            clip=False,
             agent_num=agent_num,
             learning_rate=0.001,
             weight_decay=0.0001,
