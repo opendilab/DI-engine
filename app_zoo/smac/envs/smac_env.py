@@ -198,7 +198,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def _launch(self):
 
-        print("*****LAUNCH*****")
+        print("*****LAUNCH FUNCTION CALLED*****")
 
         agent_interface_format = sc2_env.parse_agent_interface_format()  # Use all default setting
 
@@ -289,14 +289,12 @@ class SMACEnv(SC2Env, BaseEnv):
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
             # Avoid hitting the real episode limit of SC2 env
             print("We are full restarting the environment! save_replay_episodes: ", self.save_replay_episodes)
-            self.save_replay(replay_dir='.', prefix=self._map_name)
+            # self.save_replay(replay_dir='.', prefix=self._map_name)
             self.full_restart()
             old_unit_tags = set()
             self._next_reset_steps += FORCE_RESTART_INTERVAL
         else:
-            print("*************ONLY KILL UNIT********************")
             self._restart_episode()
-            print("*************ONLY KILL UNIT OVER********************")
 
         # Information kept for counting the reward
         self.win_counted = False
@@ -311,14 +309,19 @@ class SMACEnv(SC2Env, BaseEnv):
         # if self.heuristic_ai:
         #     self.heuristic_targets = [None] * self.n_agents
 
-        try:
+        count = 0
+        while count <= 5:
             self._update_obs()
             print("INTERNAL INIT UNIT BEGIN")
-            self.init_units(old_unit_tags)
-            print("INTERNAL INIT UNIT OVER")
-        except (protocol.ProtocolError, protocol.ConnectionError) as e:
-            print("Error happen in reset. Error: ", e)
-            self.full_restart()
+            init_flag = self.init_units(old_unit_tags)
+            print("INTERNAL INIT UNIT OVER", init_flag)
+            count += 1
+            if init_flag:
+                break
+            else:
+                old_unit_tags = set()
+        if count >= 5:
+            raise RuntimeError("reset 5 times error")
 
         assert all(u.health > 0 for u in self.agents.values())
         assert all(u.health > 0 for u in self.enemies.values())
@@ -481,7 +484,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 info[OPPONENT_AGENT]["episode_limit"] = True
             self.battles_game += 1
             self.timeouts += 1
-            info['final_eval_reward'] = 0.5
+            info['final_eval_reward'] = -0.5
 
             if sum(u.health + u.shield for u in self.agents.values()) >= \
                     sum(u.health + u.shield for u in self.enemies.values()):
@@ -510,8 +513,8 @@ class SMACEnv(SC2Env, BaseEnv):
         SC2Env.close(self)
 
     def init_units(self, old_unit_tags):
-
-        while True:
+        count = 0
+        while count < 10:
             # Sometimes not all units have yet been created by SC2
             self.agents = {}
             self.enemies = {}
@@ -548,16 +551,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     min_unit_type_opponent = min(unit.unit_type for unit in self.enemies.values())
                     self._init_ally_unit_types(min_unit_type)
                     self._init_enemy_unit_types(min_unit_type_opponent)
-                break
+                return True
+            else:
+                print("***ALL GOOD FAIL***", all_agents_created, all_enemies_created, all_agents_health, all_enemies_health, len(self._obs.observation.raw_data.units))
+                print((len(self.agents) == self.n_agents), (len(self.enemies) == self.n_enemies), len(self.agents), self.n_agents, len(self.enemies), self.n_enemies)
+                self._restart_episode()
+                count += 1
 
             try:
                 self._parallel.run((c.step, 1) for c in self._controllers)
                 self._update_obs()
 
-            except (protocol.ProtocolError, protocol.ConnectionError):
-                print("Error happen in init_units.")
+            except (protocol.ProtocolError, protocol.ConnectionError) as e:
+                print("Error happen in init_units.", e)
                 self.full_restart()
-                self.reset()
+                return False
+        if count >= 10:
+            self.full_restart()
+            return False
 
     def _init_enemy_unit_types(self, min_unit_type_opponent):
         """Initialise ally unit types. Should be called once from the

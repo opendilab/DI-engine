@@ -17,7 +17,10 @@ def automation(env, n_agents):
         if avail_actions[0] != 0:
             action = 0
         elif len(np.nonzero(avail_actions[6:])[0]) == 0:
-            action = MOVE_EAST
+            if avail_actions[MOVE_EAST] != 0:
+                action = MOVE_EAST
+            else:
+                action = np.random.choice(avail_actions_ind)
         else:
             action = np.random.choice(avail_actions_ind)
         # if MOVE_EAST in avail_actions_ind:

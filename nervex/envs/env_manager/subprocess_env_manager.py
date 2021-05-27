@@ -258,7 +258,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
         sleep_count = 0
-        while all([self._env_states[i] == EnvState.RESET for i in no_done_env_idx]):
+        while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
             if sleep_count % 1000 == 0:
                 logging.warning(
                     'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)

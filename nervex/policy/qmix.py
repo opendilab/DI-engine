@@ -219,10 +219,7 @@ class QMIXPolicy(Policy):
             - data (:obj:`dict`): The collected data
         """
         data_id = list(data.keys())
-        try:
-            data = default_collate(list(data.values()))
-        except Exception as e:
-            torch.save(data, 'collect.pt')
+        data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
