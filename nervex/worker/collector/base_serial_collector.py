@@ -5,6 +5,7 @@ from easydict import EasyDict
 import copy
 
 from nervex.envs import BaseEnvManager
+from nervex.utils import SERIAL_COLLECTOR_REGISTRY
 
 INF = float("inf")
 
@@ -36,6 +37,16 @@ class ISerialCollector(ABC):
     @abstractproperty
     def envstep(self) -> int:
         raise NotImplementedError
+
+
+def create_serial_collector(cfg: EasyDict) -> ISerialCollector:
+    import_module(cfg.get('import_names', []))
+    return SERIAL_COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)
+
+
+def get_serial_collector_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return SERIAL_COLLECTOR_REGISTRY.get(cfg.type)
 
 
 class CachePool(object):

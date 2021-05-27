@@ -13,14 +13,14 @@ from easydict import EasyDict
 from nervex.policy import create_policy, Policy
 from nervex.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
 from .base_serial_collector import CachePool
 
 INF = float("inf")
 
 
-@COLLECTOR_REGISTRY.register('zergling')
+@PARALLEL_COLLECTOR_REGISTRY.register('zergling')
 class ZerglingCollector(BaseCollector):
     """
     Feature:
