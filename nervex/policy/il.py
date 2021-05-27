@@ -46,8 +46,8 @@ class ILPolicy(Policy):
             weight_decay=0.0,
         ),
         collect=dict(
-            # (int) collect n_episode data, train model n_iteration time
-            n_episode=2,
+            # (int) collect n_sample data, train model n_iteration time
+            n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
         ),

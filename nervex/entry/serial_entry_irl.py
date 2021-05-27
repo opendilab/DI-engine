@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander
 from nervex.config import read_config, compile_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -60,7 +60,7 @@ def serial_pipeline_irl(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
     commander = BaseSerialCommander(
@@ -77,9 +77,7 @@ def serial_pipeline_irl(
     # Accumulate plenty of data at the beginning of training.
     if replay_buffer.replay_buffer_start_size() > 0:
         collect_kwargs = commander.step()
-        new_data = collector.collect_data(
-            learner.train_iter, n_sample=replay_buffer.replay_buffer_start_size(), policy_kwargs=collect_kwargs
-        )
+        new_data = collector.collect(n_sample=replay_buffer.replay_buffer_start_size(), policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
@@ -90,7 +88,7 @@ def serial_pipeline_irl(
                 break
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
-            new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)

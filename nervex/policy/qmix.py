@@ -46,8 +46,8 @@ class QMIXPolicy(Policy):
             discount_factor=0.99,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_episode=8,
+            # (int) Only one of [n_sample, n_episode] shoule be set
+            n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,

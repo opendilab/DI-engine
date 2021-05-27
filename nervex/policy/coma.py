@@ -46,8 +46,8 @@ class COMAPolicy(Policy):
             entropy_weight=0.01,
         ),
         collect=dict(
-            # (int) collect n_episode data, train model n_iteration time
-            n_episode=6,
+            # (int) collect n_sample data, train model n_iteration time
+            n_sample=128,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=16,
         ),

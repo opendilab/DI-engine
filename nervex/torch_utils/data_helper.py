@@ -119,7 +119,10 @@ def to_tensor(item, dtype=None):
             return new_data
     elif isinstance(item, np.ndarray):
         if dtype is None:
-            return torch.from_numpy(item)
+            if item.dtype == np.float64:
+                return torch.FloatTensor(item)
+            else:
+                return torch.from_numpy(item)
         else:
             return torch.from_numpy(item).to(dtype)
     elif isinstance(item, bool) or isinstance(item, str):

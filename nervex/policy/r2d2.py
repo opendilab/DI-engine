@@ -56,7 +56,7 @@ class R2D2Policy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_episode] shoule be set
             n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.

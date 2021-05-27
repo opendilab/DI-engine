@@ -56,7 +56,7 @@ class BaseSerialCommander(object):
         """
         # Update info
         learn_info = self._learner.learn_info
-        collector_info = self._collector.collector_info
+        collector_info = {'envstep': self._collector.envstep}
         self._info.update(learn_info)
         self._info.update(collector_info)
         # update kwargs

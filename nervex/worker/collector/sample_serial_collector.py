@@ -177,7 +177,7 @@ class SampleCollector(ISerialCollector):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    transition = to_tensor(transition, dtype=torch.float32)
+                    transition = to_tensor(transition)
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
                     self._traj_cache[env_id].append(transition)

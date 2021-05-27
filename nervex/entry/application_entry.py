@@ -4,7 +4,7 @@ import torch
 from functools import partial
 
 from nervex.config import compile_config, read_config
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator
 from nervex.envs import create_env_manager, get_vec_env_setting
 from nervex.data import BufferManager
 from nervex.policy import create_policy
@@ -120,10 +120,10 @@ def collect_demo_data(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
     # Let's collect some expert demostrations
-    exp_data = collector.collect_data(n_sample=collect_count)
+    exp_data = collector.collect(n_sample=collect_count)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:
