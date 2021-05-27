@@ -5,7 +5,8 @@ from functools import reduce
 import copy
 import numpy as np
 import torch
-from nervex.utils import build_logger, EasyTimer, deep_merge_dicts
+from nervex.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts
+from nervex.torch_utils import tensor_to_list
 from nervex.envs import BaseEnvManager
 from .base_serial_collector import CachePool
 
@@ -125,7 +126,6 @@ class BaseSerialEvaluator(object):
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
-        info = {}
         eval_monitor = VectorEvalMonitor(self._env_manager.env_num, n_episode)
         self._env_manager.reset()
         self._policy.reset()
@@ -145,8 +145,8 @@ class BaseSerialEvaluator(object):
                         # Env reset is done by env_manager automatically.
                         self._policy.reset([env_id])
                         reward = t.info['final_eval_reward']
-                        if isinstance(reward, torch.Tensor):
-                            reward = reward.item()
+                        if 'episode_info' in t.info:
+                            eval_monitor.update_info(env_id, t.info['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
@@ -169,12 +169,17 @@ class BaseSerialEvaluator(object):
             'reward_std': np.std(episode_reward),
             'each_reward': episode_reward,
         }
+        episode_info = eval_monitor.get_episode_info()
+        if episode_info is not None:
+            info.update(episode_info)
         # self._logger.print_vars(info)
         self._logger.info(
             "[EVALUATOR] Evaluation ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
         for k, v in info.items():
             if k in ['train_iter', 'ckpt_name', 'each_reward']:
+                continue
+            if not np.isscalar(v):
                 continue
             self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
             self._tb_logger.add_scalar('evaluator_step/' + k, v, envstep)
@@ -202,16 +207,36 @@ class VectorEvalMonitor(object):
         each_env_episode = [n_episode // env_num for _ in range(env_num)]
         for i in range(n_episode % env_num):
             each_env_episode[i] += 1
-        self._data = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
+        self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
+        self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
 
     def is_finished(self) -> bool:
-        return all([len(v) == v.maxlen for v in self._data.values()])
+        return all([len(v) == v.maxlen for v in self._reward.values()])
+
+    def update_info(self, env_id: int, info: Any) -> None:
+        info = tensor_to_list(info)
+        self._info[env_id].append(info)
 
     def update_reward(self, env_id: int, reward: Any) -> None:
-        self._data[env_id].append(reward)
+        if isinstance(reward, torch.Tensor):
+            reward = reward.item()
+        self._reward[env_id].append(reward)
 
     def get_episode_reward(self) -> list:
-        return sum([list(v) for v in self._data.values()], [])  # sum(iterable, start)
+        return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
 
     def get_current_episode(self) -> int:
-        return sum([len(v) for v in self._data.values()])
+        return sum([len(v) for v in self._reward.values()])
+
+    def get_episode_info(self) -> dict:
+        if len(self._info[0]) == 0:
+            return None
+        else:
+            total_info = sum([list(v) for v in self._info.values()], [])
+            total_info = lists_to_dicts(total_info)
+            new_dict = {}
+            for k in total_info.keys():
+                if np.isscalar(total_info[k][0]):
+                    new_dict[k + '_mean'] = np.mean(total_info[k])
+            total_info.update(new_dict)
+            return total_info
