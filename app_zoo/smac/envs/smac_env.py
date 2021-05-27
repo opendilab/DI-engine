@@ -283,6 +283,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if self._launch_env_flag:
             # Launch StarCraft II
+            print("*************LAUNCH TOTAL GAME********************")
             self._launch()
             self._launch_env_flag = False
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
@@ -293,7 +294,9 @@ class SMACEnv(SC2Env, BaseEnv):
             old_unit_tags = set()
             self._next_reset_steps += FORCE_RESTART_INTERVAL
         else:
+            print("*************ONLY KILL UNIT********************")
             self._restart_episode()
+            print("*************ONLY KILL UNIT OVER********************")
 
         # Information kept for counting the reward
         self.win_counted = False
@@ -310,7 +313,9 @@ class SMACEnv(SC2Env, BaseEnv):
 
         try:
             self._update_obs()
+            print("INTERNAL INIT UNIT BEGIN")
             self.init_units(old_unit_tags)
+            print("INTERNAL INIT UNIT OVER")
         except (protocol.ProtocolError, protocol.ConnectionError) as e:
             print("Error happen in reset. Error: ", e)
             self.full_restart()
@@ -392,15 +397,16 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def step(self, actions, force_return_two_player=False):
         processed_actions = self.action_helper.get_action(actions, self)
-        try:
-            # print("Submitting actions: ", actions)
-            self._submit_actions(processed_actions)
-            # raise ValueError()  # To test the functionality of restart
-        except (protocol.ProtocolError, protocol.ConnectionError, ValueError) as e:
-            print("Error happen in step! Error: ", e)
-            self.full_restart()
-            info = {'abnormal': True}
-            return self.SMACTimestep(obs=None, reward=None, done=True, info=info, episode_steps=self._episode_steps)
+        self._submit_actions(processed_actions)
+#        try:
+#            # print("Submitting actions: ", actions)
+#            self._submit_actions(processed_actions)
+#            # raise ValueError()  # To test the functionality of restart
+#        except (protocol.ProtocolError, protocol.ConnectionError, ValueError) as e:
+#            print("Error happen in step! Error: ", e)
+#            self.full_restart()
+#            info = {'abnormal': True}
+#            return self.SMACTimestep(obs=None, reward=None, done=True, info=info, episode_steps=self._episode_steps)
 
         # Update units
         game_end_code = self.update_units()

@@ -90,7 +90,7 @@ def main(policy, map_name="3m", two_player=False):
         n_agents = 2
     else:
         raise ValueError(f"invalid type: {map_name}")
-    n_episodes = 2
+    n_episodes = 20
     me_win = 0
     draw = 0
     op_win = 0
@@ -98,11 +98,13 @@ def main(policy, map_name="3m", two_player=False):
     for e in range(n_episodes):
         print("Now reset the environment for {} episode.".format(e))
         env.reset()
+        print('reset over')
         terminated = False
         episode_reward_me = 0
         episode_reward_op = 0
 
         env_info = env.info()
+        print('begin new episode')
         while not terminated:
             actions = policy(env, n_agents)
             if not two_player:
