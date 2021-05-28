@@ -106,7 +106,7 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
 
 def set_host_port_k8s(cfg: EasyDict) -> EasyDict:
     cfg.coordinator.host = default_host
-    cfg.coordinator.port = default_port
+    cfg.coordinator.port = default_port + 3
     base_learner_cfg = None
     base_collector_cfg = None
     for k in cfg.keys():
@@ -115,15 +115,15 @@ def set_host_port_k8s(cfg: EasyDict) -> EasyDict:
             if base_learner_cfg is None:
                 base_learner_cfg = copy.deepcopy(cfg[k])
                 base_learner_cfg.host = default_host
-                base_learner_cfg.port = default_port
+                base_learner_cfg.port = default_port + 1
             cfg[k].port = default_port + 1
         elif k.startswith('collector'):
             # create the base collector config
             if base_collector_cfg is None:
                 base_collector_cfg = copy.deepcopy(cfg[k])
                 base_collector_cfg.host = default_host
-                base_collector_cfg.port = default_port
-            cfg[k].port = default_port + 2
+                base_collector_cfg.port = default_port + 0
+            cfg[k].port = default_port + 0
     cfg['learner'] = base_learner_cfg
     cfg['collector'] = base_collector_cfg
     return cfg
