@@ -5,7 +5,7 @@ from easydict import EasyDict
 import copy
 
 from nervex.envs import BaseEnvManager
-from nervex.utils import SERIAL_COLLECTOR_REGISTRY
+from nervex.utils import SERIAL_COLLECTOR_REGISTRY, import_module
 
 INF = float("inf")
 

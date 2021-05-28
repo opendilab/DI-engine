@@ -14,7 +14,8 @@ from .base_serial_collector import ISerialCollector, CachePool, INF
 class SampleCollector(ISerialCollector):
     """
     Overview:
-        Sample collector(n_sample), a sample is one training sample for updating model, it is usually like <s, a, s_, r, d>(one transition)
+        Sample collector(n_sample), a sample is one training sample for updating model,
+        it is usually like <s, a, s_, r, d>(one transition)
         while is a trajectory with many transitions, which is often used in RNN-model.
     Interfaces:
         __init__, reset, reset_env, reset_policy, collect, close
