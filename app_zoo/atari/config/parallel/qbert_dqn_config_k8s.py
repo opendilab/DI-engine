@@ -109,8 +109,8 @@ qbert_dqn_system_config = dict(
             learner_target_num=1,
         ),
     ),
-    path_data='/data/nfs/nervex/qbert/data',
-    path_policy='/data/nfs/nervex/qbert/policy',
+    path_data='/nervex/qbert/data',
+    path_policy='/nervex/qbert/policy',
     communication_mode='auto',
     learner_multi_gpu=False,
 )

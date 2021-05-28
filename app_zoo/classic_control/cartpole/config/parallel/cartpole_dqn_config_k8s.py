@@ -91,13 +91,9 @@ cartpole_dqn_system_config = dict(
             api_version='/v1alpha1',
             init_replicas_request=dict(
                 collectors={
-                    "cpus": "3",
-                    "memory": "4Gi",
                     "replicas": 2,
                 },
                 learners={
-                    "cpus": "3",
-                    "memory": "4Gi",
                     "gpus": "0",
                     "replicas": 1,
                 },
@@ -106,8 +102,8 @@ cartpole_dqn_system_config = dict(
             learner_target_num=1,
         ),
     ),
-    path_data='/data/nfs/nervex/cartpole/data',
-    path_policy='/data/nfs/nervex/cartpole/policy',
+    path_data='/nervex/cartpole/data',
+    path_policy='/nervex/cartpole/policy',
     communication_mode='auto',
     learner_multi_gpu=False,
 )
