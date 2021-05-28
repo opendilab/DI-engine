@@ -152,6 +152,7 @@ class CommCoordinator(object):
                     with self._resource_lock:
                         self._resource_manager.update('collector', collector_id, resource_task.result)
                     self._connection_collector[collector_id] = conn
+                    self._callback_fn['deal_with_increase_collector']()
                     break
 
             except Exception as e:
@@ -511,6 +512,7 @@ class CommCoordinator(object):
                     conn = self._connection_collector.pop(collector_id)
                     conn.disconnect()
                     assert not conn.is_connected
+                    self._callback_fn['deal_with_decrease_collector']()
                 else:
                     # ignore the operation of disconnect, since the pod will be terminated by server,
                     # just throw the connection
