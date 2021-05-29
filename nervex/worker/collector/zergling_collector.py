@@ -46,8 +46,9 @@ class ZerglingCollector(BaseCollector):
     # override
     def __init__(self, cfg: dict) -> None:
         super().__init__(cfg)
-        self._update_policy_thread = Thread(target=self._update_policy_periodically, args=(), name='update_policy')
-        self._update_policy_thread.deamon = True
+        self._update_policy_thread = Thread(
+            target=self._update_policy_periodically, args=(), name='update_policy', daemon=True
+        )
         self._start_time = time.time()
         self._compressor = get_data_compressor(self._cfg.compressor)
 
