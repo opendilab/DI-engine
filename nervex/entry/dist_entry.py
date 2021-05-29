@@ -29,7 +29,11 @@ def dist_prepare_config(
 
 
 def dist_launch_coordinator(
-        filename: str, seed: int, coordinator_port: int, disable_flask_log: bool, enable_total_log: bool = False
+        filename: str,
+        seed: int,
+        coordinator_port: int,
+        disable_flask_log: bool,
+        enable_total_log: bool = False
 ) -> None:
     set_pkg_seed(seed)
     # Disable some part nervex log
@@ -72,7 +76,7 @@ def dist_launch_learner(
     with open(filename, 'rb') as f:
         config = pickle.load(f).system[name]
     if learner_port is not None:
-        config.port = learner_port 
+        config.port = learner_port
     learner = create_comm_learner(config)
     learner.start()
 
