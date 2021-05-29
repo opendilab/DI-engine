@@ -8,7 +8,15 @@ from nervex.utils import set_pkg_seed
 
 
 def dist_prepare_config(
-        filename: str, seed: int, platform: str, coordinator_host: str, learner_host: str, collector_host: str
+        filename: str,
+        seed: int,
+        platform: str,
+        coordinator_host: str,
+        learner_host: str,
+        collector_host: str,
+        coordinator_port: int,
+        learner_port: int,
+        collector_port,
 ) -> str:
     main_cfg, create_cfg, system_cfg = read_config(filename)
     config = compile_config_parallel(
@@ -19,7 +27,10 @@ def dist_prepare_config(
         platform=platform,
         coordinator_host=coordinator_host,
         learner_host=learner_host,
-        collector_host=collector_host
+        collector_host=collector_host,
+        coordinator_port=coordinator_port,
+        learner_port=learner_port,
+        collector_port=collector_port,
     )
     # Pickle dump config to disk for later use.
     real_filename = filename + '.pkl'

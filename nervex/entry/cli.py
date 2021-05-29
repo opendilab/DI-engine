@@ -101,7 +101,10 @@ def cli(
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
     elif mode == 'dist':
         if module == 'config':
-            dist_prepare_config(config, seed, platform, coordinator_host, learner_host, collector_host)
+            dist_prepare_config(
+                config, seed, platform, coordinator_host, learner_host, collector_host, coordinator_port, learner_port,
+                collector_port
+            )
         elif module == 'coordinator':
             dist_launch_coordinator(config, seed, coordinator_port, disable_flask_log)
         elif module == 'collector':

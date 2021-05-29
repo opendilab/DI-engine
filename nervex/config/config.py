@@ -224,6 +224,9 @@ def compile_config_parallel(
         coordinator_host: Optional[str] = None,
         learner_host: Optional[str] = None,
         collector_host: Optional[str] = None,
+        coordinator_port: Optional[int] = None,
+        learner_port: Optional[int] = None,
+        collector_port: Optional[int] = None,
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
@@ -266,7 +269,15 @@ def compile_config_parallel(
             }), coordinator_host, learner_host, collector_host
         )
     elif platform == 'k8s':
-        cfg = parallel_transform_k8s(EasyDict({'main': cfg, 'system': system_cfg}))
+        cfg = parallel_transform_k8s(
+            EasyDict({
+                'main': cfg,
+                'system': system_cfg
+            }),
+            coordinator_port=coordinator_port,
+            learner_port=learner_port,
+            collector_port=collector_port
+        )
     else:
         raise KeyError("not support platform type: {}".format(platform))
     cfg.seed = seed
