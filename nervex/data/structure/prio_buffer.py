@@ -610,14 +610,14 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                     'removed': self._remove_data_count,
                     'current_have': self._valid_count,
                 }
-                self._logger.print_vars(count_dict)
+                self._logger.print_vars_hor(count_dict)
                 for k, v in count_dict.items():
-                    self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._count_print_times)
+                    self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._thruput_print_times)
                 self._push_data_count = 0
                 self._sample_data_count = 0
                 self._remove_data_count = 0
                 self._thruput_start_time = time.time()
-                self._count_print_times += 1
+                self._thruput_print_times += 1
             else:
                 time.sleep(min(1, self._thruput_print_seconds * 0.2))
 
