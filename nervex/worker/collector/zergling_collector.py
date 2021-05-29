@@ -15,7 +15,7 @@ from nervex.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
 from nervex.torch_utils import to_device, tensor_to_list
 from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
-from .base_serial_collector import CachePool
+from .base_serial_collector import CachePool, TrajBuffer
 
 INF = float("inf")
 
@@ -66,8 +66,7 @@ class ZerglingCollector(BaseCollector):
         self._episode_result = [[] for k in range(self._env_num)]
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._traj_cache_length = self._traj_len if self._traj_len != INF else None
-        self._traj_cache = {env_id: deque(maxlen=self._traj_cache_length) for env_id in range(self._env_num)}
+        self._traj_buffer = {env_id: TrajBuffer(self._traj_len) for env_id in range(self._env_num)}
         self._total_step = 0
         self._total_sample = 0
         self._total_episode = 0
@@ -153,7 +152,7 @@ class ZerglingCollector(BaseCollector):
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
                 # if there is a abnormal timestep, reset all the related variable, also this env has been reset
-                self._traj_cache[env_id].clear()
+                self._traj_buffer[env_id].clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
                 self._policy.reset([env_id])
@@ -165,9 +164,9 @@ class ZerglingCollector(BaseCollector):
                 transition = self._policy.process_transition(
                     self._obs_pool[env_id], self._policy_output_pool[env_id], t
                 )
-                self._traj_cache[env_id].append(transition)
-            if (not self._eval_flag) and (t.done or len(self._traj_cache[env_id]) == self._traj_len):
-                train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
+                self._traj_buffer[env_id].append(transition)
+            if (not self._eval_flag) and (t.done or len(self._traj_buffer[env_id]) == self._traj_len):
+                train_sample = self._policy.get_train_sample(self._traj_buffer[env_id])
                 for s in train_sample:
                     s = self._compressor(s)
                     self._total_sample += 1
@@ -176,7 +175,7 @@ class ZerglingCollector(BaseCollector):
                         self.send_stepdata(metadata['data_id'], s)
                         self.send_metadata(metadata)
                     send_data_time.append(self._timer.value)
-                self._traj_cache[env_id].clear()
+                self._traj_buffer[env_id].clear()
             if t.done:
                 # env reset is done by env_manager automatically
                 self._obs_pool.reset(env_id)

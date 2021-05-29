@@ -206,7 +206,7 @@ def test_iqn():
         f.write("17. iqn\n")
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
 def test_her_dqn():
     config = [deepcopy(bitflip_dqn_config), deepcopy(bitflip_dqn_create_config)]
     try:

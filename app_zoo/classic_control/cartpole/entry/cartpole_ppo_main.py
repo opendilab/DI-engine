@@ -50,7 +50,7 @@ def main(cfg, seed=0):
             if stop:
                 break
         new_data = collector.collect(train_iter=learner.train_iter)
-        assert all([len(c) == 0 for c in collector._traj_cache.values()])
+        assert all([len(c) == 0 for c in collector._traj_buffer.values()])
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)

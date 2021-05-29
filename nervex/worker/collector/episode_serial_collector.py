@@ -7,7 +7,7 @@ import torch
 from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray
-from .base_serial_collector import ISerialCollector, CachePool, INF
+from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('episode')
@@ -82,9 +82,8 @@ class EpisodeCollector(ISerialCollector):
 
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
-        maxlen = self._traj_len if self._traj_len != INF else None
-        self._traj_cache = {env_id: deque(maxlen=maxlen) for env_id in range(self._env_num)}
+        # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
+        self._traj_buffer = {env_id: TrajBuffer(maxlen=self._traj_len) for env_id in range(self._env_num)}
         self._env_info = {env_id: {'time': 0., 'step': 0} for env_id in range(self._env_num)}
 
         self._episode_info = []
@@ -95,7 +94,7 @@ class EpisodeCollector(ISerialCollector):
         self._end_flag = False
 
     def _reset_stat(self, env_id: int) -> None:
-        self._traj_cache[env_id].clear()
+        self._traj_buffer[env_id].clear()
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
         self._env_info[env_id] = {'time': 0., 'step': 0}
@@ -150,7 +149,6 @@ class EpisodeCollector(ISerialCollector):
                 ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
                 remain_episode -= min(len(new_available_env_id), remain_episode)
                 obs = {env_id: obs[env_id] for env_id in ready_env_id}
-                obs = to_tensor(obs, dtype=torch.float32)
                 # Policy forward.
                 policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._obs_pool.update(obs)
@@ -176,16 +174,16 @@ class EpisodeCollector(ISerialCollector):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    transition = to_tensor(transition)
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_cache[env_id].append(transition)
+                    self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done:
-                        return_episode.append(list(self._traj_cache[env_id]))
-                        self._traj_cache[env_id].clear()
+                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        return_episode.append(transitions)
+                        self._traj_buffer[env_id].clear()
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
@@ -207,7 +205,6 @@ class EpisodeCollector(ISerialCollector):
                 break
         # log
         self._output_log(train_iter)
-
         return return_episode
 
     def _output_log(self, train_iter: int) -> None:

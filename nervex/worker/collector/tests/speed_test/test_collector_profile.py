@@ -5,7 +5,7 @@ import pytest
 from functools import partial
 import copy
 
-from nervex.worker import BaseSerialCollector
+from nervex.worker import SampleCollector
 from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
 from nervex.data import BufferManager
@@ -49,10 +49,10 @@ def compare_test(cfg, out_str, seed):
         collector_env.seed(seed)
 
         # cfg.policy.collect.collector = deep_merge_dicts(
-        #     BaseSerialCollector.default_config(), cfg.policy.collect.collector)
+        #     SampleCollector.default_config(), cfg.policy.collect.collector)
         policy = FakePolicy(cfg.policy)
-        collector_cfg = deep_merge_dicts(BaseSerialCollector.default_config(), cfg.policy.collect.collector)
-        collector = BaseSerialCollector(collector_cfg, collector_env, policy.collect_mode)
+        collector_cfg = deep_merge_dicts(SampleCollector.default_config(), cfg.policy.collect.collector)
+        collector = SampleCollector(collector_cfg, collector_env, policy.collect_mode)
         buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, BufferManager.default_config())
         replay_buffer = BufferManager(buffer_cfg)
 

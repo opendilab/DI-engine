@@ -20,4 +20,4 @@ def test_collect(env_manager_type):
     )
     assert len(collected_episode) == 18
     assert all([e[-1]['done'] for e in collected_episode])
-    assert all([len(c) == 0 for c in collector._traj_cache.values()])
+    assert all([len(c) == 0 for c in collector._traj_buffer.values()])

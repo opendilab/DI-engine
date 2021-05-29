@@ -78,7 +78,7 @@ def to_dtype(item, dtype):
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_tensor(item, dtype=None):
+def to_tensor(item, dtype=None, ignore_keys: list = [], transform_scalar: bool = True):
     r"""
     Overview:
         transfer numpy.ndarray, list of scalars to torch.Tensor, keep other data types unchanged
@@ -103,7 +103,10 @@ def to_tensor(item, dtype=None):
     if isinstance(item, dict):
         new_data = {}
         for k, v in item.items():
-            new_data[k] = to_tensor(v, dtype)
+            if k in ignore_keys:
+                new_data[k] = v
+            else:
+                new_data[k] = to_tensor(v, dtype, ignore_keys, transform_scalar)
         return new_data
     elif isinstance(item, list) or isinstance(item, tuple):
         if len(item) == 0:
@@ -115,7 +118,7 @@ def to_tensor(item, dtype=None):
         else:
             new_data = []
             for t in item:
-                new_data.append(to_tensor(t, dtype))
+                new_data.append(to_tensor(t, dtype, ignore_keys, transform_scalar))
             return new_data
     elif isinstance(item, np.ndarray):
         if dtype is None:
@@ -128,10 +131,13 @@ def to_tensor(item, dtype=None):
     elif isinstance(item, bool) or isinstance(item, str):
         return item
     elif np.isscalar(item):
-        if dtype is None:
-            return torch.as_tensor(item)
+        if transform_scalar:
+            if dtype is None:
+                return torch.as_tensor(item)
+            else:
+                return torch.as_tensor(item).to(dtype)
         else:
-            return torch.as_tensor(item).to(dtype)
+            return item
     elif item is None:
         return None
     elif isinstance(item, torch.Tensor):

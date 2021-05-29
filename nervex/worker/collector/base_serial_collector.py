@@ -6,6 +6,7 @@ import copy
 
 from nervex.envs import BaseEnvManager
 from nervex.utils import SERIAL_COLLECTOR_REGISTRY, import_module
+from nervex.torch_utils import to_tensor
 
 INF = float("inf")
 
@@ -99,3 +100,27 @@ class CachePool(object):
 
     def reset(self, idx: int) -> None:
         self._pool[idx] = None
+
+
+class TrajBuffer(list):
+
+    def __init__(self, maxlen: int, *args, **kwargs) -> None:
+        self._maxlen = maxlen
+        super().__init__(*args, **kwargs)
+
+    def append(self, data: Any) -> None:
+        while len(self) >= self._maxlen:
+            del self[0]
+        super().append(data)
+
+
+def to_tensor_transitions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if 'next_obs' not in data[0]:
+        return to_tensor(data, transform_scalar=False)
+    else:
+        # for save memory
+        data = to_tensor(data, ignore_keys=['next_obs'], transform_scalar=False)
+        for i in range(len(data) - 1):
+            data[i]['next_obs'] = data[i + 1]['obs']
+        data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'])
+        return data

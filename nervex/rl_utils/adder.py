@@ -62,24 +62,6 @@ class Adder(object):
         else:
             return copy.deepcopy(template)
 
-    def get_traj(self, data: deque, traj_len: Union[int, float] = float("inf"), return_num: int = 0) -> List:
-        """
-        Overview:
-            Get part of original deque type ``data`` as traj data for further process and sampling.
-        Arguments:
-            - data (:obj:`deque`): deque type traj data, should be the cache of traj
-            - traj_len (:obj:`int`): expected length of the collected trajectory, 'inf' means collecting will not \
-                end until episode is done
-            - return_num (:obj:`int`): number of datas which will be appended back to ``data``, determined by ``nstep``
-        Returns:
-            - traj (:obj:`List`): front(left) part of ``data``
-        """
-        num = min(traj_len, len(data))
-        traj = [data.popleft() for _ in range(num)]
-        for i in range(min(return_num, len(data))):
-            data.appendleft(copy.deepcopy(traj[-(i + 1)]))
-        return traj
-
     def get_gae(self, data: List[Dict[str, Any]], last_value: torch.Tensor, gamma: float,
                 gae_lambda: float) -> List[Dict[str, Any]]:
         """
@@ -156,7 +138,7 @@ class Adder(object):
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
             if next_obs_flag:
-                data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+                data[i]['next_obs'] = data[i + nstep]['obs']
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
@@ -166,7 +148,7 @@ class Adder(object):
                 data[i]['value_gamma'] = gamma ** nstep
         for i in range(max(0, len(data) - nstep), len(data)):
             if next_obs_flag:
-                data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
+                data[i]['next_obs'] = data[-1]['next_obs']
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(len(data) - i)])
             else:
@@ -194,8 +176,6 @@ class Adder(object):
         if self._unroll_len == 1:
             return data
         else:
-            if isinstance(data, deque):
-                data = list(data)
             # cut data into pieces whose length is unroll_len
             split_data, residual = list_split(data, step=self._unroll_len)
 

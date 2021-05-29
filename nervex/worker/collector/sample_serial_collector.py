@@ -7,7 +7,7 @@ import torch
 from nervex.envs import BaseEnvManager
 from nervex.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray
-from .base_serial_collector import ISerialCollector, CachePool, INF
+from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('sample')
@@ -90,9 +90,9 @@ class SampleCollector(ISerialCollector):
 
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        # _traj_cache is {env_id: deque}, is used to store traj_len pieces of transitions
+        # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
-        self._traj_cache = {env_id: deque(maxlen=maxlen) for env_id in range(self._env_num)}
+        self._traj_buffer = {env_id: TrajBuffer(maxlen=maxlen) for env_id in range(self._env_num)}
         self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
 
         self._episode_info = []
@@ -104,7 +104,7 @@ class SampleCollector(ISerialCollector):
         self._end_flag = False
 
     def _reset_stat(self, env_id: int) -> None:
-        self._traj_cache[env_id].clear()
+        self._traj_buffer[env_id].clear()
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
         self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
@@ -143,6 +143,7 @@ class SampleCollector(ISerialCollector):
                 raise RuntimeError("Please specify collect n_sample")
             else:
                 n_sample = self._default_n_sample
+        assert n_sample % self._env_num == 0, "Please make sure env_num is divisible by n_sample"
         if policy_kwargs is None:
             policy_kwargs = {}
         collected_sample = 0
@@ -152,7 +153,6 @@ class SampleCollector(ISerialCollector):
             with self._timer:
                 # Get current env obs.
                 obs = self._env.ready_obs
-                obs = to_tensor(obs, dtype=torch.float32)
                 # Policy forward.
                 policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._obs_pool.update(obs)
@@ -178,21 +178,21 @@ class SampleCollector(ISerialCollector):
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
                     )
-                    transition = to_tensor(transition)
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_cache[env_id].append(transition)
+                    self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data
-                    if timestep.done or len(self._traj_cache[env_id]) == self._traj_len:
-                        # Episode is done or traj_cache(maxlen=traj_len) is full.
-                        train_sample = self._policy.get_train_sample(self._traj_cache[env_id])
+                    if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
+                        # Episode is done or traj_buffer(maxlen=traj_len) is full.
+                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
-                        self._traj_cache[env_id].clear()
+                        self._traj_buffer[env_id].clear()
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
@@ -217,7 +217,7 @@ class SampleCollector(ISerialCollector):
             for env_id in range(self._env_num):
                 self._reset_stat(env_id)
 
-        return return_data
+        return return_data[:n_sample]
 
     def _output_log(self, train_iter: int) -> None:
         if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(self._episode_info) > 0:

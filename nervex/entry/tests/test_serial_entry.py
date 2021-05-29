@@ -150,7 +150,7 @@ def test_impala():
         assert False, "pipeline fail"
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_her_dqn():
     config = [deepcopy(bitflip_dqn_config), deepcopy(bitflip_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
