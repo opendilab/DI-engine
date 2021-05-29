@@ -46,23 +46,6 @@ class TestAdder:
         for i in range(len(output)):
             assert output[i]['adv'].eq(output2[i]['adv'])
 
-    def test_get_traj(self):
-        adder = Adder(use_cuda=False, unroll_len=1)
-        queue = deque(maxlen=8)
-        for _ in range(8):
-            queue.append(self.get_transition())
-        traj = adder.get_traj(queue, traj_len=7, return_num=1)
-        assert len(traj) == 7
-        assert len(queue) == 2
-        left_data = queue.popleft()
-        for k in left_data:
-            if k == 'done':
-                continue
-            assert (left_data[k] == traj[-1][k]).all()
-
-        left_data['other'] = left_data['other'] + 1
-        assert (left_data['other'] != traj[-1]['other']).all()
-
     def test_get_nstep_return_data(self):
         nstep = 3
         adder = Adder(use_cuda=False, unroll_len=1)

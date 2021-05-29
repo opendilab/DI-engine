@@ -72,6 +72,7 @@ class Policy(ABC):
             torch.cuda.set_device(self._rank)
             model.cuda()
         self._model = model
+        self._on_policy = self._cfg.on_policy
 
         if enable_field is None:
             self._enable_field = self.total_field
