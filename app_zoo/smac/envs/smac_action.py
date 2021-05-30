@@ -268,7 +268,19 @@ class SMACAction:
                 if t_unit.health > 0:
                     dist = distance(unit.pos.x, unit.pos.y, t_unit.pos.x, t_unit.pos.y)
                     if dist <= shoot_range:
-                        avail_actions[t_id + self.n_actions_no_attack] = 1
+                        if engine.map_type == "infestor_viper":
+                            value = 0
+                            # viper
+                            if unit.unit_type == 499:
+                                if unit.energy >= 125:
+                                    value = 1
+                            # infestor
+                            else:
+                                if unit.energy >= 50:
+                                    value = 1
+                            avail_actions[t_id + self.n_actions_no_attack] = value
+                        else:
+                            avail_actions[t_id + self.n_actions_no_attack] = 1
 
         else:
             # only no-op allowed
