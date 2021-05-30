@@ -52,7 +52,8 @@ For junior users, an environment wrapper is provided to simply wrap the gym env 
 For advanced users, it is suggested to check our Environment doc for details
 
 The :class:`Env Manager <nervex.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
-or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env.
+or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env. Here we show a case
+of using :class:`BaseEnvManager <nervex.envs.BaseEnvManager>` to build environments for collection and evaluation.
 
 .. code-block:: python
 
@@ -71,7 +72,8 @@ Set up Policy and NN model
 NerveX supports most of the common policies used in RL training. Each is defined as a :class:`Policy <nervex.policy.CommonPolicy>`
 class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks 
 are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy. 
-NerveX also provides default networks to simply apply to the environment.
+NerveX also provides default networks to simply apply to the environment. For some complex RL methods, it is required to set some
+properties (such as `Actor` and `Critic`) in your defined model.
 
 For example, a `DQN` policy and `PPO` policy for CartPole can be defined as follow.
 
@@ -218,3 +220,26 @@ training. In addition to the default logging parameters, users can add their own
 .. code-block:: python
 
     tb_logger.add_scalar('epsilon_greedy', eps, learner.train_iter)
+
+Loading & Saving checkpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is usually needed to save and resume an experiments with model checkpoints. NerveX saves and loads checkpoints
+in the same way as PyTorch.
+
+To deploy this in a more elegant way, nerveX is configured to use 
+:class:`Learner Hooks <nervex.worker.learner.learner_hook.LearnerHook>` to handle these cases. The saving hook is 
+automatically frequently called after training iterations. And to load & save checkpoints at the beginning and 
+in the end, users can simply add one line code before & after training as follow.
+
+.. code-block:: python
+    
+    learner.call_hook('before_run')
+
+    # training loop
+    while True:
+        ...
+    
+    learner.call_hook('after_run')
+
+For more information, please take a look to ``Wrapper & Hook Overview``

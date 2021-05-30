@@ -6,7 +6,22 @@ Env Manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 概述：
-    env manager是一个环境管理器，可以管理多个相同类型不同配置的环境。目前支持的类型有单进程串行和多进程并行两种模式。
+    env manager是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
+    目前支持的类型有单进程串行和多进程并行两种模式。BaseEnvManager 通过循环串行（伪并行）来维护多个环境实例，Async(Sync)SubprocessEnvManager 通过子进程向量化的方式，即调用
+    multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。NerveX 的 env manager 需使用 nerveX 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
+    其初始化时需提供每个 env 的实例化接口，通过 config 设定具体的运行细节。
+
+用法：
+    - init
+    - step
+    - reset
+    - close
+    - done
+
+具体实现：
+    - env state
+
+
 代码结构：
     主要分为如下几个子模块：
 
