@@ -188,6 +188,7 @@ class SMACEnv(SC2Env, BaseEnv):
     def _get_players(self, game_type, player1_race, player2_race):
         if game_type == 'game_vs_bot':
             agent_num = 1
+            print('difficulty', self.difficulty)
             players = [sc2_env.Agent(races[player1_race]), sc2_env.Bot(races[player2_race], self.difficulty)]
         elif game_type == 'agent_vs_agent':
             agent_num = 2
@@ -275,6 +276,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def reset(self):
         self._episode_steps = 0
+        self._final_eval_fake_reward = 0.
         old_unit_tags = set(u.tag for u in self.agents.values()).union(set(u.tag for u in self.enemies.values()))
 
         if self.just_force_restarts:
@@ -289,7 +291,6 @@ class SMACEnv(SC2Env, BaseEnv):
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
             # Avoid hitting the real episode limit of SC2 env
             print("We are full restarting the environment! save_replay_episodes: ", self.save_replay_episodes)
-            # self.save_replay(replay_dir='.', prefix=self._map_name)
             self.full_restart()
             old_unit_tags = set()
             self._next_reset_steps += FORCE_RESTART_INTERVAL
@@ -419,9 +420,12 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if (not self.two_player) and (not force_return_two_player):
             rewards, terminates, new_infos = rewards[ORIGINAL_AGENT], terminates[ORIGINAL_AGENT], infos[ORIGINAL_AGENT]
+            self._final_eval_fake_reward += rewards
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
             new_infos['final_eval_reward'] = infos['final_eval_reward']
+            if 'episode_info' in infos:
+                new_infos['episode_info'] = infos['episode_info']
             infos = new_infos
             if self.obs_alone:
                 agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
@@ -496,6 +500,9 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if terminated:
             self._episode_count += 1
+            # 1-dim to 0-dim
+            info['episode_info'] = {'final_eval_fake_reward': self._final_eval_fake_reward[0]}
+            self._final_eval_fake_reward = 0.
 
         # PZH: Zero at first step
         if self._episode_steps == 1:

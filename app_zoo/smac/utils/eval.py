@@ -50,17 +50,20 @@ def eval(
     while True:
         policy_output = policy.forward({0: obs})
         action = policy_output[0]['action']
+        print(action)
         timestep = env.step(action)
         eval_reward += timestep.reward
         obs = timestep.obs
         if timestep.done:
             break
 
+    env.save_replay(replay_dir='.', prefix=env._map_name)
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
 
 
 if __name__ == "__main__":
-    path = '/mnt/lustre/niuyazhe/code/gitlab/nerveX/app_zoo/smac/config/ckpt_BaseLearner_Thu_May_27_15_40_56_2021/iteration_2200.pth.tar'
+    path = '/mnt/lustre/niuyazhe/code/gitlab/nerveX/app_zoo/smac/config/new_map/ckpt_BaseLearner_Sat_May_29_16_19_07_2021/iteration_27000.pth.tar'
+    path = '/mnt/lustre/niuyazhe/code/gitlab/nerveX/app_zoo/smac/config/map120_zero_1/ckpt_BaseLearner_Sun_May_30_01_48_37_2021/ckpt_best.pth.tar'
     cfg = './smac_qmix_config.py'
     state_dict = torch.load(path, map_location='cpu')
     eval(cfg, seed=0, state_dict=state_dict)
