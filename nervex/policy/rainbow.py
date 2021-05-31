@@ -94,6 +94,7 @@ class RainbowDQNPolicy(DQNPolicy):
                 decay=100000,
             ),
             replay_buffer=dict(
+                type='priority',
                 # (int) Max size of replay buffer.
                 replay_buffer_size=100000,
                 # (int) Number of experiences in replay buffer when training starts. Defaults to 0.

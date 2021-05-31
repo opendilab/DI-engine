@@ -54,6 +54,7 @@ class ILPolicy(Policy):
         eval=dict(evaluator=dict(eval_freq=800, ), ),
         other=dict(
             replay_buffer=dict(
+                type='priority',
                 replay_buffer_size=100000,
                 # (int) max use count of data, if count is bigger than this value,
                 # the data will be removed from buffer

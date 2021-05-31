@@ -8,7 +8,7 @@ from collections import defaultdict
 from easydict import EasyDict
 
 from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
-from nervex.data import BufferManager
+from nervex.worker import create_buffer
 from .comm_coordinator import CommCoordinator
 from .base_parallel_commander import create_parallel_commander
 
@@ -188,7 +188,7 @@ class Coordinator(object):
                         buffer_id = learner_task['buffer_id']
                         if buffer_id not in self._replay_buffer:
                             replay_buffer_cfg = learner_task.pop('replay_buffer_cfg', {})
-                            self._replay_buffer[buffer_id] = BufferManager(replay_buffer_cfg)
+                            self._replay_buffer[buffer_id] = create_buffer(replay_buffer_cfg)
                             self._replay_buffer[buffer_id].start()
                             self.info("replay_buffer({}) is created".format(buffer_id))
                         self.info("learner_task({}) is successful to be assigned".format(learner_task['task_id']))

@@ -79,7 +79,10 @@ class DQNPolicy(Policy):
                 # (int) Decay length(env step)
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, )
+            replay_buffer=dict(
+                type='priority',
+                replay_buffer_size=10000,
+            ),
         ),
     )
 

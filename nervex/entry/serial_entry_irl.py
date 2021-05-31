@@ -6,9 +6,8 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer
 from nervex.config import read_config, compile_config
-from nervex.data import BufferManager
 from nervex.policy import create_policy
 from nervex.irl_utils import create_irl_model
 from nervex.utils import set_pkg_seed
@@ -62,7 +61,7 @@ def serial_pipeline_irl(
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger)
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )

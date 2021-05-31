@@ -68,6 +68,7 @@ class CollaQPolicy(Policy):
                 decay=20000,
             ),
             replay_buffer=dict(
+                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=5000,
                 max_reuse=10,

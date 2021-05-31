@@ -93,6 +93,7 @@ class ATOCPolicy(Policy):
         eval=dict(),
         other=dict(
             replay_buffer=dict(
+                type='prioroty',
                 # (int) The max size of replay buffer
                 replay_buffer_size=100000,
                 # (int) The max use count of data, if count is bigger than this value, the data will be removed

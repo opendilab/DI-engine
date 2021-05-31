@@ -4,8 +4,7 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
 from nervex.config import compile_config
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
-from nervex.data import BufferManager
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
@@ -27,7 +26,7 @@ def main(cfg, seed=0):
         BaseLearner,
         BaseSerialCollector,
         BaseSerialEvaluator,
-        BufferManager,
+        PrioritizedReplayBuffer,
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
@@ -48,7 +47,7 @@ def main(cfg, seed=0):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = PrioritizedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
 
     # Set up other modules, etc. epsilon greedy
     eps_cfg = cfg.policy.other.eps

@@ -156,7 +156,7 @@ class Adder(object):
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
             if next_obs_flag:
-                data[i]['next_obs'] = copy.deepcopy(data[i + nstep]['obs'])
+                data[i]['next_obs'] = data[i + nstep]['obs']  # do not need deepcopy
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
@@ -166,7 +166,7 @@ class Adder(object):
                 data[i]['value_gamma'] = gamma ** nstep
         for i in range(max(0, len(data) - nstep), len(data)):
             if next_obs_flag:
-                data[i]['next_obs'] = copy.deepcopy(data[-1]['next_obs'])
+                data[i]['next_obs'] = data[-1]['next_obs']  # do not need deepcopy
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(len(data) - i)])
             else:

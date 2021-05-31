@@ -6,6 +6,7 @@ LEARNER_REGISTRY = Registry()
 COMM_LEARNER_REGISTRY = Registry()
 COLLECTOR_REGISTRY = Registry()
 COMM_COLLECTOR_REGISTRY = Registry()
+BUFFER_REGISTRY = Registry()
 COMMANDER_REGISTRY = Registry()
 LEAGUE_REGISTRY = Registry()
 PLAYER_REGISTRY = Registry()
@@ -26,4 +27,5 @@ registries = {
     'commander': COMMANDER_REGISTRY,
     'league': LEAGUE_REGISTRY,
     'player': PLAYER_REGISTRY,
+    'buffer': BUFFER_REGISTRY,
 }
