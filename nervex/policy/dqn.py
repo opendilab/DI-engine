@@ -19,6 +19,19 @@ class DQNPolicy(Policy):
     r"""
     Overview:
         Policy class of DQN algorithm.
+
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      dqn            | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+        3  | ``discount_``      float    0.97           | Reward's future discount factor, aka.  | maybe 1 when sparse
+           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
+        4  | ``learn.update``   int      3              | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection       | from envs
+        == ==================== ======== ============== ======================================== =======================
     """
 
     config = dict(

@@ -23,11 +23,14 @@ Online Distributed Reinforcement learning train and evaluate system
 
    installation/index
    quick_start/index
-   tutorial/index
+   key_concept/index
    feature/index
    api_doc/index
    configuration/index
    guide/index
    faq/index
    best_practice/index
+   hands_on_rl/index
    rl_warmup/index
+
+   tutorial_dev/index
