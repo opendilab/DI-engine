@@ -72,6 +72,57 @@ Policy
 
 Config
 ~~~~~~~~~
+Config模块是用户最常用到的模块之一，它是一套配置系统，包含了常见需要配置所有参数。它的功能非常强大，小到配置一个常见的超参数，大到配置需要的算法类型，它都可以做到。为了减少用户写config的成本，我们设计了一套基于boble
+fish思想的Config模块，总的设计图如下
+
+.. image:: images/config.png
+   :alt: 
+
+Config主要由两大类config组成，即\ *Policy*\ 和\ *Env*\ 的config.
+我们将config的构建过程类比于构建一颗树的过程。
+
+从下往上我们是在构建整颗树，即\ *compile*\ 过程。在\ *compile*\ 过程中，我们会先拿到各个模块的default
+config比如Learner、Collector等，有了各个子模块的default
+config之后，我们会构建policy的config和env的config，再和user
+config进行合并，得到最后的config。从上往下我们是在实例化整颗树，实例化我们用到的各个模块，即\ *initialization*\ 过程，从policy和env开始，然后到各个子模块。当这颗树构建完成之后，我们就完成了我们的准备工作，就可以开始启动整个RL过程了。
+
+为了减少用户写config的麻烦，尽量复用之前的参数设置，我们将config分为两个部分，一个部分是\ *default
+config*\ ，这是Nervex推荐的默认config，给常见的key设置了默认值；另外一部分是\ *user
+config*\ ，这是用户自定义的config。所以用户只需要关注自己想要修改的那部分config就行了，其他config都可以复用之前的经验值。
+
+关于一些常见key的具体含义和默认值如下表，与policy相关的key可以查看文档中\ `Hands On RL <../hands_on/index.html>`__\ 部分
+
+=== ======= =============
+Key Meaning Default Value
+=== ======= =============
+A           
+b           
+c           
+d           
+e           
+=== ======= =============
+
+How to customize?
+^^^^^^^^^^^^^^^^^^
+
+想象如下一个场景：我们想要在SAC中取消用\ ``auto_alpha``\ ，那我们如何做到呢？这个问题可以用上面提到的\ *user
+config*\ 来解决。
+
+User
+config我们默认采用\ ``.py``\ 文件来编写，整个config是一个dictionary，即python中的\ ``dict``\ 。所以为了实现\ ``auto_alpha``\ ，假设user
+config的文件名为\ ``sac_user_config.py``\ ，在里面加上如下代码即可
+
+.. code:: python
+
+   policy=dict(learn=dict(is_auto_alpha=False))
+
+编写完user config之后，我们可以执行
+
+.. code:: shell
+
+   nervex -m serial -c sac_user_config.py -s 0
+
+来运行基于SAC的实验.
 
 Worker
 ~~~~~~~~~~~
