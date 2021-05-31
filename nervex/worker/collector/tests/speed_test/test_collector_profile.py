@@ -61,7 +61,7 @@ def compare_test(cfg, out_str, seed):
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
-            new_data = collector.collect_data(iter)
+            new_data = collector.collect(train_iter=iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
         print('\tduration: {}'.format(time.time() - start))
@@ -96,7 +96,7 @@ def test_collector_profile():
                 reset_time=0.1,
                 step_time=0.005,
             ), ),
-            policy=dict(forward_time=0.004),
+            policy=dict(forward_time=0.004, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
         dict(
@@ -110,7 +110,7 @@ def test_collector_profile():
                     step_time=0.01,
                 ),
             ),
-            policy=dict(forward_time=0.008),
+            policy=dict(forward_time=0.008, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
 
@@ -126,7 +126,7 @@ def test_collector_profile():
                     step_time=0.1,
                 ),
             ),
-            policy=dict(forward_time=0.02),
+            policy=dict(forward_time=0.02, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
     ]
