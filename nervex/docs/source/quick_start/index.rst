@@ -16,7 +16,7 @@ for training details and NN models pre-defined in a config file.
 Config and entry
 ------------------
 
-NerveX recommends using a config ``dict`` defined in a python file as input.
+NerveX recommends using a config `dict` defined in a python file as input.
 
 .. code-block:: python
 
@@ -41,7 +41,7 @@ NerveX recommends using a config ``dict`` defined in a python file as input.
 A config file contains two main namespaces, 'env' and 'policy'. Some sub-namespace belong to certain modules in nerveX. 
 The module can be specialized defined by users or just use our pre-defined modules.
 
-For more details, please refer to the ``config`` doc.
+For more details, please refer to the `Config <>`_ doc.
 
 Set up Environments
 ---------------------
@@ -261,4 +261,4 @@ in the end, users can simply add one line code before & after training as follow
     
     learner.call_hook('after_run')
 
-For more information, please take a look to ``Wrapper & Hook Overview`` doc.
+For more information, please take a look to `Wrapper & Hook Overview <../feature/wrapper_hook_overview.html>`_ doc.

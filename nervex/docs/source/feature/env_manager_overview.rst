@@ -6,464 +6,173 @@ Env Manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 概述：
-    env manager是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
+    env manager 是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
     目前支持的类型有单进程串行和多进程并行两种模式。BaseEnvManager 通过循环串行（伪并行）来维护多个环境实例，Async(Sync)SubprocessEnvManager 通过子进程向量化的方式，即调用
     multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。NerveX 的 env manager 需使用 nerveX 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
     其初始化时需提供每个 env 的实例化接口，通过 config 设定具体的运行细节。
 
+    一般来说，:class:`BaseEnvManager <nervex.envs.BaseEnvManager>` 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用 
+    :class:`SyncSubProcessEnvManager <nervex.envs.SyncSubProcessEnvManager>` 和 :class:`AsyncSubProcessEnvManager <nervex.envs.AsyncSubProcessEnvManager>` 进行加速。
+
+    如果对 env 模块还不够了解，建议先查阅 NerveX 的 `环境文档 <./env_overview.html>`_
+
 用法：
     - init
-    - step
-    - reset
-    - close
-    - done
-
-具体实现：
-    - env state
-
-
-代码结构：
-    主要分为如下几个子模块：
-
-        1. base_env_manager: base_env_manager通过循环串行（伪并行）来维护多个环境实例，提供与env相似的接口。
-        2. subprocess_env_manager: 继承base_env_manager的接口，通过子进程向量化的方式，即调用multiprocessing，通过子进程进程间通信的方式对环境进行管理和运行。
-        3. BaseEnvInfo: 环境信息template，作为info的返回值，提供agent数量, observation空间, action空间 , reward空间的信息。
-        4. EnvElementInfo: 空间信息template，定义observation等空间的shape、 value极大值和极小值, to_agent_processor和from_agent_processor。
-        5. BaseEnvTimestep: 环境产出数据的template，作为step函数的返回值，为policy提供obs、reward、done和info信息。注意rew需要作为一个shape为(1，)的numpy数组返回。
-基类定义：
-    1. BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
+        env manager 的初始化需要传入每个 env 的实例化调用接口和 config 字典，可通过 lambda 函数或者偏函数 ``functools.partial`` 来对 env 的实例化函数进行包装，指定其运行参数。
 
         .. code:: python
 
-            class BaseEnvManager(ABC):
+            config = dict(
+                env=dict(
+                    manager=dict(...),
+                    ...
+                ),
+                ...
+            )
 
-                    def __init__(
-                        self,
-                        env_fn: Callable,
-                        env_cfg: Iterable,
-                        env_num: int,
-                        episode_num: Optional[int] = 'inf',
-                        manager_cfg: Optional[dict] = {},
-                ) -> None:
-                    self._env_num = env_num
-                    self._env_fn = env_fn
-                    self._env_cfg = env_cfg
-                    if episode_num == 'inf':
-                        episode_num = float('inf')
-                    self._episode_num = episode_num
-                    self._transform = partial(to_ndarray)
-                    self._inv_transform = partial(to_tensor, dtype=torch.float32)
-                    self._closed = True
-                    # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
-                    self._env_ref = self._env_fn(self._env_cfg[0])
+            env_fn = lambda : NerveXEnv(*args, **kwargs)
+            env_manager = BaseEnvManager(env_fn=[env_fn for _ in range(4)], cfg=config.env.manager)
 
-                def _create_state(self) -> None:
-                    self._closed = False
-                    self._env_episode_count = {i: 0 for i in range(self.env_num)}
-                    self._env_done = {i: False for i in range(self.env_num)}
-                    self._next_obs = {i: None for i in range(self.env_num)}
-                    self._envs = [self._env_fn(c) for c in self._env_cfg]
-                    assert len(self._envs) == self._env_num
+    - launch/reset
+        env manager 初始化后并不会立即实例化每个环境，此时 env manager 会被标记为 `closed` 状态。首次初始化环境需调用 ``launch`` 方法，该方法会按照传入的 env 实例化调用接口
+        构造每个 env 实例（对 SubprocessEnvManager 来说则是运行每个环境的子进程，建立通信管道），构造一些环境运行时的状态变量等，同时调用各子环境的 ``reset`` 方法，将环境运行起来。
 
-                def _check_closed(self):
-                    assert not self._closed, "env manager is closed, please use the alive env manager"
+        .. warning::
 
-                @property
-                def env_num(self) -> int:
-                    return self._env_num
+            调用在 `closed` 状态的 env_manager 的 ``step`` 和 ``reset`` 方法会引发异常。
 
-                @property
-                def next_obs(self) -> Dict[int, Any]:
-                    return self._inv_transform({i: self._next_obs[i] for i, d in self._env_done.items() if not d})
-
-                @property
-                def done(self) -> bool:
-                    return all([v == self._episode_num for v in self._env_episode_count.values()])
-
-                @property
-                def method_name_list(self) -> list:
-                    return ['reset', 'step', 'seed', 'close']
-
-                def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-                    assert self._closed, "please first close the env manager"
-                    self._create_state()
-                    self.reset(reset_param)
-
-                def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
-                    if reset_param is None:
-                        reset_param = [{} for _ in range(self.env_num)]
-                    self._reset_param = reset_param
-                    # set seed
-                    if hasattr(self, '_env_seed'):
-                        for env, s in zip(self._envs, self._env_seed):
-                            env.seed(s)
-                    for i in range(self.env_num):
-                        self._reset(i)
-
-                def _reset(self, env_id: int) -> None:
-                    obs = self._safe_run(lambda: self._envs[env_id].reset(**self._reset_param[env_id]))
-                    self._next_obs[env_id] = obs
-
-                def _safe_run(self, fn: Callable):
-                    try:
-                        return fn()
-                    except Exception as e:
-                        self.close()
-                        raise e
-
-                def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
-                    self._check_closed()
-                    timesteps = {}
-                    for env_id, act in action.items():
-                        act = self._transform(act)
-                        timesteps[env_id] = self._safe_run(lambda: self._envs[env_id].step(act))
-                        if timesteps[env_id].done:
-                            self._env_done[env_id] = True
-                            self._env_episode_count[env_id] += 1
-                        self._next_obs[env_id] = timesteps[env_id].obs
-                    if not self.done and all([d for d in self._env_done.values()]):
-                        for i in range(self.env_num):
-                            self._reset(i)
-                            self._env_done[i] = False
-                    return self._inv_transform(timesteps)
-
-                def seed(self, seed: List[int]) -> None:
-                    if isinstance(seed, numbers.Integral):
-                        seed = [seed + i for i in range(self.env_num)]
-                    self._env_seed = seed
-
-                def close(self) -> None:
-                    if self._closed:
-                        return
-                    self._env_ref.close()
-                    for env in self._envs:
-                        env.close()
-                    self._closed = True
-
-        - 概述：
-
-            使用循环串行的方式运行多个环境，通过调用env的对应接口（详见env overview）。
-
-        - 类接口方法：
-            1. __init__: 初始化
-            2. reset: 不传入参数时默认reset所有环境，也可以传入list结构的env_id和reset子类的实现中的输入参数(e.g.比如一个episode结束重启时需要外部指定一些参数),对manager持有的某几个环境进行reset
-            3. close: 关闭环境，释放资源，close所有环境
-            4. step: 环境执行输入的动作，完成一个时间步，同reset一样，可以传入list结构的env_id对manager持有的某几个环境进行操作
-            5. seed: 设置环境随机种子，可以传入list结构的env_id对manager持有的某几个环境设置特定的seed
-            6. env_done: 哪几个持有的环境已经done即运行结束
-            7. all_done: 是否所有持有的环境已经运行结束
-
+        在调用过 ``launch`` 方法之后便可通过调用 env manager 的 ``reset`` 方法来手动 reset 子环境。当不传入任何参数时，默认会 reset 所有子环境。当传入 ``reset_param`` 
+        参数时，会 reset ``reset_param`` 中的键对应的子环境，并将其键值作为子环境 ``reset`` 方法的参数。由于不确定每个子环境 reset 需要的时间，env manager 不会返回子环境的 step
+        运行结束后对应的 observation，而是会在 reset 结束时将返回值保存起来，通过调用 ``ready_obs`` 属性获得当前运行完成 step 或 reset 方法的子环境的
+        observation，此举可以加快 SubprocessEnvManager 的运行效率。
+        
         .. note::
 
-            具体的使用可以参考测试文件 nervex/envs/env_manager/tests/test_base_env_manager.py, 或者直接参考SubprocessEnvManager的使用方式（两者使用相同的接口）
+            当 SubprocessEnvManager 需要 reset 正在进行 reset 的子环境时，该方法会等待这些子环境的上一次 reset 运行完毕再运行此次 reset。
 
-    2. SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
+    - step
+        step 方法会串行地（BaseEnvManager）或并行地（SubprocessEnvManager）调用 env manager 中子环境的 step 方法，并返回 step 的结果，将 observation 存入 ``ready_obs``
+        属性中。该方法传入的参数是一个 ``actions`` 字典，其键指定了需要运行 ``step`` 的 env_id，键值为该子环境的 ``step`` 运行的 action。依据不同的 env manager 类型和 config 设置，
+        当有一定数量的子环境返回 step 结果后，该方法会检查运行结果，根据这些结果修改子环境的运行状态，并返回结果或抛出异常。
 
-        .. code:: python
+        .. warning::
 
-            class SubprocessEnvManager(BaseEnvManager):
+            ``actions`` 包含正在运行其他命令或已经完成 episode 的子环境 id 时会引发异常。
+    
+    - ready_obs
+        ``ready_obs`` 属性返回一个字典，内容为环境的 env_id 和最新返回的 observation 的键值对。对 SubprocessEnvManager 来说 ``ready_obs`` 属性返回的环境 id 一定是完成了 reset
+        或 step 方法，正在等待新命令的子环境，因此可以安全地继续调用这些子环境的 ``reset`` 和 ``step`` 方法。当所有仍在运行（未运行至 done）的子环境都没有完成 ``reset`` 和 ``step`` 
+        方法的运行时，调用 ``ready_obs`` 属性会等待至少一个子环境完成运行，并返回其 observation。
 
-                def __init__(
-                        self,
-                        env_fn: Callable,
-                        env_cfg: Iterable,
-                        env_num: int,
-                        episode_num: Optional[int] = 'inf',
-                        timeout : Optional[float] = 0.01,
-                        wait_num: Optional[int] = 2,
-                ) -> None:
-                    super().__init__(env_fn, env_cfg, env_num, episode_num)
-                    self.shared_memory = self._env_cfg[0].get("shared_memory", True)
-                    self.timeout = timeout
-                    self.wait_num = wait_num
+        在使用 SubprocessEnvManager 时，只要给 step 和 reset 方法传入参数的 env_id 均是来自 ready_obs 属性返回的 env_id ，就不会出现为子环境重复发送命令的情况。
+    
+    - done
+        该属性会判断所有子环境的完成情况（是否运行至 done），若是，返回 ``True``，否则返回 ``False``
+    
+    - close
+        同 Gym env 的 ``close`` 方法一样，该方法会安全地关闭所有的子环境，销毁子环境开辟的进程，释放全部资源。调用该方法后，env manager 会被标记为 ``closed``，除非重新 ``launch``
+        才能继续使用。
 
-                def _create_state(self) -> None:
-                    r"""
-                    Overview:
-                        Fork/spawn sub-processes and create pipes to convey the data.
-                    """
-                    self._closed = False
-                    self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
-                    self._env_done = {env_id: False for env_id in range(self.env_num)}
-                    self._next_obs = {env_id: None for env_id in range(self.env_num)}
-                    if self.shared_memory:
-                        obs_space = self._env_ref.info().obs_space
-                        shape = obs_space.shape
-                        dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
-                        self._obs_buffers = {env_id: ShmBuffer(dtype, shape) for env_id in range(self.env_num)}
-                    else:
-                        self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
-                    self._parent_remote, self._child_remote = zip(*[Pipe() for _ in range(self.env_num)])
-                    context_str = 'spawn' if platform.system().lower() == 'windows' else 'fork'
-                    ctx = get_context(context_str)
-                    # due to the runtime delay of lambda expression, we use partial for the generation of different envs,
-                    # otherwise, it will only use the last item cfg.
-                    env_fn = [partial(self._env_fn, cfg=self._env_cfg[env_id]) for env_id in range(self.env_num)]
-                    self._processes = [
-                        ctx.Process(
-                            target=self.worker_fn,
-                            args=(parent, child, CloudpickleWrapper(fn), obs_buffer, self.method_name_list),
-                            daemon=True
-                        ) for parent, child, fn, obs_buffer in
-                        zip(self._parent_remote, self._child_remote, env_fn, self._obs_buffers.values())
-                    ]
-                    for p in self._processes:
-                        p.start()
-                    for c in self._child_remote:
-                        c.close()
-                    self._env_state = {env_id: EnvState.INIT for env_id in range(self.env_num)}
-                    self._waiting_env = {'step': set()}
-                    self._setup_async_args()
+样例：
+    以下为一个 env manager 运行多个环境的实例
 
-                def _setup_async_args(self) -> None:
-                    r"""
-                    Overview:
-                        set up the async arguments utilized in the step().
-                        wait_num: for each time the minimum number of env return to gather
-                        timeout: for each time the minimum number of env return to gather
-                    """
-                    self._async_args = {
-                        'step': {
-                            'wait_num': self.wait_num,
-                            'timeout': self.timeout
-                        },
-                    }
+    .. code:: python
 
-                @property
-                def active_env(self) -> List[int]:
-                    return [i for i, s in self._env_state.items() if s == EnvState.RUN]
+        my_env_manager.launch()
 
-                @property
-                def ready_env(self) -> List[int]:
-                    return [i for i in self.active_env if i not in self._waiting_env['step']]
+        while not finished:
+            obs = my_env_manager.ready_obs
+            actions = ... # get actions from policy or else.
+            timesteps = my_env_manager.step()
+            for env_id, timestep in timesteps.item():
+                if timestep.done:
+                    # without auto_reset
+                    my_env_manager.reset(reset_param={env_id: ...})
+                    ...
 
-                @property
-                def next_obs(self) -> Dict[int, Any]:
-                    no_done_env_idx = [i for i, s in self._env_state.items() if s != EnvState.DONE]
-                    sleep_count = 0
-                    while all([self._env_state[i] == EnvState.RESET for i in no_done_env_idx]):
-                        print('VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count))
-                        time.sleep(1)
-                        sleep_count += 1
-                    return self._inv_transform({i: self._next_obs[i] for i in self.ready_env})
+        my_env_manager.close()
 
-                @property
-                def done(self) -> bool:
-                    return all([s == EnvState.DONE for s in self._env_state.values()])
-
-                def launch(self, reset_param: Union[None, List[dict]] = None) -> None:
-                    assert self._closed, "please first close the env manager"
-                    self._create_state()
-                    self.reset(reset_param)
-
-                def reset(self, reset_param: Union[None, List[dict]] = None) -> None:
-                    if reset_param is None:
-                        reset_param = [{} for _ in range(self.env_num)]
-                    self._reset_param = reset_param
-                    # set seed
-                    if hasattr(self, '_env_seed'):
-                        for i in range(self.env_num):
-                            self._parent_remote[i].send(CloudpickleWrapper(['seed', [self._env_seed[i]], {}]))
-                        ret = [p.recv().data for p in self._parent_remote]
-                        self._check_data(ret)
-
-                    # reset env
-                    lock = threading.Lock()
-                    reset_thread_list = []
-                    for env_id in range(self.env_num):
-                        reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
-                        reset_thread.daemon = True
-                        reset_thread_list.append(reset_thread)
-                    for t in reset_thread_list:
-                        t.start()
-                    for t in reset_thread_list:
-                        t.join()
-
-                def _reset(self, env_id: int, lock: Any) -> None:
-
-                    @retry_wrapper
-                    def reset_fn():
-                        self._parent_remote[env_id].send(CloudpickleWrapper(['reset', [], self._reset_param[env_id]]))
-                        obs = self._parent_remote[env_id].recv().data
-                        self._check_data([obs], close=False)
-                        if self.shared_memory:
-                            obs = self._obs_buffers[env_id].get()
-                        with lock:
-                            self._env_state[env_id] = EnvState.RUN
-                            self._next_obs[env_id] = obs
-
-                    try:
-                        reset_fn()
-                    except Exception as e:
-                        if self._closed:  # exception cased by main thread closing parent_remote
-                            return
-                        else:
-                            self.close()
-                            raise e
-
-                def step(self, action: Dict[int, Any]) -> Dict[int, namedtuple]:
-                    self._check_closed()
-                    env_ids = list(action.keys())
-                    assert all([self._env_state[env_id] == EnvState.RUN for env_id in env_ids]
-                            ), 'current env state are: {}, please check whether the requested env is in reset or done'.format(
-                                {env_id: self._env_state[env_id]
-                                    for env_id in env_ids}
-                            )
-
-                    for env_id, act in action.items():
-                        act = self._transform(act)
-                        self._parent_remote[env_id].send(CloudpickleWrapper(['step', [act], {}]))
-
-                    handle = self._async_args['step']
-                    wait_num, timeout = min(handle['wait_num'], len(env_ids)), handle['timeout']
-                    rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
-
-                    ready_env_ids = []
-                    ret = {}
-                    cur_rest_env_ids = copy.deepcopy(rest_env_ids)
-                    while True:
-                        rest_conn = [self._parent_remote[env_id] for env_id in cur_rest_env_ids]
-                        ready_conn, ready_ids = SubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
-                        cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
-                        assert len(cur_ready_env_ids) == len(ready_conn)
-                        ret.update({env_id: p.recv().data for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-                        self._check_data(ret.values())
-                        ready_env_ids += cur_ready_env_ids
-                        cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
-                        # at least one not done timestep or all the connection is ready
-                        if any([not t.done for t in ret.values()]) or len(ready_conn) == len(rest_conn):
-                            break
-
-                    self._waiting_env['step']: set
-                    for env_id in rest_env_ids:
-                        if env_id in ready_env_ids:
-                            if env_id in self._waiting_env['step']:
-                                self._waiting_env['step'].remove(env_id)
-                        else:
-                            self._waiting_env['step'].add(env_id)
-
-                    lock = threading.Lock()
-                    for env_id, timestep in ret.items():
-                        if self.shared_memory:
-                            timestep = timestep._replace(obs=self._obs_buffers[env_id].get())
-                        ret[env_id] = timestep
-                        if timestep.done:
-                            self._env_episode_count[env_id] += 1
-                            if self._env_episode_count[env_id] >= self._episode_num:
-                                self._env_state[env_id] = EnvState.DONE
-                            else:
-                                self._env_state[env_id] = EnvState.RESET
-                                reset_thread = PropagatingThread(target=self._reset, args=(env_id, lock))
-                                reset_thread.daemon = True
-                                reset_thread.start()
-                        else:
-                            self._next_obs[env_id] = timestep.obs
-
-                    return self._inv_transform(ret)
-
-                # this method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
-                # env must be created in worker, which is a trick of avoiding env pickle errors.
-                @staticmethod
-                def worker_fn(p, c, env_fn_wrapper, obs_buffer, method_name_list) -> None:
-                    env_fn = env_fn_wrapper.data
-                    env = env_fn()
-                    p.close()
-                    try:
-                        while True:
-                            try:
-                                cmd, args, kwargs = c.recv().data
-                            except EOFError:  # for the case when the pipe has been closed
-                                c.close()
-                                break
-                            try:
-                                if cmd == 'getattr':
-                                    ret = getattr(env, args[0])
-                                elif cmd in method_name_list:
-                                    if cmd == 'step':
-                                        timestep = env.step(*args, **kwargs)
-                                        if obs_buffer is not None:
-                                            assert isinstance(timestep.obs, np.ndarray), type(ret)
-                                            obs_buffer.fill(timestep.obs)
-                                            timestep = timestep._replace(obs=None)
-                                        ret = timestep
-                                    elif cmd == 'reset':
-                                        ret = env.reset(*args, **kwargs)  # obs
-                                        if obs_buffer is not None:
-                                            assert isinstance(ret, np.ndarray), type(ret)
-                                            obs_buffer.fill(ret)
-                                            ret = None
-                                    elif args is None and kwargs is None:
-                                        ret = getattr(env, cmd)()
-                                    else:
-                                        ret = getattr(env, cmd)(*args, **kwargs)
-                                else:
-                                    raise KeyError("not support env cmd: {}".format(cmd))
-                                c.send(CloudpickleWrapper(ret))
-                            except Exception as e:
-                                # when there are some errors in env, worker_fn will send the errors to env manager
-                                # directly send error to another process will lose the stack trace, so we create a new Exception
-                                c.send(
-                                    CloudpickleWrapper(
-                                        e.__class__(
-                                            '\nEnv Process Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e)
-                                        )
-                                    )
-                                )
-                            if cmd == 'close':
-                                c.close()
-                                break
-                    except KeyboardInterrupt:
-                        c.close()
-
-                def _check_data(self, data: Iterable, close: bool = True) -> None:
-                    for d in data:
-                        if isinstance(d, Exception):
-                            # when receiving env Exception, env manager will safely close and raise this Exception to caller
-                            if close:
-                                self.close()
-                            raise d
-
-                # override
-                def close(self) -> None:
-                    if self._closed:
-                        return
-                    self._closed = True
-                    self._env_ref.close()
-                    for p in self._parent_remote:
-                        p.send(CloudpickleWrapper(['close', None, None]))
-                    for p in self._processes:
-                        p.join()
-                    for p in self._processes:
-                        p.terminate()
-                    for p in self._parent_remote:
-                        p.close()
-
-
-        - 概述：
-
-            继承了BaseEnvManager，通multiprocessing模块为每个环境创建单独的进程，能加速数据产出速度。
-
-        - 类接口方法：
-           使用时，同BaseEnvManager基本相同。此外，
-            
-            1. wait_num 指定每次产出数据至少包含的环境数量， timeout指定最少等待时间。用户可以根据环境运行速度的快慢来调整这些参数。
-
-            2. shared_memory 可以加速传递环境返回的大向量，对于环境返回的obs等变量大小超过100kB的时候，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。
-
-            3. worker_fn 作为子进程的执行函数，创建env，并接受来自父进程中env_manager的指令。
-
-            4. wait 等待环境返回。
-
-            5. 每次调用需先通过 next_obs 函数得到可获得的env id和obs，再调用step 函数传入env id对应的action。
-            
-           使用时可以参考如下代码:
-
-        .. code:: python
+高级特性：
+    - auto_reset
         
-            def _setup_env(self):
-                env_num = self.cfg.env.env_num
-                self.env = SubprocessEnvManager(CartpoleEnv, env_cfg=[self.cfg.env for _ in range(env_num)], env_num=env_num)
+        nerveX 的 env manager 默认会进行自动 reset，即当某个环境运行至 done 之后会自动 reset 以继续运行，reset 时的参数为上次手动 reset 时为该子环境设置的参数，
+        除非累计运行的 episode 数量达到 config 中指定的 episode_num。若要关闭该特性,可在 config 中指定 ``auto_reset=False``
+
+    - env state
+
+        为方便管理各子环境的状态并便于 debug，nerveX 的 env manager 提供了环境状态的枚举类型来实时掌握所有子环境的运行状态，其具体含义如下：
+
+        - VOID: 初始化了 env manager，尚未实例化子环境
+        - INIT: 实例化了子环境，尚未进行 launch 或 reset
+        - RUN: 完成了 reset 或 step ，正在运行中的子环境
+        - RESET: 正在进行
+        - DONE: 运行至 done 的子环境
+        - ERROR: 发生异常的子环境
+        
+        各状态间的转换关系如图示：
+
+            .. image:: env_state.png
+
+    - max_retry 和 timeout
+  
+        为防止有些子环境因连接问题短暂地报错，或子进程卡死时程序不会正常退出，nerveX 的 env manager 添加了 retry 保护和 timeout 检测机制。用户可在 config 中指定最大 retry 次数，
+        和 reset、step、 子进程间通信的最大等待时间，当超过等待时间时会抛出异常，以便提前终止运行。config 中这些参数的设置和默认值如下：
+
+        .. code-block:: python
+
+            manager_config = dict(
+                max_retry=1, # step 和 reset 的最大重试次数，默认为 1
+                reset_timeout=60, # reset 方法的等待时间，默认为 60s
+                retry_waiting_time=0.1, # reset 方法 retry 的间隔时间，默认为 0.1s
+                step_timeout=60, # step 方法的等待时间，默认为 60s
+                step_wait_timeout=0.01, # step 方法 retry 的间隔时间，默认为 0.01s
+                connect_timeout=60, # 子进程之间通信的等待时间，默认为 60s
+            )
+
+    - Sync 和 Async SubprocessEnvManager 的区别
+  
+    - shared_memory
+        shared_memory 可以加速传递环境返回的大向量数据，当环境返回的obs等变量大小超过100kB时，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。
+  
+    - get_attribute
 
 
-.. note::
-    BaseEnvManager和SubprocessEnvManager相关插件的测试可以参见 `nervex/envs/env_manager/tests/test_base_env_manager.py` 和 `nervex/envs/env_manager/tests/test_subprocess_env_manager.py`。
+BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+概述：
+    使用循环串行的方式运行多个环境的管理器。
+
+类接口方法：
+    1. __init__: 初始化
+    2. launch: 初始化所有子环境，初始化子环境状态管理所需的资源
+    3. reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境按照 reset_param 进行 reset，并在运行结束时返回
+    4. step: 环境执行输入的动作，完成一个时间步，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，返回全部运行结果
+    5. seed: 设置环境随机种子，可以传入 list 结构的 env_id 对 manager 持有的某几个环境设置特定的 seed
+    6. close: 关闭环境，释放资源，close 所有环境
+
+类属性方法：
+    1. env_num: manager 中子环境的数量
+    2. active_env: 所有未运行结束的环境 list
+    3. ready_obs: 返回所有未运行结束的环境 env_id 和最新返回的 observation
+    4. done: 是否所有持有的环境已经运行结束
+
+SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+概述：
+    继承了BaseEnvManager，通过 multiprocessing 模块为每个环境创建单独的进程，使用并行的方式运行多个环境的管理器。
+
+类接口方法：
+    以下只列出与 BaseEnvManager 不同或新增的方法
+
+    1. launch: 初始化运行每个子环境的进程，初始化子环境状态管理所需的资源
+    2. reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境进程按照 reset_param 发送 reset 命令
+    3. step: 为环境进程发送动作命令，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，待全部或部分环境运行结束时返回结果
+    4. close: close 所有环境，销毁环境子进程，释放资源
+
+类属性方法：
+    以下只列出与 BaseEnvManager 不同或新增的属性
+
+    1. ready_obs: 返回完成了上一个 step 或 reset 命令的子环境 env_id 和返回的 observation，若所有环境均在运行上一个命令，等待直到至少一个环境返回了运行结果
+    2. active_env: 所有在运行状态的环境 list
