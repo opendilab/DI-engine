@@ -22,27 +22,26 @@ NerveX recommends using a config ``dict`` defined in a python file as input.
 
     cartpole_dqn_default_config = dict(
         env=dict(
+            manager=dict(...),
             ...
         ),
         policy=dict(
-            ...
-        ),
-        replay_buffer=dict(
-            ...
-        ),
-        collector=dict(
-            ...
-        ),
-        evaluator=dict(
-            ...
-        ),
-        learner=dict(
+            model=dict(...),
+            collect=dict(...),
+            learn=dict(...),
+            eval=dict(...),
+            other=dict(
+                replay_buffer=dict(),
+                ...
+            ),
             ...
         ),
     )
 
-Each namespace belongs to a certain module in nerveX. The module can be specialized defined
-by users or just use our pre-defined modules.
+A config file contains two main namespaces, 'env' and 'policy'. Some sub-namespace belong to certain modules in nerveX. 
+The module can be specialized defined by users or just use our pre-defined modules.
+
+For more details, please refer to the ``config`` doc.
 
 Set up Environments
 ---------------------
@@ -63,8 +62,8 @@ of using :class:`BaseEnvManager <nervex.envs.BaseEnvManager>` to build environme
         return NervexEnvWrapper(gym.make('CartPole-v0'))
 
     collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)])
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)])
+    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
 Set up Policy and NN model
 ----------------------------
@@ -114,10 +113,10 @@ An example of setting up all the above is showed as follow.
     from nervex.data import BufferManager
 
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.replay_buffer, tb_logger)
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
 
 Train and evaluate the policy
 ---------------------------------
@@ -139,7 +138,6 @@ environment.
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-
         eps = epsilon_greedy(learner.train_iter)
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
@@ -162,7 +160,7 @@ environment.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
-                replay_buffer.update(learner.priority_info)
+        replay_buffer.clear()
 
 
 Advanced features
@@ -170,8 +168,8 @@ Advanced features
 
 Some advanced features in RL training which well supported by nerveX are listed below.
 
-Epsilon Greedy & Replay start and priority
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Epsilon Greedy & Replay buffer start and priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An easy way of deploying epsilon greedy exploration when sampling data has already been shown above. It is
 called by the `epsilon_greedy` function each step.
@@ -227,6 +225,27 @@ Loading & Saving checkpoints
 It is usually needed to save and resume an experiments with model checkpoints. NerveX saves and loads checkpoints
 in the same way as PyTorch.
 
+.. code-block:: python
+
+    if cfg.policy.get('ckpt_path', '') != '':
+        state_dict = torch.load(cfg.policy.ckpt_path, map_location='cpu')
+        if 'last_iter' in state_dict:
+            last_iter = state_dict.pop('last_iter')
+            learner.last_iter.update(last_iter)
+        learner.policy.load_state_dict(state_dict)
+        learner.info('{} load ckpt in {}'.format(learner.name, cfg.policy.ckpt_path))
+    
+    ...
+
+    dirname = './ckpt_{}'.format(learner.name)
+    os.mkdir(dirname, exsit_ok=True)
+    ckpt_name = 'iteration_{}.pth.tar'.format(learner.last_iter.val)
+    path = os.path.join(dirname, ckpt_name)
+    state_dict = learner.policy.state_dict()
+    state_dict.update({'last_iter': learner.last_iter.val})
+    torch.save(state_dict, path)
+    learner.info('{} save ckpt in {}'.format(learner.name, path))
+
 To deploy this in a more elegant way, nerveX is configured to use 
 :class:`Learner Hooks <nervex.worker.learner.learner_hook.LearnerHook>` to handle these cases. The saving hook is 
 automatically frequently called after training iterations. And to load & save checkpoints at the beginning and 
@@ -242,4 +261,4 @@ in the end, users can simply add one line code before & after training as follow
     
     learner.call_hook('after_run')
 
-For more information, please take a look to ``Wrapper & Hook Overview``
+For more information, please take a look to ``Wrapper & Hook Overview`` doc.
