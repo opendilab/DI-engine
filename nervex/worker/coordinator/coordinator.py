@@ -306,7 +306,7 @@ class Coordinator(object):
                 "collector task({}) data({}) doesn't have proper buffer_id({})".format(task_id, data_id, buffer_id)
             )
             return
-        self._replay_buffer[buffer_id].push(data)
+        self._replay_buffer[buffer_id].push(data, -1)
         self.info('collector task({}) send data({})'.format(task_id, data_id))
 
     def deal_with_collector_judge_finish(self, task_id: str, data: dict) -> bool:

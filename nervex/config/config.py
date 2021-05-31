@@ -265,7 +265,7 @@ def compile_config_parallel(
     cfg.policy.other.commander.update(create_cfg.commander)
     cfg = deep_merge_dicts(default_config, cfg)
     # compile buffer
-    cfg = compile_buffer_config(cfg)
+    cfg = compile_buffer_config(cfg, None)
 
     cfg.policy.other.commander.path_policy = system_cfg.path_policy  # league may use 'path_policy'
 
