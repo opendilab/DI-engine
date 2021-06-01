@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
 from nervex.config import compile_config
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
 from nervex.envs import SyncSubprocessEnvManager
 from nervex.policy import QMIXPolicy
 from nervex.model import QMix

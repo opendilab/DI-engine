@@ -3,7 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from nervex.config import compile_config
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DDPGPolicy
 from nervex.model import QAC

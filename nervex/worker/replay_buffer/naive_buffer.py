@@ -94,6 +94,9 @@ class NaiveReplayBuffer(BaseBuffer):
         """
         if size == 0:
             return []
+        can_sample = self._sample_check(size)
+        if not can_sample:
+            return None
         with self._lock:
             indices = self._get_indices(size)
             result = self._sample_with_indices(indices, cur_learner_iter)
@@ -122,8 +125,8 @@ class NaiveReplayBuffer(BaseBuffer):
                 self._valid_count += 1
             elif self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[self._tail])
-            data['replay_unique_id'] = generate_id(self.name, self._next_unique_id)
-            data['replay_buffer_idx'] = self._tail
+            # data['replay_unique_id'] = generate_id(self.name, self._next_unique_id)
+            # data['replay_buffer_idx'] = self._tail
             self._data[self._tail] = data
             self._tail = (self._tail + 1) % self._replay_buffer_size
             self._next_unique_id += 1
@@ -152,9 +155,9 @@ class NaiveReplayBuffer(BaseBuffer):
                 elif self._enable_track_used_data:
                     for i in range(length):
                         self._used_data_remover.add_used_data(self._data[self._tail + i])
-                for i in range(length):
-                    data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
-                    data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
+                # for i in range(length):
+                #     data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
+                #     data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                 self._push_count += length
                 self._data[self._tail:self._tail + length] = data
             else:
@@ -169,9 +172,9 @@ class NaiveReplayBuffer(BaseBuffer):
                     elif self._enable_track_used_data:
                         for i in range(L):
                             self._used_data_remover.add_used_data(self._data[new_tail + i])
-                    for i in range(data_start, data_start + L):
-                        data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
-                        data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
+                    # for i in range(data_start, data_start + L):
+                    #     data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
+                    #     data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                     self._push_count += L
                     self._data[new_tail:new_tail + L] = data[data_start:data_start + L]
                     residual_num -= L
@@ -184,6 +187,23 @@ class NaiveReplayBuffer(BaseBuffer):
             # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
             self._tail = (self._tail + length) % self._replay_buffer_size
             self._next_unique_id += length
+
+    def _sample_check(self, size: int) -> bool:
+        r"""
+        Overview:
+            Check whether this buffer has more than ``size`` datas to sample.
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled.
+        Returns:
+            - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
+        """
+        if self._valid_count < size:
+            print(
+                "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
+            )
+            return False
+        else:
+            return True
 
     def update(self, info: dict) -> None:
         r"""
@@ -244,7 +264,7 @@ class NaiveReplayBuffer(BaseBuffer):
         data = []
         for idx in indices:
             assert self._data[idx] is not None
-            assert self._data[idx]['replay_buffer_idx'] == idx, (self._data[idx]['replay_buffer_idx'], idx)
+            # assert self._data[idx]['replay_buffer_idx'] == idx, (self._data[idx]['replay_buffer_idx'], idx)
             if self._deepcopy:
                 copy_data = copy.deepcopy(self._data[idx])
             else:

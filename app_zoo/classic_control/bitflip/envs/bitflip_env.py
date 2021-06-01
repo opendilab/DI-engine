@@ -85,7 +85,8 @@ class BitFlipEnv(BaseEnv):
                 (self._n_bits, ),
                 {
                     'min': 0,
-                    'max': self._n_bits
+                    'max': self._n_bits,
+                    'dtype': int,
                 },
             ),
             rew_space=T(
