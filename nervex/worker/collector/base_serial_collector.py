@@ -82,7 +82,8 @@ class CachePool(object):
         if isinstance(data, dict):
             data = [data]
         for index in range(len(data)):
-            for i, d in data[index].items():
+            for i in data[index].keys():
+                d = data[index][i]
                 if self._deepcopy:
                     copy_d = copy.deepcopy(d)
                 else:

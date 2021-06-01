@@ -11,38 +11,33 @@ from functools import partial
 from easydict import EasyDict
 import threading
 
-from nervex.data.structure.naive_buffer import NaiveReplayBuffer
-from nervex.data.structure.segment_tree import SumSegmentTree, MinSegmentTree
+from nervex.worker.replay_buffer import BaseBuffer
+from nervex.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger, deep_merge_dicts
+from nervex.utils import LockContext, LockContextType, build_logger
+from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor
 
 
-class PrioritizedReplayBuffer(NaiveReplayBuffer):
+@BUFFER_REGISTRY.register('priority')
+class PrioritizedReplayBuffer(BaseBuffer):
     r"""
     Overview:
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
         This replay buffer adds:
-            1) Prioritized experience replay implemented through segment tree.
+            1) Prioritized experience replay implemented by segment tree.
             2) Use count and staleness of each data, to guarantee data quality.
-            3) Monitor mechanism to watch in-and-out data flow attributes.
+            3) Monitor mechanism to watch sampled data attributes & thruput statistics.
     Interface:
-        __init__, append, extend, sample, update, clear, close
+        __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
     Property:
         replay_buffer_size, validlen, beta
     """
 
-    @classmethod
-    def default_config(cls) -> EasyDict:
-        cfg = EasyDict(copy.deepcopy(cls.config))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
-
     config = dict(
         type='priority',
+        name='default_buffer',
         # Max length of the buffer.
         replay_buffer_size=4096,
-        # start training data count
-        replay_buffer_start_size=0,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.
         max_use=float("inf"),
         # Max staleness time duration of one data in the buffer; Data will be removed if
@@ -54,7 +49,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         beta=0.4,
         # Anneal step for beta: 0 means no annealing
         anneal_step=int(1e5),
-        # Whether to track the used data or not. Buffer will use a new data structure to track data if set True.
+        # Whether to track the used data. Used data means they are removed out of buffer and would never be used again.
         enable_track_used_data=False,
         # Whether to deepcopy data when willing to insert and sample data. For security purpose.
         deepcopy=False,
@@ -87,41 +82,37 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         Arguments:
             - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
         """
+        self._end_flag = False
+        self.name = name
         self._cfg = cfg
-        # ``_data`` is a circular queue to store data (or data's reference/file path)
-        self._data = [None for _ in range(self._cfg.replay_buffer_size)]
-        self._enable_track_used_data = self._cfg.enable_track_used_data
-        if self._enable_track_used_data:
-            self._used_data = Queue()
-            self._using_data = set()
-            self._using_used_data = set()
+        self._replay_buffer_size = self._cfg.replay_buffer_size
+        self._deepcopy = self._cfg.deepcopy
+        # ``_data`` is a circular queue to store data (full data or meta data)
+        self._data = [None for _ in range(self._replay_buffer_size)]
         # Current valid data count, indicating how many elements in ``self._data`` is valid.
         self._valid_count = 0
         # How many pieces of data have been pushed into this buffer, should be no less than ``_valid_count``.
         self._push_count = 0
         # Point to the tail position where next data can be inserted, i.e. latest inserted data's next position.
         self._tail = 0
-        # Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.
-        # Because buffer would remove data due to staleness or use times, and at the beginning when queue is not
-        # filled with data head would always be 0, so ``head`` may be not equal to ``tail``;
-        # Otherwise, they two should be the same. Head is used to optimize staleness check in ``sample_check``.
-        self._head = 0
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self._next_unique_id = 0
-        # {position_idx: use_count}
+        # Lock to guarantee thread safe
+        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        # Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.
+        # Because buffer would remove data due to staleness or use count, and at the beginning when queue is not
+        # filled with data head would always be 0, so ``head`` may be not equal to ``tail``;
+        # Otherwise, they two should be the same. Head is used to optimize staleness check in ``_sample_check``.
+        self._head = 0
+        # use_count is {position_idx: use_count}
         self._use_count = {idx: 0 for idx in range(self._cfg.replay_buffer_size)}
         # Max priority till now. Is used to initizalize a data's priority if "priority" is not passed in with the data.
         self._max_priority = 1.0
         # A small positive number to avoid edge-case, e.g. "priority" == 0.
-        self._eps = 1e-3
-        # Data check function list, used in ``append`` and ``extend``. This buffer requires data to be dict.
+        self._eps = 1e-5
+        # Data check function list, used in ``_append`` and ``_extend``. This buffer requires data to be dict.
         self.check_list = [lambda x: isinstance(x, dict)]
-        # Lock to guarantee thread safe
-        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
-        self.name = name
-        self._replay_buffer_size = self._cfg.replay_buffer_size
-        self._replay_buffer_start_size = self._cfg.replay_buffer_start_size
         self._max_use = self._cfg.max_use
         self._max_staleness = self._cfg.max_staleness
         self.alpha = self._cfg.alpha
@@ -131,9 +122,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         self._anneal_step = self._cfg.anneal_step
         if self._anneal_step != 0:
             self._beta_anneal_step = (1 - self._beta) / self._anneal_step
-        self._deepcopy = self._cfg.deepcopy
-
-        self._end_flag = False
 
         # Prioritized sample.
         # Capacity needs to be the power of 2.
@@ -161,19 +149,64 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         )
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
-        self._thruput_print_seconds = monitor_cfg.periodic_thruput.seconds
-        self._thruput_print_times = 0
-        self._thruput_start_time = time.time()
-        self._push_data_count = 0
-        self._sample_data_count = 0
-        self._remove_data_count = 0
-        self._thruput_log_thread = threading.Thread(
-            target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
-        )
-        self._thruput_log_thread.daemon = True
-        self._thruput_log_thread.start()
+        self._periodic_thruput_monitor = PeriodicThruputMonitor(monitor_cfg.periodic_thruput)
 
-    def sample_check(self, size: int, cur_learner_iter: int) -> bool:
+        # Used data remover
+        self._enable_track_used_data = self._cfg.enable_track_used_data
+        if self._enable_track_used_data:
+            self._used_data_remover = UsedDataRemover()
+
+    def start(self) -> None:
+        if self._enable_track_used_data:
+            self._used_data_remover.start()
+
+    def close(self) -> None:
+        self.clear()
+        self._periodic_thruput_monitor.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
+        self._end_flag = True
+        if self._enable_track_used_data:
+            self._used_data_remover.close()
+
+    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
+        r"""
+        Overview:
+            Sample data with length ``size``.
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+        Returns:
+            - sample_data (:obj:`list`): A list of data with length ``size``; \
+                Each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
+        """
+        if size == 0:
+            return []
+        can_sample = self._sample_check(size, cur_learner_iter)
+        if not can_sample:
+            return None
+        with self._lock:
+            indices = self._get_indices(size)
+            result = self._sample_with_indices(indices, cur_learner_iter)
+            # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
+            # the same indices, i.e. the same datas would be sampled afterwards.
+            for i in range(size):
+                tmp = []
+                for j in range(i + 1, size):
+                    if id(result[i]) == id(result[j]):
+                        tmp.append(j)
+                for j in tmp:
+                    result[j] = copy.deepcopy(result[j])
+            self._monitor_update_of_sample(result, cur_learner_iter)
+            return result
+
+    def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
+        if isinstance(data, list):
+            self._extend(data, cur_collector_envstep)
+        else:
+            self._append(data, cur_collector_envstep)
+
+    def _sample_check(self, size: int, cur_learner_iter: int) -> bool:
         r"""
         Overview:
             Do preparations for sampling and check whther data is enough for sampling
@@ -186,10 +219,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
 
         .. note::
-            This function must be called exactly before calling ``sample``.
+            This function must be called before data sample.
         """
-        if size == 0:
-            return True
         with self._lock:
             p = self._head
             while True:
@@ -214,44 +245,13 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             else:
                 return True
 
-    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
-        r"""
-        Overview:
-            Sample data with length ``size``.
-        Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled.
-            - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
-        Returns:
-            - sample_data (:obj:`list`): A list of data with length ``size``; \
-                Each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
-
-        .. note::
-            Before calling this function, ``sample_check`` must be called.
-        """
-        if size == 0:
-            return []
-        with self._lock:
-            indices = self._get_indices(size)
-            result = self._sample_with_indices(indices, cur_learner_iter)
-            # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
-            # the same indices, i.e. the same datas would be sampled afterwards.
-            for i in range(size):
-                tmp = []
-                for j in range(i + 1, size):
-                    if id(result[i]) == id(result[j]):
-                        tmp.append(j)
-                for j in tmp:
-                    result[j] = copy.deepcopy(result[j])
-            self._monitor_update_of_sample(result, cur_learner_iter)
-            return result
-
-    def append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
+    def _append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
         r"""
         Overview:
             Append a data item into queue.
             Add two keys in data:
 
-                - replay_unique_id: The data item's unique id, using ``self._generate_id`` to generate it.
+                - replay_unique_id: The data item's unique id, using ``generate_id`` to generate it.
                 - replay_buffer_idx: The data item's position index in the queue, this position may already have an \
                     old element, then it would be replaced by this new input one. using ``self._tail`` to locate.
         Arguments:
@@ -274,7 +274,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             if self._data[self._tail] is not None:
                 self._head = (self._tail + 1) % self._replay_buffer_size
             self._remove(self._tail)
-            data['replay_unique_id'] = self._generate_id(self._next_unique_id)
+            data['replay_unique_id'] = generate_id(self.name, self._next_unique_id)
             data['replay_buffer_idx'] = self._tail
             self._set_weight(data)
             self._data[self._tail] = data
@@ -283,22 +283,11 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             self._next_unique_id += 1
             self._monitor_update_of_push(1, cur_collector_envstep)
 
-    def _track_used_data(self, old: Any) -> None:
-        if not self._enable_track_used_data:
-            return
-        if old is not None:
-            if isinstance(old, dict) and 'data_id' in old:
-                if old['data_id'] not in self._using_data:
-                    self._used_data.put(old['data_id'])
-                else:
-                    self._using_used_data: set
-                    self._using_used_data.add(old['data_id'])
-
-    def extend(self, ori_data: List[Any], cur_collector_envstep: int = -1) -> None:
+    def _extend(self, ori_data: List[Any], cur_collector_envstep: int = -1) -> None:
         r"""
         Overview:
             Extend a data list into queue.
-            Add two keys in each data item, you can refer to ``append`` for details.
+            Add two keys in each data item, you can refer to ``_append`` for details.
         Arguments:
             - ori_data (:obj:`List[Any]`): The data list.
             - cur_collector_envstep (:obj:`int`): Collector's current env step, used to draw tensorboard.
@@ -321,7 +310,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                         self._head = (j + 1) % self._replay_buffer_size
                     self._remove(j)
                 for i in range(length):
-                    valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
+                    valid_data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
                     valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                     self._set_weight(valid_data[i])
                     self._push_count += 1
@@ -338,7 +327,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                             self._head = (j + 1) % self._replay_buffer_size
                         self._remove(j)
                     for i in range(valid_data_start, valid_data_start + L):
-                        valid_data[i]['replay_unique_id'] = self._generate_id(self._next_unique_id + i)
+                        valid_data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
                         valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                         self._set_weight(valid_data[i])
                         self._push_count += 1
@@ -363,13 +352,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             - info (:obj:`dict`): Info dict containing all necessary keys for priority update.
         """
         with self._lock:
-            if self._enable_track_used_data:
-                used_id = info.get('used_id', [])
-                self._using_data.difference_update(used_id)
-                for data_id in used_id:
-                    if data_id in self._using_used_data:
-                        self._using_used_data.remove(data_id)
-                        self._used_data.put(data_id)
             if 'priority' not in info:
                 return
             data = [info['replay_unique_id'], info['replay_buffer_idx'], info['priority']]
@@ -396,16 +378,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             self._head = 0
             self._tail = 0
             self._max_priority = 1.0
-
-    def close(self) -> None:
-        """
-        Overview:
-            Close the tensorboard logger.
-        """
-        self.clear()
-        self._tb_logger.flush()
-        self._tb_logger.close()
-        self._end_flag = True
 
     def __del__(self) -> None:
         """
@@ -469,15 +441,17 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             - idx (:obj:`int`): Data at this position will be removed.
         """
         if idx == self._head:
+            # Correct `self._head`
             self._head = (self._head + 1) % self._replay_buffer_size
-        self._track_used_data(self._data[idx])
         if self._data[idx] is not None:
+            if self._enable_track_used_data:
+                self._used_data_remover.add_used_data(self._data[idx])
             self._valid_count -= 1
-            self._remove_data_count += 1
-        self._data[idx] = None
-        self._sum_tree[idx] = self._sum_tree.neutral_element
-        self._min_tree[idx] = self._min_tree.neutral_element
-        self._use_count[idx] = 0
+            self._periodic_thruput_monitor.remove_data_count += 1
+            self._data[idx] = None
+            self._sum_tree[idx] = self._sum_tree.neutral_element
+            self._min_tree[idx] = self._min_tree.neutral_element
+            self._use_count[idx] = 0
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
@@ -501,8 +475,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 copy_data = copy.deepcopy(self._data[idx])
             else:
                 copy_data = self._data[idx]
-            if self._enable_track_used_data:
-                self._using_data.add(copy_data['data_id'])
             # Store staleness, use and IS(importance sampling weight for gradient step) for monitor and outer use
             self._use_count[idx] += 1
             copy_data['staleness'] = self._calculate_staleness(idx, cur_learner_iter)
@@ -524,12 +496,12 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
         r"""
         Overview:
             Update values in monitor, then update text logger and tensorboard logger.
-            Called in ``append`` and ``extend``.
+            Called in ``_append`` and ``_extend``.
         Arguments:
             - add_count (:obj:`int`): How many datas are added into buffer.
             - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.
         """
-        self._push_data_count += add_count
+        self._periodic_thruput_monitor.push_data_count += add_count
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -542,7 +514,7 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
                 e.g. use, priority, staleness, etc.
             - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.
         """
-        self._sample_data_count += len(sample_data)
+        self._periodic_thruput_monitor.sample_data_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
         use = sum([d['use'] for d in sample_data]) / len(sample_data)
         priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
@@ -599,27 +571,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             staleness = cur_learner_iter - collect_iter
             return staleness
 
-    def _thrput_print_periodically(self) -> None:
-        while not self._end_flag:
-            time_passed = time.time() - self._thruput_start_time
-            if time_passed >= self._thruput_print_seconds:
-                self._logger.info('In the past {:.1f} seconds, buffer statistics is as follows:'.format(time_passed))
-                count_dict = {
-                    'pushed_in': self._push_data_count,
-                    'sampled_out': self._sample_data_count,
-                    'removed': self._remove_data_count,
-                    'current_have': self._valid_count,
-                }
-                self._logger.print_vars_hor(count_dict)
-                for k, v in count_dict.items():
-                    self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._thruput_print_times)
-                self._push_data_count = 0
-                self._sample_data_count = 0
-                self._remove_data_count = 0
-                self._thruput_start_time = time.time()
-                self._thruput_print_times += 1
-            else:
-                time.sleep(min(1, self._thruput_print_seconds * 0.2))
+    def count(self) -> int:
+        return self._valid_count
 
     @property
     def beta(self) -> float:
@@ -628,20 +581,6 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
     @beta.setter
     def beta(self, beta: float) -> NoReturn:
         self._beta = beta
-
-    @property
-    def used_data(self) -> Any:
-        if self._enable_track_used_data:
-            if not self._used_data.empty():
-                return self._used_data.get()
-            else:
-                return None
-        else:
-            return None
-
-    @property
-    def replay_buffer_start_size(self) -> int:
-        return self._replay_buffer_start_size
 
     def state_dict(self) -> dict:
         return {
@@ -659,47 +598,22 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             'min_tree': self._min_tree,
         }
 
+    def load_state_dict(self, _state_dict: dict) -> None:
+        assert 'data' in _state_dict
+        if set(_state_dict.keys()) == set(['data']):
+            self._extend(_state_dict['data'])
+        else:
+            for k, v in _state_dict.items():
+                setattr(self, '_{}'.format(k), v)
 
-class SampledDataAttrMonitor(LoggedModel):
-    """
-    Overview:
-        SampledDataAttrMonitor is to monitor read-out indicators for ``expire`` times recent read-outs.
-        Indicators include: read out time; average and max of read out data items' use; average, max and min of
-        read out data items' priorityl; average and max of staleness.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    use = LoggedValue(float)
-    priority = LoggedValue(float)
-    staleness = LoggedValue(float)
+    @property
+    def replay_buffer_size(self) -> int:
+        return self._replay_buffer_size
 
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
+    @property
+    def validlen(self) -> int:
+        return self._valid_count
 
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
-
-        def __max_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return max(_list)
-
-        def __min_func(prop_name: str) -> Union[float, int]:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return min(_list)
-
-        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use'))
-        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use'))
-        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
-        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
-        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
-        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
-        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
+    @property
+    def push_count(self) -> int:
+        return self._push_count

@@ -3,8 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator
-from nervex.data import BufferManager
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DDPGPolicy
 from nervex.model import QAC
@@ -21,7 +20,7 @@ def main(cfg, seed=0):
         BaseLearner,
         SampleCollector,
         BaseSerialEvaluator,
-        BufferManager,
+        PrioritizedReplayBuffer,
         save_cfg=True
     )
 
@@ -48,7 +47,7 @@ def main(cfg, seed=0):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = PrioritizedReplayBuffer('default_buffer', cfg.policy.other.replay_buffer, tb_logger)
 
     # Training & Evaluation loop
     while True:

@@ -64,7 +64,10 @@ class A2CPolicy(Policy):
         eval=dict(),
         # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
+        other=dict(replay_buffer=dict(
+            type='priority',
+            replay_buffer_size=1000,
+        ), ),
     )
 
     def _init_learn(self) -> None:

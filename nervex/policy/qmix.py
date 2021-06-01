@@ -66,6 +66,7 @@ class QMIXPolicy(Policy):
                 decay=20000,
             ),
             replay_buffer=dict(
+                type='priority',
                 replay_buffer_size=5000,
                 # (int) The maximum reuse times of each data
                 max_reuse=10,

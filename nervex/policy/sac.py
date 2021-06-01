@@ -115,6 +115,7 @@ class SACPolicy(Policy):
         eval=dict(),
         other=dict(
             replay_buffer=dict(
+                type='priority',
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
                 # (int type) replay_start_size: Number of experiences in replay buffer

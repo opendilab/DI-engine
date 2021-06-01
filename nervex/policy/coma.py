@@ -60,6 +60,7 @@ class COMAPolicy(Policy):
                 decay=100000,
             ),
             replay_buffer=dict(
+                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=64,
                 # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer

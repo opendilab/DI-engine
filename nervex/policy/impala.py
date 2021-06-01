@@ -65,6 +65,7 @@ class IMPALAPolicy(Policy):
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
+            type='priority',
             replay_buffer_size=1000,
             max_use=16,
         ), ),

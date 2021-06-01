@@ -2,29 +2,28 @@ import os
 import gym
 from tensorboardX import SummaryWriter
 from easydict import EasyDict
+from copy import deepcopy
 
 from nervex.config import compile_config
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import DQNPolicy
-from nervex.model import FCDiscreteNet
-from nervex.utils import set_pkg_seed
-from nervex.rl_utils import get_epsilon_greedy_fn
-from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
+from nervex.policy import PPGPolicy
+from nervex.model import FCPPG
+from nervex.utils import set_pkg_seed, deep_merge_dicts
+from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config
 
 
-# Get nerveX form env class
 def wrapped_cartpole_env():
     return NervexEnvWrapper(gym.make('CartPole-v0'))
 
 
-def main(cfg, seed=0):
+def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
-        DQNPolicy,
+        PPGPolicy,
         BaseLearner,
-        SampleCollector,
+        BaseSerialCollector,
         BaseSerialEvaluator,
         PrioritizedReplayBuffer,
         save_cfg=True
@@ -33,44 +32,38 @@ def main(cfg, seed=0):
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
-    # Set random seed for all package and instance
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
-    # Set up RL Policy
-    model = FCDiscreteNet(**cfg.policy.model)
-    policy = DQNPolicy(cfg.policy, model=model)
-
-    # Set up collection, training and evaluation utilities
+    model = FCPPG(**cfg.policy.model)
+    policy = PPGPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = PrioritizedReplayBuffer('default_buffer', cfg.policy.other.replay_buffer, tb_logger)
+    policy_buffer = PrioritizedReplayBuffer('policy_buffer', cfg.policy.other.replay_buffer.policy_buffer, tb_logger)
+    value_buffer = PrioritizedReplayBuffer('value_buffer', cfg.policy.other.replay_buffer.value_buffer, tb_logger)
 
-    # Set up other modules, etc. epsilon greedy
-    eps_cfg = cfg.policy.other.eps
-    epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-
-    # Training & Evaluation loop
     while True:
-        # Evaluating at the beginning and with specific frequency
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        # Update other modules
-        eps = epsilon_greedy(collector.envstep)
-        # Sampling data from environments
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs={'eps': eps})
-        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        # Training
+        new_data = collector.collect_data(learner.train_iter)
+        policy_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        value_buffer.push(deepcopy(new_data), cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data is not None:
+            policy_data = policy_buffer.sample(
+                learner.policy.get_attribute('batch_size')['policy'], learner.train_iter)
+            value_data = policy_buffer.sample(
+                learner.policy.get_attribute('batch_size')['value'], learner.train_iter)
+            if policy_data is not None and value_data is not None:
+                train_data = {'policy': policy_data, 'value': value_data}
                 learner.train(train_data, collector.envstep)
+        policy_buffer.clear()
+        value_buffer.clear()
 
 
 if __name__ == "__main__":
-    main(cartpole_dqn_config)
+    main(cartpole_ppg_config)

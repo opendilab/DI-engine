@@ -8,7 +8,6 @@ import copy
 from nervex.worker import SampleCollector
 from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
-from nervex.data import BufferManager
 from nervex.utils import deep_merge_dicts, set_pkg_seed
 
 from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy

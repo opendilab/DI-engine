@@ -12,6 +12,7 @@ from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cart
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
+from app_zoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
 from app_zoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
@@ -209,11 +210,10 @@ def test_atoc():
 
 @pytest.mark.unittest
 def test_ppg():
-    config = [deepcopy(cartpole_ppg_config), deepcopy(cartpole_ppg_create_config)]
-    config[0].policy.use_cuda = False
-    config[0].policy.learn.update_per_collect = 10
+    cartpole_ppg_config.policy.use_cuda = False
+    cartpole_ppg_config.policy.learn.update_per_collect = 10
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        ppg_main(cartpole_ppg_config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 

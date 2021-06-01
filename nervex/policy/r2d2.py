@@ -74,7 +74,10 @@ class R2D2Policy(Policy):
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                type='priority',
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
