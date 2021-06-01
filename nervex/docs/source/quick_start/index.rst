@@ -47,7 +47,8 @@ Set up Environments
 ---------------------
 
 NerveX redefines RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
-For junior users, an environment wrapper is provided to simply wrap the gym env into NerveX form env.
+For junior users, an environment wrapper (by default :class:`NervexEnvWrapper <nervex.env.NervexEnvWrapper>`) is provided 
+to simply wrap the gym env into NerveX form env.
 For advanced users, it is suggested to check our Environment doc for details
 
 The :class:`Env Manager <nervex.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
@@ -227,13 +228,13 @@ in the same way as PyTorch.
 
 .. code-block:: python
 
-    if cfg.policy.get('ckpt_path', '') != '':
-        state_dict = torch.load(cfg.policy.ckpt_path, map_location='cpu')
-        if 'last_iter' in state_dict:
-            last_iter = state_dict.pop('last_iter')
-            learner.last_iter.update(last_iter)
-        learner.policy.load_state_dict(state_dict)
-        learner.info('{} load ckpt in {}'.format(learner.name, cfg.policy.ckpt_path))
+    ckpt_path = 'path/to/your/ckpt'
+    state_dict = torch.load(ckpt_path, map_location='cpu')
+    if 'last_iter' in state_dict:
+        last_iter = state_dict.pop('last_iter')
+        learner.last_iter.update(last_iter)
+    learner.policy.load_state_dict(state_dict)
+    learner.info('{} load ckpt in {}'.format(learner.name, ckpt_path))
     
     ...
 

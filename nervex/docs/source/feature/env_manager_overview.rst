@@ -30,8 +30,16 @@ Env Manager
                 ...
             )
 
+            # lambda function way
             env_fn = lambda : NerveXEnv(*args, **kwargs)
             env_manager = BaseEnvManager(env_fn=[env_fn for _ in range(4)], cfg=config.env.manager)
+
+            # partial function way
+            from functools import partial
+            
+            def env_fn(*args, **kwargs):
+                return NerveXEnv(*args, **kwargs)
+            env_manager = BaseEnvManager(env_fn=[partial(env_fn, *args, **kwargs) for _ in range(4)], cfg=config.env.manager)
 
     - launch/reset
         env manager 初始化后并不会立即实例化每个环境，此时 env manager 会被标记为 `closed` 状态。首次初始化环境需调用 ``launch`` 方法，该方法会按照传入的 env 实例化调用接口
