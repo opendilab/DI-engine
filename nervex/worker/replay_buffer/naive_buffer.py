@@ -203,7 +203,8 @@ class NaiveReplayBuffer(BaseBuffer):
         with self._lock:
             for i in range(len(self._data)):
                 if self._data[i] is not None:
-                    self._used_data_remover.add_used_data(self._data[i])
+                    if self._enable_track_used_data:
+                        self._used_data_remover.add_used_data(self._data[i])
                     self._data[i] = None
             self._valid_count = 0
 

@@ -61,7 +61,7 @@ class TestNaiveBuffer:
 
     @pytest.mark.used
     def test_track_used_data(self):
-        buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10)))
+        buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10, enable_track_used_data=True)))
         naive_buffer = NaiveReplayBuffer('test', buffer_cfg)
         naive_buffer.start()
 

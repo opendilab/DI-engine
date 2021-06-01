@@ -392,6 +392,7 @@ class TD3Policy(DDPGPolicy):
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(
+            type='priority',
             replay_buffer_size=20000,
             max_use=16,
         ), ),

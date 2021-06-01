@@ -88,7 +88,6 @@ def test_iqn():
 
 
 @pytest.mark.unittest
-@pytest.mark.ppo
 def test_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -210,7 +209,6 @@ def test_atoc():
 
 
 @pytest.mark.unittest
-@pytest.mark.ppg
 def test_ppg():
     cartpole_ppg_config.policy.use_cuda = False
     cartpole_ppg_config.policy.learn.update_per_collect = 10
