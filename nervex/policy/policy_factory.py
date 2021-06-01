@@ -60,8 +60,10 @@ class PolicyFactory:
             discrete = action_space.value['dtype'] == int
             min, max, shape = action_space.value['min'], action_space.value['max'], action_space.shape
             for env_id in data:
+                # For continuous env, action is limited in [-1, 1] for model output.
+                # Env would scale it to its original action range.
                 actions[env_id] = {'action': discrete_random_action(
-                    min, max, shape) if discrete else continuous_random_action(min, max, shape)}
+                    min, max, shape) if discrete else continuous_random_action(-1, 1, shape)}
             return actions
             
         def reset(*args, **kwargs) -> None:

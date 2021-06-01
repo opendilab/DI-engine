@@ -96,14 +96,16 @@ class SampledDataAttrMonitor(LoggedModel):
 
 class PeriodicThruputMonitor:
 
-    def __init__(self, cfg) -> None:
+    def __init__(self, cfg, logger) -> None:
         self._end_flag = False
+        self._logger = logger
         self._thruput_print_seconds = cfg.seconds
         self._thruput_print_times = 0
         self._thruput_start_time = time.time()
         self._push_data_count = 0
         self._sample_data_count = 0
         self._remove_data_count = 0
+        self._valid_count = 0
         self._thruput_log_thread = threading.Thread(
             target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
         )
@@ -158,3 +160,11 @@ class PeriodicThruputMonitor:
     @remove_data_count.setter
     def remove_data_count(self, count) -> None:
         self._remove_data_count = count
+    
+    @property
+    def valid_count(self) -> int:
+        return self._valid_count
+
+    @valid_count.setter
+    def valid_count(self, count) -> None:
+        self._valid_count = count

@@ -149,7 +149,7 @@ class PrioritizedReplayBuffer(BaseBuffer):
         )
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
-        self._periodic_thruput_monitor = PeriodicThruputMonitor(monitor_cfg.periodic_thruput)
+        self._periodic_thruput_monitor = PeriodicThruputMonitor(monitor_cfg.periodic_thruput, self._logger)
 
         # Used data remover
         self._enable_track_used_data = self._cfg.enable_track_used_data
@@ -279,6 +279,7 @@ class PrioritizedReplayBuffer(BaseBuffer):
             self._set_weight(data)
             self._data[self._tail] = data
             self._valid_count += 1
+            self._periodic_thruput_monitor.valid_count = self._valid_count
             self._tail = (self._tail + 1) % self._replay_buffer_size
             self._next_unique_id += 1
             self._monitor_update_of_push(1, cur_collector_envstep)
@@ -339,6 +340,7 @@ class PrioritizedReplayBuffer(BaseBuffer):
                         data_start = 0
                         valid_data_start += L
             self._valid_count += len(valid_data)
+            self._periodic_thruput_monitor.valid_count = self._valid_count
             # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
             self._tail = (self._tail + length) % self._replay_buffer_size
             self._next_unique_id += length
@@ -374,7 +376,9 @@ class PrioritizedReplayBuffer(BaseBuffer):
         with self._lock:
             for i in range(len(self._data)):
                 self._remove(i)
-            self._valid_count = 0
+            assert self._valid_count == 0
+            # self._valid_count = 0
+            # self._periodic_thruput_monitor.valid_count = self._valid_count
             self._head = 0
             self._tail = 0
             self._max_priority = 1.0
@@ -447,6 +451,7 @@ class PrioritizedReplayBuffer(BaseBuffer):
             if self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[idx])
             self._valid_count -= 1
+            self._periodic_thruput_monitor.valid_count = self._valid_count
             self._periodic_thruput_monitor.remove_data_count += 1
             self._data[idx] = None
             self._sum_tree[idx] = self._sum_tree.neutral_element
