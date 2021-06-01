@@ -15,7 +15,7 @@ cartpole_ppo_config = dict(
             embedding_size=64,
         ),
         learn=dict(
-            update_per_collect=5,
+            update_per_collect=6,
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,

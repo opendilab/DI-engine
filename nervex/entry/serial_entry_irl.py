@@ -59,7 +59,7 @@ def serial_pipeline_irl(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger)
     commander = BaseSerialCommander(
@@ -89,7 +89,7 @@ def serial_pipeline_irl(
                 break
         new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
-            new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)

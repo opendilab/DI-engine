@@ -28,7 +28,7 @@ class PendulumEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         self._final_eval_reward = 0.
         return obs
 
@@ -49,7 +49,7 @@ class PendulumEnv(BaseEnv):
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward

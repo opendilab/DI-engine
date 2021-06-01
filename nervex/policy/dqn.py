@@ -55,7 +55,7 @@ class DQNPolicy(Policy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_episode] shoule be set
             n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,

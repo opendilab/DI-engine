@@ -173,7 +173,7 @@ def compile_config(
         env_manager=None,
         policy=None,
         learner=BaseLearner,
-        collector=BaseSerialCollector,
+        collector=SampleCollector,
         evaluator=BaseSerialEvaluator,
         buffer=None,
         env=None,

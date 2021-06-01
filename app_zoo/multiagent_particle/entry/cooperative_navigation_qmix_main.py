@@ -24,7 +24,7 @@ def main(cfg, seed=0):
         SyncSubprocessEnvManager,
         QMIXPolicy,
         BaseLearner,
-        BaseSerialCollector,
+        SampleCollector,
         BaseSerialEvaluator,
         PrioritizedReplayBuffer,
         save_cfg=True
@@ -45,7 +45,7 @@ def main(cfg, seed=0):
     policy = QMIXPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = PrioritizedReplayBuffer('default_buffer', cfg.policy.other.replay_buffer, tb_logger)
 
@@ -58,7 +58,7 @@ def main(cfg, seed=0):
             if stop:
                 break
         eps = epsilon_greedy(collector.envstep)
-        new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)

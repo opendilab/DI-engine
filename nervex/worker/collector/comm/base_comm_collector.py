@@ -5,7 +5,7 @@ from easydict import EasyDict
 
 from nervex.policy import create_policy
 from nervex.utils import get_task_uid, import_module, COMM_COLLECTOR_REGISTRY
-from ..base_parallel_collector import create_collector, BaseCollector
+from ..base_parallel_collector import create_parallel_collector, BaseCollector
 
 
 class BaseCommCollector(ABC):
@@ -97,7 +97,7 @@ class BaseCommCollector(ABC):
             clarified and initialized.
         """
         collector_cfg = EasyDict(task_info['collector_cfg'])
-        collector = create_collector(collector_cfg)
+        collector = create_parallel_collector(collector_cfg)
         for item in ['send_metadata', 'send_stepdata', 'get_policy_update_info']:
             setattr(collector, item, getattr(self, item))
         return collector

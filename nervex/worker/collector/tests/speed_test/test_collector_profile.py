@@ -5,7 +5,7 @@ import pytest
 from functools import partial
 import copy
 
-from nervex.worker import BaseSerialCollector, NaiveReplayBuffer
+from nervex.worker import SampleCollector
 from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
 from nervex.utils import deep_merge_dicts, set_pkg_seed
@@ -48,19 +48,19 @@ def compare_test(cfg, out_str, seed):
         collector_env.seed(seed)
 
         # cfg.policy.collect.collector = deep_merge_dicts(
-        #     BaseSerialCollector.default_config(), cfg.policy.collect.collector)
+        #     SampleCollector.default_config(), cfg.policy.collect.collector)
         policy = FakePolicy(cfg.policy)
-        collector_cfg = deep_merge_dicts(BaseSerialCollector.default_config(), cfg.policy.collect.collector)
-        collector = BaseSerialCollector(collector_cfg, collector_env, policy.collect_mode)
-        buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, NaiveReplayBuffer.default_config())
-        replay_buffer = NaiveReplayBuffer('test', buffer_cfg)
+        collector_cfg = deep_merge_dicts(SampleCollector.default_config(), cfg.policy.collect.collector)
+        collector = SampleCollector(collector_cfg, collector_env, policy.collect_mode)
+        buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, BufferManager.default_config())
+        replay_buffer = BufferManager(buffer_cfg)
 
         start = time.time()
         iters = 50 if FAST_MODE else 300
         for iter in range(iters):
             if iter % 50 == 0:
                 print('\t', iter)
-            new_data = collector.collect_data(iter)
+            new_data = collector.collect(train_iter=iter)
             replay_buffer.push(new_data, cur_collector_envstep=iter * 8)
         duration_list.append(time.time() - start)
         print('\tduration: {}'.format(time.time() - start))
@@ -95,7 +95,7 @@ def test_collector_profile():
                 reset_time=0.1,
                 step_time=0.005,
             ), ),
-            policy=dict(forward_time=0.004),
+            policy=dict(forward_time=0.004, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
         dict(
@@ -109,7 +109,7 @@ def test_collector_profile():
                     step_time=0.01,
                 ),
             ),
-            policy=dict(forward_time=0.008),
+            policy=dict(forward_time=0.008, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
 
@@ -125,7 +125,7 @@ def test_collector_profile():
                     step_time=0.1,
                 ),
             ),
-            policy=dict(forward_time=0.02),
+            policy=dict(forward_time=0.02, on_policy=False),
             collector=dict(n_sample=80, ),
         ),
     ]

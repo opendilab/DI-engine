@@ -44,7 +44,7 @@ class CartPoleEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -65,7 +65,7 @@ class CartPoleEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
@@ -78,7 +78,7 @@ class CartPoleEnv(BaseEnv):
                 {
                     'min': [-4.8, float("-inf"), -0.42, float("-inf")],
                     'max': [4.8, float("inf"), 0.42, float("inf")],
-                    'dtype': float,
+                    'dtype': np.float32,
                 },
             ),
             # [min, max)
