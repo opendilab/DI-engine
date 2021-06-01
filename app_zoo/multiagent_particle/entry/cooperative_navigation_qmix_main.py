@@ -47,7 +47,7 @@ def main(cfg, seed=0):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = PrioritizedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = PrioritizedReplayBuffer('default_buffer', cfg.policy.other.replay_buffer, tb_logger)
 
     eps_cfg = cfg.policy.other.eps
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)

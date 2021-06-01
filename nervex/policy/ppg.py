@@ -90,8 +90,7 @@ class PPGPolicy(Policy):
         other=dict(
             replay_buffer=dict(
                 # PPG use two seperate buffer for different reuse
-                # multi_buffer=True,
-                # buffer_name=['policy_buffer', 'value_buffer'],
+                multi_buffer=True,
                 policy_buffer=dict(
                     type='priority',
                     replay_buffer_size=1000,

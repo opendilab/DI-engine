@@ -12,7 +12,6 @@ from easydict import EasyDict
 from nervex.utils import deep_merge_dicts, BUFFER_REGISTRY
 from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls
-from nervex.worker import NaiveReplayBuffer, PrioritizedReplayBuffer, EpisodeReplayBuffer
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
 from .utils import parallel_transform, parallel_transform_slurm
@@ -165,6 +164,7 @@ def compile_buffer_config(cfg: EasyDict, buffer) -> EasyDict:
             cfg.policy.other.replay_buffer[buffer_name] = deep_merge_dicts(
                 buffer_cls.default_config(), cfg.policy.other.replay_buffer[buffer_name]
             )
+            cfg.policy.other.replay_buffer[buffer_name].name = buffer_name
     return cfg
 
 
@@ -209,7 +209,7 @@ def compile_config(
         env_config.manager = env_manager.default_config()
         policy_config = policy.default_config()
     policy_config.learn.learner = learner.default_config()
-    policy_config.collect.collector = collector.default_config()  # todo
+    policy_config.collect.collector = collector.default_config()
     policy_config.eval.evaluator = evaluator.default_config()
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg = deep_merge_dicts(default_config, cfg)

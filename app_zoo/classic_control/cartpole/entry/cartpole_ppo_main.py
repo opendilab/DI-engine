@@ -16,7 +16,7 @@ def wrapped_cartpole_env():
     return NervexEnvWrapper(gym.make('CartPole-v0'))
 
 
-def main(cfg, seed=0):
+def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -41,9 +41,9 @@ def main(cfg, seed=0):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = PrioritizedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = PrioritizedReplayBuffer('default_buffer', cfg.policy.other.replay_buffer, tb_logger)
 
-    while True:
+    for _ in range(max_iterations):
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:

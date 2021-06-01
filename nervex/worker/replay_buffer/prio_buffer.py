@@ -99,8 +99,6 @@ class PrioritizedReplayBuffer(BaseBuffer):
         self._next_unique_id = 0
         # Lock to guarantee thread safe
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
-        # ``_data`` is a circular queue to store data (full data or meta data)
-        self._data = [None for _ in range(self._cfg.replay_buffer_size)]
         # Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.
         # Because buffer would remove data due to staleness or use count, and at the beginning when queue is not
         # filled with data head would always be 0, so ``head`` may be not equal to ``tail``;
@@ -161,8 +159,6 @@ class PrioritizedReplayBuffer(BaseBuffer):
     def start(self) -> None:
         if self._enable_track_used_data:
             self._used_data_remover.start()
-        else:
-            print('[BUFFER WARNING] `enable_track_used_data` is False, no thread to start.`')
 
     def close(self) -> None:
         self.clear()
@@ -172,8 +168,6 @@ class PrioritizedReplayBuffer(BaseBuffer):
         self._end_flag = True
         if self._enable_track_used_data:
             self._used_data_remover.close()
-        else:
-            print('[BUFFER WARNING] `enable_track_used_data` is False, no thread to join.`')
 
     def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
         r"""
@@ -185,13 +179,12 @@ class PrioritizedReplayBuffer(BaseBuffer):
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``; \
                 Each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
-
-        .. note::
-            Before calling this function, ``_sample_check`` must be called.
         """
         if size == 0:
             return []
-        self._sample_check(size, cur_learner_iter)
+        can_sample = self._sample_check(size, cur_learner_iter)
+        if not can_sample:
+            return None
         with self._lock:
             indices = self._get_indices(size)
             result = self._sample_with_indices(indices, cur_learner_iter)
@@ -226,7 +219,7 @@ class PrioritizedReplayBuffer(BaseBuffer):
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
 
         .. note::
-            This function must be called exactly before calling ``sample``.
+            This function must be called before data sample.
         """
         with self._lock:
             p = self._head
