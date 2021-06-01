@@ -187,7 +187,7 @@ class Coordinator(object):
                         # create replay_buffer
                         buffer_id = learner_task['buffer_id']
                         if buffer_id not in self._replay_buffer:
-                            replay_buffer_cfg = learner_task.pop('replay_buffer_cfg', {})
+                            replay_buffer_cfg = learner_task.pop('replay_buffer_cfg')
                             self._replay_buffer[buffer_id] = create_buffer(replay_buffer_cfg)
                             self._replay_buffer[buffer_id].start()
                             self.info("replay_buffer({}) is created".format(buffer_id))
