@@ -35,6 +35,8 @@ class SACPolicy(Policy):
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Please use False in sac.
         priority=False,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        random_collect_size=2000,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -118,9 +120,6 @@ class SACPolicy(Policy):
                 type='priority',
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int type) replay_start_size: Number of experiences in replay buffer
-                # when training begins. Default to 10000.
-                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.

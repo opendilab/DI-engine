@@ -36,6 +36,8 @@ class RainbowDQNPolicy(DQNPolicy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=True,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        random_collect_size=2000,
         model=dict(
             # (float) Value of the smallest atom in the support set.
             # Default to -10.0.
@@ -97,8 +99,6 @@ class RainbowDQNPolicy(DQNPolicy):
                 type='priority',
                 # (int) Max size of replay buffer.
                 replay_buffer_size=100000,
-                # (int) Number of experiences in replay buffer when training starts. Defaults to 0.
-                replay_buffer_start_size=2000,
                 # (float) Prioritization exponent.
                 alpha=0.6,
                 # (float) Importance sample soft coefficient.
@@ -312,6 +312,8 @@ class IQNPolicy(RainbowDQNPolicy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=True,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        random_collect_size=2000,
         model=dict(
             # (str) Type of beta function, chosen from ['uniform', 'CPW', 'CVaR','Pow']. Default to 'uniform'.
             beta_function_type='uniform',
@@ -375,8 +377,6 @@ class IQNPolicy(RainbowDQNPolicy):
                 type='priority',
                 # (int) Max size of replay buffer.
                 replay_buffer_size=100000,
-                # (int) Number of experiences in replay buffer when training starts. Defaults to 0.
-                replay_buffer_start_size=2000,
                 # (float) Prioritization exponent.
                 alpha=0.6,
                 # (float) Importance sample soft coefficient.

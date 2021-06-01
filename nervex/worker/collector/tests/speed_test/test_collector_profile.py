@@ -5,7 +5,7 @@ import pytest
 from functools import partial
 import copy
 
-from nervex.worker import SampleCollector
+from nervex.worker import SampleCollector, NaiveReplayBuffer
 from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
 from nervex.utils import deep_merge_dicts, set_pkg_seed
@@ -52,8 +52,8 @@ def compare_test(cfg, out_str, seed):
         policy = FakePolicy(cfg.policy)
         collector_cfg = deep_merge_dicts(SampleCollector.default_config(), cfg.policy.collect.collector)
         collector = SampleCollector(collector_cfg, collector_env, policy.collect_mode)
-        buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, BufferManager.default_config())
-        replay_buffer = BufferManager(buffer_cfg)
+        buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, NaiveReplayBuffer.default_config())
+        replay_buffer = NaiveReplayBuffer(buffer_cfg)
 
         start = time.time()
         iters = 50 if FAST_MODE else 300

@@ -83,10 +83,11 @@ class CartPoleEnv(BaseEnv):
             ),
             # [min, max)
             act_space=T(
-                (2, ),
+                (1, ),
                 {
                     'min': 0,
-                    'max': 2
+                    'max': 2,
+                    'dtype': int,
                 },
             ),
             rew_space=T(

@@ -10,7 +10,7 @@ from typing import Optional, Tuple, NoReturn
 import yaml
 from easydict import EasyDict
 from nervex.utils import deep_merge_dicts, BUFFER_REGISTRY
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
