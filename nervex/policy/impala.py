@@ -61,7 +61,10 @@ class IMPALAPolicy(Policy):
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
-            collector=dict(collect_print_freq=1000, ),
+            collector=dict(
+                type='sample',
+                collect_print_freq=1000,
+            ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(

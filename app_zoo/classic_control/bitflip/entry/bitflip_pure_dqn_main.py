@@ -32,8 +32,12 @@ def main(cfg, seed=0):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[partial(BitFlipEnv, cfg=cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[partial(BitFlipEnv, cfg=cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[partial(BitFlipEnv, cfg=cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[partial(BitFlipEnv, cfg=cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     # Set random seed for all package and instance
     collector_env.seed(seed)

@@ -178,7 +178,7 @@ class FrameStackCompetitiveRl(gym.Wrapper):
     def __init__(self, env, n_frames, builtin_wrap):
         super().__init__(env)
         self.n_frames = n_frames
-        
+
         self.builtin_wrap = builtin_wrap
         obs_space = env.observation_space
         if self.builtin_wrap:
@@ -193,7 +193,10 @@ class FrameStackCompetitiveRl(gym.Wrapper):
             self.observation_space = gym.spaces.tuple.Tuple(
                 [
                     gym.spaces.Box(
-                        low=np.min(obs_space[0].low), high=np.max(obs_space[0].high), shape=shape, dtype=obs_space[0].dtype
+                        low=np.min(obs_space[0].low),
+                        high=np.max(obs_space[0].high),
+                        shape=shape,
+                        dtype=obs_space[0].dtype
                     ) for _ in range(len(obs_space))
                 ]
             )

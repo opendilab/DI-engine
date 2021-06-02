@@ -13,7 +13,7 @@ bitflip_pure_dqn_config = dict(
         cuda=False,
         on_policy=False,
         model=dict(
-            obs_shape=2*n_bits,
+            obs_shape=2 * n_bits,
             action_shape=n_bits,
             embedding_size=64,
             dueling=True,
@@ -39,7 +39,7 @@ bitflip_pure_dqn_config = dict(
             ),
             replay_buffer=dict(
                 type='episode',
-                replay_buffer_size=50, 
+                replay_buffer_size=50,
             ),
         ),
     ),

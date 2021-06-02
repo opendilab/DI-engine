@@ -61,6 +61,7 @@ class R2D2Policy(Policy):
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
+            collector=dict(type='sample', ),
         ),
         eval=dict(
             # `env_num` is used in hidden state, should equal to that one in env config.

@@ -66,6 +66,7 @@ class DQNPolicy(Policy):
             her=False,
             her_strategy='future',
             her_replay_k=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config

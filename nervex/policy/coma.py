@@ -50,6 +50,7 @@ class COMAPolicy(Policy):
             n_sample=128,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=16,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(

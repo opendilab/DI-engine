@@ -209,9 +209,9 @@ def test_atoc():
 
 
 @pytest.mark.unittest
+@pytest.mark.ppg
 def test_ppg():
     cartpole_ppg_config.policy.use_cuda = False
-    cartpole_ppg_config.policy.learn.update_per_collect = 10
     try:
         ppg_main(cartpole_ppg_config, seed=0, max_iterations=1)
     except Exception:

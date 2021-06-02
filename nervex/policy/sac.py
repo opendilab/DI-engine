@@ -113,6 +113,7 @@ class SACPolicy(Policy):
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(

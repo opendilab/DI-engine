@@ -61,6 +61,7 @@ class PPOPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although ppo is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.

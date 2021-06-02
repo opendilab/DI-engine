@@ -85,17 +85,18 @@ class PPGPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
                 # PPG use two seperate buffer for different reuse
                 multi_buffer=True,
-                policy_buffer=dict(
+                policy=dict(
                     type='priority',
                     replay_buffer_size=1000,
                 ),
-                value_buffer=dict(
+                value=dict(
                     type='priority',
                     replay_buffer_size=1000,
                 ),

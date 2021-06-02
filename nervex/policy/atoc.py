@@ -89,6 +89,7 @@ class ATOCPolicy(Policy):
             # ==============================================================
             # (float) The std of noise distribution for exploration
             noise_sigma=0.4,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(

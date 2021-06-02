@@ -68,7 +68,10 @@ class DDPGPolicy(Policy):
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
-            collector=dict(collect_print_freq=1000, ),
+            collector=dict(
+                type='sample',
+                collect_print_freq=1000,
+            ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(
@@ -388,7 +391,10 @@ class TD3Policy(DDPGPolicy):
             n_sample=48,
             unroll_len=1,
             noise_sigma=0.1,
-            collector=dict(collect_print_freq=1000, ),
+            collector=dict(
+                type='sample',
+                collect_print_freq=1000,
+            ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(

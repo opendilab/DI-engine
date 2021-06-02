@@ -35,13 +35,13 @@ def setup_demo_buffer_factory():
 
 
 @pytest.mark.unittest
-class TestBaseBuffer:
+class TestPrioBuffer:
 
     def test_push(self):
         buffer_cfg = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
         prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
         start_pointer = prioritized_buffer._tail
-        start_vaildlen = prioritized_buffer.validlen
+        start_vaildlen = prioritized_buffer.count()
         start_data_id = prioritized_buffer._next_unique_id
         valid_count = 0
         for _ in range(100):
@@ -49,14 +49,13 @@ class TestBaseBuffer:
                 valid_count += 1
             prioritized_buffer.push(generate_data(), 0)
         assert (prioritized_buffer.replay_buffer_size == 64)
-        assert (prioritized_buffer.count() == 64)
-        assert (prioritized_buffer.validlen == start_vaildlen + valid_count)
+        assert (prioritized_buffer.count() == 64 == start_vaildlen + valid_count)
         assert (prioritized_buffer.push_count == start_vaildlen + 100)
         assert (prioritized_buffer._tail == (start_pointer + 100) % prioritized_buffer.replay_buffer_size)
         assert (prioritized_buffer._next_unique_id == start_data_id + 100)
         # invalid item append test
         prioritized_buffer.push([], 0)
-        assert (prioritized_buffer.validlen == start_vaildlen + valid_count)
+        assert (prioritized_buffer.count() == 64 == start_vaildlen + valid_count)
         assert (prioritized_buffer.push_count == start_vaildlen + 100)
         assert (prioritized_buffer._tail == (start_pointer + 100) % prioritized_buffer.replay_buffer_size)
         assert (prioritized_buffer._next_unique_id == start_data_id + 100)
@@ -79,7 +78,7 @@ class TestBaseBuffer:
         prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
         for _ in range(64):
             prioritized_buffer.push(generate_data(), 0)
-            assert prioritized_buffer.validlen == sum([d is not None for d in prioritized_buffer._data])
+            assert prioritized_buffer.count() == sum([d is not None for d in prioritized_buffer._data])
         selected_idx = [1, 4, 8, 30, 63]
         info = {'priority': [], 'replay_unique_id': [], 'replay_buffer_idx': []}
         for idx in selected_idx:
@@ -124,9 +123,8 @@ class TestBaseBuffer:
             idx = [b['replay_buffer_idx'] for b in batch]
             for i in idx:
                 use_dict[i] += 1
-        assert sum(
-            map(lambda x: x[1] >= prioritized_buffer._max_use, use_dict.items())
-        ) == prioritized_buffer.replay_buffer_size - prioritized_buffer.validlen
+        assert sum(map(lambda x: x[1] >= prioritized_buffer._max_use,
+                       use_dict.items())) == prioritized_buffer.replay_buffer_size - prioritized_buffer.count()
         for k, v in use_dict.items():
             if v > prioritized_buffer._max_use:
                 assert prioritized_buffer._data[k] is None
@@ -158,7 +156,7 @@ class TestBaseBuffer:
             PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=1))
         )
         prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
-        assert (prioritized_buffer.validlen == 0)  # assert empty buffer
+        assert (prioritized_buffer.count() == 0)  # assert empty buffer
 
         def get_weights(data_):
             weights_ = []
@@ -180,7 +178,7 @@ class TestBaseBuffer:
         assert (prioritized_buffer.alpha == 0.6)
         assert (hasattr(prioritized_buffer, '_sum_tree'))
         assert (hasattr(prioritized_buffer, '_min_tree'))
-        assert (prioritized_buffer.validlen == 20)
+        assert (prioritized_buffer.count() == 20)
 
         # tree test
         weights = get_weights(data)
@@ -189,7 +187,7 @@ class TestBaseBuffer:
         # second part(80 elements, bigger than buffer.replay_buffer_size)
         data = generate_data_list(80)
         prioritized_buffer.push(data, 0)
-        assert (prioritized_buffer.validlen == 64)
+        assert (prioritized_buffer.count() == 64)
         assert (prioritized_buffer._next_unique_id == 20 + 80)
         assert (prioritized_buffer._tail == (20 + 80) % 64)
         weights = get_weights(data[-64:])
@@ -207,7 +205,7 @@ class TestDemonstrationBuffer:
         with open(demo_data_path, 'rb+') as f:
             data = pickle.load(f)
         setup_demo_buffer.load_state_dict(data)
-        assert setup_demo_buffer.validlen == len(data['data'])  # assert buffer not empty
+        assert setup_demo_buffer.count() == len(data['data'])  # assert buffer not empty
         samples = setup_demo_buffer.sample(3, 0)
         assert 'staleness' in samples[0]
         assert samples[1]['staleness'] == -1

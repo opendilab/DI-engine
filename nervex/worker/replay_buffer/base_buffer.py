@@ -10,7 +10,7 @@ from nervex.utils import import_module, BUFFER_REGISTRY
 from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger, deep_merge_dicts
 
 
-class BaseBuffer(ABC):
+class IBuffer(ABC):
 
     @classmethod
     def default_config(cls) -> EasyDict:
@@ -55,8 +55,12 @@ class BaseBuffer(ABC):
         raise NotImplementedError
 
 
-def create_buffer(cfg: EasyDict, *args, **kwargs) -> BaseBuffer:
+def create_buffer(cfg: EasyDict, *args, **kwargs) -> IBuffer:
     import_module(cfg.get('import_names', []))
     buffer_type = cfg.pop('type')
-    buffer_name = cfg.pop('name')
-    return BUFFER_REGISTRY.build(buffer_type, buffer_name, cfg, *args, **kwargs)
+    return BUFFER_REGISTRY.build(buffer_type, cfg, *args, **kwargs, name=cfg.pop('name', 'default'))
+
+
+def get_buffer_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return BUFFER_REGISTRY.get(cfg.type)

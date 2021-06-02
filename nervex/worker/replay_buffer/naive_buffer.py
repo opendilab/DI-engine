@@ -2,13 +2,13 @@ import copy
 from typing import Union, Any, Optional, List
 import numpy as np
 
-from nervex.worker.replay_buffer import BaseBuffer
+from nervex.worker.replay_buffer import IBuffer
 from nervex.utils import LockContext, LockContextType, BUFFER_REGISTRY
 from .utils import UsedDataRemover, generate_id
 
 
 @BUFFER_REGISTRY.register('naive')
-class NaiveReplayBuffer(BaseBuffer):
+class NaiveReplayBuffer(IBuffer):
     r"""
     Overview:
         Naive replay buffer, can store and sample data.
@@ -17,13 +17,11 @@ class NaiveReplayBuffer(BaseBuffer):
         ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
     Interface:
         __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
-    Property:
-        replay_buffer_size, validlen, beta
     """
 
     config = dict(
         type='naive',
-        name='default_buffer',
+        name='default',
         replay_buffer_size=10000,
         deepcopy=False,
         # default `False` for serial pipeline
@@ -32,8 +30,8 @@ class NaiveReplayBuffer(BaseBuffer):
 
     def __init__(
             self,
-            name: str,
             cfg: dict,
+            name: str = 'default',
     ) -> None:
         """
         Overview:
@@ -55,8 +53,6 @@ class NaiveReplayBuffer(BaseBuffer):
         self._push_count = 0
         # Point to the tail position where next data can be inserted, i.e. latest inserted data's next position.
         self._tail = 0
-        # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
-        self._next_unique_id = 0
         # Lock to guarantee thread safe
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
         self._end_flag = False
@@ -106,11 +102,6 @@ class NaiveReplayBuffer(BaseBuffer):
         r"""
         Overview:
             Append a data item into ``self._data``.
-            Add two keys in data:
-
-                - replay_unique_id: The data item's unique id, using ``generate_id`` to generate it.
-                - replay_buffer_idx: The data item's position index in the queue, this position may already have an \
-                    old element, then it would be replaced by this new input one. using ``self._tail`` to locate.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
             - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatiblity.
@@ -125,11 +116,8 @@ class NaiveReplayBuffer(BaseBuffer):
                 self._valid_count += 1
             elif self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[self._tail])
-            # data['replay_unique_id'] = generate_id(self.name, self._next_unique_id)
-            # data['replay_buffer_idx'] = self._tail
             self._data[self._tail] = data
             self._tail = (self._tail + 1) % self._replay_buffer_size
-            self._next_unique_id += 1
 
     def _extend(self, ori_data: List[Any], cur_collector_envstep: int = -1) -> None:
         r"""
@@ -155,9 +143,6 @@ class NaiveReplayBuffer(BaseBuffer):
                 elif self._enable_track_used_data:
                     for i in range(length):
                         self._used_data_remover.add_used_data(self._data[self._tail + i])
-                # for i in range(length):
-                #     data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
-                #     data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                 self._push_count += length
                 self._data[self._tail:self._tail + length] = data
             else:
@@ -172,9 +157,6 @@ class NaiveReplayBuffer(BaseBuffer):
                     elif self._enable_track_used_data:
                         for i in range(L):
                             self._used_data_remover.add_used_data(self._data[new_tail + i])
-                    # for i in range(data_start, data_start + L):
-                    #     data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
-                    #     data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                     self._push_count += L
                     self._data[new_tail:new_tail + L] = data[data_start:data_start + L]
                     residual_num -= L
@@ -186,7 +168,6 @@ class NaiveReplayBuffer(BaseBuffer):
                         data_start += L
             # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
             self._tail = (self._tail + length) % self._replay_buffer_size
-            self._next_unique_id += length
 
     def _sample_check(self, size: int) -> bool:
         r"""
@@ -198,9 +179,7 @@ class NaiveReplayBuffer(BaseBuffer):
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         """
         if self._valid_count < size:
-            print(
-                "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
-            )
+            print("No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count))
             return False
         else:
             return True
@@ -264,7 +243,6 @@ class NaiveReplayBuffer(BaseBuffer):
         data = []
         for idx in indices:
             assert self._data[idx] is not None
-            # assert self._data[idx]['replay_buffer_idx'] == idx, (self._data[idx]['replay_buffer_idx'], idx)
             if self._deepcopy:
                 copy_data = copy.deepcopy(self._data[idx])
             else:
@@ -279,7 +257,6 @@ class NaiveReplayBuffer(BaseBuffer):
         return {
             'data': self._data,
             'tail': self._tail,
-            'next_unique_id': self._next_unique_id,
             'valid_count': self._valid_count,
             'push_count': self._push_count,
         }
@@ -295,10 +272,6 @@ class NaiveReplayBuffer(BaseBuffer):
     @property
     def replay_buffer_size(self) -> int:
         return self._replay_buffer_size
-
-    @property
-    def validlen(self) -> int:
-        return self._valid_count
 
     @property
     def push_count(self) -> int:

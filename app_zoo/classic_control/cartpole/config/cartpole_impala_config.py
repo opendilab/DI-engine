@@ -48,9 +48,7 @@ cartpole_impala_config = dict(
             gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(
-            evaluator=dict(eval_freq=200, )
-        ),
+        eval=dict(evaluator=dict(eval_freq=200, )),
         other=dict(replay_buffer=dict(
             replay_buffer_size=1000,
             max_use=16,

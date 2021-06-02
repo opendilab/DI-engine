@@ -15,7 +15,7 @@ class TestNaiveBuffer:
         buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
         naive_buffer = NaiveReplayBuffer('test', buffer_cfg)
         start_pointer = naive_buffer._tail
-        start_vaildlen = naive_buffer.validlen
+        start_vaildlen = naive_buffer.count()
         start_data_id = naive_buffer._next_unique_id
         valid_count = 0
         for _ in range(100):
@@ -23,8 +23,7 @@ class TestNaiveBuffer:
                 valid_count += 1
             naive_buffer.push(generate_data(), 0)
         assert (naive_buffer.replay_buffer_size == 64)
-        assert (naive_buffer.count() == 64)
-        assert (naive_buffer.validlen == start_vaildlen + valid_count)
+        assert (naive_buffer.count() == 64 == start_vaildlen + valid_count)
         assert (naive_buffer.push_count == start_vaildlen + 100)
         assert (naive_buffer._tail == (start_pointer + 100) % naive_buffer.replay_buffer_size)
         assert (naive_buffer._next_unique_id == start_data_id + 100)
@@ -57,11 +56,12 @@ class TestNaiveBuffer:
         # test clear
         naive_buffer.clear()
         assert naive_buffer.count() == 0
-        assert naive_buffer.validlen == 0
 
     @pytest.mark.used
     def test_track_used_data(self):
-        buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10, enable_track_used_data=True)))
+        buffer_cfg = deep_merge_dicts(
+            NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10, enable_track_used_data=True))
+        )
         naive_buffer = NaiveReplayBuffer('test', buffer_cfg)
         naive_buffer.start()
 

@@ -60,6 +60,7 @@ class A2CPolicy(Policy):
             nstep_return=False,
             # (int) N-step td
             nstep=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.

@@ -11,7 +11,7 @@ from functools import partial
 from easydict import EasyDict
 import threading
 
-from nervex.worker.replay_buffer import BaseBuffer
+from nervex.worker.replay_buffer import IBuffer
 from nervex.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import LockContext, LockContextType, build_logger
@@ -19,7 +19,7 @@ from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, Periodi
 
 
 @BUFFER_REGISTRY.register('priority')
-class PrioritizedReplayBuffer(BaseBuffer):
+class PrioritizedReplayBuffer(IBuffer):
     r"""
     Overview:
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
@@ -29,13 +29,11 @@ class PrioritizedReplayBuffer(BaseBuffer):
             3) Monitor mechanism to watch sampled data attributes & thruput statistics.
     Interface:
         __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
-    Property:
-        replay_buffer_size, validlen, beta
     """
 
     config = dict(
         type='priority',
-        name='default_buffer',
+        name='default',
         # Max length of the buffer.
         replay_buffer_size=4096,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.
@@ -72,9 +70,9 @@ class PrioritizedReplayBuffer(BaseBuffer):
 
     def __init__(
             self,
-            name: str,
             cfg: dict,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
+            name: str = 'default',
     ) -> int:
         """
         Overview:
@@ -149,7 +147,9 @@ class PrioritizedReplayBuffer(BaseBuffer):
         )
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
-        self._periodic_thruput_monitor = PeriodicThruputMonitor(monitor_cfg.periodic_thruput, self._logger)
+        self._periodic_thruput_monitor = PeriodicThruputMonitor(
+            monitor_cfg.periodic_thruput, self._logger, self._tb_logger
+        )
 
         # Used data remover
         self._enable_track_used_data = self._cfg.enable_track_used_data
@@ -491,7 +491,12 @@ class PrioritizedReplayBuffer(BaseBuffer):
         # Remove datas whose "use count" is greater than ``max_use``
         for idx in indices:
             if self._use_count[idx] >= self._max_use:
-                self._remove(idx)
+                if self._enable_track_used_data:
+                    # Set its priority to 0, to ensure it will not be sampled anymore.
+                    self._data[idx]['priority'] = self._eps
+                    self._set_weight(self._data[idx])
+                else:
+                    self._remove(idx)
         # Beta annealing
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
@@ -614,10 +619,6 @@ class PrioritizedReplayBuffer(BaseBuffer):
     @property
     def replay_buffer_size(self) -> int:
         return self._replay_buffer_size
-
-    @property
-    def validlen(self) -> int:
-        return self._valid_count
 
     @property
     def push_count(self) -> int:

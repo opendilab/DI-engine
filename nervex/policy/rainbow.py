@@ -80,6 +80,7 @@ class RainbowDQNPolicy(DQNPolicy):
             n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config
@@ -358,6 +359,7 @@ class IQNPolicy(RainbowDQNPolicy):
             n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config

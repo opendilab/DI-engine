@@ -34,6 +34,9 @@ class UsedDataRemover:
         self._delete_used_data_thread.start()
 
     def close(self) -> None:
+        while not self._used_data.empty():
+            data_id = self._used_data.get()
+            remove_file(data_id)
         self._end_flag = True
 
     def add_used_data(self, data) -> None:
@@ -96,9 +99,10 @@ class SampledDataAttrMonitor(LoggedModel):
 
 class PeriodicThruputMonitor:
 
-    def __init__(self, cfg, logger) -> None:
+    def __init__(self, cfg, logger, tb_logger) -> None:
         self._end_flag = False
         self._logger = logger
+        self._tb_logger = tb_logger
         self._thruput_print_seconds = cfg.seconds
         self._thruput_print_times = 0
         self._thruput_start_time = time.time()
@@ -160,7 +164,7 @@ class PeriodicThruputMonitor:
     @remove_data_count.setter
     def remove_data_count(self, count) -> None:
         self._remove_data_count = count
-    
+
     @property
     def valid_count(self) -> int:
         return self._valid_count

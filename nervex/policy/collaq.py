@@ -53,6 +53,7 @@ class CollaQPolicy(Policy):
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(

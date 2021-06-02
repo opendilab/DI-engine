@@ -53,6 +53,7 @@ class SQNPolicy(Policy):
             n_sample=update_per_collect,
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(

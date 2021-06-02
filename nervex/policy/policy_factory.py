@@ -19,9 +19,9 @@ class PolicyFactory:
 
     @staticmethod
     def get_random_policy(
-        policy: 'BasePolicy',  # noqa
-        action_space: 'EnvElementInfo' = None,  # noqa
-        forward_fn: Callable = None,
+            policy: 'BasePolicy',  # noqa
+            action_space: 'EnvElementInfo' = None,  # noqa
+            forward_fn: Callable = None,
     ) -> None:
         assert not (action_space is None and forward_fn is None)
         random_collect_function = namedtuple(
@@ -35,7 +35,7 @@ class PolicyFactory:
         )
 
         def forward(data: Dict[int, Any], *args, **kwargs) -> Dict[int, Any]:
-            
+
             def discrete_random_action(min_val, max_val, shape):
                 return np.random.randint(min_val, max_val, shape)
 
@@ -55,21 +55,27 @@ class PolicyFactory:
                     return -np.random.exponential(size=shape) + max_val
                 if bounded:
                     return np.random.uniform(low=min_val, high=max_val, size=shape)
-            
+
             actions = {}
             discrete = action_space.value['dtype'] == int
             min, max, shape = action_space.value['min'], action_space.value['max'], action_space.shape
             for env_id in data:
                 # For continuous env, action is limited in [-1, 1] for model output.
                 # Env would scale it to its original action range.
-                actions[env_id] = {'action': discrete_random_action(
-                    min, max, shape) if discrete else continuous_random_action(-1, 1, shape)}
+                actions[env_id] = {
+                    'action': discrete_random_action(min, max, shape)
+                    if discrete else continuous_random_action(-1, 1, shape)
+                }
             return actions
-            
+
         def reset(*args, **kwargs) -> None:
             pass
-        
+
         if action_space is None:
-            return random_collect_function(forward_fn, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute)
+            return random_collect_function(
+                forward_fn, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute
+            )
         elif forward_fn is None:
-            return random_collect_function(forward, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute)
+            return random_collect_function(
+                forward, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute
+            )

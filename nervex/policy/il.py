@@ -50,6 +50,7 @@ class ILPolicy(Policy):
             n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
+            collector=dict(type='sample', ),
         ),
         eval=dict(evaluator=dict(eval_freq=800, ), ),
         other=dict(

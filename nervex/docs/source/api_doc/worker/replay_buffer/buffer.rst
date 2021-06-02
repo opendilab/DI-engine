@@ -4,10 +4,10 @@ worker.replay_buffer
 replay buffer
 -------------------
 
-BaseBuffer
+IBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.replay_buffer.base_buffer.BaseBuffer
-    :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+.. autoclass:: nervex.worker.replay_buffer.base_buffer.IBuffer
+    :members: push, update, sample, clear, count, state_dict, load_state_dict
 
 NaiveReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
