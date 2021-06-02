@@ -18,7 +18,7 @@ Space Invaders
 | dqn       | 1880     | 812      | 947      | 622      |
 | c51       | 2396     | 989      | n/a      | n/a      |
 | qrdqn     | 2082     | 938      | n/a      | n/a      |
-| iqn       | n/a      | 1370     | n/a      | n/a      |
+| iqn       | 1493     | 1370     | n/a      | n/a      |
 | rainbow   | n/a      | n/a      | n/a      | n/a      |
 | a2c       | 782      | n/a      | n/a      | 627      |
 | ppo       | 1126     | n/a      | 1025     | 960      |
