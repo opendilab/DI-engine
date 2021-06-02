@@ -10,8 +10,8 @@ from typing import Optional, Tuple, NoReturn
 import yaml
 from easydict import EasyDict
 from nervex.utils import deep_merge_dicts
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
-    get_parallel_commander_cls, get_parallel_collector_cls
+from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander,\
+     Coordinator, get_parallel_commander_cls, get_parallel_collector_cls
 from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
@@ -137,12 +137,169 @@ def read_config(cfg: str, direct=False) -> Tuple[dict, dict]:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
 
-def save_config(config_: dict, path: str, type_: str = 'py') -> NoReturn:
+def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: bool = False) -> NoReturn:
     assert type_ in ['yaml', 'py'], type_
     if type_ == 'yaml':
         save_config_yaml(config_, path)
     elif type_ == 'py':
         save_config_py(config_, path)
+        if save_formatted:
+            formated_path = osp.join(osp.dirname(path), 'formatted_' + osp.basename(path))
+            save_config_formatted(config_, formated_path)
+
+
+def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py') -> NoReturn:
+    with open(path, "w") as f:
+        f.write('from easydict import EasyDict\n\n')
+        f.write('main_config = dict(\n')
+        for k, v in config_.items():
+            if (k == 'env'):
+                f.write('    env=dict(\n')
+                for k2, v2 in v.items():
+                    if (k2 != 'type' and k2 != 'import_names' and k2 != 'manager'):
+                        if (isinstance(v2, str)):
+                            f.write("        {}='{}',\n".format(k2, v2))
+                        else:
+                            f.write("        {}={},\n".format(k2, v2))
+                    if (k2 == 'manager'):
+                        f.write("        manager=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (v3 != 'cfg_type' and v3 != 'type'):
+                                if (isinstance(v3, str)):
+                                    f.write("            {}='{}',\n".format(k3, v3))
+                                elif v3 == float('inf'):
+                                    f.write("            {}=float('{}'),\n".format(k3, v3))
+                                else:
+                                    f.write("            {}={},\n".format(k3, v3))
+                        f.write("        ),\n")
+                f.write("    ),\n")
+            if (k == 'policy'):
+                f.write('    policy=dict(\n')
+                for k2, v2 in v.items():
+                    if (k2 != 'type' and k2 != 'learn' and k2 != 'collect' and k2 != 'eval' and k2 != 'other'
+                            and k2 != 'model'):
+                        if (isinstance(v2, str)):
+                            f.write("        {}='{}',\n".format(k2, v2))
+                        else:
+                            f.write("        {}={},\n".format(k2, v2))
+                    elif (k2 == 'learn'):
+                        f.write("        learn=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (k3 != 'learner'):
+                                if (isinstance(v3, str)):
+                                    f.write("            {}='{}',\n".format(k3, v3))
+                                else:
+                                    f.write("            {}={},\n".format(k3, v3))
+                            if (k3 == 'learner'):
+                                f.write("            learner=dict(\n")
+                                for k4, v4 in v3.items():
+                                    if (k4 != 'dataloader' and k4 != 'hook'):
+                                        if (isinstance(v4, str)):
+                                            f.write("                {}='{}',\n".format(k4, v4))
+                                        else:
+                                            f.write("                {}={},\n".format(k4, v4))
+                                    else:
+                                        if (k4 == 'dataloader'):
+                                            f.write("                dataloader=dict(\n")
+                                            for k5, v5 in v4.items():
+                                                if (isinstance(v5, str)):
+                                                    f.write("                    {}='{}',\n".format(k5, v5))
+                                                else:
+                                                    f.write("                    {}={},\n".format(k5, v5))
+                                            f.write("                ),\n")
+                                        if (k4 == 'hook'):
+                                            f.write("                hook=dict(\n")
+                                            for k5, v5 in v4.items():
+                                                if (isinstance(v5, str)):
+                                                    f.write("                    {}='{}',\n".format(k5, v5))
+                                                else:
+                                                    f.write("                    {}={},\n".format(k5, v5))
+                                            f.write("                ),\n")
+                                f.write("            ),\n")
+                        f.write("        ),\n")
+                    elif (k2 == 'collect'):
+                        f.write("        collect=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (k3 != 'collector'):
+                                if (isinstance(v3, str)):
+                                    f.write("            {}='{}',\n".format(k3, v3))
+                                else:
+                                    f.write("            {}={},\n".format(k3, v3))
+                            if (k3 == 'collector'):
+                                f.write("            collector=dict(\n")
+                                for k4, v4 in v3.items():
+                                    if (isinstance(v4, str)):
+                                        f.write("                {}='{}',\n".format(k4, v4))
+                                    else:
+                                        f.write("                {}={},\n".format(k4, v4))
+                                f.write("            ),\n")
+                        f.write("        ),\n")
+                    elif (k2 == 'model'):
+                        f.write("        model=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (isinstance(v3, str)):
+                                f.write("            {}='{}',\n".format(k3, v3))
+                            else:
+                                f.write("            {}={},\n".format(k3, v3))
+                        f.write("        ),\n    ),\n)\n")
+                    elif (k2 == 'other'):
+                        f.write("        other=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (k3 == 'replay_buffer'):
+                                f.write("            replay_buffer=dict(\n")
+                                for k4, v4 in v3.items():
+                                    if (k4 != 'monitor'):
+                                        if (isinstance(v4, str)):
+                                            f.write("                {}='{}',\n".format(k4, v4))
+                                        else:
+                                            f.write("                {}={},\n".format(k4, v4))
+                                    else:
+                                        if (k4 == 'monitor'):
+                                            f.write("                monitor=dict(\n")
+                                            for k5, v5 in v4.items():
+                                                if (k5 == 'log_path'):
+                                                    if (isinstance(v5, str)):
+                                                        f.write("                    {}='{}',\n".format(k5, v5))
+                                                    else:
+                                                        f.write("                    {}={},\n".format(k5, v5))
+                                                else:
+                                                    f.write("                    {}=dict(\n".format(k5))
+                                                    for k6, v6 in v5.items():
+                                                        if (isinstance(v6, str)):
+                                                            f.write("                        {}='{}',\n".format(k6, v6))
+                                                        else:
+                                                            f.write("                        {}={},\n".format(k6, v6))
+                                                    f.write("                    ),\n")
+                                            f.write("                ),\n")
+                                f.write("            ),\n")
+                        f.write("        ),\n")
+        f.write('main_config = EasyDict(main_config)\n')
+        f.write('main_config = main_config\n')
+        f.write('create_config = dict(\n')
+        for k, v in config_.items():
+            if (k == 'env'):
+                f.write('    env=dict(\n')
+                for k2, v2 in v.items():
+                    if (k2 == 'type' or k2 == 'import_names'):
+                        if isinstance(v2, str):
+                            f.write("        {}='{}',\n".format(k2, v2))
+                        else:
+                            f.write("        {}={},\n".format(k2, v2))
+                f.write("    ),\n")
+                for k2, v2 in v.items():
+                    if (k2 == 'manager'):
+                        f.write('    env_manager=dict(\n')
+                        for k3, v3 in v2.items():
+                            if (v3 == 'cfg_type' or v3 == 'type'):
+                                if (isinstance(v3, str)):
+                                    f.write("        {}='{}',\n".format(k3, v3))
+                                else:
+                                    f.write("        {}={},\n".format(k3, v3))
+                f.write("    ),\n")
+        f.write("    policy=dict(type='{}'),\n".format(config_.policy.type[0:len(config_.policy.type) - 8]))
+        f.write(")\n")
+        f.write('create_config = EasyDict(create_config)\n')
+        f.write('create_config = create_config\n')
 
 
 def deal_with_multi_buffer(default_config: EasyDict, cfg: EasyDict) -> EasyDict:
@@ -209,7 +366,7 @@ def compile_config(
     cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
     if save_cfg:
-        save_config(cfg, save_path)
+        save_config(cfg, save_path, save_formatted=True)
     return cfg
 
 
