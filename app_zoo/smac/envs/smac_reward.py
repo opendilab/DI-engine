@@ -16,14 +16,14 @@ class SMACReward:
         reward_type,
         reward_scale=False,
         reduce_agent=True,
-        reward_only_positive=True
+        reward_only_positive=False
     ):
         self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
         self.reward_death_value = 10
         self.reward_win = 200
         self.reward_defeat = 0
-        self.reward_negative_scale = 0.5
+        self.reward_negative_scale = 0.5  # different for different maps
         self.reduce_agent = reduce_agent
         self.reward_type = reward_type
         assert self.reward_type in ['sparse', 'original', 'new']
@@ -151,10 +151,10 @@ class SMACReward:
 
         if self.reward_type == 'original':
             if self.reduce_agent:
-                total_reward = abs(sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy))
+                total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy)
                 return total_reward
             else:
-                total_reward = abs(sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy)) / num_agents
+                total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy) / num_agents
                 return np.ones(num_agents) * total_reward
 
         # Attacking reward

@@ -64,6 +64,7 @@ class SMACEnv(SC2Env, BaseEnv):
         reward_win=200,
         obs_alone=False,
         game_steps_per_episode=None,
+        reward_only_positive=False,
     )
 
     def __init__(
@@ -170,7 +171,7 @@ class SMACEnv(SC2Env, BaseEnv):
         self.previous_enemy_units = None
 
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
-        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, cfg.reward_type)
+        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, cfg.reward_type, reward_only_positive=self.cfg.reward_only_positive)
 
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
