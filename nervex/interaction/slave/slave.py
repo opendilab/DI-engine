@@ -14,18 +14,20 @@ from flask import Flask, request
 from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
-from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
+from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN, \
+    DEFAULT_HEARTBEAT_RETRIES
 from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
 class Slave(ControllableService):
 
     def __init__(
-        self,
-        host: Optional[str] = None,
-        port: Optional[int] = None,
-        heartbeat_span: Optional[float] = None,
-        channel: Optional[int] = None
+            self,
+            host: Optional[str] = None,
+            port: Optional[int] = None,
+            heartbeat_span: Optional[float] = None,
+            heartbeat_retries: Optional[int] = None,
+            channel: Optional[int] = None
     ):
         # server part
         self.__host = host or GLOBAL_HOST
@@ -36,6 +38,7 @@ class Slave(ControllableService):
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
+        self.__heartbeat_retries = max(heartbeat_retries or DEFAULT_HEARTBEAT_RETRIES, 0)
 
         # task part
         self.__has_task = DblEvent()
@@ -267,14 +270,19 @@ class Slave(ControllableService):
     # heartbeat part
     def __heartbeat(self):
         _last_time = time.time()
+        _retries = 0
         while not self.__shutdown_event.is_set():
             if self.__connected.is_open():
                 try:
                     self.__master_heartbeat()
                 except requests.exceptions.RequestException as err:
-                    self._lost_connection(self.__master_address, err)
-                    self.__close_master_connection()
-                    traceback.print_exception(*sys.exc_info(), file=sys.stderr)
+                    _retries += 1
+                    if _retries > self.__heartbeat_retries:
+                        self._lost_connection(self.__master_address, err)
+                        self.__close_master_connection()
+                        traceback.print_exception(*sys.exc_info(), file=sys.stderr)
+                else:
+                    _retries = 0
 
             _last_time += self.__heartbeat_span
             time.sleep(max(_last_time - time.time(), 0))
