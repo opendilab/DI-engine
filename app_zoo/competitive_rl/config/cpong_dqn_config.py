@@ -60,7 +60,6 @@ cpong_dqn_config = dict(
 cpong_dqn_config = EasyDict(cpong_dqn_config)
 main_config = cpong_dqn_config
 
-
 cpong_dqn_create_config = dict(
     env=dict(
         import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
@@ -68,10 +67,7 @@ cpong_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
-    learner=dict(
-        type='base', 
-        import_names=['nervex.worker.learner.base_learner']
-    ),
+    learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
     collector=dict(
         type='one_vs_one',
         import_names=['nervex.worker.collector.one_vs_one_collector'],
