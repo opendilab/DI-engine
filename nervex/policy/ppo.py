@@ -4,7 +4,8 @@ import torch
 import copy
 
 from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import ppo_data, ppo_error, Adder
+from nervex.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
+     v_nstep_td_data, v_nstep_td_error
 from nervex.data import default_collate, default_decollate
 from nervex.model import FCValueAC, ConvValueAC, model_wrap
 from nervex.utils import POLICY_REGISTRY, deep_merge_dicts
@@ -25,8 +26,11 @@ class PPOPolicy(Policy):
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
         on_policy=True,
-        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether to use nstep_return for value loss
+        nstep_return=False,
+        nstep=3,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -48,6 +52,7 @@ class PPOPolicy(Policy):
             clip_ratio=0.2,
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
+            ignore_done=False,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
@@ -85,7 +90,8 @@ class PPOPolicy(Policy):
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._clip_ratio = self._cfg.learn.clip_ratio
         self._adv_norm = self._cfg.learn.adv_norm
-
+        self._nstep = self._cfg.nstep
+        self._nstep_return = self._cfg.nstep_return
         # Main model
         self._learn_model.reset()
 
@@ -100,26 +106,61 @@ class PPOPolicy(Policy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
-        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
+        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._nstep_return)
         if self._cuda:
             data = to_device(data, self._device)
         # ====================
         # PPO forward
         # ====================
+
         self._learn_model.train()
-        output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
-        adv = data['adv']
-        if self._adv_norm:
-            # Normalize advantage in a total train_batch
-            adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        return_ = data['value'] + adv
-        # Calculate ppo error
-        data = ppo_data(
-            output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_, data['weight']
-        )
-        ppo_loss, ppo_info = ppo_error(data, self._clip_ratio)
-        wv, we = self._value_weight, self._entropy_weight
-        total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+        # normal ppo
+        if not self._nstep_return:
+            output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
+            adv = data['adv']
+            if self._adv_norm:
+                # Normalize advantage in a total train_batch
+                adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+            return_ = data['value'] + adv
+            # Calculate ppo error
+            ppodata = ppo_data(
+                output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
+                data['weight']
+            )
+            ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+            wv, we = self._value_weight, self._entropy_weight
+            total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+
+        else:
+            output = self._learn_model.forward(data['obs'], mode='compute_actor')
+            adv = data['adv']
+            if self._adv_norm:
+                # Normalize advantage in a total train_batch
+                adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+
+            # Calculate ppo error
+            ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
+            ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+            wv, we = self._value_weight, self._entropy_weight
+            next_obs = data.get('next_obs')
+            value_gamma = data.get('value_gamma')
+            reward = data.get('reward')
+            # current value
+            value = self._learn_model.forward(data['obs'], mode='compute_critic')
+            # target value
+            next_data = {'obs': next_obs}
+            target_value = self._learn_model.forward(next_data['obs'], mode='compute_critic')
+            # TODO what should we do here to keep shape
+            assert self._nstep > 1
+            td_data = v_nstep_td_data(
+                value['value'], target_value['value'], reward.t(), data['done'], data['weight'], value_gamma
+            )
+            #calculate v_nstep_td critic_loss
+            critic_loss, td_error_per_sample = v_nstep_td_error(td_data, self._gamma, self._nstep)
+            ppo_loss_data = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
+            ppo_loss = ppo_loss_data(ppo_policy_loss.policy_loss, critic_loss, ppo_policy_loss.entropy_loss)
+            total_loss = ppo_policy_loss.policy_loss + wv * critic_loss - we * ppo_policy_loss.entropy_loss
+
         # ====================
         # PPO update
         # ====================
@@ -159,6 +200,8 @@ class PPOPolicy(Policy):
         self._adder = Adder(self._cuda, self._unroll_len)
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
+        self._nstep = self._cfg.nstep
+        self._nstep_return = self._cfg.nstep_return
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
@@ -193,14 +236,25 @@ class PPOPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'logit': model_output['logit'],
-            'action': model_output['action'],
-            'value': model_output['value'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if not self._nstep_return:
+            transition = {
+                'obs': obs,
+                'logit': model_output['logit'],
+                'action': model_output['action'],
+                'value': model_output['value'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'logit': model_output['logit'],
+                'action': model_output['action'],
+                'value': model_output['value'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
@@ -216,7 +270,10 @@ class PPOPolicy(Policy):
         data = self._adder.get_gae_with_default_last_value(
             data, data[-1]['done'], gamma=self._gamma, gae_lambda=self._gae_lambda
         )
-        return self._adder.get_train_sample(data)
+        if not self._nstep_return:
+            return self._adder.get_train_sample(data)
+        else:
+            return self._adder.get_nstep_return_data(data, self._nstep)
 
     def _init_eval(self) -> None:
         r"""
