@@ -43,9 +43,7 @@ cooperative_navigation_vdn_config = dict(
             unroll_len=16,
             env_num=collector_env_num,
         ),
-        eval=dict(
-            env_num=evaluator_env_num,
-        ),
+        eval=dict(env_num=evaluator_env_num, ),
         other=dict(eps=dict(
             type='exp',
             start=1.0,

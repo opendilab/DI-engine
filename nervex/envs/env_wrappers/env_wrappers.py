@@ -35,6 +35,10 @@ class NoopResetEnv(gym.Wrapper):
                 obs = self.env.reset()
         return obs
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class MaxAndSkipEnv(gym.Wrapper):
     """Return only every `skip`-th frame (frameskipping) using most recent raw
@@ -61,6 +65,10 @@ class MaxAndSkipEnv(gym.Wrapper):
                 break
         max_frame = np.max(obs_list[-2:], axis=0)
         return max_frame, total_reward, done, info
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
 
 
 class WarpFrame(gym.ObservationWrapper):
@@ -93,6 +101,10 @@ class WarpFrame(gym.ObservationWrapper):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return (4, 84, 84), act_shape, rew_shape
+
 
 class ScaledFloatFrame(gym.ObservationWrapper):
     """Normalize observations to 0~1.
@@ -111,6 +123,10 @@ class ScaledFloatFrame(gym.ObservationWrapper):
     def observation(self, observation):
         return (observation - self.bias) / self.scale
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class ClipRewardEnv(gym.RewardWrapper):
     """clips the reward to {+1, 0, -1} by its sign.
@@ -125,6 +141,10 @@ class ClipRewardEnv(gym.RewardWrapper):
     def reward(self, reward):
         """Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0."""
         return np.sign(reward)
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
 
 
 class FrameStack(gym.Wrapper):
@@ -168,6 +188,10 @@ class FrameStack(gym.Wrapper):
         # it has no effect
         return np.stack(self.frames, axis=0)
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class ObsTransposeWrapper(gym.ObservationWrapper):
 
@@ -198,6 +222,17 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
         else:
             obs = obs.transpose(2, 0, 1)
         return obs
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        if isinstance(obs_shape, tuple):
+            new_obs = []
+            for i in range(len(obs_shape)):
+                new_obs.append(obs_shape[i].transpose(2, 0, 1))
+            obs_shape = np.stack(new_obs)
+        else:
+            obs_shape = obs_shape.transpose(2, 0, 1)
+        return obs_shape, act_shape, rew_shape
 
 
 class RunningMeanStd(object):
@@ -238,6 +273,10 @@ class RunningMeanStd(object):
     def std(self) -> np.ndarray:
         return np.sqrt(self._var) + self._epsilon
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class ObsNormEnv(gym.ObservationWrapper):
     """Normalize observations according to running mean and std.
@@ -268,6 +307,10 @@ class ObsNormEnv(gym.ObservationWrapper):
         self.rms.reset()
         observation = self.env.reset(**kwargs)
         return self.observation(observation)
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
 
 
 class RewardNormEnv(gym.RewardWrapper):
@@ -303,6 +346,10 @@ class RewardNormEnv(gym.RewardWrapper):
         self.rms.reset()
         return self.env.reset(**kwargs)
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class RamWrapper(gym.Wrapper):
     """Wrapper ram env into image-like env
@@ -328,6 +375,10 @@ class RamWrapper(gym.Wrapper):
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return (128, 1, 1), act_shape, rew_shape
 
 
 class EpisodicLifeEnv(gym.Wrapper):
@@ -369,6 +420,10 @@ class EpisodicLifeEnv(gym.Wrapper):
         self.lives = self.env.unwrapped.ale.lives()
         return obs
 
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
 
 class FireResetEnv(gym.Wrapper):
     """Take action on reset for environments that are fixed until firing.
@@ -385,3 +440,17 @@ class FireResetEnv(gym.Wrapper):
     def reset(self):
         self.env.reset()
         return self.env.step(1)[0]
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        return obs_shape, act_shape, rew_shape
+
+
+def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
+    for wrapper_name in wrapper_names:
+        if wrapper_name:
+            try:
+                obs_shape, act_shape, rew_shape = eval(wrapper_name).new_shape(obs_shape, act_shape, rew_shape)
+            except:
+                continue
+    return obs_shape, act_shape, rew_shape

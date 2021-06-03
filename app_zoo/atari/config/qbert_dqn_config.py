@@ -8,9 +8,7 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=False,
@@ -30,9 +28,7 @@ qbert_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(
             eps=dict(

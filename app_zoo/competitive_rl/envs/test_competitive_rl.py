@@ -41,12 +41,10 @@ class TestCompetitiveRlEnv:
             i += 1
         print(env.info())
         env.close()
-    
+
     @pytest.mark.double
     def test_pong_double(self):
-        cfg = dict(
-            env_id='cPongDouble-v0',
-        )
+        cfg = dict(env_id='cPongDouble-v0', )
         cfg = EasyDict(cfg)
         env = CompetitiveRlEnv(cfg)
         env.seed(314)

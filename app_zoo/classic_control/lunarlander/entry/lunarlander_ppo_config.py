@@ -1,0 +1,46 @@
+from easydict import EasyDict
+
+lunarlander_ppo_config = dict(
+    env=dict(
+        collector_env_num=8,
+        evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=200,
+    ),
+    policy=dict(
+        cuda=False,
+        model=dict(
+            obs_shape=8,
+            action_shape=4,
+            embedding_size=64,
+        ),
+        learn=dict(
+            update_per_collect=4,
+            batch_size=64,
+            learning_rate=0.001,
+            value_weight=0.5,
+            entropy_weight=0.01,
+            clip_ratio=0.2,
+            nstep = 1,
+            nstep_return = False,
+        ),
+        collect=dict(
+            n_sample=128,
+            unroll_len=1,
+            discount_factor=0.99,
+            gae_lambda=0.9,
+        ),
+    ),
+)
+lunarlander_ppo_config = EasyDict(lunarlander_ppo_config)
+main_config = lunarlander_ppo_config
+lunarlander_ppo_create_config = dict(
+    env=dict(
+        type='lunarlander',
+        import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
+    ),
+    env_manager=dict(type='base'),
+    policy=dict(type='ppo'),
+)
+lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
+create_config = lunarlander_ppo_create_config

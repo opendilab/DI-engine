@@ -74,7 +74,7 @@ class RedRewardModel(BaseRewardModel):
                 logging.warning('RED model should be trained once, we do not train it anymore')
                 self.warning_flag = True
         else:
-            for i in range(self.config['train_iteration']):
+            for i in range(self.config.update_per_collect):
                 sample_batch = random.sample(self.expert_data, self.config['batch_size'])
                 states_data = []
                 actions_data = []

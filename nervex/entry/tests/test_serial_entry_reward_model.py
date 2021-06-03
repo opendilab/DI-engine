@@ -5,7 +5,7 @@ import logging
 
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from nervex.entry import serial_pipeline, collect_demo_data, serial_pipeline_irl
+from nervex.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model
 
 cfg = [
     {
@@ -18,14 +18,33 @@ cfg = [
         'input_dims': 5,
         'hidden_dims': 64,
         'batch_size': 64,
+        'target_new_data_count': 64,
         'update_per_collect': 100
+    },
+    {
+        'type': 'pwil',
+        's_size': 4,
+        'a_size': 2,
+        'sample_size': 500,
+        'alpha': 5,
+        'beta': 5
+    },
+    {
+        'type': 'red',
+        'sample_size': 5000,
+        'input_dims': 5,
+        'hidden_dims': 64,
+        'output_dims': 1,
+        'update_per_collect': 200,
+        'batch_size': 128,
+        'sigma': 0.5,
     },
 ]
 
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('irl_config', cfg)
-def test_pdeil(irl_config):
+def test_irl(irl_config):
     config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
     expert_policy = serial_pipeline(config, seed=0)
     # collect expert demo data
@@ -41,13 +60,7 @@ def test_pdeil(irl_config):
     cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
     cp_cartpole_dqn_config.policy.learn.init_data_count = 10000
     irl_config['expert_data_path'] = expert_data_path
-    cp_cartpole_dqn_config.irl = irl_config
-    if irl_config['type'] == 'gail':
-        cp_cartpole_dqn_config.policy.collect.n_sample = irl_config['batch_size']
-    serial_pipeline_irl((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0)
+    cp_cartpole_dqn_config.reward_model = irl_config
+    serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")
-
-
-if __name__ == '__main__':
-    pytest.main(["-sv", "test_serial_entry_irl.py"])
