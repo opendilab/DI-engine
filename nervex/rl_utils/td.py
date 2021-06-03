@@ -217,6 +217,7 @@ def v_1step_td_error(
     td_error_per_sample = criterion(v, target_v.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
+
 v_nstep_td_data = namedtuple('v_nstep_td_data', ['v', 'next_n_v', 'reward', 'done', 'weight', 'value_gamma'])
 
 

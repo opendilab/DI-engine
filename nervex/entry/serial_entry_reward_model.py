@@ -10,11 +10,11 @@ from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator,
 from nervex.config import read_config, compile_config
 from nervex.data import BufferManager
 from nervex.policy import create_policy
-from nervex.irl_utils import create_irl_model
+from nervex.reward_model import create_reward_model
 from nervex.utils import set_pkg_seed
 
 
-def serial_pipeline_irl(
+def serial_pipeline_reward_model(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -23,7 +23,7 @@ def serial_pipeline_irl(
 ) -> 'BasePolicy':  # noqa
     r"""
     Overview:
-        Serial pipeline entry.
+        Serial pipeline entry with reward model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -66,7 +66,7 @@ def serial_pipeline_irl(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_irl_model(cfg.irl, policy.collect_mode.get_attribute('device'), tb_logger)
+    reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
 
     # ==========
     # Main loop
@@ -88,7 +88,7 @@ def serial_pipeline_irl(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data_count, target_new_data_count = 0, cfg.irl.get('target_new_data_count', 1)
+        new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
         while new_data_count < target_new_data_count:
             new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)

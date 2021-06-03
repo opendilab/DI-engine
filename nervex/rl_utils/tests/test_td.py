@@ -155,7 +155,6 @@ def test_v_1step_td():
     loss, td_error_per_sample = v_1step_td_error(data, 0.99)
 
 
-
 @pytest.mark.unittest
 def test_v_nstep_td():
     batch_size = 5
