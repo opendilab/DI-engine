@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Union, Optional
 from copy import deepcopy
 from easydict import EasyDict
+from nervex.torch_utils.data_helper import to_device
 
 import torch
 
@@ -167,6 +168,7 @@ class OUNoise(BaseNoise):
             mu = self._mu
         noise = self._alpha * (mu - self._x) + self._beta * torch.randn(shape)
         self._x += noise
+        noise = to_device(noise, device)
         return noise
 
     @property
