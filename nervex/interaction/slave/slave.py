@@ -270,19 +270,14 @@ class Slave(ControllableService):
     # heartbeat part
     def __heartbeat(self):
         _last_time = time.time()
-        _retries = 0
         while not self.__shutdown_event.is_set():
             if self.__connected.is_open():
                 try:
                     self.__master_heartbeat()
                 except requests.exceptions.RequestException as err:
-                    _retries += 1
-                    if _retries > self.__heartbeat_retries:
-                        self._lost_connection(self.__master_address, err)
-                        self.__close_master_connection()
-                        traceback.print_exception(*sys.exc_info(), file=sys.stderr)
-                else:
-                    _retries = 0
+                    self._lost_connection(self.__master_address, err)
+                    self.__close_master_connection()
+                    traceback.print_exception(*sys.exc_info(), file=sys.stderr)
 
             _last_time += self.__heartbeat_span
             time.sleep(max(_last_time - time.time(), 0))
@@ -331,7 +326,16 @@ class Slave(ControllableService):
             path: Optional[str] = None,
             data: Optional[Mapping[str, Any]] = None
     ) -> requests.Response:
-        return self.__master_http_engine.request(method, path, data)
+        _retries = 0
+        while True:
+            try:
+                return self.__master_http_engine.request(method, path, data)
+            except requests.exceptions.HTTPError as err:
+                raise err
+            except requests.exceptions.RequestException as err:
+                _retries += 1
+                if _retries > self.__heartbeat_retries:
+                    raise err
 
     def __master_heartbeat(self):
         return self.__master_request('GET', '/slave/heartbeat')
