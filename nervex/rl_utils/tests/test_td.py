@@ -2,7 +2,7 @@ import pytest
 import torch
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data,\
     td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data, \
-    dist_nstep_td_error, v_1step_td_data, v_1step_td_error
+    dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data, v_nstep_td_error
 
 
 @pytest.mark.unittest
@@ -153,3 +153,21 @@ def test_v_1step_td():
     assert isinstance(v.grad, torch.Tensor)
     data = v_1step_td_data(v, next_v, reward, None, None)
     loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+
+
+
+@pytest.mark.unittest
+def test_v_nstep_td():
+    batch_size = 5
+    v = torch.randn(batch_size).requires_grad_(True)
+    next_v = torch.randn(batch_size)
+    reward = torch.rand(5, batch_size)
+    done = torch.zeros(batch_size)
+    data = v_nstep_td_data(v, next_v, reward, done, 0.9, 0.99)
+    loss, td_error_per_sample = v_nstep_td_error(data, 0.99, 5)
+    assert loss.shape == ()
+    assert v.grad is None
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
+    data = v_nstep_td_data(v, next_v, reward, done, 0.9, 0.99)
+    loss, td_error_per_sample = v_nstep_td_error(data, 0.99, 5)
