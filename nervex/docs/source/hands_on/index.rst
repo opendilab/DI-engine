@@ -1,4 +1,4 @@
-Hands on RL Algorithm
+Hands on RL
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 
