@@ -30,7 +30,7 @@ Online Distributed Reinforcement learning train and evaluate system
    guide/index
    faq/index
    best_practice/index
-   hands_on_rl/index
+   hands_on/index
    rl_warmup/index
 
    tutorial_dev/index
