@@ -3,7 +3,7 @@ import copy
 import torch
 import numpy as np
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -306,6 +306,12 @@ class MujocoEnv(BaseEnv):
         if self._cfg.env_id in MUJOCO_INFO_DICT:
             info = copy.deepcopy(MUJOCO_INFO_DICT[self._cfg.env_id])
             info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
             return info
         else:
             raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\
