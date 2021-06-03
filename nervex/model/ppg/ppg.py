@@ -172,7 +172,7 @@ class FCPPG(ActorCriticBase):
         return logit
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        value = self._value_net.compute_critic(inputs)
+        value = self._value_net(inputs)
         return value
 
     @property
@@ -223,7 +223,7 @@ class ConvPPG(ActorCriticBase):
         return logit
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        value = self._value_net.compute_critic(inputs)
+        value = self._value_net(inputs)
         return value
 
     @property
