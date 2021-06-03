@@ -9,6 +9,7 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
+    policy/index
     armor/armor
     data/structure
     data/dataloader
@@ -25,14 +26,6 @@ API Doc
     model/discrete_net
     model/qac
     model/qmix
-    policy/a2c
-    policy/coma
-    policy/ddpg
-    policy/dqn
-    policy/r2d2
-    policy/rainbow_dqn
-    policy/qmix
-    policy/collaQ
     rl_utils/a2c
     rl_utils/adder
     rl_utils/coma
