@@ -15,7 +15,7 @@ from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
 from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN, \
-    DEFAULT_HEARTBEAT_RETRIES
+    DEFAULT_REQUEST_RETRIES
 from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
@@ -26,7 +26,7 @@ class Slave(ControllableService):
         host: Optional[str] = None,
         port: Optional[int] = None,
         heartbeat_span: Optional[float] = None,
-        heartbeat_retries: Optional[int] = None,
+        request_retries: Optional[int] = None,
         channel: Optional[int] = None
     ):
         # server part
@@ -38,7 +38,7 @@ class Slave(ControllableService):
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
-        self.__heartbeat_retries = max(heartbeat_retries or DEFAULT_HEARTBEAT_RETRIES, 0)
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
 
         # task part
         self.__has_task = DblEvent()
@@ -334,7 +334,7 @@ class Slave(ControllableService):
                 raise err
             except requests.exceptions.RequestException as err:
                 _retries += 1
-                if _retries > self.__heartbeat_retries:
+                if _retries > self.__request_retries:
                     raise err
 
     def __master_heartbeat(self):
