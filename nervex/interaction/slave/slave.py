@@ -336,6 +336,8 @@ class Slave(ControllableService):
                 _retries += 1
                 if _retries > self.__request_retries:
                     raise err
+                else:
+                    time.sleep(0.2)
 
     def __master_heartbeat(self):
         return self.__master_request('GET', '/slave/heartbeat')
