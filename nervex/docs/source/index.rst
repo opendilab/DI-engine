@@ -9,6 +9,7 @@ such as DQN, PPO, SAC and domain-specific algorithms like QMIX in multi-agent RL
 The whole supported algorithms introduction can be found in `Algorithm <./feature/algorithm_overview.html>`_.
 
 For scalability, nerveX supports three different training pipeline:
+
   - ``serial``
 
     - pipeline: single machine multi-gpu learner-collector serial execution
