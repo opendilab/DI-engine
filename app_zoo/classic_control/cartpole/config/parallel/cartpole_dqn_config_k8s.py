@@ -85,9 +85,25 @@ cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
 
 cartpole_dqn_system_config = dict(
-    coordinator=dict(),
-    path_data='./data',
-    path_policy='./policy',
+    coordinator=dict(
+        operator_server=dict(
+            system_addr='http://nervex-server.nervex-system:8080',
+            api_version='/v1alpha1',
+            init_replicas_request=dict(
+                collectors={
+                    "replicas": 2,
+                },
+                learners={
+                    "gpus": "0",
+                    "replicas": 1,
+                },
+            ),
+            collector_target_num=2,
+            learner_target_num=1,
+        ),
+    ),
+    path_data='/nervex/cartpole/data',
+    path_policy='/nervex/cartpole/policy',
     communication_mode='auto',
     learner_multi_gpu=False,
 )

@@ -1,6 +1,7 @@
 import importlib
 import logging
 from typing import List
+import nervex
 
 global ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag
 ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag = True, True, True, True, True
@@ -98,13 +99,18 @@ def try_import_link():
     Returns:
         module: imported module (may be fake_linklink)
     """
-    try:
-        import linklink as link
-    except ModuleNotFoundError as e:
-        if linklink_flag:
-            logging.warning("You have not installed linklink package! nervex has changed to some alternatives.")
+    if nervex.enable_linklink:
+        try:
+            import linklink as link
+        except ModuleNotFoundError as e:
+            if linklink_flag:
+                logging.warning("You have not installed linklink package! nervex has changed to some alternatives.")
+            from .fake_linklink import link
+            linklink_flag = False
+    else:
         from .fake_linklink import link
         linklink_flag = False
+
     return link
 
 

@@ -43,15 +43,15 @@ class BaseSerialCollector(object):
             - cfg (:obj:`EasyDict`): Config dict
         """
         self._collect_print_freq = cfg.collect_print_freq
-        if env is not None:
-            self.env = env
-        if policy is not None:
-            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
             self._tb_logger = tb_logger
         else:
             self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
+        if env is not None:
+            self.env = env
+        if policy is not None:
+            self.policy = policy
         self._timer = EasyTimer()
         self._cfg = cfg
         self._end_flag = False
@@ -83,10 +83,20 @@ class BaseSerialCollector(object):
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"
         if self._default_n_episode is not None:
             self._traj_len = INF
+            self._logger.info(
+                'Set default n_episode mode(n_sample({}), env_num({}), traj_len({}))'.format(
+                    self._default_n_episode, self._env_num, self._traj_len
+                )
+            )
         elif self._default_n_sample is not None:
             self._traj_len = max(
                 self._unroll_len,
                 self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
+            )
+            self._logger.info(
+                'Set default n_sample mode(n_sample({}), env_num({}), traj_len({}))'.format(
+                    self._default_n_sample, self._env_num, self._traj_len
+                )
             )
         else:
             self._traj_len = INF
@@ -212,7 +222,7 @@ class BaseSerialCollector(object):
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         self._var_reset(env_id)
-                        print('env_id abnormal step', env_id, timestep.info)
+                        self._logger.info('env_id abnormal step', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep

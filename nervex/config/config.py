@@ -15,7 +15,7 @@ from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator,
 from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
-from .utils import parallel_transform
+from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s
 
 
 class Config(object):
@@ -168,7 +168,7 @@ def compile_config(
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
-        save_cfg: bool = False,
+        save_cfg: bool = True,
         save_path: str = 'total_config.py',
 ) -> EasyDict:
     if auto:
@@ -219,7 +219,14 @@ def compile_config_parallel(
         system_cfg: EasyDict,
         seed: int = 0,
         save_cfg: bool = True,
-        save_path: str = 'total_config.py'
+        save_path: str = 'total_config.py',
+        platform: str = 'local',
+        coordinator_host: Optional[str] = None,
+        learner_host: Optional[str] = None,
+        collector_host: Optional[str] = None,
+        coordinator_port: Optional[int] = None,
+        learner_port: Optional[int] = None,
+        collector_port: Optional[int] = None,
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
@@ -240,7 +247,8 @@ def compile_config_parallel(
 
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg.env.update(create_cfg.env)
-    cfg.env.manager = {}
+    if 'manager' not in cfg.env:
+        cfg.env.manager = {}
     cfg.env.manager.update(create_cfg.env_manager)
     cfg.policy.update(create_cfg.policy)
     cfg.policy.learn.learner.update(create_cfg.learner)
@@ -251,7 +259,27 @@ def compile_config_parallel(
 
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
-    cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    if platform == 'local':
+        cfg = parallel_transform(EasyDict({'main': cfg, 'system': system_cfg}))
+    elif platform == 'slurm':
+        cfg = parallel_transform_slurm(
+            EasyDict({
+                'main': cfg,
+                'system': system_cfg
+            }), coordinator_host, learner_host, collector_host
+        )
+    elif platform == 'k8s':
+        cfg = parallel_transform_k8s(
+            EasyDict({
+                'main': cfg,
+                'system': system_cfg
+            }),
+            coordinator_port=coordinator_port,
+            learner_port=learner_port,
+            collector_port=collector_port
+        )
+    else:
+        raise KeyError("not support platform type: {}".format(platform))
     cfg.seed = seed
 
     cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)

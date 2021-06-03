@@ -509,7 +509,8 @@ class PrioritizedReplayBuffer(NaiveReplayBuffer):
             if self._use_count[idx] >= self._max_use:
                 self._remove(idx)
         # Beta annealing
-        self._beta = min(1.0, self._beta + self._beta_anneal_step)
+        if self._anneal_step != 0:
+            self._beta = min(1.0, self._beta + self._beta_anneal_step)
         return data
 
     def _monitor_update_of_push(self, add_count: int, cur_collector_envstep: int = -1) -> None:

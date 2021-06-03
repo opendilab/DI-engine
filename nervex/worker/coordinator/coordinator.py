@@ -1,7 +1,8 @@
 import time
+
 import traceback
 import copy
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Optional
 from queue import Queue
 from threading import Thread
 from collections import defaultdict
@@ -44,6 +45,7 @@ class Coordinator(object):
     config = dict(
         collector_task_timeout=30,
         learner_task_timeout=600,
+        operator_server=dict(),
     )
 
     @classmethod
@@ -72,6 +74,8 @@ class Coordinator(object):
             'deal_with_learner_send_info': self.deal_with_learner_send_info,
             'deal_with_learner_judge_finish': self.deal_with_learner_judge_finish,
             'deal_with_learner_finish_task': self.deal_with_learner_finish_task,
+            'deal_with_increase_collector': self.deal_with_increase_collector,
+            'deal_with_decrease_collector': self.deal_with_decrease_collector,
         }
         self._logger, _ = build_logger(path='./log', name='coordinator', need_tb=False)
         self._interaction = CommCoordinator(coor_cfg, self._callback, self._logger)
@@ -425,6 +429,22 @@ class Coordinator(object):
             replay_buffer = self._replay_buffer.pop(buffer_id)
             replay_buffer.close()
             self.info('replay_buffer({}) is closed'.format(buffer_id))
+
+    def deal_with_increase_collector(self):
+        r""""
+        Overview:
+        Increase task space when a new collector has added dynamically.
+        """
+        with self._commander_lock:
+            self._commander.increase_collector_task_space()
+
+    def deal_with_decrease_collector(self):
+        r""""
+        Overview:
+        Decrease task space when a new collector has removed dynamically.
+        """
+        with self._commander_lock:
+            self._commander.decrease_collector_task_space()
 
     def info(self, s: str) -> None:
         r"""

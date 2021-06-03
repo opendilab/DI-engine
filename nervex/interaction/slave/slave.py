@@ -53,8 +53,8 @@ class Slave(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_slave_exception_by_error,
-        )()('localhost', self.__port, False)
-        # )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
+            # )()('localhost', self.__port, False)
+        )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # master-connection part
