@@ -162,10 +162,8 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBu
     policy_multi_buffer = policy_cfg.other.replay_buffer.get('multi_buffer', False)
     user_multi_buffer = user_cfg.policy.get('policy', {}).get('other', {}).get('replay_buffer',
                                                                                {}).get('multi_buffer', None)
-    assert user_multi_buffer is None or \
-        user_multi_buffer == policy_multi_buffer, "For multi_buffer, \
-        user_cfg({}) and policy_cfg({}) must be in accordance".format(
-        user_multi_buffer, policy_multi_buffer)
+    assert user_multi_buffer is None or user_multi_buffer == policy_multi_buffer, "For multi_buffer, \
+        user_cfg({}) and policy_cfg({}) must be in accordance".format(user_multi_buffer, policy_multi_buffer)
     multi_buffer = policy_multi_buffer
     if not multi_buffer:
         policy_buffer_type = policy_cfg.other.replay_buffer.type
@@ -177,8 +175,9 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBu
             if buffer_name == 'multi_buffer':
                 continue
             policy_buffer_type = policy_cfg.other.replay_buffer[buffer_name].type
-            user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get(
-                'replay_buffer', {}).get('buffer_name', {}).get('type', None)
+            user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer',
+                                                                               {}).get('buffer_name',
+                                                                                       {}).get('type', None)
             return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
             return_cfg[buffer_name].name = buffer_name
         return return_cfg
