@@ -61,7 +61,7 @@ def serial_pipeline_irl(
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger)
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )

@@ -39,7 +39,7 @@ class TestPrioBuffer:
 
     def test_push(self):
         buffer_cfg = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         start_pointer = prioritized_buffer._tail
         start_vaildlen = prioritized_buffer.count()
         start_data_id = prioritized_buffer._next_unique_id
@@ -61,7 +61,7 @@ class TestPrioBuffer:
         assert (prioritized_buffer._next_unique_id == start_data_id + 100)
 
         buffer_cfg = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         start_pointer = prioritized_buffer._tail
         start_data_id = prioritized_buffer._next_unique_id
         replay_buffer_size = prioritized_buffer.replay_buffer_size
@@ -75,7 +75,7 @@ class TestPrioBuffer:
 
     def test_update(self):
         buffer_cfg = deep_merge_dicts(PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         for _ in range(64):
             prioritized_buffer.push(generate_data(), 0)
             assert prioritized_buffer.count() == sum([d is not None for d in prioritized_buffer._data])
@@ -107,7 +107,7 @@ class TestPrioBuffer:
         buffer_cfg = deep_merge_dicts(
             PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=2))
         )
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         for _ in range(64):
             data = generate_data()
             data['priority'] = None
@@ -133,7 +133,7 @@ class TestPrioBuffer:
         buffer_cfg = deep_merge_dicts(
             PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=4))
         )
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         for i in range(65):
             prioritized_buffer.push(generate_data(), 0)
         assert prioritized_buffer._head == prioritized_buffer._tail == 1
@@ -155,7 +155,7 @@ class TestPrioBuffer:
         buffer_cfg = deep_merge_dicts(
             PrioritizedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=1))
         )
-        prioritized_buffer = PrioritizedReplayBuffer('test', buffer_cfg)
+        prioritized_buffer = PrioritizedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
         assert (prioritized_buffer.count() == 0)  # assert empty buffer
 
         def get_weights(data_):

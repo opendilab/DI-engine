@@ -49,8 +49,9 @@ class IBuffer(ABC):
 
 def create_buffer(cfg: EasyDict, *args, **kwargs) -> IBuffer:
     import_module(cfg.get('import_names', []))
-    buffer_type = cfg.pop('type')
-    return BUFFER_REGISTRY.build(buffer_type, cfg, *args, **kwargs, name=cfg.pop('name', 'default'))
+    if cfg.type == 'naive':
+        kwargs.pop('tb_logger', None)
+    return BUFFER_REGISTRY.build(cfg.type, cfg, *args, **kwargs, name=cfg.pop('name', 'default'))
 
 
 def get_buffer_cls(cfg: EasyDict) -> type:

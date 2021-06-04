@@ -145,16 +145,16 @@ def save_config(config_: dict, path: str, type_: str = 'py') -> NoReturn:
 
 def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBuffer') -> EasyDict:  # noqa
 
-    def _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer):
-        if user_buffer_type is None or user_buffer_type == policy_buffer_type:
+    def _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, buffer):
+        if user_buffer_cfg.get('type', None) is None or user_buffer_cfg.get('type', None) == policy_buffer_cfg.type:
             if buffer is None:
-                buffer_cls = get_buffer_cls(policy_buffer_type)
+                buffer_cls = get_buffer_cls(policy_buffer_cfg)
             else:
                 buffer_cls = buffer
             return deep_merge_dicts(buffer_cls.default_config(), policy_cfg.other.replay_buffer)
         else:
             if buffer is None:
-                buffer_cls = get_buffer_cls(user_buffer_type)
+                buffer_cls = get_buffer_cls(user_buffer_cfg)
             else:
                 buffer_cls = buffer
             return buffer_cls.default_config()
@@ -166,18 +166,17 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBu
         user_cfg({}) and policy_cfg({}) must be in accordance".format(user_multi_buffer, policy_multi_buffer)
     multi_buffer = policy_multi_buffer
     if not multi_buffer:
-        policy_buffer_type = policy_cfg.other.replay_buffer.type
-        user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer', {}).get('type', None)
+        policy_buffer_type = policy_cfg.other.replay_buffer
+        user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer', {})
         return _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
     else:
         return_cfg = EasyDict()
         for buffer_name in policy_cfg.other.replay_buffer:  # Only traverse keys in policy_cfg
             if buffer_name == 'multi_buffer':
                 continue
-            policy_buffer_type = policy_cfg.other.replay_buffer[buffer_name].type
+            policy_buffer_type = policy_cfg.other.replay_buffer[buffer_name]
             user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer',
-                                                                               {}).get('buffer_name',
-                                                                                       {}).get('type', None)
+                                                                               {}).get('buffer_name', {})
             return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
             return_cfg[buffer_name].name = buffer_name
         return return_cfg
@@ -188,17 +187,18 @@ def compile_collector_config(
         user_cfg: EasyDict,
         collector: 'ISerialCollector'  # noqa
 ) -> EasyDict:
-    policy_collector_type = policy_cfg.collect.collector.type
-    user_collector_type = user_cfg.get('policy', {}).get('collect', {}).get('collector', {}).get('type', None)
-    if user_collector_type is None or user_collector_type == policy_collector_type:
+    policy_collector_cfg = policy_cfg.collect.collector
+    user_collector_cfg = user_cfg.get('policy', {}).get('collect', {}).get('collector', {})
+    if user_collector_cfg.get('type', None) is None or user_collector_cfg.get('type',
+                                                                              None) == policy_collector_cfg.type:
         if collector is None:
-            collector_cls = get_serial_collector_cls(policy_collector_type)
+            collector_cls = get_serial_collector_cls(policy_collector_cfg)
         else:
             collector_cls = collector
         return deep_merge_dicts(collector_cls.default_config(), policy_cfg.collect.collector)
     else:
         if collector is None:
-            collector_cls = get_serial_collector_cls(user_collector_type)
+            collector_cls = get_serial_collector_cls(user_collector_cfg)
         else:
             collector_cls = collector
         return collector_cls.default_config()
