@@ -466,8 +466,21 @@ class CommCoordinator(object):
             # First: send failed list to notify nerveX-server which replicas are failed, then terminate such replicas.
             # self._logger.info("failed list:", list(self._failed_collector_conn), list(self._failed_learner_conn))
             if len(self._failed_learner_conn) > 0 or len(self._failed_collector_conn) > 0:
+                collector_conn = []
+                for replica_conn in self._failed_collector_conn:
+                    dns_name = replica_conn.split(":")[0]
+                    pod_name_list = dns_name.split(".")[:-1]
+                    pod_name = ".".join(pod_name_list)
+                    collector_conn.append(pod_name)
+                learner_conn = []
+                for replica_conn in self._failed_learner_conn:
+                    dns_name = replica_conn.split(":")[0]
+                    pod_name_list = dns_name.split(".")[:-1]
+                    pod_name = ".".join(pod_name_list)
+                    learner_conn.append(pod_name)
+
                 success, _, message, _ = self._operator_server.post_replicas_failed(
-                    learners=list(self._failed_learner_conn), collectors=list(self._failed_collector_conn)
+                    learners=list(learner_conn), collectors=list(collector_conn)
                 )
                 if success:
                     # do not update collector or learner instantly, update at /GET replicas
