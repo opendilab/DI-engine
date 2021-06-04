@@ -35,16 +35,22 @@ class QMIXPolicy(CommonPolicy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         # self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        if self._cfg.learn.clip:
-            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, grad_clip_type='clip_norm', clip_value=10)
+        # if self._cfg.learn.clip:
+        #     self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, grad_clip_type='clip_norm', clip_value=10)
+        # else:
+        #     self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self.optimzier_type=self._cfg.learn.get('optimzier_type','adam')
+        if self.optimzier_type=='rmsprop':
+            self._optimizer = RMSprop(params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)  
         else:
             self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._armor = Armor(self._model)
         algo_cfg = self._cfg.learn.algo
         self._gamma = algo_cfg.discount_factor
-
-        self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
-        # self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
+        if algo_cfg.get('target_update_theta', None):
+            self._armor.add_model('target', update_type='momentum', update_kwargs={'theta': algo_cfg.target_update_theta})
+        elif algo_cfg.get('target_update_freq', None):
+            self._armor.add_model('target', update_type='assign', update_kwargs={'freq': algo_cfg.target_update_freq})
         self._armor.add_plugin(
             'main',
             'hidden_state',
@@ -110,6 +116,10 @@ class QMIXPolicy(CommonPolicy):
         with torch.no_grad():
             target_total_q = self._armor.target_forward(next_inputs, param={'single_step': False})['total_q']
 
+        if data['done'] is not None:
+            target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
+        else:
+            target_v = self._gamma * target_total_q + data['reward']
         data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
         loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
         # mask = 1 - data['done']
@@ -126,14 +136,22 @@ class QMIXPolicy(CommonPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self.optimzier_type=='rmsprop':
+            torch.nn.utils.clip_grad_norm_(self._model.parameters(), 10)
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), 1000)
         self._optimizer.step()
         # =============
         # after update
         # =============
         self._armor.target_update(self._armor.state_dict()['model'])
+        agent_num=inputs['action'].shape[-1]
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'total_q': total_q.mean().item()/agent_num,
+            'target_reward_total_q': target_v.mean().item()/agent_num,
+            'target_total_q': target_total_q.mean().item()/agent_num,
+            'grad_norm': grad_norm
         }
 
     def _init_collect(self) -> None:
@@ -268,5 +286,16 @@ class QMIXPolicy(CommonPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qmix', ['nervex.model.qmix.qmix']
 
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        ret = [
+            'cur_lr', 'total_loss', 'total_q', 'target_total_q', 'grad_norm', 'target_reward_total_q'
+        ]
+        return ret
 
 register_policy('qmix', QMIXPolicy)

@@ -184,6 +184,9 @@ class BaseEnvManager(ABC):
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
+        # for smac
+        # if isinstance(seed, numbers.Integral):
+        #     seed = [seed for i in range(self.env_num)]
         elif isinstance(seed, list):
             assert len(seed) == self._env_num, "len(seed) {:d} != env_num {:d}".format(len(seed), self._env_num)
             seed = seed
