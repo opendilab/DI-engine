@@ -14,7 +14,7 @@ Documentation Contribution Guide
         - Inside the  ``doc`` directory, run ``make html`` to generate corresponding files;
         - Inside ``doc/build``, use browser to open file ``index.html`` (or run  ``open build/index.html``) to enter the main page.
     5. The project requries `rst <https://3vshej.cn/rstSyntax/index.html>`_ language for the Doc's implementation;
-    6. Implementation of the Docs can be in Chinese or English. In the premise of clear articulation, use English as much as possible. When choosing to implement in English, please note to the following.
+    6. Implementation of the Docs can be in Chinese or English. In the premise of clear articulation, use English as much as possible. When choosing to implement in English, please note the following.
         - Follow English language rules such as:
             - Proper capitalization at the beginning of a sentence;
             - Avoid incorrect usage of ``,`` as if using Chinese and use ``;`` or ``.`` instead when separating sentences;
