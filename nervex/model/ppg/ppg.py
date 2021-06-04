@@ -72,7 +72,7 @@ class FCValueNet(nn.Module):
             embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
 
-        return value
+        return {'value': value}
 
 
 class ConvValueNet(nn.Module):
@@ -131,7 +131,7 @@ class ConvValueNet(nn.Module):
             embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
 
-        return value
+        return {'value': value}
 
 
 @MODEL_REGISTRY.register('fc_ppg')
