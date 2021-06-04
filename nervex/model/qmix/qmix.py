@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from nervex.model import FCRDiscreteNet
+from nervex.model import FCRDiscreteNet,FCRGruNet
 from nervex.utils import list_split, squeeze
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
@@ -91,11 +91,16 @@ class QMix(nn.Module):
             global_obs_dim: int,
             action_dim: int,
             embedding_dim: int,
-            use_mixer: bool = True
+            use_mixer: bool = True,
+            use_gru: bool = False
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+        if use_gru:
+            self._q_network = FCRGruNet(obs_dim, action_dim, embedding_dim)
+        else:
+            self._q_network = FCRDiscreteNet(obs_dim, action_dim, embedding_dim)
+
         self.use_mixer = use_mixer
         if self.use_mixer:
             self._mixer = Mixer(agent_num, embedding_dim)
