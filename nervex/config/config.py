@@ -3,17 +3,16 @@ import os.path as osp
 import shutil
 import sys
 import tempfile
-import copy
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
-
 import yaml
 from easydict import EasyDict
+
 from nervex.utils import deep_merge_dicts
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
-    get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls, replay_buffer
+from nervex.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
+    get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
 from nervex.envs import get_env_cls, get_env_manager_cls
-from nervex.policy import get_policy_cls, policy_factory
+from nervex.policy import get_policy_cls
 from .utils import parallel_transform, parallel_transform_slurm
 
 

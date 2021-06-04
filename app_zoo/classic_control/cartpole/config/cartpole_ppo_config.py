@@ -16,14 +16,16 @@ cartpole_ppo_config = dict(
         ),
         learn=dict(
             update_per_collect=6,
-            batch_size=64,
+            # batch_size=64,
+            batch_size=6,
             learning_rate=0.001,
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
         ),
         collect=dict(
-            n_sample=128,
+            # n_sample=128,
+            n_sample=16,
             unroll_len=1,
             discount_factor=0.9,
             gae_lambda=0.95,

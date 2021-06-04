@@ -206,6 +206,8 @@ class NaiveReplayBuffer(IBuffer):
                         self._used_data_remover.add_used_data(self._data[i])
                     self._data[i] = None
             self._valid_count = 0
+            self._push_count = 0
+            self._tail = 0
 
     def __del__(self) -> None:
         """
@@ -228,7 +230,8 @@ class NaiveReplayBuffer(IBuffer):
             tail = self._replay_buffer_size
         else:
             tail = self._tail
-        return list(np.random.choice(a=tail, size=size, replace=False))
+        indices = list(np.random.choice(a=tail, size=size, replace=False))
+        return indices
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
         r"""
@@ -242,7 +245,7 @@ class NaiveReplayBuffer(IBuffer):
         """
         data = []
         for idx in indices:
-            assert self._data[idx] is not None
+            assert self._data[idx] is not None, idx
             if self._deepcopy:
                 copy_data = copy.deepcopy(self._data[idx])
             else:
