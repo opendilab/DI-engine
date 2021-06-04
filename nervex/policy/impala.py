@@ -26,6 +26,8 @@ class IMPALAPolicy(Policy):
         # here we follow ppo serial pipeline, the original is False
         on_policy=True,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -102,6 +104,7 @@ class IMPALAPolicy(Policy):
 
         # Algorithm config
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._gamma = self._cfg.learn.discount_factor
@@ -127,8 +130,9 @@ class IMPALAPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
-        use_priority = self._cfg.get('use_priority', False)
-        if use_priority:
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
             data['weight'] = data['IS']
         else:
             data['weight'] = data.get('weight', None)

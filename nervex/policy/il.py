@@ -33,6 +33,8 @@ class ILPolicy(Policy):
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=False,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         model=dict(),
         learn=dict(
             multi_gpu=False,

@@ -31,6 +31,8 @@ class DDPGPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         model=dict(
             # Whether to use two critic networks or only one.
             # Should be False for DDPG, True for TD3.
@@ -88,6 +90,7 @@ class DDPGPolicy(Policy):
             Init actor and critic optimizers, algorithm config, main and target models.
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         # actor and critic optimizer
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
@@ -141,7 +144,11 @@ class DDPGPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data, use_priority=self._cfg.priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+            data,
+            use_priority=self._cfg.priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)
@@ -368,6 +375,7 @@ class TD3Policy(DDPGPolicy):
         cuda=False,
         on_policy=False,
         priority=False,
+        priority_IS_weight=False,
         model=dict(twin_critic=True, ),
         learn=dict(
             multi_gpu=False,

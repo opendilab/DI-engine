@@ -24,6 +24,8 @@ class COMAPolicy(Policy):
         on_policy=True,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -90,6 +92,7 @@ class COMAPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority, "not implemented priority in COMA"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor

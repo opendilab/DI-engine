@@ -19,14 +19,6 @@ class IBuffer(ABC):
         return cfg
 
     @abstractmethod
-    def start(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def close(self) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
     def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
         raise NotImplementedError
 

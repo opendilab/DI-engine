@@ -36,6 +36,8 @@ class RainbowDQNPolicy(DQNPolicy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=True,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=True,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         random_collect_size=2000,
         model=dict(
@@ -125,6 +127,7 @@ class RainbowDQNPolicy(DQNPolicy):
             - n_atom (:obj:`int`): the number of atom sample point
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -165,7 +168,11 @@ class RainbowDQNPolicy(DQNPolicy):
                 - total_loss (:obj:`float`): the calculated loss
         """
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
         )
         if self._cuda:
             data = to_device(data, self._device)
@@ -313,6 +320,8 @@ class IQNPolicy(RainbowDQNPolicy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=True,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=True,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         random_collect_size=2000,
         model=dict(

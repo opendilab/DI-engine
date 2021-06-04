@@ -30,6 +30,8 @@ class DQNPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.97,
         # (int) N-step reward for target q_value estimation
@@ -94,6 +96,7 @@ class DQNPolicy(Policy):
             Init the optimizer, algorithm config, main and target models.
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
@@ -122,7 +125,11 @@ class DQNPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
         )
         if self._cuda:
             data = to_device(data, self._device)

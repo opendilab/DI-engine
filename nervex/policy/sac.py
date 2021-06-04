@@ -35,6 +35,8 @@ class SACPolicy(Policy):
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Please use False in sac.
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=True,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         random_collect_size=2000,
         model=dict(
@@ -141,6 +143,7 @@ class SACPolicy(Policy):
         """
         # Init
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_network = self._model._value_network
         self._twin_q = self._model._twin_q
 
@@ -203,7 +206,11 @@ class SACPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

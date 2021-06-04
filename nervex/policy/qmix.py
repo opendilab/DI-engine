@@ -28,6 +28,8 @@ class QMIXPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -91,7 +93,8 @@ class QMIXPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in QMIX"
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in QMIX"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
 

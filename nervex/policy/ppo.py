@@ -27,6 +27,8 @@ class PPOPolicy(Policy):
         on_policy=True,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -79,7 +81,8 @@ class PPOPolicy(Policy):
             Init the optimizer, algorithm config and the main model.
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in PPO"
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')

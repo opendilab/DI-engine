@@ -9,7 +9,6 @@ from typing import Optional, Tuple, NoReturn
 
 import yaml
 from easydict import EasyDict
-from nervex import policy
 from nervex.utils import deep_merge_dicts
 from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls, replay_buffer
@@ -164,9 +163,10 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBu
     policy_multi_buffer = policy_cfg.other.replay_buffer.get('multi_buffer', False)
     user_multi_buffer = user_cfg.policy.get('policy', {}).get('other', {}).get('replay_buffer',
                                                                                {}).get('multi_buffer', None)
-    assert user_multi_buffer is None or user_multi_buffer == policy_multi_buffer, "For multi_buffer, user_cfg({}) and policy_cfg({}) must be in accordance".format(
-        user_multi_buffer, policy_multi_buffer
-    )
+    assert user_multi_buffer is None or \
+        user_multi_buffer == policy_multi_buffer, "For multi_buffer, \
+        user_cfg({}) and policy_cfg({}) must be in accordance".format(
+        user_multi_buffer, policy_multi_buffer)
     multi_buffer = policy_multi_buffer
     if not multi_buffer:
         policy_buffer_type = policy_cfg.other.replay_buffer.type
@@ -178,17 +178,18 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBu
             if buffer_name == 'multi_buffer':
                 continue
             policy_buffer_type = policy_cfg.other.replay_buffer[buffer_name].type
-            user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer',
-                                                                               {}).get('buffer_name',
-                                                                                       {}).get('type', None)
+            user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get(
+                'replay_buffer', {}).get('buffer_name', {}).get('type', None)
             return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
             return_cfg[buffer_name].name = buffer_name
         return return_cfg
 
 
 def compile_collector_config(
-        policy_cfg: EasyDict, user_cfg: EasyDict, collector: 'ISerialCollector'
-) -> EasyDict:  # noqa
+        policy_cfg: EasyDict,
+        user_cfg: EasyDict,
+        collector: 'ISerialCollector'  # noqa
+) -> EasyDict:
     policy_collector_type = policy_cfg.collect.collector.type
     user_collector_type = user_cfg.get('policy', {}).get('collect', {}).get('collector', {}).get('type', None)
     if user_collector_type is None or user_collector_type == policy_collector_type:
