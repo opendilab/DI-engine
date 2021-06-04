@@ -222,21 +222,22 @@ class PrioritizedReplayBuffer(IBuffer):
             This function must be called before data sample.
         """
         with self._lock:
-            p = self._head
-            while True:
-                if self._data[p] is not None:
-                    staleness = self._calculate_staleness(p, cur_learner_iter)
-                    if staleness >= self._max_staleness:
-                        self._remove(p)
-                    else:
-                        # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing from
-                        # index self._head to index self._tail - 1, we can jump out of the loop as soon as
-                        # meeting a fresh enough data
+            if self._max_staleness != float("inf"):
+                p = self._head
+                while True:
+                    if self._data[p] is not None:
+                        staleness = self._calculate_staleness(p, cur_learner_iter)
+                        if staleness >= self._max_staleness:
+                            self._remove(p)
+                        else:
+                            # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing
+                            # from index self._head to index self._tail - 1, we can jump out of the loop as soon as
+                            # meeting a fresh enough data
+                            break
+                    p = (p + 1) % self._replay_buffer_size
+                    if p == self._tail:
+                        # Traverse a circle and go back to the tail, which means can stop staleness checking now
                         break
-                p = (p + 1) % self._replay_buffer_size
-                if p == self._tail:
-                    # Traverse a circle and go back to the tail, which means can stop staleness checking now
-                    break
             if self._valid_count < size:
                 self._logger.info(
                     "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
@@ -367,6 +368,8 @@ class PrioritizedReplayBuffer(IBuffer):
                     self._set_weight(self._data[idx])
                     # Update max priority
                     self._max_priority = max(self._max_priority, priority)
+                else:
+                    self._logger.debug(idx, self._data[idx]['replay_unique_id'], id_)
 
     def clear(self) -> None:
         """
@@ -436,7 +439,7 @@ class PrioritizedReplayBuffer(IBuffer):
         # Find prefix sum index to sample with probability
         return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
-    def _remove(self, idx: int) -> None:
+    def _remove(self, idx: int, use_too_many_times : bool = False) -> None:
         r"""
         Overview:
             Remove a data(set the element in the list to ``None``) and
@@ -444,9 +447,17 @@ class PrioritizedReplayBuffer(IBuffer):
         Arguments:
             - idx (:obj:`int`): Data at this position will be removed.
         """
-        if idx == self._head:
-            # Correct `self._head`
-            self._head = (self._head + 1) % self._replay_buffer_size
+        if use_too_many_times:
+            if self._enable_track_used_data:
+                # Must track this data, but in parallel mode.
+                # Do not remove it, but make sure it will not be sampled.
+                self._data[idx]['priority'] = 0
+                self._sum_tree[idx] = self._sum_tree.neutral_element
+                self._min_tree[idx] = self._min_tree.neutral_element
+                return
+            elif idx == self._head:
+                # Correct `self._head` when the queue head is removed due to use_count
+                self._head = (self._head + 1) % self._replay_buffer_size
         if self._data[idx] is not None:
             if self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[idx])
@@ -488,15 +499,11 @@ class PrioritizedReplayBuffer(IBuffer):
             weight = (self._valid_count * p_sample) ** (-self._beta)
             copy_data['IS'] = weight / max_weight
             data.append(copy_data)
-        # Remove datas whose "use count" is greater than ``max_use``
-        for idx in indices:
-            if self._use_count[idx] >= self._max_use:
-                if self._enable_track_used_data:
-                    # Set its priority to 0, to ensure it will not be sampled anymore.
-                    self._data[idx]['priority'] = self._eps
-                    self._set_weight(self._data[idx])
-                else:
-                    self._remove(idx)
+        if self._max_use != float("inf"):
+            # Remove datas whose "use count" is greater than ``max_use``
+            for idx in indices:
+                if self._use_count[idx] >= self._max_use:
+                    self._remove(idx, use_too_many_times=True)
         # Beta annealing
         if self._anneal_step != 0:
             self._beta = min(1.0, self._beta + self._beta_anneal_step)
@@ -526,12 +533,20 @@ class PrioritizedReplayBuffer(IBuffer):
         """
         self._periodic_thruput_monitor.sample_data_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
-        use = sum([d['use'] for d in sample_data]) / len(sample_data)
-        priority = sum([d['priority'] for d in sample_data]) / len(sample_data)
-        staleness = sum([d['staleness'] for d in sample_data]) / len(sample_data)
-        self._sampled_data_attr_monitor.use = use
-        self._sampled_data_attr_monitor.priority = priority
-        self._sampled_data_attr_monitor.staleness = staleness
+        use_avg = sum([d['use'] for d in sample_data]) / len(sample_data)
+        use_max = max([d['use'] for d in sample_data])
+        priority_avg = sum([d['priority'] for d in sample_data]) / len(sample_data)
+        priority_max = max([d['priority'] for d in sample_data])
+        priority_min = min([d['priority'] for d in sample_data])
+        staleness_avg = sum([d['staleness'] for d in sample_data]) / len(sample_data)
+        staleness_max = max([d['staleness'] for d in sample_data])
+        self._sampled_data_attr_monitor.use_avg = use_avg
+        self._sampled_data_attr_monitor.use_max = use_max
+        self._sampled_data_attr_monitor.priority_avg = priority_avg
+        self._sampled_data_attr_monitor.priority_max = priority_max
+        self._sampled_data_attr_monitor.priority_min = priority_min
+        self._sampled_data_attr_monitor.staleness_avg = staleness_avg
+        self._sampled_data_attr_monitor.staleness_max = staleness_max
         self._sampled_data_attr_monitor.time.step()
         out_dict = {
             'use_avg': self._sampled_data_attr_monitor.avg['use'](),

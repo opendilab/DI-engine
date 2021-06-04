@@ -16,7 +16,7 @@ def generate_data(meta: bool = False) -> dict:
     elif p_weight < 2 / 3:
         ret['priority'] = None
     else:
-        ret['priority'] = np.random.uniform()
+        ret['priority'] = np.random.uniform() + 1e-3
     if not meta:
         return ret
     else:

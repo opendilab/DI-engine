@@ -63,9 +63,13 @@ class SampledDataAttrMonitor(LoggedModel):
     Property:
         time, expire
     """
-    use = LoggedValue(float)
-    priority = LoggedValue(float)
-    staleness = LoggedValue(float)
+    use_max = LoggedValue(int)
+    use_avg = LoggedValue(float)
+    priority_max = LoggedValue(float)
+    priority_avg = LoggedValue(float)
+    priority_min = LoggedValue(float)
+    staleness_max = LoggedValue(int)
+    staleness_avg = LoggedValue(float)
 
     def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
         LoggedModel.__init__(self, time_, expire)
@@ -88,13 +92,13 @@ class SampledDataAttrMonitor(LoggedModel):
             _list = [_value for (_begin_time, _end_time), _value in records]
             return min(_list)
 
-        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use'))
-        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use'))
-        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority'))
-        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority'))
-        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority'))
-        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness'))
-        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness'))
+        self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use_avg'))
+        self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use_max'))
+        self.register_attribute_value('avg', 'priority', partial(__avg_func, prop_name='priority_avg'))
+        self.register_attribute_value('max', 'priority', partial(__max_func, prop_name='priority_max'))
+        self.register_attribute_value('min', 'priority', partial(__min_func, prop_name='priority_min'))
+        self.register_attribute_value('avg', 'staleness', partial(__avg_func, prop_name='staleness_avg'))
+        self.register_attribute_value('max', 'staleness', partial(__max_func, prop_name='staleness_max'))
 
 
 class PeriodicThruputMonitor:

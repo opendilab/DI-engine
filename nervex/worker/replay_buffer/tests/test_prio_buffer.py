@@ -15,7 +15,7 @@ demo_data_path = "test_demo_data.pkl"
 
 @pytest.fixture(scope="function")
 def setup_demo_buffer_factory():
-    demo_data = {'data': [generate_data() for _ in range(10)]}
+    demo_data = {'data': generate_data_list(10)}
     with open(demo_data_path, "wb") as f:
         pickle.dump(demo_data, f)
 
@@ -27,7 +27,7 @@ def setup_demo_buffer_factory():
             cfg.max_staleness = 1000
             cfg.alpha = 0.6
             cfg.beta = 0.6
-            cfg.enable_track_used_data = True
+            cfg.enable_track_used_data = False
             demo_buffer = PrioritizedReplayBuffer(name="demo", cfg=cfg)
             yield demo_buffer
 
@@ -196,7 +196,8 @@ class TestPrioBuffer:
         assert (np.fabs(weights.sum() - prioritized_buffer._sum_tree.reduce(start=0, end=36)) < 1e-6)
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
+@pytest.mark.demo
 class TestDemonstrationBuffer:
 
     def test_naive(self, setup_demo_buffer_factory):
@@ -210,13 +211,13 @@ class TestDemonstrationBuffer:
         assert 'staleness' in samples[0]
         assert samples[1]['staleness'] == -1
         assert len(samples) == 3
-        update_info = {'replay_unique_id': [0, 2], 'replay_buffer_idx': [0, 2], 'priority': [1.33, 1.44]}
+        update_info = {'replay_unique_id': ['demo_0', 'demo_2'], 'replay_buffer_idx': [0, 2], 'priority': [1.33, 1.44]}
         setup_demo_buffer.update(update_info)
         samples = setup_demo_buffer.sample(10, 0)
         for sample in samples:
-            if sample['replay_unique_id'] == 0:
+            if sample['replay_unique_id'] == 'demo_0':
                 assert abs(sample['priority'] - 1.33) <= 0.01 + 1e-5, sample
-            if sample['replay_unique_id'] == 2:
+            if sample['replay_unique_id'] == 'demo_2':
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
 
         state_dict = setup_demo_buffer.state_dict()
