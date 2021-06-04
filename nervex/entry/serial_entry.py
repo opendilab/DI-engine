@@ -72,7 +72,6 @@ def serial_pipeline(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        print('=== random_collect_size', cfg.policy.random_collect_size)
         action_space = collector_env.env_info().act_space
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         collector.reset_policy(random_policy)

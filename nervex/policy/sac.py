@@ -36,7 +36,7 @@ class SACPolicy(Policy):
         # Please use False in sac.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=True,
+        priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         random_collect_size=2000,
         model=dict(
