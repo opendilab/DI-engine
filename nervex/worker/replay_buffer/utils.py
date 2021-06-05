@@ -103,7 +103,8 @@ class SampledDataAttrMonitor(LoggedModel):
 
 class PeriodicThruputMonitor:
 
-    def __init__(self, cfg, logger, tb_logger) -> None:
+    def __init__(self, name, cfg, logger, tb_logger) -> None:
+        self.name = name
         self._end_flag = False
         self._logger = logger
         self._tb_logger = tb_logger

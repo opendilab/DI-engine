@@ -240,15 +240,17 @@ class SampleCollector(ISerialCollector):
                 'collect_time': duration,
                 'reward_mean': np.mean(episode_reward),
                 'reward_std': np.std(episode_reward),
-                'each_reward': episode_reward,
+                'reward_max': np.max(episode_reward),
+                'reward_min': np.min(episode_reward),
                 'total_envstep_count': self._total_envstep_count,
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
+                # 'each_reward': episode_reward,
             }
             self._episode_info.clear()
-            # self._logger.print_vars(info)
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+            # self._logger.print_vars_hor(info)
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue

@@ -148,7 +148,7 @@ class PrioritizedReplayBuffer(IBuffer):
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
         self._periodic_thruput_monitor = PeriodicThruputMonitor(
-            monitor_cfg.periodic_thruput, self._logger, self._tb_logger
+            self.name, monitor_cfg.periodic_thruput, self._logger, self._tb_logger
         )
 
         # Used data remover
