@@ -3,7 +3,11 @@ from nervex.data import default_collate
 
 
 def default_preprocess_learn(
-        data: List[Any], use_priority: bool = False, use_nstep: bool = False, ignore_done: bool = False
+        data: List[Any],
+        use_priority_IS_weight: bool = False,
+        use_priority: bool = False,
+        use_nstep: bool = False,
+        ignore_done: bool = False,
 ) -> dict:
     # data preprocess
     data = default_collate(data)
@@ -11,7 +15,9 @@ def default_preprocess_learn(
         data['done'] = None
     else:
         data['done'] = data['done'].float()
-    if use_priority:
+    if use_priority_IS_weight:
+        assert use_priority, "Use IS Weight correction, but Priority is not used."
+    if use_priority and use_priority_IS_weight:
         data['weight'] = data['IS']
     else:
         data['weight'] = data.get('weight', None)

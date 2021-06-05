@@ -120,7 +120,10 @@ class TextLogger(object):
         datav.append("Value")
         for k, v in vars.items():
             datak.append(k)
-            datav.append("{:.6f}".format(v))
+            if not isinstance(v, str) and np.isscalar(v):
+                datav.append("{:.6f}".format(v))
+            else:
+                datav.append(v)
         data = [datak, datav]
         s = "\n" + tabulate(data, tablefmt='grid')
         if level >= logging.INFO:

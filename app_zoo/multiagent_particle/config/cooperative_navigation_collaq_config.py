@@ -39,7 +39,7 @@ cooperative_navigation_collaq_config = dict(
             discount_factor=0.99,
         ),
         collect=dict(
-            n_episode=6,
+            n_sample=600,
             unroll_len=16,
             env_num=collector_env_num,
         ),

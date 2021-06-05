@@ -29,7 +29,7 @@ qbert_dqn_config = dict(
             target_update_freq=500,
         ),
         collect=dict(n_sample=100, ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             eps=dict(
                 type='exp',

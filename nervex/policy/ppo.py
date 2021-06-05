@@ -28,6 +28,8 @@ class PPOPolicy(Policy):
         on_policy=True,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
         nstep=3,
@@ -55,7 +57,7 @@ class PPOPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_episode] shoule be set
             n_sample=64,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
@@ -66,11 +68,15 @@ class PPOPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although ppo is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
+        other=dict(replay_buffer=dict(
+            type='naive',
+            replay_buffer_size=1000,
+        ), ),
     )
 
     def _init_learn(self) -> None:
@@ -80,7 +86,8 @@ class PPOPolicy(Policy):
             Init the optimizer, algorithm config and the main model.
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in PPO"
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')

@@ -27,7 +27,8 @@ class FakePolicy(Policy):
         self._cfg = cfg
         self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
         self._init_collect()
-        self._forward_time = cfg.get('forward_time', 0.)
+        self._forward_time = cfg.forward_time
+        self._on_policy = cfg.on_policy
         self.policy_sum = 0
         self.policy_times = 0
 

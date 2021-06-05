@@ -34,7 +34,7 @@ class TestApplication:
 
     def test_collect_demo_data(self, setup_state_dict):
         config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
-        collect_count = 10
+        collect_count = 16
         expert_data_path = './expert.data'
         collect_demo_data(
             config,

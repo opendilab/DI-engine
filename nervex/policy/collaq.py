@@ -27,6 +27,8 @@ class CollaQPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -48,11 +50,12 @@ class CollaQPolicy(Policy):
             collaq_loss_weight=1.0,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_episode=8,
+            # (int) Only one of [n_sample, n_episode] shoule be set
+            n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -68,6 +71,7 @@ class CollaQPolicy(Policy):
                 decay=20000,
             ),
             replay_buffer=dict(
+                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=5000,
                 max_reuse=10,
@@ -92,7 +96,8 @@ class CollaQPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in collaq"
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
         self._alpha = self._cfg.learn.collaq_loss_weight

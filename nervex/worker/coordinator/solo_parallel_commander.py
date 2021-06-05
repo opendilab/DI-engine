@@ -89,7 +89,7 @@ class SoloCommander(BaseCommander):
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             # the newest info
             info = self._learner_info[-1]
-            info['env_step'] = self._total_collector_env_step
+            info['envstep'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             collector_cfg.policy_update_path = self._current_policy_id
             collector_cfg.eval_flag = eval_flag

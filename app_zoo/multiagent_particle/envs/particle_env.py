@@ -35,7 +35,7 @@ class ParticleEnv(BaseEnv):
             # Note: the real env instance only has a empty seed method, only pass
             self._env.seed(self._seed)
         obs_n = self._env.reset()
-        obs_n = to_ndarray(obs_n, float)
+        obs_n = to_ndarray(obs_n, np.float32)
         return obs_n
 
     def close(self) -> None:
@@ -53,8 +53,8 @@ class ParticleEnv(BaseEnv):
     def step(self, action: list) -> BaseEnvTimestep:
         action = self._process_action(action)
         obs_n, rew_n, done_n, info_n = self._env.step(action)
-        obs_n = [to_ndarray(obs, float) for obs in obs_n]
-        rew_n = [to_ndarray(rew, float) for rew in rew_n]
+        obs_n = [to_ndarray(obs, np.float32) for obs in obs_n]
+        rew_n = [to_ndarray(rew, np.float32) for rew in rew_n]
         if self._step_count >= self._max_step:
             done_n = True
         return BaseEnvTimestep(obs_n, rew_n, done_n, info_n)
@@ -70,7 +70,7 @@ class ParticleEnv(BaseEnv):
                 {
                     'min': -np.inf,
                     'max': +np.inf,
-                    'dtype': float
+                    'dtype': np.float32
                 },
             )
             rew_space['agent' + str(i)] = T(
@@ -78,7 +78,7 @@ class ParticleEnv(BaseEnv):
                 {
                     'min': -np.inf,
                     'max': +np.inf,
-                    'dtype': float
+                    'dtype': np.float32
                 },
             )
             act = self._env.action_space[i]
@@ -189,15 +189,17 @@ class CooperativeNavigation(BaseEnv):
 
     def process_obs(self, obs: list):
         ret = {}
-        obs = np.array(obs)
+        obs = np.array(obs).astype(np.float32)
         if self._agent_obs_only:
             return obs
         ret['agent_state'] = obs
         ret['global_state'] = np.concatenate((obs[0, 2:], obs[:, 0:2].flatten()))
         ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
         ret['agent_alone_padding_state'] = np.concatenate(
-            [obs[:, 0:4],
-             np.zeros((self._n_agent, (self._n_agent - 1) * 2), float), obs[:, -self._num_landmarks * 2:]], 1
+            [
+                obs[:, 0:4],
+                np.zeros((self._n_agent, (self._n_agent - 1) * 2), np.float32), obs[:, -self._num_landmarks * 2:]
+            ], 1
         )
         ret['action_mask'] = np.ones((self._n_agent, self.action_dim))
         return ret

@@ -100,7 +100,7 @@ A :class:`Collector <nervex.worker.BaseSerialCollector>` is used to sample and p
 A :class:`Learner <nervex.worker.BaseLearner>` is used to receive training data and conduct 
 the training (including updating networks, strategy and experience pool, etc.).
 An :class:`Evaluator <nervex.worker.BaseSerialEvaluator>` is build to perform the evaluation when needed.
-And other components like :class:`Replay Buffer <nervex.data.BufferManager>` may be required for the
+And other components like :class:`Replay Buffer <nervex.worker.replay_buffer.IBuffer>` may be required for the
 training process. All these module can be customized by config or rewritten by the user.
 
 An example of setting up all the above is showed as follow.

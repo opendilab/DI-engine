@@ -30,6 +30,8 @@ class R2D2Policy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         # ==============================================================
         # The following configs are algorithm-specific
         # ==============================================================
@@ -56,11 +58,12 @@ class R2D2Policy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_episode] shoule be set
             n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
+            collector=dict(type='sample', ),
         ),
         eval=dict(
             # `env_num` is used in hidden state, should equal to that one in env config.
@@ -74,7 +77,10 @@ class R2D2Policy(Policy):
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                type='priority',
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
@@ -95,6 +101,7 @@ class R2D2Policy(Policy):
             - burnin_step (:obj:`int`): The num of step of burnin
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep

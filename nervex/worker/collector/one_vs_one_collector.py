@@ -12,15 +12,15 @@ from easydict import EasyDict
 from nervex.policy import create_policy, Policy
 from nervex.envs import get_vec_env_setting, create_env_manager
 from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, COLLECTOR_REGISTRY
+from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
 from nervex.envs import BaseEnvTimestep, SyncSubprocessEnvManager, BaseEnvManager
 from .base_parallel_collector import BaseCollector
-from .base_serial_collector import CachePool
+from .base_serial_collector import CachePool, TrajBuffer
 
 INF = float("inf")
 
 
-@COLLECTOR_REGISTRY.register('one_vs_one')
+@PARALLEL_COLLECTOR_REGISTRY.register('one_vs_one')
 class OneVsOneCollector(BaseCollector):
     """
     Feature:
@@ -64,17 +64,16 @@ class OneVsOneCollector(BaseCollector):
             self.policy = policy
             self._policy_is_active = [None]
             self._policy_iter = [None]
-            self._traj_cache_length = self._traj_len if self._traj_len != INF else None
-            self._traj_cache = {env_id: [deque(maxlen=self._traj_cache_length)] for env_id in range(self._env_num)}
+            self._traj_buffer_length = self._traj_len if self._traj_len != INF else None
+            self._traj_buffer = {env_id: [TrajBuffer(self._traj_len)] for env_id in range(self._env_num)}
         else:
             assert len(self._cfg.policy) == 2
             policy = [create_policy(self._cfg.policy[i], enable_field=['collect']).collect_mode for i in range(2)]
             self.policy = policy
             self._policy_is_active = [None for _ in range(2)]
             self._policy_iter = [None for _ in range(2)]
-            self._traj_cache_length = self._traj_len if self._traj_len != INF else None
-            self._traj_cache = {
-                env_id: [deque(maxlen=self._traj_cache_length) for _ in range(len(policy))]
+            self._traj_buffer = {
+                env_id: [TrajBuffer(self._traj_buffer_length) for _ in range(len(policy))]
                 for env_id in range(self._env_num)
             }
         # self._first_update_policy = True
@@ -178,7 +177,7 @@ class OneVsOneCollector(BaseCollector):
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
                 # If there is an abnormal timestep, reset all the related variables, also this env has been reset
-                for c in self._traj_cache[env_id]:
+                for c in self._traj_buffer[env_id]:
                     c.clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
@@ -196,21 +195,21 @@ class OneVsOneCollector(BaseCollector):
                         transition = self._policy[i].process_transition(
                             self._obs_pool[env_id][i], self._policy_output_pool[env_id][i], t[i]
                         )
-                        self._traj_cache[env_id][i].append(transition)
+                        self._traj_buffer[env_id][i].append(transition)
                 full_indices = []
-                for i in range(len(self._traj_cache[env_id])):
-                    if len(self._traj_cache[env_id][i]) == self._traj_len:
+                for i in range(len(self._traj_buffer[env_id])):
+                    if len(self._traj_buffer[env_id][i]) == self._traj_len:
                         full_indices.append(i)
                 if t[0].done or len(full_indices) > 0:
                     for i in full_indices:
-                        train_sample = self._policy[i].get_train_sample(self._traj_cache[env_id][i])
+                        train_sample = self._policy[i].get_train_sample(self._traj_buffer[env_id][i])
                         for s in train_sample:
                             s = self._compressor(s)
                             self._total_sample += 1
                             metadata = self._get_metadata(s, env_id)
                             self.send_stepdata(metadata['data_id'], s)
                             self.send_metadata(metadata)
-                        self._traj_cache[env_id][i].clear()
+                        self._traj_buffer[env_id][i].clear()
             if t[0].done:
                 # env reset is done by env_manager automatically
                 self._obs_pool.reset(env_id)

@@ -24,6 +24,8 @@ class COMAPolicy(Policy):
         on_policy=True,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -46,10 +48,11 @@ class COMAPolicy(Policy):
             entropy_weight=0.01,
         ),
         collect=dict(
-            # (int) collect n_episode data, train model n_iteration time
-            n_episode=6,
+            # (int) collect n_sample data, train model n_iteration time
+            n_sample=128,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=16,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -60,6 +63,7 @@ class COMAPolicy(Policy):
                 decay=100000,
             ),
             replay_buffer=dict(
+                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=64,
                 # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer
@@ -88,6 +92,7 @@ class COMAPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority, "not implemented priority in COMA"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor

@@ -49,6 +49,8 @@ class PPGPolicy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
         on_policy=True,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -85,14 +87,21 @@ class PPGPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
                 # PPG use two seperate buffer for different reuse
-                buffer_name=['policy', 'value'],
-                policy=dict(replay_buffer_size=1000, ),
-                value=dict(replay_buffer_size=1000, ),
+                multi_buffer=True,
+                policy=dict(
+                    type='priority',
+                    replay_buffer_size=1000,
+                ),
+                value=dict(
+                    type='priority',
+                    replay_buffer_size=1000,
+                ),
             ),
         ),
     )
@@ -109,6 +118,9 @@ class PPGPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
+        self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPG"
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._clip_ratio = self._cfg.learn.clip_ratio
@@ -124,8 +136,6 @@ class PPGPolicy(Policy):
         self._aux_bc_weight = self._cfg.learn.aux_bc_weight
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
-        self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in PPG"
         # data preprocess
         for k, data_item in data.items():
             data_item = default_collate(data_item)

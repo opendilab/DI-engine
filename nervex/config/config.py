@@ -3,18 +3,16 @@ import os.path as osp
 import shutil
 import sys
 import tempfile
-import copy
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
-
 import yaml
 from easydict import EasyDict
+
 from nervex.utils import deep_merge_dicts
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander,\
-     Coordinator, get_parallel_commander_cls, get_parallel_collector_cls
-from nervex.data import BufferManager
 from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
+from nervex.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
+    get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
 from .utils import parallel_transform, parallel_transform_slurm
 
 
@@ -302,15 +300,65 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
         f.write('create_config = create_config\n')
 
 
-def deal_with_multi_buffer(default_config: EasyDict, cfg: EasyDict) -> EasyDict:
-    if 'other' in cfg.policy and 'replay_buffer' in cfg.policy.other:
-        if 'buffer_name' in cfg.policy.other.replay_buffer:
-            buffer_name = cfg.policy.other.replay_buffer.buffer_name
-            single_buffer_default_config = default_config.policy.other.pop('replay_buffer')
-            multi_replay_buffer_config = EasyDict({k: copy.deepcopy(single_buffer_default_config) for k in buffer_name})
-            multi_replay_buffer_config.buffer_name = buffer_name
-            default_config.policy.other.replay_buffer = multi_replay_buffer_config
-    return default_config
+def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer: 'IBuffer') -> EasyDict:  # noqa
+
+    def _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, buffer):
+        if user_buffer_cfg.get('type', None) is None or user_buffer_cfg.get('type', None) == policy_buffer_cfg.type:
+            if buffer is None:
+                buffer_cls = get_buffer_cls(policy_buffer_cfg)
+            else:
+                buffer_cls = buffer
+            return deep_merge_dicts(buffer_cls.default_config(), policy_cfg.other.replay_buffer)
+        else:
+            if buffer is None:
+                buffer_cls = get_buffer_cls(user_buffer_cfg)
+            else:
+                buffer_cls = buffer
+            return buffer_cls.default_config()
+
+    policy_multi_buffer = policy_cfg.other.replay_buffer.get('multi_buffer', False)
+    user_multi_buffer = user_cfg.policy.get('policy', {}).get('other', {}).get('replay_buffer',
+                                                                               {}).get('multi_buffer', None)
+    assert user_multi_buffer is None or user_multi_buffer == policy_multi_buffer, "For multi_buffer, \
+        user_cfg({}) and policy_cfg({}) must be in accordance".format(user_multi_buffer, policy_multi_buffer)
+    multi_buffer = policy_multi_buffer
+    if not multi_buffer:
+        policy_buffer_type = policy_cfg.other.replay_buffer
+        user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer', {})
+        return _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
+    else:
+        return_cfg = EasyDict()
+        for buffer_name in policy_cfg.other.replay_buffer:  # Only traverse keys in policy_cfg
+            if buffer_name == 'multi_buffer':
+                continue
+            policy_buffer_type = policy_cfg.other.replay_buffer[buffer_name]
+            user_buffer_type = user_cfg.get('policy', {}).get('other', {}).get('replay_buffer',
+                                                                               {}).get('buffer_name', {})
+            return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_type, user_buffer_type, buffer)
+            return_cfg[buffer_name].name = buffer_name
+        return return_cfg
+
+
+def compile_collector_config(
+        policy_cfg: EasyDict,
+        user_cfg: EasyDict,
+        collector: 'ISerialCollector'  # noqa
+) -> EasyDict:
+    policy_collector_cfg = policy_cfg.collect.collector
+    user_collector_cfg = user_cfg.get('policy', {}).get('collect', {}).get('collector', {})
+    if user_collector_cfg.get('type', None) is None or user_collector_cfg.get('type',
+                                                                              None) == policy_collector_cfg.type:
+        if collector is None:
+            collector_cls = get_serial_collector_cls(policy_collector_cfg)
+        else:
+            collector_cls = collector
+        return deep_merge_dicts(collector_cls.default_config(), policy_cfg.collect.collector)
+    else:
+        if collector is None:
+            collector_cls = get_serial_collector_cls(user_collector_cfg)
+        else:
+            collector_cls = collector
+        return collector_cls.default_config()
 
 
 def compile_config(
@@ -318,9 +366,9 @@ def compile_config(
         env_manager=None,
         policy=None,
         learner=BaseLearner,
-        collector=BaseSerialCollector,
+        collector=None,
         evaluator=BaseSerialEvaluator,
-        buffer=BufferManager,
+        buffer=None,
         env=None,
         seed: int = 0,
         auto: bool = False,
@@ -341,7 +389,7 @@ def compile_config(
         else:
             env_config = EasyDict()  # env does not have default_config
         env_config.update(create_cfg.env)
-        env_config.manager = env_manager.default_config()
+        env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.get('manager', EasyDict()))
         env_config.manager.update(create_cfg.env_manager)
         policy_config = policy.default_config()
         policy_config.update(create_cfg.policy)
@@ -351,14 +399,17 @@ def compile_config(
             env_config = env.default_config()
         else:
             env_config = EasyDict()  # env does not have default_config
-        env_config.manager = env_manager.default_config()
+        env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.get('manager', EasyDict()))
         policy_config = policy.default_config()
-    policy_config.learn.learner = learner.default_config()
-    policy_config.collect.collector = collector.default_config()
-    policy_config.eval.evaluator = evaluator.default_config()
-    policy_config.other.replay_buffer = buffer.default_config()
+    policy_config.learn.learner = deep_merge_dicts(
+        learner.default_config(), policy_config.learn.get('learner', EasyDict())
+    )
+    policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
+    policy_config.eval.evaluator = deep_merge_dicts(
+        evaluator.default_config(), policy_config.eval.get('evaluator', EasyDict())
+    )
+    policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
-    default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
@@ -392,14 +443,14 @@ def compile_config_parallel(
     env_manager = get_env_manager_cls(create_cfg.env_manager)
     env_config.manager = env_manager.default_config()
     policy_config = policy.default_config()
-    policy_config.other.replay_buffer = BufferManager.default_config()
     collector = get_parallel_collector_cls(create_cfg.collector)
     policy_config.collect.collector = collector.default_config()
     policy_config.learn.learner = BaseLearner.default_config()
     commander = get_parallel_commander_cls(create_cfg.commander)
     policy_config.other.commander = commander.default_config()
-
+    policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, None)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
+
     cfg.env.update(create_cfg.env)
     if 'manager' not in cfg.env:
         cfg.env.manager = {}
@@ -408,7 +459,6 @@ def compile_config_parallel(
     cfg.policy.learn.learner.update(create_cfg.learner)
     cfg.policy.collect.collector.update(create_cfg.collector)
     cfg.policy.other.commander.update(create_cfg.commander)
-    default_config = deal_with_multi_buffer(default_config, cfg)
     cfg = deep_merge_dicts(default_config, cfg)
 
     cfg.policy.other.commander.path_policy = system_cfg.path_policy  # league may use 'path_policy'
