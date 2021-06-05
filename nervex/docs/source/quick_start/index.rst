@@ -41,7 +41,7 @@ NerveX recommends using a config `dict` defined in a python file as input.
 A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in nerveX. 
 The module can be specialized defined by users or just use our pre-defined modules.
 
-For more details, please refer to the `Config <>`_ doc.
+For more details, please refer to the `Config <../key_concept/index.html#config>`_.
 
 When you are ready with config, you can you construct your RL training/evaluation entry program referring to the following guides step by step.
 
@@ -51,7 +51,7 @@ Set up Environments
 NerveX redefines RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
 For junior users, an environment wrapper (by default :class:`NervexEnvWrapper <nervex.env.NervexEnvWrapper>`) is provided 
 to simply wrap the gym env into NerveX form env.
-For advanced users, it is suggested to check our Environment doc for details
+For advanced users, it is suggested to check our `Environment <../key_concept/index.html#env>`_ doc for details
 
 The :class:`Env Manager <nervex.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
 or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env. Here we show a case
