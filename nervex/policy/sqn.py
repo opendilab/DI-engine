@@ -32,7 +32,7 @@ class SQNPolicy(Policy):
         on_policy=False,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=True,
+        priority_IS_weight=False,
         learn=dict(
             multi_gpu=False,
             update_per_collect=update_per_collect,
