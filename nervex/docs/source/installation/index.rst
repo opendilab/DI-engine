@@ -34,10 +34,10 @@ If you want to install the extra package required by some functions in nerveX(su
      pip install nervex[test]  # install unittest(pytest) related package
 
 .. tip::
-    Some shells such as Zsh require quotation marks around brackets, i.e. pip install 'nervex[test]' 
+    Some shells such as Zsh require quotation marks around package names, i.e. pip install 'nervex[test]' 
 
 
-Developer Version
+Development Version
 ********************
 To contribute to nerveX, with support for running tests and building the documentation, you need to find proper release tag or master branch.
 
@@ -60,10 +60,10 @@ After installation, you can open your python console and run the following codes
 
 If the console print the correct version tag, you have successfully installed nerveX
 
-Besides, nerveX also prepare the CLI tool for nervex user, you can type the following command in your terminal
+Besides, nerveX also prepare the CLI tool for users, you can type the following command in your terminal
 
 .. code-block:: bash
 
    nervex -v
 
-If the terminal return the correct information, you can use this CLI tool for the common train and evaluate, you can type ``nervex -h`` for further usage
+If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``nervex -h`` for further usage

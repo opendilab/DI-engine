@@ -38,10 +38,12 @@ NerveX recommends using a config `dict` defined in a python file as input.
         ),
     )
 
-A config file contains two main namespaces, 'env' and 'policy'. Some sub-namespace belong to certain modules in nerveX. 
+A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in nerveX. 
 The module can be specialized defined by users or just use our pre-defined modules.
 
 For more details, please refer to the `Config <>`_ doc.
+
+When you are ready with config, you can you construct your RL training/evaluation entry program referring to the following guides step by step.
 
 Set up Environments
 ---------------------
@@ -94,10 +96,10 @@ For example, a `DQN` policy and `PPO` policy for CartPole can be defined as foll
     policy = PPOPolicy(cfg.policy, model=model)
 
 
-Set up runtime modules
+Set up execution modules
 --------------------------
 
-NerveX needs to build some runtime components to manage an RL training procedure. 
+NerveX needs to build some execution components to manage an RL training procedure. 
 A :class:`Collector <nervex.worker.BaseSerialCollector>` is used to sample and provide data for training.
 A :class:`Learner <nervex.worker.BaseLearner>` is used to receive training data and conduct 
 the training (including updating networks, strategy and experience pool, etc.).

@@ -12,11 +12,11 @@ For scalability, nerveX supports three different training pipeline:
 
   - ``serial``
 
-    - pipeline: single machine multi-gpu learner-collector serial execution
+    - pipeline: single-machine multi-gpu learner-collector serial execution
     - usage: academic research and algorithm validation
   - ``parallel``
 
-    - pipeline: single machine multi-gpu learner-collector parallel execution
+    - pipeline: single-machine multi-gpu learner-collector parallel execution
     - usage: speed up serial pipeline and introduction to the whole distributed training
   - ``dist``
 
@@ -40,7 +40,7 @@ Main Features
 
 To get started, take a look over the `quick start <./quick_start/index.html>`_ and `API documentation <./api_doc/index.html>`_.
 For RL beginners, nerveX advises you to refer to `hands-on RL <hands_on/index.html>`_ for more discussion.
-If you want to deeply customize your algorithm and application with nerveX, also check out `key concept <./key_concept/index.html>`_ and `Feature <./feature/index.html>`_. 
+If you want to deeply customize your algorithm and application with nerveX, also checkout `key concept <./key_concept/index.html>`_ and `Feature <./feature/index.html>`_. 
 
 .. toctree::
    :maxdepth: 2
