@@ -197,7 +197,6 @@ class TestPrioBuffer:
 
 
 @pytest.mark.unittest
-@pytest.mark.demo
 class TestDemonstrationBuffer:
 
     def test_naive(self, setup_demo_buffer_factory):

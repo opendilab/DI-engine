@@ -110,8 +110,9 @@ class TrajBuffer(list):
         super().__init__(*args, **kwargs)
 
     def append(self, data: Any) -> None:
-        while len(self) >= self._maxlen:
-            del self[0]
+        if self._maxlen is not None:
+            while len(self) >= self._maxlen:
+                del self[0]
         super().append(data)
 
 

@@ -200,7 +200,7 @@ class PrioritizedReplayBuffer(IBuffer):
             self._monitor_update_of_sample(result, cur_learner_iter)
             return result
 
-    def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
+    def push(self, data: Union[List[Any], Any], cur_collector_envstep: int) -> None:
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
         else:
@@ -369,7 +369,11 @@ class PrioritizedReplayBuffer(IBuffer):
                     # Update max priority
                     self._max_priority = max(self._max_priority, priority)
                 else:
-                    self._logger.debug(idx, self._data[idx]['replay_unique_id'], id_)
+                    self._logger.debug(
+                        'buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
+                            idx, self._data[idx]['replay_unique_id'], id_
+                        )
+                    )
 
     def clear(self) -> None:
         """
@@ -439,7 +443,7 @@ class PrioritizedReplayBuffer(IBuffer):
         # Find prefix sum index to sample with probability
         return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
-    def _remove(self, idx: int, use_too_many_times : bool = False) -> None:
+    def _remove(self, idx: int, use_too_many_times: bool = False) -> None:
         r"""
         Overview:
             Remove a data(set the element in the list to ``None``) and
@@ -556,6 +560,7 @@ class PrioritizedReplayBuffer(IBuffer):
             'priority_min': self._sampled_data_attr_monitor.min['priority'](),
             'staleness_avg': self._sampled_data_attr_monitor.avg['staleness'](),
             'staleness_max': self._sampled_data_attr_monitor.max['staleness'](),
+            'beta': self._beta,
         }
         if self._sampled_data_attr_print_count % self._sampled_data_attr_print_freq == 0:
             self._logger.info("=== Sample data {} Times ===".format(self._sampled_data_attr_print_count))

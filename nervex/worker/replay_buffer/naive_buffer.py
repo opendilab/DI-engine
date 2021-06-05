@@ -72,7 +72,7 @@ class NaiveReplayBuffer(IBuffer):
         else:
             print('[BUFFER WARNING] `enable_track_used_data` is False, no thread to join.`')
 
-    def push(self, data: Union[list, dict], cur_collector_envstep: int) -> None:
+    def push(self, data: Union[List[Any], Any], cur_collector_envstep: int) -> None:
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
         else:
