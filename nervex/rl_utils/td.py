@@ -218,6 +218,43 @@ def v_1step_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+v_nstep_td_data = namedtuple('v_nstep_td_data', ['v', 'next_n_v', 'reward', 'done', 'weight', 'value_gamma'])
+
+
+def v_nstep_td_error(
+        data: namedtuple,
+        gamma: float,
+        nstep: int = 1,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    r"""
+    Overview:
+        Multistep (n step) td_error for distributed value based algorithm
+    Arguments:
+        - data (:obj:`dist_nstep_td_data`): the input data, v_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`dist_nstep_td_data`): the v_nstep_td_data containing\
+            ['v', 'next_n_v', 'reward', 'done', 'weight', 'value_gamma']
+        - v (:obj:`torch.FloatTensor`): :math:`(B, )` i.e. [batch_size, ]
+        - next_v (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+        - value_gamma (:obj:`torch.Tensor`): If the remaining data in the buffer is less than n_step\
+            we use value_gamma as the gamma discount value for next_v rather than gamma**n_step
+    """
+    v, next_n_v, reward, done, weight, value_gamma = data
+    if weight is None:
+        weight = torch.ones_like(v)
+    target_v = nstep_return(nstep_return_data(reward, next_n_v, done), gamma, nstep, value_gamma)
+    td_error_per_sample = criterion(v, target_v.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
+
+
 q_nstep_td_data = namedtuple(
     'q_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight']
 )

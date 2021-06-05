@@ -53,7 +53,7 @@ qbert_dqn_config = dict(
             commander=dict(
                 collector_task_space=2,
                 learner_task_space=1,
-                eval_interval=30,
+                eval_interval=300,
             ),
         ),
     ),

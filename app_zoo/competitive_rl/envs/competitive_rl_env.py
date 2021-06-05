@@ -5,7 +5,7 @@ import numpy as np
 import gym
 import competitive_rl
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -33,8 +33,8 @@ COMPETITIVERL_INFO_DICT = {
     'cPongDouble-v0': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            # shape=(210, 160, 3),
-            shape=(4, 84, 84),
+            shape=(210, 160, 3),
+            # shape=(4, 84, 84),
             value={
                 'min': 0,
                 'max': 255,
@@ -131,6 +131,12 @@ class CompetitiveRlEnv(BaseEnv):
         if self._env_id in COMPETITIVERL_INFO_DICT:
             info = copy.deepcopy(COMPETITIVERL_INFO_DICT[self._env_id])
             info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
             if not self._builtin_wrap:
                 info.obs_space.shape = (2, ) + info.obs_space.shape
                 info.act_space.shape = (2, )
