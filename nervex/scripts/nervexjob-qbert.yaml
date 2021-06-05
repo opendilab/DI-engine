@@ -21,7 +21,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: coordinator
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel-9472640d 
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.3-torch1.4-cuda10.1-cudnn7-devel
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -165,7 +165,7 @@ spec:
             nervex -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
           ports:
           - name: coordinator
-            containerPort: 22270
+            containerPort: 22273
           volumeMounts:
           - name: data-dir
             mountPath: /nervex/qbert
@@ -176,7 +176,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: collector
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel-9472640d 
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.3-torch1.4-cuda10.1-cudnn7-devel
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -331,7 +331,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: learner
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel-9472640d 
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.3-torch1.4-cuda10.1-cudnn7-devel
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -475,7 +475,7 @@ spec:
             nervex -m dist --module learner -c qbert_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT
           ports:
           - name: learner
-            containerPort: 22270
+            containerPort: 22271
           volumeMounts:
           - name: cache-volume
             mountPath: /dev/shm
