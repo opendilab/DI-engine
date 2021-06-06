@@ -18,7 +18,7 @@ Concept
 ``Environment`` and ``policy`` is the most two important concepts in the total design scheme, which can also be called description modules, in most cases, the users of nerveX only need to pay
 attention to these two components.
 
-``Worker`` module, such as ``learner``, ``collector``, and ``buffer``, are execution modules implementing the cooresponding tasks derived from the description modules. These worker
+``Worker`` module, such as ``learner``, ``collector``, and ``buffer``, are execution modules implementing the corresponding tasks derived from the description modules. These worker
 module are general in many RL algorithms, but the users can also override their own components easily, the only restirction is to obey the basic interface definition.
 
 Last but not least, ``config`` is the recommended tool to control and record the whole pipeline.
@@ -69,6 +69,33 @@ All the mentioned features, the users can refer to `EnvManager Overview <../feat
 
 Policy
 ~~~~~~~
+In order to unify the design pattern and modularization of RL and other machine learning algorithms, nerveX abstracts and defines the general policy interfaces with multi-mode design.
+With these abstractitons, plenty of the AI decision algorithms can be summarized in only one python file, i.e.: corresponding policy class. And the user's customized algorithms only need to inherit and extend :class:`Policy <nervex.policy.Policy>` or just have the same interface definition with it. 
+
+The Multi-Mode of Policy
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+In most cases, RL policy need to execute different algorithm proceduces for different usages, e.g.: for DQN, model forward and calculating TD error in training,
+model forward without gradient computation and use epsilon-greedy to select action for exploration in collecting. Therefore, nerveX policy unifies all the algorithms content in only one python file,
+prepares some simple interface methods, and combines them into 3 common mode——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
+
+.. image::
+   images/policy_mode.png
+
+Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
+own algorithm ideas by overriding these modes or design their own customized mode, such as hyperparameters annealing according to training result, select battle players in self-play training and so on. For more details,
+the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
+
+.. note::
+   ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their own policy class just ensuring the same method name and input/output arguments as the corresponding modes.
+
+Shared Model + Model Wrapper
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Processing Function
+^^^^^^^^^^^^^^^^^^^^^^
+
+Scale Up to Parallel Training
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Config
 ~~~~~~~~~
@@ -124,8 +151,17 @@ config的文件名为\ ``sac_user_config.py``\ ，在里面加上如下代码即
 
 来运行基于SAC的实验.
 
-Worker
-~~~~~~~~~~~
+Worker-Collector
+~~~~~~~~~~~~~~~~~~
+
+Worker-Buffer
+~~~~~~~~~~~~~~~
+
+Worker-Evaluator
+~~~~~~~~~~~~~~~~
+
+Worker-Learner
+~~~~~~~~~~~~~~~~~~
 
 Entry(optional)
 ~~~~~~~~~~~~~~~~~
