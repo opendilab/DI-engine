@@ -27,12 +27,12 @@ Key Equations or Key Graphs
 ---------------------------
 The overall QMIX architecture including individual agent networks and the mixing network structure:
 
-.. image:: images/qmix.png
+.. image:: images/marl/qmix.png
 
 QMIX trains the mixing network via minimizing the following loss:
 
-.. image:: images/qmix_y.png
-.. image:: images/qmix_loss.png
+.. image:: images/marl/qmix_y.png
+.. image:: images/marl/qmix_loss.png
 
 - Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More implemented details can be found in the origin paper.
 
@@ -42,7 +42,7 @@ Extensions
 
     * For consistency, QMIX is based on monotonicity, a constraint on the relationship between joint action values and individual action values.
 
-        .. image:: images/qmix_mono.png
+        .. image:: images/marl/qmix_mono.png
 
 - QTRAN (Son et al. 2019), as an extension of QMIX, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one. QTRAN guarantees more general factorization than VDN or QMIX.
 

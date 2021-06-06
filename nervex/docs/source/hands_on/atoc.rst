@@ -27,21 +27,21 @@ Key Equations or Key Graphs
 ---------------------------
 ATOC communication architecture for one single agent:
 
-.. image:: images/atoc.png
+.. image:: images/marl/atoc.png
 
 The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.
 
 The loss to update critics in ATOC:
-.. image:: images/atoc_loss_q.png
+.. image:: images/marl/atoc_loss_q.png
 
 The policy gradient:
-.. image:: images/atoc_gradient_mu.png
+.. image:: images/marl/atoc_gradient_mu.png
 
 The gradient of integrated thought in the communication channel:
-.. image:: images/atoc_gradient_g.png
+.. image:: images/marl/atoc_gradient_g.png
 
 The log loss to update attention unit of ATOC:
-.. image:: images/atoc_loss_p.png
+.. image:: images/marl/atoc_loss_p.png
  
 Extensions
 -----------

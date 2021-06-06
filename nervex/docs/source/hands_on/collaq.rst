@@ -23,15 +23,15 @@ Key Equations or Key Graphs
 ---------------------------
 The overall architecture of the Q-function with attention-based model in CollaQ:
 
-.. image:: images/collaq.png
+.. image:: images/marl/collaq.png
 
 The Q-function for agent i:
 
-.. image:: images/collaq_q.png
+.. image:: images/marl/collaq_q.png
 
 The overall training objective of standard DQN training with MARA loss:
 
-.. image:: images/collaq_loss.png
+.. image:: images/marl/collaq_loss.png
  
 Extensions
 -----------

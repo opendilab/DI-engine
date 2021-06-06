@@ -27,15 +27,15 @@ Key Equations or Key Graphs
 ---------------------------
 The overall information flow between the decentralized actors, the environment and the centralized critic in COMA:
 
-.. image:: images/coma.png
+.. image:: images/marl/coma.png
 
 COMA computes an advantage function that compares the Q-value for the current action to a counterfactual baseline:
 
-.. image:: images/coma_adv.png
+.. image:: images/marl/coma_adv.png
 
 COMA policy gradient for all actor policies:
 
-.. image:: images/coma_gradient.png
+.. image:: images/marl/coma_gradient.png
  
 Extensions
 -----------
