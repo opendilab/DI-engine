@@ -9,6 +9,12 @@ Buffer Manager Overview
     即manager承担了管理多个buffer、统筹调度的工作。诚然，大部分算法使用一个replay buffer就可以实现，也无需manager进行管理，
     但近些年随着越来越多的强化学习论文与研究着眼于数据流，相信我们的拥有更强可扩展性的设计可以极大地方便研究者们。
 
+Episode buffer
+Also, when sampling out episodes, sometimes an algorithm does not require a whole episode, but a fixed length within several episodes. So in ``EpisodeReplayBuffer``, the main differences from normal sample buffer(like ``NaiveReplayBuffer`` or ``AdvancedReplayBuffer``) are as follows:
+
+   1. Each element is a whole episode, rather than a sample.
+   2. (Maybe) Do not sample `batch_size` elements(episodes), however, first do some operations, then return 
+
 
 Buffer Manager
 --------------------
@@ -65,7 +71,7 @@ Replay Buffer
 代码结构：
     相关的类有以下几个：
 
-        1. PrioritizedReplayBuffer(nervex/data/structure/buffer.py): buffer主体。
+        1. AdvancedReplayBuffer(nervex/data/structure/buffer.py): buffer主体。
         2. RecordList(nervex/data/structure/buffer.py): 继承自list，用于记录buffer中由于更新而被移除的旧数据。
         3. NaturalMonitor, InTickMonitor, OutTickMonitor(nervex/data/structure/buffer.py): 来自autolog，用于记录buffer统计数据。
         4. SegmentTree, SumSegmentTree, MinSegmentTree(nervex/data/structure/segment_tree.py): 用于buffer中的prioritized sample。

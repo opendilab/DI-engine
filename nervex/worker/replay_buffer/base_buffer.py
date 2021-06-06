@@ -1,13 +1,9 @@
 from abc import ABC, abstractmethod
-import time
 import copy
-import os.path as osp
-from threading import Thread
 from typing import Union, Optional, Dict, Any, List, Tuple
 from easydict import EasyDict
 
 from nervex.utils import import_module, BUFFER_REGISTRY
-from nervex.utils import LockContext, LockContextType, EasyTimer, build_logger, deep_merge_dicts
 
 
 class IBuffer(ABC):
