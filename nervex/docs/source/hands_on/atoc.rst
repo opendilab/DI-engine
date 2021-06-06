@@ -32,17 +32,21 @@ ATOC communication architecture for one single agent:
 The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.
 
 The loss to update critics in ATOC:
+
 .. image:: images/marl/atoc_loss_q.png
 
 The policy gradient:
+
 .. image:: images/marl/atoc_gradient_mu.png
 
 The gradient of integrated thought in the communication channel:
+
 .. image:: images/marl/atoc_gradient_g.png
 
 The log loss to update attention unit of ATOC:
+
 .. image:: images/marl/atoc_loss_p.png
- 
+
 Extensions
 -----------
 - Different from ATOC, TarMAC (Das et al. 2019) uses attention in communication to decide who to communicate with. TarMAC is interpretable through predicted attention probabilities that allow for inspection of which agent is communicating what message and to whom. Additionally, TarMAC proposes multi-round communication where agents coordinate via multiple rounds of communication before taking actions in the environment. 
