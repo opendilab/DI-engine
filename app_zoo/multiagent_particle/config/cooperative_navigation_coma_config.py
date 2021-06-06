@@ -40,7 +40,7 @@ cooperative_navigation_coma_config = dict(
             entropy_weight=0.01,
         ),
         collect=dict(
-            n_episode=6,
+            n_sample=600,
             unroll_len=16,
             env_num=collector_env_num,
         ),

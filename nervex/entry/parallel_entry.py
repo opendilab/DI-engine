@@ -1,9 +1,10 @@
 from typing import Optional, List, Union, Tuple
-import subprocess
 import time
 import pickle
 import logging
-from threading import Thread, Event
+from multiprocessing import Process, Event
+import threading
+from threading import Thread
 from easydict import EasyDict
 
 from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
@@ -56,6 +57,16 @@ def parallel_pipeline(
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
 # for they can be used to read correponding config from file.
+def run_learner(config, start_learner_event, close_learner_event):
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+    learner = create_comm_learner(config)
+    learner.start()
+    start_learner_event.set()
+    close_learner_event.wait()
+    learner.close()
+
+
 def launch_learner(
         seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
 ) -> list:
@@ -66,16 +77,21 @@ def launch_learner(
     start_learner_event = Event()
     close_learner_event = Event()
 
-    def run_learner():
-        learner = create_comm_learner(config)
-        learner.start()
-        start_learner_event.set()
-        close_learner_event.wait()
-        learner.close()
-
-    learner_thread = Thread(target=run_learner, args=(), name='learner_entry_thread')
+    learner_thread = Process(
+        target=run_learner, args=(config, start_learner_event, close_learner_event), name='learner_entry_process'
+    )
     learner_thread.start()
     return learner_thread, start_learner_event, close_learner_event
+
+
+def run_collector(config, start_collector_event, close_collector_event):
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+    collector = create_comm_collector(config)
+    collector.start()
+    start_collector_event.set()
+    close_collector_event.wait()
+    collector.close()
 
 
 def launch_collector(
@@ -88,14 +104,11 @@ def launch_collector(
     start_collector_event = Event()
     close_collector_event = Event()
 
-    def run_collector():
-        collector = create_comm_collector(config)
-        collector.start()
-        start_collector_event.set()
-        close_collector_event.wait()
-        collector.close()
-
-    collector_thread = Thread(target=run_collector, args=(), name='collector_entry_thread')
+    collector_thread = Process(
+        target=run_collector,
+        args=(config, start_collector_event, close_collector_event),
+        name='collector_entry_process'
+    )
     collector_thread.start()
     return collector_thread, start_collector_event, close_collector_event
 
@@ -117,7 +130,7 @@ def launch_coordinator(
     for _, start_event, _ in collector_handle:
         start_event.wait()
     coordinator.start()
-    system_shutdown_event = Event()
+    system_shutdown_event = threading.Event()
 
     # Monitor thread: Coordinator will remain running until its ``system_shutdown_flag`` is set to False.
     def shutdown_monitor():

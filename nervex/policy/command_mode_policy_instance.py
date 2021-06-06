@@ -40,8 +40,8 @@ class EpsCommandModePolicy(CommandModePolicy):
         """
         # Decay according to `learner_step`
         # step = command_info['learner_step']
-        # Decay according to `env_step`
-        step = command_info['env_step']
+        # Decay according to `envstep`
+        step = command_info['envstep']
         return {'eps': self.epsilon_greedy(step)}
 
     def _get_setting_learn(self, command_info: dict) -> dict:

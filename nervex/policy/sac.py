@@ -35,6 +35,10 @@ class SACPolicy(Policy):
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Please use False in sac.
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        random_collect_size=2000,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -111,15 +115,14 @@ class SACPolicy(Policy):
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
+                type='priority',
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int type) replay_start_size: Number of experiences in replay buffer
-                # when training begins. Default to 10000.
-                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.
@@ -140,6 +143,7 @@ class SACPolicy(Policy):
         """
         # Init
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_network = self._model._value_network
         self._twin_q = self._model._twin_q
 
@@ -202,7 +206,11 @@ class SACPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

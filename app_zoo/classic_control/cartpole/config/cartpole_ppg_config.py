@@ -30,12 +30,14 @@ cartpole_ppg_config = dict(
         ),
         other=dict(
             replay_buffer=dict(
-                buffer_name=['policy', 'value'],
+                multi_buffer=True,
                 policy=dict(
+                    type='priority',
                     replay_buffer_size=100,
                     max_use=10,
                 ),
                 value=dict(
+                    type='priority',
                     replay_buffer_size=1000,
                     max_use=100,
                 ),

@@ -6,10 +6,9 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator, BaseSerialCommander
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer
 from nervex.config import read_config, compile_config
-from nervex.data import BufferManager
-from nervex.policy import create_policy
+from nervex.policy import create_policy, PolicyFactory
 from nervex.utils import set_pkg_seed
 
 
@@ -59,9 +58,9 @@ def serial_pipeline(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger)
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
@@ -72,12 +71,14 @@ def serial_pipeline(
     learner.call_hook('before_run')
 
     # Accumulate plenty of data at the beginning of training.
-    if replay_buffer.replay_buffer_start_size() > 0:
+    if cfg.policy.get('random_collect_size', 0) > 0:
+        action_space = collector_env.env_info().act_space
+        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+        collector.reset_policy(random_policy)
         collect_kwargs = commander.step()
-        new_data = collector.collect_data(
-            learner.train_iter, n_sample=replay_buffer.replay_buffer_start_size(), policy_kwargs=collect_kwargs
-        )
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
+        collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -86,7 +87,7 @@ def serial_pipeline(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect_data(learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):

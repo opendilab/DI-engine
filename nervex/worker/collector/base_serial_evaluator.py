@@ -17,7 +17,7 @@ class BaseSerialEvaluator(object):
     Overview:
         Base class for serial evaluator.
     Interfaces:
-        __init__, reset, close, eval
+        __init__, reset, reset_policy, reset_env, close, should_eval, eval
     Property:
         env, policy
     """
@@ -49,49 +49,45 @@ class BaseSerialEvaluator(object):
             - cfg (:obj:`EasyDict`)
         """
         self._cfg = cfg
-        if env is not None:
-            self.env = env
-        if policy is not None:
-            self.policy = policy
         if tb_logger is not None:
             self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
             self._tb_logger = tb_logger
         else:
             self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
+        self.reset(policy, env)
+
         self._timer = EasyTimer()
-        self._max_eval_reward = float("-inf")
-        self._end_flag = False
-        self._last_eval_iter = 0
         self._default_n_episode = cfg.n_episode
         self._stop_value = cfg.stop_value
 
-    @property
-    def env(self) -> BaseEnvManager:
-        return self._env_manager
+    def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
+        if _env is not None:
+            self._env = _env
+            self._env.launch()
+            self._env_num = self._env.env_num
+        else:
+            self._env.reset()
 
-    @env.setter
-    def env(self, _env_manager: BaseEnvManager) -> None:
+    def reset_policy(self, _policy: Optional[namedtuple] = None) -> None:
+        assert hasattr(self, '_env'), "please set env first"
+        if _policy is not None:
+            self._policy = _policy
+        self._policy.reset()
+
+    def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
+        if _env is not None:
+            self.reset_env(_env)
+        if _policy is not None:
+            self.reset_policy(_policy)
+        self._max_eval_reward = float("-inf")
+        self._last_eval_iter = 0
         self._end_flag = False
-        self._env_manager = _env_manager
-        self._env_manager.launch()
-        self._env_num = self._env_manager.env_num
-
-    @property
-    def policy(self) -> namedtuple:
-        return self._policy
-
-    @policy.setter
-    def policy(self, _policy: namedtuple) -> None:
-        self._policy = _policy
-
-    def reset(self) -> None:
-        self._env_manager.reset()
 
     def close(self) -> None:
         if self._end_flag:
             return
         self._end_flag = True
-        self._env_manager.close()
+        self._env.close()
         self._tb_logger.flush()
         self._tb_logger.close()
 
@@ -128,18 +124,18 @@ class BaseSerialEvaluator(object):
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
-        eval_monitor = VectorEvalMonitor(self._env_manager.env_num, n_episode)
-        self._env_manager.reset()
+        eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
+        self._env.reset()
         self._policy.reset()
 
         with self._timer:
             while not eval_monitor.is_finished():
-                obs = self._env_manager.ready_obs
+                obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
                 policy_output = self._policy.forward(obs)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
-                timesteps = self._env_manager.step(actions)
+                timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
                 for env_id, t in timesteps.items():
                     if t.info.get('abnormal', False):
@@ -172,12 +168,11 @@ class BaseSerialEvaluator(object):
             'avg_time_per_episode': n_episode / duration,
             'reward_mean': np.mean(episode_reward),
             'reward_std': np.std(episode_reward),
-            'each_reward': episode_reward,
+            'reward_max': np.max(episode_reward),
+            'reward_min': np.min(episode_reward),
+            # 'each_reward': episode_reward,
         }
-        # self._logger.print_vars(info)
-        self._logger.info(
-            "[EVALUATOR] Evaluation ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
-        )
+        self._logger.print_vars_hor(info)
         for k, v in info.items():
             if k in ['train_iter', 'ckpt_name', 'each_reward']:
                 continue

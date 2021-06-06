@@ -47,6 +47,8 @@ class DQNPolicy(Policy):
         cuda=False,
         on_policy=False,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         discount_factor=0.97,
         nstep=1,
         learn=dict(
@@ -70,7 +72,7 @@ class DQNPolicy(Policy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Only one of [n_sample, n_episode] shoule be set
             n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
@@ -81,6 +83,7 @@ class DQNPolicy(Policy):
             her=False,
             her_strategy='future',
             her_replay_k=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config
@@ -94,7 +97,10 @@ class DQNPolicy(Policy):
                 # (int) Decay length(env step)
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, )
+            replay_buffer=dict(
+                type='priority',
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
@@ -105,6 +111,7 @@ class DQNPolicy(Policy):
             and target model.
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
@@ -141,7 +148,11 @@ class DQNPolicy(Policy):
             - optional: ``action_distribution``
         """
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
         )
         if self._cuda:
             data = to_device(data, self._device)

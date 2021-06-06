@@ -31,6 +31,8 @@ class SQNPolicy(Policy):
         policy_type='sqn',
         on_policy=False,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             multi_gpu=False,
             update_per_collect=update_per_collect,
@@ -53,6 +55,7 @@ class SQNPolicy(Policy):
             n_sample=update_per_collect,
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -61,7 +64,11 @@ class SQNPolicy(Policy):
                 start=1.,
                 end=0.8,
                 decay=2000,
-            ), replay_buffer=dict(replay_buffer_size=100000, )
+            ),
+            replay_buffer=dict(
+                type='priority',
+                replay_buffer_size=100000,
+            ),
         ),
     )
 
@@ -72,6 +79,7 @@ class SQNPolicy(Policy):
             Init q, value and policy's optimizers, algorithm config, main and target models.
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizers
         self._optimizer_q = Adam(
             self._model.parameters(), lr=self._cfg.learn.learning_rate_q, weight_decay=self._cfg.learn.weight_decay
@@ -146,7 +154,11 @@ class SQNPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Learn info, including current lr and loss.
         """
         data = default_preprocess_learn(
-            data, use_priority=self._cfg.priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+            data,
+            use_priority=self._cfg.priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

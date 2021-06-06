@@ -3,7 +3,7 @@ import pytest
 
 import nervex
 nervex.enable_numba = False  # noqa
-from nervex.data.structure import SumSegmentTree, MinSegmentTree  # noqa
+from nervex.utils import SumSegmentTree, MinSegmentTree  # noqa
 
 
 @pytest.mark.unittest

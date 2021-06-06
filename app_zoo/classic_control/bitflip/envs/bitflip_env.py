@@ -57,7 +57,7 @@ class BitFlipEnv(BaseEnv):
         else:
             rew = np.array([0]).astype(np.float32)
             done = False
-        self._final_eval_reward += rew
+        self._final_eval_reward += float(rew)
         if self._curr_step >= self._maxsize - 1:
             done = True
         info = {}
@@ -85,7 +85,8 @@ class BitFlipEnv(BaseEnv):
                 (self._n_bits, ),
                 {
                     'min': 0,
-                    'max': self._n_bits
+                    'max': self._n_bits,
+                    'dtype': int,
                 },
             ),
             rew_space=T(
