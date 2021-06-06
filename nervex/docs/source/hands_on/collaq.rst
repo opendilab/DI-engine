@@ -28,10 +28,14 @@ The overall architecture of the Q-function with attention-based model in CollaQ:
 The Q-function for agent i:
 
 .. image:: images/marl/collaq_q.png
+   :align: center
+   :scale: 50%
 
 The overall training objective of standard DQN training with MARA loss:
 
 .. image:: images/marl/collaq_loss.png
+   :align: center
+   :scale: 50%
  
 Extensions
 -----------
