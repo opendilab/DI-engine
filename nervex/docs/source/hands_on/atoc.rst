@@ -14,8 +14,7 @@ Quick Facts
 
 3. ATOC is an **off-policy** algorithm.
 
-4. ATOC is trained end-to-end by back propagation. All agents share the parameters of the policy network, Q-network, attention unit, and
-communication channel.
+4. ATOC is trained end-to-end by back propagation. All agents share the parameters of the policy network, Q-network, attention unit, and communication channel.
 
 5. ATOC can be used in partially observable distributed environments for large-scale multi-agent RL.
 
