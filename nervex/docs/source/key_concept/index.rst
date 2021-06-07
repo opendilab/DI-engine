@@ -74,22 +74,35 @@ With these abstractitons, plenty of the AI decision algorithms can be summarized
 
 The Multi-Mode of Policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-In most cases, RL policy need to execute different algorithm proceduces for different usages, e.g.: for DQN, model forward and calculating TD error in training,
-model forward without gradient computation and use epsilon-greedy to select action for exploration in collecting. Therefore, nerveX policy unifies all the algorithms content in only one python file,
-prepares some simple interface methods, and combines them into 3 common mode——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
+In most cases, RL policy needs to execute different algorithm proceduces for different usages, e.g.: for DQN, model forward and calculating TD error in training,
+model forward without gradient computation and use epsilon-greedy to select action for exploration in collecting. Therefore, nerveX policy unifies all the algorithm content in only one python file,
+prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
 
 .. image::
    images/policy_mode.png
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
-own algorithm ideas by overriding these modes or design their own customized mode, such as hyperparameters annealing according to training result, select battle players in self-play training and so on. For more details,
+own algorithm ideas by overriding these modes or design their own customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training and so on. For more details,
 the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
 
 .. note::
-   ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their own policy class just ensuring the same method name and input/output arguments as the corresponding modes.
+   ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their own policy class just ensuring the same method names and input/output arguments as the corresponding modes.
 
 Shared Model + Model Wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(``__init__``) or out of policy and passed to policy as arguments. Therefore, the model is shared among different modes for convenience. And nerveX extends the model with more runtime function by ``Model Wrapper`` , which makes the shared model can exhibit different behaviours in different modes, such as sampling action by multinomial distribution in collect mode while argmax in evaluate mode. Here are some concrete code examples:
+
+.. code:: python
+
+    from nervex.model import model_wrap, DiscreteNet
+
+    model = DiscreteNet(obs_shape=(4, 84, 84), action_shape=6, encoder_type='conv2d')
+    # only wrapper, no model copy
+    learn_model = model_wrap(model_wrap, wrapper_name='base')
+    collector_model = model_wrap(model, wrapper_name='multinomial_sample')
+    eval_model = model_wrap(model, wrapper_name='argmax_sample')
+
+If you want to know about the detailed information of the pre-defined model wrapper, or customize you own model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview.html>`_ can help you a lot.
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^

@@ -383,7 +383,7 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
         lstm_kwargs = kwargs['lstm_kwargs']
     else:
         lstm_kwargs = {
-            'lstm_type': kwargs.get('lstm_type', 'normal'),
+            'lstm_type': kwargs.get('lstm_type', 'none'),
         }
     if 'head_kwargs' in kwargs:
         head_kwargs = deepcopy(kwargs['head_kwargs'])
@@ -392,15 +392,15 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
                 head_kwargs[k] = kwargs[k]
     else:
         head_kwargs = {
-            'head_type': kwargs.get('head_type', 'base'),
+            'head_type': kwargs.get('head_type', 'dueling'),
             'a_layer_num': kwargs.get('a_layer_num', 1),
             'v_layer_num': kwargs.get('v_layer_num', 1),
             'noise': kwargs.get('noise', False),
-            'v_max': kwargs.get('v_max', 10),
-            'v_min': kwargs.get('v_min', -10),
-            'n_atom': kwargs.get('n_atom', 51),
-            'beta_function_type': kwargs.get('beta_function_type', 'uniform'),
-            'num_quantiles': kwargs.get('num_quantiles', 32),
-            'quantile_embedding_size': kwargs.get('quantile_embedding_size', 128),
+            # 'v_max': kwargs.get('v_max', 10),
+            # 'v_min': kwargs.get('v_min', -10),
+            # 'n_atom': kwargs.get('n_atom', 51),
+            # 'beta_function_type': kwargs.get('beta_function_type', 'uniform'),
+            # 'num_quantiles': kwargs.get('num_quantiles', 32),
+            # 'quantile_embedding_size': kwargs.get('quantile_embedding_size', 128),
         }
     return encoder_kwargs, lstm_kwargs, head_kwargs
