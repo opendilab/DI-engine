@@ -1,25 +1,16 @@
 import copy
-import logging
-import math
-import time
-import numbers
-from queue import Queue
 from typing import Union, NoReturn, Any, Optional, List, Dict
-import pickle
 import numpy as np
-from functools import partial
-from easydict import EasyDict
-import threading
 
 from nervex.worker.replay_buffer import IBuffer
 from nervex.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
-from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from nervex.utils import LockContext, LockContextType, build_logger
+from nervex.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor
 
 
 @BUFFER_REGISTRY.register('priority')
-class PrioritizedReplayBuffer(IBuffer):
+class AdvancedReplayBuffer(IBuffer):
     r"""
     Overview:
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
