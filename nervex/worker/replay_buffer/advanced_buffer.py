@@ -16,10 +16,10 @@ class AdvancedReplayBuffer(IBuffer):
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
         This replay buffer adds:
             1) Prioritized experience replay implemented by segment tree.
-            2) Use count and staleness of each data, to guarantee data quality.
-            3) Monitor mechanism to watch sampled data attributes & thruput statistics.
+            2) Sampled data quality monitor. Monitor use count and staleness of each data.
+            3) Throughput monitor and control.
     Interface:
-        __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+        start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
     """
 
     config = dict(
@@ -69,7 +69,9 @@ class AdvancedReplayBuffer(IBuffer):
         Overview:
             Initialize the buffer
         Arguments:
-            - name (:obj:`str`): Buffer name, mainly used to generate unique data id and logger name.
+            - cfg (:obj:`dict`): Config dict.
+            - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
+            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
         """
         self._end_flag = False
         self.name = name
@@ -148,10 +150,19 @@ class AdvancedReplayBuffer(IBuffer):
             self._used_data_remover = UsedDataRemover()
 
     def start(self) -> None:
+        """
+        Overview:
+            Start the buffer's used_data_remover thread if enables track_used_data.
+        """
         if self._enable_track_used_data:
             self._used_data_remover.start()
 
     def close(self) -> None:
+        """
+        Overview:
+            Clear the buffer; Join the buffer's used_data_remover thread if enables track_used_data.
+            Join periodic throughtput monitor, flush tensorboard logger.
+        """
         self.clear()
         self._periodic_thruput_monitor.close()
         self._tb_logger.flush()
@@ -168,8 +179,11 @@ class AdvancedReplayBuffer(IBuffer):
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
-            - sample_data (:obj:`list`): A list of data with length ``size``; \
-                Each data owns keys: original keys + ['IS', 'priority', 'replay_unique_id', 'replay_buffer_idx'].
+            - sample_data (:obj:`list`): A list of data with length ``size``
+        ReturnsKeys:
+            - necessary: original keys(e.g. `obs`, `action`, `next_obs`, `reward`, `info`), \
+                `replay_unique_id`, `replay_buffer_idx`
+            - optional(if use priority): `IS`, `priority`
         """
         if size == 0:
             return []
@@ -192,6 +206,14 @@ class AdvancedReplayBuffer(IBuffer):
             return result
 
     def push(self, data: Union[List[Any], Any], cur_collector_envstep: int) -> None:
+        r"""
+        Overview:
+            Push a data into buffer.
+        Arguments:
+            - data (:obj:`Union[List[Any], Any]`): The data which will be pushed into buffer. Can be one \
+                (in `Any` type), or many(int `List[Any]` type).
+            - cur_collector_envstep (:obj:`int`): Collector's current env step.
+        """
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
         else:
@@ -201,16 +223,13 @@ class AdvancedReplayBuffer(IBuffer):
         r"""
         Overview:
             Do preparations for sampling and check whther data is enough for sampling
-            Preparation includes removing stale transition in ``self._data``.
+            Preparation includes removing stale datas in ``self._data``.
             Check includes judging whether this buffer has more than ``size`` datas to sample.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
-
-        .. note::
-            This function must be called before data sample.
         """
         with self._lock:
             if self._max_staleness != float("inf"):
@@ -280,7 +299,7 @@ class AdvancedReplayBuffer(IBuffer):
         r"""
         Overview:
             Extend a data list into queue.
-            Add two keys in each data item, you can refer to ``_append`` for details.
+            Add two keys in each data item, you can refer to ``_append`` for more details.
         Arguments:
             - ori_data (:obj:`List[Any]`): The data list.
             - cur_collector_envstep (:obj:`int`): Collector's current env step, used to draw tensorboard.
@@ -341,9 +360,11 @@ class AdvancedReplayBuffer(IBuffer):
     def update(self, info: dict) -> None:
         r"""
         Overview:
-            Update a data's priority. Use "repaly_buffer_idx" to locate and "replay_unique_id" to verify.
+            Update a data's priority. Use `repaly_buffer_idx` to locate, and use `replay_unique_id` to verify.
         Arguments:
             - info (:obj:`dict`): Info dict containing all necessary keys for priority update.
+        ArgumentsKeys:
+            - necessary: `replay_unique_id`, `replay_buffer_idx`, `priority`. All values are lists with the same length.
         """
         with self._lock:
             if 'priority' not in info:
@@ -375,8 +396,6 @@ class AdvancedReplayBuffer(IBuffer):
             for i in range(len(self._data)):
                 self._remove(i)
             assert self._valid_count == 0
-            # self._valid_count = 0
-            # self._periodic_thruput_monitor.valid_count = self._valid_count
             self._head = 0
             self._tail = 0
             self._max_priority = 1.0
@@ -437,8 +456,8 @@ class AdvancedReplayBuffer(IBuffer):
     def _remove(self, idx: int, use_too_many_times: bool = False) -> None:
         r"""
         Overview:
-            Remove a data(set the element in the list to ``None``) and
-            update corresponding variables, e.g. sum_tree, min_tree, valid_count.
+            Remove a data(set the element in the list to ``None``) and update corresponding variables,
+            e.g. sum_tree, min_tree, valid_count.
         Arguments:
             - idx (:obj:`int`): Data at this position will be removed.
         """
@@ -593,6 +612,12 @@ class AdvancedReplayBuffer(IBuffer):
             return staleness
 
     def count(self) -> int:
+        """
+        Overview:
+            Count how many valid datas there are in the buffer.
+        Returns:
+            - count (:obj:`int`): Number of valid data.
+        """
         return self._valid_count
 
     @property
@@ -604,6 +629,13 @@ class AdvancedReplayBuffer(IBuffer):
         self._beta = beta
 
     def state_dict(self) -> dict:
+        """
+        Overview:
+            Provide a state dict to keep a record of current buffer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): A dict containing all important values in the buffer. \
+                With the dict, one can easily reproduce the buffer.
+        """
         return {
             'data': self._data,
             'use_count': self._use_count,
@@ -620,6 +652,12 @@ class AdvancedReplayBuffer(IBuffer):
         }
 
     def load_state_dict(self, _state_dict: dict) -> None:
+        """
+        Overview:
+            Load state dict to reproduce the buffer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): A dict containing all important values in the buffer.
+        """
         assert 'data' in _state_dict
         if set(_state_dict.keys()) == set(['data']):
             self._extend(_state_dict['data'])

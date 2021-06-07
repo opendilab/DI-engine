@@ -12,11 +12,11 @@ class NaiveReplayBuffer(IBuffer):
     r"""
     Overview:
         Naive replay buffer, can store and sample data.
-        An naive implementation of replay buffer with no priority and any other advanced features.
-        This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that functions like
-        ``sample_check``, ``sample``, ``append``, ``extend``, ``clear`` are all mutual to each other.
+        An naive implementation of replay buffer with no priority or any other advanced features.
+        This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that methods like
+        ``sample``, ``push``, ``clear`` are all mutual to each other.
     Interface:
-        __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+        start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
     """
 
     config = dict(
@@ -30,16 +30,15 @@ class NaiveReplayBuffer(IBuffer):
 
     def __init__(
             self,
-            cfg: dict,
+            cfg: 'EasyDict',  # noqa
             name: str = 'default',
     ) -> None:
         """
         Overview:
             Initialize the buffer
         Arguments:
-            - name (:obj:`str`): Buffer name, used to generate unique data id and logger name.
-            - cfg (:obj:`dict`): cfg dict
-            - deepcopy (:obj:`bool`): Whether to deepcopy data when append/extend and sample data
+            - cfg (:obj:`dict`): Config dict.
+            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
         """
         self.name = name
         self._cfg = cfg
@@ -61,18 +60,32 @@ class NaiveReplayBuffer(IBuffer):
             self._used_data_remover = UsedDataRemover()
 
     def start(self) -> None:
+        """
+        Overview:
+            Start the buffer's used_data_remover thread if enables track_used_data.
+        """
         if self._enable_track_used_data:
             self._used_data_remover.start()
-        else:
-            print('[BUFFER WARNING] `enable_track_used_data` is False, no thread to start.`')
 
     def close(self) -> None:
+        """
+        Overview:
+            Clear the buffer; Join the buffer's used_data_remover thread if enables track_used_data.
+        """
+        self.clear()
         if self._enable_track_used_data:
             self._used_data_remover.close()
-        else:
-            print('[BUFFER WARNING] `enable_track_used_data` is False, no thread to join.`')
 
     def push(self, data: Union[List[Any], Any], cur_collector_envstep: int) -> None:
+        r"""
+        Overview:
+            Push a data into buffer.
+        Arguments:
+            - data (:obj:`Union[List[Any], Any]`): The data which will be pushed into buffer. Can be one \
+                (in `Any` type), or many(int `List[Any]` type).
+            - cur_collector_envstep (:obj:`int`): Collector's current env step. \
+                Not used in naive buffer, but preserved for compatiblity.
+        """
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
         else:
@@ -84,7 +97,8 @@ class NaiveReplayBuffer(IBuffer):
             Sample data with length ``size``.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
-            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatiblity.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration. \
+                Not used in naive buffer, but preserved for compatiblity.
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
@@ -172,9 +186,9 @@ class NaiveReplayBuffer(IBuffer):
     def _sample_check(self, size: int) -> bool:
         r"""
         Overview:
-            Check whether this buffer has more than ``size`` datas to sample.
+            Check whether this buffer has more than `size` datas to sample.
         Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled.
+            - size (:obj:`int`): Number of data that will be sampled.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         """
@@ -254,9 +268,22 @@ class NaiveReplayBuffer(IBuffer):
         return data
 
     def count(self) -> int:
+        """
+        Overview:
+            Count how many valid datas there are in the buffer.
+        Returns:
+            - count (:obj:`int`): Number of valid data.
+        """
         return self._valid_count
 
     def state_dict(self) -> dict:
+        """
+        Overview:
+            Provide a state dict to keep a record of current buffer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): A dict containing all important values in the buffer. \
+                With the dict, one can easily reproduce the buffer.
+        """
         return {
             'data': self._data,
             'tail': self._tail,
@@ -265,6 +292,12 @@ class NaiveReplayBuffer(IBuffer):
         }
 
     def load_state_dict(self, _state_dict: dict) -> None:
+        """
+        Overview:
+            Load state dict to reproduce the buffer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): A dict containing all important values in the buffer.
+        """
         assert 'data' in _state_dict
         if set(_state_dict.keys()) == set(['data']):
             self._extend(_state_dict['data'])
