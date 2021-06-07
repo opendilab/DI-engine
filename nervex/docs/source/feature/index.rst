@@ -14,10 +14,9 @@ Feature
     env_overview
     env_manager_overview
 
-    buffer_manager_overview
-    learner_overview
     collector_overview
-    armor_overview
+    replay_buffer_overview
+    learner_overview
     adder_overview
     wrapper_hook_overview
     league_overview

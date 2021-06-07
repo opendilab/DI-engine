@@ -127,6 +127,7 @@ to_device              Transform device(cpu or cuda)              nervex.torch_u
 
 Scale Up to Parallel Training
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TBD
 
 Config
 ~~~~~~~~~
