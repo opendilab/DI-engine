@@ -77,7 +77,6 @@ class TestBaseLearner:
         return cfg
 
     def test_naive(self):
-        os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
         with pytest.raises(KeyError):
