@@ -12,8 +12,8 @@ Documentation Contribution Guide
     3. When creating new pages, please update upper-level indices to prevent faulty navigation jumps;
     4. Before submitting a new commit, please preview the documentation on a local repository to ensure both navigation correctness and format correctness. (Corresponding python packages (sphinx etc.) required for preview, the specific dependency list is in ``nerveX/setup.py``) Procedure as follows:
 
-        - Inside the  ``doc`` directory, run ``make html`` to generate corresponding files. Keep in mind that Sphinx builds only updated files, hence for comprehensive preview, ``touch`` each file, delete ``build``, or you can simply run ``make clean`` before running ``make html``;
-        - Inside ``doc/build``, use browser to open file ``index.html`` (or run  ``open build/index.html``) to enter the main page.
+        - Inside the  ``doc`` directory, run ``make html`` to generate corresponding files; keep in mind that Sphinx builds only updated files. For comprehensive preview, touch each file, delete ``build``, or you can run ``make clean`` before running ``make html``;
+        - Inside ``doc/build``, use browser to open file ``index.html`` (or run  ``open build/html/index.html``, note that the path might vary by sphinx action) to enter the main page.
     5. The project requries `rst <https://3vshej.cn/rstSyntax/index.html>`_ language for the Doc's implementation. And the contributor can also access `Online rst editor <http://rst.ninjs.org/>`_ to test the related syntax.
     6. Implementation of the Docs can be in Chinese or English. In the premise of clear articulation, use English as much as possible. When choosing to implement in English, please note the following rules:
 
