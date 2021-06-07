@@ -8,7 +8,7 @@ ATOC (Jiang et al. 2018) is a communication model proposed to exploit inter-agen
 
 Quick Facts
 -------------
-1. ATOC uses the paradigm of *decentralized execution without centralized training**. Each agent receives local observations.
+1. ATOC uses the paradigm of **decentralized execution without centralized training**. Each agent receives local observations.
 
 2. ATOC is a **model-free** and based on **actor critic** method.
 
@@ -27,24 +27,34 @@ Key Equations or Key Graphs
 ATOC communication architecture for one single agent:
 
 .. image:: images/marl/atoc.png
+   :align: center
+   :scale: 50%
 
 The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.
 
 The loss to update critics in ATOC:
 
 .. image:: images/marl/atoc_loss_q.png
+   :align: center
+   :scale: 50%
 
 The policy gradient:
 
 .. image:: images/marl/atoc_gradient_mu.png
+   :align: center
+   :scale: 50%
 
 The gradient of integrated thought in the communication channel:
 
 .. image:: images/marl/atoc_gradient_g.png
+   :align: center
+   :scale: 50%
 
 The log loss to update attention unit of ATOC:
 
 .. image:: images/marl/atoc_loss_p.png
+   :align: center
+   :scale: 50%
 
 Extensions
 -----------

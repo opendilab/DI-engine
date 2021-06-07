@@ -17,11 +17,11 @@ Quick Facts
 
 5. COMA has poor sample efficiency and is prone to getting stuck in sub-optimal local minima.
 
-5. COMA considers a **partially observable** setting in which each agent only obtains individual observations. Agents must rely on lo- cal action-observation histories during execution.
+6. COMA considers a **partially observable** setting in which each agent only obtains individual observations. Agents must rely on lo- cal action-observation histories during execution.
 
-6. COMA accepts **Independent Actor-Critic** as individual value network and speeds learning by sharing parameters among the agents.
+7. COMA accepts **Independent Actor-Critic** as individual value network and speeds learning by sharing parameters among the agents.
 
-7. Since learning is centralized, the centralized critic in COMA estimates Q-values for the **joint action** conditioned on the **central state**.
+8. Since learning is centralized, the centralized critic in COMA estimates Q-values for the **joint action** conditioned on the **central state**.
 
 Key Equations or Key Graphs
 ---------------------------
@@ -32,10 +32,14 @@ The overall information flow between the decentralized actors, the environment a
 COMA computes an advantage function that compares the Q-value for the current action to a counterfactual baseline:
 
 .. image:: images/marl/coma_adv.png
+   :align: center
+   :scale: 50%
 
 COMA policy gradient for all actor policies:
 
 .. image:: images/marl/coma_gradient.png
+   :align: center
+   :scale: 50%
  
 Extensions
 -----------
