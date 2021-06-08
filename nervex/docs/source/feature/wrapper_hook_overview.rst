@@ -9,7 +9,9 @@ Wrapper
 
 用处：
     nervex中用到wrapper的地方有三个，分别是 env，model，以及learner
+
     - env
+
         env里面用到的wrapper，实际上就是 ``gym.Wrapper`` 的子类。为了方便地对环境类的输入输出做一些操作或者适配，Wrapper 是非常方便且有效的工具。可以简单地理解为，这部分的Wrapper是对环境类的一个包装。env_wrapper中只对常用的gym的一些wrapper做了封装。
 
         - 使用：
@@ -18,14 +20,15 @@ Wrapper
                 env = gym.make('PongNoFrameskip-v4')
                 env = NoopResetEnv(env)
             
-        - 定义自己的 env wrapper：
-            对于用户自定义的``MyWrapper``，需要完成以下几步（与使用 ``gym.Wrapper`` 完全一致）：
+        - 定义自己的 env wrapper, 对于用户自定义的 ``MyWrapper``，需要完成以下几步（与使用 ``gym.Wrapper`` 完全一致）：
+
             1. ``MyWrapper`` 继承 ``gym.Wrapper``，依据需求实现其中的 ``step``, ``reset`` 等函数
             2. 使用 ``env = MyWrapper(env)`` 来得到新的经过包装的环境
 
     - model
         对于 policy 中使用的 model，我们对其也实现了和 ``gym.Wrapper`` 相似的封装，以实现对 ``model`` 类更为快速方便的更改。
         - 使用：
+
             已经定义好的 wrapper 统一放在 ``nervex.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
             
             .. code:: python
@@ -86,8 +89,11 @@ Hook
     Hook，钩子，可以通过在钩子内使得外部函数在被调用的时候，自动调用钩子内定义好的函数。在程序中，对于一段封装得较好的代码，如果需要修改的话，也许要花费相当的精力。Hook 函数就是由此被创造出来的。代码作者可以在一段代码中的任意位置暴露出钩子，而用户可以在钩子中实现自己所需要的功能，这样当代码运行到指定位置的时候，钩子会被触发，钩子中定义好的函数会被自动调用，从而实现快速修改代码的功能。
 用处：
     nervex 中使用 hook 主要是在 learner 中。
+
     - learner
+
         在nervex中，learner 的训练部分可以简化如下：
+
         .. code:: python
 
             # before_run
@@ -98,12 +104,16 @@ Hook
             # after_run
 
         从代码可以看出，learner 里面用到的 hook 定义了四个位置，分别为
+
         * before_run：训练任务开始之前
         * after_run：训练任务完成之后
         * before_iter：在训练任务的每个 iter 之前
         * after_iter：在训练任务的每个 iter 之后
+
         当程序运行到指定位置的时候，在此位置注册的 hook 上的所有函数将会被调用。
+
         - 使用：
+
             nervex 已经实现了许多常用的 hook，并提供了简单的调用方法。可以通过 cfg 去调用 hook，cfg 配置与使用如下：
             
             .. code:: python
@@ -136,12 +146,14 @@ Hook
                 hooks = build_learner_hook_by_cfg(cfg)
 
             至此，nervex 在初始化 learner 的时候会自动根据 cfg 的内容进行 hook 注册，以保证相关功能能够正常进行。
-        - 定义自己的 hook：
-            对于用户自定义的 ``MyHook``，需要完成以下几步：
+
+        - 定义自己的 hook, 对于用户自定义的 ``MyHook``，需要完成以下几步：
+
             1. 继承 ``nervex.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
             2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对l earner 中的任意变量进行操作。
             3. 调用 ``register_learner_hook()`` 对自定义的 ``MyHook`` 进行注册，需要提供 hook 名称。
-            4. 现在已经可以在 cfg 中使用自定义的 ``MyHook``了。
+            4. 现在已经可以在 cfg 中使用自定义的 ``MyHook`` 了。
+
         - 调用流程：
 
             .. image:: hook_call.jpg
@@ -196,6 +208,7 @@ Hook
 
 .. note::
     Wrapper 和 Hook 的区别？
+
     * Wrapper 是对原始函数的封装，支持一层一层的复用，如果在当前层没有找到对应的函数方法，会在更上一层去寻找。
     * Hook 是在原始方法的基础上，在某个位置插入一个新的方法。
     

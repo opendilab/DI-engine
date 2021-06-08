@@ -106,9 +106,28 @@ If you want to know about the detailed information of the pre-defined model wrap
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
+In pratical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments and so on. Since then, nerveX has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learn mode. 
+
+For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
+training for saving time, and the latter can usually gain better performance due to more accuracy approximation, just a trade-off. For a framework, it is more wise to offer some powerful and efficient tools rather
+than restricting some fixed pipelines. The following table shows some existing processing functions and related information:
+
+
+====================== ========================================== ==============================
+Function Name          Description                                Path
+====================== ========================================== ==============================
+default_collate        Stack samples(dict/list/tensor) into batch nervex.data.collate_fn
+default_decollate      Split batch into samples                   nervex.data.collate_fn
+get_nstep_return_data  Get nstep data(reward, next_obs, done)     nervex.rl_utils.adder
+get_gae                Get GAE advantage                          nervex.rl_utils.adder
+to_tensor              Transform data to torch.Tensor             nervex.torch_utils.data_helper
+to_device              Transform device(cpu or cuda)              nervex.torch_utils.data_helper
+====================== ========================================== ==============================
 
 Scale Up to Parallel Training
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TBD
 
 Config
 ~~~~~~~~~
