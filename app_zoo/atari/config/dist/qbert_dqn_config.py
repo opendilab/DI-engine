@@ -9,12 +9,10 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        ),
+        manager=dict(shared_memory=True, ),
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=True,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
@@ -26,6 +24,7 @@ qbert_dqn_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(
+            multi_gpu=True,
             batch_size=32,
             learning_rate=0.0001,
             learner=dict(
@@ -34,7 +33,7 @@ qbert_dqn_config = dict(
             ),
         ),
         collect=dict(
-            n_sample=16,
+            n_sample=32,
             collector=dict(
                 collector_num=2,
                 update_policy_second=3,
@@ -55,7 +54,7 @@ qbert_dqn_config = dict(
             commander=dict(
                 collector_task_space=2,
                 learner_task_space=1,
-                eval_interval=30,
+                eval_interval=300,
             ),
         ),
     ),
@@ -92,27 +91,11 @@ qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
 create_config = qbert_dqn_create_config
 
 qbert_dqn_system_config = dict(
-    coordinator=dict(
-        operator_server=dict(
-            system_addr='http://nervex-server.nervex-system:8080',
-            api_version='/v1alpha1',
-            init_replicas_request=dict(
-                collectors={
-                    "replicas": 2,
-                },
-                learners={
-                    "gpus": "0",
-                    "replicas": 1,
-                },
-            ),
-            collector_target_num=2,
-            learner_target_num=1,
-        ),
-    ),
-    path_data='/nervex/qbert/data',
-    path_policy='/nervex/qbert/policy',
+    coordinator=dict(),
+    path_data='./data',
+    path_policy='./policy',
     communication_mode='auto',
-    learner_gpu_num=1,
+    learner_gpu_num=3,
 )
 qbert_dqn_system_config = EasyDict(qbert_dqn_system_config)
 system_config = qbert_dqn_system_config

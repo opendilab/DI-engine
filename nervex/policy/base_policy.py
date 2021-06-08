@@ -71,19 +71,24 @@ class Policy(ABC):
         if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
             model = self._create_model(cfg, model)
             self._cuda = cfg.cuda and torch.cuda.is_available()
-            self._multi_gpu = self._cfg.learn.multi_gpu
-            self._rank = get_rank() if self._multi_gpu else 0
-            if self._cuda:
-                torch.cuda.set_device(self._rank)
-                model.cuda()
+            # now only support multi-gpu for only enable learn mode
+            if self._enable_field == ['learn']:
+                self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
+                if self._cuda:
+                    torch.cuda.set_device(self._rank)
+                    model.cuda()
+                if self._cfg.learn.multi_gpu:
+                    self._init_multi_gpu_setting(model)
+            else:
+                self._rank = 0
+                if self._cuda:
+                    torch.cuda.set_device(self._rank)
+                    model.cuda()
             self._model = model
-            if self._multi_gpu:
-                self._init_multi_gpu_setting(self._model)
             self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
         else:
             self._cuda = False
             self._rank = 0
-            self._multi_gpu = False
             self._device = 'cpu'
 
         for field in self._enable_field:

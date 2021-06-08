@@ -54,7 +54,7 @@ def dist_launch_coordinator(
         # coordinator_log.disabled = True
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
-        # log.disabled = True
+        log.disabled = True
     with open(filename, 'rb') as f:
         config = pickle.load(f)
     if coordinator_port is not None:
