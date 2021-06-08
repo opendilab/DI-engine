@@ -2,7 +2,7 @@ import pickle
 import logging
 import time
 from threading import Thread
-from nervex.worker import Coordinator, create_comm_collector, create_comm_learner
+from nervex.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
 from nervex.config import read_config, compile_config_parallel
 from nervex.utils import set_pkg_seed
 
@@ -10,6 +10,7 @@ from nervex.utils import set_pkg_seed
 def dist_prepare_config(
         filename: str, seed: int, platform: str, coordinator_host: str, learner_host: str, collector_host: str
 ) -> str:
+    set_pkg_seed(seed)
     main_cfg, create_cfg, system_cfg = read_config(filename)
     config = compile_config_parallel(
         main_cfg,
@@ -33,10 +34,10 @@ def dist_launch_coordinator(filename: str, seed: int, disable_flask_log: bool, e
     # Disable some part nervex log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
-        coordinator_log.disabled = True
+        # coordinator_log.disabled = True
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
-        log.disabled = True
+        # log.disabled = True
     with open(filename, 'rb') as f:
         config = pickle.load(f)
     coordinator = Coordinator(config)
@@ -80,3 +81,16 @@ def dist_launch_collector(filename: str, seed: int, name: str = None, disable_fl
         config = pickle.load(f).system[name]
     collector = create_comm_collector(config)
     collector.start()
+
+
+def dist_launch_learner_aggregator(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
+    set_pkg_seed(seed)
+    if disable_flask_log:
+        log = logging.getLogger('werkzeug')
+        log.disabled = True
+    if name is None:
+        name = 'learner_aggregator'
+    with open(filename, 'rb') as f:
+        config = pickle.load(f).system[name]
+    learner_aggregator = LearnerAggregator(config)
+    learner_aggregator.start()

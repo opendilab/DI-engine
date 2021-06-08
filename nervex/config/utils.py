@@ -19,6 +19,8 @@ def set_host_port(cfg: EasyDict, coordinator_host: str, learner_host: str, colle
     learner_count = 0
     collector_count = 0
     for k in cfg.keys():
+        if k == 'learner_aggregator':
+            raise NotImplementedError
         if k.startswith('learner'):
             if cfg[k].host == 'auto':
                 if isinstance(learner_host, list):
@@ -30,6 +32,7 @@ def set_host_port(cfg: EasyDict, coordinator_host: str, learner_host: str, colle
                     raise TypeError("not support learner_host type: {}".format(learner_host))
             if cfg[k].port == 'auto':
                 cfg[k].port = find_free_port(cfg[k].host)
+            cfg[k].aggregator = False
         if k.startswith('collector'):
             if cfg[k].host == 'auto':
                 if isinstance(collector_host, list):
@@ -59,15 +62,15 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
             node = learner_node[learner_count % len(learner_node)]
             cfg[k].node = node
             cfg[k].partition = node_to_partition(node)
-            repeat_num = cfg[k].get('repeat_num', 1)
+            gpu_num = cfg[k].gpu_num
             if cfg[k].host == 'auto':
                 cfg[k].host = node_to_host(node)
             if cfg[k].port == 'auto':
-                if repeat_num == 1:
+                if gpu_num == 1:
                     cfg[k].port = find_free_port_slurm(node)
                     learner_multi[k] = False
                 else:
-                    cfg[k].port = [find_free_port_slurm(node) for _ in range(repeat_num)]
+                    cfg[k].port = [find_free_port_slurm(node) for _ in range(gpu_num)]
                     learner_multi[k] = True
             learner_count += 1
         if collector_node is not None and k.startswith('collector'):
@@ -96,19 +99,19 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
                 node=cfg[k].node,
                 partition=cfg[k].partition,
             )
-            cfg[k].use_aggregator = True
-            cfg['aggregator' + k[7:]] = aggregator_cfg
+            cfg[k].aggregator = True
+            cfg['learner_aggregator' + k[7:]] = aggregator_cfg
         else:
-            cfg[k].use_aggregator = False
+            cfg[k].aggregator = False
     return cfg
 
 
 def set_learner_interaction_for_coordinator(cfg: EasyDict) -> EasyDict:
     cfg.coordinator.learner = {}
     for k in cfg.keys():
-        if k.startswith('learner'):
-            if cfg[k].get('use_aggregator', False):
-                dst_k = 'aggregator' + k[7:]
+        if k.startswith('learner') and not k.startswith('learner_aggregator'):
+            if cfg[k].aggregator:
+                dst_k = 'learner_aggregator' + k[7:]
                 cfg.coordinator.learner[k] = [k, cfg[dst_k].slave.host, cfg[dst_k].slave.port]
             else:
                 dst_k = k
@@ -131,7 +134,8 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
     path_policy = cfg.system.path_policy
     communication_mode = cfg.system.communication_mode
     assert communication_mode in ['auto'], communication_mode
-    learner_multi_gpu = cfg.system.learner_multi_gpu
+    learner_gpu_num = cfg.system.learner_gpu_num
+    learner_multi_gpu = learner_gpu_num > 1
     new_cfg = dict(coordinator=dict(
         host='auto',
         port='auto',
@@ -145,6 +149,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
             path_data=path_data,
             path_policy=path_policy,
             multi_gpu=learner_multi_gpu,
+            gpu_num=learner_gpu_num,
         )
     for i in range(collector_num):
         new_cfg[f'collector{i}'] = dict(
@@ -224,6 +229,6 @@ parallel_test_system_config = dict(
     path_data='.',
     path_policy='.',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=1,
 )
 parallel_test_system_config = EasyDict(parallel_test_system_config)

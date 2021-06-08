@@ -3,7 +3,8 @@ from click.core import Context, Option
 from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .serial_entry import serial_pipeline
 from .parallel_entry import parallel_pipeline
-from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config
+from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config, \
+    dist_launch_learner_aggregator
 from .application_entry import eval
 
 
@@ -71,7 +72,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-p', '--platform', type=click.Choice(['local', 'slurm', 'k8s']), help='local or slurm or k8s', default='local'
 )
-@click.option('--module', type=click.Choice(['config', 'collector', 'learner', 'coordinator']), help='dist module type')
+@click.option(
+    '--module',
+    type=click.Choice(['config', 'collector', 'learner', 'coordinator', 'learner_aggregator']),
+    help='dist module type'
+)
 @click.option('--module-name', type=str, help='dist module name')
 @click.option('-cdh', '--coordinator_host', type=str, help='coordinator host', default='0.0.0.0')
 @click.option('-lh', '--learner_host', type=str, help='learner host', default='0.0.0.0')
@@ -98,6 +103,8 @@ def cli(
             dist_prepare_config(config, seed, platform, coordinator_host, learner_host, collector_host)
         elif module == 'coordinator':
             dist_launch_coordinator(config, seed, disable_flask_log)
+        elif module == 'learner_aggregator':
+            dist_launch_learner_aggregator(config, seed, module_name, disable_flask_log)
         elif module == 'collector':
             dist_launch_collector(config, seed, module_name, disable_flask_log)
         elif module == 'learner':
