@@ -49,7 +49,7 @@ Extensions
 
 -  MADDPG (Lowe et al. 2017) extends the DDPG framework in multi-agent settings and learns a centralized critic for each agent. These approaches use on-policy policy gradient learning.
 
--  COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than minibatches with a consistent critic. COMA-CC is an off-policy version COMA. For each counterfactual Q-value computation, the COMA critic requires :math:`n` inputs, one for each agent, and the COMA-CC critic requires $nm$ inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations :math:`(z^1_t, ..., z^n_t)` is compressed via an encoding network before used as inputs to the critic. Different from COMA, COMA-CC uses an alternative critic that estimates:
+-  COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than minibatches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires :math:`n` inputs, one for each agent, and the COMA-CC critic requires :math:`nm` inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations :math:`(z^1_t, ..., z^n_t)` is compressed via an encoding network before used as inputs to the critic.
 
 .. image:: images/marl/coma-cc.png
    :align: center
