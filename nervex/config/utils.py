@@ -10,6 +10,7 @@ from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition
 from app_zoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
 
 default_host = '0.0.0.0'
+default_port = 22270
 
 
 def set_host_port(cfg: EasyDict, coordinator_host: str, learner_host: str, collector_host: str) -> EasyDict:
@@ -106,6 +107,35 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
     return cfg
 
 
+def set_host_port_k8s(cfg: EasyDict, coordinator_port: int, learner_port: int, collector_port: int) -> EasyDict:
+    cfg.coordinator.host = default_host
+    cfg.coordinator.port = coordinator_port if coordinator_port is not None else default_port + 3
+    base_learner_cfg = None
+    base_collector_cfg = None
+    if learner_port is None:
+        learner_port = default_port + 1
+    if collector_port is None:
+        collector_port = default_port + 0
+    for k in cfg.keys():
+        if k.startswith('learner'):
+            # create the base learner config
+            if base_learner_cfg is None:
+                base_learner_cfg = copy.deepcopy(cfg[k])
+                base_learner_cfg.host = default_host
+                base_learner_cfg.port = learner_port
+            cfg[k].port = learner_port
+        elif k.startswith('collector'):
+            # create the base collector config
+            if base_collector_cfg is None:
+                base_collector_cfg = copy.deepcopy(cfg[k])
+                base_collector_cfg.host = default_host
+                base_collector_cfg.port = collector_port
+            cfg[k].port = collector_port
+    cfg['learner'] = base_learner_cfg
+    cfg['collector'] = base_collector_cfg
+    return cfg
+
+
 def set_learner_interaction_for_coordinator(cfg: EasyDict) -> EasyDict:
     cfg.coordinator.learner = {}
     for k in cfg.keys():
@@ -132,6 +162,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
     collector_num = cfg.main.policy.collect.collector.collector_num
     path_data = cfg.system.path_data
     path_policy = cfg.system.path_policy
+    coordinator_cfg = cfg.system.coordinator
     communication_mode = cfg.system.communication_mode
     assert communication_mode in ['auto'], communication_mode
     learner_gpu_num = cfg.system.learner_gpu_num
@@ -140,6 +171,7 @@ def set_system_cfg(cfg: EasyDict) -> EasyDict:
         host='auto',
         port='auto',
     ))
+    new_cfg['coordinator'].update(coordinator_cfg)
     for i in range(learner_num):
         new_cfg[f'learner{i}'] = dict(
             type=cfg.system.comm_learner.type,
@@ -195,6 +227,22 @@ def parallel_transform_slurm(
     return cfg
 
 
+def parallel_transform_k8s(
+        cfg: dict,
+        coordinator_port: Optional[int] = None,
+        learner_port: Optional[int] = None,
+        collector_port: Optional[int] = None
+) -> None:
+    cfg = EasyDict(cfg)
+    cfg.system = set_system_cfg(cfg)
+    cfg.system = set_host_port_k8s(cfg.system, coordinator_port, learner_port, collector_port)
+    # learner/collector is created by opereator, so the following field is placeholder
+    cfg.system.coordinator.collector = {}
+    cfg.system.coordinator.learner = {}
+    pretty_print(cfg)
+    return cfg
+
+
 parallel_test_main_config = cartpole_dqn_config
 parallel_test_create_config = dict(
     env=dict(
@@ -226,6 +274,7 @@ parallel_test_create_config = dict(
 )
 parallel_test_create_config = EasyDict(parallel_test_create_config)
 parallel_test_system_config = dict(
+    coordinator=dict(),
     path_data='.',
     path_policy='.',
     communication_mode='auto',

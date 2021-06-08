@@ -69,7 +69,7 @@ class TestCollectorWithCoordinator:
             )
             while True:
                 commander = coordinator._commander
-                if commander._learner_task_finish_count == 1 and commander._collector_task_finish_count == 2:
+                if commander._learner_task_finish_count >= 1 and commander._collector_task_finish_count >= 2:
                     break
                 time.sleep(0.5)
             coordinator.close()

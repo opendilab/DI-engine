@@ -79,16 +79,22 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option('--module-name', type=str, help='dist module name')
 @click.option('-cdh', '--coordinator_host', type=str, help='coordinator host', default='0.0.0.0')
+@click.option('-cdp', '--coordinator_port', type=int, help='coordinator port')
 @click.option('-lh', '--learner_host', type=str, help='learner host', default='0.0.0.0')
+@click.option('-lp', '--learner_port', type=int, help='learner port')
 @click.option('-clh', '--collector_host', type=str, help='collector host', default='0.0.0.0')
+@click.option('-clp', '--collector_port', type=int, help='collector port')
 def cli(
     mode: str,
     config: str,
     seed: int,
     platform: str,
     coordinator_host: str,
+    coordinator_port: int,
     learner_host: str,
+    learner_port: int,
     collector_host: str,
+    collector_port: int,
     enable_total_log: bool,
     disable_flask_log: bool,
     module: str,
@@ -100,15 +106,18 @@ def cli(
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
     elif mode == 'dist':
         if module == 'config':
-            dist_prepare_config(config, seed, platform, coordinator_host, learner_host, collector_host)
+            dist_prepare_config(
+                config, seed, platform, coordinator_host, learner_host, collector_host, coordinator_port, learner_port,
+                collector_port
+            )
         elif module == 'coordinator':
-            dist_launch_coordinator(config, seed, disable_flask_log)
+            dist_launch_coordinator(config, seed, coordinator_port, disable_flask_log)
         elif module == 'learner_aggregator':
             dist_launch_learner_aggregator(config, seed, module_name, disable_flask_log)
         elif module == 'collector':
-            dist_launch_collector(config, seed, module_name, disable_flask_log)
+            dist_launch_collector(config, seed, collector_port, module_name, disable_flask_log)
         elif module == 'learner':
-            dist_launch_learner(config, seed, module_name, disable_flask_log)
+            dist_launch_learner(config, seed, learner_port, module_name, disable_flask_log)
         else:
             raise Exception
     elif mode == 'eval':

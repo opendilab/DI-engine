@@ -8,7 +8,15 @@ from nervex.utils import set_pkg_seed
 
 
 def dist_prepare_config(
-        filename: str, seed: int, platform: str, coordinator_host: str, learner_host: str, collector_host: str
+        filename: str,
+        seed: int,
+        platform: str,
+        coordinator_host: str,
+        learner_host: str,
+        collector_host: str,
+        coordinator_port: int,
+        learner_port: int,
+        collector_port,
 ) -> str:
     set_pkg_seed(seed)
     main_cfg, create_cfg, system_cfg = read_config(filename)
@@ -20,7 +28,10 @@ def dist_prepare_config(
         platform=platform,
         coordinator_host=coordinator_host,
         learner_host=learner_host,
-        collector_host=collector_host
+        collector_host=collector_host,
+        coordinator_port=coordinator_port,
+        learner_port=learner_port,
+        collector_port=collector_port,
     )
     # Pickle dump config to disk for later use.
     real_filename = filename + '.pkl'
@@ -29,7 +40,13 @@ def dist_prepare_config(
     return real_filename
 
 
-def dist_launch_coordinator(filename: str, seed: int, disable_flask_log: bool, enable_total_log: bool = False) -> None:
+def dist_launch_coordinator(
+        filename: str,
+        seed: int,
+        coordinator_port: int,
+        disable_flask_log: bool,
+        enable_total_log: bool = False
+) -> None:
     set_pkg_seed(seed)
     # Disable some part nervex log
     if not enable_total_log:
@@ -40,6 +57,8 @@ def dist_launch_coordinator(filename: str, seed: int, disable_flask_log: bool, e
         # log.disabled = True
     with open(filename, 'rb') as f:
         config = pickle.load(f)
+    if coordinator_port is not None:
+        config.system.coordinator.port = coordinator_port
     coordinator = Coordinator(config)
     coordinator.start()
 
@@ -57,7 +76,9 @@ def dist_launch_coordinator(filename: str, seed: int, disable_flask_log: bool, e
     print("[nerveX dist pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
 
 
-def dist_launch_learner(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
+def dist_launch_learner(
+        filename: str, seed: int, learner_port: int, name: str = None, disable_flask_log: bool = True
+) -> None:
     set_pkg_seed(seed)
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
@@ -66,11 +87,15 @@ def dist_launch_learner(filename: str, seed: int, name: str = None, disable_flas
         name = 'learner'
     with open(filename, 'rb') as f:
         config = pickle.load(f).system[name]
+    if learner_port is not None:
+        config.port = learner_port
     learner = create_comm_learner(config)
     learner.start()
 
 
-def dist_launch_collector(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
+def dist_launch_collector(
+        filename: str, seed: int, collector_port: int, name: str = None, disable_flask_log: bool = True
+) -> None:
     set_pkg_seed(seed)
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
@@ -79,6 +104,8 @@ def dist_launch_collector(filename: str, seed: int, name: str = None, disable_fl
         name = 'collector'
     with open(filename, 'rb') as f:
         config = pickle.load(f).system[name]
+    if collector_port is not None:
+        config.port = collector_port
     collector = create_comm_collector(config)
     collector.start()
 

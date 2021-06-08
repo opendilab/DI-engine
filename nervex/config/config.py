@@ -13,7 +13,7 @@ from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
 from nervex.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
-from .utils import parallel_transform, parallel_transform_slurm
+from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s
 
 
 class Config(object):
@@ -432,6 +432,9 @@ def compile_config_parallel(
         coordinator_host: Optional[str] = None,
         learner_host: Optional[str] = None,
         collector_host: Optional[str] = None,
+        coordinator_port: Optional[int] = None,
+        learner_port: Optional[int] = None,
+        collector_port: Optional[int] = None,
 ) -> EasyDict:
     # get cls
     env = get_env_cls(create_cfg.env)
@@ -473,6 +476,16 @@ def compile_config_parallel(
                 'main': cfg,
                 'system': system_cfg
             }), coordinator_host, learner_host, collector_host
+        )
+    elif platform == 'k8s':
+        cfg = parallel_transform_k8s(
+            EasyDict({
+                'main': cfg,
+                'system': system_cfg
+            }),
+            coordinator_port=coordinator_port,
+            learner_port=learner_port,
+            collector_port=collector_port
         )
     else:
         raise KeyError("not support platform type: {}".format(platform))
