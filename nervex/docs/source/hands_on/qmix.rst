@@ -43,13 +43,20 @@ QMIX trains the mixing network via minimizing the following loss:
 
 Extensions
 -----------
-- Use the idea of factorization of the joint action-value function into individual ones for decentralized execution, VDN and QMIX rely on structural constraints in factorization.
+- VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function :math:`Q_{tot}` into individual ones :math:`Q_a` for decentralized execution. These value factorization techniques suffer structural constraints, such as additive decomposability in VDN and monotonicity in QMIX.
 
-    * For consistency, QMIX is based on monotonicity, a constraint on the relationship between joint action values and individual action values.
+- VDN factorizes the joint action-value function into a sum of individual action-value functions. For consistency it need
+to ensure that a global :math:`argmax` performed on :math:`Q_{tot}` yields the same result as a set of individual :math:`argmax` operations performed on each :math:`Q_a`:
 
-        .. image:: images/marl/qmix_mono.png
-            :align: center
-            :scale: 50%
+.. image:: images/marl/qmix_vdn.png
+   :align: center
+   :scale: 50%
+
+- QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values :math:`Q_{tot}` and individual action values :math:`Q_a`. 
+
+.. image:: images/marl/qmix_mono.png
+   :align: center
+   :scale: 50%
 
 - QTRAN (Son et al. 2019), as an extension of QMIX, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one. QTRAN guarantees more general factorization than VDN or QMIX.
 
