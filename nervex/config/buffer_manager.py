@@ -8,12 +8,12 @@ buffer_manager_default_config = dict(
         # Buffer1 is called "agent". You can regard this as a most general and frequently used buffer config.
         agent=dict(
             # Max length of the buffer.
-            meta_maxlen=4096,
+            # maxlen=4096,
             # Max reuse times of one data in the buffer. Data will be removed once reused for too many times.
-            max_reuse=16,
+            # max_reuse='inf',
             # Max staleness time duration of one data in the buffer; Data will be removed if
             # the duration from collecting to training is too long, i.e. The data is too stale.
-            max_staleness=10000,
+            # max_staleness='inf',
             # Min ratio of "data count in buffer" / "sample count". If ratio is less than this, sample will return None.
             min_sample_ratio=1.,
             # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization

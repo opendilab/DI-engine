@@ -137,7 +137,7 @@ class QMIXPolicy(CommonPolicy):
         self._optimizer.zero_grad()
         loss.backward()
         if self.optimzier_type=='rmsprop':
-            torch.nn.utils.clip_grad_norm_(self._model.parameters(), 10)
+            torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
         grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), 1000)
         self._optimizer.step()
         # =============

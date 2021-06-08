@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from nervex.model import FCRDiscreteNet,FCRGruNet
+from nervex.model import FCRDiscreteNet, FCRGruNet
 from nervex.utils import list_split, squeeze
 from nervex.torch_utils.network.nn_module import fc_block
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
@@ -76,6 +76,50 @@ class Mixer(nn.Module):
         return hidden.squeeze(-1).squeeze(-1)
 
 
+class PMixer(nn.Module):
+    def __init__(self, n_agents, state_dim, mixing_embed_dim, hypernet_embed=64):
+        super(PMixer, self).__init__()
+
+        self.n_agents = n_agents
+        self.state_dim = state_dim
+        self.embed_dim = mixing_embed_dim
+        self.hyper_w_1 = nn.Sequential(nn.Linear(self.state_dim, hypernet_embed),
+                                       nn.ReLU(),
+                                       nn.Linear(hypernet_embed, self.embed_dim * self.n_agents))
+        self.hyper_w_final = nn.Sequential(nn.Linear(self.state_dim, hypernet_embed),
+                                           nn.ReLU(),
+                                           nn.Linear(hypernet_embed, self.embed_dim))
+
+        # State dependent bias for hidden layer
+        self.hyper_b_1 = nn.Linear(self.state_dim, self.embed_dim)
+
+        # V(s) instead of a bias for the last layers
+        self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim),
+                               nn.ReLU(),
+                               nn.Linear(self.embed_dim, 1))
+
+    def forward(self, agent_qs, states):
+        bs = agent_qs.size(0)
+        states = states.reshape(-1, self.state_dim)
+        agent_qs = agent_qs.view(-1, 1, self.n_agents)
+        # First layer
+        w1 = torch.abs(self.hyper_w_1(states))
+        b1 = self.hyper_b_1(states)
+        w1 = w1.view(-1, self.n_agents, self.embed_dim)
+        b1 = b1.view(-1, 1, self.embed_dim)
+        hidden = F.elu(torch.bmm(agent_qs, w1) + b1)
+        # Second layer
+        w_final = torch.abs(self.hyper_w_final(states))
+        w_final = w_final.view(-1, self.embed_dim, 1)
+        # State-dependent bias
+        v = self.V(states).view(-1, 1, 1)
+        # Compute final output
+        y = torch.bmm(hidden, w_final) + v
+        # Reshape and return
+        q_tot = y.view(bs, -1, 1)
+        return q_tot
+
+
 class QMix(nn.Module):
     """
     Overview:
@@ -92,7 +136,8 @@ class QMix(nn.Module):
             action_dim: int,
             embedding_dim: int,
             use_mixer: bool = True,
-            use_gru: bool = False
+            use_gru: bool = False,
+            use_pmixer: bool = False,
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
@@ -103,9 +148,14 @@ class QMix(nn.Module):
 
         self.use_mixer = use_mixer
         if self.use_mixer:
-            self._mixer = Mixer(agent_num, embedding_dim)
-            global_obs_dim = squeeze(global_obs_dim)
-            self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
+            # use pymarl mixer
+            if use_pmixer:
+                self._mixer = PMixer(agent_num, global_obs_dim, embedding_dim)
+                self._global_state_encoder = nn.Sequential()
+            else:
+                self._mixer = Mixer(agent_num, embedding_dim)
+                global_obs_dim = squeeze(global_obs_dim)
+                self._global_state_encoder = self._setup_global_encoder(global_obs_dim, embedding_dim)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
