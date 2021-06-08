@@ -33,10 +33,6 @@ save_config_formatted
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: nervex.config.config.save_config_formatted
 
-deal_with_multi_buffer
-~~~~~~~~~~~~~~~~~~~~~~~~
-.. autofunction:: nervex.config.config.deal_with_multi_buffer
-
 compile_config
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: nervex.config.config.compile_config

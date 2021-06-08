@@ -18,8 +18,45 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):
+    r"""
+       Overview:
+           Policy class of SAC algorithm.
+
+       Config:
+           == ==================== ======== ============== ======================================== =======================
+           ID Symbol               Type     Default Value   Description                              Other(Shape)
+           == ==================== ======== ============== ======================================== =======================
+           1  ``type``             str      sac             | RL policy register name, refer to      | this arg is optional,
+                                                            | registry ``POLICY_REGISTRY``           | a placeholder
+           2  ``cuda``             bool     True            | Whether to use cuda for network        | this arg can be diff-
+           3  |``model.policy_``   int      256             | Linear layer size for policy network.  |
+              |``embedding_size``                           |                                        |
+           4  |``model.soft_q_``   int      256             | Linear layer size for soft q network.  |
+              |``embedding_size``                           |                                        |
+           5  |``model.value_``    int      256             | Linear layer size for value network.   | defalut value when model.-
+              |``embedding_size``                           |                                        | model.value_network is false
+           6  | ``learn.learning_``float    3e-4            | Learning rate for soft q network.      | Please set to 1e-3, when
+              | ``rate_q``                                  |                                        | model.value_network is True.
+           7  | ``learn.learning_``float    3e-4            | Learning rate for policy network.      | Please set to 1e-3, when
+              | ``rate_policy``                             |                                        | model.value_network is True.
+           8  | ``learn.learning_``float    3e-4            | Learning rate for policy network.      |
+              | ``rate_value``                              |                                        |
+           9  | ``learn.alpha``    float    0.2             | Entropy regularization coefficient.    | alpha is initialization for auto `\alpha`,
+                                                            |                                        | when is_auto_alpha True
+           10 | ``learn.-``        bool     True            | Determine whether to use               |
+              | ``reparameterization``                      | reparameterization trick.              |
+           11 | ``learn.-``        bool     False           | Determine whether to use               | Temperature parameter determines the relative
+              | ``reparameterization``                      | auto temperature parameter `\alpha` .  | importance of the entropy term against the reward.
+           12 | ``learn.-``        bool     False           | Determine whether to ignore done flag. | use ignore_done only in halfcheetah env.
+              | ``ignore_done``                             |                                        |
+           == ==================== ======== ============== ======================================== =======================
+       """
+
     config = dict(
-        cuda=True,
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        tyep='sac',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
         # (str type) policy_type: Determine the version of sac to use.
         # policy_type in ['sac_v1', 'sac_v2']
         # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
@@ -67,15 +104,15 @@ class SACPolicy(Policy):
             batch_size=256,
 
             # (float type) learning_rate_q: Learning rate for soft q network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_q=3e-4,
             # (float type) learning_rate_policy: Learning rate for policy network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_policy=3e-4,
             # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when you use `sac_v1` policy.
+            # `learning_rate_value` should be initialized, when model.value_network is True.
             # Default to 3e-4 in sac_v1.
             learning_rate_value=3e-4,
 
@@ -105,6 +142,7 @@ class SACPolicy(Policy):
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
             is_auto_alpha=True,
+            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
         ),
         collect=dict(
@@ -112,6 +150,7 @@ class SACPolicy(Policy):
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
             n_sample=1,
+            # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
@@ -123,6 +162,9 @@ class SACPolicy(Policy):
                 type='priority',
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
+                # (int type) replay_start_size: Number of experiences in replay buffer
+                # when training begins. Default to 10000.
+                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.
