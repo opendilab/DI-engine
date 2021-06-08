@@ -1,4 +1,4 @@
-n-step TD
+N-step TD
 =========
 
 **1. What is n-step TD**
