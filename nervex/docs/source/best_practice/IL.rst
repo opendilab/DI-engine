@@ -43,7 +43,7 @@ Demo
 You can use either expert model or demonstrations to perform imitation
 learning. Usually you need to define an imitation learning policy. For
 policy registration, you can refer to
-`policy <../feature/policy_overvies.html>`__
+`policy Overview <../feature/policy_overview.html>`__
 
 **Use Demonstrations to IL**
 
@@ -77,6 +77,20 @@ following codes:
    )
    # il training
    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
+
+**Online IL through Seiral Pipline**
+
+NerveX's `serial_entry_il` provides a sub-implementation of serial pipline,
+in which there is no collectors (or use collectors only to collect data at the beginning
+of training). However, many IL algorithms (Dagger, SQIL, etc.) need to collect demonstration
+as well as training IL model. In this case, nerveX can use `serial_entry` to perform this
+pipline. Users can define a new IL policy, the collect model of this policy is the expert
+policy, and the learn model can be any supervised learning model or other IL learn model.
+More details about the policy defination of nerveX can be found in 
+`policy Overview <../feature/policy_overview.html>`__
+NerveX also provide a demo of this policy in `nervex/policy/il.py`. It provides a supervised 
+learning pipline to imitate from an expert model online on Google Research football environments.
+
 
 NerveX provide a full demo of using PPO as both the expert policy to
 generate data and the IL policy to implement behavioral cloning. You can
