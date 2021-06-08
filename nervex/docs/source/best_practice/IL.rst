@@ -1,5 +1,8 @@
+Imitation Learning
+====================
+
 Guideline
-=========
+~~~~~~~~~~~~
 
 In some environments where the rewards are sparse (e.g. a game where we
 only receive a reward when the game is won or lost), the normal RL
@@ -34,13 +37,13 @@ For the majority of the cases, behavioral cloning can be quite
 problematic. But due to the clarity of behavioral cloning, our demo of
 imitation learning will be given in BC.
 
-demo
-====
+Demo
+~~~~~
 
 You can use either expert model or demonstrations to perform imitation
 learning. Usually you need to define an imitation learning policy. For
 policy registration, you can refer to
-`policy <../feature/policy_overvies.rst>`__
+`policy <../feature/policy_overvies.html>`__
 
 **Use Demonstrations to IL**
 
@@ -62,18 +65,17 @@ following codes:
 
 .. code:: python
 
-   expert_policy = serial_pipeline(train_config, seed=0)
-   
-   # collect expert demo data
-   collect_count = 10000
-   expert_data_path = 'expert_data.pkl'
-   state_dict = expert_policy.collect_mode.state_dict()
-   collect_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
-   collect_demo_data(
-       collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
-   )
-   
-   # il training
+   expert_policy = serial_pipeline(train_config, seed=0)
+
+   # collect expert demo data
+   collect_count = 10000
+   expert_data_path = 'expert_data.pkl'
+   state_dict = expert_policy.collect_mode.state_dict()
+   collect_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+   collect_demo_data(
+       collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+   )
+   # il training
    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
 
 NerveX provide a full demo of using PPO as both the expert policy to
