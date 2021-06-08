@@ -31,6 +31,7 @@ ATOC overall architecture for one single agent:
    :scale: 50%
 
 The communication architecture for each agent consists of:
+
 - Attention Unit: determining communication when necessary
 
 - Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively output information that promotes cooperation and forget information that impedes cooperation through gates.

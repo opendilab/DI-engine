@@ -45,8 +45,7 @@ Extensions
 -----------
 - VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function :math:`Q_{tot}` into individual ones :math:`Q_a` for decentralized execution. These value factorization techniques suffer structural constraints, such as additive decomposability in VDN and monotonicity in QMIX.
 
-- VDN factorizes the joint action-value function into a sum of individual action-value functions. For consistency it need
-to ensure that a global :math:`argmax` performed on :math:`Q_{tot}` yields the same result as a set of individual :math:`argmax` operations performed on each :math:`Q_a`:
+- VDN factorizes the joint action-value function into a sum of individual action-value functions. For consistency it need to ensure that a global :math:`argmax` performed on :math:`Q_{tot}` yields the same result as a set of individual :math:`argmax` operations performed on each :math:`Q_a`:
 
 .. image:: images/marl/qmix_vdn.png
    :align: center
