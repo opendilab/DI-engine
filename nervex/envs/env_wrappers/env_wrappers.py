@@ -42,7 +42,7 @@ class NoopResetEnv(gym.Wrapper):
         Overview:
             Resets the state of the environment and returns an initial observation.
         Returns:
-            observation (:obs:`Any`): the initial observation.
+            - observation (:obs:`Any`): the initial observation.
 
         """
         self.env.reset()
@@ -62,6 +62,12 @@ class NoopResetEnv(gym.Wrapper):
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         Returns:
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        .. note::
+            Shapes space such as\
+                observation space shape, could be some nested strcutures, \
+                but for some simple environments, like pong in Atari, \
+                    observation space shape is a ``tuple``——``(4, 84, 84)``.
+            Same case applies for the ``new_shape`` interface in the following wrapper classes.
         """
         return obs_shape, act_shape, rew_shape
 
@@ -610,7 +616,7 @@ class ObsNormEnv(gym.ObservationWrapper):
         Overview:
             Resets the state of the environment and reset properties.
         Arguments:
-            - **kwargs (:obj:`Any`): Reset with this key argumets
+            - kwargs (:obj:`Dict`): Reset with this key argumets
         Returns:
             - observation (:obj:`Any`): New observation after reset
 
@@ -703,7 +709,7 @@ class RewardNormEnv(gym.RewardWrapper):
             Resets the state of the environment and reset properties (`NumType` ones to 0, \
                 and ``self.rms`` as reset rms wrapper)
         Arguments:
-            - **kwargs (:obj:`Any`): Reset with this key argumets
+            - kwargs (:obj:`Dict`): Reset with this key argumets
         """
         self.cum_reward = 0.
         self.data_count = 0
