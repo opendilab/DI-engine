@@ -7,7 +7,7 @@ base_league
 BaseLeague
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.league.base_league.BaseLeague
-    :members: __init__, get_job_info, judge_snapshot, update_active_player, finish_job
+    :members: get_job_info, judge_snapshot, update_active_player, finish_job, save_checkpoint, default_config
 
 create_league
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,7 +24,7 @@ one_vs_one_league
 OneVsOneLeague
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.league.one_vs_one_league.OneVsOneLeague
-    :members: __init__, get_job_info, judge_snapshot, update_active_player, finish_job
+    :members: get_job_info, judge_snapshot, update_active_player, finish_job, save_checkpoint, default_config
 
 
 
