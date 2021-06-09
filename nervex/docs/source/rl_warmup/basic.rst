@@ -1,4 +1,4 @@
-基本概念/Basics
+基本概念/Basic Concepts
 -----------------
 
 试错与开发- 多臂赌博机（Multi-Arm Bandit）
