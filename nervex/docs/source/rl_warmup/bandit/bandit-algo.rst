@@ -1,8 +1,8 @@
 Bandit Concepts
 ^^^^^^^^^^^^^^^
 
-试错与开发- 多臂赌博机（Multi-Arm Bandit）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic Settings
+--------------
 
 .. figure:: https://pic2.zhimg.com/80/v2-de3eeb3c1136b278f72df468078f97dc_720w.jpg?source=1940ef5c
    :alt: img
@@ -16,8 +16,8 @@ Bandit Concepts
 这是最基本的RL setting，我们的算法每次选择一个action，所得到的feedback即我们的reward。IID的setting即是说每个arm返回的reward都是独立于彼此，且分布在整个时间轴上不变。
 
 
-multi-arm bandit
-^^^^^^^^^^^^^^^^
+Multi-Arm Bandit
+----------------
 
 一家赌场有 :math:`K` 台老虎机，假设每台老虎机都有一定概率(:math:`p_i`)吐出一块钱，有一定概率(\ :math:`1-p_i`)不吐钱。现在你无法提前知道老虎机的概率分布，只能通过使用老虎机的结果去推测概率。但是你一共只能摇:math:`T` 次老虎机，在这种情况下，使用什么样的策略才能使得你摇出更多的钱呢？
 
@@ -31,7 +31,7 @@ multi-arm bandit
 
 
 Bandit Algorithms
-^^^^^^^^^^^^^^^^
+-----------------
 
 朴素bandit
 ''''''''''''
@@ -69,10 +69,9 @@ UCB（Upper Confidence Bound）
 
 -  UCB的效果是有理论保障的。UCB的累计regret为 :math:`O(Knlog(n))` ，即其在选用了n次arm之后产生的regret为 :math:`O(log(n))` 的。在2002年提出UCB的论文 `Using Confidence Bounds for Exploitation-Exploration Trade-offs <https://www.jmlr.org/papers/volume3/auer02a/auer02a.pdf>`_ 中已有了证明。
 
-
-example
-^^^^^^^^^
+Example
+-------
 .. toctree::
      :maxdepth: 2
 
-     bandit/bandit
+     bandit/bandit-example
