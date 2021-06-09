@@ -1,192 +1,98 @@
-基本概念/Basic Concepts
---------------------------
+Basic Concepts
+^^^^^^^^^^^^^^^
 
-试错与开发- 多臂赌博机（Multi-Arm Bandit）
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+强化学习 (RL) 方法被用于解决智能体与环境的交互问题。简单的描述交互 (interaction) 的过程，智能体从环境中接收观察到的信息 (observation)，根据接收到的信息选择动作 (action)，环境会因为智能体采取的动作发生改变，并给予智能体动作的反馈奖励 (reward)。这个过程循环发生，智能体的目标是最大化积累自己接收到的奖励。强化学习的目标也就是让智能体学会一种策略 (policy) ，使奖励最大化。
 
-.. figure:: https://pic2.zhimg.com/80/v2-de3eeb3c1136b278f72df468078f97dc_720w.jpg?source=1940ef5c
-   :alt: img
+为了更详细地介绍强化学习的理论细节与技术，我们会解释以下的基础概念：
 
+- Markov Decision Processes 
+- State and action spaces
+- Policy
+- Trajectory
+- Return and reward
 
-什么叫bandit? 赌场的赌博机有个外号叫单臂强盗（single-armed BANDIT），因为即使老虎机只有一个摇臂，也会抢走你口袋里的钱。
+为了更好地理解各种强化学习的方法，我们会进一步解释以下的方法概念：
 
-multi-arm bandit
-^^^^^^^^^^^^^^^^
+- RL optimization problem
+- Value function
+- Policy gradients
+- Actor Critic
 
-一家赌场有 :math:`K` 台老虎机，假设每台老虎机都有一定概率(:math:`p_i`)吐出一块钱，有一定概率(\ :math:`1-p_i`)不吐钱。现在你无法提前知道老虎机的概率分布，只能通过使用老虎机的结果去推测概率。但是你一共只能摇
-:math:`T` 次老虎机，在这种情况下，使用什么样的策略才能使得你摇出更多的钱呢？
+最后我们还解答了一些强化学习领域中常见的概念性问题，以供参考。
 
--  去试一试每个赌博机，并且要有策略的去试
+马尔可夫决策过程/MDP
+------------------
+马尔可夫决策过程(Markov Decision Processes)是强化学习在数学上的理想化形式，也是最常见的常见模型。
 
-   -  想要获得各个老虎机的吐钱概率：试验各个老虎机，Exploration
-   -  想要获得最大的收益：多摇那个吐钱概率高的老虎机，Exploitation
+- 马尔可夫性：状态 :math:`s_t` 是马尔科夫的，当且仅当 :math:`P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]` .
+- 若随机变量序列中的每个状态都是马尔科夫的则称此随机过程为马尔科夫随机过程。
+- 马尔科夫过程是一个二元组 :math:`(S, P)` ，且满足： :math:`S` 是有限状态集合， :math:`P` 是状态转移概率。马尔科夫过程中不存在动作和奖励。将动作（策略）和回报考虑在内的马尔科夫过程称为马尔科夫决策过程。
+- 马尔科夫决策过程由元组 :math:`` 定义， :math:`` 为有限的状态集， :math:`` 为有限的动作集， :math:`` 为状态转移概率， :math:`` 为回报函数， :math:`` 为折扣因子，用来计算累积的奖励。跟马尔科夫过程不同的是，马尔科夫决策过程的状态转移概率为 :math:`P(s_{t+1}|s_t, a_t)` 。
+- 强化学习的目标是给定一个马尔科夫决策过程，寻找最优策略。所谓策略 :math:`\pi(a|s)` 是指状态到动作的映射。
 
--  bandit算法就是为了平衡\ **Exploration and Exploitation**
--  bandit算法应用广泛，比如最直接的应用就是推荐系统，还可应用于MDP模型的游戏、等等。
+解决MDP问题的常用方法：
 
-经典的bandit算法
-^^^^^^^^^^^^^^^^
+- 动态规划 (DP) 是一类优化方法，在给定一个MDP完备环境的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用有限，容易出现维度灾难问题。
+- DP具有以下的特点：
+  - 更新时基于当前已存在的估计：用后继各个状态的价值估计值来更新当前某个状态的价值估计值
+  - 渐进性收敛
+  - 优点：降低了方差并加快了学习
+  - 缺点：存在依赖于函数逼近质量的偏差
 
-朴素bandit
-''''''''''''
+- 蒙特卡洛方法 (MC) 用样本回报代替实际的期望回报，仅仅需要经验就可以求解最优策略。
+- MC不需要环境模型，可以使用数据仿真和采样模型，并且可以只评估关注的某个状态，相比较DP在马尔可夫性不成立时损失较小。
 
--  先随机试若干次，然后一直选最大的那个
+- 时序差分学习(TD), TD loss的基本形式: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
+- TD与MC的对比: MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})` .
 
-Epsilon-Greedy
-''''''''''''''
+状态空间/State Spaces
+--------------------
 
--  :math:`\epsilon`\ 概率随机选择做exploration，\ :math:`1-\epsilon`\ 概率选择当前平均收益最大的臂做exploitation
--  比较常见的改进是通过控制\ :math:`\epsilon`\ 值来平衡exploration和exploitation
--  Epsilon-Greedy曲线
 
-Thompson sampling
-'''''''''''''''''
+动作空间/Action Spaces
+---------------------
 
--  假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为 :math:`p`，同时该概率 :math:`p`的概率分布符合 :math:`Beta(wins,lose)`
-   分布，每个臂都维护一个 :math:`Beta` 分布。每次试验后，选中一个臂摇一下，有收益则该臂的 :math:`wins` 增加 1，否则该臂的 :math:`lose` 增加 1。
--  beta分布介绍：https://www.zhihu.com/question/30269898
--  选择方式：用每个臂现有的Beta分布产生随机数，选择随机数中最大的那个臂
--  Thompson
-   bandit算法的本质是后验证采样，性能与最好的无分布方法(UCB)相似
+策略/Policy
+-----------
 
-UCB（Upper Confidence Bound）
-'''''''''''''''''''''''''''''
 
--  对每一个臂都试一遍，之后在任意时刻 :math:`t` 
-   按照如下公式计算每个臂的分数，然后选择分数最大的臂
+轨迹/Trajectory
+---------------
 
-   :math:`x_j(t) + \sqrt{\frac{2lnt}{T_{j,t}}}`
 
-   其中 :math:`j` 为编号即表示第j臂， :math:`T_{j,t}` 为在t时刻第j个臂累计的被使用次数。
+奖励/Return and reward
+---------------------
 
--  UCB算法虽然简单，但其在实际应用中往往能取得相对好的效果，可见下文中的bandit example。
 
--  UCB的效果是有理论保障的。UCB的累计regret为 :math:`O(Knlog(n))` ，即其在选用了n次arm之后产生的regret为 :math:`O(log(n))` 的。在2002年提出UCB的论文 `Using Confidence Bounds for Exploitation-Exploration Trade-offs <https://www.jmlr.org/papers/volume3/auer02a/auer02a.pdf>`_ 中已有了证明。
+优化/RL optimization problem
+------------------------
 
 
-example
-^^^^^^^^^
-.. toctree::
-     :maxdepth: 2
+价值函数/Value functions
+-----------------------
 
-     bandit/bandit
 
 
-马尔可夫决策过程(MDP)
-~~~~~~~~~~~~~~~~~~~~~
-马尔可夫决策过程(MDP)是强化学习在数学上的理想化形式，也是最常见的常见模型。
-这个问题的数学化结构中有若干关键要素
+Bellman Equations
 
-- 回报(reward)
-- 价值函数(value function)
-- 贝尔曼方程(Bellman function)
 
-通过MDP过程，就能大致理解深度学习智能体环境交互的定义。
+策略梯度/Policy Gradients
+------------------------
 
-.. note::
-   MDP过程是强化学习的问题定义，也是最基本的模型，具体介绍可以直接去查wiki上的定义或者自行搜索一些博客/专栏比如 `知乎专栏：马尔科夫决策过程 <https://zhuanlan.zhihu.com/p/28084942>`_ 。
 
 
-动态规划(DP)
-~~~~~~~~~~~~~
-动态规划DP是一类优化方法，在给定一个MDP完备环境的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用十分有限。
+演员-评论家/Actor Critic
+-----------------------
 
-很多强化学习问题无法获得完备的环境模型，且DP在大维度时计算复杂度极高。不过DP仍不失为一个重要理论，很多其他方法都是对DP的一种近似，只不过降低了计算复杂的和对环境模型完备的假设。
+Actor
 
-自举
- - 更新时基于当前已存在的估计：用后继各个状态的价值估计值来更新当前某个状态的价值估计值
- - 渐进性收敛
- - 优点：降低了方差并加快了学习
- - 缺点：存在依赖于函数逼近质量的偏差
+Critic
 
 
-策略迭代与价值迭代
- - 策略迭代
-
-   - 策略评估
-   - 策略更新
- - 价值迭代
-
-异步DP
- - 不使用系统遍历状态集的形式来组织算法
-
-广义策略迭代GPI
-
-DP的效率问题
- - 维度灾难最早就是指在DP过程中，state variable数量随维数指数增长导致的维度问题，后来在其他领域也得到了延伸
-
-.. note::
-
- 怎样理解 Curse of Dimensionality（维数灾难） `<https://www.zhihu.com/question/27836140>`_
-
-蒙特卡洛方法(MC)
-~~~~~~~~~~~~~~~~
-
-- 首次访问MC
-- 每次访问MC 
-
-同轨策略与离轨策略
-
-- 同轨策略(on policy): 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的
-- 离轨策略(off policy): 用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹
-
-蒙特卡洛方法对比DP的优势
-
-- 不需要描述环境的模型
-- 可以使用数据仿真和采样模型
-- 可以只评估关注的状态
-- 在马尔可夫性不成立时性能损失较小
-
-用样本回报代替实际的期望回报
-
-
-
-
-时序差分学习(TD)
-~~~~~~~~~~~~~~~~~~~~
-
-TD loss的基本形式: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
-
-.. note::
-
-    TD与MC的对比: MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})`
-
-
-Sarsa
-^^^^^^^^^^^^^^^^
- :math:`Q(S_t, A_t) \leftarrow Q(S_t,A_t) + \alpha[R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]`
-
-
-Q-learning
-^^^^^^^^^^^^^^^^
- :math:`Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha[R_{t+1} + \gamma {argmax}_a Q(S_{t+1}, a) - Q(S_t, A_t)]`
-
-.. tip::
-
-    为什么说Sarsa是on-policy算法？而为什么说Q-learning是off-policy算法？
-
-
-深度Q网络(DQN)
-^^^^^^^^^^^^^^^^^
-
-随着深度学习的发展，研究者们将Q-learning和神经网络相结合提出了DQN，其算法核心是维护Q函数并使用它进行决策。
-
-双学习(Double DQN)
-^^^^^^^^^^^^^^^^^^^
-
-对于Q-learning的双学习优化是2010年在 `Deep Reinforcement Learning with Double Q-learning <https://arxiv.org/abs/1509.06461>`_ 中提出的。
-
-
-
-.. n步自举法
-.. ~~~~~~~~~~~~~
 
 
 Q&A
-~~~~~~~~~~~~~
-Q0: MC、TD、DP分别指什么？这些方法有哪些异同？
- - Answer：MC指蒙特卡洛方法，TD指时序差分学习，DP指动态规划。
-
+----
 Q1: 什么是model base和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
  - Answer：
    model base算法指该算法会学习环境的转移过程并对环境进行建模，而model free算法则不需要对环境进行建模。

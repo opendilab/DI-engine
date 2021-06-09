@@ -9,9 +9,11 @@ Basic Settings
 
 
 什么叫bandit? 赌场的赌博机有个外号叫单臂强盗（single-armed BANDIT），因为即使老虎机只有一个摇臂，也会抢走你口袋里的钱。
-我们用:math:`A`这个集合表示action space，也就是arm的集合。只考虑最基本的情形，因此我们让:math:`A`只包含有限个元素（记元素个数为:math:`K`，即一共有:math:`K`个arm）。同样，只考虑离散时间的决策问题，我们认为我们一共有:math:`T`个阶段进行决策，:math:`T`事先已知。那么在:math:`t=1, ..., T`的每个阶段中，一个bandit算法应该做如下两件事：
-- 算法从:math:`A`中选择一个arm :math:`a_t`  
-- 算法观察到:math:`a_t`这个arm返回的奖励 (reward) :math:`r_t`
+我们用 :math:`A` 这个集合表示action space，也就是arm的集合。只考虑最基本的情形，因此我们让 :math:`A` 只包含有限个元素（记元素个数为 :math:`K` ，即一共有 :math:`K` 个arm）。同样，只考虑离散时间的决策问题，我们认为我们一共有 :math:`T` 个阶段进行决策， :math:`T` 事先已知。那么在 :math:`t=1, ..., T` 的每个阶段中，一个bandit算法应该做如下两件事：
+
+- 算法从 :math:`A` 中选择一个arm :math:`a_t`  
+
+- 算法观察到 :math:`a_t` 这个arm返回的奖励 (reward) :math:`r_t`
 
 这是最基本的RL setting，我们的算法每次选择一个action，所得到的feedback即我们的reward。IID的setting即是说每个arm返回的reward都是独立于彼此，且分布在整个时间轴上不变。
 
