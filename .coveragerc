@@ -3,6 +3,8 @@ omit =
   nervex/utils/slurm_helper.py
   nervex/utils/file_helper.py
   nervex/utils/dist_helper.py
+  nervex/utils/k8s_helper.py
+  nervex/config/utils.py
   nervex/entry
   nervex/entry/tests/test_serial_entry_algo.py
   nervex/entry/dist_entry.py

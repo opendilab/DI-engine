@@ -21,8 +21,8 @@ lunarlander_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            nstep = 1,
-            nstep_return = False,
+            nstep=1,
+            nstep_return=False,
         ),
         collect=dict(
             n_sample=128,

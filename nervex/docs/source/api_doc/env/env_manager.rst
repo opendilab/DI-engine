@@ -5,7 +5,7 @@ envs.env_manager
 base_env_manager
 -----------------
 
-Please Reference nervex/worker/actor/env_manager/base_env_manager.py for usage
+Please Reference nerveX/nervex/envs/env_manager/base_env_manager.py for usage
 
 BaseEnvManager
 ~~~~~~~~~~~~~~~~~~
@@ -16,7 +16,7 @@ BaseEnvManager
 subprocess_env_manager
 -------------------------
 
-Please Reference nervex/worker/actor/env_manager/subprocess_env_manager.py for usage
+Please Reference nerveX/nervex/envs/env_manager/subprocess_env_manager.py for usage
 
 ShmBuffer
 ~~~~~~~~~~~~~~~~~~
