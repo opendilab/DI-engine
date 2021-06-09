@@ -218,6 +218,25 @@ def v_1step_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+v_1step_td_data_with_mask = namedtuple('v_1step_td_data', ['v', 'next_v', 'reward', 'done', 'weight', 'mask'])
+
+
+def v_1step_td_error_with_mask(
+        data: namedtuple,
+        gamma: float,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    v, next_v, reward, done, weight, mask = data
+    if weight is None:
+        weight = torch.ones_like(reward)
+    if done is not None:
+        target_v = gamma * (1 - done) * next_v + reward
+    else:
+        target_v = gamma * next_v + reward
+    td_error_per_sample = criterion(v, target_v.detach()) * mask
+    return (td_error_per_sample * weight).sum() / mask.sum(), td_error_per_sample
+
+
 q_nstep_td_data = namedtuple(
     'q_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight']
 )

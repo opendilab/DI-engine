@@ -139,7 +139,7 @@ class Encoder(nn.Module):
         """
         super(Encoder, self).__init__()
         self.act = nn.ReLU()
-        assert encoder_type in ['fc', 'conv2d'], encoder_type
+        assert encoder_type in ['fc', 'single_fc', 'conv2d'], encoder_type
         embedding_size = hidden_size_list[-1]
         if encoder_type == 'fc':
             input_size = squeeze(obs_shape)
@@ -148,6 +148,15 @@ class Encoder(nn.Module):
                 layers.append(nn.Linear(input_size, size))
                 layers.append(self.act)
                 input_size = size
+            self.main = nn.Sequential(*layers)
+        elif encoder_type == 'single_fc':
+            input_dim = squeeze(obs_dim)
+            hidden_dim_list = [embedding_dim]
+            layers = []
+            for dim in hidden_dim_list:
+                layers.append(nn.Linear(input_dim, dim))
+                layers.append(self.act)
+                input_dim = dim
             self.main = nn.Sequential(*layers)
         elif encoder_type == 'conv2d':
             self.main = ConvEncoder(obs_shape, embedding_size)
@@ -306,6 +315,14 @@ FCRDiscreteNet = partial(
     }
 )
 MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
+
+FCRGruNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'single_fc'},
+    lstm_kwargs={'lstm_type': 'gru'},
+    head_kwargs={'dueling': False}
+)
+MODEL_REGISTRY.register('fcr_gru_net', FCRGruNet)
 
 ConvRDiscreteNet = partial(
     DiscreteNet,

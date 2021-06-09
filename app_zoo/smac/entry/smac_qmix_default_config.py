@@ -3,6 +3,9 @@ from easydict import EasyDict
 agent_num = 8
 collector_env_num = 8
 evaluator_env_num = 5
+#agent_num = 1
+#actor_env_num = 1
+#evaluator_env_num = 1
 smac_qmix_default_config = dict(
     env=dict(
         env_manager_type='subprocess',

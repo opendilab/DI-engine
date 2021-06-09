@@ -4,8 +4,8 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
+from nervex.torch_utils import Adam, to_device, RMSprop
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, v_1step_td_data_with_mask, v_1step_td_error_with_mask, Adder
 from nervex.model import QMix, model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
@@ -90,7 +90,11 @@ class QMIXPolicy(Policy):
         """
         self._priority = self._cfg.priority
         assert not self._priority, "not implemented priority in QMIX"
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self.optimzier_type=self._cfg.learn.get('optimzier_type','adam')
+        if self._cfg.optimzier_type=='rmsprop':
+            self._optimizer = RMSprop(params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)  
+        elif self._cfg.optimzier_type=='adam':
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
 
         self._target_model = copy.deepcopy(self._model)
@@ -160,13 +164,40 @@ class QMIXPolicy(Policy):
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 
-        data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        if data['done'] is not None:
+            target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
+        else:
+            target_v = self._gamma * target_total_q + data['reward']
+        if self._cfg.learn.get('use_mask_td_error', None):
+            mask = 1 - data['done']
+            T, B = mask.shape
+            for j in range(B):
+                for i in range(T):
+                    if mask[i, j] == 0:
+                        mask[i, j] = 1
+                        break
+            data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
+            loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
+        else:
+            data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+            loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        # mask = 1 - data['done']
+        # T, B = mask.shape
+        # for j in range(B):
+        #     for i in range(T):
+        #         if mask[i, j] == 0:
+        #             mask[i, j] = 1
+        #             break
+        # data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
+        # loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
         # ====================
         # Q-mix update
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self.optimzier_type=='rmsprop':
+            torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), 1000)
         self._optimizer.step()
         # =============
         # after update
@@ -175,6 +206,10 @@ class QMIXPolicy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'total_q': total_q.mean().item()/self._cfg.agent_num,
+            'target_reward_total_q': target_v.mean().item()/self._cfg.agent_num,
+            'target_total_q': target_total_q.mean().item()/self._cfg.agent_num,
+            'grad_norm': grad_norm
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -310,3 +345,16 @@ class QMIXPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qmix', ['nervex.model.qmix.qmix']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        ret = [
+            'cur_lr', 'total_loss', 'total_q', 'target_total_q', 'grad_norm', 'target_reward_total_q'
+        ]
+        return ret
+

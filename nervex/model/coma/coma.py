@@ -79,7 +79,14 @@ class ComaCriticNetwork(nn.Module):
 
     def _preprocess_data(self, data: Dict) -> torch.Tensor:
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
-        agent_state, global_state = data['obs']['agent_state'], data['obs']['global_state']
+        agent_state_ori, global_state = data['obs']['agent_state'], data['obs']['global_state']
+
+        # splite obs, last_action and agent_id
+        # TODO splite here beautifully or in env
+        agent_state = agent_state_ori[:, :, :, :-self._act_shape - agent_num]
+        last_action = agent_state_ori[:, :, :, -self._act_shape - agent_num:-agent_num].reshape(t_size, batch_size,1,-1).repeat(1, 1, agent_num, 1)
+        agent_id = agent_state_ori[:, :, :, -agent_num:]
+
         action = one_hot(data['action'], self._act_shape)  # T, B, A，N
         action = action.reshape(t_size, batch_size, -1, agent_num * self._act_shape).repeat(1, 1, agent_num, 1)
         action_mask = (1 - torch.eye(agent_num).to(action.device))
@@ -87,7 +94,7 @@ class ComaCriticNetwork(nn.Module):
         action = (action_mask.unsqueeze(0).unsqueeze(0)) * action  # T, B, A, A*N
         global_state = global_state.unsqueeze(2).repeat(1, 1, agent_num, 1)
 
-        x = torch.cat([global_state, agent_state, action], -1)
+        x = torch.cat([global_state, agent_state, last_action, action, agent_id], -1)
         return x
 
 
@@ -98,7 +105,7 @@ class ComaNetwork(nn.Module):
         super(ComaNetwork, self).__init__()
         act_shape = act_shape[-1]
         actor_input_size = obs_shape['agent_state'][-1]
-        critic_input_size = obs_shape['agent_state'][-1] + squeeze(obs_shape['global_state']) + agent_num * act_shape
+        critic_input_size = obs_shape['agent_state'][-1] + squeeze(obs_shape['global_state']) + agent_num * act_shape + (agent_num - 1) * act_shape
         embedding_size = hidden_size_list[-1]
         self._actor = ComaActorNetwork(actor_input_size, act_shape, hidden_size_list)
         self._critic = ComaCriticNetwork(critic_input_size, act_shape, embedding_size)

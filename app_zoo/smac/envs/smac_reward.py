@@ -8,22 +8,16 @@ OPPONENT_AGENT = "opponent"
 class SMACReward:
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
-    def __init__(
-        self,
-        n_agents,
-        n_enemies,
-        two_player,
-        reward_type,
-        reward_scale=False,
-        reduce_agent=True,
-        reward_only_positive=False
-    ):
+    def __init__(self, n_agents, n_enemies, two_player, reward_type, max_reward, reward_scale=True, reduce_agent=True,
+                 reward_only_positive=True):
         self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
+        self.max_reward = max_reward
         self.reward_death_value = 10
         self.reward_win = 200
         self.reward_defeat = 0
-        self.reward_negative_scale = 0.5  # different for different maps
+        self.reward_negative_scale = 0.5
+        self.reward_scale_rate = 20
         self.reduce_agent = reduce_agent
         self.reward_type = reward_type
         assert self.reward_type in ['sparse', 'original', 'new']
@@ -35,7 +29,10 @@ class SMACReward:
 
         self.two_player = two_player
 
-    def reset(self):
+    def reset(self, max_reward):
+        self.max_reward = max_reward
+        if self.reward_type == 'original':
+            self.info().value['max']= self.max_reward / self.reward_scale_rate
         self.death_tracker_ally.fill(0)
         self.death_tracker_enemy.fill(0)
 
@@ -91,6 +88,8 @@ class SMACReward:
             else:
                 return np.zeros(num_agents)
 
+        # if self.reward_type != 'original':
+        assert self.reward_type == 'original', 'reward_type={} is not supported!'.format(self.reward_type)
         delta_deaths = np.zeros([num_agents])
         reward = np.zeros([num_agents])
         delta_ally = np.zeros([num_agents])
@@ -117,9 +116,7 @@ class SMACReward:
                 if al_unit.health == 0:
                     # just died
                     death_tracker[al_id] += 1
-                    if not self.reward_only_positive:
-                        # delta_deaths -= self.reward_death_value * neg_scale
-                        delta_deaths[al_id] -= self.reward_death_value * neg_scale
+                    delta_deaths[al_id] -= self.reward_death_value * neg_scale
                     delta_ally[al_id] += prev_health * neg_scale
                 else:
                     # still alive
@@ -140,7 +137,6 @@ class SMACReward:
                 prev_health = (previous_units[e_id].health + previous_units[e_id].shield)
                 if e_unit.health == 0:
                     death_tracker[e_id] += 1
-                    # delta_deaths[e_id] += self.reward_death_value
                     delta_death_enemy[e_id] += self.reward_death_value
                     normed_delta_health = prev_health / (e_unit.health_max + e_unit.shield_max)
                     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
@@ -149,28 +145,28 @@ class SMACReward:
                                            e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
                     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
 
-        if self.reward_type == 'original':
-            if self.reduce_agent:
-                total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy)
-                return total_reward
-            else:
-                total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy) / num_agents
-                return np.ones(num_agents) * total_reward
+        # if self.reward_type == 'original':
+        #     if self.reduce_agent:
+        #         total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy)
+        #         return total_reward
+        #     else:
+        #         total_reward = sum(delta_deaths) + sum(delta_death_enemy) + sum(delta_enemy) / num_agents
+        #         return np.ones(num_agents) * total_reward
 
         # Attacking reward
-        if isinstance(action, dict):
-            my_action = action["me"] if not is_opponent else action["opponent"]
-        else:
-            my_action = action
-        for my_id, my_action in enumerate(my_action):
-            if my_action > 5:
-                reward[my_id] += 2
+        # if isinstance(action, dict):
+        #     my_action = action["me"] if not is_opponent else action["opponent"]
+        # else:
+        #     my_action = action
+        # for my_id, my_action in enumerate(my_action):
+        #     if my_action > 5:
+        #         reward[my_id] += 2
 
-        # Designed by PZH
-        if self.reduce_agent:
-            reward = delta_deaths.sum() + delta_death_enemy.sum() + reward.sum()
+        if self.reward_only_positive:
+            # reward = abs((delta_deaths + delta_death_enemy + delta_enemy).sum())
+            reward = abs(delta_deaths.sum() + delta_death_enemy.sum() + delta_enemy.sum())
         else:
-            reward = delta_deaths + sum(delta_death_enemy) / num_agents + reward
+            reward = delta_deaths.sum() + delta_death_enemy.sum() + delta_enemy.sum() - delta_ally.sum()
 
         return reward
 
@@ -178,21 +174,19 @@ class SMACReward:
         if self.reward_type == 'sparse':
             value = {'min': -1, 'max': 1}
         elif self.reward_type == 'original':
-            # TODO(nyz) health + shield range
-            if self.reduce_agent:
-                value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies * 2}
-            else:
-                value = {
-                    'min': 0,
-                    'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents * 2
-                }
-        elif self.reward_type == 'new':
-            if self.reduce_agent:
-                value = {'min': 0, 'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies}
-            else:
-                value = {
-                    'min': 0,
-                    'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies / self.n_agents
-                }
-        shape = (1, ) if self.reduce_agent else (self.n_agents, )
+            value = {'min': 0, 'max': self.max_reward / self.reward_scale_rate}
+        #     # TODO(nyz) health + shield range
+        #     if self.reduce_agent:
+        #         value = {'min': 0, 'max': (self.reward_win + self.reward_death_value * self.n_enemies +1230)/20}
+        #     else:
+        #         value = {'min': 0, 'max': self.reward_win + self.reward_death_value * self.n_enemies / self.n_agents}
+        # elif self.reward_type == 'new':
+        #     if self.reduce_agent:
+        #         value = {'min': 0, 'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies}
+        #     else:
+        #         value = {
+        #             'min': 0,
+        #             'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies / self.n_agents
+        #         }
+        shape = (1,) if self.reduce_agent else (self.n_agents,)
         return SMACReward.info_template(shape, value, None, None)
