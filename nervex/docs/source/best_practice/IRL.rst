@@ -3,19 +3,21 @@ IRL Training Example
 ============================================
 Generally, an IRL training process alternates between three stages. In
 each round:
+
    1. New data is collected with the current RL policy. 
    2. Then a reward model is updated with the collected data in this round and the pre-collected expert data. 
    3. Finally the RL policy is trained with the current reward model.
 
 In nerveX, IRL is implemented with fair concise modifications on the
 propcess of RL. Specifically:
+
    1. We push the collected data into the training set of the reward model at each return of collected data; 
    2. Train the reward model and clear the training set of the reward model before each round of RL training; 
    3. Update the rewards of each batch with the reward model before each step of RL training.
 
 
 `Code(Gail Example) <../../../entry/tests/test_serial_entry_reward_model.py>`_: 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The key code of training a DQN policy with GAIL on CartPole is provided
 here:
 
