@@ -9,13 +9,96 @@ from nervex.envs.common import div_func, div_one_hot
 
 N_PLAYER = 11
 
-
 def score_preprocess(scores):
     ret = []
     for score in scores:
         clip_score = torch.clamp_max(score.unsqueeze(0), 10)  # 0-9: 0-9; 10: >=10
         ret.append(one_hot(clip_score, num=11).squeeze(0))
     return torch.cat(ret, dim=0)
+
+
+
+class FullObs(EnvElement):
+    _name = "GFootballFullObs"
+
+    def _init(self, cfg):
+        self._default_val = None
+        self.template = [
+            {
+                'key': 'player',
+                'ret_key': 'player',
+                'dim': 36,
+                'op': lambda x:x,
+                'value': {
+                    'min': (0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0,
+                    -1, -0.42, -1, -0.42, 0,
+                    0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0, 0,
+                    0, 0, 0, 0),
+                    'max': (1, 1, 1, 1, 1, 1, 1 ,1 ,1 ,1, 1, 1, 1, 1, 1, 1, 1,
+                    1, 0.42, 1, 0.42, float(np.inf),
+                    1, 1, 1, 1, 1, 1, 1 ,1 ,1 ,1,
+                    1, 1, 1, 1),
+                    'dtype': float,
+                    'dinfo': 'mix'
+                },
+                'other': 'mixed active player info'
+            },
+            {
+                'key': 'ball',
+                'ret_key': 'ball',
+                'dim': 18,
+                'op': lambda x:x,
+                'value': {
+                    'min': (-1, -0.42, 0,
+                    0, 0, 0, 0, 0, 0,
+                    -2, -0.84,
+                    -20, -8.4, 0,
+                    0, 0, 0, 0),
+                    'max': (1, 0.42, 100,
+                    1, 1, 1, 1, 1, 1,
+                    2, 0.84,
+                    20, 8.4, np.inf,
+                    np.inf, 2.5, 1, 1),
+                    'dtype': float,
+                    'dinfo': 'mix'
+                },
+                'other': 'mixed ball info, relative to active player'
+            },
+            {
+                'key': 'LeftTeam',
+                'ret_key': 'LeftTeam',
+                'dim': 7,
+                'op': lambda x:x,
+                'value': {
+                    'min': (-1, -0.42, -1, -0.42, 0, 0, 0),
+                    'max': (1, 0.42, 1, 0.42, 100, 2.5, 1),
+                    'dtype': float,
+                    'dinfo': 'mix'
+                },
+                'other': 'mixed player info, relative to active player,\
+                 will have 10+1 infos(all left team member and closest member )'
+            },
+            {
+                'key': 'RightTeam',
+                'ret_key': 'RightTeam',
+                'dim': 7,
+                'op': lambda x:x,
+                'value': {
+                    'min': (-1, -0.42, -1, -0.42, 0, 0, 0),
+                    'max': (1, 0.42, 1, 0.42, 100, 2.5, 1),
+                    'dtype': float,
+                    'dinfo': 'mix'
+                },
+                'other': 'mixed player info, relative to active player,\
+                 will have 10+1 infos(all right team member and closest member )'
+            },
+        ]
+        self.cfg = cfg
+        self._shape = {t['key']: t['dim'] for t in self.template}
+        self._value = {t['key']: t['value'] for t in self.template}
+    def _details(self):
+        return 'Full Obs for Gfootball Self Play'
+
 
 
 class MatchObs(EnvElement):
