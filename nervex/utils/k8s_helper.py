@@ -9,7 +9,9 @@ DEFAULT_POD_NAME = 'nervexjob-example-coordinator'
 def get_operator_server_kwargs(cfg: EasyDict) -> dict:
     namespace = os.environ.get('KUBERNETES_POD_NAMESPACE', DEFAULT_NAMESPACE)
     name = os.environ.get('KUBERNETES_POD_NAME', DEFAULT_POD_NAME)
-    host, port, _, _ = split_http_address(cfg.system_addr)
+    url = os.environ.get('NERVEX_SERVER_URL', None)
+    assert url, 'please set environment variable NERVEX_SERVER_URL in Kubenetes platform.'
+    host, port, _, _ = split_http_address(url)
     return {
         'api_version': cfg.api_version,
         'namespace': namespace,
