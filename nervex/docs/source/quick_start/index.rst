@@ -115,7 +115,7 @@ An example of setting up all the above is showed as follow.
     from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
     from nervex.data import BufferManager
 
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
+    tb_logger = SummaryWriter(os.path.join('./log/', 'your_experiment_name'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
@@ -141,11 +141,11 @@ environment.
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        eps = epsilon_greedy(learner.train_iter)
+        eps = epsilon_greedy(collector.envstep)
         new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        for i in range(cfg.policy.learn.train_iteration):
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+        for i in range(cfg.policy.learn.update_per_collect):
+            train_data = replay_buffer.sample(learner.policy.learn.batch_size, learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
 
@@ -159,12 +159,26 @@ environment.
                 break
         new_data = collector.collect_data(learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        for i in range(cfg.policy.learn.train_iteration):
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+        for i in range(cfg.policy.learn.update_per_collect):
+            train_data = replay_buffer.sample(learner.policy.learn.batch_size, learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
         replay_buffer.clear()
 
+
+The training iterations per collection is set by default in the 'update_per_collect' in config. You can dynamically modify
+this value in each collection to balance the training & collection ratio. An example is shown as follows.
+
+.. code-block:: python
+
+        new_data = collector.collect_data(learner.train_iter)
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        # update each sample 3 times on average
+        update_per_collect = len(new_data) * 3 // learner.policy.learn.batch_size
+        for i in range(update_per_collect):
+            train_data = replay_buffer.sample(learner.policy.learn.batch_size, learner.train_iter)
+            if train_data is not None:
+                learner.train(train_data, collector.envstep)
 
 Advanced features
 ------------------
@@ -215,12 +229,20 @@ Some environments have a renderd surface or visualization. NerveX adds a switch 
     if cfg.env.env_kwargs.get('replay_path', None):
         evaluator_env.enable_save_replay([cfg.env.env_kwargs.replay_path for _ in range(evaluator_env_num)])
 
+A simple demo for replaying CartPole Env evaluation is shown follow.
+
+.. image:: ./images/openaigym.video.gif
+
 Similar with other Deep Learning platforms, nerveX uses tensorboard to record key parameters and results during
 training. In addition to the default logging parameters, users can add their own logging parameters as follow.
 
 .. code-block:: python
 
     tb_logger.add_scalar('epsilon_greedy', eps, learner.train_iter)
+
+If you want to know more details about default information recorded in tensorboard, see our 
+`tensorboard and logging demo <./tb_demo.html>`_ for a
+DQN experiment.
 
 Loading & Saving checkpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
