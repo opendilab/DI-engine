@@ -1,3 +1,4 @@
+import os
 import pickle
 import logging
 import time
@@ -59,6 +60,12 @@ def dist_launch_coordinator(
         config = pickle.load(f)
     if coordinator_port is not None:
         config.system.coordinator.port = coordinator_port
+    elif os.environ.get('COORDINATOR_PORT', None):
+        port = os.environ['COORDINATOR_PORT']
+        if port.isdigit():
+            config.system.coordinator.port = int(port)
+    else:
+        pass
     coordinator = Coordinator(config)
     coordinator.start()
 
@@ -89,6 +96,12 @@ def dist_launch_learner(
         config = pickle.load(f).system[name]
     if learner_port is not None:
         config.port = learner_port
+    elif os.environ.get('LEARNER_PORT', None):
+        port = os.environ['LEARNER_PORT']
+        if port.isdigit():
+            config.port = int(port)
+    else:
+        pass
     learner = create_comm_learner(config)
     learner.start()
 
@@ -106,6 +119,12 @@ def dist_launch_collector(
         config = pickle.load(f).system[name]
     if collector_port is not None:
         config.port = collector_port
+    elif os.environ.get('COLLECTOR_PORT', None):
+        port = os.environ['COLLECTOR_PORT']
+        if port.isdigit():
+            config.port = int(port)
+    else:
+        pass
     collector = create_comm_collector(config)
     collector.start()
 
