@@ -398,6 +398,78 @@ def q_nstep_td_error_with_rescale(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+qrdqn_nstep_td_data = namedtuple(
+    'qrdqn_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'tau', 'weight']
+)
+
+
+def qrdqn_nstep_td_error(
+        data: namedtuple,
+        gamma: float,
+        nstep: int = 1,
+        value_gamma: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error with in QRDQN
+    Arguments:
+        - data (:obj:`iqn_nstep_td_data`): the input data, iqn_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(tau, B, N)` i.e. [tau x batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau', B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    """
+    q, next_n_q, action, next_n_action, reward, done, tau, weight = data
+
+    assert len(action.shape) == 1, action.shape
+    assert len(next_n_action.shape) == 1, next_n_action.shape
+    assert len(done.shape) == 1, done.shape
+    assert len(q.shape) == 3, q.shape
+    assert len(next_n_q.shape) == 3, next_n_q.shape
+    assert len(reward.shape) == 2, reward.shape
+
+    if weight is None:
+        weight = torch.ones_like(action)
+
+    batch_range = torch.arange(action.shape[0])
+
+    # shape: batch_size x num x 1
+    q_s_a = q[batch_range, action, :].unsqueeze(2)
+    # shape: batch_size x 1 x num
+    target_q_s_a = next_n_q[batch_range, next_n_action, :].unsqueeze(1)
+
+    assert reward.shape[0] == nstep
+    reward_factor = torch.ones(nstep).to(reward)
+    for i in range(1, nstep):
+        reward_factor[i] = gamma * reward_factor[i - 1]
+    # shape: batch_size
+    reward = torch.matmul(reward_factor, reward)
+    # shape: batch_size x 1 x num
+    if value_gamma is None:
+        target_q_s_a = reward.unsqueeze(-1).unsqueeze(-1) + (gamma ** nstep
+                                                             ) * target_q_s_a * (1 - done).unsqueeze(-1).unsqueeze(-1)
+    else:
+        target_q_s_a = reward.unsqueeze(-1).unsqueeze(
+            -1
+        ) + value_gamma.unsqueeze(-1).unsqueeze(-1) * target_q_s_a * (1 - done).unsqueeze(-1).unsqueeze(-1)
+
+    # shape: batch_size x num x num
+    u = F.smooth_l1_loss(target_q_s_a, q_s_a, reduction="none")
+    # shape: batch_size
+    loss = (u * (tau - (target_q_s_a - q_s_a).detach().le(0.).float()).abs()).sum(-1).mean(1)
+
+    return (loss * weight).mean(), loss
+
+
 iqn_nstep_td_data = namedtuple(
     'iqn_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'replay_quantiles', 'weight']
 )
@@ -466,8 +538,8 @@ def iqn_nstep_td_error(
     if value_gamma is None:
         target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
     else:
-        value_gamma = value_gamma.unsqueeze(-1)
-        target_q_s_a = reward.unsqueeze(-1) + value_gamma * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
+        target_q_s_a = reward.unsqueeze(-1) + value_gamma.unsqueeze(-1) * target_q_s_a.squeeze(-1) * (1 - done
+                                                                                                      ).unsqueeze(-1)
     target_q_s_a = target_q_s_a.unsqueeze(-1)
 
     # shape: batch_size x tau' x tau x 1.

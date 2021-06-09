@@ -229,6 +229,46 @@ FCDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('fc_discrete_net', FCDiscreteNet)
 
+C51FCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'head_type': 'distribution',
+        'layer_num': 1,
+        'n_atom': 51,
+        'v_min': -10,
+        'v_max': 10,
+    }
+)
+MODEL_REGISTRY.register('c51_fc_discrete_net', C51FCDiscreteNet)
+
+QRDQNFCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'head_type': 'qrdqn',
+        'layer_num': 1,
+        'num_quantiles': 32,
+    }
+)
+MODEL_REGISTRY.register('qrdqn_fc_discrete_net', QRDQNFCDiscreteNet)
+
+IQNFCDiscreteNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'none'},
+    head_kwargs={
+        'head_type': 'quantile',
+        'layer_num': 1,
+        'num_quantiles': 32,
+        'quantile_embedding_size': 128,
+        'beta_function_type': 'uniform',
+    }
+)
+MODEL_REGISTRY.register('iqn_fc_discrete_net', IQNFCDiscreteNet)
+
 SQNDiscreteNet = partial(
     DiscreteNet,
     hidden_size_list=[512, 64],
@@ -372,7 +412,9 @@ def get_kwargs(kwargs: Dict) -> Tuple[Dict]:
     Returns:
         - ret (:obj:`Tuple[Dict]`): (encoder kwargs, lstm kwargs, head kwargs)
     """
-    head_kwargs_keys = ['v_max', 'v_min', 'n_atom', 'beta_function_type', 'num_quantiles', 'quantile_embedding_size']
+    head_kwargs_keys = [
+        'v_max', 'v_min', 'n_atom', 'noise', 'beta_function_type', 'num_quantiles', 'quantile_embedding_size'
+    ]
     if 'encoder_kwargs' in kwargs:
         encoder_kwargs = kwargs['encoder_kwargs']
     else:
