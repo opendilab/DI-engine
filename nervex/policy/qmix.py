@@ -120,8 +120,19 @@ class QMIXPolicy(CommonPolicy):
             target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
         else:
             target_v = self._gamma * target_total_q + data['reward']
-        data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        if self._cfg.learn.get('use_mask_td_error', None):
+            mask = 1 - data['done']
+            T, B = mask.shape
+            for j in range(B):
+                for i in range(T):
+                    if mask[i, j] == 0:
+                        mask[i, j] = 1
+                        break
+            data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
+            loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
+        else:
+            data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+            loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
         # mask = 1 - data['done']
         # T, B = mask.shape
         # for j in range(B):
