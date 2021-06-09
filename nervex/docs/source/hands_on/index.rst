@@ -6,3 +6,7 @@ Hands on RL
     :maxdepth: 3
 
     dqn
+    qmix
+    coma
+    atoc
+    collaq

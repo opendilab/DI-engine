@@ -1,5 +1,5 @@
 
-bandit example
+Bandit Example
 ^^^^^^^^^^^^^^^
 .. code:: python
 
