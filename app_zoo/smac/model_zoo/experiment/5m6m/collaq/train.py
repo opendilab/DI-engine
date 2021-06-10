@@ -5,7 +5,7 @@ import sys
 #     a=1
 from copy import deepcopy
 from nervex.entry import serial_pipeline
-from app_zoo.smac.benchmark.config import smac_5m6m_collaq_main_config, smac_5m6m_collaq_create_config
+from app_zoo.smac.model_zoo.config import smac_5m6m_collaq_main_config, smac_5m6m_collaq_create_config
 
 
 def train_dqn(args):
