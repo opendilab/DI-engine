@@ -386,9 +386,9 @@ def compile_config(
         assert create_cfg is not None
         # for compatibility
         if 'collector' not in create_cfg:
-            create_cfg.collector = dict(type='sample')
+            create_cfg.collector = EasyDict(dict(type='sample'))
         if 'replay_buffer' not in create_cfg:
-            create_cfg.replay_buffer = dict(type='priority')
+            create_cfg.replay_buffer = EasyDict(dict(type='priority'))
         if env is None:
             env = get_env_cls(create_cfg.env)
         if env_manager is None:
@@ -456,36 +456,45 @@ def compile_config_parallel(
         learner_port: Optional[int] = None,
         collector_port: Optional[int] = None,
 ) -> EasyDict:
-    # get cls
+    # for compatibility
+    if 'replay_buffer' not in create_cfg:
+        create_cfg.replay_buffer = EasyDict(dict(type='priority'))
+    # env
     env = get_env_cls(create_cfg.env)
     if 'default_config' in dir(env):
         env_config = env.default_config()
     else:
         env_config = EasyDict()  # env does not have default_config
-    policy = get_policy_cls(create_cfg.policy)
+    env_config = deep_merge_dicts(env_config_template, env_config)
+    env_config.update(create_cfg.env)
+
     env_manager = get_env_manager_cls(create_cfg.env_manager)
     env_config.manager = env_manager.default_config()
+    env_config.manager.update(create_cfg.env_manager)
+
+    # policy
+    policy = get_policy_cls(create_cfg.policy)
     policy_config = policy.default_config()
+    policy_config = deep_merge_dicts(policy_config_template, policy_config)
+    cfg.policy.update(create_cfg.policy)
+
     collector = get_parallel_collector_cls(create_cfg.collector)
     policy_config.collect.collector = collector.default_config()
+    policy_config.collect.collector.update(create_cfg.collector)
     policy_config.learn.learner = BaseLearner.default_config()
+    policy_config.learn.learner.update(create_cfg.learner)
     commander = get_parallel_commander_cls(create_cfg.commander)
     policy_config.other.commander = commander.default_config()
+    policy_config.other.commander.update(create_cfg.commander)
+    policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
     policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, None)
-    default_config = EasyDict({'env': env_config, 'policy': policy_config})
 
-    cfg.env.update(create_cfg.env)
-    if 'manager' not in cfg.env:
-        cfg.env.manager = {}
-    cfg.env.manager.update(create_cfg.env_manager)
-    cfg.policy.update(create_cfg.policy)
-    cfg.policy.learn.learner.update(create_cfg.learner)
-    cfg.policy.collect.collector.update(create_cfg.collector)
-    cfg.policy.other.commander.update(create_cfg.commander)
+    default_config = EasyDict({'env': env_config, 'policy': policy_config})
     cfg = deep_merge_dicts(default_config, cfg)
 
     cfg.policy.other.commander.path_policy = system_cfg.path_policy  # league may use 'path_policy'
 
+    # system
     for k in ['comm_learner', 'comm_collector']:
         system_cfg[k] = create_cfg[k]
     if platform == 'local':
@@ -509,9 +518,10 @@ def compile_config_parallel(
         )
     else:
         raise KeyError("not support platform type: {}".format(platform))
+    cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)
+    # seed
     cfg.seed = seed
 
-    cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)
     if save_cfg:
         save_config(cfg, save_path)
     return cfg

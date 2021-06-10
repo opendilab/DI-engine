@@ -83,7 +83,7 @@ class ATOCPolicy(Policy):
         ),
         collect=dict(
             # (int) Collect n_sample data, update model n_iteration time
-            n_sample=64,
+            # n_sample=64,
             # (int) Unroll length of a train iteration(gradient update step)
             unroll_len=1,
             # ==============================================================
@@ -91,12 +91,10 @@ class ATOCPolicy(Policy):
             # ==============================================================
             # (float) The std of noise distribution for exploration
             noise_sigma=0.4,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
-                type='priority',
                 # (int) The max size of replay buffer
                 replay_buffer_size=100000,
                 # (int) The max use count of data, if count is bigger than this value, the data will be removed

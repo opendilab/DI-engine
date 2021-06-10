@@ -65,22 +65,15 @@ class DDPGPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=48,
+            # n_sample=48,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
-            collector=dict(
-                type='sample',
-                collect_print_freq=1000,
-            ),
+            collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            type='priority',
-            replay_buffer_size=20000,
-            max_use=16,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
     )
 
     def _init_learn(self) -> None:
@@ -396,18 +389,11 @@ class TD3Policy(DDPGPolicy):
             ),
         ),
         collect=dict(
-            n_sample=48,
+            # n_sample=48,
             unroll_len=1,
             noise_sigma=0.1,
-            collector=dict(
-                type='sample',
-                collect_print_freq=1000,
-            ),
+            collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            type='priority',
-            replay_buffer_size=20000,
-            max_use=16,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
     )

@@ -49,10 +49,9 @@ class COMAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_sample=128,
+            # n_sample=128,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=16,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -63,7 +62,6 @@ class COMAPolicy(Policy):
                 decay=100000,
             ),
             replay_buffer=dict(
-                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=64,
                 # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer

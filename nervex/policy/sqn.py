@@ -25,17 +25,16 @@ class SQNPolicy(Policy):
         Policy class of SQN algorithm (arxiv: 1912.10891).
     """
 
-    update_per_collect = 16
     config = dict(
         cuda=False,
-        policy_type='sqn',
+        type='sqn',
         on_policy=False,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
             multi_gpu=False,
-            update_per_collect=update_per_collect,
+            update_per_collect=16,
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
@@ -52,10 +51,9 @@ class SQNPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            n_sample=update_per_collect,
+            # n_sample=16,
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -65,10 +63,7 @@ class SQNPolicy(Policy):
                 end=0.8,
                 decay=2000,
             ),
-            replay_buffer=dict(
-                type='priority',
-                replay_buffer_size=100000,
-            ),
+            replay_buffer=dict(replay_buffer_size=100000, ),
         ),
     )
 

@@ -49,11 +49,10 @@ class QMIXPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=128,
+            # n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -69,7 +68,6 @@ class QMIXPolicy(Policy):
                 decay=20000,
             ),
             replay_buffer=dict(
-                type='priority',
                 replay_buffer_size=5000,
                 # (int) The maximum reuse times of each data
                 max_reuse=10,

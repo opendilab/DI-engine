@@ -51,11 +51,10 @@ class CollaQPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=128,
+            # n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -71,7 +70,6 @@ class CollaQPolicy(Policy):
                 decay=20000,
             ),
             replay_buffer=dict(
-                type='priority',
                 # (int) max size of replay buffer
                 replay_buffer_size=5000,
                 max_reuse=10,

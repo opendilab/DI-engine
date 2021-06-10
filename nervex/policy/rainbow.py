@@ -77,10 +77,9 @@ class RainbowDQNPolicy(DQNPolicy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=32,
+            # n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config
@@ -97,7 +96,6 @@ class RainbowDQNPolicy(DQNPolicy):
                 decay=100000,
             ),
             replay_buffer=dict(
-                type='priority',
                 # (int) Max size of replay buffer.
                 replay_buffer_size=100000,
                 # (float) Prioritization exponent.
