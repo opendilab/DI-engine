@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_iqn_config = dict(
+cartpole_qrdqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -15,8 +15,8 @@ cartpole_iqn_config = dict(
             obs_shape=4,
             action_shape=2,
             hidden_size_list=[128, 128, 64],
-            head_kwargs=dict(head_type='quantile', ),
-            num_quantiles=32,
+            head_kwargs=dict(head_type='qrdqn', ),
+            num_quantiles=64,
         ),
         discount_factor=0.97,
         nstep=3,
@@ -41,15 +41,15 @@ cartpole_iqn_config = dict(
         ),
     ),
 )
-cartpole_iqn_config = EasyDict(cartpole_iqn_config)
-main_config = cartpole_iqn_config
-cartpole_iqn_create_config = dict(
+cartpole_qrdqn_config = EasyDict(cartpole_qrdqn_config)
+main_config = cartpole_qrdqn_config
+cartpole_qrdqn_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='iqn'),
+    policy=dict(type='qrdqn'),
 )
-cartpole_iqn_create_config = EasyDict(cartpole_iqn_create_config)
-create_config = cartpole_iqn_create_config
+cartpole_qrdqn_create_config = EasyDict(cartpole_qrdqn_create_config)
+create_config = cartpole_qrdqn_create_config

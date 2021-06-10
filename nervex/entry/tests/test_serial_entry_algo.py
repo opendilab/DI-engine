@@ -10,6 +10,8 @@ from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole
 from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config, cartpole_c51_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from app_zoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
@@ -102,7 +104,7 @@ def test_collaq():
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
-        f.write("8. collaq\n")
+        f.write("7. collaq\n")
 
 
 # @pytest.mark.algotest
@@ -125,6 +127,17 @@ def test_sac():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("9. sac\n")
+
+
+@pytest.mark.algotest
+def test_c51():
+    config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("10. c51\n")
 
 
 # @pytest.mark.algotest
@@ -231,6 +244,17 @@ def test_ppg():
 @pytest.mark.algotest
 def test_sqn():
     config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("20. sqn\n")
+
+
+@pytest.mark.algotest
+def test_qrdqn():
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

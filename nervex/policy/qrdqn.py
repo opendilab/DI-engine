@@ -122,8 +122,7 @@ class QRDQNPolicy(DQNPolicy):
         self._target_model.train()
         # Current q value (main model)
         ret = self._learn_model.forward(data['obs'])
-        q_value = ret['q']
-        tau = ret['tau']
+        q_value, tau = ret['q'], ret['tau']
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['q']
@@ -143,7 +142,7 @@ class QRDQNPolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._multi_gpu:
+        if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 
