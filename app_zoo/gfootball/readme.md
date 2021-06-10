@@ -65,7 +65,9 @@ bots目前包括
 - 编写的基于规则的rule_based_bot
 - Kaggle比赛第五名的RL模型， 详见https://www.kaggle.com/c/google-football/discussion/203412。
 
+### conv1d
 
+link：https://drive.google.com/file/d/1O1I3Mcjnh9mwAVDyqhp5coksTDPqMZmG/view?usp=sharing
 
 ## Uses
 
