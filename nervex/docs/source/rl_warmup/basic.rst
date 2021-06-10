@@ -101,11 +101,11 @@ State :math:`s` 是对环境的global性描述，observation :math:`o` 是对环
 
 价值函数/Value functions
 -----------------------
-**状态价值函数 (state value function)**是指智能体采用策略 :math:`\pi` 的收益return在状态 :math:`s` 处的期望值。状态价值函数是评价策略函数优劣的标准之一
+**状态价值函数 (state value function)** 是指智能体采用策略 :math:`\pi` 的收益return在状态 :math:`s` 处的期望值。状态价值函数是评价策略函数优劣的标准之一
 
 :math:`V_{\pi}(s) = E_{\pi}[G_t|s_t=s]`
 
-相应地，**行为价值函数 (action value function)**是指是策略 :math:`\pi` 在状态 :math:`s` 下，采取动作 :math:`a` 的长期期望收益。
+**行为价值函数 (action value function)** 是指是策略 :math:`\pi` 在状态 :math:`s` 下，采取动作 :math:`a` 的长期期望收益。
 
 :math:`Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]`
 
@@ -165,7 +165,17 @@ State :math:`s` 是对环境的global性描述，observation :math:`o` 是对环
 
 基于模型/Model-based RL
 ----------------------
+在以上的model-free的方法中，value-based方法先学习值函数（MC或TD）再更新策略，policy-based方法直接更新策略。而model-based方法的重点在于环境模型(environment dynamics)，通过采样先学习一个对环境的建模，再根据学习到的环境模型做值函数/策略优化。
 
+在完成了对环境的建模后，在model-based大类方法中同样有两种路径，一种是通过学到的model生成一些仿真轨迹，通过仿真轨迹估计值函数进而优化策略；另一种是通过学到的model直接优化策略，这也是目前model-based方法常走的路线。先学习一个环境模型，可以帮助我们解决强化学习方法中样本效率的问题 (sample efficiency)。
+
+Model的定义可以用数学表示为状态转移分布和奖励函数组成的元组： 
+
+:math:`M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)`
+
+Model的学习可以根据模型构造的不同，延伸出不同的算法。
+
+Model-based的策略优化：一种经典的方法是，先通过某种策略采样大量的数据，再学习一个模型来最小化误差，运用学到的模型来进行planning获取新的数据，循环上述的步骤。正是通过在learned model基础上做planning，model-based才提高了整个强化学习算法迭代的效率
 
 
 Q&A
