@@ -11,8 +11,9 @@ from nervex.policy import DQNPolicy
 from nervex.model import FCDiscreteNet
 from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
+from nervex.reward_model import HerModel
 from app_zoo.classic_control.bitflip.envs import BitFlipEnv
-from app_zoo.classic_control.bitflip.config import bitflip_pure_dqn_config
+from app_zoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
 
 # Get nerveX form env class
@@ -53,11 +54,14 @@ def main(cfg, seed=0):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = EpisodeCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = EpisodeReplayBuffer('episode_buffer', cfg.policy.other.replay_buffer)
+    replay_buffer = EpisodeReplayBuffer(cfg.policy.other.replay_buffer, 'episode')
 
-    # Set up other modules, etc. epsilon greedy
+    # Set up other modules, etc. epsilon greedy, hindsight experience replay
     eps_cfg = cfg.policy.other.eps
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+    her_cfg = cfg.policy.other.get('her', None)
+    if her_cfg is not None:
+        her_model = HerModel(her_cfg, cfg.policy.cuda)
 
     # Training & Evaluation loop
     while True:
@@ -76,10 +80,16 @@ def main(cfg, seed=0):
             train_episode = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_episode is not None:
                 train_data = []
+                if her_cfg is not None:
+                    her_episodes = []
+                    for e in train_episode:
+                        her_episodes.extend(her_model.estimate(e))
+                    train_episode.extend(her_episodes)
                 for e in train_episode:
                     train_data.extend(policy.collect_mode.get_train_sample(e))
                 learner.train(train_data, collector.envstep)
 
 
 if __name__ == "__main__":
-    main(bitflip_pure_dqn_config)
+    # main(bitflip_pure_dqn_config)
+    main(bitflip_her_dqn_config)

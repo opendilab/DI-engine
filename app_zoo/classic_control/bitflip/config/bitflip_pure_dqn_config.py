@@ -18,8 +18,6 @@ bitflip_pure_dqn_config = dict(
             embedding_size=64,
             dueling=True,
         ),
-        # nstep=1,
-        # discount_factor=0.9,
         learn=dict(
             update_per_collect=1,
             batch_size=12,

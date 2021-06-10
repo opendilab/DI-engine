@@ -14,7 +14,7 @@ class Adder(object):
         Adder is a component that handles different transformations and calculations for transitions
         in Collector Module(data generation and processing), such as GAE, n-step return, transition sampling etc.
     Interface:
-        __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample, get_her
+        __init__, get_traj, get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
     """
 
     def __init__(
@@ -23,8 +23,6 @@ class Adder(object):
             unroll_len: int,
             last_fn_type: str = 'last',
             null_transition: Optional[dict] = None,
-            her_strategy: str = 'future',
-            her_replay_k: int = 1,
     ) -> None:
         """
         Overview:
@@ -35,8 +33,6 @@ class Adder(object):
             - last_fn_type (:obj:`str`): the method type name for dealing with last residual data in a traj \
                 after splitting, should be in ['last', 'drop', 'null_padding']
             - null_transition (:obj:`Optional[dict]`): dict type null transition, used in ``null_padding``
-            - her_strategu (:obj:`str`): the kind of strategy her use, should be in ['final', 'future', 'episode']
-            - her_replay_k (:obj:`int`): the num of new timestep generated for a single timestep
         """
         self._use_cuda = use_cuda
         self._device = 'cuda' if self._use_cuda else 'cpu'
@@ -44,9 +40,6 @@ class Adder(object):
         self._last_fn_type = last_fn_type
         assert self._last_fn_type in ['last', 'drop', 'null_padding']
         self._null_transition = null_transition
-        self._her_strategy = her_strategy
-        assert self._her_strategy in ['final', 'future', 'episode']
-        self._her_replay_k = her_replay_k
 
     def _get_null_transition(self, template: dict) -> dict:
         """
@@ -210,102 +203,3 @@ class Adder(object):
             if len(split_data) > 0:
                 split_data = [lists_to_dicts(d, recursive=True) for d in split_data]
             return split_data
-
-    def get_her(
-            self,
-            data: List[Dict[str, Any]],
-            merge_func: Optional[Callable] = None,
-            split_func: Optional[Callable] = None,
-            goal_reward_func: Optional[Callable] = None
-    ) -> List[Dict[str, Any]]:
-        r"""
-        Overview:
-            Get HER processed transitions from stacked transitions
-        Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict
-            - merge_func (:obj:`Callable`): the merge function to use, default set to None. If None, \
-                then use ``__her_default_merge_func``
-            - split_func (:obj:`Callable`): the split function to use, default set to None. If None, \
-                then use ``__her_default_split_func``
-            - goal_reward_func (:obj:`Callable`): the goal_reward function to use, default set to None. If None, \
-                then use ``__her_default_goal_reward_func``
-        Returns:
-            - new_data (:obj:`List[Dict[str, Any]]`): the processed transitions
-        """
-        # TODO(nyz) nstep with her
-        # TODO(nyz) unroll_len > 1 with her
-        if merge_func is None:
-            merge_func = Adder.__her_default_merge_func
-        if split_func is None:
-            split_func = Adder.__her_default_split_func
-        if goal_reward_func is None:
-            goal_reward_func = Adder.__her_default_goal_reward_func
-
-        new_data = []
-        for idx in range(len(data)):
-            obs, _, _ = split_func(data[idx]['obs'])
-            next_obs, _, achieved_goal = split_func(data[idx]['next_obs'])
-            for k in range(self._her_replay_k):
-                if self._her_strategy == 'final':
-                    p_idx = -1
-                elif self._her_strategy == 'episode':
-                    p_idx = np.random.randint(0, len(data))
-                elif self._her_strategy == 'future':
-                    p_idx = np.random.randint(idx, len(data))
-                _, _, new_desired_goal = split_func(data[p_idx]['next_obs'])
-                timestep = {k: copy.deepcopy(v) for k, v in data[idx].items() if k not in ['obs', 'next_obs', 'reward']}
-                timestep['obs'] = merge_func(obs, new_desired_goal)
-                timestep['next_obs'] = merge_func(next_obs, new_desired_goal)
-                timestep['reward'] = goal_reward_func(achieved_goal, new_desired_goal).to(self._device)
-                new_data.append(timestep)
-
-        return new_data
-
-    @staticmethod
-    def __her_default_merge_func(x: Any, y: Any) -> Any:
-        r"""
-        Overview:
-            The function to merge obs in HER timestep
-        Arguments:
-            - x (:obj:`Any`): one of the timestep obs to merge
-            - y (:obj:`Any`): another timestep obs to merge
-        Returns:
-            - ret (:obj:`Any`): the merge obs
-        """
-        # TODO(nyz) dict/list merge_func
-        return torch.cat([x, y], dim=0)
-
-    @staticmethod
-    def __her_default_split_func(x: Any) -> Tuple[Any, Any, Any]:
-        r"""
-        Overview:
-            Split the the obs, achieved goal, desired goal
-        Arguments:
-            - x (:obj:`Any`): the obs to split
-        Returns:
-            - obs (:obj:`torch.Tensor`): the split obs
-            - desired_goal (:obj:`torch.Tensor`): the split desired_goal
-            - achieved_goal (:obj:`torch.Tensor`): the achieved_goal
-        """
-        # TODO(nyz) dict/list split_func
-        # achieved_goal = f(obs), default: f == identical function
-        obs, desired_goal = torch.chunk(x, 2)
-        achieved_goal = obs
-        return obs, desired_goal, achieved_goal
-
-    @staticmethod
-    def __her_default_goal_reward_func(achieved_goal: torch.Tensor, desired_goal: torch.Tensor) -> torch.Tensor:
-        r"""
-        Overview:
-            Get the corresponding merge reward according to whether the achieved_goal fit the desired_goal
-        Arguments:
-            - achieved_goal (:obj:`torch.Tensor`): the achieved goal
-            - desired_goal (:obj:`torch.Tensor`): the desired_goal
-        Returns:
-            - goal_reward (:obj:`torch.Tensor`): the goal reward according to \
-            whether the achieved_goal fit the disired_goal
-        """
-        if (achieved_goal == desired_goal).all():
-            return torch.FloatTensor([1])
-        else:
-            return torch.FloatTensor([0])

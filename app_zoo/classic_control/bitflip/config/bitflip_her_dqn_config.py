@@ -1,10 +1,11 @@
 from easydict import EasyDict
 
-bitflip_dqn_config = dict(
+n_bits = 6
+bitflip_her_dqn_config = dict(
     env=dict(
-        collector_env_num=1,
+        collector_env_num=4,
         evaluator_env_num=8,
-        n_bits=5,
+        n_bits=n_bits,
         n_evaluator_episode=16,
         stop_value=0.9,
     ),
@@ -12,26 +13,20 @@ bitflip_dqn_config = dict(
         cuda=False,
         on_policy=False,
         model=dict(
-            obs_shape=10,
-            action_shape=5,
+            obs_shape=2 * n_bits,
+            action_shape=n_bits,
             embedding_size=64,
             dueling=True,
         ),
-        nstep=1,
-        discount_factor=0.9,
         learn=dict(
             update_per_collect=1,
-            batch_size=32,
+            batch_size=12,
             learning_rate=0.0001,
             target_update_freq=500,
         ),
         collect=dict(
-            n_episode=1,
-            n_sample=None,
+            n_episode=8,
             unroll_len=1,
-            her=True,
-            her_strategy='final',
-            her_replay_k=1,
         ),
         other=dict(
             eps=dict(
@@ -40,13 +35,21 @@ bitflip_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=5000, ),
+            replay_buffer=dict(
+                type='episode',
+                replay_buffer_size=50,
+            ),
+            her=dict(
+                her_strategy='future',
+                her_replay_k=2,
+            ),
         ),
     ),
 )
-bitflip_dqn_config = EasyDict(bitflip_dqn_config)
-main_config = bitflip_dqn_config
-bitflip_dqn_create_config = dict(
+bitflip_her_dqn_config = EasyDict(bitflip_her_dqn_config)
+main_config = bitflip_her_dqn_config
+
+bitflip_her_dqn_create_config = dict(
     env=dict(
         type='bitflip',
         import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
@@ -54,5 +57,5 @@ bitflip_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-bitflip_dqn_create_config = EasyDict(bitflip_dqn_create_config)
-create_config = bitflip_dqn_create_config
+bitflip_her_dqn_create_config = EasyDict(bitflip_her_dqn_create_config)
+create_config = bitflip_her_dqn_create_config
