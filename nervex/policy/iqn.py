@@ -58,7 +58,7 @@ class IQNPolicy(DQNPolicy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_sample=8,
+            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -90,7 +90,7 @@ class IQNPolicy(DQNPolicy):
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
-        self._kappa = self._cfg.kappa
+        self._kappa = self._cfg.learn.kappa
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -147,7 +147,7 @@ class IQNPolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._multi_gpu:
+        if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

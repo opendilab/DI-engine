@@ -27,12 +27,12 @@ space_invaders_iqn_config = dict(
         ),
         nstep=3,
         discount_factor=0.99,
-        kappa = 1.0,
         learn=dict(
             update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
+            kappa=1.0,
         ),
         collect=dict(
             n_sample=100,

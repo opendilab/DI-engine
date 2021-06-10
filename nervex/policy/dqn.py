@@ -58,7 +58,7 @@ class DQNPolicy(Policy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=8,
+            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # ==============================================================
@@ -68,7 +68,6 @@ class DQNPolicy(Policy):
             her=False,
             her_strategy='future',
             her_replay_k=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config
@@ -83,7 +82,6 @@ class DQNPolicy(Policy):
                 decay=10000,
             ),
             replay_buffer=dict(
-                type='priority',
                 replay_buffer_size=10000,
             ),
         ),
