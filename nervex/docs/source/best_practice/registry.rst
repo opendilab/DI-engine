@@ -64,6 +64,6 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
 
 Besides, you can use CLI ``nervex -q <registry name>`` to look up the modules that are already registered in nerveX core code. For example：
 
-.. image:: nervex_cli_query.png
+.. image:: nervex_cli_registry_query.png
 
 
