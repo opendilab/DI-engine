@@ -101,14 +101,13 @@ class ComaCriticNetwork(nn.Module):
 @MODEL_REGISTRY.register('coma')
 class ComaNetwork(nn.Module):
 
-    def __init__(self, agent_num: int, obs_shape: dict, act_shape: Tuple, hidden_size_list: list):
+    def __init__(self, agent_num: int, obs_shape: dict, action_shape: Tuple, hidden_size_list: list):
         super(ComaNetwork, self).__init__()
-        act_shape = act_shape[-1]
-        actor_input_size = obs_shape['agent_state'][-1]
-        critic_input_size = obs_shape['agent_state'][-1] + squeeze(obs_shape['global_state']) + agent_num * act_shape + (agent_num - 1) * act_shape
+        actor_input_size = obs_shape['agent_state']
+        critic_input_size = obs_shape['agent_state'] + squeeze(obs_shape['global_state']) + agent_num * action_shape + (agent_num - 1) * action_shape
         embedding_size = hidden_size_list[-1]
-        self._actor = ComaActorNetwork(actor_input_size, act_shape, hidden_size_list)
-        self._critic = ComaCriticNetwork(critic_input_size, act_shape, embedding_size)
+        self._actor = ComaActorNetwork(actor_input_size, action_shape, hidden_size_list)
+        self._critic = ComaCriticNetwork(critic_input_size, action_shape, embedding_size)
 
     def forward(self, data: Dict, mode: Union[str, None] = None) -> Dict:
         assert mode in ['compute_actor', 'compute_critic'], mode

@@ -32,22 +32,24 @@ class QMIXPolicy(Policy):
             # (bool) Whether to use multi gpu
             multi_gpu=False,
             update_per_collect=20,
-            batch_size=64,
+            batch_size=32,
             learning_rate=0.0005,
             weight_decay=0.0001,
+            clip_value=1.5,
+            optimzier_type='rmsprop',
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
             # (float) Target network update momentum parameter.
             # in [0, 1].
-            target_update_theta=0.001,
+            target_update_theta=0.008,
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_episode=8,
+            n_episode=32,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
@@ -63,12 +65,13 @@ class QMIXPolicy(Policy):
                 # (float) Start value for epsilon decay, in [0, 1].
                 end=0.05,
                 # (int) Decay length(env step)
-                decay=20000,
+                decay=50000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=5000,
                 # (int) The maximum reuse times of each data
-                max_reuse=10,
+                max_reuse=1e+9,
+                max_staleness=1e+9,
             ),
         ),
     )
@@ -90,10 +93,9 @@ class QMIXPolicy(Policy):
         """
         self._priority = self._cfg.priority
         assert not self._priority, "not implemented priority in QMIX"
-        self.optimzier_type=self._cfg.learn.get('optimzier_type','adam')
-        if self._cfg.optimzier_type=='rmsprop':
-            self._optimizer = RMSprop(params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)  
-        elif self._cfg.optimzier_type=='adam':
+        if self._cfg.learn.optimzier_type=='rmsprop':
+            self._optimizer = RMSprop(params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)
+        elif self._cfg.learn.optimzier_type=='adam':
             self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
 
@@ -108,13 +110,13 @@ class QMIXPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -189,13 +191,14 @@ class QMIXPolicy(Policy):
         #             mask[i, j] = 1
         #             break
         # data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
+        # data = v_1step_td_data_with_mask(total_q, target_total_q, data['reward'], data['done'], data['weight'], mask)
         # loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
         # ====================
         # Q-mix update
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self.optimzier_type=='rmsprop':
+        if self._cfg.learn.optimzier_type=='rmsprop':
             torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
         grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), 1000)
         self._optimizer.step()
@@ -206,9 +209,9 @@ class QMIXPolicy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'total_q': total_q.mean().item()/self._cfg.agent_num,
-            'target_reward_total_q': target_v.mean().item()/self._cfg.agent_num,
-            'target_total_q': target_total_q.mean().item()/self._cfg.agent_num,
+            'total_q': total_q.mean().item()/self._cfg.model.agent_num,
+            'target_reward_total_q': target_v.mean().item()/self._cfg.model.agent_num,
+            'target_total_q': target_total_q.mean().item()/self._cfg.model.agent_num,
             'grad_norm': grad_norm
         }
 
@@ -239,7 +242,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -302,7 +305,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()

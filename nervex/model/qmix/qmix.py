@@ -113,6 +113,7 @@ class PMixer(nn.Module):
         return q_tot
 
 
+@MODEL_REGISTRY.register('qmix')
 class QMix(nn.Module):
     """
     Overview:
@@ -128,7 +129,7 @@ class QMix(nn.Module):
             global_obs_shape: int,
             action_shape: int,
             hidden_size_list: list,
-            mixer: bool = True
+            mixer: bool = True,
             use_gru: bool = False,
             use_pmixer: bool = False,
     ) -> None:
@@ -337,16 +338,16 @@ class CollaQ(nn.Module):
             self._self_attention = CollaQSMACAttentionModule(
                 self_feature_range[1] - self_feature_range[0],
                 (ally_feature_range[1] - ally_feature_range[0]) // (agent_num - 1), self_feature_range,
-                ally_feature_range, attention_dim
+                ally_feature_range, attention_size
             )
             # TODO get the obs_dim_after_attention here beautifully
-            obs_dim_after_attention = self._self_attention(
+            obs_shape_after_attention = self._self_attention(
                 # torch.randn(
                 #     1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
                 #           ((self_feature_range[1] - self_feature_range[0])*2) + 1, obs_dim
                 # )
                 torch.randn(
-                    1, 1, agent_num, obs_dim
+                    1, 1, agent_num, obs_shape
                 )
             ).shape[-1]
             self._q_network = FCRDiscreteNet(obs_shape_after_attention, action_shape, hidden_size_list)
@@ -493,7 +494,7 @@ class CollaQ(nn.Module):
             agent_q[action_mask == 0.0] = - 9999999
             action = agent_q.argmax(dim=-1)
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
-        if self.use_mixer:
+        if self.mixer:
             global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)
         else:

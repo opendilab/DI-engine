@@ -914,10 +914,6 @@ class SMACEnv(SC2Env, BaseEnv):
                 return agent_obs, agent_obs_alone, agent_obs_alone_padding
             else:
                 return agent_obs
-<<<<<<< HEAD
-=======
-
->>>>>>> master
         else:
             agent_obs = dict(
                 move_feats=move_feats,
@@ -1037,10 +1033,6 @@ class SMACEnv(SC2Env, BaseEnv):
             agent_id_feats = self.n_agents
         return move_feats + enemy_feats + own_feats + agent_id_feats
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
     def get_state(self, is_opponent=False):
         if self.obs_instead_of_state:
             obs_concat = np.concatenate(self.get_obs(), axis=0).astype(np.float32)
@@ -1299,7 +1291,7 @@ class SMACEnv(SC2Env, BaseEnv):
                     'agent_alone_padding_state': (agent_num, self.get_obs_size(is_opponent)),
                     'global_state': (self.get_state_size(is_opponent),),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None, None, None
+                }, None,
             )
         else:
             obs_space=T(
@@ -1307,7 +1299,7 @@ class SMACEnv(SC2Env, BaseEnv):
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
                     'global_state': (self.get_state_size(is_opponent),),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None, None, None
+                }, None,
             )
         return self.SMACEnvInfo(
             agent_num=agent_num,

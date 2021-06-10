@@ -1407,6 +1407,5 @@ policy_*
 /data
 .vscode
 *total_config.py
-**/exp
-**/benchmark
-*/app_zoo/smac/entry/smac_qmix_default_config_*
+*ckpt*
+*log*

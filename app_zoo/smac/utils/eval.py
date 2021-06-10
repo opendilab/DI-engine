@@ -64,6 +64,6 @@ def eval(
 
 if __name__ == "__main__":
     path = '/mnt/lustre/niuyazhe/code/gitlab/nerveX/app_zoo/smac/config/map155_pretrain/ckpt_BaseLearner_Mon_May_31_14_44_23_2021/iteration_12500.pth.tar'
-    cfg = './smac_qmix_config.py'
+    cfg = './smac_3s5z_qmix_config.py'
     state_dict = torch.load(path, map_location='cpu')
     eval(cfg, seed=0, state_dict=state_dict)

@@ -21,16 +21,16 @@ class COMAPolicy(Policy):
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
-        on_policy=True,
+        on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            update_per_collect=1,
+            update_per_collect=20,
             batch_size=32,
             learning_rate=0.0005,
-            weight_decay=0.00001,
+            weight_decay=0.0001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -40,16 +40,18 @@ class COMAPolicy(Policy):
             discount_factor=0.99,
             # (float) the trade-off factor of td-lambda, which balances 1step td and mc(nstep td in practice)
             td_lambda=0.8,
-            # (float) the loss weight of value network, policy network weight is set to 1
-            value_weight=1.0,
-            # (float) the loss weight of entropy regularization, policy network weight is set to 1
+            # (float) the loss weight of policy network network
+            policy_weight=0.001,
+            # (float) the loss weight of value network
+            value_weight=1,
+            # (float) the loss weight of entropy regularization
             entropy_weight=0.01,
         ),
         collect=dict(
             # (int) collect n_episode data, train model n_iteration time
-            n_episode=6,
+            n_episode=32,
             # (int) unroll length of a train iteration(gradient update step)
-            unroll_len=16,
+            unroll_len=20,
         ),
         eval=dict(),
         other=dict(
@@ -57,13 +59,13 @@ class COMAPolicy(Policy):
                 type='exp',
                 start=0.5,
                 end=0.01,
-                decay=100000,
+                decay=200000,
             ),
             replay_buffer=dict(
                 # (int) max size of replay buffer
-                replay_buffer_size=64,
+                replay_buffer_size=5000,
                 # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer
-                max_use=100,
+                max_use=10,
             ),
         ),
     )
@@ -92,6 +94,7 @@ class COMAPolicy(Policy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
         self._lambda = self._cfg.learn.td_lambda
+        self._policy_weight = self._cfg.learn.policy_weight
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
 
@@ -106,13 +109,13 @@ class COMAPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -215,7 +218,7 @@ class COMAPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -280,7 +283,7 @@ class COMAPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()

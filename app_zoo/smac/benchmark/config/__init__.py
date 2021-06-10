@@ -1,0 +1,6 @@
+from .smac_3s5z_qmix_config import smac_3s5z_qmix_main_config, smac_3s5z_qmix_create_config
+from .smac_3s5z_collaq_config import smac_3s5z_collaq_main_config, smac_3s5z_collaq_create_config
+from .smac_3s5z_coma_config import smac_3s5z_coma_main_config, smac_3s5z_coma_create_config
+
+from .smac_5m6m_qmix_config import smac_5m6m_qmix_main_config, smac_5m6m_qmix_create_config
+from .smac_5m6m_collaq_config import smac_5m6m_collaq_main_config, smac_5m6m_collaq_create_config

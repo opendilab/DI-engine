@@ -119,6 +119,7 @@ map_param_registry = {
         "b_race": "Z",
         "unit_type_bits": 2,
         "map_type": "infestor_viper"
+    },
     "3s5z_vs_3s6z": {
         "n_agents": 8,
         "n_enemies": 9,
