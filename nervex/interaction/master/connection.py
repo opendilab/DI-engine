@@ -10,7 +10,7 @@ from requests.exceptions import RequestException
 from .base import _BEFORE_HOOK_TYPE, _AFTER_HOOK_TYPE, _ERROR_HOOK_TYPE
 from .task import Task, _task_complete, _task_fail
 from ..base import random_token, ControllableContext, get_http_engine_class, get_values_from_response
-from ..config import DEFAULT_CHANNEL, DEFAULT_SLAVE_PORT
+from ..config import DEFAULT_CHANNEL, DEFAULT_SLAVE_PORT, DEFAULT_REQUEST_RETRIES, DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import get_slave_exception_by_error
 
 _COMPLETE_TRIGGER_NAME = '__TASK_COMPLETE__'
@@ -47,7 +47,9 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
         https: bool = False,
         channel: Optional[int] = None,
         my_address: Optional[str] = None,
-        token: Optional[str] = None
+        token: Optional[str] = None,
+        request_retries: Optional[int] = None,
+        request_retry_waiting: Optional[float] = None,
     ):
         # meta info part
         self.__channel = channel or DEFAULT_CHANNEL
@@ -62,6 +64,8 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
             },
             http_error_gene=get_slave_exception_by_error,
         )()(host, port or DEFAULT_SLAVE_PORT, https)
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
+        self.__request_retry_waiting = max(request_retry_waiting or DEFAULT_REQUEST_RETRY_WAITING, 0.0)
 
         # threading part
         self.__lock = Lock()
@@ -73,7 +77,13 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
         self.__init_triggers()
 
     def __request(self, method: str, path: str, data: Optional[Mapping[str, Any]] = None) -> requests.Response:
-        return self.__http_engine.request(method, path, data)
+        return self.__http_engine.request(
+            method,
+            path,
+            data,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     @property
     def is_connected(self) -> bool:
