@@ -60,13 +60,9 @@ Implementations
 
 The default config is defined as follows:
 
-.. code:: 
-
-   * TODO
+    .. autoclass:: nervex.policy.coma.COMAPolicy
 
 The network interface COMA used is defined as follows:
-
-.. code:: 
 
    * TODO
 

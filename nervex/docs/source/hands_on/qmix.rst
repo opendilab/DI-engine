@@ -63,7 +63,7 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-    * TODO
+    .. autoclass:: nervex.policy.qmix.QMIXPolicy
 
 The network interface QMIX used is defined as follows:
 
