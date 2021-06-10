@@ -4,9 +4,10 @@ Best Practice
 .. toctree::
     :maxdepth: 3
 
-    IL
     nstep_td
-    registry
+    priority
     log
+    IL
     IRL
+    registry
     customization1_dynamic_update_step
