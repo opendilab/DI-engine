@@ -23,7 +23,6 @@ class GfootballEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self.save_replay = cfg.get("save_replay", False)
-        # self.env_name = cfg.get("env_name", "11_vs_11_kaggle")
         self.gui = cfg.get("render", False)
         self._obs_helper = FullObs(cfg)
         self._action_helper = GfootballSpAction(cfg)
@@ -49,9 +48,11 @@ class GfootballEnv(BaseEnv):
             render=self.gui,
             number_of_right_players_agent_controls=self.right_role_num
         )
-        print(f'self_evalut:{self.is_evaluator}, self.numright:{self.right_role_num}')
         self._launch_env_flag = True
-        self._final_eval_reward = [0,0]
+        if self.is_evaluator:
+            self._final_eval_reward = 0
+        else:
+            self._final_eval_reward = [0,0]
 
     def reset(self) -> np.ndarray:
         if not self._launch_env_flag:
@@ -79,7 +80,6 @@ class GfootballEnv(BaseEnv):
 
     def step(self, action) -> 'GfootballEnv.timestep':
         action = to_ndarray(action)
-        # action = self.process_action(action)  # process
         raw_obs, raw_rew, done, info = self._env.step(action)
         if self.is_evaluator:
             raw_obs = raw_obs[0]
@@ -87,13 +87,14 @@ class GfootballEnv(BaseEnv):
             obs = to_ndarray(self._encoder.encode(raw_obs))
             rew = [rew,rew]
             obs = [obs,obs]
+            self._final_eval_reward += raw_rew
         else:
             rew = GfootballEnv.calc_reward(raw_rew[0], self._prev_obs, raw_obs[0])
             rew_oppo = GfootballEnv.calc_reward(raw_rew[1], self._prev_obs, raw_obs[1])
             rew = [rew, rew_oppo]
             obs = [to_ndarray(self._encoder.encode(raw_obs[0])),to_ndarray(self._encoder.encode(raw_obs[1]))]
-        self._final_eval_reward[0] += raw_rew[0]
-        self._final_eval_reward[1] += raw_rew[1]
+            self._final_eval_reward[0] += raw_rew[0]
+            self._final_eval_reward[1] += raw_rew[1]
 
         if done:
             info[0]['final_eval_reward'] = self._final_eval_reward[0]
