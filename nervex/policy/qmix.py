@@ -18,6 +18,32 @@ class QMIXPolicy(Policy):
     Overview:
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
             you can view the paper in the following link <https://arxiv.org/abs/1803.11485>_
+    Interface:
+        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
+            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
+            _reset_eval, _get_train_sample, default_model
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      qmix           | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     True           | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        5  | ``priority_``      bool     False          | Whether use Importance Sampling        | IS weight
+           | ``IS_weight``                              | Weight to correct biased update.
+        6  | ``learn.update_``  int      20             | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        7  | ``learn.target_``   float    0.001         | Target network update momentum         | between[0,1]
+           | ``update_theta``                           | parameter.
+        8  | ``learn.discount`` float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``_factor``                                | gamma                                  | reward env
+        == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -124,10 +150,8 @@ class QMIXPolicy(Policy):
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
-
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
-
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
@@ -145,10 +169,17 @@ class QMIXPolicy(Policy):
         Overview:
             Forward and backward function of learn mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least \
-                ['obs', 'next_obs', 'action', 'reward', 'next_obs', 'prev_state', 'done']
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``next_obs``, ``action``, ``reward``, ``weight``, ``prev_state``, ``done``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``
+                - cur_lr (:obj:`float`): Current learning rate
+                - total_loss (:obj:`float`): The calculated loss
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -183,15 +214,38 @@ class QMIXPolicy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset learn model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        r"""
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
@@ -220,6 +274,7 @@ class QMIXPolicy(Policy):
             Forward function for collect mode with eps_greedy
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
         Returns:
             - data (:obj:`dict`): The collected data
         """
@@ -237,6 +292,13 @@ class QMIXPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset collect model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._collect_model.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -249,7 +311,8 @@ class QMIXPolicy(Policy):
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                 (here 'obs' indicates obs after env step).
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`dict`): Dict type transition data, including 'obs', 'next_obs', 'prev_state',\
+                'action', 'reward', 'done'
         """
         transition = {
             'obs': obs,
@@ -280,7 +343,7 @@ class QMIXPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function for evaluation mode, similar to ``self._forward_collect``.
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
@@ -300,6 +363,13 @@ class QMIXPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset eval model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._eval_model.reset(data_id=data_id)
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
@@ -314,4 +384,13 @@ class QMIXPolicy(Policy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demostration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For QMIX, ``nervex.model.qmix.qmix``
+        """
         return 'qmix', ['nervex.model.qmix.qmix']
