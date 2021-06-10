@@ -50,3 +50,4 @@ conv1d_config = dict(
 
 conv1d_default_config = EasyDict(conv1d_config)
 main_config = conv1d_default_config
+create_config = dict()

@@ -29,19 +29,13 @@ class GfootballEnv(BaseEnv):
         self._action_helper = GfootballSpAction(cfg)
         self._launch_env_flag = False
         self._encoder = FeatureEncoder()
-        self._make_env()
-        
-        is_evaluator = self._cfg.get("is_evaluator", False)
-        if is_evaluator:
+        self.is_evaluator = self._cfg.get("is_evaluator", False)
+        if self.is_evaluator:
             self.env_name = "11_vs_11_hard_stochastic"
             self.right_role_num = 0
         else:
             self.env_name = "11_vs_11_kaggle"
             self.right_role_num = 1
-
-
-
-        # self._init_flag = False
 
     def _make_env(self):
         self._env = football_env.create_environment(
@@ -55,24 +49,25 @@ class GfootballEnv(BaseEnv):
             render=self.gui,
             number_of_right_players_agent_controls=self.right_role_num
         )
+        print(f'self_evalut:{self.is_evaluator}, self.numright:{self.right_role_num}')
         self._launch_env_flag = True
-        self._final_eval_reward = 0
+        self._final_eval_reward = [0,0]
 
     def reset(self) -> np.ndarray:
         if not self._launch_env_flag:
-            self._env = self._make_env()
+            self._make_env()
             self._init_flag = True
         self._env.reset()
         obs = self._env.observation()
         if self.is_evaluator:
-            self._prev_obs = obs
-            obs = self._encoder.encode(obs)
-            return {'obs': obs}
+            self._prev_obs = obs[0]
+            obs = self._encoder.encode(obs[0])
+            return [obs, obs]
         else:
             self._prev_obs, self.prev_obs_opponent = obs
             obs_ = self._encoder.encode(obs[0])
             obs_opponent = self._encoder.encode(obs[1])
-            return {'obs': obs_, 'obs_opponent': obs_opponent}
+            return [obs_, obs_opponent]
 
     def close(self) -> None:
         if self._launch_env_flag:
@@ -87,19 +82,24 @@ class GfootballEnv(BaseEnv):
         # action = self.process_action(action)  # process
         raw_obs, raw_rew, done, info = self._env.step(action)
         if self.is_evaluator:
+            raw_obs = raw_obs[0]
             rew = GfootballEnv.calc_reward(raw_rew, self._prev_obs, raw_obs)
             obs = to_ndarray(self._encoder.encode(raw_obs))
+            rew = [rew,rew]
+            obs = [obs,obs]
         else:
             rew = GfootballEnv.calc_reward(raw_rew[0], self._prev_obs, raw_obs[0])
-            obs = to_ndarray(self._encoder.encode(raw_obs[0]))
-            done = done[0]
-            info = info[0]
-        self._final_eval_reward += rew
+            rew_oppo = GfootballEnv.calc_reward(raw_rew[1], self._prev_obs, raw_obs[1])
+            rew = [rew, rew_oppo]
+            obs = [to_ndarray(self._encoder.encode(raw_obs[0])),to_ndarray(self._encoder.encode(raw_obs[1]))]
+        self._final_eval_reward[0] += raw_rew[0]
+        self._final_eval_reward[1] += raw_rew[1]
 
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
+            info[0]['final_eval_reward'] = self._final_eval_reward[0]
+            info[1]['final_eval_reward'] = self._final_eval_reward[1]
 
-        return GfootballEnv.timestep(obs=obs, reward=rew, done=done, info=info)
+        return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
         info_data = {
