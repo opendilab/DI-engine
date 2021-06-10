@@ -126,7 +126,7 @@ State :math:`s` 是对环境的global性描述，observation :math:`o` 是对环
 
 :math:`Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]`
 
-*Bellman Optimality Equations**，可以得到最优状态值函数与行为价值函数的贝尔曼方程。
+**Bellman Optimality Equations**，可以得到最优状态值函数与行为价值函数的贝尔曼方程。
 
 :math:`V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]`
 
@@ -175,7 +175,7 @@ Model的定义可以用数学表示为状态转移分布和奖励函数组成的
 
 Model的学习可以根据模型构造的不同，延伸出不同的算法。
 
-Model-based的策略优化：一种经典的方法是，先通过某种策略采样大量的数据，再学习一个模型来最小化误差，运用学到的模型来进行planning获取新的数据，循环上述的步骤。正是通过在learned model基础上做planning，model-based才提高了整个强化学习算法迭代的效率
+Model-based的策略优化：一种经典的方法是，先通过某种策略采样大量的数据，再学习一个模型来最小化误差，运用学到的模型来进行planning获取新的数据，循环上述的步骤。正是通过在learned model基础上做planning，model-based才提高了整个强化学习算法迭代的效率。
 
 
 Q&A
