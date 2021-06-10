@@ -152,7 +152,7 @@ def test_impala():
         assert False, "pipeline fail"
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_her_dqn():
     try:
         bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
@@ -210,7 +210,6 @@ def test_atoc():
 
 
 @pytest.mark.unittest
-@pytest.mark.ppg
 def test_ppg():
     cartpole_ppg_config.policy.use_cuda = False
     try:

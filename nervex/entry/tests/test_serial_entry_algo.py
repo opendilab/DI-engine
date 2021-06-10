@@ -208,10 +208,10 @@ def test_iqn():
         f.write("17. iqn\n")
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_her_dqn():
     try:
-        ppg_main(bitflip_her_dqn_config, seed=0)
+        bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -221,7 +221,7 @@ def test_her_dqn():
 @pytest.mark.algotest
 def test_ppg():
     try:
-        bitflip_dqn_main(cartpole_ppg_config, seed=0)
+        ppg_main(cartpole_ppg_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
