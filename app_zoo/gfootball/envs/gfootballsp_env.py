@@ -23,6 +23,7 @@ class GfootballEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self.save_replay = cfg.get("save_replay", False)
+        # self.env_name = cfg.get("env_name", "11_vs_11_kaggle")
         self.gui = cfg.get("render", False)
         self._obs_helper = FullObs(cfg)
         self._action_helper = GfootballSpAction(cfg)
@@ -80,6 +81,7 @@ class GfootballEnv(BaseEnv):
 
     def step(self, action) -> 'GfootballEnv.timestep':
         action = to_ndarray(action)
+        # action = self.process_action(action)  # process
         raw_obs, raw_rew, done, info = self._env.step(action)
         if self.is_evaluator:
             raw_obs = raw_obs[0]
@@ -97,8 +99,11 @@ class GfootballEnv(BaseEnv):
             self._final_eval_reward[1] += raw_rew[1]
 
         if done:
-            info[0]['final_eval_reward'] = self._final_eval_reward[0]
-            info[1]['final_eval_reward'] = self._final_eval_reward[1]
+            if self.is_evaluator:
+                info['final_eval_reward'] = self._final_eval_reward
+            else:
+                info[0]['final_eval_reward'] = self._final_eval_reward[0]
+                info[1]['final_eval_reward'] = self._final_eval_reward[1]
 
         return BaseEnvTimestep(obs, rew, done, info)
 
