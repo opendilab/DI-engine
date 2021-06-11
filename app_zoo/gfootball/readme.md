@@ -67,10 +67,15 @@ bots目前包括
 
 ### conv1d
 
-link：https://drive.google.com/file/d/1O1I3Mcjnh9mwAVDyqhp5coksTDPqMZmG/view?usp=sharing
+对同队队友采用conv1d进行特征提取的模型，并使用LSTM。在此模型上使用selfplay进行训练100k episode可以得到对战built-in hard AI 80%以上的胜率。提供模型的连接如下：
+https://drive.google.com/file/d/1O1I3Mcjnh9mwAVDyqhp5coksTDPqMZmG/view?usp=sharing
 
 ## Uses
 
 ### Imitation learning
 
-目前编写了模仿学习相关入口，直接以iql模型，以Kaggle比赛第五名的RL模型为标签进行监督学习，具体请见app_zoo/gfootball/entry下相关config入口文件。
+目前编写了模仿学习相关入口，直接以iql模型，以Kaggle比赛第五名的RL模型为标签进行监督学习，具体请见`app_zoo/gfootball/entry`下相关config入口文件。
+
+### Self Play PPO 
+
+编写了使用Selfplay的PPO算法进行训练的入口，使用nerveX提供的league模块和PPO算法。具体请见`app_zoo/gfootball/entry/parallel/gfootball_ppo_parallel_config.py`入口。
