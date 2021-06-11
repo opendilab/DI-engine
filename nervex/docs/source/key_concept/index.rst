@@ -131,57 +131,146 @@ TBD
 
 Config
 ~~~~~~~~~
-Config模块是用户最常用到的模块之一，它是一套配置系统，包含了常见需要配置所有参数。它的功能非常强大，小到配置一个常见的超参数，大到配置需要的算法类型，它都可以做到。为了减少用户写config的成本，我们设计了一套基于boble
-fish思想的Config模块，总的设计图如下
+
+key concept
+^^^^^^^^^^^^
+
+The Config module is one of the most commonly used modules by users. It
+is a configuration system that contains all the common parameters that
+need to be configured. Its function is very powerful, as small as
+configuring a common hyperparameter, as large as configuring the
+required algorithm type, it can do it all. In order to reduce the cost
+for users to write config, we designed a Config modules based on the
+idea of bubble fish. The overall design diagram is as follows
 
 .. image:: images/config.png
    :alt: 
 
-Config主要由两大类config组成，即\ *Policy*\ 和\ *Env*\ 的config.
-我们将config的构建过程类比于构建一颗树的过程。
+Config is mainly composed of two types of config, namely *Policy* and
+*Env* config. We compare the construction process of config to the
+process of building a tree.
 
-从下往上我们是在构建整颗树，即\ *compile*\ 过程。在\ *compile*\ 过程中，我们会先拿到各个模块的default
-config比如Learner、Collector等，有了各个子模块的default
-config之后，我们会构建policy的config和env的config，再和user
-config进行合并，得到最后的config。从上往下我们是在实例化整颗树，实例化我们用到的各个模块，即\ *initialization*\ 过程，从policy和env开始，然后到各个子模块。当这颗树构建完成之后，我们就完成了我们的准备工作，就可以开始启动整个RL过程了。
+From bottom to top we are building the entire tree, which is the
+*compile* process. In the *compile* process, we will first get the
+default config of each module such as Learner, Collector, etc. After
+having the default config of each sub-module, we will build the policy
+config and env config, and then merge with the user config , Get the
+final config. From top to bottom, we are instantiating the entire tree,
+instantiating the various modules we use, that is, the *initialization*
+process, starting with policy and env, and then to each submodule. When
+the tree is constructed, we have completed our preparations and can
+start the entire RL process.
 
-为了减少用户写config的麻烦，尽量复用之前的参数设置，我们将config分为两个部分，一个部分是\ *default
-config*\ ，这是Nervex推荐的默认config，给常见的key设置了默认值；另外一部分是\ *user
-config*\ ，这是用户自定义的config。所以用户只需要关注自己想要修改的那部分config就行了，其他config都可以复用之前的经验值。
+In order to reduce the trouble for users to write config and reuse the
+previous parameter settings as much as possible, we divide config into
+two parts, one part is *default config*, which is the default config
+recommended by Nervex, which sets default values for common keys; The
+other part is *user config*, which is a user-defined config. So users
+only need to pay attention to the part of config they want to modify,
+and other configs can reuse previous experience values.
 
-关于一些常见key的具体含义和默认值如下表，与policy相关的key可以查看文档中\ `Hands On RL <../hands_on/index.html>`__\ 部分
+NerveX recommends using a config ``dict`` defined in a python file as
+input.
 
-=== ======= =============
-Key Meaning Default Value
-=== ======= =============
-A           
-b           
-c           
-d           
-e           
-=== ======= =============
+.. code:: python
+
+   cartpole_dqn_default_config = dict(
+       env=dict(
+           manager=dict(...),
+           ...
+       ),
+       policy=dict(
+           model=dict(...),
+           collect=dict(...),
+           learn=dict(...),
+           eval=dict(...),
+           other=dict(
+               replay_buffer=dict(),
+               ...
+           ),
+           ...
+       ),
+   )
+
+config overview
+^^^^^^^^^^^^^^^^
+
+The specific meanings and default values of some common keys are shown
+in the table below. For policy-related keys, please refer to the
+document `Hans On
+RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/hands_on/index.html>`__
+section.
+
++-------------------------------+-------------------------------------+
+| Key                           | Meaning                             |
++===============================+=====================================+
+| policy.batch_size             | (int) the number of data for a      |
+|                               | train iteration                     |
++-------------------------------+-------------------------------------+
+| policy.update\ *per*\ collect | (int) collect n\ *sample data,      |
+|                               | train model update*\ per_collect    |
+|                               | times                               |
++-------------------------------+-------------------------------------+
+| policy.n_sample               | (int) collect n\ *sample data,      |
+|                               | train model n*\ iteration times     |
++-------------------------------+-------------------------------------+
+| policy.nstep                  | (int) how many steps are used when  |
+|                               | calculating TD-error.               |
++-------------------------------+-------------------------------------+
+| policy.cuda                   | (bool) whether to use cuda when     |
+|                               | training                            |
++-------------------------------+-------------------------------------+
+| policy.priority               | (bool) whether to use priority      |
+|                               | replay buffer                       |
++-------------------------------+-------------------------------------+
+| policy.on_policy              | (bool) whether to use on policy     |
+|                               | training                            |
++-------------------------------+-------------------------------------+
+| env.stop_value                | (int) when reward exceeds           |
+|                               | env.stop_value, the training will   |
+|                               | exits                               |
++-------------------------------+-------------------------------------+
+| env.collector\ *env*\ num     | (int) number of env to collect data |
+|                               | when training                       |
++-------------------------------+-------------------------------------+
+| env.evaluator\ *env*\ num     | (int) number of env to collect data |
+|                               | when evaluating                     |
++-------------------------------+-------------------------------------+
+
+Rules when merging user-specific config and predefined config:
+
+-  User-specific config is the highest priority, which means user's
+   specificification will cover the default config when conflict occurs.
+
+-  Some important keys must be specified, ``env.stop_value``,
+   ``policy.on_policy``, and ``policy.unroll_len``, for example.
+
+-  The merged config will be saved to ``formatted_total_config.py`` be
+   default.
+
+.. _header-n125:
 
 How to customize?
 ^^^^^^^^^^^^^^^^^^
 
-想象如下一个场景：我们想要在SAC中取消用\ ``auto_alpha``\ ，那我们如何做到呢？这个问题可以用上面提到的\ *user
-config*\ 来解决。
+Imagine the following scenario: We want to set ``nstep`` mentioned above
+to 3, how do we do it? This problem can be solved with the *user config*
+mentioned above.
 
-User
-config我们默认采用\ ``.py``\ 文件来编写，整个config是一个dictionary，即python中的\ ``dict``\ 。所以为了实现\ ``auto_alpha``\ ，假设user
-config的文件名为\ ``sac_user_config.py``\ ，在里面加上如下代码即可
+User config is written in ``.py`` file by default, and the whole config
+is a dictionary, that is, ``dict`` in python. So in order to set
+``nstep``, suppose the file name of user config is
+``dqn_user_config.py``, add the following code inside.
 
 .. code:: python
 
-   policy=dict(learn=dict(is_auto_alpha=False))
+   policy=dict(learn=dict(nstep=3))
 
-编写完user config之后，我们可以执行
+After writing the user config, we can run our DQN experiment according
+to `Quick
+Start <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html>`__.
 
-.. code:: shell
 
-   nervex -m serial -c sac_user_config.py -s 0
-
-来运行基于SAC的实验.
 
 Worker-Collector
 ~~~~~~~~~~~~~~~~~~
