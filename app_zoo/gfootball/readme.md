@@ -69,7 +69,7 @@ bots目前包括
 
 对同队队友采用conv1d进行特征提取的模型，并使用LSTM。在此模型上使用selfplay进行训练100k episode可以得到对战built-in hard AI 80%以上的胜率。提供模型的连接如下：https://drive.google.com/file/d/1O1I3Mcjnh9mwAVDyqhp5coksTDPqMZmG/view?usp=sharing
 
-我们同时提供了使用此模型训练得到的足球AI与游戏内置的AI对战一局的录像，模型以4-0战胜了内置AI。该录像的连接如下：
+我们同时提供了使用此模型训练得到的足球AI与游戏内置的AI对战一局的录像，左侧队伍由我们训练得到的模型控制，以4-0战胜了内置AI。该录像的连接如下：
 https://drive.google.com/file/d/1n-_bF63IQ49b-p0nEZt_NPTL-dmNkoKs/view?usp=sharing
 
 ## Uses
