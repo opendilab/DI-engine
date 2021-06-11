@@ -16,11 +16,6 @@ from app_zoo.classic_control.bitflip.envs import BitFlipEnv
 from app_zoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
 
-# Get nerveX form env class
-def wrapped_cartpole_env():
-    return NervexEnvWrapper(gym.make('CartPole-v0'))
-
-
 def main(cfg, seed=0):
     cfg = compile_config(
         cfg,
@@ -77,13 +72,13 @@ def main(cfg, seed=0):
         replay_buffer.push(new_episode, cur_collector_envstep=collector.envstep)
         # Training
         for i in range(cfg.policy.learn.update_per_collect):
-            train_episode = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            train_episode = replay_buffer.sample(her_cfg.episode_size, learner.train_iter)
             if train_episode is not None:
                 train_data = []
                 if her_cfg is not None:
                     her_episodes = []
                     for e in train_episode:
-                        her_episodes.extend(her_model.estimate(e))
+                        her_episodes.extend(her_model.estimate(e, her_cfg.sample_per_episode))
                     train_episode.extend(her_episodes)
                 for e in train_episode:
                     train_data.extend(policy.collect_mode.get_train_sample(e))

@@ -20,7 +20,9 @@ bitflip_her_dqn_config = dict(
         ),
         learn=dict(
             update_per_collect=1,
-            batch_size=12,
+            # batch_size = episode_size * sample_per_episode
+            # You can refer to cfg.other.her to learn about `episode_size` and `sample_per_episode`
+            batch_size=64,
             learning_rate=0.0001,
             target_update_freq=500,
         ),
@@ -41,7 +43,11 @@ bitflip_her_dqn_config = dict(
             ),
             her=dict(
                 her_strategy='future',
-                her_replay_k=2,
+                # her_replay_k=2,  # `her_replay_k` is not used in episodic HER
+                # Sample how many episodes in each train iteration.
+                episode_size=16,
+                # Generate how many samples from one episode.
+                sample_per_episode=4,
             ),
         ),
     ),
