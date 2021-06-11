@@ -6,8 +6,6 @@ has an influence on the result of the algorithm.
 To replicate other people's experiments, we
 need to use the same random seed.
 
-Random seed in Nervex
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Firstly, in the each entry function, we have a global
 random ``seed`` parameter. For example,
@@ -32,7 +30,7 @@ the entry function to set the seed of all used package.
         if use_cuda and torch.cuda.is_available():
             torch.cuda.manual_seed(seed)
 
-For collect or evaluator envs, If only one seed is given,
+For collector or evaluator envs, If only one seed is given,
 nervex will generate an increasing list of random seeds as the seeds for that set of envs.
 
 .. code:: python
@@ -53,8 +51,12 @@ nervex will generate an increasing list of random seeds as the seeds for that se
         self._env_seed = seed
         self._env_dynamic_seed = dynamic_seed
 
-To make env more diversity, nerveX also support ``dynamic_seed`` for each concrete env.
-As in ``nervex/envs/env/nervex_env_wrapper.py``, for each env, we add a random number to the original seed.
+To make env more diversity, nerveX also supports ``dynamic_seed`` for each concrete env running several episodes.
+As is shown in ``nervex/envs/env/nervex_env_wrapper.py``, first, nerveX sets env seed when it resets, and if ``dynamic_seed`` is True, nerveX would add a random integer number to the original seed to make each
+episode different. And the reproducibility can be ensured by setting the seed of this random generator(usually numpy.random).
+
+By default, we enable dynamic_seed when collecting data while disable it in evaluation, in order to collect more diverse training data, which could improve final performance but slow down converge speed a bit and 
+keep evaluation consistency.
 
 .. code:: python
 
@@ -71,8 +73,9 @@ As in ``nervex/envs/env/nervex_env_wrapper.py``, for each env, we add a random n
     When using multiple processes, the random seed
     of the child process will not inherit the seed of the
     parent process and will remain the system default seed.
-    As shown in ``app_zoo/atari/envs/atari_env.py#L156``,
-    we solve this problem by resetting the seeds in each env.
+    As is shown in ``app_zoo/atari/envs/atari_env.py#L156``,
+    we solve this problem by resetting the related seeds in each env.
+    Please care more about this.
 
     .. code:: python
 

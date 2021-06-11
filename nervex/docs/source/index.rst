@@ -49,11 +49,11 @@ If you want to deeply customize your algorithm and application with nerveX, also
    installation/index
    quick_start/index
    key_concept/index
-   best_practice/index
    hands_on/index
+   best_practice/index
+   api_doc/index
 
    faq/index
-   api_doc/index
    feature/index
 
 .. toctree::

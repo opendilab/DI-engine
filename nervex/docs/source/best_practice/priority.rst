@@ -74,22 +74,21 @@ Others
 
 1. Calculate initial priority in collectors
 
-   Usually, priority is initialized when this data is inserted into replay buffer with default value or the maximum history priority value, nerveX also supports priority calculation and initialization in collector:
+    Usually, priority is initialized when this data is inserted into replay buffer with default value or the maximum history priority value, nerveX also supports priority calculation and initialization in collector:
 
-      -  Method ``policy._forward_collect`` will calculate priority as well，and return the key-value pair.
-      -  Method ``policy._process_transition`` will put ``model_output['priority']`` into returned data, as its initial priority.
+      - Method ``policy._forward_collect`` will calculate priority as well，and return the key-value pair.
+      - Method ``policy._process_transition`` will put ``model_output['priority']`` into returned data, as its initial priority.
 
+    .. code:: python
 
-      .. code:: python
-
-         def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
             transition = {
-               'obs': obs,
-               'next_obs': timestep.obs,
-               'action': model_output['action'],
-               'priority': model_output['priority'],  # add this one
-               'reward': timestep.reward，
-               'done': timestep.done,
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': model_output['action'],
+                'priority': model_output['priority'],  # add this one
+                'reward': timestep.reward,
+                'done': timestep.done,
             }
             return transition
 

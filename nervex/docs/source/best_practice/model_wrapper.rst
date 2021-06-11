@@ -1,5 +1,8 @@
+How to Customize Model Wrapper
+===============================
+
 Function of Model Wrapper
-=========================
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Usually the output of a reinforcement learning model is value, Q or
 action logits. Nervex also requires customized model to output part 
@@ -27,8 +30,8 @@ NerveX provides the following model wrapper:
 - TargetNetworkWrapper. Add a target network for base model, used in DQN
   and many other RL algorithms.
 
-To customize a model wrapper
-============================
+Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Users should follow the following steps to customize a model wrapper:
 
@@ -128,6 +131,7 @@ The dataflow of this process is as follows:
 
         .. image:: model_hiddenwrapper_img.png
             :align: center
+            :scale: 60%
 
 Other examples of model wrapper can be found in
 ``nervex/model/wrappers/model_wrappers.py``, you can find more details

@@ -1,5 +1,4 @@
-
-IRL Training Example
+Inverse RL
 ============================================
 Generally, an IRL training process alternates between three stages. In
 each round:
@@ -16,8 +15,11 @@ propcess of RL. Specifically:
    3. Update the rewards of each batch with the reward model before each step of RL training.
 
 
-`Code(Gail Example) <../../../entry/tests/test_serial_entry_reward_model.py>`_: 
+Example(GAIL)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`link <../../../entry/tests/test_serial_entry_reward_model.py>`_: 
+
 The key code of training a DQN policy with GAIL on CartPole is provided
 here:
 
