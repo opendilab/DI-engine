@@ -17,6 +17,14 @@ from .utils import parallel_transform, parallel_transform_slurm, parallel_transf
 
 
 class Config(object):
+    r"""
+    Overview:
+        Base class for cpnfig.
+    Interface:
+        __init__, file_to_dict
+    Property:
+        cfg_dict
+    """
 
     def __init__(
             self,
@@ -24,6 +32,14 @@ class Config(object):
             cfg_text: Optional[str] = None,
             filename: Optional[str] = None
     ) -> None:
+        """
+        Overview:
+            Init method. Create config including dict type config and text type config.
+        Arguments:
+            - cfg_dict (:obj:`Optional[dict]`): dict type config
+            - cfg_text (:obj:`Optional[str]`): text type config
+            - filename (:obj:`Optional[str]`): config file name
+        """
         if cfg_dict is None:
             cfg_dict = {}
         if not isinstance(cfg_dict, dict):
@@ -41,11 +57,28 @@ class Config(object):
 
     @staticmethod
     def file_to_dict(filename: str) -> 'Config':  # noqa
+        """
+        Overview:
+            Read config file and create config.
+        Arguments:
+            - filename (:obj:`Optional[str]`): config file name.
+        Returns:
+            - cfg_dict (:obj:`Config`): config class
+        """
         cfg_dict, cfg_text = Config._file_to_dict(filename)
         return Config(cfg_dict, cfg_text, filename=filename)
 
     @staticmethod
     def _file_to_dict(filename: str) -> Tuple[dict, str]:
+        """
+        Overview:
+            Read config file and convert the config file to dict type config and text type config.
+        Arguments:
+            - filename (:obj:`Optional[str]`): config file name.
+        Returns:
+            - cfg_dict (:obj:`Optional[dict]`): dict type config
+            - cfg_text (:obj:`Optional[str]`): text type config
+        """
         filename = osp.abspath(osp.expanduser(filename))
         # TODO check exist
         # TODO check suffix
@@ -95,7 +128,7 @@ def save_config_yaml(config_: dict, path: str) -> NoReturn:
     Overview:
         save configuration to path
     Arguments:
-        - config (:obj:`dict`): Config data
+        - config (:obj:`dict`): Config dict
         - path (:obj:`str`): Path of target yaml
     """
     config_string = json.dumps(config_)
@@ -108,7 +141,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     Overview:
         save configuration to python file
     Arguments:
-        - config (:obj:`dict`): Config data
+        - config (:obj:`dict`): Config dict
         - path (:obj:`str`): Path of target yaml
     """
     # config_string = json.dumps(config_, indent=4)
@@ -120,7 +153,18 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
         f.write('exp_config=' + config_string)
 
 
-def read_config(cfg: str, direct=False) -> Tuple[dict, dict]:
+def read_config(cfg: str, direct: bool = False) -> Tuple[dict, dict]:
+    """
+    Overview:
+        read configuration from python file
+    Arguments:
+        - cfg (:obj:`str`): Path of python file
+        - direct (:obj:`bool`): Read config directly if direct is true or divide config into main_config,\
+            create_config and system_config if direct is false
+    Returns:
+        - cfg (:obj:`Tuple[dict, dict]`): Config dict, such as [main_config, create_config, system_config]\
+            or main_config, create_config, system_config
+    """
     suffix = cfg.split('.')[-1]
     if suffix == 'py':
         cfg = Config.file_to_dict(cfg).cfg_dict
@@ -136,6 +180,17 @@ def read_config(cfg: str, direct=False) -> Tuple[dict, dict]:
 
 
 def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: bool = False) -> NoReturn:
+    """
+    Overview:
+        save configuration to python file or yaml file
+    Arguments:
+        - config_ (:obj:`dict`): Config dict
+        - path (:obj:`str`): Path of target yaml or target python file
+        - type (:obj:`str`): If type is 'yaml', save configuration to yaml file. If type is 'py', save\
+             configuration to python file.
+        - save_formatted (:obj:`bool`): If save_formatted is true, save formatted config to path.\
+            Formatted config can be read by serial_pipeline directly.
+    """
     assert type_ in ['yaml', 'py'], type_
     if type_ == 'yaml':
         save_config_yaml(config_, path)
@@ -147,6 +202,13 @@ def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: boo
 
 
 def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py') -> NoReturn:
+    """
+    Overview:
+        save formatted configuration to python file that can be read by serial_pipeline directly.
+    Arguments:
+        - config_ (:obj:`dict`): Config dict
+        - path (:obj:`str`): Path of python file
+    """
     with open(path, "w") as f:
         f.write('from easydict import EasyDict\n\n')
         f.write('main_config = dict(\n')
@@ -368,20 +430,41 @@ env_config_template = EasyDict(env_config_template)
 
 
 def compile_config(
-        cfg,
-        env_manager=None,
-        policy=None,
-        learner=BaseLearner,
-        collector=None,
-        evaluator=BaseSerialEvaluator,
-        buffer=None,
-        env=None,
+        cfg: EasyDict,
+        env_manager: type = None,
+        policy: type = None,
+        learner: type = BaseLearner,
+        collector: type = None,
+        evaluator: type = BaseSerialEvaluator,
+        buffer: type = None,
+        env: type = None,
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
         save_cfg: bool = True,
         save_path: str = 'total_config.py',
 ) -> EasyDict:
+    """
+    Overview:
+        Combine the input config information with other input information.
+        Compile config to make it easy to be called by other programs
+    Arguments:
+        - cfg (:obj:`EasyDict`): Input config dict which is to be used in the following pipeline
+        - env_manager (:obj:`type`): Env_manager class which is to be used in the following pipeline
+        - policy (:obj:`type`): Policy class which is to be used in the following pipeline
+        - learner (:obj:`type`): Input learner class, defaults to BaseLearner
+        - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector
+        - evaluator (:obj:`type`): Input evaluator class, defaults to BaseSerialEvaluator
+        - buffer (:obj:`type`): Input buffer class, defaults to BufferManager
+        - env (:obj:`type`): Environment class which is to be used in the following pipeline
+        - seed (:obj:`int`): Random number seed
+        - auto (:obj:`bool`): Compile create_config dict or not
+        - create_cfg (:obj:`dict`): Input create config dict
+        - save_cfg (:obj:`bool`): Save config or not
+        - save_path (:obj:`str`): Path of saving file
+    Returns:
+        - cfg (:obj:`EasyDict`): Config after compiling
+    """
     if auto:
         assert create_cfg is not None
         # for compatibility
@@ -456,6 +539,25 @@ def compile_config_parallel(
         learner_port: Optional[int] = None,
         collector_port: Optional[int] = None,
 ) -> EasyDict:
+    """
+    Overview:
+        Combine the input parallel mode configuration information with other input information. Compile config\
+             to make it easy to be called by other programs
+    Arguments:
+        - cfg (:obj:`EasyDict`): Input main config dict
+        - create_cfg (:obj:`dict`): Input create config dict, including type parameters, such as environment type
+        - system_cfg (:obj:`dict`): Input system config dict, including system parameters, such as file path,\
+            communication mode, use multiple GPUs or not
+        - seed (:obj:`int`): Random number seed
+        - save_cfg (:obj:`bool`): Save config or not
+        - save_path (:obj:`str`): Path of saving file
+        - platform (:obj:`str`): Where to run the program, 'local' or 'slurm'
+        - coordinator_host (:obj:`Optional[str]`): Input coordinator's host when platform is slurm
+        - learner_host (:obj:`Optional[str]`): Input learner's host when platform is slurm
+        - collector_host (:obj:`Optional[str]`): Input collector's host when platform is slurm
+    Returns:
+        - cfg (:obj:`EasyDict`): Config after compiling
+    """
     # for compatibility
     if 'replay_buffer' not in create_cfg:
         create_cfg.replay_buffer = EasyDict(dict(type='priority'))
