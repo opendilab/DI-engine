@@ -318,9 +318,9 @@ class SMACEnv(SC2Env, BaseEnv):
         count = 0
         while count <= 5:
             self._update_obs()
-            print("INTERNAL INIT UNIT BEGIN")
+            #print("INTERNAL INIT UNIT BEGIN")
             init_flag = self.init_units(old_unit_tags)
-            print("INTERNAL INIT UNIT OVER", init_flag)
+            #print("INTERNAL INIT UNIT OVER", init_flag)
             count += 1
             if init_flag:
                 break

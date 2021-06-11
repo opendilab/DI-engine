@@ -245,7 +245,7 @@ class BaseEnvManager(object):
     def _reset(self, env_id: int) -> None:
 
         @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
-        # @timeout_wrapper(timeout=self._reset_timeout)
+        @timeout_wrapper(timeout=self._reset_timeout)
         def reset_fn():
             return self._envs[env_id].reset(**self._reset_param[env_id])
 
@@ -299,7 +299,7 @@ class BaseEnvManager(object):
     def _step(self, env_id: int, act: Any) -> namedtuple:
 
         @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
-        # @timeout_wrapper(timeout=self._step_timeout)
+        @timeout_wrapper(timeout=self._step_timeout)
         def step_fn():
             return self._envs[env_id].step(act)
 

@@ -535,7 +535,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         env = env_fn()
         parent.close()
 
-        # @timeout_wrapper(timeout=step_timeout)
+        @timeout_wrapper(timeout=step_timeout)
         def step_fn(*args, **kwargs):
             timestep = env.step(*args, **kwargs)
             if timestep.info.get('abnormal', False):
@@ -547,7 +547,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 ret = timestep
             return ret
 
-        # @timeout_wrapper(timeout=reset_timeout)
+        @timeout_wrapper(timeout=reset_timeout)
         def reset_fn(*args, **kwargs):
             try:
                 ret = env.reset(*args, **kwargs)
