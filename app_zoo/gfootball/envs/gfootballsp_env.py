@@ -22,9 +22,9 @@ class GfootballEnv(BaseEnv):
     
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
-        self.save_replay = cfg.get("save_replay", False)
+        self.save_replay = self._cfg.save_replay
         # self.env_name = cfg.get("env_name", "11_vs_11_kaggle")
-        self.gui = cfg.get("render", False)
+        self.gui = self._cfg.render
         self._obs_helper = FullObs(cfg)
         self._action_helper = GfootballSpAction(cfg)
         self._launch_env_flag = False
@@ -49,6 +49,11 @@ class GfootballEnv(BaseEnv):
             render=self.gui,
             number_of_right_players_agent_controls=self.right_role_num
         )
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            np_seed = 100 * np.random.randint(1, 1000)
+            self._env.seed(self._seed + np_seed)
+        elif hasattr(self, '_seed'):
+            self._env.seed(self._seed)
         self._launch_env_flag = True
         if self.is_evaluator:
             self._final_eval_reward = 0
@@ -76,8 +81,11 @@ class GfootballEnv(BaseEnv):
             self._env.close()
         self._launch_env_flag = False
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed : int = None) -> None:
         self._seed = seed
+        if dynamic_seed:
+            self._dynamic_seed = dynamic_seed
+
 
     def step(self, action) -> 'GfootballEnv.timestep':
         action = to_ndarray(action)

@@ -8,6 +8,7 @@ class FeatureEncoder:
     def __init__(self):
         self.active = -1
         self.player_pos_x, self.player_pos_y  = 0, 0
+        self.n_player = 10
         
     def get_feature_dims(self):
         dims = {
@@ -27,7 +28,7 @@ class FeatureEncoder:
         player_direction = np.array(obs['left_team_direction'][player_num])
         player_speed = np.linalg.norm(player_direction)
         player_role = obs['left_team_roles'][player_num]
-        player_role_onehot = self._encode_role_onehot(player_role)
+        player_role_onehot = np.eye(self.n_player)[player_role]
         player_tired = obs['left_team_tired_factor'][player_num]
         is_dribbling = obs['sticky_actions'][9]
         is_sprinting = obs['sticky_actions'][8]
@@ -155,22 +156,18 @@ class FeatureEncoder:
         
     def _encode_ball_which_zone(self, ball_x, ball_y):
         MIDDLE_X, PENALTY_X, END_X = 0.2, 0.64, 1.0
+        LEFT_PENALTY, LEFT_HALF, HALF, RIGHT_PENALTY, RIGHT_HALF, OTHERS = 0, 1, 2, 3, 4, 5
         PENALTY_Y, END_Y = 0.27, 0.42
+        res = np.eye(6)
         if   (-END_X <= ball_x    and ball_x < -PENALTY_X)and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
-            return [1.0,0,0,0,0,0]
+            return res[LEFT_PENALTY]
         elif (-END_X <= ball_x    and ball_x < -MIDDLE_X) and (-END_Y < ball_y     and ball_y < END_Y):
-            return [0,1.0,0,0,0,0]
+            return res[LEFT_HALF]
         elif (-MIDDLE_X <= ball_x and ball_x <= MIDDLE_X) and (-END_Y < ball_y     and ball_y < END_Y):
-            return [0,0,1.0,0,0,0]
+            return res[HALF]
         elif (PENALTY_X < ball_x  and ball_x <=END_X)     and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
-            return [0,0,0,1.0,0,0]
+            return res[RIGHT_PENALTY]
         elif (MIDDLE_X < ball_x   and ball_x <=END_X)     and (-END_Y < ball_y     and ball_y < END_Y):
-            return [0,0,0,0,1.0,0]
+            return res[RIGHT_HALF]
         else:
-            return [0,0,0,0,0,1.0]
-        
-
-    def _encode_role_onehot(self, role_num):
-        result = [0,0,0,0,0,0,0,0,0,0]
-        result[role_num] = 1.0
-        return np.array(result)
+            return res[OTHERS]

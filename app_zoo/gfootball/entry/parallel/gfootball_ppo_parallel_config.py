@@ -8,6 +8,8 @@ gfootball_ppo_config = dict(
         evaluator_env_num=1,
         evaluator_episode_num=2,
         stop_value=5,
+        save_replay=False,
+        render=False,
     ),
     policy=dict(
         cuda=False,
@@ -16,7 +18,7 @@ gfootball_ppo_config = dict(
             import_names=['app_zoo.gfootball.model.conv1d.conv1d']
         ),
         nstep=1,
-        discount_factor=0.99,
+        discount_factor=0.995,
         learn=dict(
             batch_size=32,
             learning_rate=0.001,
@@ -42,7 +44,7 @@ gfootball_ppo_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=100000,
-                enable_track_used_data=False,
+                enable_track_used_data=True,
             ),
             commander=dict(
                 collector_task_space=2,
