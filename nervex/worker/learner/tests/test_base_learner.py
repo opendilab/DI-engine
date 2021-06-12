@@ -55,6 +55,8 @@ class FakePolicy:
             return 'cpu'
         elif name == 'batch_size':
             return 2
+        elif name == 'on_policy':
+            return False
         else:
             raise KeyError
 

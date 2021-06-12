@@ -5,7 +5,7 @@ from easydict import EasyDict
 from copy import deepcopy
 
 from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, PrioritizedReplayBuffer
+from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import PPGPolicy
 from nervex.model import FCPPG
@@ -25,7 +25,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseLearner,
         SampleCollector,
         BaseSerialEvaluator,
-        PrioritizedReplayBuffer,
+        {'policy': AdvancedReplayBuffer, 'value': AdvancedReplayBuffer},
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
@@ -42,8 +42,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    policy_buffer = PrioritizedReplayBuffer(cfg.policy.other.replay_buffer.policy, tb_logger, 'policy')
-    value_buffer = PrioritizedReplayBuffer(cfg.policy.other.replay_buffer.value, tb_logger, 'value')
+    policy_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer.policy, tb_logger, 'policy')
+    value_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer.value, tb_logger, 'value')
 
     while True:
         if evaluator.should_eval(learner.train_iter):

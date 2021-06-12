@@ -14,9 +14,9 @@ NaiveReplayBuffer
 .. autoclass:: nervex.worker.replay_buffer.naive_buffer.NaiveReplayBuffer
     :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
 
-PrioritizedReplayBuffer
+AdvancedReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.worker.replay_buffer.prio_buffer.PrioritizedReplayBuffer
+.. autoclass:: nervex.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer
     :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
 
 EpisodeReplayBuffer

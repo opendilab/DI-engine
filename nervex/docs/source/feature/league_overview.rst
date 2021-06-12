@@ -1,247 +1,114 @@
 League Overview
 ========================
 
-概述：
-    League这一概念来自于 `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_  。
-    在 AlphaStar 中存在一个 league，league 中有很多 player，每个 player 持有一个策略（或是网络），
-    StarCraft2 这种 1v1 对战游戏中，league 负责为 player 分配对手，不同 player 之间可以互相交战，产生非常丰富的对局数据，用来更新自身策略。
-    这是 AlphaStar 训练效果非常好的原因之一。
+Abstract:
+    The concept of League training is from `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_. 
+    League training is a multi-agent reinforcement learning algorithm that is designed both to address the cycles commonly 
+    encountered during self-play training and to integrate a diverse range of strategies. In the league of AlphaStar, there exists
+    different types of agent as league members that differ only in the distribution of opponent they train against. In nerveX, 
+    we call these members player. Each player holds a strategy, i.e. neural networks or rules. 
+    
+    In 1v1 RTS games like StarCraft2, the league is responsible for assigning opponents to players. 
+    Different players can fight each other and generate very rich game data to update their own strategies. This is one of the most important
+    components to make AlphaStar successfully.
 
-    接下来，我们将首先介绍最简单的 league 的训练流程是怎样的；然后将结合代码，介绍 nerveX 中 ``league`` 模块。
+    In the following paragraphs, We'll first introduce the training pipline of League, then there will be a brief summary of the implementation
+    of ``league`` module in nerveX. 
 
 
 League Intro
 -------------
 
-在 1v1 的对战类游戏中，我们总是希望可以找到两个两个水平相近的 player 对战，因为这样产生的轨迹数据对于策略优化来说是更有意义的。
-那么如何做到呢？最常见的一种对战方式叫做 "self-play"，即自对弈。
+In 1v1 competitive games, we always hope to find two players with similar levels. In this way the trajectory generated is more meaningful 
+for strategy optimization. The navie implementation is self-play, which means agents plays with itself to upate its strategy.
 
-在自对弈中，很重要的一个问题就是，对战另一方的那个对手，是完全与自己一样，策略、参数均可更新，还是仅仅是自己隔一段时间冻结的一个当时最好的策略与参数呢？
+In self-play, a problem that is worth taking note of is whether the opponent is exactly the same as the agent itself, with updatable strategies
+and parameters, or it is the strategies periodically frozen from the best parameters at that time. 
 
-    - 第一种情况下，两个完全相同的 player 对战，产生的轨迹数据可以放入同一个 replay buffer，供 learner 采样数据，优化策略。这种情况下，会产生双倍的训练数据。但与此同时，这就成为了一个 2-agent 的问题，而一旦环境中的 agent 个数超过一个，那么交互的过程就不再是马尔可夫过程，优化过程的稳定性也将远不如单一 agent。
-    - 第二种情况下，player 会每隔一定迭代数就冻结一个当前最好的策略，在下一个阶段就以这个冻结的 player 为对手，期待在每个阶段过后，自己都会变得更强，此时仅仅非冻结的自身产生的轨迹可以用作训练数据。但与此同时，会产生一个类似“石头剪刀布”一样的问题：player 先是训出了一个最好的策略 A，冻结后训练出策略 B 打败了策略 A，冻结后训练出策略 C 又打败了策略 B，最后发现策略 C 会输给策略A。
+    - In the first case, two identical players play against each other, and the generated trajectory data can be put into the same replay buffer for the learner to sample data and optimize the strategy. In this case, double the training data will be generated. But at the same time, this becomes a 2-agent problem, and once the number of agents in the environment exceeds one, the interaction process is no longer a Markov process, and the stability of the optimization process will be far less than that of a single agent.
+    - In the latter case, the player will freeze a current best strategy every certain number of iterations, and use this frozen player as the opponent in the next stage. It is expected that after each stage, the player will become stronger. At this time, only the non-frozen player generated trajectory can be used for training. In this case, there will be a problem similar to "rock-paper-scissors": the player is first trained as the best strategy A, then be trained as strategy B after freezing and defeats strategy A, and be trained as strategy C after freezing and defeats strategy B again. Strategy C will lose to strategy A finally.
 
-为了解决以上两种问题，self-play 一般的训练流程取两种方法的长处，并规避其短处，流程如下：
+To alleviate these problems, the training pipline of self-play is usually implemented as follows:
 
-    1. 最开始，初始化一个空的 player 池，并将当前唯一一个 player 放入
-    2. 此时，由于 player 池只有一个 player，故只能采用第一种方法。
-    3. 经过一定的迭代数后，将当前 player 冻结形成一个快照，将这个快照 player 加入 player 池中。
-    4. 按照一定规则，从 player 池中选择一个作为对手，对应采用第一种或是第二种方法。
-    5. 当可被更新的自身策略足够好后，结束训练流程。
+    1. Initialize an empty player pool, then put the first player in it.
+    2. At this time, the pool has only one player, only the first approach is possible.
+    3. After a certain number of iterations, the current player is frozen to a snapshot, and the snapshot player is added to the player pool.
+    4. According to certain rules, league chooses one player from the pool as the opponent, then both the first and the second approach can be used.
+    5. When the updatable strategy is good enough, the training process ends.
 
-以上过程就是我们给出的league demo ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` （todo entry修改后对应修改）所展示的训练流程。
+The nerveX's demo of league ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
 
-在 AlphaStar 中，使用了远比简单的 self-play 更加复杂的算法，也设计了更多类型、拥有各自特性的 player 互相对战。这样做的目的，一是想更好的解决“剪刀石头布”循环问题，二是希望发掘并整合更多元的策略。有兴趣的同学可以自行阅读原论文的 "Methods" 下的 "Multi-agent learning" 部分。
-
+AlphaStar uses a more complicated league training algorithm than self-play, and designs more types of players differ in the distribution of opponent 
+they train against. The "Rock-paper-scissors" problem can be alleviated in this way, also the strategy will be more diverse. More details can be found 
+in the AlphaStar paper's "Methods - MultiAgent Learning" part.
 
 nerveX Implementation
 ------------------------
 
-nerveX 中， league 分为以下三个部分：
+NerveX's implementation of league consists of three parts:
 
-    - ``Player``：league 中的 player ，分为 active（策略可更新）和 historical（策略不可更新）两类。
-    - ``Payoff``：用于记录 league 中全部 player 的全部对局结果，通常为所有 player 所共享，是未来分配对手的依据。
-    - ``League``：持有全部 player 及他们的 payoff 记录，负责维护 payoff 及 player 状态，并根据 payoff 为 player 分配对手。
+    - ``Player``：Player is the participant of game, consists of active (i.e. updatable) and historical (i.e. unupdatable) player.
+    - ``Payoff``：Payoff is used to record the results of game play in league. This module is shared by all players, can be the references of to choose opponents.
+    - ``League``：league holds all of the players and payoff records, responsible for maintaining payoff and player status, and assigning opponents to players based on payoff.
 
 Player
 ~~~~~~~~~~~~
 
-概述：
-    player 是 league 的成员，是对局中的玩家。每个 player 会拥有一份网络参数，代表它会执行某种不完全和他人相同的策略。
+Abstract:
+    Player is the memeber of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.
 
-    player 可以分为 active 和 historical 两类：
+    Player consists of active player and historical player:
 
-        - active 表示 player 的网络参数可以更新，通常是 league 中需要被训练的 player；
-        - historical 表示它是某个时刻的 active 参数冻结产生的 player，它在之后参数都将保持固定，常作为 active player 的对手，它的存在提升了对局数据的多样性。
+        - Active means player's model is updatable. In most cases these are the players in the league which need training.
+        - Historical means player's model is frozen from the past active player, used as the opponent of active player, to enrich the diversity of data.
 
-代码结构：
-    主要实现如下几个类：
+Code Structure:
 
-        1. ``Player``: player 基类，持有多个属性。
-        2. ``ActivePlayer``: 可更新的 player，可以被分配对手并进行对局，在训练一段时间后可以通过 snapshot 产生 historical player。
-        3. ``HistoricalPlayer``: 不可更新的player，通常可由以下两种方式得到——1）在训练最开始时加载一个预训练模型；2）active player 训练一段时间后 snapshot。
-        4. ``NaiveSpPlayer``: active player的一种实现，可与 historical player 对战，或者进行简单的 self-play。
-        5. ``MainPlayer``: active player 的一种实现，用于 AlphaStar，具体介绍可参考原论文。
-        6. ``MainExploiter``: active player 的一种实现，用于 AlphaStar，具体介绍可参考原论文。
-        7. ``LeagueExploiter``: active player 的一种实现，用于 AlphaStar，具体介绍可参考原论文。
+    The main classes are as follows:
 
-基类定义：
+        1. ``Player``: Base class of player, holds most properties.
+        2. ``ActivePlayer``: Updatable player, can be assigned opponents to play in league. After training for a period of time, historical player can be generated through snapshot of ActivePlayer. 
+        3. ``HistoricalPlayer``: Unupdatable player, can be acquired by loading a pretrained model or snapshot from active player.
+        4. ``NaiveSpPlayer``: An self play version implementation of active player, can be used to play with historical player or itself.
+        5. ``MainPlayer``: A special implementation of active player, used in AlphaStar. More details can be found in AlphaStar paper.
+        6. ``MainExploiter``: A special implementation of active player, used in AlphaStar. More details can be found in AlphaStar paper.
+        7. ``LeagueExploiter``: A special implementation of active player, used in AlphaStar. More details can be found in AlphaStar paper.
+
+Base Class Definition：
     1. Player (nervex/league/player.py)
 
-        .. code:: python
+        - Abstract:
 
-            class Player:
-
-                def __init__(self, cfg: EasyDict, category: str,
-                            init_payoff: Union['BattleSharedPayoff'],  # noqa
-                            checkpoint_path: str, player_id: str, total_agent_step: int) -> None:
-                    self._cfg = cfg
-                    self._category = category
-                    self._payoff = init_payoff
-                    self._checkpoint_path = checkpoint_path
-                    assert isinstance(player_id, str)
-                    self._player_id = player_id
-                    self._total_agent_step = total_agent_step
-
-        - 概述：
-
-            定义了 active player 和 historical player 都需要的一些属性，如类别、payoff对局信息、checkpoint路径、id、持有网络的训练步数等。
-            是抽象基类，不能实例化。
+            Base class player defines properties needed by both active player and historical player, including catagory, payoff, checkpoint path, id, 
+            training iteration, etc. Player is an abstract base class and cannot be instantiated.
 
     2. HistoricalPlayer (nervex/league/player.py)
 
-        .. code:: python
+        - Abstract:
 
-            class HistoricalPlayer(Player):
-
-                def __init__(self, *args, parent_id: str) -> None:
-                    super(HistoricalPlayer, self).__init__(*args)
-                    self._parent_id = parent_id
-
-                @property
-                def parent_id(self) -> str:
-                    return self._parent_id
-
-        - 概述：
-
-            额外定义了 parent id。
+            HistoricalPlayer defines parent id additionally comparing to player class.
 
     3. ActivePlayer (nervex/league/player.py)
 
-        .. code:: python
+        - Abstract:
 
-            class ActivePlayer(Player):
-                _name = "ActivePlayer"
-                BRANCH = namedtuple("BRANCH", ['name', 'prob'])
+            League will assign opponents of active player by its ``get_job`` method When it is called by commander to generate new collect job.
+            After collector starting to execute tasks, learner use the generated data train itself. After some iterations, learner will call league by commander,
+            then league use corresponding player's ``is_trained_enough`` method to judge whether the policy of collector is trained enough. If so, call ``snapshot``
+            or ``mutate`` to get a snapshot historical player or reset to specific parameters.
 
-                def __init__(self, *args, **kwargs) -> None:
-                    """
-                    Overview:
-                        Initialize player metadata, depending on the game
-                    Note:
-                        - one_phase_step (:obj:`int`): An active player will be considered trained enough for snapshot \
-                            after two phase steps.
-                        - last_enough_step (:obj:`int`): Player's last step number that satisfies ``_is_trained_enough``.
-                        - strong_win_rate (:obj:`float`): If win rates between this player and all the opponents are greater than
-                            this value, this player can be regarded as strong enough to these opponents. \
-                            If also already trained for one phase step, this player can be regarded as trained enough for snapshot.
-                        - branch_probs (:obj:`namedtuple`): A namedtuple of probabilities of selecting different opponent branch.
-                    """
-                    # ...
-
-                def is_trained_enough(self, select_fn: Optional[Callable] = None) -> bool:
-                    """
-                    Overview:
-                        Judge whether this player is trained enough for further operations(e.g. snapshot, mutate...)
-                        according to past step count and overall win rates against opponents.
-                        If yes, set ``self._last_agent_step`` to ``self._total_agent_step`` and return True; otherwise return False.
-                    Arguments:
-                        - select_fn (:obj:`function`): The function to select opponent players.
-                    Returns:
-                        - flag (:obj:`bool`): Whether this player is trained enough
-                    """
-                    # ...
-
-                def snapshot(self) -> HistoricalPlayer:
-                    """
-                    Overview:
-                        Generate a snapshot historical player from the current player, called in league's ``_snapshot``.
-                    Returns:
-                        - snapshot_player (:obj:`HistoricalPlayer`): new instantiated historical player
-
-                    .. note::
-                        This method only generates a historical player object, but without saving the checkpoint, which should be
-                        done by league.
-                    """
-                    # ...
-
-                def mutate(self, info: dict) -> Optional[str]:
-                    """
-                    Overview:
-                        Mutate the current player, called in league's ``_mutate_player``.
-                    Arguments:
-                        - info (:obj:`dict`): related information for the mutation
-                    Returns:
-                        - mutation_result (:obj:`str`): if the player does the mutation operation then returns the
-                            corresponding model path, otherwise returns None
-                    """
-                    # ...
-
-                def get_job(self, eval_flag: bool = False) -> dict:
-                    """
-                    Overview:
-                        Get a dict containing some info about the job to be launched, e.g. the selected opponent.
-                    Arguments:
-                        - eval_flag (:obj:`bool`): Whether to select an opponent for evaluator task.
-                    Returns:
-                        - ret (:obj:`dict`): The returned dict. Should contain key ['opponent'].
-                    """
-                    # ...
-
-                def _get_collect_opponent(self) -> Player:
-                    """
-                    Overview:
-                        Select an opponent according to the player's ``branch_probs``.
-                    Returns:
-                        - opponent (:obj:`Player`): Selected opponent.
-                    """
-                    # ...
-
-                def _get_players(self, select_fn: Callable) -> List[Player]:
-                    """
-                    Overview:
-                        Get a list of players in the league (shared_payoff), selected by ``select_fn`` .
-                    Arguments:
-                        - select_fn (:obj:`function`): players in the returned list must satisfy this function
-                    Returns:
-                        - players (:obj:`list`): a list of players that satisfies ``select_fn``
-                    """
-                    # ...
-
-                def _get_opponent(self, players: list, p: Optional[np.ndarray] = None) -> Player:
-                    """
-                    Overview:
-                        Get one opponent player from list ``players`` according to probability ``p``.
-                    Arguments:
-                        - players (:obj:`list`): a list of players that can select opponent from
-                        - p (:obj:`np.ndarray`): the selection probability of each player, should have the same size as \
-                            ``players``. If you don't need it and set None, it would select uniformly by default.
-                    Returns:
-                        - opponent_player (:obj:`Player`): a random chosen opponent player according to probability
-                    """
-                    # ...
-
-                def increment_eval_difficulty(self) -> bool:
-                    """
-                    Overview:
-                        When evaluating, active player will choose a specific builtin opponent difficulty.
-                        This method is used to increment the difficulty.
-                        It is usually called after the easier builtin bot is already been beaten by this player.
-                    Returns:
-                        - increment_or_not (:obj:`bool`): True means difficulty is incremented; \
-                            False means difficulty is already the hardest.
-                    """
-                    # ...
-
-        - 概述：
-
-            league 在被 commander 调用需要生成新的 collect job 时，将调用指定 player 的 ``get_job`` 方法，获取其对手。
-            在 collector 开始执行任务后，learner 利用产生的数据训练自身，训练一段时间后，会通过 commander 告知 league，
-            然后 league 调用指定 player 的 ``is_trained_enough`` 方法，判断当前产生数据的 collector 所持有的策略是否相对更新了较多：
-            若是，则可以 ``snapshot`` 及 ``mutate``。
-
-        - 类接口方法：
-            1. ``__init__``: 初始化
-            2. ``is_trained_enough``: 是否得到了足够的训练，根据step数判定。
-            3. ``snapshot``: 冻结此时的网络参数，产生一个historical player并返回。
-            4. ``mutate``: 变异，比如可以对参数进行一些重置。
-            5. ``get_job``: 获取任务，调用 ``_get_job_opponent`` 获取对手。
+        - API：
+            1. ``__init__``: For initialization.
+            2. ``is_trained_enough``: To judge whether this player is trained enough by training steps.
+            3. ``snapshot``: Freeze the network parameters, create a historical player and return.
+            4. ``mutate``: Mutate the model, e.g. resetting to a specific parameters.
+            5. ``get_job``: Get game play job. To call cooresponding player's ``_get_collect_opponent`` method to get opponent.
         
-        - 需要用户实现的方法：
+        - Methods need to override by users：
 
-            ``ActivePlayer`` 中没有实现具体的寻找对手的方法。寻找对手的逻辑为：首先一类 active player 应当会根据一种或多种不同的策略选择对手的类别，比如 ``NaiveSpPlayer`` 有 50% 的概率进行简单的 self-play，还有 50% 的概率从所有 Historical player 中任选一个。
-            
-            为了实现该过程，需要在 config 和类方法两处进行对应实现。下面依然以 ``NaiveSpPlayer`` 为例。
+            ``ActivePlayer`` don't implement specific methods to select opponent. The example of selecting opponent can be like ``NaiveSpPlayer``: 50% to naive self play, 
+            50% to select historical players randomly. To archive this, nerveX needs to modify player class and config:
+
             
             1. config
 
@@ -256,198 +123,65 @@ Player
                         ),
                     )
                 
-            2. ``NaiveSpPlayer`` 中实现的两个方法
+            2. ``NaiveSpPlayer`` 
 
                 .. code:: python
                     
                     class NaiveSpPlayer(ActivePlayer):
                         
                         def _pfsp_branch(self) -> HistoricalPlayer:
-                        """
-                        Overview:
-                            Select prioritized fictitious self-play opponent, should be a historical player.
-                        Returns:
-                            - player (:obj:`HistoricalPlayer`): The selected historical player.
-                        """
-                        # ...
-                        return self._get_opponent(historical, p)
+                            return self._get_opponent(historical, p)
 
-                    def _sp_branch(self) -> ActivePlayer:
-                        """
-                        Overview:
-                            Select normal self-play opponent
-                        """
-                        return self
+                        def _sp_branch(self) -> ActivePlayer:
+                            return self
+
+    The class hierarchy of player can be shown as follows：
+    
+        .. image:: images/league_player_img.png
+            :align: center
+
 
 
 Payoff
 ~~~~~~~~
 
-概述：
-    payoff 用于记录以往对局的结果，该结果对于未来分配对手有着重要意义。
-    例如，在对战的环境中，胜率是选择对手时的考量指标之一，payoff 便可以计算 league 中任意两个 player 间的胜率。
+Abstract:
 
-代码结构：
-    主要分为如下两个子模块：
+    Payoff is used to record historical game play results, as the reference of assigning opponents. E.g. In competitive games, payoff can be used to
+    calculate the winrate between two players.
 
-        1. ``BattleRecordDict``: 继承自 dict，记录两个 player 间的对局情况。初始化时将四个 key ['wins', 'draws', 'losses', 'games']的 value 置为0。
-        2. ``BattleSharedPayoff``: 利用 ``BattleRecordDict``，可记录 league 中任意两个 player 之间的对战结果，并计算胜率。
+Code Structure:
+
+    Payoff contains two components:
+
+        1. ``BattleRecordDict``: Succeed from dict, recording game play results between every two players. Initialized to all four keys ['wins', 'draws', 'losses', 'games'] to 0.
+        2. ``BattleSharedPayoff``: Use ``BattleRecordDict`` to record specific two player's game play records, calculate winrate of them.
 
 
 League
 ~~~~~~~~
 
-概述：
-    league 是管理 player 及他们之间关系 （使用payoff），可统筹为 player 分配工作的类。
-    一般由 Commander 持有一个，用于在对战类环境中生成 collector task 中，找到合适的两个 player 参与该对局。
+Abstract:
 
-基类定义：
+    league is the class to manage players and their relationship(i.e. payoff), as a property of commander. Commander call league's ``get_job_info`` method 
+    to collect task for two players to play a round of game.
+
+Base Class Definition：
     1. BaseLeague (nervex/league/base_league.py)
 
-        .. code:: python
+        - Abstract:
 
-            class BaseLeague(ABC):
-                """
-                Overview:
-                    League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.
-                Interface:
-                    __init__, get_job_info, judge_snapshot, update_active_player, finish_job
-                """
+            League follow the commands of commander to provide useful information of game plays for commander.
 
-                def __init__(self, cfg: EasyDict) -> None:
-                    """
-                    Overview:
-                        Initialization method.
-                    Arguments:
-                        - cfg (:obj:`EasyDict`): League config.
-                    """
-                    self._init_cfg(cfg)
-                    # ...
-                    self._init_players()
+        - API:
+            1. ``__init__``: Initialization, call ``_init_cfg`` first to read config of league, then call ``_init_league`` to initialize league players.cfg``.
+            2. ``get_job_info``:  When commander assigns job to collector, call this method to get which two players to execute this job.
+            3. ``judge_snapshot``: After learner use generated data to update its strategy, the corresponding player's strategy will be updated. After training for some time, commander calls this method to judge whether the model is trained enough.
+            4. ``update_active_player``: After Learner updated or evaluator evaluated, update cooresponding player's train stpe or choose opponent for next evaluation.
+            5. ``finish_job``: When collector task finished, update game play information in shared payoff.
 
-                @abstractmethod
-                def _init_cfg(self, cfg: EasyDict) -> None:
-                    """
-                    Overview:
-                        Initialize config ``self.cfg``.
-                    """
-                    raise NotImplementedError
+        - Methods need to override by users：
 
-                def _init_players(self) -> None:
-                    """
-                    Overview:
-                        Initialize players (active & historical) in the league.
-                    """
-                    # Add different types of active players for each player category, according to ``cfg.active_players``.
-                    # ...
-                    # Add pretrain player as the initial HistoricalPlayer for each player category.
-                    # ...
-
-                def get_job_info(self, player_id: str = None, eval_flag: bool = False) -> dict:
-                    """
-                    Overview:
-                        Get info of the job which is to be launched to an active player.
-                    Arguments:
-                        - player_id (:obj:`str`): The active player's id.
-                        - eval_flag (:obj:`bool`): Whether this is an evaluation job.
-                    Returns:
-                        - job_info (:obj:`dict`): Job info. Should include keys ['lauch_player'].
-                    """
-                    # ...
-
-                @abstractmethod
-                def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
-                    """
-                    Overview:
-                        Real get_job method. Called by ``_launch_job``.
-                    Arguments:
-                        - player (:obj:`ActivePlayer`): The active player to be launched a job.
-                        - eval_flag (:obj:`bool`): Whether this is an evaluation job.
-                    Returns:
-                        - job_info (:obj:`dict`): Job info. Should include keys ['lauch_player'].
-                    """
-                    raise NotImplementedError
-
-                def judge_snapshot(self, player_id: str) -> bool:
-                    """
-                    Overview:
-                        Judge whether a player is trained enough for snapshot. If yes, call player's ``snapshot``, create a
-                        historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
-                        Otherwise, return False. 
-                    Arguments:
-                        - player_id (:obj:`ActivePlayer`): The active player's id.
-                    Returns:
-                        - snapshot_or_not (:obj:`dict`): Whether the active player is snapshotted.
-                    """
-                    # ...
-
-                @abstractmethod
-                def _mutate_player(self, player: ActivePlayer) -> None:
-                    """
-                    Overview:
-                        Players have the probability to mutate, e.g. Reset network parameters.
-                        Called by ``self._snapshot``.
-                    Arguments:
-                        - player (:obj:`ActivePlayer`): The active player that may mutate.
-                    """
-                    raise NotImplementedError
-
-                def update_active_player(self, player_info: dict) -> None:
-                    """
-                    Overview:
-                        Update an active player's info.
-                    Arguments:
-                        - player_info (:obj:`dict`): Info dict of the player which is to be updated, \
-                            at least includs ['player_id', 'train_iteration']
-                    """
-                    # ...
-
-                @abstractmethod
-                def _update_player(self, player: ActivePlayer, player_info: dict) -> None:
-                    """
-                    Overview:
-                        Update an active player. Called by ``self.update_active_player``.
-                    Arguments:
-                        - player (:obj:`ActivePlayer`): The active player that will be updated.
-                        - player_info (:obj:`dict`): Info dict of the active player which is to be updated.
-                    """
-                    raise NotImplementedError
-
-                def finish_job(self, job_info: dict) -> None:
-                    """
-                    Overview:
-                        Finish current job. Update shared payoff to record the game results.
-                    Arguments:
-                        - job_info (:obj:`dict`): A dict containing job result information.
-                    """
-                    # ...
-
-                @staticmethod
-                def save_checkpoint(src_checkpoint, dst_checkpoint) -> None:
-                    '''
-                    Overview:
-                        Copy a checkpoint from path ``src_checkpoint`` to path ``dst_checkpoint``.
-                    Arguments:
-                        - src_checkpoint (:obj:`str`): Source checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
-                        - dst_checkpoint (:obj:`str`): Destination checkpoint's path, e.g. s3://alphastar_fake_data/ckpt.pth
-                    '''
-                    # ...
-
-
-        - 概述：
-
-            league 完全接受 commander 的命令，为 commander 在对战环境中提供对战双方的信息。
-
-        - 类接口方法：
-            1. ``__init__``: 初始化，在最前会调用 ``_init_cfg``，读取当前league的config；最后会调用 ``_init_league`` ，初始化league中的player。
-            2. ``get_job_info``: commander 在准备为 collector 分配任务后，调用该方法得知此次任务由哪两个 player 执行。
-            3. ``judge_snapshot``: 当 learner 利用数据更新自身策略后，player 持有的策略也会相应更新，在一定时间的训练后，commander 调用此方法判断 player 的策略是否得到了足够的训练。
-            4. ``update_active_player``: 当 learner 训练后，或是 evaluator 结束评估后，更新对应 player 的模型步数或下一次 evaluate 中将选择的对手。
-            5. ``finish_job``: 当 collector 任务结束后，更新 shared payoff 中的对战信息。
-
-        - 需要用户实现的方法：
-
-            ``_get_job_info`` (被 ``_launch_job`` 调用)，``_mutate_player`` (被 ``_snapshot`` 调用)，
-            ``_update_player`` (被 ``update_active_player`` 调用)三个方法均为抽象方法，
-            具体的实现方法可以参考 ``nervex/league/one_vs_one_league.py`` 中的 ``OneVsOneLeague``
-
+            - ``_get_job_info``: called by ``_launch_job`` 
+            - ``_mutate_player``: called by ``_snapshot``
+            - ``_update_player``: called by ``update_active_player``. All three methods above are abstract method, refer to  ``nervex/league/one_vs_one_league.py`` ``OneVsOneLeague`` for more implementation details.

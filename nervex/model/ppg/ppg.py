@@ -72,7 +72,7 @@ class FCValueNet(nn.Module):
             embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
 
-        return value
+        return {'value': value}
 
 
 class ConvValueNet(nn.Module):
@@ -131,7 +131,7 @@ class ConvValueNet(nn.Module):
             embedding = self._encoder(inputs['obs'])
         value = self._critic_forward(embedding)
 
-        return value
+        return {'value': value}
 
 
 @MODEL_REGISTRY.register('fc_ppg')
@@ -162,24 +162,18 @@ class FCPPG(ActorCriticBase):
         self._policy_net = FCValueAC(self._obs_shape, self._act_shape, self._policy_embedding_size)
         self._value_net = FCValueNet(self._obs_shape, self._value_embedding_size)
 
-    def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self._value_net(x)
-
-    def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self._policy_net(x)
-
     def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         return self._policy_net.compute_actor_critic(inputs)
 
     def compute_actor(self,
                       inputs: Dict[str, torch.Tensor],
                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        logit = self._policy_net.compute_actor(inputs)['logit']
-        return {'logit': logit}
+        logit = self._policy_net.compute_actor(inputs)
+        return logit
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        value = self._value_net_forward(inputs)
-        return {'value': value}
+        value = self._value_net(inputs)
+        return value
 
     @property
     def policy_net(self) -> torch.nn.Module:
@@ -218,27 +212,19 @@ class ConvPPG(ActorCriticBase):
         self._policy_net = ConvValueAC(self._obs_shape, self._act_shape, self._policy_embedding_size)
         self._value_net = ConvValueNet(self._obs_shape, self._value_embedding_size)
 
-    def _value_net_forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self._value_net(x)
-
-    def _policy_net_forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self._policy_net(x)
-
     def compute_actor_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        return self._policy_net.compute_action_value(state_input)
+        state_input = inputs
+        return self._policy_net.compute_actor_critic(state_input)
 
     def compute_actor(self,
                       inputs: Dict[str, torch.Tensor],
                       deterministic_eval: bool = False) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        logit = self._policy_net.compute_action(state_input)['logit']
-        return {'logit': logit}
+        logit = self._policy_net.compute_actor(inputs)
+        return logit
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        state_input = inputs['obs']
-        value = self._value_net_forward(state_input)
-        return {'value': value}
+        value = self._value_net(inputs)
+        return value
 
     @property
     def policy_net(self) -> torch.nn.Module:

@@ -1,0 +1,350 @@
+Key Concept
+===============================
+
+.. toctree::
+   :maxdepth: 3
+
+
+Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX. One of basic control flow(serial pipeline) can be described as:
+
+.. image::
+   images/serial_pipeline.png
+   :align: center
+
+In the following sections, nerveX first introduces the key concepts/components seperately, then combines them like building a special "Evolution Graph" to offer diffenent computation patterns(serial, parallel, dist).
+
+Concept
+----------
+``Environment`` and ``policy`` is the most two important concepts in the total design scheme, which can also be called description modules, in most cases, the users of nerveX only need to pay
+attention to these two components.
+
+``Worker`` module, such as ``learner``, ``collector``, and ``buffer``, are execution modules implementing the corresponding tasks derived from the description modules. These worker
+module are general in many RL algorithms, but the users can also override their own components easily, the only restirction is to obey the basic interface definition.
+
+Last but not least, ``config`` is the recommended tool to control and record the whole pipeline.
+
+.. tip::
+  Environment and policy are partially extended from the original definition in other RL papers and frameworks.
+
+Environment
+~~~~~~~~~~~~~
+nerveX environment is a superset of ``gym.Env``, it is compatibled with almost gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Link <../feature/env_overview.html>`_
+
+``EnvManager``, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows collector to interact with N homogeneous environments per step, which means that ``action`` passed to ``env.step`` is a vector with length of N, and the return value of ``env.step`` (obs, reward, done) is the same as it.
+
+For the convenience of **asynchronous reset** and **unifying asynchronous/synchronous step**, nerveX modifies the inferface of env manager like this:
+
+.. code:: python
+
+   # nerveX EnvManager                                                            # pseudo code in the other RL papers
+   env.launch()                                                                   # obs = env.reset()
+   while True:                                                                    # while True:
+       obs = env.ready_obs                                                              
+       action = random_policy.forward(obs)                                        #     action = random_policy.forward(obs)
+       timestep = env.step(action)                                                #     obs_, reward, done, info = env.step(action)
+       # maybe some env_id matching when enable asynchronous
+       transition = [obs, action, timestep.obs, timstep.reward, timestep.done]    #     transition = [obs, action, obs_, reward, done]
+                                                                                  #     if done:
+                                                                                  #         obs[i] = env.reset(i)
+       if env.done:                                                               #     if env.done  # collect enough env frames
+           break                                                                  #         break
+
+There are three types EnvManager in nerveX now:
+
+  - BaseEnvManager——**local test and validation**
+  - SyncSubprocessEnvManager——parallel simulation for **low fluctuation environment**
+  - AsyncSubprocessEnvManager——parallel simulation for **high fluctuation environment**
+
+For the subprocess-type env manager, nerveX use shared memory among different worker subprocesses to the save the cost of IPC, and `pyarrow <https://github.com/apache/arrow>`_ will be a reliable alternative in the following version.
+
+.. note::
+   If the environment is some kind of client, like SC2 and CARLA, maybe a new env manager based on python thread can be faster.
+
+.. note::
+   If there are some pre-defined neural network in environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, nerveX recommends to utilze parallel executions in each subprocess rather than stack all the data in main process and then forward this netowrk. Moreover, it is not a elegant method, nerveX will try to find some new flexible and general solution.
+
+Besides, for robustness in pratical usage, like IPC error(broken pipe, EOF) and environment runtime error, nerveX also provide a series of **Error Tolerance** tools, e.g.: watchdog and auto-retry.
+
+All the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview.html>`_ for more details.
+
+Policy
+~~~~~~~
+In order to unify the design pattern and modularization of RL and other machine learning algorithms, nerveX abstracts and defines the general policy interfaces with multi-mode design.
+With these abstractitons, plenty of the AI decision algorithms can be summarized in only one python file, i.e.: corresponding policy class. And the user's customized algorithms only need to inherit and extend :class:`Policy <nervex.policy.Policy>` or just have the same interface definition with it. 
+
+The Multi-Mode of Policy
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+In most cases, RL policy needs to execute different algorithm proceduces for different usages, e.g.: for DQN, model forward and calculating TD error in training,
+model forward without gradient computation and use epsilon-greedy to select action for exploration in collecting. Therefore, nerveX policy unifies all the algorithm content in only one python file,
+prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
+
+.. image::
+   images/policy_mode.png
+
+Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
+own algorithm ideas by overriding these modes or design their own customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training and so on. For more details,
+the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
+
+.. note::
+   ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their own policy class just ensuring the same method names and input/output arguments as the corresponding modes.
+
+Shared Model + Model Wrapper
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(``__init__``) or out of policy and passed to policy as arguments. Therefore, the model is shared among different modes for convenience. And nerveX extends the model with more runtime function by ``Model Wrapper`` , which makes the shared model can exhibit different behaviours in different modes, such as sampling action by multinomial distribution in collect mode while argmax in evaluate mode. Here are some concrete code examples:
+
+.. code:: python
+
+    from nervex.model import model_wrap, DiscreteNet
+
+    model = DiscreteNet(obs_shape=(4, 84, 84), action_shape=6, encoder_type='conv2d')
+    # only wrapper, no model copy
+    learn_model = model_wrap(model_wrap, wrapper_name='base')
+    collector_model = model_wrap(model, wrapper_name='multinomial_sample')
+    eval_model = model_wrap(model, wrapper_name='argmax_sample')
+
+If you want to know about the detailed information of the pre-defined model wrapper, or customize you own model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview.html>`_ can help you a lot.
+
+Processing Function
+^^^^^^^^^^^^^^^^^^^^^^
+In pratical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments and so on. Since then, nerveX has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learn mode. 
+
+For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
+training for saving time, and the latter can usually gain better performance due to more accuracy approximation, just a trade-off. For a framework, it is more wise to offer some powerful and efficient tools rather
+than restricting some fixed pipelines. The following table shows some existing processing functions and related information:
+
+
+====================== ========================================== ==============================
+Function Name          Description                                Path
+====================== ========================================== ==============================
+default_collate        Stack samples(dict/list/tensor) into batch nervex.data.collate_fn
+default_decollate      Split batch into samples                   nervex.data.collate_fn
+get_nstep_return_data  Get nstep data(reward, next_obs, done)     nervex.rl_utils.adder
+get_gae                Get GAE advantage                          nervex.rl_utils.adder
+to_tensor              Transform data to torch.Tensor             nervex.torch_utils.data_helper
+to_device              Transform device(cpu or cuda)              nervex.torch_utils.data_helper
+====================== ========================================== ==============================
+
+Scale Up to Parallel Training
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TBD
+
+Config
+~~~~~~~~~
+
+key concept
+^^^^^^^^^^^^
+
+The Config module is one of the most commonly used modules by users. It
+is a configuration system that contains all the common parameters that
+need to be configured. Its function is very powerful, as small as
+configuring a common hyperparameter, as large as configuring the
+required algorithm type, it can do it all. In order to reduce the cost
+for users to write config, we designed a Config modules based on the
+idea of bubble fish. The overall design diagram is as follows
+
+.. image:: images/config.png
+   :alt: 
+
+Config is mainly composed of two types of config, namely *Policy* and
+*Env* config. We compare the construction process of config to the
+process of building a tree.
+
+From bottom to top we are building the entire tree, which is the
+*compile* process. In the *compile* process, we will first get the
+default config of each module such as Learner, Collector, etc. After
+having the default config of each sub-module, we will build the policy
+config and env config, and then merge with the user config , Get the
+final config. From top to bottom, we are instantiating the entire tree,
+instantiating the various modules we use, that is, the *initialization*
+process, starting with policy and env, and then to each submodule. When
+the tree is constructed, we have completed our preparations and can
+start the entire RL process.
+
+In order to reduce the trouble for users to write config and reuse the
+previous parameter settings as much as possible, we divide config into
+two parts, one part is *default config*, which is the default config
+recommended by Nervex, which sets default values for common keys; The
+other part is *user config*, which is a user-defined config. So users
+only need to pay attention to the part of config they want to modify,
+and other configs can reuse previous experience values.
+
+NerveX recommends using a config ``dict`` defined in a python file as
+input.
+
+.. code:: python
+
+   cartpole_dqn_default_config = dict(
+       env=dict(
+           manager=dict(...),
+           ...
+       ),
+       policy=dict(
+           model=dict(...),
+           collect=dict(...),
+           learn=dict(...),
+           eval=dict(...),
+           other=dict(
+               replay_buffer=dict(),
+               ...
+           ),
+           ...
+       ),
+   )
+
+config overview
+^^^^^^^^^^^^^^^^
+
+The specific meanings and default values of some common keys are shown
+in the table below. For policy-related keys, please refer to the
+document `Hans On
+RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/hands_on/index.html>`__
+section.
+
++-------------------------------+-------------------------------------+
+| Key                           | Meaning                             |
++===============================+=====================================+
+| policy.batch_size             | (int) the number of data for a      |
+|                               | train iteration                     |
++-------------------------------+-------------------------------------+
+| policy.update\ *per*\ collect | (int) collect n\ *sample data,      |
+|                               | train model update*\ per_collect    |
+|                               | times                               |
++-------------------------------+-------------------------------------+
+| policy.n_sample               | (int) collect n\ *sample data,      |
+|                               | train model n*\ iteration times     |
++-------------------------------+-------------------------------------+
+| policy.nstep                  | (int) how many steps are used when  |
+|                               | calculating TD-error.               |
++-------------------------------+-------------------------------------+
+| policy.cuda                   | (bool) whether to use cuda when     |
+|                               | training                            |
++-------------------------------+-------------------------------------+
+| policy.priority               | (bool) whether to use priority      |
+|                               | replay buffer                       |
++-------------------------------+-------------------------------------+
+| policy.on_policy              | (bool) whether to use on policy     |
+|                               | training                            |
++-------------------------------+-------------------------------------+
+| env.stop_value                | (int) when reward exceeds           |
+|                               | env.stop_value, the training will   |
+|                               | exits                               |
++-------------------------------+-------------------------------------+
+| env.collector\ *env*\ num     | (int) number of env to collect data |
+|                               | when training                       |
++-------------------------------+-------------------------------------+
+| env.evaluator\ *env*\ num     | (int) number of env to collect data |
+|                               | when evaluating                     |
++-------------------------------+-------------------------------------+
+
+Rules when merging user-specific config and predefined config:
+
+-  User-specific config is the highest priority, which means user's
+   specificification will cover the default config when conflict occurs.
+
+-  Some important keys must be specified, ``env.stop_value``,
+   ``policy.on_policy``, and ``policy.unroll_len``, for example.
+
+-  The merged config will be saved to ``formatted_total_config.py`` be
+   default.
+
+.. _header-n125:
+
+How to customize?
+^^^^^^^^^^^^^^^^^^
+
+Imagine the following scenario: We want to set ``nstep`` mentioned above
+to 3, how do we do it? This problem can be solved with the *user config*
+mentioned above.
+
+User config is written in ``.py`` file by default, and the whole config
+is a dictionary, that is, ``dict`` in python. So in order to set
+``nstep``, suppose the file name of user config is
+``dqn_user_config.py``, add the following code inside.
+
+.. code:: python
+
+   policy=dict(learn=dict(nstep=3))
+
+After writing the user config, we can run our DQN experiment according
+to `Quick
+Start <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html>`__.
+
+
+
+Worker-Collector
+~~~~~~~~~~~~~~~~~~
+
+Worker-Buffer
+~~~~~~~~~~~~~~~
+
+Replay buffer is a component to store data collected by collector or generated by a fixed policy(usually expert policy), then provide data for learner to optimize policy. In nerveX, there are **three types of replay buffers**:
+
+   - NaiveReplayBuffer
+   - AdvancedReplayBuffer
+   - EpisodeReplayBuffer
+
+These three are all subclasses derived from abstract Interface ``IBuffer``.
+
+.. image::
+   images/buffer_class_uml.png
+   :align: center
+   :scale: 50%
+
+The key methods of a buffer are ``push`` and ``sample``. ``NaiveReplayBuffer`` is a simple FIFO queue implementation. It only provides basic functions of the two methods.
+
+   1. ``push``: Push some collected data in the buffer. If exceeding the max size of the buffer, queue head data will be removed out of buffer.
+   2. ``sample``: Uniformly sample a list with length `batch_size` by random.
+
+On the basis of ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuffer`` respctively implements more functions and features.
+
+``AdvancedReplayBuffer`` implements following features: (Also shown in figure)
+
+   - **Prioritized Sampling**. Completely implement paper `Prioritized Experience Replay <https://arxiv.org/abs/1511.05952>`_
+   - **Monitor data quality(use_count and staleness)**. If a piece of data is used too many times, or is too stale to optimize policy, it will be removed out of buffer.
+
+   .. note::
+      **use_count**: Count how many times a piece of data is sampled. 
+
+      **staleness**: Model iteration gap between the time when it is collected and the time when it is sampled
+   
+   - **Throughput monitor and control**. In a fixed period of time, count how mnay pieces of data are pushed into, sampled out of, removed out of the buffer. Control the ratio "Pushed in" / "Sampled out" in a range, in case the dataflow speed does not match.
+   - **Logger**. Sampled data attributes and throughtput is shown in text logger and tensorboard logger.
+
+.. image::
+   images/advanced_buffer.png
+   :align: center
+   :scale: 65%
+   
+
+.. tip::
+   By default, most polices in nerveX adopt ``AdvancedReplayBuffer``, because we think monitor and logger is rather important in debugging and policy tuning. However, if you are sure that you do not need all the  features above, you can feel free to switch to simpler and faster ``NaiveReplayBuffer``.
+
+``EpisodeReplayBuffer`` is designed for some special cases where they need a whole episode rather than seperated samples. For example: In chess, go or card games, players get reward only when the game is over; In some algorithms like `Hindsight Experience Replay <https://arxiv.org/abs/1707.01495>`_, must sample out a whole episode and operate on it. Therefore, in ``EpisodeReplayBuffer``, each element is no longer a train sample, but an episode.
+
+In nerveX, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing a data out of buffer, we must not only remove meta data in memory, but also remove that in file system as well.
+
+If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview.html>`_
+
+Worker-Evaluator
+~~~~~~~~~~~~~~~~
+
+Worker-Learner
+~~~~~~~~~~~~~~~~~~
+
+
+Entry(optional)
+~~~~~~~~~~~~~~~~~
+
+.. tip::
+  If you want to know more details about algorithm implementation, framework design and efficiency optimization, we also provide the documation of `Feature <../feature/index.html>`_, 
+
+Computation Pattern
+----------------------
+
+Serial Pipeline
+~~~~~~~~~~~~~~~~~
+
+Parallel/Dist Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~
+TBD

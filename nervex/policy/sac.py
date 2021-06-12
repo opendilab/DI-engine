@@ -111,16 +111,14 @@ class SACPolicy(Policy):
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
-            n_sample=1,
+            # n_sample=1,
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
-                type='priority',
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
                 # (int type) max_use: Max use times of one data in the buffer.

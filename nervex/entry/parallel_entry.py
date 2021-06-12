@@ -148,11 +148,3 @@ def launch_coordinator(
     shutdown_monitor_thread.start()
     system_shutdown_event.wait()
     print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
-
-
-def launch_learner_aggregator(seed: int, filename: Optional[str] = None, name: Optional[str] = None) -> None:
-    set_pkg_seed(seed)
-    with open(filename, 'rb') as f:
-        config = pickle.load(f)[name]
-    aggregator = LearnerAggregator(config)
-    aggregator.start()

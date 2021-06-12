@@ -35,7 +35,6 @@ class ILPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        model=dict(),
         learn=dict(
             multi_gpu=False,
             # (int) collect n_episode data, train model n_iteration time
@@ -49,15 +48,13 @@ class ILPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_sample=128,
+            # n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
-            collector=dict(type='sample', ),
         ),
         eval=dict(evaluator=dict(eval_freq=800, ), ),
         other=dict(
             replay_buffer=dict(
-                type='priority',
                 replay_buffer_size=100000,
                 # (int) max use count of data, if count is bigger than this value,
                 # the data will be removed from buffer

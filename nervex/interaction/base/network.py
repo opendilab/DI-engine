@@ -66,6 +66,7 @@ class HttpEngine:
             path: str,
             data: Optional[Mapping[str, Any]] = None,
             headers: Optional[Mapping[str, Any]] = None,
+            params: Optional[Mapping[str, Any]] = None,
             raise_for_status: bool = True
     ) -> requests.Response:
         _headers = dict(self._base_headers())
@@ -77,6 +78,7 @@ class HttpEngine:
                 url=self.get_url(path),
                 data=json.dumps(self._data_process(data) or {}),
                 headers=_headers or {},
+                params=params or {},
             )
             if raise_for_status:
                 response.raise_for_status()

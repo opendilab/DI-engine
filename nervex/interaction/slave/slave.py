@@ -14,7 +14,8 @@ from flask import Flask, request
 from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
-from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
+from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN, \
+    DEFAULT_REQUEST_RETRIES
 from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
@@ -25,6 +26,7 @@ class Slave(ControllableService):
         host: Optional[str] = None,
         port: Optional[int] = None,
         heartbeat_span: Optional[float] = None,
+        request_retries: Optional[int] = None,
         channel: Optional[int] = None
     ):
         # server part
@@ -36,6 +38,7 @@ class Slave(ControllableService):
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
 
         # task part
         self.__has_task = DblEvent()
@@ -50,8 +53,8 @@ class Slave(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_slave_exception_by_error,
-        )()('localhost', self.__port, False)
-        # )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
+            # )()('localhost', self.__port, False)
+        )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # master-connection part
@@ -323,7 +326,18 @@ class Slave(ControllableService):
             path: Optional[str] = None,
             data: Optional[Mapping[str, Any]] = None
     ) -> requests.Response:
-        return self.__master_http_engine.request(method, path, data)
+        _retries = 0
+        while True:
+            try:
+                return self.__master_http_engine.request(method, path, data)
+            except requests.exceptions.HTTPError as err:
+                raise err
+            except requests.exceptions.RequestException as err:
+                _retries += 1
+                if _retries > self.__request_retries:
+                    raise err
+                else:
+                    time.sleep(0.2)
 
     def __master_heartbeat(self):
         return self.__master_request('GET', '/slave/heartbeat')

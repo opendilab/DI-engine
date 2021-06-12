@@ -10,6 +10,8 @@ from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole
 from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config, cartpole_c51_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from app_zoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
@@ -81,6 +83,26 @@ def test_rainbow():
 @pytest.mark.unittest
 def test_iqn():
     config = [deepcopy(cartpole_iqn_config), deepcopy(cartpole_iqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_c51():
+    config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_qrdqn():
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -197,7 +219,7 @@ def test_qmix():
         os.popen('rm -rf log ckpt*')
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.use_cuda = False
