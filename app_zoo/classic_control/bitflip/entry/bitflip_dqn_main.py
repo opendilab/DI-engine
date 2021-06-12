@@ -72,13 +72,17 @@ def main(cfg, seed=0):
         replay_buffer.push(new_episode, cur_collector_envstep=collector.envstep)
         # Training
         for i in range(cfg.policy.learn.update_per_collect):
-            train_episode = replay_buffer.sample(her_cfg.episode_size, learner.train_iter)
+            if her_cfg and her_model.episode_size is not None:
+                sample_size = her_model.episode_size
+            else:
+                sample_size = learner.policy.get_attribute('batch_size')
+            train_episode = replay_buffer.sample(sample_size, learner.train_iter)
             if train_episode is not None:
                 train_data = []
                 if her_cfg is not None:
                     her_episodes = []
                     for e in train_episode:
-                        her_episodes.extend(her_model.estimate(e, her_cfg.sample_per_episode))
+                        her_episodes.extend(her_model.estimate(e))
                     train_episode.extend(her_episodes)
                 for e in train_episode:
                     train_data.extend(policy.collect_mode.get_train_sample(e))

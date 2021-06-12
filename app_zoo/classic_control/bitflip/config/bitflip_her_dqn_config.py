@@ -38,7 +38,6 @@ bitflip_her_dqn_config = dict(
                 decay=10000,
             ),
             replay_buffer=dict(
-                type='episode',
                 replay_buffer_size=50,
             ),
             her=dict(
@@ -62,6 +61,7 @@ bitflip_her_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    replay_buffer=dict(type='episode'),
 )
 bitflip_her_dqn_create_config = EasyDict(bitflip_her_dqn_create_config)
 create_config = bitflip_her_dqn_create_config

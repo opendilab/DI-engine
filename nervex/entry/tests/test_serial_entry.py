@@ -176,18 +176,17 @@ def test_impala():
 
 @pytest.mark.unittest
 def test_her_dqn():
+    bitflip_her_dqn_config.policy.cuda = False
     try:
         bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("18. her dqn\n")
 
 
 @pytest.mark.unittest
 def test_collaq():
     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -198,7 +197,7 @@ def test_collaq():
 @pytest.mark.unittest
 def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -209,7 +208,7 @@ def test_coma():
 @pytest.mark.unittest
 def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -222,7 +221,7 @@ def test_qmix():
 # @pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
