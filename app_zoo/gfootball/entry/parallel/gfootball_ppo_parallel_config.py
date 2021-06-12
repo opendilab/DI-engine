@@ -91,7 +91,7 @@ gfootball_ppo_system_config = dict(
     path_policy='./policy',
     communication_mode='auto',
     learner_multi_gpu=False,
-    learner_gpu_num=0,
+    learner_gpu_num=1,
     coordinator=dict()
 )
 gfootball_ppo_system_config = EasyDict(gfootball_ppo_system_config)
