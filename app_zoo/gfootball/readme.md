@@ -11,20 +11,8 @@ app_zoo/gfootball文件大致结构如下：
 ├── model
 │   ├── iql
 │   ├── conv1d
-│   └── bots# NerveX Gfootball Readme
-
-[TOC]
-
-## Structure
-
-app_zoo/gfootball文件大致结构如下：
-
-├── entry
-├── envs
-├── model
-│   ├── iql
-│   ├── conv1d
 │   └── bots
+
 
 
 
