@@ -37,9 +37,7 @@ bitflip_her_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=50,
-            ),
+            replay_buffer=dict(replay_buffer_size=50, ),
             her=dict(
                 her_strategy='future',
                 # her_replay_k=2,  # `her_replay_k` is not used in episodic HER

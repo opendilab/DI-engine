@@ -20,9 +20,9 @@ class HerModel:
     """
 
     def __init__(
-        self,
-        cfg: dict,
-        cuda: bool = False,
+            self,
+            cfg: dict,
+            cuda: bool = False,
     ) -> None:
         self._cuda = cuda and torch.cuda.is_available()
         self._device = 'cuda' if self._cuda else 'cpu'
@@ -32,13 +32,13 @@ class HerModel:
         self._her_replay_k = cfg.get('her_replay_k', 1)
         self._episode_size = cfg.get('episode_size', None)
         self._sample_per_episode = cfg.get('sample_per_episode', None)
-    
+
     def estimate(
-        self,
-        episode: List[Dict[str, Any]],
-        merge_func: Optional[Callable] = None,
-        split_func: Optional[Callable] = None,
-        goal_reward_func: Optional[Callable] = None
+            self,
+            episode: List[Dict[str, Any]],
+            merge_func: Optional[Callable] = None,
+            split_func: Optional[Callable] = None,
+            goal_reward_func: Optional[Callable] = None
     ) -> List[Dict[str, Any]]:
         """
         Overview:
@@ -78,8 +78,10 @@ class HerModel:
                 elif self._her_strategy == 'future':
                     p_idx = np.random.randint(idx, len(episode))
                 _, _, new_desired_goal = split_func(episode[p_idx]['next_obs'])
-                timestep = {k: copy.deepcopy(v) for k, v in episode[idx].items() if k not in [
-                    'obs', 'next_obs', 'reward']}
+                timestep = {
+                    k: copy.deepcopy(v)
+                    for k, v in episode[idx].items() if k not in ['obs', 'next_obs', 'reward']
+                }
                 timestep['obs'] = merge_func(obs, new_desired_goal)
                 timestep['next_obs'] = merge_func(next_obs, new_desired_goal)
                 timestep['reward'] = goal_reward_func(achieved_goal, new_desired_goal).to(self._device)
@@ -138,7 +140,7 @@ class HerModel:
     @property
     def episode_size(self) -> int:
         return self._episode_size
-    
+
     @property
     def sample_per_episode(self) -> int:
         return self._sample_per_episode
