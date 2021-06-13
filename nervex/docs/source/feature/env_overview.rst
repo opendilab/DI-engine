@@ -13,18 +13,23 @@ BaseEnv
     我们可以很方便的查阅到，`gym.Env` 的 `定义 <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ 中，最为关键的部分在于 `step` 和 `reset` 方法。通过给定的 `observation`, `step()` 方法依据输入的 action 并与环境产生交互，从而得到相应的 `reward`。`reset()` 方法则是对环境进行重置。`nervex.BaseEnv` 继承了 `gym.Env`，并实现了
 
     1. BaseEnvTimestep(namedtuple): 定义了环境每运行一步返回的内容，一般包括'obs', 'act', 'reward', 'done', 'info'五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。
-    2. BaseEnvInfo(namedlist): 定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，可用于神经网络创建的输入参数等等，一般包括'agent_num', 'obs_space', 'act_space', 'rew_space'四部分，其中 ``xxx_space`` 必须使用 ``envs/common/env_element.py`` 中的 ``EnvElementInfo`` 进行创建，子类可以自定义自己的该变量，为其增加新的字段。
+    2. BaseEnvInfo(namedlist): 定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，一般包括'agent_num', 'obs_space', 'act_space', 'rew_space'四部分，其中 ``xxx_space`` 必须使用 ``envs/common/env_element.py`` 中的 ``EnvElementInfo`` 进行创建，子类可以自定义自己的该变量，为其增加新的字段。
 
     .. note::
 
         ``obs_space`` 和 ``subprocess_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
 
     3. info(): 快速查阅当前环境的各种shape，并显示启用的wrapper种类
+
+    .. note:: 
+
+        注意，info() 中会根据 wrapper 的种类自动修改对应的 obs_shape / act_shape / rew_shape。如果用户需要添加新的 env wrapper，需要在 wrapper 中实现静态函数 ``new_shape(obs_shape, act_shape, rew_shape)`` 并返回此 wrapper 修改之后的各个 shape。
+
     4. create_collector_env_cfg(): 为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
     5. create_evaluator_env_cfg(): 为性能评测创建相应的环境配置文件，功能同上说明
     6. enable_save_replay(): 使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的render方法。（该方法可选实现）
 
-    此外，`nervex.BaseEnv` 还针对细节做了一些改动，例如
+    此外，``nervex.BaseEnv`` 还针对细节做了一些改动，例如
 
     1. seed(): 对于环境内各种处理函数和wrapper的种子控制，外界设定的是种子的种子
     2. 默认都使用lazy init，即init只设置参数，第一次reset时启动环境设定种子
@@ -67,8 +72,7 @@ EnvElement
 (nervex/envs/common/env_element.py)
 
 概述：
-    环境元素基类，observation，action，reward等可以视为环境元素，该类及其子类负责某一具体环境元素的基本信息和处理函数定义。该类及其子类是stateless的，维护静态
-    的属性和方法。
+    环境元素基类，observation，action，reward等可以视为环境元素，该类及其子类负责某一具体环境元素的基本信息和处理函数定义。该类及其子类是stateless的，维护静态的属性和方法。
 
 类变量：
     1. info_template: 环境元素信息模板，一般包括维度，取值情况，发送给智能体数据的处理函数，从智能体接收到数据的处理函数
@@ -76,13 +80,13 @@ EnvElement
     3. _name: 该类的唯一标识名
 
 类接口方法：
-    1. __init__: 初始化，注意初始化完成后会调用 `_check` 方法检查是否合法
+    1. __init__: 初始化，注意初始化完成后会调用 ``_check`` 方法检查是否合法
     2. info: 返回该元素类的基本信息和处理函数
     3. __repr__: 返回提供元素说明的字符串
 
 子类需继承重写方法：
-    1. _init: 实际上的初始化方法，这样实现是为了让子类调用方法 `__init__` 时也必须调用 `_check` 方法，相当于 `__init__` 只是一层wrapper
-    2. _check: 检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法——调用父类的该方法+实现自身需要检查的部分
+    1. _init: 实际上的初始化方法，这样实现是为了让子类调用方法 ``__init__`` 时也必须调用 ``_check`` 方法，相当于 ``__init__`` 只是一层 wrapper
+    2. _check: 检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法等价于调用父类的该方法以及实现自身需要检查的部分
     3. _details: 元素类详细信息
 
 

@@ -3,37 +3,38 @@ HPC_RL Overview
 
 
 
-概述
+Overview
 *****
-HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对nervex rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
+The HPC_RL component is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in nervex ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
 
-如何使用
+How to use
 *********
-    1. 安装
+    1. Installation
 
-        HPC_RL 目前支持的环境版本是：
+        The environment version currently supported by HPC_RL is:
           
-          - 系统：linux
-          - CUDA：CUDA9.2
-          - Python：py3.6
+            - System: linux
+            - CUDA: CUDA9.2
+            - Python: py3.6
 
-        由于HPC_RL目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下HPC_RL组件打包好的whl文件，可通过 ``pip install <whl_name>`` 安装。
+        Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through ``pip install <whl_name>``.
 
-        安装成功后，在python终端中如果可以成功 ``import hpc_rl`` ，则说明安装成功
+        If you can successfully ``import hpc_rl`` in the python terminal, the installation is successful
 
         .. tip::
 
-            使用新版本时，可能会出现某些不匹配问题，建议删除老版本后重新安装新版本，如安装目录在 ``~/.local/lib/python3.6/site-packages`` 下，则执行如下的命令即可删除：
+            When using the new version, some mismatch problems may occur. It is recommended to delete the old version and reinstall the new version. If the installation directory is under ``~/.local/lib/python3.6/site-packages``, execute The following command can be deleted:
 
             .. code:: bash
 
                 rm ~/.local/lib/python3.6/site-packages/hpc_*.so
                 rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
-    2. 验证
 
-       当安装成功后，使用者可以通过nervex/hpc_rl/tests下的单元测试来验证精度和效率，这些测试会运行原始版本基于pytorch api的实现+ HPC_RL优化后的实现，例如运行该目录下的test_gae.py，在 ``Tesla V100 32G`` 上的运行结果如下：
+    2. Verification
 
-       .. code:: bash
+        After the installation, users can verify the accuracy and efficiency through the unit tests under nervex/hpc_rl/tests. These tests will run the original version based on the pytorch api implementation and the HPC_RL optimized implementation. For example, run the ``test_gae.py`` in this directory, the results of running on ``Tesla V100 32G`` are as follows:
+
+        .. code:: bash
 
             target problem: T = 1024, B = 64
             gae mean_relative_error: -1.0645836e-07
@@ -51,9 +52,9 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
             epoch: 4, hpc gae cost time: 0.0024368762969970703
             epoch: 5, hpc gae cost time: 0.002432107925415039
 
-    3. 使用
+    3. Usage
 
-        nervex中默认关闭HPC_RL的使用（因为目前仅支持部分运行环境），若成功安装后，可在入口程序最开始处加上一行代码 ``nervex.enable_hpc_rl = True`` ，即会自动启用HPC_RL相关算子，demo如下：
+        The usage of HPC_RL is disabled by default in nervex (because only part of the operating environment is currently supported). After installation, you can add a line of code ``nervex.enable_hpc_rl = True``at the beginning of the entry program, and HPC_RL related calculations will be automatically enabled. The demo is as follows:
 
         .. code:: python
 
@@ -69,15 +70,21 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
                 cfg.policy.use_cuda= True
                 serial_pipeline(cfg, 0)
 
-目前支持的算子
+
+    4. Demo
+
+        We provide a demo on qbert using dqn algorithm. With setting ``nervex.enable_hpc_rl = True`` in ``main.py``, the training time will drop from 9.7ms to 8.5ms on 16GV100 with CUDA9.2.
+
+
+Currently supported operators
 ****************
-   ``rl_utils`` : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO
+    ``rl_utils`` : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO
 
-   ``torch_utils/network`` : LSTM，scatter_connection
+    ``torch_utils/network`` : LSTM，scatter_connection
 
-性能对比
+
+Performance comparison
 ********
-
 +------------------------+-----------------+------------------+-----------------+-----------------+
 |         算子名         |     数据维度    |     测试环境     |     pytorch     |      HPC_RL     |
 +========================+=================+==================+=================+=================+
@@ -196,13 +203,16 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
 | vtrace  |  T=128, B=128, N=512  | 32GV100, CUDA10.1 |  12230us   | 776us   | 
 +------------------------+-----------------+------------------+-----------------+-----------------+
 
-其他
+
+Others
 *********
 
-1. 为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，nervex的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。
-2. 对于部分算子，例如当映射关系有重叠时，GPU上并行执行，映射结果是不确定的，会存在一定的数值精度波动，但基本不影响常规训练。
-3. 对于部分算子，HPC_RL只支持其中某些常见的参数组合，具体如下：
+1. In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of nervex will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.
 
-  - q_value n-step TD 的 criterion 仅支持MSE
-  - q_value n-step TD with rescale 的 criterion 仅支持MSE，trans_fn, inv_trans_fn仅支持R2D2中的相关变换形式
-  - LSTM中的normalization仅支持LN
+2. For some operators, for example, when the mapping relationship overlaps, they are executed in parallel on the GPU, and the mapping result is uncertain, and there will be certain numerical accuracy fluctuations, but it basically does not affect conventional training.
+
+3. For some operators, HPC_RL only supports some common parameter combinations, as follows:
+
+   - q_value n-step TD criterion only supports MSE
+   - The criterion of q_value n-step TD with rescale only supports MSE, trans_fn, inv_trans_fn only support the relevant transformation form in R2D2
+   - Normalization in LSTM only supports LN

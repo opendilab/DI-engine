@@ -150,7 +150,7 @@ Hook
         - 定义自己的 hook, 对于用户自定义的 ``MyHook``，需要完成以下几步：
 
             1. 继承 ``nervex.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
-            2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对l earner 中的任意变量进行操作。
+            2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对 learner 中的任意变量进行操作。
             3. 调用 ``register_learner_hook()`` 对自定义的 ``MyHook`` 进行注册，需要提供 hook 名称。
             4. 现在已经可以在 cfg 中使用自定义的 ``MyHook`` 了。
 
