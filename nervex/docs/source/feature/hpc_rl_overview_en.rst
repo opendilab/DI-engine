@@ -73,7 +73,23 @@ How to use
 
     4. Demo
 
-        We provide a demo on qbert using dqn algorithm. With setting ``nervex.enable_hpc_rl = True`` in ``main.py``, the training time will drop from 9.7ms to 8.5ms on 16GV100 with CUDA9.2.
+        We provide a demo on qbert using dqn algorithm. With setting ``nervex.enable_hpc_rl = True`` in ``main.py``, the training time will drop from 9.7ms to 8.8ms on 16GV100 with CUDA9.2.
+
+        Pytorch:
+
+        +-------+----------------+------------+----------------+
+        | Name  | train_time_val | cur_lr_val | total_loss_val |
+        +-------+----------------+------------+----------------+
+        | Value | 0.008813       | 0.000100   | 0.008758       |
+        +-------+----------------+------------+----------------+
+
+        HPC_RL:
+        
+        +-------+----------------+------------+----------------+
+        | Name  | train_time_val | cur_lr_val | total_loss_val |
+        +-------+----------------+------------+----------------+
+        | Value | 0.009722       | 0.000100   | 0.426298       |
+        +-------+----------------+------------+----------------+
 
 
 Currently supported operators
@@ -86,7 +102,7 @@ Currently supported operators
 Performance comparison
 ********
 +------------------------+-----------------+------------------+-----------------+-----------------+
-|         算子名         |     数据维度    |     测试环境     |     pytorch     |      HPC_RL     |
+|         operator       |     shape       | test environment |     pytorch     |      HPC_RL     |
 +========================+=================+==================+=================+=================+
 |       TD-lambda        |    T=16, B=16   | 32GV100, CUDA9.2 |      900us      |       95us      |
 +------------------------+-----------------+------------------+-----------------+-----------------+
