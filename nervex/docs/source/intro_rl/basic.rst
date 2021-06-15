@@ -180,41 +180,35 @@ Model-based的策略优化：一种经典的方法是，先通过某种策略采
 
 Q&A
 ----
-Q1: 什么是model based和model free，两者区别是什么？MC、TD、DP三者中哪些是model free，哪些是model based？
+Q0: 强化学习 (Reinforcement Learning) 与监督学习 (Supervised Learning) 的本质区别在于？
+ - Answer：监督学习是从有标签的数据集中进行模式和特征的学习，从而可以对新的样本进行预测；强化学习不需要带标签的数据集，而是建立在环境feedback的基础上。强化学习主要针对的问题是在一个可能不断演化的环境中，训练一个能主动选择自己的动作，并根据动作所返回的不同类型的环境反馈，动态调整自己接下来的动作，以达到在一个比较长期的时间段内平均获得的反馈最好。
+
+Q1: 什么是exploration and exploitation？我们通常使用哪些方法平衡exploration and exploitation？
+ - Answer：Exploration即是RL中的agent需要不断的去探索环境的不同状态，而Exploitation则是agent需要去选择当前状态下尽可能的收益高的动作。所以平衡exploitation和exploration的目的就是获得一种长期收益最高的策略，这个过程可能对short-term reward有损失。如果exploitation太多，那么模型比较容易陷入局部最优，但是exploration太多，模型收敛速度太慢。这就是exploitation-exploration困境。
+
+Q2: 什么是model based和model free，两者区别是什么？
  - Answer：
-   model based算法指该算法会学习环境的转移过程并对环境进行建模，而model free算法则不需要对环境进行建模。
+   model based算法指该算法会学习环境的转移过程并对环境进行建模，并利用环境模型来进行学习，而model free算法则不需要对环境进行建模。
    蒙特卡洛和TD算法隶属于model-free，因为这两个算法不需要算法建模具体环境。
    而动态规划属于model-based，因为使用动态规划需要完备的环境模型。
 
-Q2: 什么是value-based， policy-based和collector-critic？ 分别有哪些算法是value-based，policy-based和actor-critic的？他们分别有什么advantage？有哪些drawback？
+Q3: 什么是value-based， policy-based，两者区别是什么？
  - Answer：
-   所谓value-based就是在学习如何critic(评判一个输入状态的价值)，policy-based对应的是学习如何去做actor(判断在一个输入状态应该采取什么行动)，而actor-critic就是一边去学习如何判断critic，一边去训练做actor的网络。
+   所谓value-based就是在学习评价一个输入状态的价值，policy-based对应的是学习在一个输入状态应该采取什么行动，而actor-critic就是一边去学习critic，一边去训练actor网络，是两者的结合，被广泛应用于强化学习算法中，该框架集成了值函数估计算法和策略搜索算法，是解决实际问题时最常考虑的框架。
    具体关系用下图就能很好解释：
       
 .. image:: images/actor-critic.jpg
    :scale: 30 %
 
-Q3: 什么是on-policy和off-policy？
+Q4: 什么是on-policy和off-policy，两者区别是什么？
  - Answer：on-policy是使用当前的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的。 
-   off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。
-   on-policy和off-policy只是训练方式的界限，在有时一个算法甚至可能有on-policy和off-policy的不同实现，理解概念即可。
+   off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。on-policy很难平衡探索与利用的问题，容易学习到局部最优解，虽然对整体策略的更新更稳定但是降低了学习的效率。off-policy的优势在于重复利用数据进行训练，但是收敛速度与稳定性不如on-policy的算法。Soft Actor Critic提出的最大熵强化学习算法极大的提高了off-policy的稳定性和性能。
 
-Q4: 什么是online training和offline training？我们通常如何实现offline training？
+Q5: 什么是online training和offline training？我们通常如何实现offline training？
  - Answer： Offline training即是training时不使用collector与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
 
+Q6: 为什么要使用replay buffer？experience replay作用在哪里？
+ - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。由于梯度下降要求用于批次训练的数据符合i.i.d.，然而与环境交互后产生的数据不能直接用于训练。因此，经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，当缓存中的数据足够多时，随机抽样得到的数据就能接近i.i.d.，即可从中采样出样本以更新模型参数，使得训练更加稳定。Experience replay提出的思想就是为了让agent从过去经历的transitions中进行学习，从而提高了data efficiency。
 
-Q5: 什么是expolration and expolitation？我们通常使用哪些方法平衡expolration and expolitation？
- - Answer：Expolration即是RL中的agent需要不断的去探索环境的不同状态，而Expolitation则是agent需要去选择当前状态下尽可能的收益高的动作。
-   平衡expolration and expolitation有很多种方式，在不同的算法中有不同的实现，比如可以采用一定概率选择随机动作，或者在动作选择时加入一定噪声等方式。
-
-Q6: 什么是discrete space和continuous space？我们哪些算法适用于discrete space？哪些算法适用于continuous space？
- - Answer：discrete space就是环境的动作空间离散，比如玩石头剪刀布时我们的动作就是离散的三种动作。continuous space环境的动作空间连续，比如我们在开车的时候控制方向盘的角度，或者机械臂在抓取过程中各个关节的控制，就是连续的动作。
-
-Q7: 为什么要使用replay buffer？experience replay作用在哪里？
- - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，然后从中采样出样本以更新模型参数。
-
-Q8: 算法中的value(state function), Q值(state-action function)和advantage分别是什么意思？
- - Answer：
-   Value即是算法中的 :math:`V(S_t)`， 代表某时刻某个状态下的状态价值函数，即某个策略经过该状态之后预计能得到的reward数值。
-   Q值即是算法中的 :math:`Q(S_t, A_t）`，代表某时刻某个状态下选择了某个动作后的状态动作价值函数，经过该状态说选择某个动作之后预计能得到的reward数值。
-   Advantage则是与动作相关的 :math:`A(S_t, A_t) = Q(S_t, A_t) - V(S_t)`， 代表某时刻某个状态下选择了某个动作相比与选择其他动作的优势，预计比选择其他动作之后能多获得多少reward数值。
+Q7: 强化学习目前的应用场景有哪些？
+ - Answer：强化学习已经在游戏领域（星际争霸，围棋，王者荣耀等）取得了比肩人类甚至超越人类的成就。在现实应用中，强化学习在互联网推荐，搜索方面有丰富的应用场景。除此之外，强化学习也被应用于自动驾驶，机器人控制等控制系统中。在医疗，交通，量化交易等领域，强化学习可以用于处理更多复杂的决策问题。
