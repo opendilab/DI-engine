@@ -8,3 +8,4 @@ Reward Model
     pdeil_irl_model
     pwil_irl_model
     red_irl_model
+    gail_irl_model

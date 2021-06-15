@@ -12,12 +12,11 @@ Feature
     algorithm_overview
     policy_overview
     env_overview
-    env_manager_overview
 
+    env_manager_overview
     collector_overview
     replay_buffer_overview
     learner_overview
-    adder_overview
     wrapper_hook_overview
     league_overview
 

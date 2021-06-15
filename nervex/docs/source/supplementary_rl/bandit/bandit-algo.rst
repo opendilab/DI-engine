@@ -70,10 +70,3 @@ UCB（Upper Confidence Bound）
 -  UCB算法虽然简单，但其在实际应用中往往能取得相对好的效果，可见下文中的bandit example。
 
 -  UCB的效果是有理论保障的。UCB的累计regret为 :math:`O(Knlog(n))` ，即其在选用了n次arm之后产生的regret为 :math:`O(log(n))` 的。在2002年提出UCB的论文 `Using Confidence Bounds for Exploitation-Exploration Trade-offs <https://www.jmlr.org/papers/volume3/auer02a/auer02a.pdf>`_ 中已有了证明。
-
-Example
--------
-.. toctree::
-     :maxdepth: 2
-
-     bandit/bandit-example

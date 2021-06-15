@@ -10,6 +10,7 @@ Best Practice
     IL
     IRL
     random_seed
+    multi_discrete
     model_wrapper
     registry
     customization1_dynamic_update_step
