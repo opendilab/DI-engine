@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-n_bits = 4
-bitflip_pure_dqn_config = dict(
+n_bits = 6
+bitflip_her_dqn_config = dict(
     env=dict(
         collector_env_num=4,
         evaluator_env_num=8,
@@ -20,7 +20,9 @@ bitflip_pure_dqn_config = dict(
         ),
         learn=dict(
             update_per_collect=1,
-            batch_size=12,
+            # batch_size = episode_size * sample_per_episode
+            # You can refer to cfg.other.her to learn about `episode_size` and `sample_per_episode`
+            batch_size=64,
             learning_rate=0.0001,
             target_update_freq=500,
         ),
@@ -35,17 +37,22 @@ bitflip_pure_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                type='episode',
-                replay_buffer_size=50,
+            replay_buffer=dict(replay_buffer_size=50, ),
+            her=dict(
+                her_strategy='future',
+                # her_replay_k=2,  # `her_replay_k` is not used in episodic HER
+                # Sample how many episodes in each train iteration.
+                episode_size=16,
+                # Generate how many samples from one episode.
+                sample_per_episode=4,
             ),
         ),
     ),
 )
-bitflip_pure_dqn_config = EasyDict(bitflip_pure_dqn_config)
-main_config = bitflip_pure_dqn_config
+bitflip_her_dqn_config = EasyDict(bitflip_her_dqn_config)
+main_config = bitflip_her_dqn_config
 
-bitflip_pure_dqn_create_config = dict(
+bitflip_her_dqn_create_config = dict(
     env=dict(
         type='bitflip',
         import_names=['app_zoo.classic_control.bitflip.envs.bitflip_env'],
@@ -54,5 +61,5 @@ bitflip_pure_dqn_create_config = dict(
     policy=dict(type='dqn'),
     replay_buffer=dict(type='episode'),
 )
-bitflip_pure_dqn_create_config = EasyDict(bitflip_pure_dqn_create_config)
-create_config = bitflip_pure_dqn_create_config
+bitflip_her_dqn_create_config = EasyDict(bitflip_her_dqn_create_config)
+create_config = bitflip_her_dqn_create_config

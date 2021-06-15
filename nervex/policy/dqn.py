@@ -76,13 +76,6 @@ class DQNPolicy(Policy):
             # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (bool) Whether to use hindsight experience replay
-            her=False,
-            her_strategy='future',
-            her_replay_k=1,
         ),
         eval=dict(),
         # other config
@@ -227,13 +220,7 @@ class DQNPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
-        self._her = self._cfg.collect.her
-        if self._her:
-            her_strategy = self._cfg.collect.her_strategy
-            her_replay_k = self._cfg.collect.her_replay_k
-            self._adder = Adder(self._cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
-        else:
-            self._adder = Adder(self._cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -283,8 +270,6 @@ class DQNPolicy(Policy):
         """
         # adder is defined in _init_collect
         data = self._adder.get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        if self._cfg.collect.her:
-            data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
     def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:

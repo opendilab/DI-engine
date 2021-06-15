@@ -19,7 +19,8 @@ from app_zoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpol
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
-from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
+from app_zoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from app_zoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
@@ -220,11 +221,10 @@ def test_iqn():
         f.write("17. iqn\n")
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_her_dqn():
-    config = [deepcopy(bitflip_dqn_config), deepcopy(bitflip_dqn_create_config)]
     try:
-        serial_pipeline(config, seed=0)
+        bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
