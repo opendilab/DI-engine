@@ -15,7 +15,7 @@ class BaseLeague:
         League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.
     Interface:
         get_job_info, judge_snapshot, update_active_player, finish_job, save_checkpoint
-    
+
     .. note::
         In ``__init__`` method, league would also initialized players as well(in ``_init_players`` method).
     """

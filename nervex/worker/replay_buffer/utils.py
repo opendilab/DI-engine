@@ -131,7 +131,7 @@ class PeriodicThruputMonitor:
         close
     Property:
         push_data_count, sample_data_count, remove_data_count, valid_count
-    
+
     .. note::
         `thruput_log` thread is initialized and started in `__init__` method, so PeriodicThruputMonitor only provide
         one signle interface `close`
