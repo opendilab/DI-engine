@@ -56,7 +56,7 @@ class RainbowDQNPolicy(DQNPolicy):
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
         == ==================== ======== ============== ======================================== =======================
-        
+
     """
 
     config = dict(

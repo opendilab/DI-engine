@@ -20,7 +20,7 @@ Quick Facts
 6. The nerveX implementation of Rainbow supports **multi-discrete** action space.
 
 Double Q-learning
-----------------
+------------------
 Double Q-learning maintains a target q network, which is periodically updated with the current q network. Double Q-learning decouples the over-estimation of q-value by selects action with the current q network but estimate the q-value with the target network, formally:
 
 .. image:: images/double.png
@@ -28,7 +28,7 @@ Double Q-learning maintains a target q network, which is periodically updated wi
    :height: 40
 
 Prioritized Experience Replay(PER)
------------------
+----------------------------------
 DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probability relative to the last encountered absolute TD error, formally:
 
 .. image:: images/priority.png
@@ -45,6 +45,7 @@ streams, sharing a convolutional encoder, and merged by a special aggregator. Th
 .. image:: images/dueling.png
    :align: center
    :height: 80
+
 The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions. The network has a shared representation, which is then fed into a value stream :math:`v_\eta` with :math:`N_{atoms}` outputs, and into an advantage stream :math:`a_{\psi}` with :math:`N_{atoms} \times N_{actions}` outputs, where :math:`a_{\psi}^i(a)` will denote the output corresponding to atom i and action a. For each atom :math:`z_i`, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:
 
 .. image:: images/dueling_distribution.png
@@ -58,6 +59,7 @@ A multi-step variant of DQN is then defined by minimizing the alternative loss:
 .. image:: images/nstep_td.png
    :align: center
    :height: 40
+
 where the truncated n-step return is defined as:
 
 .. image:: images/nstep_reward.png
@@ -83,7 +85,7 @@ Rainbow can be combined with:
   - RNN
 
 Implementation
-------------
+---------------
 The default config is defined as follows:
 
 .. autoclass:: nervex.policy.rainbow.RainbowDQNPolicy
