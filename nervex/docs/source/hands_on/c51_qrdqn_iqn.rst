@@ -175,55 +175,7 @@ The default config is defined as follows:
 
 .. autoclass:: nervex.policy.qrdqn.QRDQNPolicy
 
-The bellman updates of QRDQN is implemented as:
-
-.. code:: python
-
-  def qrdqn_nstep_td_error(
-          data: namedtuple,
-          gamma: float,
-          nstep: int = 1,
-          value_gamma: Optional[torch.Tensor] = None,
-  ) -> torch.Tensor:
-      q, next_n_q, action, next_n_action, reward, done, tau, weight = data
-
-      assert len(action.shape) == 1, action.shape
-      assert len(next_n_action.shape) == 1, next_n_action.shape
-      assert len(done.shape) == 1, done.shape
-      assert len(q.shape) == 3, q.shape
-      assert len(next_n_q.shape) == 3, next_n_q.shape
-      assert len(reward.shape) == 2, reward.shape
-
-      if weight is None:
-          weight = torch.ones_like(action)
-
-      batch_range = torch.arange(action.shape[0])
-
-      # shape: batch_size x num x 1
-      q_s_a = q[batch_range, action, :].unsqueeze(2)
-      # shape: batch_size x 1 x num
-      target_q_s_a = next_n_q[batch_range, next_n_action, :].unsqueeze(1)
-
-      assert reward.shape[0] == nstep
-      reward_factor = torch.ones(nstep).to(reward)
-      for i in range(1, nstep):
-          reward_factor[i] = gamma * reward_factor[i - 1]
-      # shape: batch_size
-      reward = torch.matmul(reward_factor, reward)
-      # shape: batch_size x 1 x num
-      if value_gamma is None:
-          target_q_s_a = reward.unsqueeze(-1).unsqueeze(-1) + (gamma ** nstep) * target_q_s_a * (1 - done).unsqueeze(-1).unsqueeze(-1)
-      else:
-          target_q_s_a = reward.unsqueeze(-1).unsqueeze(-1) + value_gamma.unsqueeze(-1).unsqueeze(-1) * target_q_s_a * (1 - done).unsqueeze(-1).unsqueeze(-1)
-
-      # shape: batch_size x num x num
-      u = F.smooth_l1_loss(target_q_s_a, q_s_a, reduction="none")
-      # shape: batch_size
-      loss = (u * (
-              tau - (target_q_s_a - q_s_a).detach().le(0.).float()
-          ).abs()).sum(-1).mean(1)
-
-      return (loss * weight).mean(), loss
+The bellman updates of QRDQN is implemented in the function `qrdqn_nstep_td_error` of `nervex/rl_utils/td.py`.
 
 The Benchmark result of QRDQN implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
@@ -285,74 +237,6 @@ The default config is defined as follows:
 
 .. autoclass:: nervex.policy.iqn.IQNPolicy
 
-The bellman updates of IQN used is defined as follows:
-
-.. code:: python
-
-    def iqn_nstep_td_error(
-            data: namedtuple,
-            gamma: float,
-            nstep: int = 1,
-            kappa: float = 1.0,
-            value_gamma: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-        q, next_n_q, action, next_n_action, reward, done, replay_quantiles, weight = data
-
-        assert len(action.shape) == 1, action.shape
-        assert len(next_n_action.shape) == 1, next_n_action.shape
-        assert len(done.shape) == 1, done.shape
-        assert len(q.shape) == 3, q.shape
-        assert len(next_n_q.shape) == 3, next_n_q.shape
-        assert len(reward.shape) == 2, reward.shape
-
-        if weight is None:
-            weight = torch.ones_like(action)
-
-        batch_size = done.shape[0]
-        tau = q.shape[0]
-        tau_prime = next_n_q.shape[0]
-
-        action = action.repeat([tau, 1]).unsqueeze(-1)
-        next_n_action = next_n_action.repeat([tau_prime, 1]).unsqueeze(-1)
-
-        # shape: batch_size x tau x a
-        q_s_a = torch.gather(q, -1, action).permute([1, 0, 2])
-        # shape: batch_size x tau_prim x 1
-        target_q_s_a = torch.gather(next_n_q, -1, next_n_action).permute([1, 0, 2])
-
-        assert reward.shape[0] == nstep
-        device = torch.device("cuda" if reward.is_cuda else "cpu")
-        reward_factor = torch.ones(nstep).to(device)
-        for i in range(1, nstep):
-            reward_factor[i] = gamma * reward_factor[i - 1]
-        reward = torch.matmul(reward_factor, reward)
-        if value_gamma is None:
-            target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
-        else:
-            value_gamma = value_gamma.unsqueeze(-1)
-            target_q_s_a = reward.unsqueeze(-1) + value_gamma * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
-        target_q_s_a = target_q_s_a.unsqueeze(-1)
-
-        # shape: batch_size x tau' x tau x 1.
-        bellman_errors = (target_q_s_a[:, :, None, :] - q_s_a[:, None, :, :])
-
-        # The huber loss (see Section 2.3 of the paper) is defined via two cases:
-        huber_loss = torch.where(
-            bellman_errors.abs() <= kappa, 0.5 * bellman_errors ** 2, kappa * (bellman_errors.abs() - 0.5 * kappa)
-        )
-
-        # Reshape replay_quantiles to batch_size x num_tau_samples x 1
-        replay_quantiles = replay_quantiles.reshape([tau, batch_size, 1]).permute([1, 0, 2])
-
-        # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
-        replay_quantiles = replay_quantiles[:, None, :, :].repeat([1, tau_prime, 1, 1])
-
-        # shape: batch_size x tau_prime x tau x 1.
-        quantile_huber_loss = (torch.abs(replay_quantiles - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
-
-        # shape: batch_size
-        loss = quantile_huber_loss.sum(dim=2).mean(dim=1)[:, 0]
-
-        return (loss * weight).mean(), loss
+The bellman updates of IQN used is defined in the function `iqn_nstep_td_error` of `nervex/rl_utils/td.py`.
 
 The Benchmark result of IQN implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_

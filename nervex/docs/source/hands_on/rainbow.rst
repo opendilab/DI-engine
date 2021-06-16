@@ -74,7 +74,7 @@ Noisy Nets use a noisy linear layer that combines a deterministic and noisy stre
    :align: center
    :height: 40
 
-Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements when the action space is large, e.g. Montezuma's Revenge. 
+Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against epsilon-greedy when the action space is large, e.g. Montezuma's Revenge, because epsilon-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
 In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the nosies are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -> x.sign() * x.sqrt().
 
 Extensions
