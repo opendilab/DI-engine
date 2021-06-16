@@ -32,8 +32,8 @@ class IBuffer(ABC):
         Overview:
             Push a data into buffer.
         Arguments:
-            - data (:obj:`Any`): The data which will be pushed into buffer. Can be one(in `Any` type), \
-                or many(int `List[Any]` type).
+            - data (:obj:`Union[List[Any], Any]`): The data which will be pushed into buffer. Can be one \
+                (in `Any` type), or many(int `List[Any]` type).
             - cur_collector_envstep (:obj:`int`): Collector's current env step.
         """
         raise NotImplementedError

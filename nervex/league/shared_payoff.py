@@ -13,9 +13,9 @@ class BattleRecordDict(dict):
     """
     Overview:
         A dict which is used to record battle game result.
-        Initialized with four fixed keys: ['wins', 'draws', 'losses', 'games'] with value 0
+        Initialized four fixed keys: `wins`, `draws`, `losses`, `games`; Each with value 0.
     Interfaces:
-        __init__, __mul__
+        __mul__
     """
     data_keys = ['wins', 'draws', 'losses', 'games']
 
@@ -49,7 +49,7 @@ class BattleSharedPayoff:
         Payoff data structure to record historical match result, this payoff is shared among all the players.
         Use LockContext to ensure thread safe, since all players from all threads can access and modify it.
     Interface:
-        __init__, __getitem__, add_player, update, get_key
+        __getitem__, add_player, update, get_key
     Property:
         players
     """

@@ -5,6 +5,7 @@ from threading import Thread
 import time
 from functools import partial
 import threading
+from typing import Any
 
 from nervex.utils.autolog import LoggedValue, LoggedModel
 
@@ -22,6 +23,12 @@ def generate_id(name, data_id: int) -> str:
 
 
 class UsedDataRemover:
+    """
+    Overview:
+        UsedDataRemover is a tool to remove file datas that will no longer be used anymore.
+    Interface:
+        start, close, add_used_data
+    """
 
     def __init__(self) -> None:
         self._used_data = Queue()
@@ -30,16 +37,30 @@ class UsedDataRemover:
         self._end_flag = True
 
     def start(self) -> None:
+        """
+        Overview:
+            Start the `delete_used_data` thread.
+        """
         self._end_flag = False
         self._delete_used_data_thread.start()
 
     def close(self) -> None:
+        """
+        Overview:
+            Delete all datas in `self._used_data`. Then join the `delete_used_data` thread.
+        """
         while not self._used_data.empty():
             data_id = self._used_data.get()
             remove_file(data_id)
         self._end_flag = True
 
-    def add_used_data(self, data) -> None:
+    def add_used_data(self, data: Any) -> None:
+        """
+        Overview:
+            Delete all datas in `self._used_data`. Then join the `delete_used_data` thread.
+        Arguments:
+            - data (:obj:`Any`): Add a used data item into `self._used_data` for further remove.
+        """
         assert data is not None and isinstance(data, dict) and 'data_id' in data
         self._used_data.put(data['data_id'])
 
@@ -102,6 +123,19 @@ class SampledDataAttrMonitor(LoggedModel):
 
 
 class PeriodicThruputMonitor:
+    """
+    Overview:
+        PeriodicThruputMonitor is a tool to record and print logs(text & tensorboard) how many datas are
+        pushed/sampled/removed/valid in a period of time.
+    Interface:
+        close
+    Property:
+        push_data_count, sample_data_count, remove_data_count, valid_count
+
+    .. note::
+        `thruput_log` thread is initialized and started in `__init__` method, so PeriodicThruputMonitor only provide
+        one signle interface `close`
+    """
 
     def __init__(self, name, cfg, logger, tb_logger) -> None:
         self.name = name
@@ -144,6 +178,10 @@ class PeriodicThruputMonitor:
                 time.sleep(min(1, self._thruput_print_seconds * 0.2))
 
     def close(self) -> None:
+        """
+        Overview:
+            Join the `thruput_log` thread by setting `self._end_flag` to `True`.
+        """
         self._end_flag = True
 
     @property
