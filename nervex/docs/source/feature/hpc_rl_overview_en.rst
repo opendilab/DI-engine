@@ -5,7 +5,7 @@ HPC_RL Overview
 
 Overview
 *****
-The HPC_RL component is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in nervex ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
+The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in nervex ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
 
 How to use
 *********

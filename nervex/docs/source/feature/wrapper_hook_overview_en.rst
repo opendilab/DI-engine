@@ -15,23 +15,23 @@ Usage:
 
         The wrapper used in env is actually a subclass of ``gym.Wrapper``. In order to conveniently do some operations or adaptations to the input and output of the environment, Wrapper is a very convenient and effective tool. It can be simply understood that this part of the Wrapper is a wrapper for the environment class. Only some commonly used wrappers in gym are encapsulated in env_wrapper.
 
-    - Usage:
+        - Usage:
 
-        .. code:: python
+            .. code:: python
 
-                env = gym.make('PongNoFrameskip-v4')
-                env = NoopResetEnv(env)
+                    env = gym.make('PongNoFrameskip-v4')
+                    env = NoopResetEnv(env)
 
-    - Define your owned env wrapper. Please complete the following steps to implement customed ``MyWrapper`` (the same as using ``gym.Wrapper``):
+        - Define your owned env wrapper. Please complete the following steps to implement customed ``MyWrapper`` (the same as using ``gym.Wrapper``):
 
-        1. ``MyWrapper`` inherits ``gym.Wrapper``, and implements ``step()``, ``reset()`` and other functions according to requirements.
-        2. Use ``env = MyWrapper(env)`` to get a new wrapped environment.
+            1. ``MyWrapper`` inherits ``gym.Wrapper``, and implements ``step()``, ``reset()`` and other functions according to requirements.
+            2. Use ``env = MyWrapper(env)`` to get a new wrapped environment.
 
     - model
 
         For the model used in the policy, we also implemented a encapsulation similar to ``gym.Wrapper`` to achieve faster and more convenient changes to the ``model`` class.
 
-        - Use:
+        - Usage:
 
             The defined wrappers are placed under ``nervex.model.model_wrappers.py`` for easy viewing. For the usage of wrapper, a new model can be obtained according to the following rules:
             
@@ -77,6 +77,7 @@ Usage:
                 "teacher", "TeacherNetworkWrapper", "Used to implement teacher network"
 
         - View Wrapper nesting situation
+
             Call the outermost model.info() method to see the nesting status of all wrappers added by the current model.
 
             .. code:: python
@@ -183,6 +184,7 @@ Usage:
                 "log_reduce", "LogReduceHook", "Processing log"
 
         - Simplified calling hook:
+        
             Due to the complex parameters of the hook mentioned earlier, which is not conducive for beginners to get started, nervex provides a simpler calling method:
 
             .. csv-table:: Simplified Hook in nerveX

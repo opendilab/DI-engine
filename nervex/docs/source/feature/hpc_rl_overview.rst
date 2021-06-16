@@ -5,7 +5,7 @@ HPC_RL Overview
 
 概述
 *****
-HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对nervex rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
+HPC_RL 组件是一个加速算子组件，全称是 High Performance Computation。针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对nervex rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
 
 如何使用
 *********

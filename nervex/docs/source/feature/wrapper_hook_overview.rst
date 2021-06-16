@@ -26,7 +26,9 @@ Wrapper
             2. 使用 ``env = MyWrapper(env)`` 来得到新的经过包装的环境
 
     - model
+
         对于 policy 中使用的 model，我们对其也实现了和 ``gym.Wrapper`` 相似的封装，以实现对 ``model`` 类更为快速方便的更改。
+
         - 使用：
 
             已经定义好的 wrapper 统一放在 ``nervex.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
@@ -42,6 +44,7 @@ Wrapper
             * 在此情况下，得到的 ``model`` 可以像原本的 model 那样去使用。例如，当调用 ``model.forward`` 的时候，会优先调用 wrapper 中定义的 ``forward`` 函数。如果没有定义的话，会到下一层的 wrapper 中继续寻找。
 
         - 定义自己的 model wrapper：
+
             对于用户自定义的 ``MyWrapper``，需要完成以下几步：
 
             1. 继承 ``nervex.model.model_wrappers.IModelWrapper``，该类是 model 所使用的 wrapper 的基类。
@@ -58,7 +61,7 @@ Wrapper
 
         - 目前已经支持的 wrapper：
 
-            .. csv-table:: Accessible Model Wrapper in nerveX
+            .. csv-table:: 
                 :header: "Wrapper Name", "Wrapper Class Name", "Wrapper Usage"
                 :widths: 50, 50, 60
 
@@ -72,6 +75,7 @@ Wrapper
                 "teacher", "TeacherNetworkWrapper", "用于实现 teacher network"
 
         - 查看Wrapper嵌套情况
+
             调用最外层的model.info()方法即可看到所有当前model所添加的wrapper嵌套情况。
             
             .. code:: python
@@ -164,7 +168,7 @@ Hook
 
         - 目前已经支持的 hook：
 
-            .. csv-table:: Accessible Hook in nerveX
+            .. csv-table:: 
                 :header: "Hook Name", "Hook Class Name", "Hook Usage"
                 :widths: 50, 50, 60
 
@@ -174,6 +178,7 @@ Hook
                 "log_reduce", "LogReduceHook", "集合处理日志"
 
         - 简化调用的 hook：
+
             由于前面提到的 hook 存在参数复杂，不利于初学者上手等原因，nervex 提供了更为简单的调用方法：
 
             .. csv-table:: Simplified Hook in nerveX
@@ -196,6 +201,7 @@ Hook
                 hooks = build_learner_hook_by_cfg(hook_cfg)
 
         - 查看 hook 调用情况：
+
             nerveX 提供了 ``show_hooks()`` 方法以便查看各个位置的 hook 调用情况，具体如下：
             
             .. code:: python  

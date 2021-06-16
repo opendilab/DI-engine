@@ -7,12 +7,13 @@ BaseEnv
 (nervex/envs/env/base_env.py)
 
 概述：
-    环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 atari 相关任务，mujoco 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 ``observation space`` 与 ``action space``。OpenAI 所出品的 `gym` 模块已经帮我们定义了绝大多数常用的学术环境。`nerveX` 也遵循 `gym.Env` 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。
+    环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 `atari <https://gym.openai.com/envs/#atari>`_ 相关任务，`mujoco <https://gym.openai.com/envs/#mujoco>`_ 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 ``observation space`` 与 ``action space``。OpenAI 所出品的 `gym` 模块已经帮我们定义了绝大多数常用的学术环境。`nerveX` 也遵循 `gym.Env` 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。
 
 具体实现：
     我们可以很方便的查阅到，`gym.Env` 的 `定义 <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ 中，最为关键的部分在于 ``step`` 和 ``reset`` 方法。通过给定的 ``observation``, ``step()`` 方法依据输入的 ``action`` 并与环境产生交互，从而得到相应的 ``reward``。``reset()`` 方法则是对环境进行重置。`nervex.envs.BaseEnv` 继承了 `gym.Env`，并实现了：
 
     1. ``BaseEnvTimestep(namedtuple)``：定义了环境每运行一步返回的内容，一般包括 ``obs``，``act``，``reward``，``done``，``info`` 五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。
+
     2. ``BaseEnvInfo(namedlist)``：定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，一般包括 ``agent_num``，``obs_space``，``act_space``，``rew_space`` 四部分，其中 ``xxx_space`` 必须使用 `envs/common/env_element.py` 中的 ``EnvElementInfo`` 进行创建，子类可以自定义自己的该变量，为其增加新的字段。
 
     .. note::
@@ -26,13 +27,17 @@ BaseEnv
         注意，``info()`` 中会根据 wrapper 的种类自动修改对应的 ``obs_shape`` / ``act_shape`` / ``rew_shape``。如果用户需要添加新的 env wrapper，需要在 wrapper 中实现静态函数 ``new_shape(obs_shape, act_shape, rew_shape)`` 并返回此 wrapper 修改之后的各个 shape。
 
     4. ``create_collector_env_cfg()``：为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
+
     5. ``create_evaluator_env_cfg()``：为性能评测创建相应的环境配置文件，功能同上说明
+
     6. ``enable_save_replay()``：使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的 render 方法。（该方法可选实现）
 
     此外，`nervex.envs.BaseEnv` 还针对细节做了一些改动，例如
 
     1. ``seed()``: 对于环境内各种处理函数和 wrapper 的种子控制，外界设定的是种子的种子
+
     2. 默认都使用 lazy init，即 init 只设置参数，第一次 reset 时启动环境设定种子
+
     3. episode 结束时，在 info 这个 dict 中返回 ``final_eval_reward`` 键值对
 
     .. note::
@@ -58,6 +63,7 @@ BaseEnv
         `nervex` 对于环境返回的 ``info`` 字段有一些依赖关系, ``info`` 是一个 dict，其中某些键值对会有相关依赖要求：
         
         1. ``final_eval_reward``: 环境一个 episode 结束时（done=True）必须包含该键值，值为 float 类型，表示环境跑完一个 episode 性能的度量
+        
         2. ``abnormal``: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为 bool 类型，表示环境运行该步是是否发生了错误，如果为真 `nervex` 的相关模块会进行相应处理（比如将相关数据移除）。
 
 
