@@ -1,7 +1,9 @@
+import os
 import pickle
 import logging
 import time
 from threading import Thread
+import numpy as np
 from nervex.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
 from nervex.config import read_config, compile_config_parallel
 from nervex.utils import set_pkg_seed
@@ -57,8 +59,15 @@ def dist_launch_coordinator(
         log.disabled = True
     with open(filename, 'rb') as f:
         config = pickle.load(f)
+    # CLI > ENV VARIABLE > CONFIG
     if coordinator_port is not None:
         config.system.coordinator.port = coordinator_port
+    elif os.environ.get('COORDINATOR_PORT', None):
+        port = os.environ['COORDINATOR_PORT']
+        if port.isdigit():
+            config.system.coordinator.port = int(port)
+    else:  # use config pre-defined value
+        assert 'port' in config.system.coordinator and np.isscalar(config.system.coordinator.port)
     coordinator = Coordinator(config)
     coordinator.start()
 
@@ -87,8 +96,15 @@ def dist_launch_learner(
         name = 'learner'
     with open(filename, 'rb') as f:
         config = pickle.load(f).system[name]
+    # CLI > ENV VARIABLE > CONFIG
     if learner_port is not None:
         config.port = learner_port
+    elif os.environ.get('LEARNER_PORT', None):
+        port = os.environ['LEARNER_PORT']
+        if port.isdigit():
+            config.port = int(port)
+    else:  # use config pre-defined value
+        assert 'port' in config and np.isscalar(config.port)
     learner = create_comm_learner(config)
     learner.start()
 
@@ -104,8 +120,15 @@ def dist_launch_collector(
         name = 'collector'
     with open(filename, 'rb') as f:
         config = pickle.load(f).system[name]
+    # CLI > ENV VARIABLE > CONFIG
     if collector_port is not None:
         config.port = collector_port
+    elif os.environ.get('COLLECTOR_PORT', None):
+        port = os.environ['COLLECTOR_PORT']
+        if port.isdigit():
+            config.port = int(port)
+    else:  # use config pre-defined value
+        assert 'port' in config and np.isscalar(config.port)
     collector = create_comm_collector(config)
     collector.start()
 

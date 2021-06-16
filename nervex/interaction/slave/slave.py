@@ -15,7 +15,7 @@ from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
 from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN, \
-    DEFAULT_REQUEST_RETRIES
+    DEFAULT_REQUEST_RETRIES, DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
@@ -27,6 +27,7 @@ class Slave(ControllableService):
         port: Optional[int] = None,
         heartbeat_span: Optional[float] = None,
         request_retries: Optional[int] = None,
+        request_retry_waiting: Optional[float] = None,
         channel: Optional[int] = None
     ):
         # server part
@@ -39,6 +40,7 @@ class Slave(ControllableService):
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
         self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
+        self.__request_retry_waiting = max(request_retry_waiting or DEFAULT_REQUEST_RETRY_WAITING, 0.0)
 
         # task part
         self.__has_task = DblEvent()
@@ -302,7 +304,12 @@ class Slave(ControllableService):
 
     # self request operations
     def __self_request(self, method: Optional[str] = 'GET', path: Optional[str] = None) -> requests.Response:
-        return self.__self_http_engine.request(method, path)
+        return self.__self_http_engine.request(
+            method,
+            path,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     def __ping_once(self):
         return self.__self_request('GET', '/ping')
@@ -326,18 +333,13 @@ class Slave(ControllableService):
             path: Optional[str] = None,
             data: Optional[Mapping[str, Any]] = None
     ) -> requests.Response:
-        _retries = 0
-        while True:
-            try:
-                return self.__master_http_engine.request(method, path, data)
-            except requests.exceptions.HTTPError as err:
-                raise err
-            except requests.exceptions.RequestException as err:
-                _retries += 1
-                if _retries > self.__request_retries:
-                    raise err
-                else:
-                    time.sleep(0.2)
+        return self.__master_http_engine.request(
+            method,
+            path,
+            data,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     def __master_heartbeat(self):
         return self.__master_request('GET', '/slave/heartbeat')
