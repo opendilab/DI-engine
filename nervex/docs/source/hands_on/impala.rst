@@ -21,13 +21,13 @@ Quick Facts
 
 Key Equations
 ---------------------------
-Loss used in Imapala is similar to that in PPO, A2C and other actor-critic model. All of them comes from policy_loss,\
+Loss used in Impala is similar to that in PPO, A2C and other actor-critic model. All of them comes from policy_loss,\
 value_loss and entropy_loss, with respect to some carefully chosen weights.
 
 .. math::
     :label: math-single
 
-    Loss_total = Loss_policy + w_value * Loss_value + w_entropy * Loss_entropy \label{XX}
+    Loss_total = Loss_policy + w_value * Loss_value + w_entropy * Loss_entropy
 
 where  w_value, w_entropy are loss weights for value and entropy.
 
@@ -98,12 +98,18 @@ where :math:`r_s + \gamma v_{s+1}` is the v-trace advantage, which is estimated 
 
 Key Graphs
 ---------------
-The following graph describes the procee of IMPALA.
-
-The left is about single learner, which we implemented using
-``serial-pipeline``; the right is about multiple learners, which we implemented using ``parallel-pipeline``.
+The following graph describes the process in IMPALA original paper. However, our implication is a little different from
+that in original paper.
 
 .. image:: images/IMPALA.png
+
+For single learner, they use multiple actors/collectors to generate training data. While in our
+setting, we use one collector which has multiple environments to increase data diversity.
+
+For multiple learner, in original paper, different learners will have different actors with them. In other word, they
+will have different ReplayBuffer. While in our setting, all of the learners, will share the same ReplayBuffer, and will
+synchronize after each iteration.
+
 
 
 Implementations
@@ -113,7 +119,7 @@ The default config is defined as follows:
 .. autoclass:: nervex.policy.impala.IMPALAPolicy
 
 Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
-need all traing sample (sequences of training data) have the same length. This is done in ``policy._get_train_sample``.
+need all training sample (sequences of training data) have the same length. This is done in ``policy._get_train_sample``.
 Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
 refer to doc of ``adder``.
 
@@ -121,11 +127,85 @@ refer to doc of ``adder``.
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return self._adder.get_train_sample(data)
 
+    def get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+            If ``self._unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.
+            Otherwise, ``data`` will be split according to ``self._unroll_len``, process residual part according to
+            ``self._last_fn_type`` and call ``lists_to_dicts`` to form sampled training data.
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]]`): transitions list, each element is a transition dict
+        Returns:
+            - data (:obj:`List[Dict[str, Any]]`): transitions list processed after unrolling
+        """
+        if self._unroll_len == 1:
+            return data
+        else:
+            # cut data into pieces whose length is unroll_len
+            split_data, residual = list_split(data, step=self._unroll_len)
+
+            def null_padding():
+                template = copy.deepcopy(residual[0])
+                template['done'] = True
+                template['reward'] = torch.zeros_like(template['reward'])
+                if 'value_gamma' in template:
+                    template['value_gamma'] = 0.
+                null_data = [self._get_null_transition(template) for _ in range(miss_num)]
+                return null_data
+
+            if residual is not None:
+                miss_num = self._unroll_len - len(residual)
+                if self._last_fn_type == 'drop':
+                    # drop the residual part
+                    pass
+                elif self._last_fn_type == 'last':
+                    if len(split_data) > 0:
+                        # copy last datas from split_data's last element, and insert in front of residual
+                        last_data = copy.deepcopy(split_data[-1][-miss_num:])
+                        split_data.append(last_data + residual)
+                    else:
+                        # get null transitions using ``null_padding``, and insert behind residual
+                        null_data = null_padding()
+                        split_data.append(residual + null_data)
+                elif self._last_fn_type == 'null_padding':
+                    # same to the case of 'last' type and split_data is empty
+                    null_data = null_padding()
+                    split_data.append(residual + null_data)
+            # collate unroll_len dicts according to keys
+            if len(split_data) > 0:
+                split_data = [lists_to_dicts(d, recursive=True) for d in split_data]
+            return split_data
+
+.. note::
+    In ``adder.get_train_sample``, we introduce three ways to cut trajectory data into same-length pieces (length equal
+    to ``unroll_len``).
+
+    The first one is ``drop``, this means after splitting trajectory data into small pieces, we simply throw away those
+    with length smaller than ``unroll_len``. This method is kind of naive and usually is not a good choice. Since in
+    Reinforcement Learning, the last few data in an episode is usually very important, we can't just throw away them.
+
+    The second method is ``last``, which means if the total length trajectory is smaller than ``unrollen_len``,
+    we will use zero padding. Else, we will use data from previous piece to pad residual piece. This method is set as
+    default and recommended.
+
+    The last method ``null_padding`` is just zero padding, which is not vert efficient since many data will be ``null``.
+
+
 Now, we introduce the computation of vtrace-value.
 First, we use the following functions to compute importance_weights.
 
 .. code:: python
     def compute_importance_weights(target_output, behaviour_output, action, requires_grad=False):
+        """
+        Shapes:
+            - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
+                N is action dim
+            - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+            - action (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        """
+
         grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
         assert isinstance(action, torch.Tensor)
         device = action.device
@@ -137,12 +217,21 @@ First, we use the following functions to compute importance_weights.
             rhos = torch.exp(rhos)
             return rhos
 
+
 After that, we clip importance weights based on constant :math:`\rho` and :math:`c` to get clipped_rhos, clipped_cs.
 Then we can compute vtrace value according to the following function. Notice, here bootstrap_values are just
 value function :math:`V(x_s)` in vtrace definition.
 
 .. code:: python
     def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamma=0.99, lambda_=0.95):
+        """
+        Shapes:
+            - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
+            - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        """
         deltas = clipped_rhos * (reward + gamma * bootstrap_values[1:] - bootstrap_values[:-1])
         factor = gamma * lambda_
         result = bootstrap_values[:-1].clone()
@@ -154,13 +243,29 @@ value function :math:`V(x_s)` in vtrace definition.
 
 
 .. note::
-    Here we introduce a parameter ``lambda_``, following the implementation in AlphaStar. The parameter, between 0
+    1. Bootstrap_values in this part need to have size (T+1,B),where T is timestep, B is batch size. The reason is that
+    we need a sequence of training data with same-length vtrace value (this length is just the unroll_len in config).
+    And in order to compute the last vtrace value in the sequence, we need at least one more target value. This is
+    done using the next_obs of the last transition in training data sequence.
+
+    2. Here we introduce a parameter ``lambda_``, following the implementation in AlphaStar. The parameter, between 0
     and 1,can give a subtle control on vtrace off-policy correction. Usually, we will choose this parameter close to 1.
 
 Once we get vtrace value, or ``vtrace_nstep_return``, the computation of loss functions are straightforward. The whole
 process is as follows.
 
 .. code:: python
+    def vtrace_advantage(clipped_pg_rhos, reward, return_, bootstrap_values, gamma):
+        """
+        Shapes:
+            - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
+            - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+            - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        """
+        return clipped_pg_rhos * (reward + gamma * return_ - bootstrap_values)
+
     def vtrace_error(
             data: namedtuple,
             gamma: float = 0.99,
@@ -168,7 +273,16 @@ process is as follows.
             rho_clip_ratio: float = 1.0,
             c_clip_ratio: float = 1.0,
             rho_pg_clip_ratio: float = 1.0):
-
+        """
+        Shapes:
+            - target_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where T is timestep, B is batch size and\
+                N is action dim
+            - behaviour_output (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+            - action (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - weight (:obj:`torch.LongTensor`): :math:`(T, B)`
+        """
 
         target_output, behaviour_output, action, value, reward, weight = data
         with torch.no_grad():
@@ -189,7 +303,8 @@ process is as follows.
         return vtrace_loss(pg_loss, value_loss, entropy_loss)
 
 .. note::
-    Here we introduce a parameter ``rho_pg_clip_ratio``, following the implementation in AlphaStar. This parameter,
+    1. The shape of value in input data should be (T+1, B), the reason is same as above Note.
+    2. Here we introduce a parameter ``rho_pg_clip_ratio``, following the implementation in AlphaStar. This parameter,
     can give a subtle control on vtrace advantage. Usually, we will choose this parameter just same as rho_clip_ratio.
 
 The network interface IMPALA used is defined as follows:
