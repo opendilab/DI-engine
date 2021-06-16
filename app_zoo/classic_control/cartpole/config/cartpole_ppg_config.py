@@ -30,7 +30,7 @@ cartpole_ppg_config = dict(
         ),
         other=dict(
             replay_buffer=dict(
-                buffer_name=['policy', 'value'],
+                multi_buffer=True,
                 policy=dict(
                     replay_buffer_size=100,
                     max_use=10,
@@ -52,6 +52,10 @@ cartpole_ppg_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppg'),
+    replay_buffer=dict(
+        policy=dict(type='priority'),
+        value=dict(type='priority'),
+    )
 )
 cartpole_ppg_create_config = EasyDict(cartpole_ppg_create_config)
 create_config = cartpole_ppg_create_config

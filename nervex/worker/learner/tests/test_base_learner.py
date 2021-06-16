@@ -53,6 +53,10 @@ class FakePolicy:
             return False
         elif name == 'device':
             return 'cpu'
+        elif name == 'batch_size':
+            return 2
+        elif name == 'on_policy':
+            return False
         else:
             raise KeyError
 
@@ -75,7 +79,6 @@ class TestBaseLearner:
         return cfg
 
     def test_naive(self):
-        os.popen('rm -rf ckpt*')
         os.popen('rm -rf iteration_5.pth.tar*')
         time.sleep(1.0)
         with pytest.raises(KeyError):
@@ -85,8 +88,8 @@ class TestBaseLearner:
         time.sleep(0.5)
         cfg = self._get_cfg(path)
         learner = FakeLearner(cfg)
-        learner.setup_dataloader()
         learner.policy = FakePolicy()
+        learner.setup_dataloader()
         learner.start()
         time.sleep(2)
         assert learner.last_iter.val == 10 + 5

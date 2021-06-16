@@ -15,6 +15,42 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('coma')
 class COMAPolicy(Policy):
+    r"""
+    Overview:
+        Policy class of COMA algorithm. COMA is a multi model reinforcement learning algorithm
+    Interface:
+        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
+            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
+            _reset_eval, _get_train_sample, default_model, _monitor_vars_learn
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      coma           | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     True           | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        5  | ``priority_``      bool     False          | Whether use Importance Sampling        | IS weight
+           | ``IS_weight``                              | Weight to correct biased update.
+        6  | ``learn.update``   int      1              | How many updates(iterations) to train  | this args can be vary
+           | ``_per_collect``                           | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        7  | ``learn.target_``  float    0.001          | Target network update momentum         | between[0,1]
+           | ``update_theta``                           | parameter.
+        8  | ``learn.discount`` float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``_factor``                                | gamma                                  | reward env
+        9  | ``learn.td_``      float    0.8            | The trade-off factor of td-lambda,
+           | ``lambda``                                 | which balances 1step td and mc
+        10 | ``learn.value_``   float    1.0            | The loss weight of value network       | policy network weight
+           | ``weight``                                                                          | is set to 1
+        11 | ``learn.entropy_`` float    0.01           | The loss weight of entropy             | policy network weight
+           | ``weight``                                 | regularization                         | is set to 1
+        == ==================== ======== ============== ======================================== =======================
+    """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='coma',
@@ -24,6 +60,8 @@ class COMAPolicy(Policy):
         on_policy=True,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -46,8 +84,8 @@ class COMAPolicy(Policy):
             entropy_weight=0.01,
         ),
         collect=dict(
-            # (int) collect n_episode data, train model n_iteration time
-            n_episode=6,
+            # (int) collect n_sample data, train model n_iteration time
+            # n_sample=128,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=16,
         ),
@@ -88,6 +126,7 @@ class COMAPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority, "not implemented priority in COMA"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
@@ -144,13 +183,16 @@ class COMAPolicy(Policy):
         Overview:
             Forward and backward function of learn mode, acquire the data and calculate the loss and\
             optimize learner model
-
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least \
-                ['obs', 'action', 'reward', 'done', 'weight']
-
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``done``, ``weight``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``, ``policy_loss``, ``value_loss``, ``entropy_loss``
                 - cur_lr (:obj:`float`): Current learning rate
                 - total_loss (:obj:`float`): The calculated loss
                 - policy_loss (:obj:`float`): The policy(actor) loss of coma
@@ -266,7 +308,7 @@ class COMAPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return EasyDict(transition)
+        return transition
 
     def _init_eval(self) -> None:
         r"""
@@ -325,7 +367,22 @@ class COMAPolicy(Policy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demostration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For coma, ``nervex.model.coma.coma``
+        """
         return 'coma', ['nervex.model.coma.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

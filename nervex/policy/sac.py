@@ -18,8 +18,16 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):
+    r"""
+       Overview:
+           Policy class of SAC algorithm.
+       """
+
     config = dict(
-        cuda=True,
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        tyep='sac',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
         # (str type) policy_type: Determine the version of sac to use.
         # policy_type in ['sac_v1', 'sac_v2']
         # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
@@ -35,6 +43,10 @@ class SACPolicy(Policy):
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Please use False in sac.
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        random_collect_size=2000,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -63,15 +75,15 @@ class SACPolicy(Policy):
             batch_size=256,
 
             # (float type) learning_rate_q: Learning rate for soft q network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_q=3e-4,
             # (float type) learning_rate_policy: Learning rate for policy network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_policy=3e-4,
             # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when you use `sac_v1` policy.
+            # `learning_rate_value` should be initialized, when model.value_network is True.
             # Default to 3e-4 in sac_v1.
             learning_rate_value=3e-4,
 
@@ -101,13 +113,15 @@ class SACPolicy(Policy):
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
             is_auto_alpha=True,
+            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
-            n_sample=1,
+            # n_sample=1,
+            # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
@@ -140,6 +154,7 @@ class SACPolicy(Policy):
         """
         # Init
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_network = self._model._value_network
         self._twin_q = self._model._twin_q
 
@@ -202,7 +217,11 @@ class SACPolicy(Policy):
         """
         loss_dict = {}
         data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
         )
         if self._cuda:
             data = to_device(data, self._device)

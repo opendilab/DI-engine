@@ -1,6 +1,7 @@
 import copy
 from easydict import EasyDict
 import os.path as osp
+from typing import Optional
 
 from nervex.utils import deep_merge_dicts, LEAGUE_REGISTRY
 from .base_league import BaseLeague
@@ -57,11 +58,6 @@ class OneVsOneLeague(BaseLeague):
     )
 
     # override
-    def _init_cfg(self, cfg: EasyDict) -> None:
-        self.cfg = cfg
-        # self.model_config = cfg.get('model', EasyDict())
-
-    # override
     def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
         """
         Overview:
@@ -71,7 +67,6 @@ class OneVsOneLeague(BaseLeague):
         """
         assert isinstance(player, ActivePlayer), player.__class__
         player_job_info = EasyDict(player.get_job(eval_flag))
-        # model_config = copy.deepcopy(self.model_config)
         if eval_flag:
             return {
                 'agent_num': 1,
@@ -101,18 +96,26 @@ class OneVsOneLeague(BaseLeague):
         pass
 
     # override
-    def _update_player(self, player: ActivePlayer, player_info: dict) -> None:
+    def _update_player(self, player: ActivePlayer, player_info: dict) -> Optional[bool]:
         """
         Overview:
             Update an active player, called by ``self.update_active_player``.
         Arguments:
             - player (:obj:`ActivePlayer`): The active player that will be updated.
             - player_info (:obj:`dict`): An info dict of the active player which is to be updated.
+        Returns:
+            - increment_eval_difficulty (:obj:`bool`): Only return this when evaluator calls this method. \
+                Return True if difficulty is incremented; Otherwise return False (difficulty will not increment \
+                when it is already the most difficult or evaluator loses)
         """
         assert isinstance(player, ActivePlayer)
         if 'train_iteration' in player_info:
             # Update info from learner
             player.total_agent_step = player_info['train_iteration']
-        elif 'eval_win' in player_info and player_info['eval_win']:
-            # Update info from evaluator
-            increment_eval_difficulty = player.increment_eval_difficulty()
+        elif 'eval_win' in player_info:
+            if player_info['eval_win']:
+                # Update info from evaluator
+                increment_eval_difficulty = player.increment_eval_difficulty()
+                return increment_eval_difficulty
+            else:
+                return False

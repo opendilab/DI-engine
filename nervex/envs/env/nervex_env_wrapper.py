@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 import logging
 import gym
 import copy
@@ -28,7 +28,7 @@ class NervexEnvWrapper(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         self._final_eval_reward = 0.0
         self._action_type = self._cfg.get('action_type', 'scalar')
         return obs
@@ -50,7 +50,7 @@ class NervexEnvWrapper(BaseEnv):
             action = action.squeeze()
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -104,3 +104,13 @@ class NervexEnvWrapper(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        # this function can lead to the meaningless result
+        # disable_gym_view_window()
+        self._env = gym.wrappers.Monitor(
+            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+        )

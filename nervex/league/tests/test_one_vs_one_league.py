@@ -46,14 +46,15 @@ one_vs_one_league_default_config = dict(
             decay=0.99,
             min_win_rate_games=8,
         ),
+        path_policy='./league',
     ),
 )
 one_vs_one_league_default_config = EasyDict(one_vs_one_league_default_config)
 
 
+@pytest.mark.unittest
 class TestOneVsOneLeague:
 
-    @pytest.mark.unittest
     def test_naive(self):
         league = create_league(one_vs_one_league_default_config.league)
         assert (len(league.active_players) == 1)
@@ -64,7 +65,9 @@ class TestOneVsOneLeague:
 
         active_player_ckpt = league.active_players[0].checkpoint_path
         tmp = torch.tensor([1, 2, 3])
-        torch.save(tmp, active_player_ckpt)
+        path_policy = one_vs_one_league_default_config.league.path_policy
+        os.makedirs(path_policy)
+        torch.save(tmp, os.path.join(path_policy, active_player_ckpt))
 
         # judge_snapshot & update_active_player
         assert not league.judge_snapshot(active_player_id)
@@ -136,7 +139,7 @@ class TestOneVsOneLeague:
                     wins += 1
         league.payoff[league.active_players[0], league.historical_players[0]] == wins / games
 
-        os.popen("rm -rf naive_sp_player*")
+        os.popen("rm -rf {}".format(path_policy))
         print("Finish!")
 
 

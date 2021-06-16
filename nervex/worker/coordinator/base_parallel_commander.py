@@ -3,7 +3,7 @@ from collections import defaultdict
 from easydict import EasyDict
 import copy
 
-from nervex.utils import import_module, COMMANDER_REGISTRY
+from nervex.utils import import_module, COMMANDER_REGISTRY, LimitedSpaceContainer
 from nervex.league import create_league
 
 
@@ -66,16 +66,16 @@ class NaiveCommander(BaseCommander):
         """
         self._cfg = cfg
         commander_cfg = self._cfg.policy.other.commander
-        self.collector_task_space = commander_cfg.collector_task_space
-        self.learner_task_space = commander_cfg.learner_task_space
+        self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
+        self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
 
         self._collector_env_cfg = copy.deepcopy(self._cfg.env)
         self._collector_env_cfg.pop('collector_episode_num')
         self._collector_env_cfg.pop('evaluator_episode_num')
         self._collector_env_cfg.manager.episode_num = self._cfg.env.collector_episode_num
 
-        self.collector_task_count = 0
-        self.learner_task_count = 0
+        self._collector_task_count = 0
+        self._learner_task_count = 0
         self._learner_info = defaultdict(list)
         self._learner_task_finish_count = 0
         self._collector_task_finish_count = 0
@@ -87,8 +87,8 @@ class NaiveCommander(BaseCommander):
         Return:
             - task (:obj:`dict`): New collector task.
         """
-        if self.collector_task_count < self.collector_task_space:
-            self.collector_task_count += 1
+        if self._collector_task_space.acquire_space():
+            self._collector_task_count += 1
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             collector_cfg.collect_setting = {'eps': 0.9}
             collector_cfg.eval_flag = False
@@ -96,7 +96,7 @@ class NaiveCommander(BaseCommander):
             collector_cfg.policy_update_path = 'test.pth'
             collector_cfg.env = self._collector_env_cfg
             return {
-                'task_id': 'collector_task_id{}'.format(self.collector_task_count),
+                'task_id': 'collector_task_id{}'.format(self._collector_task_count),
                 'buffer_id': 'test',
                 'collector_cfg': collector_cfg,
             }
@@ -110,11 +110,11 @@ class NaiveCommander(BaseCommander):
         Return:
             - task (:obj:`dict`): the new learner task
         """
-        if self.learner_task_count < self.learner_task_space:
-            self.learner_task_count += 1
+        if self._learner_task_space.acquire_space():
+            self._learner_task_count += 1
             learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
             return {
-                'task_id': 'learner_task_id{}'.format(self.learner_task_count),
+                'task_id': 'learner_task_id{}'.format(self._learner_task_count),
                 'policy_id': 'test.pth',
                 'buffer_id': 'test',
                 'learner_cfg': learner_cfg,
@@ -129,6 +129,7 @@ class NaiveCommander(BaseCommander):
         Overview:
             finish collector task will add the collector_task_finish_count
         """
+        self._collector_task_space.release_space()
         self._collector_task_finish_count += 1
 
     def finish_learner_task(self, task_id: str, finished_task: dict) -> str:
@@ -139,6 +140,7 @@ class NaiveCommander(BaseCommander):
             the finished_task buffer_id
         """
         self._learner_task_finish_count += 1
+        self._learner_task_space.release_space()
         return finished_task['buffer_id']
 
     def notify_fail_collector_task(self, task: dict) -> None:
@@ -146,14 +148,14 @@ class NaiveCommander(BaseCommander):
         Overview:
             naive coordinator will pass when need to notify_fail_collector_task
         """
-        pass
+        self._collector_task_space.release_space()
 
     def notify_fail_learner_task(self, task: dict) -> None:
         r"""
         Overview:
             naive coordinator will pass when need to notify_fail_learner_task
         """
-        pass
+        self._learner_task_space.release_space()
 
     def update_learner_info(self, task_id: str, info: dict) -> None:
         r"""
@@ -164,6 +166,20 @@ class NaiveCommander(BaseCommander):
             - info (:obj:`dict`): the info to append to learner
         """
         self._learner_info[task_id].append(info)
+
+    def increase_collector_task_space(self):
+        r""""
+        Overview:
+        Increase task space when a new collector has added dynamically.
+        """
+        self._collector_task_space.increase_space()
+
+    def decrease_collector_task_space(self):
+        r""""
+        Overview:
+        Decrease task space when a new collector has removed dynamically.
+        """
+        self._collector_task_space.decrease_space()
 
 
 def create_parallel_commander(cfg: EasyDict) -> BaseCommander:

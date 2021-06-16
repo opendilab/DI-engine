@@ -1,7 +1,9 @@
 import os
 import time
+import fcntl
 from typing import List, Union, Dict, Callable, Any
 from functools import partial
+from pathlib import Path
 from queue import Queue
 from threading import Thread
 
@@ -214,7 +216,18 @@ class FlaskFileSystemLearner(BaseCommLearner):
             os.mkdir(self._path_policy)
         path = os.path.join(self._path_policy, self._policy_id)
         setattr(self, "_latest_policy_path", path)
-        save_file(path, state_dict, use_lock=True)
+        # save_file(path, state_dict, use_lock=True)
+
+        path_lock = path + '.lock'
+        if not os.path.isfile(path_lock):
+            try:
+                Path(path_lock).touch()
+            except Exception as e:
+                pass
+        with open(path_lock, 'w') as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            save_file(path, state_dict)
+
         if self._league_save_checkpoint_path is not None:
             save_file(self._league_save_checkpoint_path, state_dict, use_lock=True)
 

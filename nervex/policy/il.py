@@ -33,7 +33,8 @@ class ILPolicy(Policy):
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=False,
         priority=False,
-        model=dict(),
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             multi_gpu=False,
             # (int) collect n_episode data, train model n_iteration time
@@ -46,8 +47,8 @@ class ILPolicy(Policy):
             weight_decay=0.0,
         ),
         collect=dict(
-            # (int) collect n_episode data, train model n_iteration time
-            n_episode=2,
+            # (int) collect n_sample data, train model n_iteration time
+            # n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
         ),

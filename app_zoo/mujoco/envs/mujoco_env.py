@@ -3,7 +3,7 @@ import copy
 import torch
 import numpy as np
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -275,7 +275,7 @@ class MujocoEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype('float32')
         self._final_eval_reward = 0.
         return obs
 
@@ -296,7 +296,7 @@ class MujocoEnv(BaseEnv):
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype('float32')
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -306,6 +306,12 @@ class MujocoEnv(BaseEnv):
         if self._cfg.env_id in MUJOCO_INFO_DICT:
             info = copy.deepcopy(MUJOCO_INFO_DICT[self._cfg.env_id])
             info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
             return info
         else:
             raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\

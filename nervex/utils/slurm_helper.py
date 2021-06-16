@@ -78,9 +78,13 @@ def node_to_host(node: str) -> str:
 
 def find_free_port_slurm(node: str) -> int:
     partition = node_to_partition(node)
-    port = subprocess.getoutput(
-        "srun -p {} -w {} python -c \"from nervex.utils import find_free_port; print(find_free_port(0))\"".format(
-            partition, node
-        )
+    if partition == 'spring_scheduler':
+        comment = '--comment=spring-submit'
+    else:
+        comment = ''
+    output = subprocess.getoutput(
+        "srun -p {} -w {} {} python -c \"from nervex.utils import find_free_port; print('port' + str(find_free_port(0)))\""  # noqa
+        .format(partition, node, comment)
     )
+    port = output.split('port')[-1]
     return int(port)

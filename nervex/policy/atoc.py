@@ -33,6 +33,8 @@ class ATOCPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         model=dict(
             # (bool) Whether to use communication module in ATOC, if not, it is a multi-agent DDPG
             communication=True,
@@ -81,7 +83,7 @@ class ATOCPolicy(Policy):
         ),
         collect=dict(
             # (int) Collect n_sample data, update model n_iteration time
-            n_sample=64,
+            # n_sample=64,
             # (int) Unroll length of a train iteration(gradient update step)
             unroll_len=1,
             # ==============================================================
@@ -108,7 +110,8 @@ class ATOCPolicy(Policy):
             Init actor and critic optimizers, algorithm config, main and target models.
         """
         self._priority = self._cfg.priority
-        assert not self._priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight
         # algorithm config
         self._communication = self._cfg.learn.communication
         self._gamma = self._cfg.learn.discount_factor

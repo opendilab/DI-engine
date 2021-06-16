@@ -47,10 +47,25 @@ class NaiveResourceManager(object):
         else:
             return None
 
+    def have_assigned(self, name: id, worker_id: str) -> bool:
+        assert name in self._worker_type, "invalid worker_type: {}".format(name)
+        if name == 'collector':
+            return worker_id in self._resource_info['collector']
+        elif name == 'learner':
+            return worker_id in self._resource_info['learner']
+
+    def delete(self, name: id, worker_id: str) -> bool:
+        assert name in self._worker_type, "invalid worker_type: {}".format(name)
+        if worker_id in self._resource_info[name]:
+            self._resource_info.pop(worker_id)
+            return True
+        else:
+            return False
+
     def update(self, name: str, worker_id: str, resource_info: dict) -> None:
         r"""
         Overview:
             update the reource info
         """
-        assert name in self._worker_type
+        assert name in self._worker_type, "invalid worker_type: {}".format(name)
         self._resource_info[name][worker_id] = resource_info

@@ -59,6 +59,12 @@ class SoloCommander(BaseCommander):
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
+        self._collector_logger, _ = build_logger("./log/commander", "commander_collector", need_tb=False)
+        self._evaluator_logger, _ = build_logger("./log/commander", "commander_evaluator", need_tb=False)
+        self._sub_logger = {
+            'collector': self._collector_logger,
+            'evaluator': self._evaluator_logger,
+        }
         self._end_flag = False
 
     def get_collector_task(self) -> Optional[dict]:
@@ -83,7 +89,7 @@ class SoloCommander(BaseCommander):
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             # the newest info
             info = self._learner_info[-1]
-            info['env_step'] = self._total_collector_env_step
+            info['envstep'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             collector_cfg.policy_update_path = self._current_policy_id
             collector_cfg.eval_flag = eval_flag
@@ -135,7 +141,7 @@ class SoloCommander(BaseCommander):
                 If True, the pipeline can be finished.
         """
         self._collector_task_space.release_space()
-        evaluator_or_collector = "EVALUATOR" if finished_task['eval_flag'] else "COLLECTOR"
+        evaluator_or_collector = "evaluator" if finished_task['eval_flag'] else "collector"
         train_iter = finished_task['train_iter']
         info = {
             'train_iter': train_iter,
@@ -147,7 +153,7 @@ class SoloCommander(BaseCommander):
             'reward_mean': finished_task['reward_mean'],
             'reward_std': finished_task['reward_std'],
         }
-        self._logger.info(
+        self._sub_logger[evaluator_or_collector].info(
             "[{}] Task ends:\n{}".format(
                 evaluator_or_collector.upper(), '\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])
             )
@@ -236,3 +242,17 @@ class SoloCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
+
+    def increase_collector_task_space(self):
+        r""""
+        Overview:
+        Increase task space when a new collector has added dynamically.
+        """
+        self._collector_task_space.increase_space()
+
+    def decrease_collector_task_space(self):
+        r""""
+        Overview:
+        Decrease task space when a new collector has removed dynamically.
+        """
+        self._collector_task_space.decrease_space()

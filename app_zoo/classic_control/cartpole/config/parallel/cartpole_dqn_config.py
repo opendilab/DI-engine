@@ -19,7 +19,7 @@ cartpole_dqn_config = dict(
         nstep=3,
         discount_factor=0.97,
         learn=dict(
-            batch_size=64,
+            batch_size=32,
             learning_rate=0.001,
             learner=dict(
                 learner_num=1,
@@ -85,10 +85,11 @@ cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
 
 cartpole_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=1,
 )
 cartpole_dqn_system_config = EasyDict(cartpole_dqn_system_config)
 system_config = cartpole_dqn_system_config

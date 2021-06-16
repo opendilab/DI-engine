@@ -26,6 +26,8 @@ class A2CPolicy(Policy):
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         on_policy=True,  # for a2c strictly on policy algorithm, this line should not be seen by users
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -47,7 +49,7 @@ class A2CPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=80,
+            # n_sample=80,
             unroll_len=1,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -80,6 +82,7 @@ class A2CPolicy(Policy):
 
         # Algorithm config
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._adv_norm = self._cfg.learn.normalize_advantage

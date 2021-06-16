@@ -1,9 +1,10 @@
 from typing import Optional, List, Union, Tuple
-import subprocess
 import time
 import pickle
 import logging
-from threading import Thread, Event
+from multiprocessing import Process, Event
+import threading
+from threading import Thread
 from easydict import EasyDict
 
 from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
@@ -42,8 +43,6 @@ def parallel_pipeline(
     else:
         raise TypeError("invalid config type: {}".format(input_cfg))
     config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg, seed=seed)
-    print(config)
-    set_pkg_seed(config.seed)
     learner_handle = []
     collector_handle = []
     for k, v in config.system.items():
@@ -57,46 +56,58 @@ def parallel_pipeline(
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
 # for they can be used to read correponding config from file.
+def run_learner(config, seed, start_learner_event, close_learner_event):
+    set_pkg_seed(seed)
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+    learner = create_comm_learner(config)
+    learner.start()
+    start_learner_event.set()
+    close_learner_event.wait()
+    learner.close()
+
+
 def launch_learner(
         seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
 ) -> list:
-    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
     start_learner_event = Event()
     close_learner_event = Event()
 
-    def run_learner():
-        learner = create_comm_learner(config)
-        learner.start()
-        start_learner_event.set()
-        close_learner_event.wait()
-        learner.close()
-
-    learner_thread = Thread(target=run_learner, args=(), name='learner_entry_thread')
+    learner_thread = Process(
+        target=run_learner, args=(config, seed, start_learner_event, close_learner_event), name='learner_entry_process'
+    )
     learner_thread.start()
     return learner_thread, start_learner_event, close_learner_event
+
+
+def run_collector(config, seed, start_collector_event, close_collector_event):
+    set_pkg_seed(seed)
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+    collector = create_comm_collector(config)
+    collector.start()
+    start_collector_event.set()
+    close_collector_event.wait()
+    collector.close()
 
 
 def launch_collector(
         seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
 ) -> list:
-    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
     start_collector_event = Event()
     close_collector_event = Event()
 
-    def run_collector():
-        collector = create_comm_collector(config)
-        collector.start()
-        start_collector_event.set()
-        close_collector_event.wait()
-        collector.close()
-
-    collector_thread = Thread(target=run_collector, args=(), name='collector_entry_thread')
+    collector_thread = Process(
+        target=run_collector,
+        args=(config, seed, start_collector_event, close_collector_event),
+        name='collector_entry_process'
+    )
     collector_thread.start()
     return collector_thread, start_collector_event, close_collector_event
 
@@ -118,7 +129,7 @@ def launch_coordinator(
     for _, start_event, _ in collector_handle:
         start_event.wait()
     coordinator.start()
-    system_shutdown_event = Event()
+    system_shutdown_event = threading.Event()
 
     # Monitor thread: Coordinator will remain running until its ``system_shutdown_flag`` is set to False.
     def shutdown_monitor():
@@ -137,11 +148,3 @@ def launch_coordinator(
     shutdown_monitor_thread.start()
     system_shutdown_event.wait()
     print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
-
-
-def launch_learner_aggregator(seed: int, filename: Optional[str] = None, name: Optional[str] = None) -> None:
-    set_pkg_seed(seed)
-    with open(filename, 'rb') as f:
-        config = pickle.load(f)[name]
-    aggregator = LearnerAggregator(config)
-    aggregator.start()

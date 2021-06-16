@@ -3,7 +3,10 @@ from nervex.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy
-from .rainbow import RainbowDQNPolicy, IQNPolicy
+from .c51 import C51Policy
+from .qrdqn import QRDQNPolicy
+from .iqn import IQNPolicy
+from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy
@@ -40,8 +43,8 @@ class EpsCommandModePolicy(CommandModePolicy):
         """
         # Decay according to `learner_step`
         # step = command_info['learner_step']
-        # Decay according to `env_step`
-        step = command_info['env_step']
+        # Decay according to `envstep`
+        step = command_info['envstep']
         return {'eps': self.epsilon_greedy(step)}
 
     def _get_setting_learn(self, command_info: dict) -> dict:
@@ -71,13 +74,23 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('rainbow_command')
-class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('c51_command')
+class C51CommandModePolicy(C51Policy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('qrdqn_command')
+class QRDQNCommandModePolicy(QRDQNPolicy, EpsCommandModePolicy):
     pass
 
 
 @POLICY_REGISTRY.register('iqn_command')
 class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('rainbow_command')
+class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
     pass
 
 

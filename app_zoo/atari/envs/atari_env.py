@@ -2,7 +2,7 @@ from typing import Any, List, Union, Sequence
 import copy
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.utils import ENV_REGISTRY
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -169,6 +169,12 @@ class AtariEnv(BaseEnv):
         if self._cfg.env_id in ATARIENV_INFO_DICT:
             info = copy.deepcopy(ATARIENV_INFO_DICT[self._cfg.env_id])
             info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
             return info
         else:
             raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
@@ -227,7 +233,14 @@ class AtariEnvMR(AtariEnv):
 
     def info(self) -> BaseEnvInfo:
         if self._cfg.env_id in ATARIENV_INFO_DICT:
-            return ATARIENV_INFO_DICT[self._cfg.env_id]
+            info = copy.deepcopy(ATARIENV_INFO_DICT[self._cfg.env_id])
+            info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
         else:
             raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
                 .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))

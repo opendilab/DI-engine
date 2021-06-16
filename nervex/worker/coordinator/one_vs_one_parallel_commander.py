@@ -1,12 +1,16 @@
+from sys import path
+from nervex.utils.default_helper import deep_merge_dicts
 import time
 import copy
 from typing import Optional, Union
 from collections import defaultdict
 from functools import partial
+import os
 
+from nervex.utils import pretty_print
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
-from nervex.league import create_league
+from nervex.league import create_league, OneVsOneLeague
 from .base_parallel_commander import BaseCommander
 
 
@@ -28,13 +32,14 @@ class OneVsOneCommander(BaseCommander):
     def __init__(self, cfg: dict) -> None:
         r"""
         Overview:
-            Init the solo commander according to config.
+            Init the 1v1 commander according to config.
         Arguments:
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
         commander_cfg = self._cfg.policy.other.commander
         self._commander_cfg = commander_cfg
+
         self._collector_env_cfg = copy.deepcopy(self._cfg.env)
         self._collector_env_cfg.pop('collector_episode_num')
         self._collector_env_cfg.pop('evaluator_episode_num')
@@ -44,27 +49,36 @@ class OneVsOneCommander(BaseCommander):
         self._evaluator_env_cfg.pop('evaluator_episode_num')
         self._evaluator_env_cfg.manager.episode_num = self._cfg.env.evaluator_episode_num
 
-        self._collector_task_space = LimitedSpaceContainer(0, cfg.collector_task_space)
-        self._learner_task_space = LimitedSpaceContainer(0, cfg.learner_task_space)
+        self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
+        self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
         self._learner_info = [{'learner_step': 0}]
         # TODO accumulate collect info
-        self._collect_info = []
+        self._collector_info = []
         self._total_collector_env_step = 0
         self._evaluator_info = []
         self._current_buffer_id = None
-        self._current_policy_id = []
+        self._current_policy_id = []  # 1v1 commander has multiple policies
         self._last_eval_time = 0
         # policy_cfg must be deepcopyed
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
         self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        self._eval_times = -1  # todo
+        self._collector_logger, _ = build_logger("./log/commander", "commander_collector", need_tb=False)
+        self._evaluator_logger, _ = build_logger("./log/commander", "commander_evaluator", need_tb=False)
+        self._sub_logger = {
+            'collector': self._collector_logger,
+            'evaluator': self._evaluator_logger,
+        }
         self._end_flag = False
 
         # League
-        self._league = create_league(cfg.league)
+        path_policy = commander_cfg.path_policy
+        self._path_policy = path_policy
+        commander_cfg.league.path_policy = path_policy
+        commander_cfg.league = deep_merge_dicts(OneVsOneLeague.default_config(), commander_cfg.league)
+        self._league = create_league(commander_cfg.league)
         self._active_player = self._league.active_players[0]
-        self._current_player_id = None
+        self._current_player_id = {}
 
     def get_collector_task(self) -> Optional[dict]:
         r"""
@@ -80,16 +94,18 @@ class OneVsOneCommander(BaseCommander):
                 self._collector_task_space.release_space()
                 return None
             cur_time = time.time()
-            if cur_time - self._last_eval_time > self._cfg.eval_interval:
+            if cur_time - self._last_eval_time > self._commander_cfg.eval_interval:
                 eval_flag = True
+                self._last_eval_time = time.time()
             else:
                 eval_flag = False
-            collector_cfg = self._cfg.collector_cfg
+            collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             info = self._learner_info[-1]
             info['env_step'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
+            task_id = 'collector_task_{}'.format(get_task_uid())
             league_job_dict = self._league.get_job_info(self._active_player.player_id, eval_flag)
-            self._current_player_id = league_job_dict['player_id']
+            self._current_player_id[task_id] = league_job_dict['player_id']
             collector_cfg.policy_update_path = league_job_dict['checkpoint_path']
             collector_cfg.policy_update_flag = league_job_dict['player_active_flag']
             collector_cfg.eval_flag = eval_flag
@@ -101,21 +117,16 @@ class OneVsOneCommander(BaseCommander):
                 collector_cfg.policy = copy.deepcopy([self._cfg.policy for _ in range(2)])
                 collector_cfg.env = self._collector_env_cfg
             collector_command = {
-                'task_id': 'collector_task_{}'.format(get_task_uid()),
+                'task_id': task_id,
                 'buffer_id': self._current_buffer_id,
                 'collector_cfg': collector_cfg,
             }
-            log_str = "EVALUATOR" if eval_flag else "COLLECTOR"
-            self._logger.info(
-                "[{}] Task starts:\n{}".format(
-                    log_str, '\n'.join(
-                        [
-                            '{}: {}'.format(k, v) for k, v in collector_command.items()
-                            if k not in ['collector_cfg', 'policy']
-                        ]
-                    )
-                )
-            )
+            # log_str = "EVALUATOR" if eval_flag else "COLLECTOR"
+            # self._logger.info(
+            #     "[{}] Task starts:\n{}".format(
+            #         log_str, '\n'.join(['{}: {}'.format(k, v) for k, v in collector_command.items()])
+            #     )
+            # )
             return collector_command
         else:
             # self._logger.info("[{}] Fails to start because of no launch space".format(log_str))
@@ -131,27 +142,26 @@ class OneVsOneCommander(BaseCommander):
         if self._end_flag:
             return None
         if self._learner_task_space.acquire_space():
-            learner_cfg = self._cfg.learner_cfg
-            learner_cfg.max_iterations = self._cfg.max_iterations
+            learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
             learner_command = {
                 'task_id': 'learner_task_{}'.format(get_task_uid()),
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
+                'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
                 'policy': copy.deepcopy(self._cfg.policy),
-                'league_save_checkpoint_path': self._active_player.checkpoint_path,
+                'league_save_checkpoint_path': os.path.join(self._path_policy, self._active_player.checkpoint_path),
             }
-            self._logger.info(
-                "[LEARNER] Task starts:\n{}".format(
-                    '\n'.join(
-                        [
-                            '{}: {}'.format(k, v) for k, v in learner_command.items()
-                            if k not in ['learner_cfg', 'replay_buffer_cfg', 'policy']
-                        ]
-                    )
-                )
-            )
+            # self._logger.info(
+            #     "[LEARNER] Task starts:\n{}".format(
+            #         '\n'.join(
+            #             [
+            #                 '{}: {}'.format(k, v) for k, v in learner_command.items()
+            #                 if k not in ['learner_cfg', 'replay_buffer_cfg', 'policy']
+            #             ]
+            #         )
+            #     )
+            # )
             return learner_command
         else:
             # self._logger.info("[LEARNER] Fails to start because of no launch space")
@@ -171,13 +181,10 @@ class OneVsOneCommander(BaseCommander):
         """
         self._collector_task_space.release_space()
         if finished_task['eval_flag']:
-            # If evaluator task ends, whether to stop training should be judged.
-            self._eval_times += 1
-            self._last_eval_time = time.time()
             self._evaluator_info.append(finished_task)
             # Evaluate difficulty increment
-            game_result = finished_task['game_result']
             wins, games = 0, 0
+            game_result = finished_task['game_result']
             for i in game_result:
                 for j in i:
                     if j == "win":
@@ -201,16 +208,20 @@ class OneVsOneCommander(BaseCommander):
                 'avg_time_per_episode': finished_task['avg_step_per_episode'],
                 'reward_mean': finished_task['reward_mean'],
                 'reward_std': finished_task['reward_std'],
-                'game_result': game_result,
+                'game_result': finished_task['game_result'],
+                'eval_win': eval_win,
+                'difficulty_inc': difficulty_inc,
             }
-            self._logger.info(
+            self._sub_logger['evaluator'].info(
                 "[EVALUATOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
             )
             for k, v in info.items():
-                if k in ['train_iter', 'game_result']:
+                if k in ['train_iter', 'game_result', 'eval_win', 'difficulty_inc']:
                     continue
-                self._tb_logger.add_scalar('evaluator/' + k, v, train_iter)
-            eval_stop_value = self._cfg.collector_cfg.env_kwargs.eval_stop_value
+                self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('evaluator_step/' + k, v, self._total_collector_env_step)
+            # If evaluator task ends, whether to stop training should be judged.
+            eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
                     "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
@@ -219,16 +230,35 @@ class OneVsOneCommander(BaseCommander):
                 self._end_flag = True
                 return True
         else:
-            self._collect_info.append(finished_task)
-            # TODO(zlx) collector tb and log
+            self._collector_info.append(finished_task)
             self._total_collector_env_step += finished_task['step_count']
             # If collector task ends, league payoff should be updated.
             payoff_update_dict = {
-                'player_id': self._current_player_id,
+                'player_id': self._current_player_id.pop('task_id'),
                 'result': finished_task['game_result'],
             }
             self._league.finish_job(payoff_update_dict)
-            self._logger.info("[Collector] Task ends")
+            # Print log
+            train_iter = finished_task['train_iter']
+            info = {
+                'train_iter': train_iter,
+                'episode_count': finished_task['real_episode_count'],
+                'step_count': finished_task['step_count'],
+                'avg_step_per_episode': finished_task['avg_time_per_episode'],
+                'avg_time_per_step': finished_task['avg_time_per_step'],
+                'avg_time_per_episode': finished_task['avg_step_per_episode'],
+                'reward_mean': finished_task['reward_mean'],
+                'reward_std': finished_task['reward_std'],
+                'game_result': finished_task['game_result'],
+            }
+            self._sub_logger['collector'].info(
+                "[COLLECTOR] Task ends:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
+            )
+            for k, v in info.items():
+                if k in ['train_iter', 'game_result']:
+                    continue
+                self._tb_logger.add_scalar('collector_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('collector_step/' + k, v, self._total_collector_env_step)
             return False
         return False
 
@@ -249,7 +279,8 @@ class OneVsOneCommander(BaseCommander):
         self._learner_info = [{'learner_step': 0}]
         self._evaluator_info = []
         self._last_eval_time = 0
-        self._logger.info("[LEARNER] Task ends.")
+        self._current_player_id = {}
+        # self._logger.info("[LEARNER] Task ends.")
         return buffer_id
 
     def notify_fail_collector_task(self, task: dict) -> None:
@@ -258,7 +289,7 @@ class OneVsOneCommander(BaseCommander):
             Release task space when collector task fails.
         """
         self._collector_task_space.release_space()
-        self._logger.info("[Collector/EVALUATOR] Task fails.")
+        # self._logger.info("[COLLECTOR/EVALUATOR] Task fails.")
 
     def notify_fail_learner_task(self, task: dict) -> None:
         r"""
@@ -266,9 +297,9 @@ class OneVsOneCommander(BaseCommander):
             Release task space when learner task fails.
         """
         self._learner_task_space.release_space()
-        self._logger.info("[LEARNER] Task fails.")
+        # self._logger.info("[LEARNER] Task fails.")
 
-    def get_learner_info(self, task_id: str, info: dict) -> None:
+    def update_learner_info(self, task_id: str, info: dict) -> None:
         r"""
         Overview:
             Get learner info dict, use it to update commander record and league record.
@@ -313,3 +344,17 @@ class OneVsOneCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
+
+    def increase_collector_task_space(self):
+        r""""
+        Overview:
+        Increase task space when a new collector has added dynamically.
+        """
+        self._collector_task_space.increase_space()
+
+    def decrease_collector_task_space(self):
+        r""""
+        Overview:
+        Decrease task space when a new collector has removed dynamically.
+        """
+        self._collector_task_space.decrease_space()

@@ -20,13 +20,13 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = 'nerveX'
-copyright = '2019, X-Lab'
+copyright = '2021, X-Lab'
 author = 'X-Lab'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -102,7 +102,6 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
-
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.

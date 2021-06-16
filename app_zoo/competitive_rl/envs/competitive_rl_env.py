@@ -5,7 +5,7 @@ import numpy as np
 import gym
 import competitive_rl
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.envs.common.common_function import affine_transform
 from nervex.torch_utils import to_tensor, to_ndarray, to_list
@@ -34,6 +34,7 @@ COMPETITIVERL_INFO_DICT = {
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
+            # shape=(4, 84, 84),
             value={
                 'min': 0,
                 'max': 255,
@@ -41,18 +42,18 @@ COMPETITIVERL_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(6, ),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
+            shape=(1, ),  # different with https://github.com/cuhkrlcourse/competitive-rl#usage
             value={
                 'min': 0,
-                'max': 6,
+                'max': 3,
                 'dtype': np.float32
             },
         ),
         rew_space=EnvElementInfo(
-            shape=1,
+            shape=(1, ),
             value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
+                'min': np.float32("-inf"),
+                'max': np.float32("inf"),
                 'dtype': np.float32
             },
         ),
@@ -126,37 +127,20 @@ class CompetitiveRlEnv(BaseEnv):
 
         return BaseEnvTimestep(obs, rew, done, info)
 
-    # def info(self) -> BaseEnvInfo:
-    #     reward_range = self._env.reward_range
-    #     observation_space = self._env.observation_space
-    #     action_space = self._env.action_space
-    #     agent_num = len(observation_space) if isinstance(observation_space, gym.spaces.tuple.Tuple) else 1
-    #     if agent_num > 1:
-    #         obs_shape = (len(observation_space), ) + observation_space[0].shape
-    #         act_shape = (len(action_space), ) + action_space[0].shape
-    #     else:
-    #         obs_shape = observation_space.shape
-    #         act_shape = action_space.shape
-    #     T = EnvElementInfo
-    #     return BaseEnvInfo(
-    #         agent_num=agent_num,
-    #         obs_space=T(
-    #             obs_shape, {'dtype': np.float32}, None, None
-    #         ),
-    #         act_space=T(
-    #             act_shape, {'dtype': np.float32}, None, None
-    #         ),
-    #         rew_space=T(1, {
-    #             'min': reward_range[0],
-    #             'max': reward_range[1],
-    #             'dtype': np.float32
-    #         }, None, None),
-    #     )
-
     def info(self) -> BaseEnvInfo:
-        if self.env_id in COMPETITIVERL_INFO_DICT:
-            info = copy.deepcopy(COMPETITIVERL_INFO_DICT[self.env_id])
+        if self._env_id in COMPETITIVERL_INFO_DICT:
+            info = copy.deepcopy(COMPETITIVERL_INFO_DICT[self._env_id])
             info.use_wrappers = self._make_env(only_info=True)
+            obs_shape, act_shape, rew_shape = update_shape(
+                info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
+            )
+            info.obs_space.shape = obs_shape
+            info.act_space.shape = act_shape
+            info.rew_space.shape = rew_shape
+            if not self._builtin_wrap:
+                info.obs_space.shape = (2, ) + info.obs_space.shape
+                info.act_space.shape = (2, )
+                info.rew_space.shape = (2, )
             return info
         else:
             raise NotImplementedError('{} not found in COMPETITIVERL_INFO_DICT [{}]'\

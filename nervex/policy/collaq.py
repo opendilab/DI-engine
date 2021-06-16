@@ -17,6 +17,34 @@ class CollaQPolicy(Policy):
     r"""
     Overview:
         Policy class of CollaQ algorithm. CollaQ is a multi-agent reinforcement learning algorithm
+    Interface:
+        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
+            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
+            _reset_eval, _get_train_sample, default_model
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      collaq         | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     True           | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        5  | ``priority_``      bool     False          | Whether use Importance Sampling        | IS weight
+           | ``IS_weight``                              | Weight to correct biased update.
+        6  | ``learn.update_``  int      20             | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        7  | ``learn.target_``  float    0.001          | Target network update momentum         | between[0,1]
+           | ``update_theta``                           | parameter.
+        8  | ``learn.discount`` float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``_factor``                                | gamma                                  | reward env
+        9  | ``learn.collaq``   float    1.0            | The weight of collaq MARA loss
+           | ``_loss_weight``
+        == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -27,6 +55,8 @@ class CollaQPolicy(Policy):
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -48,8 +78,8 @@ class CollaQPolicy(Policy):
             collaq_loss_weight=1.0,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            n_episode=8,
+            # (int) Only one of [n_sample, n_episode] shoule be set
+            # n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
@@ -92,7 +122,8 @@ class CollaQPolicy(Policy):
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
-        assert not self._priority, "not implemented priority in collaq"
+        self._priority_IS_weight = self._cfg.priority_IS_weight
+        assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
         self._alpha = self._cfg.learn.collaq_loss_weight
@@ -144,10 +175,17 @@ class CollaQPolicy(Policy):
         Overview:
             Forward and backward function of learn mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least \
-                ['obs', 'next_obs', 'action', 'reward', 'next_obs', 'prev_state', 'done']
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``next_obs``, ``action``, ``reward``, ``weight``, ``prev_state``, ``done``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``
+                - cur_lr (:obj:`float`): Current learning rate
+                - total_loss (:obj:`float`): The calculated loss
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -190,15 +228,38 @@ class CollaQPolicy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset learn model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        r"""
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
@@ -244,6 +305,13 @@ class CollaQPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset collect model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._collect_model.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -268,7 +336,7 @@ class CollaQPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
-        return EasyDict(transition)
+        return transition
 
     def _init_eval(self) -> None:
         r"""
@@ -309,6 +377,13 @@ class CollaQPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        r"""
+        Overview:
+            Reset eval model to the state indicated by data_id
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
+                the model state to the state indicated by data_id
+        """
         self._eval_model.reset(data_id=data_id)
 
     def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
@@ -323,4 +398,13 @@ class CollaQPolicy(Policy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demostration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For collaq, ``nervex.model.qmix.qmix``
+        """
         return 'collaq', ['nervex.model.qmix.qmix']

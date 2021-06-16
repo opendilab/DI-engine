@@ -5,7 +5,7 @@ exploration
 -----------------
 
 get_epsilon_greedy_fn
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.rl_utils.exploration.get_epsilon_greedy_fn
 
 BaseNoise

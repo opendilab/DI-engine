@@ -61,23 +61,36 @@ class Policy(ABC):
             enable_field: Optional[List[str]] = None
     ) -> None:
         self._cfg = cfg
-        model = self._create_model(cfg, model)
-        self._cuda = cfg.cuda and torch.cuda.is_available()
-        self._multi_gpu = self._cfg.learn.multi_gpu
-        self._rank = get_rank() if self._multi_gpu else 0
-        if self._multi_gpu:
-            self._init_multi_gpu_setting(model)
-        self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
-        if self._cuda:
-            torch.cuda.set_device(self._rank)
-            model.cuda()
-        self._model = model
-
+        self._on_policy = self._cfg.on_policy
         if enable_field is None:
             self._enable_field = self.total_field
         else:
             self._enable_field = enable_field
         assert set(self._enable_field).issubset(self.total_field), self._enable_field
+
+        if len(set(self._enable_field).intersection(set(['learn', 'collect', 'eval']))) > 0:
+            model = self._create_model(cfg, model)
+            self._cuda = cfg.cuda and torch.cuda.is_available()
+            # now only support multi-gpu for only enable learn mode
+            if self._enable_field == ['learn']:
+                self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
+                if self._cuda:
+                    torch.cuda.set_device(self._rank)
+                    model.cuda()
+                if self._cfg.learn.multi_gpu:
+                    self._init_multi_gpu_setting(model)
+            else:
+                self._rank = 0
+                if self._cuda:
+                    torch.cuda.set_device(self._rank)
+                    model.cuda()
+            self._model = model
+            self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
+        else:
+            self._cuda = False
+            self._rank = 0
+            self._device = 'cpu'
+
         for field in self._enable_field:
             getattr(self, '_init_' + field)()
 

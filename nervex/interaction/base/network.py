@@ -1,5 +1,6 @@
 import json
 import socket
+import time
 from typing import Optional, Any, Mapping, Callable, Type, Tuple
 
 import requests
@@ -37,6 +38,10 @@ def split_http_address(address: str, default_port: Optional[int] = None) -> Tupl
     return _host, _port, _https, _path
 
 
+DEFAULT_RETRIES = 5
+DEFAULT_RETRY_WAITING = 1.0
+
+
 class HttpEngine:
 
     def __init__(self, host: str, port: int, https: bool = False, path: str = None):
@@ -60,26 +65,59 @@ class HttpEngine:
         path_segments = URLPath().add(path or '').segments
         return str(self.__base_url.with_path(URLPath.join_segments(original_segments + path_segments)))
 
+    def __single_request(
+        self,
+        method: str,
+        path: str,
+        data: Optional[Mapping[str, Any]] = None,
+        headers: Optional[Mapping[str, Any]] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        raise_for_status: bool = True
+    ):
+        response = self.__session.request(
+            method=method,
+            url=self.get_url(path),
+            data=json.dumps(self._data_process(data) or {}),
+            headers=headers,
+            params=params or {},
+        )
+        if raise_for_status:
+            response.raise_for_status()
+
+        return response
+
     def request(
             self,
             method: str,
             path: str,
             data: Optional[Mapping[str, Any]] = None,
             headers: Optional[Mapping[str, Any]] = None,
-            raise_for_status: bool = True
+            params: Optional[Mapping[str, Any]] = None,
+            raise_for_status: bool = True,
+            retries: Optional[int] = None,
+            retry_waiting: Optional[float] = None,
     ) -> requests.Response:
         _headers = dict(self._base_headers())
         _headers.update(headers or {})
 
+        retries = retries or DEFAULT_RETRIES
+        retry_waiting = retry_waiting or DEFAULT_RETRY_WAITING
+
         try:
-            response = self.__session.request(
-                method=method,
-                url=self.get_url(path),
-                data=json.dumps(self._data_process(data) or {}),
-                headers=_headers or {},
-            )
-            if raise_for_status:
-                response.raise_for_status()
+            _current_retries = 0
+            while True:
+                try:
+                    response = self.__single_request(method, path, data, _headers, params, raise_for_status)
+                except requests.exceptions.HTTPError as err:
+                    raise err
+                except requests.exceptions.RequestException as err:
+                    _current_retries += 1
+                    if _current_retries > retries:
+                        raise err
+                    else:
+                        time.sleep(retry_waiting)
+                else:
+                    break
         except Exception as e:
             self._error_handler(e)
         else:

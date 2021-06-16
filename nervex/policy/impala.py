@@ -1,15 +1,14 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
-import torch
-import copy
-import torch.nn.functional as F
+from collections import namedtuple
+from typing import List, Dict, Any, Tuple
 
-from nervex.torch_utils import Adam, RMSprop, to_device
+import torch
+
 from nervex.data import default_collate, default_decollate
+from nervex.model import model_wrap
 from nervex.rl_utils import Adder, vtrace_data, vtrace_error
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.torch_utils import Adam, RMSprop, to_device
 from nervex.utils import POLICY_REGISTRY
-from .base_policy import Policy
+from nervex.policy.base_policy import Policy
 
 
 @POLICY_REGISTRY.register('impala')
@@ -17,6 +16,28 @@ class IMPALAPolicy(Policy):
     r"""
     Overview:
         Policy class of IMPALA algorithm.
+
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      impala         | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+
+        5  | ``priority_``      bool     False          | Whether use Importance Sampling Weight |If True, priority
+           | ``IS_weight``                                                                       | must be True
+        6  ``unroll_len``       int      32             | trajectory length to calculate v-trace
+                                                        |target
+        7  | ``learn.update``   int      4              | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        == ==================== ======== ============== ======================================== =======================
     """
     unroll_len = 32
     config = dict(
@@ -24,8 +45,10 @@ class IMPALAPolicy(Policy):
         cuda=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         # here we follow ppo serial pipeline, the original is False
-        on_policy=True,
+        on_policy=False,
         priority=False,
+        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        priority_IS_weight=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -61,10 +84,14 @@ class IMPALAPolicy(Policy):
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
-            collector=dict(collect_print_freq=1000, ),
+            collector=dict(
+                type='sample',
+                collect_print_freq=1000,
+            ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
+            type='priority',
             replay_buffer_size=1000,
             max_use=16,
         ), ),
@@ -74,7 +101,7 @@ class IMPALAPolicy(Policy):
         r"""
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main model.
+            Initialize the optimizer, algorithm config and main model.
         """
         # Optimizer
         grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
@@ -98,6 +125,7 @@ class IMPALAPolicy(Policy):
 
         # Algorithm config
         self._priority = self._cfg.priority
+        self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._gamma = self._cfg.learn.discount_factor
@@ -109,41 +137,68 @@ class IMPALAPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
-        r"""
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
+        """
         Overview:
             Data preprocess function of learn mode.
-            Convert list trajectory data as the tensor trajectory data
+            Convert list trajectory data to to trajectory data, which is a dict of tensors.
         Arguments:
-            - data (:obj:`dict`): Dict type data
+            - data (:obj:`List[Dict[str, Any]]`): List type data, a list of data for training. Each list element is a \
+            dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least 'obs',\
+             'next_obs', 'logit', 'action', 'reward', 'done'
         Returns:
-            - data (:obj:`dict`)
+            - data (:obj:`dict`): Dict type data. Values are torch.Tensor or np.ndarray or dict/list combinations. \
+        ReturnsKeys:
+            - necessary: 'logit', 'action', 'reward', 'done', 'weight', 'obs_plus_1'.
+            - optional and not used in later computation: 'obs', 'next_obs'.'IS', 'collect_iter', 'replay_unique_id', \
+                'replay_buffer_idx', 'priority', 'staleness', 'use'.
+        ReturnsShapes:
+            - obs_plus_1 (:obj:`torch.FloatTensor`): :math:`(T * B, obs_shape)`, where T is timestep, B is batch size \
+                and obs_shape is the shape of single env observation
+            - logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim
+            - action (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - reward (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - done (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - weight (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
         data = default_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
-        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
-        use_priority = self._cfg.get('use_priority', False)
-        if use_priority:
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
             data['weight'] = data['IS']
         else:
             data['weight'] = data.get('weight', None)
-        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)
-        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
-        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
-        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
-        data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
+        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
+        data['logit'] = torch.cat(
+            data['logit'], dim=0
+        ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
+        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
+        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        data['weight'] = torch.cat(
+            data['weight'], dim=0
+        ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
         return data
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         r"""
         Overview:
-            Forward and backward function of learn mode.
+            Forward computation graph of learn mode(updating policy).
         Arguments:
-            - data (:obj:`dict`): Dict type data
+            - data (:obj:`List[Dict[str, Any]]`): List type data, a list of data for training. Each list element is a \
+            dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least 'obs',\
+             'next_obs', 'logit', 'action', 'reward', 'done'
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`):
-              Including current lr, total_loss, policy_loss, value_loss and entropy_loss
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority', 'staleness', 'use', 'IS'
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``, ``policy_loss`,``value_loss``,``entropy_loss``
+            - optional: ``priority``
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -172,53 +227,91 @@ class IMPALAPolicy(Policy):
             'entropy_loss': vtrace_loss.entropy_loss.item(),
         }
 
-    def _reshape_data(self, output: dict, data: dict) -> tuple:
+    def _reshape_data(self, output: Dict[str, Any], data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
         r"""
         Overview:
             Obtain weights for loss calculating, where should be 0 for done positions
             Update values and rewards with the weight
+        Arguments:
+            - output (:obj:`Dict[int, Any]`): Dict type data, output of learn_model forward. \
+             Values are torch.Tensor or np.ndarray or dict/list combinations,keys are value, logit.
+            - data (:obj:`Dict[int, Any]`): Dict type data, input of policy._forward_learn \
+             Values are torch.Tensor or np.ndarray or dict/list combinations. Keys includes at \
+             least ['logit', 'action', 'reward', 'done',]
+        Returns:
+            - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, \
+             values, rewards, weights
+        ReturnsShapes:
+            - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
+             B is batch size and Obs_Shape is the shape of single env observation.
+            - behaviour_logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim.
+            - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_shape)[:-1]
-        values = output['value'].reshape(self._unroll_len + 1, -1)
-        behaviour_logit = data['logit']
-        actions = data['action']
-        rewards = data['reward']
-        weights_ = 1 - data['done']
-        weights = torch.ones_like(rewards)
+        target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
+                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
+        behaviour_logit = data['logit']  # shape T,B
+        actions = data['action']  # shape T,B
+        values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
+        rewards = data['reward']  # shape T,B
+        weights_ = 1 - data['done']  # shape T,B
+        weights = torch.ones_like(rewards)  # shape T,B
         values[1:] = values[1:] * weights_
         weights[1:] = weights_[:-1]
-        rewards = rewards * weights
+        rewards = rewards * weights  # shape T,B
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        r"""
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
         r"""
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect model.
+            Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
+            Use multinomial_sample to choose action.
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
         self._adder = Adder(self._cuda, self._collect_unroll_len)
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Dict[str, Any]]:
         r"""
         Overview:
-            Forward function for collect mode
+            Forward computation graph of collect mode(collect training data).
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[int, Any]`): Dict type data, stacked env data for predicting \
+            action, values are torch.Tensor or np.ndarray or dict/list combinations,keys \
+            are env_id indicated by integer.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Dict[str,Any]]`): Dict of predicting policy_output(logit, action) for each env.
+        ReturnsKeys
+            - necessary: ``logit``, ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -226,55 +319,76 @@ class IMPALAPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor_critic')
+            output = self._collect_model.forward(data, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
+        output = {i: d for i, d in zip(data_id, output)}
+        return output
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        r"""
+        Overview:
+            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly.
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
+                format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`dict`): List of training samples.
+        .. note::
+            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
+            And the user can customize the this data processing procedure by overriding this two methods and collector \
+            itself.
         """
+        return self._adder.get_train_sample(data)
+
+    def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
+        r"""
         Overview:
                Generate dict type transition data from inputs.
         Arguments:
-                - obs (:obj:`Any`): Env observation
-                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
+                - obs (:obj:`Any`): Env observation,can be torch.Tensor or np.ndarray or dict/list combinations.
+                - model_output (:obj:`dict`): Output of collect model, including ['logit','action']
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
-               - transition (:obj:`dict`): Dict type transition data.
+               - transition (:obj:`dict`): Dict type transition data, including at least ['obs','next_obs', 'logit',\
+               'action','reward', 'done']
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'logit': model_output['logit'],
-            'action': model_output['action'],
-            'value': model_output['value'],
+            'logit': policy_output['logit'],
+            'action': policy_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
-        return self._adder.get_train_sample(data)
-
     def _init_eval(self) -> None:
         r"""
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy.
+            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
+            and use argmax_sample to choose action.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
+            ``self._forward_collect``.
         Arguments:
-            - data_id (:obj:`List[int]`): Not used in this policy.
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
+
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -286,10 +400,20 @@ class IMPALAPolicy(Policy):
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
+        output = {i: d for i, d in zip(data_id, output)}
+        return output
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'fc_vac', ['nervex.model.vac.value_ac']
 
     def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same interface definition indicated \
+            by import_names path. For IMPALA, ``nervex.model.interface.IMPALA``
+        """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

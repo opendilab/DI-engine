@@ -47,9 +47,9 @@ setup(
         'requests~=2.24.0',
         'six',
         'gym>=0.15.3',  # pypy
-        #'torch>=1.3.1,<1.5',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        #'torch>=1.3.1,<=1.7',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'pyyaml',
-        'easydict',
+        'easydict==1.9',
         'tensorboardX>=2.1',
         'matplotlib',  # pypy
         'yapf==0.29.0',
@@ -59,7 +59,7 @@ setup(
         'cloudpickle',
         'tabulate',
         'sortedcontainers',
-        'click',
+        'click==7.1.2',
         'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',

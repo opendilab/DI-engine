@@ -9,7 +9,7 @@ import torch
 
 
 def dummy_compressor(data):
-    return copy.deepcopy(data)
+    return data
 
 
 def zlib_data_compressor(data):
@@ -44,7 +44,7 @@ def get_data_compressor(name: str):
 
 
 def dummy_decompressor(data):
-    return copy.deepcopy(data)
+    return data
 
 
 def lz4_data_decompressor(compressed_data):

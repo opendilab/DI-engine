@@ -1,20 +1,23 @@
 import uuid
 import copy
-from abc import ABC, abstractmethod
-
+from abc import abstractmethod
 from easydict import EasyDict
+import os.path as osp
 
 from nervex.league.player import ActivePlayer, HistoricalPlayer, create_player
 from nervex.league.shared_payoff import create_payoff
 from nervex.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY
 
 
-class BaseLeague(ABC):
+class BaseLeague:
     """
     Overview:
         League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.
     Interface:
-        __init__, get_job_info, judge_snapshot, update_active_player, finish_job
+        get_job_info, judge_snapshot, update_active_player, finish_job, save_checkpoint
+
+    .. note::
+        In ``__init__`` method, league would also initialized players as well(in ``_init_players`` method).
     """
 
     @classmethod
@@ -30,7 +33,8 @@ class BaseLeague(ABC):
         Arguments:
             - cfg (:obj:`EasyDict`): League config.
         """
-        self._init_cfg(cfg)
+        self.cfg = cfg
+        self.path_policy = cfg.path_policy
         self.league_uid = str(uuid.uuid1())
         self.active_players = []
         self.historical_players = []
@@ -39,14 +43,6 @@ class BaseLeague(ABC):
         self._active_players_lock = LockContext(type_=LockContextType.THREAD_LOCK)
         self._init_players()
 
-    @abstractmethod
-    def _init_cfg(self, cfg: EasyDict) -> None:
-        """
-        Overview:
-            Initialize config ``self.cfg``.
-        """
-        raise NotImplementedError
-
     def _init_players(self) -> None:
         """
         Overview:
@@ -54,13 +50,15 @@ class BaseLeague(ABC):
         """
         # Add different types of active players for each player category, according to ``cfg.active_players``.
         for cate in self.cfg.player_category:  # Player's category (Depends on the env)
-            for k, n in self.cfg.active_players.items():  # Active player's type (Different in solo and battle)
+            for k, n in self.cfg.active_players.items():  # Active player's type
                 for i in range(n):  # This type's active player number
                     name = '{}_{}_{}_{}'.format(k, cate, i, self.league_uid)
                     ckpt_path = '{}_ckpt.pth'.format(name)
                     player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
                     if self.cfg.use_pretrain:
-                        self.save_checkpoint(self.cfg.pretrain_checkpoint_path[cate], player.checkpoint_path)
+                        self.save_checkpoint(
+                            self.cfg.pretrain_checkpoint_path[cate], osp.join(self.path_policy, player.checkpoint_path)
+                        )
                     self.active_players.append(player)
                     self.payoff.add_player(player)
 
@@ -93,12 +91,14 @@ class BaseLeague(ABC):
     def get_job_info(self, player_id: str = None, eval_flag: bool = False) -> dict:
         """
         Overview:
-            Get info of the job which is to be launched to an active player.
+            Get info dict of the job which is to be launched to an active player.
         Arguments:
             - player_id (:obj:`str`): The active player's id.
             - eval_flag (:obj:`bool`): Whether this is an evaluation job.
         Returns:
-            - job_info (:obj:`dict`): Job info. Should include keys ['lauch_player'].
+            - job_info (:obj:`dict`): Job info.
+        ReturnsKeys:
+            - necessary: `launch_player`(the active player)
         """
         if player_id is None:
             player_id = self.active_players_ids[0]
@@ -113,7 +113,7 @@ class BaseLeague(ABC):
     def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
         """
         Overview:
-            Real get_job method. Called by ``_launch_job``.
+            Real `get_job` method. Called by ``_launch_job``.
         Arguments:
             - player (:obj:`ActivePlayer`): The active player to be launched a job.
             - eval_flag (:obj:`bool`): Whether this is an evaluation job.
@@ -139,7 +139,9 @@ class BaseLeague(ABC):
             if player.is_trained_enough():
                 # Snapshot
                 hp = player.snapshot()
-                self.save_checkpoint(player.checkpoint_path, hp.checkpoint_path)
+                self.save_checkpoint(
+                    osp.join(self.path_policy, player.checkpoint_path), osp.join(self.path_policy, hp.checkpoint_path)
+                )
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
                 # Mutate
@@ -153,7 +155,7 @@ class BaseLeague(ABC):
         """
         Overview:
             Players have the probability to mutate, e.g. Reset network parameters.
-            Called by ``self._snapshot``.
+            Called by ``self.judge_snapshot``.
         Arguments:
             - player (:obj:`ActivePlayer`): The active player that may mutate.
         """
@@ -164,8 +166,9 @@ class BaseLeague(ABC):
         Overview:
             Update an active player's info.
         Arguments:
-            - player_info (:obj:`dict`): Info dict of the player which is to be updated, \
-                at least includs ['player_id', 'train_iteration']
+            - player_info (:obj:`dict`): Info dict of the player which is to be updated.
+        ArgumentsKeys:
+            - necessary: `player_id`, `train_iteration`
         """
         try:
             idx = self.active_players_ids.index(player_info['player_id'])

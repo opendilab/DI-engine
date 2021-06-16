@@ -7,12 +7,13 @@ from collections import namedtuple
 from typing import Any, Union, Tuple
 from functools import partial
 from easydict import EasyDict
+import torch
 
 from nervex.policy import Policy
 from nervex.envs import BaseEnvManager
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, COLLECTOR_REGISTRY
-from nervex.torch_utils import build_log_buffer
+from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, PARALLEL_COLLECTOR_REGISTRY
+from nervex.torch_utils import build_log_buffer, to_tensor, to_ndarray
 
 
 class TickMonitor(LoggedModel):
@@ -75,7 +76,7 @@ class BaseCollector(ABC):
         """
         self._cfg = cfg
         self._eval_flag = cfg.eval_flag
-        self._prefix = 'EVALUATOR' if self._eval_flag else 'Collector'
+        self._prefix = 'EVALUATOR' if self._eval_flag else 'COLLECTOR'
         self._collector_uid = get_task_uid()
         self._logger, self._monitor, self._log_buffer = self._setup_logger()
         self._end_flag = False
@@ -152,8 +153,11 @@ class BaseCollector(ABC):
         self._start_thread()
         while not self._end_flag:
             obs = self._env_manager.ready_obs
+            obs = to_tensor(obs, dtype=torch.float32)
             action = self._policy_inference(obs)
+            action = to_ndarray(action)
             timestep = self._env_step(action)
+            timestep = to_tensor(timestep, dtype=torch.float32)
             self._process_timestep(timestep)
             self._iter_after_hook()
             if self._env_manager.done:
@@ -230,11 +234,11 @@ class BaseCollector(ABC):
         self._env_manager = _env_manager
 
 
-def create_collector(cfg: EasyDict) -> BaseCollector:
+def create_parallel_collector(cfg: EasyDict) -> BaseCollector:
     import_module(cfg.get('import_names', []))
-    return COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)
+    return PARALLEL_COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)
 
 
 def get_parallel_collector_cls(cfg: EasyDict) -> type:
     import_module(cfg.get('import_names', []))
-    return COLLECTOR_REGISTRY.get(cfg.type)
+    return PARALLEL_COLLECTOR_REGISTRY.get(cfg.type)

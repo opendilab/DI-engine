@@ -10,13 +10,17 @@ from app_zoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole
 from app_zoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config, cartpole_c51_create_config  # noqa
+from app_zoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
+from app_zoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
 from app_zoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from app_zoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from app_zoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
-from app_zoo.classic_control.bitflip.config import bitflip_dqn_config, bitflip_dqn_create_config
+from app_zoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from app_zoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from app_zoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from app_zoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
@@ -79,6 +83,26 @@ def test_rainbow():
 @pytest.mark.unittest
 def test_iqn():
     config = [deepcopy(cartpole_iqn_config), deepcopy(cartpole_iqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_c51():
+    config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_qrdqn():
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -152,10 +176,9 @@ def test_impala():
 
 @pytest.mark.unittest
 def test_her_dqn():
-    config = [deepcopy(bitflip_dqn_config), deepcopy(bitflip_dqn_create_config)]
-    config[0].policy.learn.update_per_collect = 1
+    bitflip_her_dqn_config.policy.cuda = False
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
 
@@ -163,7 +186,7 @@ def test_her_dqn():
 @pytest.mark.unittest
 def test_collaq():
     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -174,7 +197,7 @@ def test_collaq():
 @pytest.mark.unittest
 def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -185,7 +208,7 @@ def test_coma():
 @pytest.mark.unittest
 def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -195,10 +218,10 @@ def test_qmix():
         os.popen('rm -rf log ckpt*')
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
-    config[0].policy.use_cuda = False
+    config[0].policy.cuda = False
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -209,11 +232,9 @@ def test_atoc():
 
 @pytest.mark.unittest
 def test_ppg():
-    config = [deepcopy(cartpole_ppg_config), deepcopy(cartpole_ppg_create_config)]
-    config[0].policy.use_cuda = False
-    config[0].policy.learn.update_per_collect = 10
+    cartpole_ppg_config.policy.use_cuda = False
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        ppg_main(cartpole_ppg_config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
