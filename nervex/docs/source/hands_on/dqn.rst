@@ -24,13 +24,13 @@ Key Equations or Key Graphs
 The TD-loss used in DQN is:
 
 .. image:: images/td_loss.png
-   :scale: 70%
-
+   :align: center
+   :height: 120
 Pseudo-code
 ---------------
 .. image:: images/DQN.png
-   :scale: 50 %
-
+   :align: center
+   :width: 1200
 .. note::
    Compared with the vanilla version, DQN has been dramatically improved in both algorithm and implementation. In the algorithm part, **n-step TD-loss, PER, target network and dueling head** are widely used. For the implementation details, the value of epsilon anneals from a high value to zero during the training rather than keeps constant, according to env step(the number of policy interaction with env).
 
@@ -45,8 +45,8 @@ DQN can be combined with:
         One of implementation of PER is described:
 
         .. image:: images/PERDQN.png
-           :scale: 50 %
-
+           :align: center
+           :width: 1200
     - multi-step TD-loss
 
         .. note::
@@ -68,7 +68,8 @@ DQN can be combined with:
         The specific architecture is shown in the following graph:
 
         .. image:: images/Dueling_DQN.png
-           :scale: 70 %
+           :align: center
+           :height: 300
 
     - RNN
 
