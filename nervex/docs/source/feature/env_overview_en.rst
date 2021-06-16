@@ -7,38 +7,38 @@ BaseEnv
 (nervex/envs/env/base_env.py)
 
 Overview:
-    The Environment module is one of the important modules in reinforcement learning. In some common reinforcement learning tasks, such as atari tasks and mujoco tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The gym module produced by OpenAI has helped us define most of the commonly used academic environments. NerveX also follows the definition of gym.Env, and adds a series of more convenient functions to it, making the call of the environment easier to understand.
+    The Environment module is one of the important modules in reinforcement learning (RL). In some common RL tasks, such as `atari <https://gym.openai.com/envs/#atari>`_ tasks and `mujoco <https://gym.openai.com/envs/#mujoco>`_ tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The `gym` module produced by OpenAI has helped us define most of the commonly used academic environments. `NerveX` also follows the definition of `gym.Env`, and adds a series of more convenient functions to it, making the call of the environment easier to understand.
 
 Implementation:
-    The key concepts of the defination of ``gym.Env`` <https://github.com/openai/gym/blob/master/gym/core.py#L8> are methods including ``step()`` and ``reset()``. According to the given ``observation``, ``step()`` interacts with the environment based on the input ``action``, and return related ``reward``. The environment is reset when we call ``reset()``. Inherited from ``gym.Env``，``nervex.BaseEnv`` also implements:
+    The key concepts of the defination of `gym.Env <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ are methods including ``step()`` and ``reset()``. According to the given ``observation``, ``step()`` interacts with the environment based on the input ``action``, and return related ``reward``. The environment is reset when we call ``reset()``. Inherited from `gym.Env`，`nervex.envs.BaseEnv` also implements:
 
-    1. BaseEnvTimestep(namedtuple):
+    1. ``BaseEnvTimestep(namedtuple)``:
     It defines what environment returns when ``step()`` is called, usually including ``obs``, ``act``,  ``reward``,  ``done`` and ``info``. You can inherit from ``BaseEnvTimestep`` and define your owned variables.
 
-    2. BaseEnvInfo(namedlist):
+    2. ``BaseEnvInfo(namedlist)``:
     It defines the basic information of the environment, usually including the number of agents, the dimension of the observation space. NerveX now implements it with ``agent_num``, ``obs_space``, ``act_space`` and ``rew_space``, and ``xxx_space`` must be inherited from ``EnvElementInfo`` in ``envs/common/env_element.py``. You can add new variables in your ``BaseEnvInfo``.
 
     .. note::
 
         ``shared_memory`` in ``subprocess_env_manager`` depends on ``obs_space``. If you want to use ``shared_memory``, you must use ``EnvElementInfo`` or its subclass.
 
-    3. info():
+    3. ``info()``:
     It is used to check the shape in environment quickly
 
     .. note::
 
         ``info()`` will change ``obs_shape`` / ``act_shape`` / ``rew_shape`` according to the used wrappers. If you want to add new env wrapper, you need to override static method ``new_shape(obs_shape, act_shape, rew_shape)`` and return new shape.
 
-    4. create_collector_env_cfg():
+    4. ``create_collector_env_cfg()``:
     It is used to create config for collectors. It is independent of ``create_evaluator_env_cfg``, which is convenient for users to set different environmental parameters for data collection and performance evaluation. According to the incoming initial configuration, a corresponding configuration file is generated for each specific environment. By default, The number of environments in the configuration file will be obtained, and then copy the corresponding number of copies of the default environment configuration to return.
 
-    5. create_evaluator_env_cfg():
+    5. ``create_evaluator_env_cfg():``
     It is to create a corresponding environment configuration file for performance evaluation. The function is the same as the above description.
 
-    6. enable_save_replay():
+    6. ``enable_save_replay()``:
     The environment can save the running process as a video file, which is convenient for debugging and visualization. It is generally called before the actual running of the environment, and functionally replaces the render method in the common environment. (This method is optional to implement).
 
-    Besides, some changes have also been made to the details in ``nervex.BaseEnv``, such as:
+    Besides, some changes have also been made to the details in `nervex.envs.BaseEnv`, such as:
 
     1. seed(): For the seed control of various processing functions and wrappers in the environment, the external setting is the seed of the seed
     2. Lazy init is used by default, which means, init only sets the parameters, and the environment sets seed at the first reset.
@@ -80,22 +80,22 @@ EnvElement
 (nervex/envs/common/env_element.py)
 
 Overview:
-    EnvElement is the base class of environment elements. Observation, action, reward, etc. can be regarded as environmental elements. This class and its subclasses are responsible for the basic information and processing function definitions of a specific environmental element. This class and its subclasses are stateless and maintain static properties and methods.
+    EnvElement is the base class of environment elements. ``Observation``, ``action``, ``reward``, etc. can be regarded as environmental elements. This class and its subclasses are responsible for the basic information and processing function definitions of a specific environmental element. This class and its subclasses are stateless and maintain static properties and methods.
 
 Variables:
-    1. info_template: Environment elements information template, generally including dimensions, value conditions, processing functions for data sent to the agent, and processing functions for data received from the agent.
-    2. _instance: The class variable used to implement the singleton model, pointing to the only instance of the class.
-    3. _name: The unique identification name of the class.
+    1. ``info_template``: Environment elements information template, generally including dimensions, value conditions, processing functions for data sent to the agent, and processing functions for data received from the agent.
+    2. ``_instance``: The class variable used to implement the singleton model, pointing to the only instance of the class.
+    3. ``_name``: The unique identification name of the class.
 
 Class interface method:
-    1. __init__: Initialization, note that after the initialization is completed, the ``_check()`` method will be called to check whether it is legal.
-    2. info: return the basic information and processing function of the element class.
-    3. __repr__: Returns a string that provides an element description.
+    1. ``__init__``: Initialization, note that after the initialization is completed, the ``_check()`` method will be called to check whether it is legal.
+    2. ``info``: return the basic information and processing function of the element class.
+    3. ``__repr__``: Returns a string that provides an element description.
 
 The override methods need to be inherited in subclasses:
-    1. _init: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
-    2. _check: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class and implement the part that needs to be checked by itself.
-    3. _details: element class details.
+    1. ``_init``: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
+    2. ``_check``: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class and implement the part that needs to be checked by itself.
+    3. ``_details``: element class details.
 
 
 EnvElementRunner
@@ -104,25 +104,25 @@ EnvElementRunner
 
 Overview:
     The runtime base class of environment elements is implemented using decoration patterns, responsible for runtime-related state management (such as maintaining some state record variables) and providing possible polymorphic mechanisms (reprocessing the results returned by static processing functions).
-    On the basis of the static environment element interface, the `get()` and `reset()` interfaces have been added. This class manages the corresponding static environment element instance as its own member variable `_core`.
+    On the basis of the static environment element interface, the ``get()`` and ``reset()`` interfaces have been added. This class manages the corresponding static environment element instance as its own member variable ``_core``.
 
 Class variables:
     None.
 
 Class interface method:
-    1. info: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
-    2. __repr__: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
-    3. get: To get the element value at actual runtime, you need to pass in the specific env object. All access to env information is concentrated in the `get` method. It is recommended that the access information be implemented through the env property.
-    4. reset: restart state, generally need to be called when env restarts.
+    1. ``info``: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
+    2. ``__repr__``: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
+    3. ``get``: To get the element value at actual runtime, you need to pass in the specific env object. All access to env information is concentrated in the ``get`` method. It is recommended that the access information be implemented through the env property.
+    4. ``reset``: restart state, generally need to be called when env restarts.
 
 The override method need to inherit in subclasses:
-    1. _init: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
-    2. _check: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class + implement the part that needs to be checked by itself
+    1. ``_init``: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
+    2. ``_check``: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class + implement the part that needs to be checked by itself
 
 .. note::
 
 
-    1. The two classes of `EnvElement` and `EnvElementRunner` constitute a complete environment element. The former represents static information (stateless), and the latter is responsible for information that changes at runtime (stateful). It is recommended to state related to specific environmental elements. Variables are always maintained here, and only general state variables are maintained in env.
+    1. The two classes of ``EnvElement`` and ``EnvElementRunner`` constitute a complete environment element. The former represents static information (stateless), and the latter is responsible for information that changes at runtime (stateful). It is recommended to state related to specific environmental elements. Variables are always maintained here, and only general state variables are maintained in env.
     2. The simple logic diagram of the environment element part is as follows:
 
         .. image:: images/env_element_class.png

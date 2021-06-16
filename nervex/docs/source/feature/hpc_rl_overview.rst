@@ -17,7 +17,7 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
           - CUDA：CUDA9.2
           - Python：py3.6
 
-        由于HPC_RL目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下HPC_RL组件打包好的whl文件，可通过 ``pip install <whl_name>`` 安装。
+        由于 HPC_RL 目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下 HPC_RL 组件打包好的 whl 文件，可通过 ``pip install <whl_name>`` 安装。在 PROJECT_PATH/nervex/hpc_rl 目录下有我们已经提供好的 whl 文件可供安装。
 
         安装成功后，在python终端中如果可以成功 ``import hpc_rl`` ，则说明安装成功
 
@@ -63,7 +63,7 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
 
 
             if __name__ == "__main__":
-                config_path = 'cartpole_a2c_default_config.yaml'
+                config_path = 'cartpole_a2c_default_config.py'
                 nervex.enable_hpc_rl = True
                 cfg = read_config(config_path)
                 cfg.policy.use_cuda= True
@@ -71,7 +71,7 @@ HPC_RL组件是一个加速算子组件，针对强化学习算法中较通用�
 
     4. demo
 
-        在qbert上使用dqn算法时，在``main.py``中设置``nervex.enable_hpc_rl = True``，可以看到训练时间从9.7ms降低到8.8ms。运行平台是16GV100，CUDA9.2。
+        在qbert上使用dqn算法时，在 ``main.py`` 中设置 ``nervex.enable_hpc_rl = True``，可以看到训练时间从9.7ms降低到8.8ms。运行平台是16GV100，CUDA9.2。
 
         Pytorch:
 

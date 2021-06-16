@@ -17,7 +17,7 @@ How to use
             - CUDA: CUDA9.2
             - Python: py3.6
 
-        Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through ``pip install <whl_name>``.
+        Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through ``pip install <whl_name>``. In the PROJECT_PATH/nervex/hpc_rl directory, there is a whl file that we have provided for installation.
 
         If you can successfully ``import hpc_rl`` in the python terminal, the installation is successful
 

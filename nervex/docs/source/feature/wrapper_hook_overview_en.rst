@@ -42,14 +42,17 @@ Usage:
             * wrapper can be any wrapper that needs to be used.
                 * Refer to the next section for custom wrapper usage.
             * ``wrapper_name`` is the name of any wrapper that has been registered. If it is a custom wrapper, you need to provide a name when registering.
-            * The kwargs part is the parameters required by the wrapper.
+            * ``kwargs`` is the parameters required by the wrapper.
             * In this case, the resulting ``model`` can be used like the original model. For example, when calling ``model.forward``, the ``forward`` function defined in the wrapper will be called first. If it is not defined, it will continue to look for it in the wrapper of the next layer.
 
-        -Define your own model wrapper:
+        - Define your own model wrapper:
 
             For user-defined ``MyWrapper``, the following steps need to be completed:
+            
             1. Inherit from ``nervex.model.model_wrappers.IModelWrapper``, which is the base class of the wrapper used by the model.
+            
             2. In ``MyWrapper``, implement the required forward and other functions according to requirements.
+            
             3. Add ``MyWrapper`` to the ``model_wrappers.wrapper_name_map`` dictionary through the ``register_wrapper()`` method. In this way, you can easily add wrapper operations to the model through ``add_wrapper``.
 
          - Calling process:
@@ -187,9 +190,9 @@ Usage:
                 :widths: 50, 50, 60
 
                 "log_show_after_iter", "freq", "Print log after a certain number of iters according to the ``freq`` given by the parameter"
-                "load_ckpt_before_run", "-", "Read the checkpoint before the training program runs"
+                "load_ckpt_before_run", "None", "Read the checkpoint before the training program runs"
                 "save_ckpt_after_iter", "freq", "Save the model after a certain number of iters according to the ``freq`` given by the parameter"
-                "save_ckpt_after_run", "-", "Save the model after the training program has run completely"
+                "save_ckpt_after_run", "None", "Save the model after the training program has run completely"
 
             The calling method is also simpler, and the required hooks can be obtained by the following code:
 
