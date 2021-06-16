@@ -4,9 +4,9 @@ API Doc
 .. toctree::
     :maxdepth: 3
 
-    policy/index
-    env/index
     config/index
+    env/index
+    policy/index
     model/index
     reward_model/index
     league/index
@@ -16,7 +16,6 @@ API Doc
     worker/replay_buffer/index
     worker/coordinator/index
 
-    data/index
     rl_utils/index
     torch_utils/index
     utils/index

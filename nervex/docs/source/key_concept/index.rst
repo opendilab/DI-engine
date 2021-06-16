@@ -270,10 +270,105 @@ After writing the user config, we can run our DQN experiment according
 to `Quick
 Start <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html>`__.
 
-
-
 Worker-Collector
 ~~~~~~~~~~~~~~~~~~
+Collector is the one of the most important components among all the workers, which is often called ``actor`` in other frameworks and nerveX renames it to distinguish with actor-critic. It aims to offer sufficient 
+quantity and quality data for policy training(learner). And collector is only responsible for data collection but decoupled with data management, that is to say, it returns collected trajectories directly and 
+these data can be used for training directly or pushed into replay buffer.
+
+There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a 
+single process or located in serveral machines. Usually, nerveX use a multi-process env_manager and another main loop controller process with policy to construct collector, which may be extended in the future.
+
+Due to different send/receive data logic, collector now is divided into two patterns——serial and parallel, we will introduce them seperately.
+
+Serial Collector
+^^^^^^^^^^^^^^^^^^^
+From the viewpoint of the basic unit of collecting data, sample(step) and episode are two mainly used types. Therefore, nerveX defines the abstract interfaces ``ISerialCollector`` for serial collector and 
+implements ``SampleCollector`` and ``EpisodeCollector``, which covers almost RL usages but the users can also easily customize when encountering some special demands.
+
+.. image::
+   images/serial_collector_class.svg
+   :align: center
+
+
+The core usage of collector is quite simple, the users just need to create corresponding type collector and indicate ``n_sample`` or ``n_episode`` as the argument of ``collect`` method. Here are a naive example:
+
+
+.. code:: python
+
+    import gym
+    from easydict import EasyDict
+    from nervex.policy import DQNPolicy
+    from nervex.env import BaseEnvManager
+    from nervex.worker import SampleCollector, EpisodeCollector
+
+    # prepare components
+    cfg: EasyDict  # config after `compile_config`
+    normal_env = BaseEnvManager(...)  # normal vectorized env
+    
+    dqn_policy = DQNPolicy(cfg.policy)
+    sample_collector = SampleCollector(cfg.policy.collect.collector, normal_env, dqn_policy.collect_mode)
+    episode_collector = EpisodeCollector(cfg.policy.collect.collector, normal_env, dqn_policy.collect_mode)
+
+    # collect 100 train sample
+    data = sample_collector.collect(n_sample=100)
+    assert isinstance(data, list) and len(data) == 100
+    assert all([isinstance(item, dict) for item in data])
+
+    # collect 10 env episode
+    episodes = episode_collector.collect(n_episode=10)
+    assert isinstance(episodes, list) and len(episodes) == 10
+
+    # push into replay buffer/send to learner/data preprocessing
+
+.. note::
+    For almost cases, the number of collect data, n_sample/n_episode, is fixed in total training procedure, so our example codes set this field in config, such as ``config.policy.collect.n_sample``.
+
+
+The structure and main loop of collector can be summarized as the next graph, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
+``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing, 
+``policy.get_train_sample`` is disable and the users can do anything after receiving the collected data.
+
+.. image::
+   images/collector_pipeline.svg
+   :align: center
+
+Sometimes, we use different policies even different envs to collect data, such as using random policy in the beginning of training to prepare warmup data, and calculate distillation loss with the probability of 
+expert policy. And all the demands can be implemented by ``reset_policy``, ``reset_env``, ``reset`` method like this:
+
+.. code:: python
+   
+    # prepare components
+    dqn_policy = DQNPolicy(...)
+    random_policy = RandomPolicy(...)
+    expert_policy = ExpertPolicy(...)
+
+    collector = SampleCollector(...)
+    replay_buffer = NaiveBuffer(...)
+
+    # train begining(random_policy)
+    collector.reset_policy(random_policy.collect_mode)
+    random_data = collector.collect(n_sample=10000)
+    replay_buffer.push(random_data)
+    # main loop
+    while True:
+        ...
+        collector.reset_policy(dqn_policy.collect_mode)
+        data = collector.collect(n_sample=100)
+        collector.reset_policy(expert_policy.collect_mode)
+        expert_data = collector.collect(n_sample=100)
+        # train dqn_policy with collected data
+        ...
+
+
+Besides, serial collector shows less differences between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the 
+users just need to ensure the correct value of ``config.policy.on_policy``.
+
+Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview.html>`_.
+
+Parallel Collector
+^^^^^^^^^^^^^^^^^^^
+TBD
 
 Worker-Buffer
 ~~~~~~~~~~~~~~~

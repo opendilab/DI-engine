@@ -6,6 +6,18 @@ from nervex.hpc_rl import hpc_wrapper
 
 
 def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamma=0.99, lambda_=0.95):
+    """
+    Overview:
+        Computation of vtrace return.
+    Returns:
+        - vtrace_return (:obj:`torch.FloatTensor`): the vtrace loss item, all of them are differentiable 0-dim tensor
+    Shapes:
+        - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
+        - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+        - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+    """
     deltas = clipped_rhos * (reward + gamma * bootstrap_values[1:] - bootstrap_values[:-1])
     factor = gamma * lambda_
     result = bootstrap_values[:-1].clone()
@@ -17,6 +29,18 @@ def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamm
 
 
 def vtrace_advantage(clipped_pg_rhos, reward, return_, bootstrap_values, gamma):
+    """
+    Overview:
+        Computation of vtrace advantage.
+    Returns:
+        - vtrace_advantage (:obj:`namedtuple`): the vtrace loss item, all of them are the differentiable 0-dim tensor
+    Shapes:
+        - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
+        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+    """
     return clipped_pg_rhos * (reward + gamma * return_ - bootstrap_values)
 
 
@@ -57,7 +81,7 @@ def vtrace_error(
         Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner\
         Architectures), (arXiv:1802.01561)
     Arguments:
-        - data (:obj:`namedtuple`): input data with fieids shown in ``vtrace_data``
+        - data (:obj:`namedtuple`): input data with fields shown in ``vtrace_data``
             - target_output (:obj:`torch.Tensor`): the output taking the action by the current policy network,\
                 usually this output is network output logit
             - behaviour_output (:obj:`torch.Tensor`): the output taking the action by the behaviour policy network,\

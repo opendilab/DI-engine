@@ -49,12 +49,14 @@ If you want to deeply customize your algorithm and application with nerveX, also
    installation/index
    quick_start/index
    key_concept/index
-   best_practice/index
+   intro_rl/index
    hands_on/index
+   best_practice/index
+   api_doc/index
 
    faq/index
-   api_doc/index
    feature/index
+   supplementary_rl/index
 
 .. toctree::
    :maxdepth: 2
@@ -62,4 +64,3 @@ If you want to deeply customize your algorithm and application with nerveX, also
 
    guide/index
    tutorial_dev/index
-   rl_warmup/index
