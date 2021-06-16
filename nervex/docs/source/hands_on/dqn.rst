@@ -3,17 +3,17 @@ DQN
 
 Overview
 ---------
-DQN was first proposed in `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_, which combines Q-learning with deep neural network. Different from the previous methods, DQN use a deep neural network to evaluate the q-values, which is updated via TD-loss along with gradient decent.
+DQN is first proposed in `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_, which combines Q-learning with deep neural network. Different from the previous methods, DQN uses a deep neural network to evaluate the q-values, which is updated via TD-loss along with gradient decent.
 
 Quick Facts
 -------------
 1. DQN is a **model-free** and **value-based** RL algorithm.
 
-2. DQN only support **discrete** action spaces.
+2. DQN only supports **discrete** action spaces.
 
 3. DQN is an **off-policy** algorithm.
 
-4. Usually, DQN use **eps-greedy** or **multinomial sample** for exploration
+4. Usually, DQN uses **eps-greedy** or **multinomial sample** for exploration
 
 5. DQN + RNN = DRQN
 

@@ -1,5 +1,5 @@
 """
-## referenced https://www.kaggle.com/eugenkeil/simple-baseline-bot by @eugenkeil 
+## referenced https://www.kaggle.com/eugenkeil/simple-baseline-bot by @eugenkeil
 
 ## referenced https://www.kaggle.com/david1013/tunable-baseline-bot by @david1013
 

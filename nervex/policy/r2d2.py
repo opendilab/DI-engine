@@ -59,11 +59,10 @@ class R2D2Policy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=64,
+            # n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
-            collector=dict(type='sample', ),
         ),
         eval=dict(
             # `env_num` is used in hidden state, should equal to that one in env config.
@@ -77,10 +76,7 @@ class R2D2Policy(Policy):
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                type='priority',
-                replay_buffer_size=10000,
-            ),
+            replay_buffer=dict(replay_buffer_size=10000, ),
         ),
     )
 

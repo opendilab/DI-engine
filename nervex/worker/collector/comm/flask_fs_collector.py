@@ -1,6 +1,8 @@
 import os
 import time
 import traceback
+import fcntl
+from pathlib import Path
 from typing import Union, Dict, Callable
 from queue import Queue
 from threading import Thread
@@ -162,7 +164,16 @@ class FlaskFileSystemCollector(BaseCommCollector):
         if self._collector_close_flag:
             return
         path = os.path.join(self._path_policy, path)
-        return read_file(path, use_lock=True)
+        # return read_file(path, use_lock=True)
+        path_lock = path + '.lock'
+        if not os.path.isfile(path_lock):
+            try:
+                Path(path_lock).touch()
+            except Exception as e:
+                pass
+        with open(path_lock, 'w') as f:
+            fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+            return read_file(path)
 
     # override
     def send_stepdata(self, path: str, stepdata: list) -> None:

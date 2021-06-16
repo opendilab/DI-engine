@@ -30,4 +30,4 @@ def wrap_mujoco(env_id, norm_obs=True, norm_reward=True, only_info=False) -> gym
             wrapper_info = ObsNormEnv.__name__ + '\n'
         if norm_reward is not None and norm_reward.use_norm:
             wrapper_info = RewardNormEnv.__name__ + '\n'
-        return env
+        return wrapper_info

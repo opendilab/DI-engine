@@ -57,20 +57,16 @@ class IMPALAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            # n_sample=16,
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
-            collector=dict(
-                type='sample',
-                collect_print_freq=1000,
-            ),
+            collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            type='priority',
             replay_buffer_size=1000,
             max_use=16,
         ), ),

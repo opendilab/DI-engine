@@ -17,7 +17,8 @@ from .task import TaskResultType
 from ..base import random_token, ControllableService, failure_response, success_response, get_host_ip, \
     get_http_engine_class
 from ..config import GLOBAL_HOST, DEFAULT_MASTER_PORT, DEFAULT_CHANNEL, MIN_HEARTBEAT_SPAN, DEFAULT_HEARTBEAT_SPAN, \
-    DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_CHECK_SPAN, DEFAULT_HEARTBEAT_CHECK_SPAN
+    DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_CHECK_SPAN, DEFAULT_HEARTBEAT_CHECK_SPAN, DEFAULT_REQUEST_RETRIES, \
+    DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import MasterErrorCode, get_master_exception_by_error
 
 
@@ -30,6 +31,8 @@ class Master(ControllableService):
         heartbeat_span: Optional[float] = None,
         heartbeat_tolerance: Optional[float] = None,
         heartbeat_check_span: Optional[float] = None,
+        request_retries: Optional[int] = None,
+        request_retry_waiting: Optional[float] = None,
         channel: Optional[int] = None,
         my_address: Optional[str] = None
     ):
@@ -46,6 +49,8 @@ class Master(ControllableService):
             heartbeat_check_span or DEFAULT_HEARTBEAT_CHECK_SPAN, MIN_HEARTBEAT_CHECK_SPAN
         )
         self.__heartbeat_check_thread = Thread(target=self.__heartbeat_check, name='master_heartbeat')
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
+        self.__request_retry_waiting = max(request_retry_waiting or DEFAULT_REQUEST_RETRY_WAITING, 0.0)
 
         # self-connection part
         self.__self_http_engine = get_http_engine_class(
@@ -53,8 +58,8 @@ class Master(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_master_exception_by_error,
-        )()('localhost', self.__port, False)
-        # )()(self.__host, self.__port, False)   # TODO: Confirm how to ping itself
+            # )()('localhost', self.__port, False)
+        )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # slave-connection part
@@ -267,7 +272,12 @@ class Master(ControllableService):
 
     # self request
     def __self_request(self, method: Optional[str] = 'GET', path: Optional[str] = None) -> requests.Response:
-        return self.__self_http_engine.request(method, path)
+        return self.__self_http_engine.request(
+            method,
+            path,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     def __ping_once(self):
         return self.__self_request('GET', '/ping')

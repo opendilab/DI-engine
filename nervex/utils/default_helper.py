@@ -221,6 +221,20 @@ class LimitedSpaceContainer:
         """
         self.cur = max(self.min_val, self.cur - 1)
 
+    def increase_space(self) -> None:
+        """
+        Overview:
+            Increase one piece in space. Increment ``max_val``.
+        """
+        self.max_val += 1
+
+    def decrease_space(self) -> None:
+        """
+        Overview:
+            Decrease one piece in space. Decrement ``max_val``.
+        """
+        self.max_val -= 1
+
 
 def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
     """

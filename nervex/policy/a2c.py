@@ -49,7 +49,7 @@ class A2CPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=80,
+            # n_sample=80,
             unroll_len=1,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -62,15 +62,11 @@ class A2CPolicy(Policy):
             nstep_return=False,
             # (int) N-step td
             nstep=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(
-            type='priority',
-            replay_buffer_size=1000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
     )
 
     def _init_learn(self) -> None:

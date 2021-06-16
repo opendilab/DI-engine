@@ -78,7 +78,7 @@ class PPGPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            n_sample=64,
+            # n_sample=64,
             unroll_len=1,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -87,21 +87,14 @@ class PPGPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
                 # PPG use two seperate buffer for different reuse
                 multi_buffer=True,
-                policy=dict(
-                    type='priority',
-                    replay_buffer_size=1000,
-                ),
-                value=dict(
-                    type='priority',
-                    replay_buffer_size=1000,
-                ),
+                policy=dict(replay_buffer_size=1000, ),
+                value=dict(replay_buffer_size=1000, ),
             ),
         ),
     )
