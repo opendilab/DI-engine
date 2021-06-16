@@ -18,8 +18,16 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):
+    r"""
+       Overview:
+           Policy class of SAC algorithm.
+       """
+
     config = dict(
-        cuda=True,
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        tyep='sac',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
         # (str type) policy_type: Determine the version of sac to use.
         # policy_type in ['sac_v1', 'sac_v2']
         # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
@@ -67,15 +75,15 @@ class SACPolicy(Policy):
             batch_size=256,
 
             # (float type) learning_rate_q: Learning rate for soft q network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_q=3e-4,
             # (float type) learning_rate_policy: Learning rate for policy network.
-            # Default to 3e-4 in sac_v1.
-            # Default to 1e-3 in sac_v2.
+            # Default to 3e-4.
+            # Please set to 1e-3, when model.value_network is True.
             learning_rate_policy=3e-4,
             # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when you use `sac_v1` policy.
+            # `learning_rate_value` should be initialized, when model.value_network is True.
             # Default to 3e-4 in sac_v1.
             learning_rate_value=3e-4,
 
@@ -105,6 +113,7 @@ class SACPolicy(Policy):
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
             is_auto_alpha=True,
+            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
         ),
         collect=dict(
@@ -112,6 +121,7 @@ class SACPolicy(Policy):
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
             # n_sample=1,
+            # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) The std of noise for exploration
             noise_sigma=0.2,
@@ -121,6 +131,9 @@ class SACPolicy(Policy):
             replay_buffer=dict(
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
+                # (int type) replay_start_size: Number of experiences in replay buffer
+                # when training begins. Default to 10000.
+                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.

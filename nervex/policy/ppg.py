@@ -75,8 +75,8 @@ class PPGPolicy(Policy):
            | ``train_epoch``                            | phase
         13 | ``learn.aux_``     int      1              | The loss weight of behavioral_cloning
            | ``bc_weight``                              | in auxiliary phase
-        14 | ``collect.``       float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
-           | ``discount_factor``                        | gamma                                  | reward env
+        14 | ``collect.dis``    float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``count_factor``                           | gamma                                  | reward env
         15 | ``collect.gae_``   float    0.95           | GAE lambda factor for the balance
            | ``lambda``                                 | of bias and variance(1-step td and mc)
         == ==================== ======== ============== ======================================== =======================
