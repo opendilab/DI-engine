@@ -148,23 +148,36 @@ class IMPALAPolicy(Policy):
              'next_obs', 'logit', 'action', 'reward', 'done'
         Returns:
             - data (:obj:`dict`): Dict type data. Values are torch.Tensor or np.ndarray or dict/list combinations. \
-            Keys include at least 'obs', 'next_obs', 'logit', 'action', 'reward', 'done', 'weight', 'obs_plus_1'
+        ReturnsKeys:
+            - necessary: 'logit', 'action', 'reward', 'done', 'weight', 'obs_plus_1'.
+            - optional and not used in later computation: 'obs', 'next_obs'.'IS', 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority',
+               'staleness', 'use'.
+        ReturnsShapes:
+            - obs_plus_1 (:obj:`torch.FloatTensor`): :math:`(T * B, Obs_Shape)`, where T is timestep, B is batch size and\
+             Obs_Shape is the shape of single env observation
+            - logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim
+            - action (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - reward (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - done (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - weight (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
         data = default_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
-        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()
         if self._priority_IS_weight:
             assert self._priority, "Use IS Weight correction, but Priority is not used."
         if self._priority and self._priority_IS_weight:
             data['weight'] = data['IS']
         else:
             data['weight'] = data.get('weight', None)
-        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)
-        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
-        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)
-        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)
-        data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data['weight'] else None
+        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
+        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1,
+                                                                self._action_shape)  # shape T,B,env_action_shape
+        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
+        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data[
+            'weight'] else None  # shape T,B
         return data
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -226,17 +239,26 @@ class IMPALAPolicy(Policy):
         Returns:
             - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, \
              values, rewards, weights
+        ReturnsShapes:
+            - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
+             B is batch size and Obs_Shape is the shape of single env observation.
+            - behaviour_logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim.
+            - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
+            - values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
+            - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
+            - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_shape)[:-1]
-        values = output['value'].reshape(self._unroll_len + 1, -1)
-        behaviour_logit = data['logit']
-        actions = data['action']
-        rewards = data['reward']
-        weights_ = 1 - data['done']
-        weights = torch.ones_like(rewards)
+        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_shape)[
+                       :-1]  # shape (T+1),B,env_obs_shape
+        behaviour_logit = data['logit']  # shape T,B
+        actions = data['action']  # shape T,B
+        values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
+        rewards = data['reward']  # shape T,B
+        weights_ = 1 - data['done']  # shape T,B
+        weights = torch.ones_like(rewards)  # shape T,B
         values[1:] = values[1:] * weights_
         weights[1:] = weights_[:-1]
-        rewards = rewards * weights
+        rewards = rewards * weights  # shape T,B
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -329,7 +351,7 @@ class IMPALAPolicy(Policy):
                 - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                        (here 'obs' indicates obs after env step).
         Returns:
-               - transition (:obj:`dict`): Dict type transition data, cluding at least ['obs','next_obs', 'logit',\
+               - transition (:obj:`dict`): Dict type transition data, including at least ['obs','next_obs', 'logit',\
                'action','reward', 'done']
         """
         transition = {
