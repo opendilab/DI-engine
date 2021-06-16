@@ -10,7 +10,7 @@ def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamm
     Overview:
         Computation of vtrace return.
     Returns:
-        - vtrace_return (:obj:`torch.FloatTensor`): the vtrace loss item, all of them are the differentiable 0-dim tensor
+        - vtrace_return (:obj:`torch.FloatTensor`): the vtrace loss item, all of them are differentiable 0-dim tensor
     Shapes:
         - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
         - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`

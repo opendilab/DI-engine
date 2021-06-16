@@ -138,7 +138,7 @@ class IMPALAPolicy(Policy):
         self._learn_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
-        r"""
+        """
         Overview:
             Data preprocess function of learn mode.
             Convert list trajectory data to to trajectory data, which is a dict of tensors.
@@ -150,11 +150,11 @@ class IMPALAPolicy(Policy):
             - data (:obj:`dict`): Dict type data. Values are torch.Tensor or np.ndarray or dict/list combinations. \
         ReturnsKeys:
             - necessary: 'logit', 'action', 'reward', 'done', 'weight', 'obs_plus_1'.
-            - optional and not used in later computation: 'obs', 'next_obs'.'IS', 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority',
-               'staleness', 'use'.
+            - optional and not used in later computation: 'obs', 'next_obs'.'IS', 'collect_iter', 'replay_unique_id', \
+                'replay_buffer_idx', 'priority', 'staleness', 'use'.
         ReturnsShapes:
-            - obs_plus_1 (:obj:`torch.FloatTensor`): :math:`(T * B, Obs_Shape)`, where T is timestep, B is batch size and\
-             Obs_Shape is the shape of single env observation
+            - obs_plus_1 (:obj:`torch.FloatTensor`): :math:`(T * B, obs_shape)`, where T is timestep, B is batch size \
+                and obs_shape is the shape of single env observation
             - logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim
             - action (:obj:`torch.LongTensor`): :math:`(T, B)`
             - reward (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
