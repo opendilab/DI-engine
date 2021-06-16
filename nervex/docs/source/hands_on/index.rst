@@ -6,6 +6,7 @@ Hands on RL
     :maxdepth: 3
 
     dqn
+    impala
     qmix
     coma
     atoc
