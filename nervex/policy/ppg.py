@@ -37,9 +37,49 @@ def create_shuffled_dataloader(data, batch_size):
 
 @POLICY_REGISTRY.register('ppg')
 class PPGPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of PPG algorithm.
+    Interface:
+        _init_learn, _data_preprocess_learn, _forward_learn, _state_dict_learn, _load_state_dict_learn\
+            _init_collect, _forward_collect, _process_transition, _get_train_sample, _get_batch_size, _init_eval,\
+            _forward_eval, default_model, _monitor_vars_learn, learn_aux
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      ppg            | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     True           | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        5  | ``priority_``      bool     False          | Whether use Importance Sampling        | IS weight
+           | ``IS_weight``                              | Weight to correct biased update.
+        6  | ``learn.update``   int      5              | How many updates(iterations) to train  | this args can be vary
+           | ``_per_collect``                           | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        7  | ``learn.value_``   float    1.0            | The loss weight of value network       | policy network weight
+           | ``weight``                                                                          | is set to 1
+        8  | ``learn.entropy_`` float    0.01           | The loss weight of entropy             | policy network weight
+           | ``weight``                                 | regularization                         | is set to 1
+        9  | ``learn.clip_``    float    0.2            | PPO clip ratio
+           | ``ratio``
+        10 | ``learn.adv_``     bool     False          | Whether to use advantage norm in
+           | ``norm``                                   | a whole training batch
+        11 | ``learn.aux_``     int      5              | The frequency(normal update times)
+           | ``freq``                                   | of auxiliary phase training
+        12 | ``learn.aux_``     int      6              | The training epochs of auxiliary
+           | ``train_epoch``                            | phase
+        13 | ``learn.aux_``     int      1              | The loss weight of behavioral_cloning
+           | ``bc_weight``                              | in auxiliary phase
+        14 | ``collect.``       float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``discount_factor``                        | gamma                                  | reward env
+        15 | ``collect.gae_``   float    0.95           | GAE lambda factor for the balance
+           | ``lambda``                                 | of bias and variance(1-step td and mc)
+        == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -104,6 +144,12 @@ class PPGPolicy(Policy):
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Init the optimizer, algorithm config and the main model.
+        Arguments:
+            .. note::
+
+                The _init_learn method takes the argument from the self._cfg.learn in the config file
+
+            - learning_rate (:obj:`float`): The learning rate fo the optimizer
         """
         # Optimizer
         self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
@@ -129,6 +175,16 @@ class PPGPolicy(Policy):
         self._aux_bc_weight = self._cfg.learn.aux_bc_weight
 
     def _data_preprocess_learn(self, data: List[Any]) -> dict:
+        """
+        Overview:
+            Preprocess the data to fit the required data format for learning, including \
+            collate(stack data into batch), ignore done(in some fake terminate env),\
+            prepare loss weight per training sample, and cpu tensor to cuda.
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
+        Returns:
+            - data (:obj:`Dict[str, Any]`): the processed data, including at least ['done', 'weight']
+        """
         # data preprocess
         for k, data_item in data.items():
             data_item = default_collate(data_item)
@@ -144,15 +200,34 @@ class PPGPolicy(Policy):
         return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+        """
         Overview:
             Forward and backward function of learn mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`):
-              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
-                        adv_abs_max, approx_kl, clipfrac
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: 'obs', 'logit', 'action', 'value', 'reward', 'done'
+        ReturnsKeys:
+            - necessary: current lr, total_loss, policy_loss, value_loss, entropy_loss, \
+                        adv_abs_max, approx_kl, clipfrac\
+                        aux_value_loss, auxiliary_loss, behavioral_cloning_loss
+
+                - current_lr (:obj:`float`): Current learning rate
+                - total_loss (:obj:`float`): The calculated loss
+                - policy_loss (:obj:`float`): The policy(actor) loss of ppg
+                - value_loss (:obj:`float`): The value(critic) loss of ppg
+                - entropy_loss (:obj:`float`): The entropy loss
+                - auxiliary_loss (:obj:`float`): The auxiliary loss, we use the value function loss \
+                    as the auxiliary objective, thereby sharing features between the policy and value function\
+                    while minimizing distortions to the policy
+                - aux_value_loss (:obj:`float`): The auxiliary value loss, we need to train the value network extra \
+                    during the auxiliary phase, it's the value loss we train the value network during auxiliary phase
+                - behavioral_cloning_loss (:obj:`float`): The behavioral cloning loss, used to optimize the auxiliary\
+                     objective while otherwise preserving the original policy
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -225,6 +300,12 @@ class PPGPolicy(Policy):
             }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
@@ -232,6 +313,19 @@ class PPGPolicy(Policy):
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.\
+                When the value is distilled into the policy network, we need to make sure the policy \
+                network does not change the action predictions, we need two optimizers, \
+                _optimizer_policy is used in policy net, and _optimizer_value is used in value net.
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
@@ -312,6 +406,14 @@ class PPGPolicy(Policy):
         return data
 
     def _get_batch_size(self) -> Dict[str, int]:
+        """
+        Overview:
+            Get learn batch size. In the PPG algorithm, different networks require different data.\
+            We need to get data['policy'] and data['value'] to train policy net and value net,\
+            this function is used to get the batch size of data['policy'] and data['value'].
+        Returns:
+            - output (:obj:`dict[str, int]`): Dict type data, including str type batch size and int type batch size.
+        """
         bs = self._cfg.learn.batch_size
         return {'policy': bs, 'value': bs}
 
@@ -346,10 +448,25 @@ class PPGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demostration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For ppg, ``nervex.model.ppg.ppg``
+        """
         # return 'fc_vac', ['nervex.model.actor_critic.value_ac']
         return 'fc_ppg', ['nervex.model.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
         return [
             'policy_cur_lr',
             'value_cur_lr',
@@ -365,6 +482,13 @@ class PPGPolicy(Policy):
         ]
 
     def learn_aux(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Overview:
+            The auxiliary phase training, where the value is distilled into the policy network
+        Returns:
+            - aux_loss (:obj:`Tuple[torch.Tensor, torch.Tensor, torch.Tensor]`): including average auxiliary loss\
+                average behavioral cloning loss, and average auxiliary value loss
+        """
         aux_memories = self._aux_memories
         # gather states and target values into one tensor
         data = {}
