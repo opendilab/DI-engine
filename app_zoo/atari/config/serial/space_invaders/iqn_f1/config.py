@@ -10,9 +10,7 @@ space_invaders_iqn_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -34,9 +32,7 @@ space_invaders_iqn_config = dict(
             target_update_freq=500,
             kappa=1.0,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

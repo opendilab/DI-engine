@@ -69,12 +69,12 @@ def shape_fn_vtrace(args, kwargs):
     include_kwargs=['data', 'gamma', 'lambda_', 'rho_clip_ratio', 'c_clip_ratio', 'rho_pg_clip_ratio']
 )
 def vtrace_error(
-        data: namedtuple,
-        gamma: float = 0.99,
-        lambda_: float = 0.95,
-        rho_clip_ratio: float = 1.0,
-        c_clip_ratio: float = 1.0,
-        rho_pg_clip_ratio: float = 1.0
+    data: namedtuple,
+    gamma: float = 0.99,
+    lambda_: float = 0.95,
+    rho_clip_ratio: float = 1.0,
+    c_clip_ratio: float = 1.0,
+    rho_pg_clip_ratio: float = 1.0
 ):
     """
     Overview:

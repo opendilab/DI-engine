@@ -171,13 +171,15 @@ class IMPALAPolicy(Policy):
         else:
             data['weight'] = data.get('weight', None)
         data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
-        data['logit'] = torch.cat(data['logit'], dim=0).reshape(self._unroll_len, -1,
-                                                                self._action_shape)  # shape T,B,env_action_shape
+        data['logit'] = torch.cat(
+            data['logit'], dim=0
+        ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
         data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
-        data['weight'] = torch.cat(data['weight'], dim=0).reshape(self._unroll_len, -1) if data[
-            'weight'] else None  # shape T,B
+        data['weight'] = torch.cat(
+            data['weight'], dim=0
+        ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
         return data
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -248,8 +250,8 @@ class IMPALAPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = output['logit'].reshape(self._unroll_len + 1, -1, self._action_shape)[
-                       :-1]  # shape (T+1),B,env_obs_shape
+        target_logit = output['logit'].reshape(self._unroll_len + 1, -1,
+                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
         behaviour_logit = data['logit']  # shape T,B
         actions = data['action']  # shape T,B
         values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
