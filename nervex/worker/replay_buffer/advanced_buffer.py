@@ -195,13 +195,16 @@ class AdvancedReplayBuffer(IBuffer):
             result = self._sample_with_indices(indices, cur_learner_iter)
             # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
             # the same indices, i.e. the same datas would be sampled afterwards.
-            for i in range(size):
-                tmp = []
-                for j in range(i + 1, size):
-                    if id(result[i]) == id(result[j]):
-                        tmp.append(j)
-                for j in tmp:
-                    result[j] = copy.deepcopy(result[j])
+            # if self._deepcopy==True -> all data is different
+            # if len(indices) == len(set(indices)) -> no duplicate data
+            if not self._deepcopy and len(indices) != len(set(indices)):
+                for i, index in enumerate(indices):
+                    tmp = []
+                    for j in range(i + 1, size):
+                        if index == indices[j]:
+                            tmp.append(j)
+                    for j in tmp:
+                        result[j] = copy.deepcopy(result[j])
             self._monitor_update_of_sample(result, cur_learner_iter)
             return result
 
