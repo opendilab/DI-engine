@@ -8,8 +8,8 @@ Qbert
 | iqn       | 16331    | 15520    | n/a      | n/a      |
 | rainbow   | 20363    | n/a      | n/a      | n/a      |
 | a2c       | 4069     | n/a      | n/a      | 3882     |
-| ppo       | 9841     | n/a      | 14771    | 15627    |
-| ppg       | 15150    | n/a      | n/a      | n/a      |
+| ppo       | 16775     | n/a      | 14771    | 15627    |
+| ppg       | 17013    | n/a      | n/a      | n/a      |
 
 Space Invaders
 
@@ -19,7 +19,7 @@ Space Invaders
 | c51       | 2396     | 989      | n/a      | n/a      |
 | qrdqn     | 2082     | 938      | n/a      | n/a      |
 | iqn       | 1493     | 1370     | n/a      | n/a      |
-| rainbow   | n/a      | n/a      | n/a      | n/a      |
+| rainbow   | 2229     | n/a      | n/a      | n/a      |
 | a2c       | 782      | n/a      | n/a      | 627      |
 | ppo       | 1126     | n/a      | 1025     | 960      |
 | ppg       | 1307     | n/a      | n/a      | n/a      |
