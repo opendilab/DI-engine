@@ -7,8 +7,8 @@ Qbert
 | qrdqn     | 18906    | 14990    | n/a      | n/a      |
 | iqn       | 16331    | 15520    | n/a      | n/a      |
 | rainbow   | 20363    | n/a      | n/a      | n/a      |
-| a2c       | 4069     | n/a      | n/a      | 3882     |
-| ppo       | 16775     | n/a      | 14771    | 15627    |
+| a2c       | 4388     | n/a      | n/a      | 3882     |
+| ppo       | 16775    | n/a      | 14771    | 15627    |
 | ppg       | 17013    | n/a      | n/a      | n/a      |
 
 Space Invaders
