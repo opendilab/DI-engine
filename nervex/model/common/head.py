@@ -10,30 +10,30 @@ from typing import Callable
 from nervex.rl_utils import beta_function_map
 
 
-class BaseHead(nn.Module):
+class ClassificationHead(nn.Module):
 
     def __init__(
         self,
         hidden_size: int,
-        action_shape: int,
+        output_size: int,
         layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: bool = False,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the number of output
             - layer_num (:obj:`int`): the num of fc_block used in the network to compute Q value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
             - norm_type (:obj:`str`): the type of normalization to use, see nervex.torch_utils.fc_block for more details
             - noise (:obj:`bool`): whether use noisy fc block
         """
-        super(BaseHead, self).__init__()
+        super(ClassificationHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
         self.Q = nn.Sequential(
@@ -45,10 +45,14 @@ class BaseHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape)
+            ), block(hidden_size, output_size)
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``
+        """
         logit = self.Q(x)
         return {'logit': logit}
 
@@ -58,21 +62,22 @@ class DistributionHead(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        action_shape: int,
+        output_size: int,
         layer_num: int = 1,
         n_atom: int = 51,
         v_min: float = -10,
         v_max: float = 10,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: bool = False,
+        noise: Optional[bool] = False,
+        eps: Optional[float] = 1e-6,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the num of output
             - layer_num (:obj:`int`): the num of fc_block used in the network to compute Q value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
@@ -91,17 +96,22 @@ class DistributionHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape * n_atom)
+            ), block(hidden_size, output_size * n_atom)
         )
-        self.action_shape = action_shape
+        self.output_size = output_size
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
+        self.eps = eps  # for numerical stability
 
     def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``, ``distribution``
+        """
         q = self.Q(x)
-        q = q.view(*q.shape[:-1], self.action_shape, self.n_atom)
-        dist = torch.softmax(q, dim=-1) + 1e-6
+        q = q.view(*q.shape[:-1], self.output_size, self.n_atom)
+        dist = torch.softmax(q, dim=-1) + self.eps
         q = dist * torch.linspace(self.v_min, self.v_max, self.n_atom).to(x)
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
@@ -110,23 +120,24 @@ class DistributionHead(nn.Module):
 class RainbowHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            action_shape: int,
-            layer_num: int = 1,
-            n_atom: int = 51,
-            v_min: float = -10,
-            v_max: float = 10,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: bool = True,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        n_atom: int = 51,
+        v_min: float = -10,
+        v_max: float = 10,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = True,
+        eps: Optional[float] = 1e-6,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the num of output
             - layer_num (:obj:`int`): the num of fc_block used in the network to compute Q value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
@@ -145,7 +156,7 @@ class RainbowHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape * n_atom)
+            ), block(hidden_size, output_size * n_atom)
         )
         self.Q = nn.Sequential(
             MLP(
@@ -158,18 +169,23 @@ class RainbowHead(nn.Module):
                 norm_type=norm_type
             ), block(hidden_size, n_atom)
         )
-        self.action_shape = action_shape
+        self.output_size = output_size
         self.n_atom = n_atom
         self.v_min = v_min
         self.v_max = v_max
+        self.eps = eps
 
     def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``, ``distribution``
+        """
         a = self.A(x)
         q = self.Q(x)
-        a = a.view(*a.shape[:-1], self.action_shape, self.n_atom)
+        a = a.view(*a.shape[:-1], self.output_size, self.n_atom)
         q = q.view(*q.shape[:-1], 1, self.n_atom)
         q = q + a - a.mean(dim=-2, keepdim=True)
-        dist = torch.softmax(q, dim=-1) + 1e-6
+        dist = torch.softmax(q, dim=-1) + self.eps
         q = dist * torch.linspace(self.v_min, self.v_max, self.n_atom).to(x)
         q = q.sum(-1)
         return {'logit': q, 'distribution': dist}
@@ -180,19 +196,19 @@ class QRDQNHead(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        action_shape: int,
+        output_size: int,
         layer_num: int = 1,
         num_quantiles: int = 32,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: bool = False,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the num of output
             - layer_num (:obj:`int`): the num of fc_block used in the network to compute Q value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
@@ -211,14 +227,18 @@ class QRDQNHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape * num_quantiles)
+            ), block(hidden_size, output_size * num_quantiles)
         )
         self.num_quantiles = num_quantiles
-        self.action_shape = action_shape
+        self.output_size = output_size
 
     def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``,  ``q``, ``tau``
+        """
         q = self.Q(x)
-        q = q.view(*q.shape[:-1], self.action_shape, self.num_quantiles)
+        q = q.view(*q.shape[:-1], self.output_size, self.num_quantiles)
 
         logit = q.mean(-1)
         tau = torch.linspace(0, 1, self.num_quantiles + 1)
@@ -231,21 +251,21 @@ class QuantileHead(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        action_shape: int,
+        output_size: int,
         layer_num: int = 1,
         num_quantiles: int = 32,
         quantile_embedding_size: int = 128,
-        beta_function_type: str = 'uniform',
+        beta_function_type: Optional[str] = 'uniform',
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: bool = False,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the num of output
             - layer_num (:obj:`int`): the num of fc_block used in the network to compute Q value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
                 if None then default set to nn.ReLU
@@ -264,11 +284,11 @@ class QuantileHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape)
+            ), block(hidden_size, output_size)
         )
         self.num_quantiles = num_quantiles
         self.quantile_embedding_size = quantile_embedding_size
-        self.action_shape = action_shape
+        self.output_size = output_size
         self.iqn_fc = nn.Linear(self.quantile_embedding_size, hidden_size)
         self.beta_function = beta_function_map[beta_function_type]
 
@@ -281,7 +301,11 @@ class QuantileHead(nn.Module):
         quantile_net = F.relu(quantile_net)
         return quantile_net
 
-    def forward(self, x: torch.Tensor, num_quantiles: int = None) -> Dict:
+    def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``, ``q``, ``quantiles``
+        """
         if num_quantiles is None:
             num_quantiles = self.num_quantiles
         batch_size = x.shape[0]
@@ -307,19 +331,19 @@ class DuelingHead(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        action_shape: int,
+        output_size: int,
         a_layer_num: int = 1,
         v_layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: bool = False,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
             Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): the hidden_size used before connected to DuelingHead
-            - action_shape (:obj:`int`): the num of actions
+            - output_size (:obj:`int`): the num of output
             - a_layer_num (:obj:`int`): the num of fc_block used in the network to compute action output
             - v_layer_num (:obj:`int`): the num of fc_block used in the network to compute value output
             - activation (:obj:`nn.Module`): the type of activation to use in the fc_block,\
@@ -339,7 +363,7 @@ class DuelingHead(nn.Module):
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size, action_shape)
+            ), block(hidden_size, output_size)
         )
         self.V = nn.Sequential(
             MLP(
@@ -354,17 +378,100 @@ class DuelingHead(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``
+        """
         a = self.A(x)
         v = self.V(x)
         logit = a - a.mean(dim=-1, keepdim=True) + v
         return {'logit': logit}
 
 
-head_fn_map = {
-    'base': BaseHead,
+class RegressionHead(nn.Module):
+
+    def __init__(
+            self,
+            hidden_size: int,
+            output_size: int,
+            layer_num: int = 2,
+            final_tanh: Optional[bool] = False,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        super(RegressionHead, self).__init__()
+        self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
+        self.last = nn.Linear(hidden_size, output_size)  # for convenience of special initialization
+        self.final_tanh = final_tanh
+        if self.final_tanh:
+            self.tanh = nn.Tanh()
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``pred``
+        """
+        x = self.main(x)
+        x = self.last(x)
+        if self.final_tanh:
+            x = self.tanh(x)
+        return {'pred': x}
+
+
+class ReparameterizationHead(nn.Module):
+    default_sigma_type = ['fixed', 'independent', 'conditioned']
+
+    def __init__(
+            self,
+            hidden_size: int,
+            output_size: int,
+            layer_num: int = 2,
+            sigma_type: Optional[str] = None,
+            fixed_sigma_value: Optional[float] = 1.0,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        super(ReparameterizationHead, self).__init__()
+        self.sigma_type = sigma_type
+        assert sigma_type in self.default_sigma_type, "Please indicate sigma_type as one of {}".format(
+            self.default_sigma_type
+        )
+        self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
+        self.mu = nn.Linear(hidden_size, output_size)
+        if self.sigma_type == 'fixed':
+            self.sigma = torch.full((1, output_size), fixed_sigma_value)
+        elif self.sigma_type == 'independent':  # independent parameter
+            self.log_sigma_param = nn.Parameter(torch.zeros(1, output_size))
+        elif self.sigma_type == 'conditioned':
+            self.log_sigma_layer = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``mu``, ``sigma``
+        """
+        x = self.main(x)
+        mu = self.mu(x)
+        if self.sigma_type == 'fixed':
+            sigma = self.sigma + torch.zeros_like(mu)  # addition aims to broadcast shape
+        elif self.sigma_type == 'independent':
+            log_sigma = self.log_sigma_param + torch.zeros_like(mu)  # addition aims to broadcast shape
+            sigma = torch.exp(log_sigma)
+        elif self.sigma_type == 'conditioned':
+            log_sigma = self.log_sigma_layer(x)
+            sigma = torch.exp(torch.clamp(log_sigma, -20, 2))
+        return {'mu': mu, 'sigma': sigma}
+
+
+head_cls_map = {
+    # discrete
+    'classification': ClassificationHead,
     'dueling': DuelingHead,
     'distribution': DistributionHead,
     'rainbow': RainbowHead,
     'qrdqn': QRDQNHead,
     'quantile': QuantileHead,
+    # continuous
+    'regression': RegressionHead,
+    'reparameterization': ReparameterizationHead,
 }

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import torch
 import torch.nn as nn
-from nervex.model import head_fn_map, ConvEncoder
+from nervex.model import head_cls_map, ConvEncoder
 from nervex.torch_utils import get_lstm
 from nervex.utils import squeeze, MODEL_REGISTRY
 
@@ -39,7 +39,7 @@ class DiscreteNet(nn.Module):
         embedding_size = hidden_size_list[-1]
         action_shape = squeeze(action_shape)  # if action_shape is '(n,)', transform it in to 'n'.
         use_multi_discrete = isinstance(action_shape, tuple)
-        head_fn = head_fn_map[head_kwargs.pop('head_type')]
+        head_cls = head_cls_map[head_kwargs.pop('head_type')]
 
         # build encoder: the encoder encodes different formats of observation into 1d vector.
         self._encoder = Encoder(obs_shape, hidden_size_list=hidden_size_list, **encoder_kwargs)
@@ -52,9 +52,9 @@ class DiscreteNet(nn.Module):
 
         # build head: the head encodes the observations into q-value of actions.
         if use_multi_discrete:
-            self._head = MultiDiscreteHead(embedding_size, action_shape, head_fn, **head_kwargs)
+            self._head = MultiDiscreteHead(embedding_size, action_shape, head_cls, **head_kwargs)
         else:
-            self._head = head_fn(embedding_size, action_shape, **head_kwargs)
+            self._head = head_cls(embedding_size, action_shape, **head_kwargs)
 
     def forward(self, inputs: Dict, num_quantiles: int = None) -> Dict:
         r"""
@@ -176,7 +176,7 @@ class MultiDiscreteHead(nn.Module):
             self,
             input_size: int,
             action_shape: tuple,
-            head_fn: nn.Module,
+            head_cls: nn.Module,
             **head_kwargs,
     ) -> None:
         r"""
@@ -186,13 +186,13 @@ class MultiDiscreteHead(nn.Module):
             - action_shape (:obj:`tuple`): the num of action size, \
                 note that it can be a tuple containing more than one element
             - input_size (:obj:`int`): input tensor size of the head
-            - head_fn: class of head, like dueling_head, distribution_head, quatile_head, etc
+            - head_cls: class of head, like dueling_head, distribution_head, quatile_head, etc
             - head_kwargs: class-specific arguments
         """
         super(MultiDiscreteHead, self).__init__()
         self.pred = nn.ModuleList()
         for size in action_shape:
-            self.pred.append(head_fn(input_size, size, **head_kwargs))
+            self.pred.append(head_cls(input_size, size, **head_kwargs))
 
     def _collate(self, x: list) -> Dict:
         r"""
