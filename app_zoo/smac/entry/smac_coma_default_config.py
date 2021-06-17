@@ -33,7 +33,6 @@ smac_coma_default_config = dict(
             batch_size=32,
             agent_num=agent_num,
             learning_rate=0.0005,
-            weight_decay=0.00001,
             algo=dict(
                 target_update_theta=0.001,
                 discount_factor=0.99,

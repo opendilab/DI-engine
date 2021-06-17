@@ -35,7 +35,6 @@ class A2CPolicy(Policy):
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -76,9 +75,7 @@ class A2CPolicy(Policy):
             Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
-        self._optimizer = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
-        )
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
         # Algorithm config
         self._priority = self._cfg.priority

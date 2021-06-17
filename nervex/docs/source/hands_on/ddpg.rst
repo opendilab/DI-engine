@@ -79,12 +79,10 @@ First, we initialize actor and critic optimizer in ``_init_learn``, respectively
     self._optimizer_actor = Adam(
         self._model.actor.parameters(),
         lr=self._cfg.learn.learning_rate_actor,
-        weight_decay=self._cfg.learn.weight_decay
     )
     self._optimizer_critic = Adam(
         self._model.critic.parameters(),
         lr=self._cfg.learn.learning_rate_critic,
-        weight_decay=self._cfg.learn.weight_decay
     )
 
 In ``learn`` we update actor-critic policy through computing critic loss, updating critic network, computing actor loss, and updating actor network.

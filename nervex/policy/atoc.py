@@ -56,7 +56,6 @@ class ATOCPolicy(Policy):
             learning_rate_actor=0.001,
             # (float) Gradient-descent step size of critic
             learning_rate_critic=0.001,
-            weight_decay=0.00001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -120,18 +119,15 @@ class ATOCPolicy(Policy):
         self._optimizer_actor = Adam(
             self._model._actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._optimizer_critic = Adam(
             self._model._critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
-            weight_decay=self._cfg.learn.weight_decay
         )
         if self._communication:
             self._optimizer_actor_attention = Adam(
                 self._model._actor._attention.parameters(),
                 lr=self._cfg.learn.learning_rate_actor,
-                weight_decay=self._cfg.learn.weight_decay
             )
         self._reward_batch_norm = self._cfg.learn.reward_batch_norm
 
