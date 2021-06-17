@@ -1,80 +1,64 @@
+from copy import deepcopy
+from nervex.entry import serial_pipeline
 from easydict import EasyDict
 
-nstep = 3
-pong_dqn_default_config = dict(
+pong_dqn_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.atari.envs.atari_env'],
-        env_type='atari',
+        collector_env_num=8,
+        evaluator_env_num=8,
+        n_evaluator_episode=8,
+        stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        collector_env_num=16,
-        evaluator_env_num=8,
+        manager=dict(
+            shared_memory=False,
+        )
     ),
     policy=dict(
-        use_cuda=True,
-        policy_type='dqn',
-        import_names=['nervex.policy.dqn'],
-        on_policy=False,
-        use_priority=True,
+        cuda=True,
+        priority=False,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
-            obs_dim=[4, 84, 84],
-            action_dim=6,
-            hidden_dim_list=[128, 128, 512],
-            head_kwargs=dict(dueling=False, ),
+            obs_shape=[4, 84, 84],
+            action_shape=6,
+            hidden_size_list=[128, 128, 512],
+            head_kwargs=dict(head_type='base', ),
         ),
+        nstep=3,
+        discount_factor=0.99,
         learn=dict(
-            train_iteration=20,
+            update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
-            weight_decay=0.0,
-            algo=dict(
-                target_update_freq=500,
-                discount_factor=0.99,
-                nstep=nstep,
-            ),
+            target_update_freq=500,
         ),
         collect=dict(
-            unroll_len=1,
-            algo=dict(nstep=nstep, ),
+            n_sample=100,
         ),
-        command=dict(eps=dict(
-            type='exp',
-            start=1.,
-            end=0.05,
-            decay=200000,
-        ), ),
-    ),
-    replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=10000,
-            max_use=100,
-        ),
-    ),
-    collector=dict(
-        n_sample=100,
-        collect_print_freq=100,
-    ),
-    evaluator=dict(
-        n_episode=4,
-        eval_freq=5000,
-        stop_value=20,
-    ),
-    learner=dict(
-        load_path='',
-        hook=dict(
-            log_show=dict(
-                name='log_show',
-                type='log_show',
-                priority=20,
-                position='after_iter',
-                ext_args=dict(freq=100, ),
+        eval=dict(evaluator=dict(eval_freq=4000, )),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=1.,
+                end=0.05,
+                decay=250000,
             ),
+            replay_buffer=dict(replay_buffer_size=100000, ),
         ),
     ),
-    commander=dict(),
 )
-pong_dqn_default_config = EasyDict(pong_dqn_default_config)
-main_config = pong_dqn_default_config
+pong_dqn_config = EasyDict(pong_dqn_config)
+main_config = pong_dqn_config
+pong_dqn_create_config = dict(
+    env=dict(
+        type='atari',
+        import_names=['app_zoo.atari.envs.atari_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='dqn'),
+)
+pong_dqn_create_config = EasyDict(pong_dqn_create_config)
+create_config = pong_dqn_create_config
+
+if __name__ == '__main__':
+    serial_pipeline((main_config, create_config), seed=0)

@@ -2,7 +2,7 @@ from copy import deepcopy
 from nervex.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_dqn_config = dict(
+space_invaders_qrdqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -22,7 +22,8 @@ space_invaders_dqn_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='base', ),
+            head_kwargs=dict(head_type='qrdqn', ),
+            num_quantiles=64,
         ),
         nstep=3,
         discount_factor=0.99,
@@ -47,18 +48,18 @@ space_invaders_dqn_config = dict(
         ),
     ),
 )
-space_invaders_dqn_config = EasyDict(space_invaders_dqn_config)
-main_config = space_invaders_dqn_config
-space_invaders_dqn_create_config = dict(
+space_invaders_qrdqn_config = EasyDict(space_invaders_qrdqn_config)
+main_config = space_invaders_qrdqn_config
+space_invaders_qrdqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['app_zoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='dqn'),
+    policy=dict(type='qrdqn'),
 )
-space_invaders_dqn_create_config = EasyDict(space_invaders_dqn_create_config)
-create_config = space_invaders_dqn_create_config
+space_invaders_qrdqn_create_config = EasyDict(space_invaders_qrdqn_create_config)
+create_config = space_invaders_qrdqn_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

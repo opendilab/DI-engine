@@ -1,76 +1,71 @@
+from copy import deepcopy
+from nervex.entry import serial_pipeline
 from easydict import EasyDict
 
-spaceinvaders_a2c_default_config = dict(
+space_invaders_a2c_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.atari.envs.atari_env'],
-        env_type='atari',
-        env_id='SpaceInvadersNoFrameskip-v4',
-        frame_stack=4,
-        is_train=True,
         collector_env_num=16,
         evaluator_env_num=8,
+        n_evaluator_episode=8,
+        stop_value=10000000000,
+        env_id='SpaceInvadersNoFrameskip-v4',
+        frame_stack=4,
+        manager=dict(
+            shared_memory=False,
+        )
     ),
     policy=dict(
-        use_cuda=True,
-        policy_type='a2c',
-        import_names=['nervex.policy.a2c'],
+        cuda=True,
         on_policy=True,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             model_type='conv_vac',
-            import_names=['nervex.model.actor_critic'],
-            obs_dim=[4, 84, 84],
-            action_dim=6,
-            embedding_dim=128,
+            import_names=['nervex.model.vac'],
+            obs_shape=[4, 84, 84],
+            action_shape=6,
+            embedding_size=128,
         ),
         learn=dict(
-            train_iteration=1,
+            update_per_collect=2,
             batch_size=80,
+            # (bool) Whether to normalize advantage. Default to False.
+            normalize_advantage=False,
             learning_rate=0.0001,
-            weight_decay=0.0,
-            algo=dict(
-                value_weight=0.5,
-                entropy_weight=0.01,
-            ),
+            weight_decay=0,
+            # (float) loss weight of the value network, the weight of policy network is set to 1
+            value_weight=0.5,
+            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            entropy_weight=0.01,
+            grad_norm=0.5,
+            betas=(0.3, 0.99),
         ),
         collect=dict(
-            unroll_len=1,
-            algo=dict(
-                gae_lambda=0.99,
-                discount_factor=0.99,
-            ),
+            # (int) collect n_sample data, train model n_iteration times
+            n_sample=160,
+            # (float) the trade-off factor lambda to balance 1step td and mc
+            gae_lambda=0.99,
+            discount_factor=0.99,
         ),
-        command=dict(),
-    ),
-    replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=10000,
-            max_use=1,
-        ),
-    ),
-    collector=dict(
-        n_sample=80,
-        collect_print_freq=10000,
-    ),
-    evaluator=dict(
-        n_episode=8,
-        eval_freq=10000,
-        stop_value=1400,
-    ),
-    learner=dict(
-        load_path='',
-        hook=dict(
-            log_show=dict(
-                name='log_show',
-                type='log_show',
-                priority=20,
-                position='after_iter',
-                ext_args=dict(freq=100, ),
+        eval=dict(evaluator=dict(eval_freq=500, )),
+        other=dict(
+            replay_buffer=dict(
+                        replay_buffer_size=160,
+                        max_use=1,
             ),
         ),
     ),
-    commander=dict(),
 )
-spaceinvaders_a2c_default_config = EasyDict(spaceinvaders_a2c_default_config)
-main_config = spaceinvaders_a2c_default_config
+main_config = EasyDict(space_invaders_a2c_config)
+
+space_invaders_a2c_create_config = dict(
+    env=dict(
+        type='atari',
+        import_names=['app_zoo.atari.envs.atari_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='a2c'),
+)
+create_config = EasyDict(space_invaders_a2c_create_config)
+
+if __name__ == '__main__':
+    serial_pipeline((main_config, create_config), seed=0)

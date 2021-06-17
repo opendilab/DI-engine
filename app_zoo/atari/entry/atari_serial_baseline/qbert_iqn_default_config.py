@@ -2,13 +2,13 @@ from copy import deepcopy
 from nervex.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_dqn_config = dict(
+qbert_iqn_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        stop_value=30000,
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(
             shared_memory=False,
@@ -16,16 +16,18 @@ space_invaders_dqn_config = dict(
     ),
     policy=dict(
         cuda=True,
-        priority=False,
+        priority=True,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_shape=[4, 84, 84],
             action_shape=6,
             hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='base', ),
+            head_kwargs=dict(head_type='quantile', ),
+            num_quantiles=32,
         ),
         nstep=3,
         discount_factor=0.99,
+        kappa = 1.0,
         learn=dict(
             update_per_collect=10,
             batch_size=32,
@@ -47,18 +49,17 @@ space_invaders_dqn_config = dict(
         ),
     ),
 )
-space_invaders_dqn_config = EasyDict(space_invaders_dqn_config)
-main_config = space_invaders_dqn_config
-space_invaders_dqn_create_config = dict(
+main_config = EasyDict(qbert_iqn_config)
+
+qbert_iqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['app_zoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='dqn'),
+    policy=dict(type='iqn'),
 )
-space_invaders_dqn_create_config = EasyDict(space_invaders_dqn_create_config)
-create_config = space_invaders_dqn_create_config
+create_config = EasyDict(qbert_iqn_create_config)
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)
