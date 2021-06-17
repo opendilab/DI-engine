@@ -26,7 +26,7 @@ class LunarLanderEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -47,10 +47,11 @@ class LunarLanderEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim tensor
         obs, rew, done, info = self._env.step(action)
+        rew = float(rew)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
@@ -68,17 +69,19 @@ class LunarLanderEnv(BaseEnv):
             ),
             # [min, max)
             act_space=T(
-                (4, ),
+                (1, ),
                 {
                     'min': 0,
-                    'max': 4
+                    'max': 4,
+                    'dtype': int,
                 },
             ),
             rew_space=T(
                 (1, ),
                 {
-                    'min': -1000,
-                    'max': 1000
+                    'min': -1000.0,
+                    'max': 1000.0,
+                    'dtype': float,
                 },
             ),
             use_wrappers=None,
