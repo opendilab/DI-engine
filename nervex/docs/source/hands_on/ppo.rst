@@ -16,12 +16,13 @@ Quick Facts
 4. PPO can be equipped with RNN.
 
 Key Equations or Key Graphs
--------------
+------------------------------
 PPO use clipped probability ratios in the policy gradient to prevent the policy from too rapid changes:
 
 .. image:: images/ppo_pg.png
    :align: center
    :height: 40
+
 with the probability ratio :math:`r_t(\theta)` defined as:
 
 .. image:: images/ppo_ratio.png
@@ -49,11 +50,12 @@ PPO can be combined with:
     - multi-step learning
     - RNN
     - GAE
+
     .. note::
       Indeed, the standard implementation of PPO contains the many additional optimizations which are not described in the paper. Further details can be found in `IMPLEMENTATION MATTERS IN DEEP POLICY GRADIENTS: A CASE STUDY ON PPO AND TRPO <https://arxiv.org/abs/2005.12729>`_.
 
 Implementation
-------------
+-----------------
 The default config is defined as follows:
 
     .. autoclass:: nervex.policy.ppo.PPOPolicy

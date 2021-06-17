@@ -1,5 +1,5 @@
 How to Customize an Env Wrapper
-=========================
+==================================
 
 Env module is one of the most important modules in the domain of reinforcement learnig.
 In some common reinforcement learning tasks, for instance, atari, mujoco, we train our agents
