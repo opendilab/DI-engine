@@ -1,13 +1,13 @@
-from typing import Union, Optional, Tuple, Dict
+from typing import Union, Optional, Tuple, Dict, Callable
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
 
 from nervex.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
-from typing import Callable
 from nervex.rl_utils import beta_function_map
+from nervex.utils import lists_to_dicts, SequenceType
 
 
 class ClassificationHead(nn.Module):
@@ -461,6 +461,39 @@ class ReparameterizationHead(nn.Module):
             log_sigma = self.log_sigma_layer(x)
             sigma = torch.exp(torch.clamp(log_sigma, -20, 2))
         return {'mu': mu, 'sigma': sigma}
+
+
+class MultiDiscreteHead(nn.Module):
+    def __init__(self, head_cls: type, hidden_size: int, output_size_list: SequenceType, **head_kwargs) -> None:
+        r"""
+        Overview:
+            Init the MultiDiscreteHead according to arguments.
+        Arguments:
+            - head_cls (:obj:`type`): The class of head, like dueling_head, distribution_head, quatile_head, etc
+            - hidden_size (:obj:`int`): The number of hidden layer size
+            - output_size_list (:obj:`int`): The collection of output_size, e.g.: multi discrete action, [2, 3, 5]
+            - head_kwargs: (:boj:`dict`): Class-specific arguments
+        """
+        super(MultiDiscreteHead, self).__init__()
+        self.pred = nn.ModuleList()
+        for size in output_size_list:
+            self.pred.append(head_cls(hidden_size, size, **head_kwargs))
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict multi discrete output
+        Arguments:
+            - x (:obj:`torch.Tensor`): The encoded embedding tensor, usually with shape (B, N)
+        Returns:
+            - return (:obj:`Dict`): Prediction output dict
+        Examples:
+            >>> head = MultiDiscreteHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'][0].shape == (4, 2)
+        """
+        return lists_to_dicts([m(x) for m in self.pred])
 
 
 head_cls_map = {

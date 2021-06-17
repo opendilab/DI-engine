@@ -2,19 +2,19 @@ import torch
 import torch.nn as nn
 
 
-class ActorCriticBase(nn.Module):
+class IActorCritic(nn.Module):
     r"""
     Overview:
-        Abstract class for Actor-Critic based models
+        Abstract interface class for Actor-Critic based models
     Interface:
-        forward, seed, compute_actor_critic, compute_actor, compute_critic, mimic, mimic_single
+        forward, compute_actor_critic, compute_actor, compute_critic
     """
 
-    def __init__(self, ) -> None:
+    def __init__(self) -> None:
         super(ActorCriticBase, self).__init__()
         self.modes = ['compute_actor_critic', 'compute_actor', 'compute_critic']
 
-    def forward(self, inputs, mode=None, **kwargs):
+    def forward(self, inputs, mode: str, **kwargs):
         """
         Overview:
             Forward methods inherit from nn.Modules, used in different mode.
@@ -31,7 +31,7 @@ class ActorCriticBase(nn.Module):
                 - compute_actor_critic: normal reinforcement learning training
                 - compute_actor: only use the actor part
                 - compute_critic: only use the critic part
-                - mimic: supervised learning, learn policy/value output label
+                - imitate: supervised learning, learn policy/value output label
         """
         assert (mode in self.modes)
         f = getattr(self, mode)
