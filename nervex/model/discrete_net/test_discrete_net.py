@@ -57,7 +57,7 @@ class TestDiscreteNet:
     def test_conv_discrete_net(self, action_dim):
         dims = [3, 64, 64]
         inputs = torch.randn(B, *dims)
-        model = ConvDiscreteNet(dims, action_dim, [128, embedding_dim])
+        model = ConvDiscreteNet(dims, action_dim, [64, 128, embedding_dim])
         outputs = model(inputs)['logit']
         self.output_check(model, outputs)
 
@@ -92,7 +92,7 @@ class TestDiscreteNet:
     def test_conv_r_discrete_net(self, action_dim):
         dims = [3, 64, 64]
         data = torch.randn(T, B, *dims)
-        model = ConvRDiscreteNet(dims, action_dim, [128, embedding_dim])
+        model = ConvRDiscreteNet(dims, action_dim, [64, 128, embedding_dim])
         prev_state = [None for _ in range(B)]
         for t in range(T):
             inputs = {'obs': data[t], 'prev_state': prev_state}
@@ -104,7 +104,7 @@ class TestDiscreteNet:
         self.output_check(model, logit)
 
         data = torch.randn(T, B, *dims)
-        model = ConvRDiscreteNet(dims, action_dim, [128, embedding_dim])
+        model = ConvRDiscreteNet(dims, action_dim, [64, 128, embedding_dim])
         prev_state = [None for _ in range(B)]
         inputs = {'obs': data, 'prev_state': prev_state, 'enable_fast_timestep': True}
         outputs = model(inputs)

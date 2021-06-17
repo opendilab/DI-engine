@@ -127,7 +127,7 @@ class Encoder(nn.Module):
             self,
             obs_shape: Union[int, tuple],
             encoder_type: str,
-            hidden_size_list: list = [128, 128, 64],
+            hidden_size_list: list = [128, 128],
     ) -> None:
         r"""
         Overview:
@@ -150,7 +150,7 @@ class Encoder(nn.Module):
                 input_size = size
             self.main = nn.Sequential(*layers)
         elif encoder_type == 'conv2d':
-            self.main = ConvEncoder(obs_shape, embedding_size)
+            self.main = ConvEncoder(obs_shape, hidden_size_list)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""

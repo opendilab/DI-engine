@@ -453,7 +453,7 @@ class ReparameterizationHead(nn.Module):
         x = self.main(x)
         mu = self.mu(x)
         if self.sigma_type == 'fixed':
-            sigma = self.sigma + torch.zeros_like(mu)  # addition aims to broadcast shape
+            sigma = self.sigma.to(mu.device) + torch.zeros_like(mu)  # addition aims to broadcast shape
         elif self.sigma_type == 'independent':
             log_sigma = self.log_sigma_param + torch.zeros_like(mu)  # addition aims to broadcast shape
             sigma = torch.exp(log_sigma)
