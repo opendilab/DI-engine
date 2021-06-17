@@ -33,6 +33,7 @@ pages:
       - public
   only:
     - master
+    - dev-0.2.0rc0
     - /^doc/.*$/
 
 test_unittest:
