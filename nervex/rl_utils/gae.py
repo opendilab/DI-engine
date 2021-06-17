@@ -48,7 +48,9 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
     factor = gamma * lambda_
     adv = torch.zeros_like(reward)
     gae_item = 0.
+    denom = 0.
     for t in reversed(range(reward.shape[0])):
-        gae_item = delta[t] + factor * gae_item
-        adv[t] += gae_item
+        denom = 1 + lambda_ * denom
+        gae_item = denom * delta[t] + factor * gae_item
+        adv[t] += gae_item / denom
     return adv
