@@ -51,8 +51,6 @@ class DDPGPolicy(Policy):
             learning_rate_actor=1e-3,
             # Learning rates for critic network(aka. Q-network).
             learning_rate_critic=1e-3,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
             # (int) Interpolation factor in polyak averaging for target networks.
@@ -98,12 +96,10 @@ class DDPGPolicy(Policy):
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
@@ -392,8 +388,6 @@ class TD3Policy(DDPGPolicy):
             learning_rate_actor=1e-3,
             # Learning rates and critic network(aka. Q-network).
             learning_rate_critic=1e-3,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.000,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
             # (int) Interpolation factor in polyak averaging for target networks.

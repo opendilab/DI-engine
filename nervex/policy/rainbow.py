@@ -96,8 +96,6 @@ class RainbowDQNPolicy(DQNPolicy):
             update_per_collect=1,
             batch_size=32,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================

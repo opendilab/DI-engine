@@ -43,8 +43,6 @@ class QRDQNPolicy(DQNPolicy):
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================

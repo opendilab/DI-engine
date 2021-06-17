@@ -41,8 +41,6 @@ lunarlander_sqn_default_config = dict(
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
-            # L2 norm weight for network parameters.
-            weight_decay=0.0,
             algo=dict(
                 target_theta=0.005,
                 alpha=0.2,

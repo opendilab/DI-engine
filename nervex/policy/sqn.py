@@ -38,7 +38,6 @@ class SQNPolicy(Policy):
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -76,9 +75,7 @@ class SQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizers
-        self._optimizer_q = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate_q, weight_decay=self._cfg.learn.weight_decay
-        )
+        self._optimizer_q = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate_q)
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor

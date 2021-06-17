@@ -43,8 +43,6 @@ class ILPolicy(Policy):
             batch_size=64,
             # (float) gradient-descent step size
             learning_rate=0.0002,
-            # (float) weight decay of optimizer
-            weight_decay=0.0,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
@@ -71,7 +69,7 @@ class ILPolicy(Policy):
             Init optimizers, algorithm config, main and target models.
         """
         # actor and critic optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
         # main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
