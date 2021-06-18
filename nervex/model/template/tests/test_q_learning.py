@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from nervex.model.template import DQN
+from nervex.model.template import DQN, RainbowDQN
 from nervex.torch_utils import is_differentiable
 
 B = 4
@@ -38,4 +38,26 @@ class TestQLearning:
         else:
             for i, s in enumerate(act_space):
                 assert outputs['logit'][i].shape == (B, s)
+        self.output_check(model, outputs['logit'])
+
+    @pytest.mark.rainbow
+    @pytest.mark.parametrize('obs_space, act_space', args)
+    def test_rainbowdqn(self, obs_space, act_space):
+        if isinstance(obs_space, int):
+            inputs = torch.randn(B, obs_space)
+        else:
+            inputs = torch.randn(B, *obs_space)
+        model = RainbowDQN(obs_space, act_space, n_atom=41)
+        outputs = model(inputs)
+        assert isinstance(outputs, dict)
+        if isinstance(act_space, int):
+            assert outputs['logit'].shape == (B, act_space)
+            assert outputs['distribution'].shape == (B, act_space, 41)
+        elif len(act_space) == 1:
+            assert outputs['logit'].shape == (B, *act_space)
+            assert outputs['distribution'].shape == (B, *act_space, 41)
+        else:
+            for i, s in enumerate(act_space):
+                assert outputs['logit'][i].shape == (B, s)
+                assert outputs['distribution'][i].shape == (B, s, 41)
         self.output_check(model, outputs['logit'])
