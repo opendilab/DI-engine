@@ -408,16 +408,16 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def step(self, actions, force_return_two_player=False):
         processed_actions = self.action_helper.get_action(actions, self)
-        self._submit_actions(processed_actions)
-#        try:
-#            # print("Submitting actions: ", actions)
-#            self._submit_actions(processed_actions)
-#            # raise ValueError()  # To test the functionality of restart
-#        except (protocol.ProtocolError, protocol.ConnectionError, ValueError) as e:
-#            print("Error happen in step! Error: ", e)
-#            self.full_restart()
-#            info = {'abnormal': True}
-#            return self.SMACTimestep(obs=None, reward=None, done=True, info=info, episode_steps=self._episode_steps)
+        # self._submit_actions(processed_actions)
+        try:
+            # print("Submitting actions: ", actions)
+            self._submit_actions(processed_actions)
+            # raise ValueError()  # To test the functionality of restart
+        except (protocol.ProtocolError, protocol.ConnectionError, ValueError) as e:
+            print("Error happen in step! Error: ", e)
+            self.full_restart()
+            info = {'abnormal': True}
+            return self.SMACTimestep(obs=None, reward=None, done=True, info=info, episode_steps=self._episode_steps)
 
         # Update units
         game_end_code = self.update_units()
@@ -497,7 +497,7 @@ class SMACEnv(SC2Env, BaseEnv):
                 info[OPPONENT_AGENT]["episode_limit"] = True
             self.battles_game += 1
             self.timeouts += 1
-            info['final_eval_reward'] = -0.5
+            # info['final_eval_reward'] = -0.5
 
             # if sum(u.health + u.shield for u in self.agents.values()) >= \
             #         sum(u.health + u.shield for u in self.enemies.values()):
@@ -552,8 +552,8 @@ class SMACEnv(SC2Env, BaseEnv):
             for unit in self._obs.observation.raw_data.units:
                 if (unit.owner == 2) and (unit.tag not in old_unit_tags):
                     self.enemies[len(self.enemies)] = unit
-                    # if self._episode_count == 0:
-                    #     self.max_reward += unit.health_max + unit.shield_max
+                    if self._episode_count == 0:
+                        self.max_reward += unit.health_max + unit.shield_max
 
             all_agents_created = (len(self.agents) == self.n_agents)
             all_enemies_created = (len(self.enemies) == self.n_enemies)

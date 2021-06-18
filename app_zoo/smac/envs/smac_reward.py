@@ -138,12 +138,18 @@ class SMACReward:
                 if e_unit.health == 0:
                     death_tracker[e_id] += 1
                     delta_death_enemy[e_id] += self.reward_death_value
-                    normed_delta_health = prev_health / (e_unit.health_max + e_unit.shield_max)
-                    delta_enemy[e_id] += normed_delta_health * self.reward_death_value
+                    delta_enemy[e_id] += prev_health
                 else:
-                    normed_delta_health = (prev_health - e_unit.health -
-                                           e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
-                    delta_enemy[e_id] += normed_delta_health * self.reward_death_value
+                    delta_enemy[e_id] += prev_health - e_unit.health - e_unit.shield
+                # if e_unit.health == 0:
+                #     death_tracker[e_id] += 1
+                #     delta_death_enemy[e_id] += self.reward_death_value
+                #     normed_delta_health = prev_health / (e_unit.health_max + e_unit.shield_max)
+                #     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
+                # else:
+                #     normed_delta_health = (prev_health - e_unit.health -
+                #                            e_unit.shield) / (e_unit.health_max + e_unit.shield_max)
+                #     delta_enemy[e_id] += normed_delta_health * self.reward_death_value
 
         # if self.reward_type == 'original':
         #     if self.reduce_agent:
