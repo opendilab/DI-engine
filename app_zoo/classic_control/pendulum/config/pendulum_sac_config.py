@@ -13,6 +13,7 @@ pendulum_sac_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
+        random_collect_size=1000,
         model=dict(
             obs_shape=3,
             action_shape=1,
@@ -35,7 +36,6 @@ pendulum_sac_config = dict(
         ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            replay_start_size=1000,
         ), ),
     ),
 )

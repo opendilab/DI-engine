@@ -13,6 +13,7 @@ cartpole_r2d2_config = dict(
         cuda=False,
         on_policy=False,
         priority=False,
+        random_collect_size=1000,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -41,7 +42,6 @@ cartpole_r2d2_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=5000,
-                replay_start_size=1000,
             )
         ),
     ),
