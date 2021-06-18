@@ -139,7 +139,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     config = dict(
         episode_num=float("inf"),
-        max_retry=1,
+        max_retry=5,
         step_timeout=60,
         auto_reset=True,
         reset_timeout=60,
