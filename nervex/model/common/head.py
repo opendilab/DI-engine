@@ -332,8 +332,9 @@ class DuelingHead(nn.Module):
         self,
         hidden_size: int,
         output_size: int,
-        a_layer_num: int = 1,
-        v_layer_num: int = 1,
+        layer_num: int = 1,
+        a_layer_num: Optional[int] = None,
+        v_layer_num: Optional[int] = None,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         noise: Optional[bool] = False,
@@ -352,6 +353,10 @@ class DuelingHead(nn.Module):
             - noise (:obj:`bool`): whether use noisy fc block
         """
         super(DuelingHead, self).__init__()
+        if a_layer_num is None:
+            a_layer_num = layer_num
+        if v_layer_num is None:
+            v_layer_num = layer_num
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
         self.A = nn.Sequential(
@@ -464,6 +469,7 @@ class ReparameterizationHead(nn.Module):
 
 
 class MultiDiscreteHead(nn.Module):
+
     def __init__(self, head_cls: type, hidden_size: int, output_size_list: SequenceType, **head_kwargs) -> None:
         r"""
         Overview:

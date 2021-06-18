@@ -27,7 +27,7 @@ class TestEncoder:
     def test_fc_encoder(self):
         inputs = torch.randn(B, 32)
         hidden_size_list = [128 for _ in range(3)]
-        model = FCEncoder(32, hidden_size_list, activation=torch.nn.Tanh())
+        model = FCEncoder(32, hidden_size_list, res_block=True, activation=torch.nn.Tanh())
         print(model)
         outputs = model(inputs)
         self.output_check(model, outputs)

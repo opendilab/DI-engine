@@ -73,7 +73,7 @@ class FCEncoder(nn.Module):
             self,
             obs_shape: int,
             hidden_size_list: SequenceType,
-            res_block: bool = True,
+            res_block: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
