@@ -33,18 +33,28 @@ How to write config and env info. (User View)
         def info(self) -> BaseEnvInfo:
             T = EnvElementInfo
             return BaseEnvInfo(
-                # ...
-                # [min, max)
+                # Discrete action
                 act_space=T(
                     (1, ),
                     {
+                        # [min, max)
                         'min': 0,
                         'max': 2,
                         'dtype': int,
                     },
                 ),
                 # ...
+                # Continuous action
+                act_space=T(
+                    (3, ),
+                    {
+                        'min': 0.,
+                        'max': 1.,
+                        'dtype': np.float32,
+                    },
+                ),
             )
+
 
 How nerveX randomly collect? (Developer View)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,3 +75,7 @@ How nerveX randomly collect? (Developer View)
             replay_buffer.push(new_data, cur_collector_envstep=0)
             # Switch collector's policy back to the collect_mode policy
             collector.reset_policy(policy.collect_mode)
+    
+    nerveX use different methods to generate different types of actions (discrete and continuous, whether has upper or lower bound, etc.).
+     of ``PolicyFactory``.
+    You can refer to ``nerveX/nervex/policy/policy_factory.py``, see ``PolicyFactory``'s ``get_random_policy``'s ``forward`` for more details.

@@ -12,7 +12,7 @@ In nerveX, it is permitted to only return some keys in some iterations' info dic
 
 But you must make sure that, in policy's method ``_monitor_vars_learn``, you must list **all** keys that may appear in info dict, no matter they appear in every iteration, or appear periodically. Then learner can utilize sliding window average to print variable's correct value.
 
-Here is an example from TD3.
+Here is an example from PPG.
 
 Auxiliary losses be calculated every `self._cfg.learn.aux_freq` iterations.
 

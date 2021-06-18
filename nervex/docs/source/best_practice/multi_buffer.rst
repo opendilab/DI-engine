@@ -25,6 +25,9 @@ However, nerveX `serial_pipeline` only supports single buffer. So in this sectio
                         multi_buffer=True,
                         policy=dict(
                             replay_buffer_size=100,
+                            # nerveX implemented PPG is not the same as original paper version.
+                            # In nerveX, we utilize `max_use` to control how many times data is used to optimize
+                            # actor and critic network.
                             max_use=10,
                         ),
                         value=dict(
@@ -75,9 +78,6 @@ However, nerveX `serial_pipeline` only supports single buffer. So in this sectio
                 if policy_data is not None and value_data is not None:
                     train_data = {'policy': policy_data, 'value': value_data}
                     learner.train(train_data, collector.envstep)
-            # Since `PPG` is on-policy, remember to clear two buffers.
-            policy_buffer.clear()
-            value_buffer.clear()
     
     There are two issues you should pay attention to:
 
