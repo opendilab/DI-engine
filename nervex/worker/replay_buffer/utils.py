@@ -101,17 +101,17 @@ class SampledDataAttrMonitor(LoggedModel):
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
+            return sum(_list) / len(_list) if len(_list) != 0 else 0
 
         def __max_func(prop_name: str) -> Union[float, int]:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
-            return max(_list)
+            return max(_list) if len(_list) != 0 else 0
 
         def __min_func(prop_name: str) -> Union[float, int]:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
-            return min(_list)
+            return min(_list) if len(_list) != 0 else 0
 
         self.register_attribute_value('avg', 'use', partial(__avg_func, prop_name='use_avg'))
         self.register_attribute_value('max', 'use', partial(__max_func, prop_name='use_max'))

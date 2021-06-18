@@ -64,9 +64,9 @@ However, nerveX `serial_pipeline` only supports single buffer. So in this sectio
         while True:
             # ...
             new_data = collector.collect(train_iter=learner.train_iter)
-            # Push data into two buffers repectively. Remember to deepcopy if it is a must.
+            # Push data into two buffers repectively. If you may change data in buffer, you can deepcopy it.
             policy_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-            value_buffer.push(deepcopy(new_data), cur_collector_envstep=collector.envstep)
+            value_buffer.push(new_data, cur_collector_envstep=collector.envstep)
             for i in range(cfg.policy.learn.update_per_collect):
                 batch_size = learner.policy.get_attribute('batch_size')
                 # Sample from two buffers respectively. Form the new `train_data` and start learner training.
@@ -78,3 +78,8 @@ However, nerveX `serial_pipeline` only supports single buffer. So in this sectio
             # Since `PPG` is on-policy, remember to clear two buffers.
             policy_buffer.clear()
             value_buffer.clear()
+    
+    There are two issues you should pay attention to:
+
+        - Rewrite policy's ``_get_batch_size`` method. Its return should be a dict like ``{'value': 32, 'policy': 32}``.
+        - (Optional) Rewrite policy's ``_process_transition`` method. Specify each data which buffer it should be pushed into. In this example, same data are pushed into to two buffers respectively. But you can also push value data into value buffer, and policy data into policy buffer.
