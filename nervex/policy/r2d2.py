@@ -352,4 +352,4 @@ class R2D2Policy(Policy):
         self._eval_model.reset(data_id=data_id)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'drqn', ['nervex.model.template.q_learning']
