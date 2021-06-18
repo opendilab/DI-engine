@@ -20,6 +20,6 @@ Space Invaders
 | qrdqn     | 2082     | 938      | n/a      | n/a      |
 | iqn       | 1493     | 1370     | n/a      | n/a      |
 | rainbow   | 2229     | n/a      | n/a      | n/a      |
-| a2c       | 782      | n/a      | n/a      | 627      |
-| ppo       | 1126     | n/a      | 1025     | 960      |
-| ppg       | 1307     | n/a      | n/a      | n/a      |
+| a2c       | 755      | n/a      | n/a      | 627      |
+| ppo       | 1459     | n/a      | 1025     | 960      |
+| ppg       | 1200     | n/a      | n/a      | n/a      |
