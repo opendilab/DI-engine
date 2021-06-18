@@ -26,11 +26,13 @@ The TD-loss used in DQN is:
 .. image:: images/td_loss.png
    :align: center
    :height: 120
+
 Pseudo-code
 ---------------
 .. image:: images/DQN.png
    :align: center
    :width: 1200
+
 .. note::
    Compared with the vanilla version, DQN has been dramatically improved in both algorithm and implementation. In the algorithm part, **n-step TD-loss, PER, target network and dueling head** are widely used. For the implementation details, the value of epsilon anneals from a high value to zero during the training rather than keeps constant, according to env step(the number of policy interaction with env).
 

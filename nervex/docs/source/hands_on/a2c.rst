@@ -22,6 +22,7 @@ A2C use advantage estimation in the policy gradient:
 .. image:: images/a2c_pg.png
    :align: center
    :height: 40
+
 where the n-step advantage function is defined:
 
 .. image:: images/nstep_adv.png
@@ -65,7 +66,7 @@ A2C can be combined with:
 
 
 Implementation
-------------
+------------------
 The default config is defined as follows:
 
     .. autoclass:: nervex.policy.a2c.A2CPolicy

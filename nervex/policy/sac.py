@@ -130,9 +130,6 @@ class SACPolicy(Policy):
             replay_buffer=dict(
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int type) replay_start_size: Number of experiences in replay buffer
-                # when training begins. Default to 10000.
-                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.

@@ -50,7 +50,7 @@ class TickMonitor(LoggedModel):
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
+            return sum(_list) / len(_list) if len(_list) != 0 else 0
 
         def __val_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()

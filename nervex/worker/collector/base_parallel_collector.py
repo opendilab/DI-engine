@@ -42,7 +42,7 @@ class TickMonitor(LoggedModel):
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list)
+            return sum(_list) / len(_list) if len(_list) != 0 else 0
 
         self.register_attribute_value('avg', 'policy_time', partial(__avg_func, prop_name='policy_time'))
         self.register_attribute_value('avg', 'env_time', partial(__avg_func, prop_name='env_time'))
