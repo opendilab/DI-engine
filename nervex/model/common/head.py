@@ -420,6 +420,8 @@ class RegressionHead(nn.Module):
         x = self.last(x)
         if self.final_tanh:
             x = self.tanh(x)
+        if x.shape[1] == 1:
+            x = x.squeeze(1)
         return {'pred': x}
 
 
