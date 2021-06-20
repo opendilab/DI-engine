@@ -7,7 +7,7 @@ from nervex.config import compile_config
 from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, NaiveReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import PPOPolicy
-from nervex.model import FCValueAC
+from nervex.model import VAC
 from nervex.utils import set_pkg_seed, deep_merge_dicts
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config
 
@@ -35,7 +35,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
-    model = FCValueAC(**cfg.policy.model)
+    model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
