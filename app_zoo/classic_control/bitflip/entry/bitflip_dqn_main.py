@@ -8,7 +8,7 @@ from nervex.config import compile_config
 from nervex.worker import BaseLearner, EpisodeCollector, BaseSerialEvaluator, EpisodeReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
-from nervex.model import FCDiscreteNet
+from nervex.model import DQN
 from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
 from nervex.reward_model import HerModel
@@ -41,7 +41,7 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = FCDiscreteNet(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
