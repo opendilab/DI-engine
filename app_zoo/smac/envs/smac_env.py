@@ -549,6 +549,7 @@ class SMACEnv(SC2Env, BaseEnv):
             for i in range(len(ally_units_sorted)):
                 self.agents[i] = ally_units_sorted[i]
 
+            self.max_reward = self.n_enemies * self.reward_death_value + self.reward_win
             for unit in self._obs.observation.raw_data.units:
                 if (unit.owner == 2) and (unit.tag not in old_unit_tags):
                     self.enemies[len(self.enemies)] = unit
