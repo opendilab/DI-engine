@@ -1409,5 +1409,6 @@ policy_*
 *total_config.py
 **/exp
 **/benchmark
+**/model_zoo
 *ckpt*
 *log*
