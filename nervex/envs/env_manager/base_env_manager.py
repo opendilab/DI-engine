@@ -63,6 +63,10 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
 
 
 def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
+    """
+    Overview:
+        Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.
+    """
     if func is None:
         return partial(timeout_wrapper, timeout=timeout)
 
@@ -95,7 +99,7 @@ class BaseEnvManager(object):
     Overview:
         Create a BaseEnvManager to manage multiple environments.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, env_info
+        reset, step, seed, close, enable_save_replay, launch, env_info, default_config
     Properties:
         env_num, ready_obs, done, method_name_list
     """
@@ -124,7 +128,8 @@ class BaseEnvManager(object):
         Overview:
             Initialize the BaseEnvManager.
         Arguments:
-            - env_fn (:obj:`List[Callable]`): the function to create environment
+            - env_fn (:obj:`List[Callable]`): The function to create environment
+            - cfg (:obj:`EasyDict`): Config
         """
         self._cfg = cfg
         self._env_fn = env_fn
@@ -173,10 +178,11 @@ class BaseEnvManager(object):
 
     def __getattr__(self, key: str) -> Any:
         """
-        Note: if a python object doesn't have the attribute named key, it will call this method
+        Note:
+            If a python object doesn't have the attribute whose name is `key`, it will call this method.
+            We suppose that all envs have the same attributes.
+            If you need different envs, please implement other env managers.
         """
-        # We suppose that all envs have the same attributes.
-        # If you need different envs, please implement other env managers.
         if not hasattr(self._env_ref, key):
             raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
         if isinstance(getattr(self._env_ref, key), MethodType) and key not in self.method_name_list:
@@ -194,12 +200,12 @@ class BaseEnvManager(object):
     def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Set up the environments and hyper-params.
+            Set up the environments and their parameters.
         Arguments:
             - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \
-                value is the cooresponding reset param.
+                value is the cooresponding reset parameters.
         """
-        assert self._closed, "please first close the env manager"
+        assert self._closed, "Please first close the env manager"
         if reset_param is not None:
             assert len(reset_param) == len(self._env_fn)
         self._create_state()
@@ -229,9 +235,10 @@ class BaseEnvManager(object):
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Reset the environments and hyper-params.
+            Reset the environments their parameters.
         Arguments:
-            - reset_param (:obj:`List`): list of reset parameters for each environment.
+            - reset_param (:obj:`List`): Dict of reset parameters for each environment, key is the env_id, \
+                value is the cooresponding reset parameters.
         """
         self._check_closed()
         if reset_param is None:
@@ -263,21 +270,21 @@ class BaseEnvManager(object):
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
-            All envs Wrapper of step function in the environment.
+            Step all environments. Reset an env if abnormal or done.
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
         Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. timestep is in ``torch.Tensor`` type.
-        Note:
-            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Once an environment is done, it is reset immediately.
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
-        """
+        .. note:
 
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Once an environment is done, it is reset immediately.
+        """
         self._check_closed()
         timesteps = {}
         for env_id, act in actions.items():
@@ -316,8 +323,8 @@ class BaseEnvManager(object):
         Overview:
             Set the seed for each environment.
         Arguments:
-            - seed (:obj:`Union[List[int], int]`): List of seeds for each environment, \
-                or one seed for the first environment and other seeds are generated automatically.
+            - seed (:obj:`Union[List[int], int]`): List of seeds for each environment; \
+                Or one seed for the first environment and other seeds are generated automatically.
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
@@ -328,6 +335,13 @@ class BaseEnvManager(object):
         self._env_dynamic_seed = dynamic_seed
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
+        """
+        Overview:
+            Set each env's replay save path.
+        Arguments:
+            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
+                Or one path for all environments.
+        """
         if isinstance(replay_path, str):
             replay_path = [replay_path] * self.env_num
         self._env_replay_path = replay_path
@@ -347,10 +361,25 @@ class BaseEnvManager(object):
         self._closed = True
 
     def env_info(self) -> namedtuple:
+        """
+        Overview:
+            Get one env's info, for example, action space, observation space, reward space, etc.
+        Returnns:
+            - info (:obj:`namedtuple`): Usually a namedtuple ``BaseEnvInfo``, each element is ``EnvElementInfo``.
+        """
         return self._env_ref.info()
 
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:
+    r"""
+    Overview:
+        Create an env manager according to manager cfg and env function.
+    Arguments:
+        - manager_cfg (:obj:`EasyDict`): Env manager config.
+        - env_fn (:obj:` List[Callable]`): A list of envs' functions.
+    ArgumentsKeys:
+        - `manager_cfg`'s necessary: `type`
+    """
     manager_cfg = copy.deepcopy(manager_cfg)
     if 'import_names' in manager_cfg:
         import_module(manager_cfg.pop('import_names'))
@@ -359,5 +388,13 @@ def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvMana
 
 
 def get_env_manager_cls(cfg: EasyDict) -> type:
+    r"""
+    Overview:
+        Get an env manager class according to cfg.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Env manager config.
+    ArgumentsKeys:
+        - necessary: `type`
+    """
     import_module(cfg.get('import_names', []))
     return ENV_MANAGER_REGISTRY.get(cfg.type)
