@@ -90,7 +90,6 @@ class SACPolicy(Policy):
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
-            weight_decay=0.0,
             # (float type) target_theta: Used for soft update of the target network.
             # Default to 0.005.
             target_theta=0.005,
@@ -131,9 +130,6 @@ class SACPolicy(Policy):
             replay_buffer=dict(
                 # (int type) replay_buffer_size: Max size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int type) replay_start_size: Number of experiences in replay buffer
-                # when training begins. Default to 10000.
-                replay_buffer_start_size=10000,
                 # (int type) max_use: Max use times of one data in the buffer.
                 # Data will be removed once used for too many times.
                 # Default to infinite.
@@ -163,17 +159,14 @@ class SACPolicy(Policy):
             self._optimizer_value = Adam(
                 self._model.value_net.parameters(),
                 lr=self._cfg.learn.learning_rate_value,
-                weight_decay=self._cfg.learn.weight_decay
             )
         self._optimizer_q = Adam(
             self._model.q_net.parameters(),
             lr=self._cfg.learn.learning_rate_q,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._optimizer_policy = Adam(
             self._model.policy_net.parameters(),
             lr=self._cfg.learn.learning_rate_policy,
-            weight_decay=self._cfg.learn.weight_decay
         )
 
         # Algorithm config

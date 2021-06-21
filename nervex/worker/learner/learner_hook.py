@@ -209,16 +209,15 @@ class LogShowHook(LearnerHook):
         iters = engine.last_iter.val
         if iters % self._freq == 0:
             engine.info("=== Training Iteration {} Result ===".format(iters))
-            # For 'scalar' type variables: tick_monitor -> text_var_dict/tb_var_dict -> text_logger/tb_logger
-            text_var_dict, tb_var_dict = {}, {}
-            for k in engine.log_buffer['scalar']:
-                for attr in engine.monitor.get_property_attribute(k):
-                    k_attr = k + '_' + attr
-                    tb_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-                    if attr != "avg":
-                        text_var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-            engine.logger.print_vars_hor(text_var_dict)
-            for k, v in tb_var_dict.items():
+            # For 'scalar' type variables: tick_monitor -> var_dict -> text_logger & tb_logger
+            var_dict = {}
+            log_vars = engine.policy.monitor_vars()
+            attr = 'avg'
+            for k in log_vars:
+                k_attr = k + '_' + attr
+                var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
+            engine.logger.print_vars_hor(var_dict)
+            for k, v in var_dict.items():
                 engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
                 engine.tb_logger.add_scalar('learner_step/' + k, v, engine._collector_envstep)
             # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger

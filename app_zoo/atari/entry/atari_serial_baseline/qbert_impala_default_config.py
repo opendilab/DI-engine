@@ -28,7 +28,6 @@ qbert_impala_default_config = dict(
             train_iteration=4,
             batch_size=32,
             learning_rate=0.0003,
-            weight_decay=0.0,
             optim='rmsprop',
             grad_clip_type='clip_norm',
             clip_value=0.5,

@@ -66,7 +66,6 @@ class CollaQPolicy(Policy):
             batch_size=32,
             # (float) Gradient-descent step size
             learning_rate=0.0005,
-            weight_decay=0.0001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================

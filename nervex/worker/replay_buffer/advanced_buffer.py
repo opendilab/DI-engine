@@ -1,12 +1,13 @@
 import copy
-from typing import Union, NoReturn, Any, Optional, List, Dict
+import time
+from typing import Union, NoReturn, Any, Optional, List, Dict, Tuple
 import numpy as np
 
 from nervex.worker.replay_buffer import IBuffer
 from nervex.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
 from nervex.utils import LockContext, LockContextType, build_logger
 from nervex.utils.autolog import TickTime
-from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor
+from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
 
 @BUFFER_REGISTRY.register('priority')
@@ -42,6 +43,22 @@ class AdvancedReplayBuffer(IBuffer):
         enable_track_used_data=False,
         # Whether to deepcopy data when willing to insert and sample data. For security purpose.
         deepcopy=False,
+        thruput_controller=dict(
+            # Rate limit. The ratio of "Sample Count" to "Push Count" should be in [min, max] range.
+            # If greater than max ratio, return `None` when calling ``sample```;
+            # If smaller than min ratio, throw away the new data when calling ``push``.
+            push_sample_rate_limit=dict(
+                max=float("inf"),
+                min=0,
+            ),
+            # Controller will take how many seconds into account, i.e. For the past `window_seconds` seconds,
+            # sample_push_rate will be calculated and campared with `push_sample_rate_limit`.
+            window_seconds=30,
+            # The minimum ratio that buffer must satisfy before anything can be sampled.
+            # The ratio is calculated by "Valid Count" divided by "Batch Size".
+            # E.g. sample_min_limit_ratio = 2.0, valid_count = 50, batch_size = 32, it is forbidden to sample.
+            sample_min_limit_ratio=1,
+        ),
         # Monitor configuration for monitor and logger to use. This part does not affect buffer's function.
         monitor=dict(
             # Logger's save path
@@ -121,6 +138,16 @@ class AdvancedReplayBuffer(IBuffer):
         self._sum_tree = SumSegmentTree(capacity)
         self._min_tree = MinSegmentTree(capacity)
 
+        # Thruput controller
+        push_sample_rate_limit = self._cfg.thruput_controller.push_sample_rate_limit
+        self._always_can_push = True if push_sample_rate_limit['max'] == float('inf') else False
+        self._always_can_sample = True if push_sample_rate_limit['min'] == 0 else False
+        self._use_thruput_controller = not self._always_can_push or not self._always_can_sample
+        if self._use_thruput_controller:
+            self._thruput_controller = ThruputController(self._cfg.thruput_controller)
+        self._sample_min_limit_ratio = self._cfg.thruput_controller.sample_min_limit_ratio
+        assert self._sample_min_limit_ratio >= 1
+
         # Monitor & Logger
         monitor_cfg = self._cfg.monitor
         if tb_logger is not None:
@@ -131,6 +158,7 @@ class AdvancedReplayBuffer(IBuffer):
                 monitor_cfg.log_path,
                 self.name + '_buffer',
             )
+        self._start_time = time.time()
         # Sampled data attributes.
         self._cur_learner_iter = -1
         self._cur_collector_envstep = -1
@@ -187,21 +215,33 @@ class AdvancedReplayBuffer(IBuffer):
         """
         if size == 0:
             return []
-        can_sample = self._sample_check(size, cur_learner_iter)
-        if not can_sample:
+        can_sample_stalenss, staleness_info = self._sample_check(size, cur_learner_iter)
+        if self._always_can_sample:
+            can_sample_thruput, thruput_info = True, "Always can sample because push_sample_rate_limit['min'] == 0"
+        else:
+            can_sample_thruput, thruput_info = self._thruput_controller.can_sample(size)
+        if not can_sample_stalenss or not can_sample_thruput:
+            self._logger.info(
+                'Refuse to sample due to -- \nstaleness: {}, {} \nthruput: {}, {}'.format(
+                    not can_sample_stalenss, staleness_info, not can_sample_thruput, thruput_info
+                )
+            )
             return None
         with self._lock:
             indices = self._get_indices(size)
             result = self._sample_with_indices(indices, cur_learner_iter)
             # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
             # the same indices, i.e. the same datas would be sampled afterwards.
-            for i in range(size):
-                tmp = []
-                for j in range(i + 1, size):
-                    if id(result[i]) == id(result[j]):
-                        tmp.append(j)
-                for j in tmp:
-                    result[j] = copy.deepcopy(result[j])
+            # if self._deepcopy==True -> all data is different
+            # if len(indices) == len(set(indices)) -> no duplicate data
+            if not self._deepcopy and len(indices) != len(set(indices)):
+                for i, index in enumerate(indices):
+                    tmp = []
+                    for j in range(i + 1, size):
+                        if index == indices[j]:
+                            tmp.append(j)
+                    for j in tmp:
+                        result[j] = copy.deepcopy(result[j])
             self._monitor_update_of_sample(result, cur_learner_iter)
             return result
 
@@ -214,12 +254,20 @@ class AdvancedReplayBuffer(IBuffer):
                 (in `Any` type), or many(int `List[Any]` type).
             - cur_collector_envstep (:obj:`int`): Collector's current env step.
         """
+        push_size = len(data) if isinstance(data, list) else 1
+        if self._always_can_push:
+            can_push, push_info = True, "Always can push because push_sample_rate_limit['max'] == float('inf')"
+        else:
+            can_push, push_info = self._thruput_controller.can_push(push_size)
+        if not can_push:
+            self._logger.info('Refuse to push because {}'.format(push_info))
+            return
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
         else:
             self._append(data, cur_collector_envstep)
 
-    def _sample_check(self, size: int, cur_learner_iter: int) -> bool:
+    def _sample_check(self, size: int, cur_learner_iter: int) -> Tuple[bool, str]:
         r"""
         Overview:
             Do preparations for sampling and check whther data is enough for sampling
@@ -230,7 +278,12 @@ class AdvancedReplayBuffer(IBuffer):
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
+            - str_info (:obj:`str`): Str type info, explaining why cannot sample. (If can sample, return "Can sample")
+
+        .. note::
+            This function must be called before data sample.
         """
+        staleness_remove_count = 0
         with self._lock:
             if self._max_staleness != float("inf"):
                 p = self._head
@@ -239,6 +292,7 @@ class AdvancedReplayBuffer(IBuffer):
                         staleness = self._calculate_staleness(p, cur_learner_iter)
                         if staleness >= self._max_staleness:
                             self._remove(p)
+                            staleness_remove_count += 1
                         else:
                             # Since the circular queue ``self._data`` guarantees that data's staleness is decreasing
                             # from index self._head to index self._tail - 1, we can jump out of the loop as soon as
@@ -248,13 +302,15 @@ class AdvancedReplayBuffer(IBuffer):
                     if p == self._tail:
                         # Traverse a circle and go back to the tail, which means can stop staleness checking now
                         break
-            if self._valid_count < size:
-                self._logger.info(
-                    "No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count)
+            str_info = "Remove {} elements due to staleness. ".format(staleness_remove_count)
+            if self._valid_count / size < self._sample_min_limit_ratio:
+                str_info += "Not enough for sampling. valid({}) / sample({}) < sample_min_limit_ratio({})".format(
+                    self._valid_count, size, self._sample_min_limit_ratio
                 )
-                return False
+                return False, str_info
             else:
-                return True
+                str_info += "Can sample."
+                return True, str_info
 
     def _append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
         r"""
@@ -533,6 +589,12 @@ class AdvancedReplayBuffer(IBuffer):
             - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.
         """
         self._periodic_thruput_monitor.push_data_count += add_count
+        if self._use_thruput_controller:
+            self._thruput_controller.history_push_count += add_count
+        self._tb_logger.add_scalar(
+            'buffer_{}_sec/'.format(self.name) + 'push', add_count,
+            time.time() - self._start_time
+        )
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -546,6 +608,8 @@ class AdvancedReplayBuffer(IBuffer):
             - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.
         """
         self._periodic_thruput_monitor.sample_data_count += len(sample_data)
+        if self._use_thruput_controller:
+            self._thruput_controller.history_sample_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
         use_avg = sum([d['use'] for d in sample_data]) / len(sample_data)
         use_max = max([d['use'] for d in sample_data])
@@ -582,6 +646,10 @@ class AdvancedReplayBuffer(IBuffer):
                     self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, iter_metric)
                 if step_metric is not None:
                     self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, step_metric)
+        self._tb_logger.add_scalar(
+            'buffer_{}_sec/'.format(self.name) + 'sample', len(sample_data),
+            time.time() - self._start_time
+        )
         self._sampled_data_attr_print_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:

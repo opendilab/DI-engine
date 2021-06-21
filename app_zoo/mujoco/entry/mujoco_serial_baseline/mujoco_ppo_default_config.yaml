@@ -11,7 +11,6 @@ learner:
     train_iteration: 1000
     batch_size: 8
     learning_rate: 0.001
-    weight_decay: 0.0001
     data:
         max_use: 4
         buffer_length: 30000

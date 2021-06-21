@@ -172,7 +172,7 @@ Advanced features
 
 Some advanced features in RL training which well supported by nerveX are listed below.
 
-Epsilon Greedy & Replay buffer start and priority
+Epsilon Greedy & Random collect & Priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An easy way of deploying epsilon greedy exploration when sampling data has already been shown above. It is
@@ -187,15 +187,24 @@ called by the `epsilon_greedy` function each step.
         eps = epsilon_greedy(learner.train_iter)
         ...
 
-Initially collecting an amount of data is supported in the following way. 
+Initially collecting an amount of random data is supported in the following way. 
 
 
 .. code-block:: python
 
-    if replay_buffer.replay_start_size() > 0:
-        eps = epsilon_greedy(learner.train_iter)
-        new_data = collector.collect_data(learner.train_iter, n_sample=replay_buffer.replay_start_size(), policy_kwargs={'eps': eps})
+    # Accumulate plenty of data at the beginning of training.
+    if cfg.policy.get('random_collect_size', 0) > 0:
+        # Acquire action space from env.
+        action_space = collector_env.env_info().act_space
+        # `action_space` is used by random_policy to generate legal actions.
+        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+        # Reset collector's policy to random_policy
+        collector.reset_policy(random_policy)
+        # Randomly collect data and push them into buffer
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
+        # Switch collector's policy back to the collect_mode policy
+        collector.reset_policy(policy.collect_mode)
 
 
 The priority mechanism is widely used in RL training. Nervex adds easy-used interface to apply priority to replay

@@ -10,7 +10,6 @@ __policy_default_config = dict(
         train_iteration=20,
         batch_size=64,
         learning_rate=0.0002,
-        weight_decay=0.0,
         algo=dict(discount_factor=0.99, ),
     ),
     collect=dict(),
