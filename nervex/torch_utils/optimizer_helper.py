@@ -81,7 +81,7 @@ class Adam(torch.optim.Adam):
             - betas (:obj:`Tuple[float, float]`): coefficients used for computing running averages of gradient and its\
                 square, default set to (0.9, 0.999))
             - eps (:obj:`float`): term added to the denominator to improve numerical stability, default set to 1e-8
-            - weight_decay (:obj:`float`): weight decay coefficient, deault set to 1e-2
+            - weight_decay (:obj:`float`): weight decay coefficient, deault set to 0
             - amsgrad (:obj:`bool`): whether to use the AMSGrad variant of this algorithm from the paper\
                 On the Convergence of Adam and Beyond <https://arxiv.org/abs/1904.09237>
             - optim_type (:obj:str): support ["adam", "adamw"]
@@ -355,7 +355,7 @@ class RMSprop(torch.optim.RMSprop):
             - lr (:obj:`float`): learning rate, default set to 1e-3
             - alpha (:obj:`float`): smoothing constant, default set to 0.99
             - eps (:obj:`float`): term added to the denominator to improve numerical stability, default set to 1e-8
-            - weight_decay (:obj:`float`): weight decay coefficient, deault set to 1e-2
+            - weight_decay (:obj:`float`): weight decay coefficient, deault set to 0
             - centred (:obj:`bool`): if True, compute the centered RMSprop, \
                 the gradient is normalized by an estimation of its variance
             - grad_clip_type (:obj:`str`): support [None, 'clip_momentum', 'clip_value', 'clip_norm', \

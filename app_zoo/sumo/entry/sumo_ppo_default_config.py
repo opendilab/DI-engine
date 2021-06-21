@@ -22,7 +22,6 @@ sumo_ppo_default_config = dict(
             train_iteration=5,
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0.0001,
             algo=dict(
                 value_weight=0.5,
                 entropy_weight=0.01,

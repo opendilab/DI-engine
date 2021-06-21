@@ -27,7 +27,6 @@ pong_a2c_default_config = dict(
             train_iteration=1,
             batch_size=80,
             learning_rate=0.0001,
-            weight_decay=0.0,
             algo=dict(
                 value_weight=0.5,
                 entropy_weight=0.01,

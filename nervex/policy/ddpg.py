@@ -33,6 +33,7 @@ class DDPGPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        random_collect_size=25000,
         model=dict(
             # Whether to use two critic networks or only one.
             # Default False for DDPG, True for TD3.
@@ -51,8 +52,6 @@ class DDPGPolicy(Policy):
             learning_rate_actor=1e-3,
             # Learning rates for critic network(aka. Q-network).
             learning_rate_critic=1e-3,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
             # (int) Interpolation factor in polyak averaging for target networks.
@@ -80,8 +79,6 @@ class DDPGPolicy(Policy):
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int) Number of size for action selection, which helps exploration for policy update.
-                replay_start_size=25000,
             ),
         ),
     )
@@ -98,12 +95,10 @@ class DDPGPolicy(Policy):
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
-            weight_decay=self._cfg.learn.weight_decay
         )
         self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
 
@@ -379,6 +374,7 @@ class TD3Policy(DDPGPolicy):
         on_policy=False,
         priority=False,
         priority_IS_weight=False,
+        random_collect_size=25000,
         model=dict(twin_critic=True, ),
         learn=dict(
             multi_gpu=False,
@@ -392,8 +388,6 @@ class TD3Policy(DDPGPolicy):
             learning_rate_actor=1e-3,
             # Learning rates and critic network(aka. Q-network).
             learning_rate_critic=1e-3,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.000,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             ignore_done=False,
             # (int) Interpolation factor in polyak averaging for target networks.
@@ -427,8 +421,6 @@ class TD3Policy(DDPGPolicy):
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer
                 replay_buffer_size=1000000,
-                # (int) Number of size for action selection, which helps exploration for policy update.
-                replay_start_size=25000,
             ),
         ),
     )

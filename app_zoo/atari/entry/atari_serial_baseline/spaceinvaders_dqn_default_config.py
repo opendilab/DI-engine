@@ -28,7 +28,6 @@ spaceinvaders_dqn_default_config = dict(
             train_iteration=50,
             batch_size=32,
             learning_rate=0.0001,
-            weight_decay=0.0001,
             algo=dict(
                 target_update_freq=500,
                 discount_factor=0.99,

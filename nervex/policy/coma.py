@@ -68,7 +68,6 @@ class COMAPolicy(Policy):
             update_per_collect=1,
             batch_size=32,
             learning_rate=0.0005,
-            weight_decay=0.00001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================

@@ -28,7 +28,6 @@ pong_sqn_default_config = dict(
             batch_size=64,
             learning_rate_q=0.0001,
             learning_rate_alpha=0.0003,
-            weight_decay=0.0,
             algo=dict(
                 alpha=0.2,
                 target_theta=0.005,
