@@ -405,8 +405,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             Step all environments. Reset an env if abnormal or done.
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
-        Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
+        Returns:
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
+                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
@@ -436,9 +437,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         cur_rest_env_ids = copy.deepcopy(rest_env_ids)
         while True:
             rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(
-                rest_conn, min(wait_num, len(rest_conn)), timeout
-            )
+            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
             timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
@@ -455,7 +454,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._waiting_env['step'].remove(env_id)
             else:
                 self._waiting_env['step'].add(env_id)
-        
+
         if self._shared_memory:
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
@@ -721,8 +720,9 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
             Step all environments. Reset an env if abnormal or done.
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
-        Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
+        Returns:
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
+                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
         Note:
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
@@ -738,7 +738,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
                    ), 'current env state are: {}, please check whether the requested env is in reset or done'.format(
                        {env_id: self._env_states[env_id]
                         for env_id in env_ids}
-        )
+                   )
         for env_id, act in actions.items():
             self._pipe_parents[env_id].send(['step', [act], {}])
 

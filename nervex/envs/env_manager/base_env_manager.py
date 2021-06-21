@@ -273,8 +273,9 @@ class BaseEnvManager(object):
             Step all environments. Reset an env if abnormal or done.
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
-        Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
+        Returns:
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
+                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
