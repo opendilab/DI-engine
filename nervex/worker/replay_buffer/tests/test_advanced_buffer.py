@@ -115,7 +115,7 @@ class TestAdvancedBuffer:
             advanced_buffer.push(data, 0)
         use_dict = defaultdict(int)
         while True:
-            can_sample = advanced_buffer._sample_check(32, 0)
+            can_sample, check_info = advanced_buffer._sample_check(32, 0)
             if not can_sample:
                 break
             batch = advanced_buffer.sample(32, 0)
