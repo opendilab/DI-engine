@@ -3,7 +3,7 @@ utils.dist_helper
 
 dist_helper
 -----------------
-
+Please Reference nerveX/nervex/utils/disk_helper.py for usage.
 
 errro_wrapper
 ~~~~~~~~~~~~~~~~~~

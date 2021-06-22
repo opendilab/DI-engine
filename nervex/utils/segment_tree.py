@@ -19,7 +19,7 @@ class SegmentTree:
         Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
         non-leaf nodes are to do some operations on its left and right child.
     Interface:
-        __init__, reduce, __setitem__, __getitem__
+        ``__init__``, ``reduce``, ``__setitem__``, ``__getitem__``
     """
 
     def __init__(self, capacity: int, operation: Callable, neutral_element: Optional[float] = None) -> None:
@@ -54,12 +54,12 @@ class SegmentTree:
     def reduce(self, start: int = 0, end: Optional[int] = None) -> float:
         """
         Overview:
-            Reduce the tree in range [start, end)
+            Reduce the tree in range ``[start, end)``
         Arguments:
-            - start (:obj:`int`): start index(relative index, the first leaf node is 0), default set to 0
-            - end (:obj:`int` or :obj:`None`): end index(relative index), default set to ``self.capacity``
+            - start (:obj:`int`): Start index(relative index, the first leaf node is 0), default set to 0
+            - end (:obj:`int` or :obj:`None`): End index(relative index), default set to ``self.capacity``
         Returns:
-            - reduce_result (:obj:`float`): the reduce result value, which is dependent on data type and operation
+            - reduce_result (:obj:`float`): The reduce result value, which is dependent on data type and operation
         """
         # TODO(nyz) check if directly reduce from the array(value) can be faster
         if end is None:
@@ -73,10 +73,10 @@ class SegmentTree:
     def __setitem__(self, idx: int, val: float) -> None:
         """
         Overview:
-            Set leaf[idx] = val; Then update the related nodes.
+            Set ``leaf[idx] = val``; Then update the related nodes.
         Arguments:
             - idx (:obj:`int`): Leaf node index(relative index), should add ``capacity`` to change to absolute index.
-            - val (:obj:`float`): The value that will be assigned to leaf[idx].
+            - val (:obj:`float`): The value that will be assigned to ``leaf[idx]``.
         """
         assert (0 <= idx < self.capacity), idx
         # ``idx`` should add ``capacity`` to change to absolute index.
@@ -85,11 +85,11 @@ class SegmentTree:
     def __getitem__(self, idx: int) -> float:
         """
         Overview:
-            Get leaf[idx]
+            Get ``leaf[idx]``
         Arguments:
-            - idx (:obj:`int`): Leaf node index(relative index), should add ``capacity`` to change to absolute index.
+            - idx (:obj:`int`): Leaf node ``index(relative index)``, add ``capacity`` to change to absolute index.
         Returns:
-            - val (:obj:`float`): The value of leaf[idx]
+            - val (:obj:`float`): The value of ``leaf[idx]``
         """
         assert (0 <= idx < self.capacity)
         return self.value[idx + self.capacity]

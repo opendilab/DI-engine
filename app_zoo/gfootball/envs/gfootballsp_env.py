@@ -16,10 +16,10 @@ from app_zoo.gfootball.envs.action.gfootball_action import GfootballSpAction
 
 @ENV_REGISTRY.register('gfootball_sp')
 class GfootballEnv(BaseEnv):
-    
+
     timestep = namedtuple('GfootballTimestep', ['obs', 'reward', 'done', 'info'])
     info_template = namedtuple('GFootballEnvInfo', ['obs_space', 'act_space', 'rew_space'])
-    
+
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self.save_replay = self._cfg.save_replay
@@ -58,7 +58,7 @@ class GfootballEnv(BaseEnv):
         if self.is_evaluator:
             self._final_eval_reward = 0
         else:
-            self._final_eval_reward = [0,0]
+            self._final_eval_reward = [0, 0]
 
     def reset(self) -> np.ndarray:
         if not self._launch_env_flag:
@@ -81,11 +81,10 @@ class GfootballEnv(BaseEnv):
             self._env.close()
         self._launch_env_flag = False
 
-    def seed(self, seed: int, dynamic_seed : int = None) -> None:
+    def seed(self, seed: int, dynamic_seed: int = None) -> None:
         self._seed = seed
         if dynamic_seed:
             self._dynamic_seed = dynamic_seed
-
 
     def step(self, action) -> 'GfootballEnv.timestep':
         action = to_ndarray(action)
@@ -95,14 +94,14 @@ class GfootballEnv(BaseEnv):
             raw_obs = raw_obs[0]
             rew = GfootballEnv.calc_reward(raw_rew, self._prev_obs, raw_obs)
             obs = to_ndarray(self._encoder.encode(raw_obs))
-            rew = [rew,rew]
-            obs = [obs,obs]
+            rew = [rew, rew]
+            obs = [obs, obs]
             self._final_eval_reward += raw_rew
         else:
             rew = GfootballEnv.calc_reward(raw_rew[0], self._prev_obs, raw_obs[0])
             rew_oppo = GfootballEnv.calc_reward(raw_rew[1], self._prev_obs, raw_obs[1])
             rew = [rew, rew_oppo]
-            obs = [to_ndarray(self._encoder.encode(raw_obs[0])),to_ndarray(self._encoder.encode(raw_obs[1]))]
+            obs = [to_ndarray(self._encoder.encode(raw_obs[0])), to_ndarray(self._encoder.encode(raw_obs[1]))]
             self._final_eval_reward[0] += raw_rew[0]
             self._final_eval_reward[1] += raw_rew[1]
 
@@ -120,18 +119,19 @@ class GfootballEnv(BaseEnv):
             'obs_space': self._obs_helper.info,
             'act_space': self._action_helper.info,
             'rew_space': EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
+                shape=1,
+                value={
+                    'min': np.float64("-inf"),
+                    'max': np.float64("inf"),
+                    'dtype': np.float32
+                },
+            ),
         }
         return GfootballEnv.info_template(**info_data)
+
     def __repr__(self) -> str:
         return "nerveX Gfootball Env({})".format(self.env_name)
-    
+
     @staticmethod
     def calc_reward(rew, prev_obs, obs):
         """
@@ -142,32 +142,30 @@ class GfootballEnv(BaseEnv):
         PENALTY_Y, END_Y = 0.27, 0.42
 
         ball_position_r = 0.0
-        if   (-END_X <= ball_x    and ball_x < -PENALTY_X)and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
+        if (-END_X <= ball_x and ball_x < -PENALTY_X) and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
             ball_position_r = -2.0
-        elif (-END_X <= ball_x    and ball_x < -MIDDLE_X) and (-END_Y < ball_y     and ball_y < END_Y):
+        elif (-END_X <= ball_x and ball_x < -MIDDLE_X) and (-END_Y < ball_y and ball_y < END_Y):
             ball_position_r = -1.0
-        elif (-MIDDLE_X <= ball_x and ball_x <= MIDDLE_X) and (-END_Y < ball_y     and ball_y < END_Y):
+        elif (-MIDDLE_X <= ball_x and ball_x <= MIDDLE_X) and (-END_Y < ball_y and ball_y < END_Y):
             ball_position_r = 0.0
-        elif (PENALTY_X < ball_x  and ball_x <=END_X)     and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
+        elif (PENALTY_X < ball_x and ball_x <= END_X) and (-PENALTY_Y < ball_y and ball_y < PENALTY_Y):
             ball_position_r = 2.0
-        elif (MIDDLE_X < ball_x   and ball_x <=END_X)     and (-END_Y < ball_y     and ball_y < END_Y):
+        elif (MIDDLE_X < ball_x and ball_x <= END_X) and (-END_Y < ball_y and ball_y < END_Y):
             ball_position_r = 1.0
         else:
             ball_position_r = 0.0
 
-        left_yellow = np.sum(obs["left_team_yellow_card"]) -  np.sum(prev_obs["left_team_yellow_card"])
-        right_yellow = np.sum(obs["right_team_yellow_card"]) -  np.sum(prev_obs["right_team_yellow_card"])
+        left_yellow = np.sum(obs["left_team_yellow_card"]) - np.sum(prev_obs["left_team_yellow_card"])
+        right_yellow = np.sum(obs["right_team_yellow_card"]) - np.sum(prev_obs["right_team_yellow_card"])
         yellow_r = right_yellow - left_yellow
 
-        
         win_reward = 0.0
         if obs['steps_left'] == 0:
             [my_score, opponent_score] = obs['score']
             if my_score > opponent_score:
                 win_reward = 1.0
-                
-        reward = 5.0*win_reward + 5.0*rew + 0.003*ball_position_r + yellow_r
-            
+
+        reward = 5.0 * win_reward + 5.0 * rew + 0.003 * ball_position_r + yellow_r
 
         return reward
 
@@ -184,4 +182,3 @@ class GfootballEnv(BaseEnv):
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.is_evaluator = True
         return [evaluator_cfg for _ in range(evaluator_env_num)]
-

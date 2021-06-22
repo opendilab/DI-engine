@@ -12,19 +12,19 @@ import signal
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
     r"""
     Overview:
-        build the timehelper
+        Build the timehelper
 
     Arguments:
         - cfg (:obj:`dict`):
-            the config file, which is a multilevel dict, have large domain like
+            The config file, which is a multilevel dict, have large domain like
             evaluate, common, model, train etc, and each large domain
             has it's smaller domain.
-        - wrapper_type (:obj:`str`): the type of wrapper returned, support ['time', 'cuda']
+        - wrapper_type (:obj:`str`): The type of wrapper returned, support ``['time', 'cuda']``
 
     Returns:
         - time_wrapper (:obj:`TimeWrapper`):
-            return the corresponding timewrapper, reference nervex.utils.timehelper.TimeWrapperTime
-            and nervex.utils.timehelper.get_cuda_time_wrapper
+            Return the corresponding timewrapper, Reference: ``nervex.utils.timehelper.TimeWrapperTime``
+            and ``nervex.utils.timehelper.get_cuda_time_wrapper``.
     """
     # Note: wrapper_type has higher priority
     if wrapper_type is not None:
@@ -49,7 +49,7 @@ class EasyTimer:
         A decent timer wrapper that can be used easily.
 
     Interface:
-        __init__, __enter__, __exit__
+        ``__init__``, ``__enter__``, ``__exit__``
 
     Example:
         >>> wait_timer = EasyTimer()
@@ -64,7 +64,7 @@ class EasyTimer:
             Init class EasyTimer
 
         Arguments:
-            - cuda (:obj:`bool`): whether to build timer with cuda type
+            - cuda (:obj:`bool`): Whether to build timer with cuda type
         """
         if torch.cuda.is_available() and cuda:
             time_wrapper_type = "cuda"
@@ -76,7 +76,7 @@ class EasyTimer:
     def __enter__(self):
         r"""
         Overview:
-            enter timer, start timing
+            Enter timer, start timing
         """
         self.value = 0.0
         self._timer.start_time()
@@ -84,7 +84,7 @@ class EasyTimer:
     def __exit__(self, *args):
         r"""
         Overview:
-            exit timer, stop timing
+            Exit timer, stop timing
         """
         self.value = self._timer.end_time()
 
@@ -92,19 +92,19 @@ class EasyTimer:
 class TimeWrapper(object):
     r"""
     Overview:
-        A abstract class method that defines TimeWrapper class
+        Abstract class method that defines ``TimeWrapper`` class
 
     Interface:
-        wrapper, start_time, end_time
+        ``wrapper``, ``start_time``, ``end_time``
     """
 
     @classmethod
     def wrapper(cls, fn):
         r"""
         Overview:
-            classmethod wrapper, wrap a function and automatically return its running time
+            Classmethod wrapper, wrap a function and automatically return its running time
 
-        - fn (:obj:`function`): the function to be wrap and timed
+        - fn (:obj:`function`): The function to be wrap and timed
         """
 
         def time_func(*args, **kwargs):
@@ -119,7 +119,7 @@ class TimeWrapper(object):
     def start_time(cls):
         r"""
         Overview:
-            abstract classmethod, start timing
+            Abstract classmethod, start timing
         """
         raise NotImplementedError
 
@@ -127,7 +127,7 @@ class TimeWrapper(object):
     def end_time(cls):
         r"""
         Overview:
-            abstract classmethod, stop timing
+            Abstract classmethod, stop timing
         """
         raise NotImplementedError
 
@@ -135,10 +135,10 @@ class TimeWrapper(object):
 class TimeWrapperTime(TimeWrapper):
     r"""
     Overview:
-        A class method that inherit from TimeWrapper class
+        A class method that inherit from ``TimeWrapper`` class
 
     Interface:
-        start_time, end_time
+        ``start_time``, ``end_time``
     """
 
     # overwrite
@@ -146,7 +146,7 @@ class TimeWrapperTime(TimeWrapper):
     def start_time(cls):
         r"""
         Overview:
-            implement and overide the start_time method in TimeWrapper class
+            Implement and overide the ``start_time`` method in ``TimeWrapper`` class
         """
         cls.start = time.time()
 
@@ -155,10 +155,10 @@ class TimeWrapperTime(TimeWrapper):
     def end_time(cls):
         r"""
         Overview:
-            implement and overide the end_time method in TimeWrapper class
+            Implement and overide the end_time method in ``TimeWrapper`` class
 
         Returns:
-            - time(:obj:`float`): the time between start_time and end_time
+            - time(:obj:`float`): The time between ``start_time`` and end_time
         """
         cls.end = time.time()
         return cls.end - cls.start
@@ -167,23 +167,28 @@ class TimeWrapperTime(TimeWrapper):
 def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
     r"""
     Overview:
-        Return the TimeWrapperCuda class
+        Return the ``TimeWrapperCuda`` class
 
     Returns:
-        - TimeWrapperCuda(:obj:`class`): see TimeWrapperCuda class
+        - TimeWrapperCuda(:obj:`class`): See ``TimeWrapperCuda`` class
+        .. note::
+                Must use ``torch.cuda.synchronize()``, reference: \
+                <https://blog.csdn.net/u013548568/article/details/81368019>
+
     """
 
     # TODO find a way to autodoc the class within method
     class TimeWrapperCuda(TimeWrapper):
         r"""
         Overview:
-            A class method that inherit from TimeWrapper class
+            A class method that inherit from ``TimeWrapper`` class
 
             Notes:
-                must use torch.cuda.synchronize(), reference <https://blog.csdn.net/u013548568/article/details/81368019>
+                Must use torch.cuda.synchronize(), reference: \
+                <https://blog.csdn.net/u013548568/article/details/81368019>
 
         Interface:
-            start_time, end_time
+            ``start_time``, ``end_time``
         """
         # cls variable is initialized on loading this class
         start_record = torch.cuda.Event(enable_timing=True)
@@ -194,7 +199,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
         def start_time(cls):
             r"""
             Overview:
-                implement and overide the start_time method in TimeWrapper class
+                Implement and overide the ``start_time`` method in ``TimeWrapper`` class
             """
             torch.cuda.synchronize()
             cls.start = cls.start_record.record()
@@ -204,10 +209,9 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
         def end_time(cls):
             r"""
             Overview:
-                implement and overide the end_time method in TimeWrapper class
-
+                Implement and overide the end_time method in ``TimeWrapper`` class
             Returns:
-                - time(:obj:`float`): the time between start_time and end_time
+                - time(:obj:`float`): The time between ``start_time`` and ``end_time``
             """
             cls.end = cls.end_record.record()
             torch.cuda.synchronize()
@@ -221,12 +225,21 @@ class WatchDog(object):
     Overview:
         Simple watchdog timer to detect timeouts
 
-    Args:
-        timeout (int): Timeout value of the watchdog [seconds].
-            If it is not reset before exceeding this value, a TimeourError is raised.
+    Arguments:
+        - timeout (:obj:`int`): Timeout value of the ``watchdog [seconds]``.
+
+    .. note::
+            If it is not reset before exceeding this value, ``TimeourError`` raised.
 
     Interface:
-        start, stop
+        ``start``, ``stop``
+
+    Examples:
+        >>> watchdog = WatchDog(x) # x is a timeout value
+        >>> ...
+        >>> watchdog.start()
+        >>> ... # Some function
+
     """
 
     def __init__(self, timeout: int = 1):
@@ -234,6 +247,10 @@ class WatchDog(object):
         self._failed = False
 
     def start(self):
+        r"""
+        Overview:
+            Start watchdog.
+        """
         signal.signal(signal.SIGALRM, self._event)
         signal.alarm(self._timeout)
 
@@ -242,5 +259,9 @@ class WatchDog(object):
         raise TimeoutError()
 
     def stop(self):
+        r"""
+        Overview:
+            Stop watchdog with ``alarm(0)``, ``SIGALRM``, and ``SIG_DFL`` signals.
+        """
         signal.alarm(0)
         signal.signal(signal.SIGALRM, signal.SIG_DFL)
