@@ -19,7 +19,7 @@ from .utils import parallel_transform, parallel_transform_slurm, parallel_transf
 class Config(object):
     r"""
     Overview:
-        Base class for cpnfig.
+        Base class for config.
     Interface:
         __init__, file_to_dict
     Property:
