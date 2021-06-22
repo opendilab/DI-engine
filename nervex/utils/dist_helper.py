@@ -15,9 +15,9 @@ is_fake_link = isinstance(link, FakeLink)
 def get_rank():
     r"""
     Overview:
-        get the rank of linklink model, return 0 if use FakeLink.
-    Notes:
-        reference import_helper.try_import_link and linklink.get_rank.
+        Get the rank of ``linklink`` model, return 0 if use ``FakeLink``.
+    .. note::
+        Reference ``import_helper.try_import_link`` and ``linklink.get_rank``.
     """
     if is_fake_link:
         return 0
@@ -27,9 +27,9 @@ def get_rank():
 def get_world_size():
     r"""
     Overview:
-        get the world_size of linklink model, return 0 if use FakeLink.
-    Notes:
-        reference import_helper.try_import_link and linklink.get_world_size.
+        Get the ``world_size`` of ``linklink model``, return 0 if use ``FakeLink``.
+    .. note::
+        Reference ``import_helper.try_import_link`` and ``linklink.get_world_size``.
     """
     if is_fake_link:
         return 1
@@ -39,7 +39,7 @@ def get_world_size():
 def broadcast(value, rank_num):
     r"""
     Overview:
-        use linklink.broadcast and raise error when using FakeLink
+        Use ``linklink.broadcast`` and raise error when using ``FakeLink``
     Arguments:
         - value (:obj:`obj`): the value to board cast
         - rank_num (:obj:`int`): the rank to boardcast on
@@ -52,10 +52,10 @@ def broadcast(value, rank_num):
 def allreduce(data, op='sum'):
     r"""
     Overview:
-        call linklink.allreduce on the data
+        Call ``linklink.allreduce`` on the data
     Arguments:
         - data (:obj:`obj`): the data to reduce
-        - op (:obj:`str`): the operation to perform on data, support ['sum', 'max']
+        - op (:obj:`str`): the operation to perform on data, support ``['sum', 'max']``
     """
     link_op_map = {'sum': link.allreduceOp_t.Sum, 'max': link.allreduceOp_t.Max}
     if op not in link_op_map.keys():
@@ -72,9 +72,9 @@ def allreduce(data, op='sum'):
 def get_group(group_size):
     r"""
     Overview:
-        get the group segmentation of group_size each group
+        Get the group segmentation of ``group_size`` each group
     Arguments:
-        - group_size (:obj:`int`) the group_size
+        - group_size (:obj:`int`) the ``group_size``
     """
     rank = get_rank()
     world_size = get_world_size()
@@ -87,7 +87,7 @@ def get_group(group_size):
 def distributed_mode(func):
     r"""
     Overview:
-        wrap the function so that in can init and finalize automatically before each call
+        Wrap the function so that in can init and finalize automatically before each call
     """
 
     def wrapper(*args, **kwargs):
@@ -101,10 +101,10 @@ def distributed_mode(func):
 def dist_init(method='slurm', device_id=0):
     r"""
     Overview:
-        init the distribution
+        Init the distribution
     Arguments:
-        - method (:obj:`str`): support ['slurm', 'single_node`]
-        - device_id (:obj:`int`): default device when using single_node method
+        - method (:obj:`str`): Support ``['slurm', 'single_node`]``
+        - device_id (:obj:`int`): Default device when using ``single_node`` method
     """
     link.initialize()
     world_size = link.get_world_size()
@@ -125,7 +125,7 @@ def dist_init(method='slurm', device_id=0):
 def dist_finalize():
     r"""
     Overview:
-        finalize linklink, see linklink.finalize()
+        Finalize ``linklink``, see ``linklink.finalize()``
     """
     link.finalize()
 
@@ -133,7 +133,9 @@ def dist_finalize():
 def simple_group_split(world_size, rank, num_groups):
     r"""
     Overview:
-        split the group according to worldsize, rank and num_groups
+        Split the group according to ``worldsize``, ``rank`` and ``num_groups``
+    .. note::
+        With faulty input, raise ``array split does not result in an equal division``
     """
     groups = []
     rank_list = np.split(np.arange(world_size), num_groups)

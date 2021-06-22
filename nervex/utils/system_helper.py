@@ -13,9 +13,9 @@ from contextlib import closing
 def get_ip() -> str:
     r"""
     Overview:
-        get the ip(host) of socket
+        Get the ``ip(host)`` of socket
     Returns:
-        - ip(:obj:`str`): the corresponding ip
+        - ip(:obj:`str`): The corresponding ip
     """
     # beware: return 127.0.0.1 on some slurm nodes
     myname = socket.getfqdn(socket.gethostname())
@@ -27,7 +27,7 @@ def get_ip() -> str:
 def get_pid() -> int:
     r"""
     Overview:
-        os.getpid
+        ``os.getpid``
     """
     return os.getpid()
 
@@ -35,7 +35,7 @@ def get_pid() -> int:
 def get_task_uid() -> str:
     r"""
     Overview:
-        get the slurm job_id, pid and uid
+        Get the slurm ``job_id``, ``pid`` and ``uid``
     """
     return '{}_{}'.format(str(uuid.uuid4()), str(time.time())[-6:])
 
@@ -44,6 +44,8 @@ class PropagatingThread(Thread):
     """
     Overview:
         Subclass of Thread that propagates execution exception in the thread to the caller
+    Interface:
+        ``run``, ``join``
     Examples:
         >>> def func():
         >>>     raise Exception()
