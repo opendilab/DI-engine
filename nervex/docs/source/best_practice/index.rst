@@ -15,3 +15,6 @@ Best Practice
     env_wrapper
     registry
     customization1_dynamic_update_step
+    multi_buffer
+    random_collect_size
+    irregular_learner_log

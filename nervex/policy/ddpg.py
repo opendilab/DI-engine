@@ -33,6 +33,7 @@ class DDPGPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        random_collect_size=25000,
         model=dict(
             # Whether to use two critic networks or only one.
             # Default False for DDPG, True for TD3.
@@ -78,8 +79,6 @@ class DDPGPolicy(Policy):
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
                 replay_buffer_size=1000000,
-                # (int) Number of size for action selection, which helps exploration for policy update.
-                replay_start_size=25000,
             ),
         ),
     )
@@ -375,6 +374,7 @@ class TD3Policy(DDPGPolicy):
         on_policy=False,
         priority=False,
         priority_IS_weight=False,
+        random_collect_size=25000,
         model=dict(twin_critic=True, ),
         learn=dict(
             multi_gpu=False,
@@ -421,8 +421,6 @@ class TD3Policy(DDPGPolicy):
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer
                 replay_buffer_size=1000000,
-                # (int) Number of size for action selection, which helps exploration for policy update.
-                replay_start_size=25000,
             ),
         ),
     )
