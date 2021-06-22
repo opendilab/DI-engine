@@ -96,7 +96,7 @@ DDPG can be combined with:
     - Target Network
 
         `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ proposes soft target updates used to keep the network training stable.
-         Since we implement soft update Target Network for actor-critic through ``TargetNetworkWrapper`` in ``model_wrap`` and configuring ``learn.target_theta``.
+        Since we implement soft update Target Network for actor-critic through ``TargetNetworkWrapper`` in ``model_wrap`` and configuring ``learn.target_theta``.
 
     - Replay Buffers
 
@@ -227,6 +227,7 @@ We configure ``learn.target_theta`` to control the interpolation factor in avera
 
 
 .. code-block:: python
+
     # main and target models
     self._target_model = copy.deepcopy(self._model)
     self._target_model = model_wrap(

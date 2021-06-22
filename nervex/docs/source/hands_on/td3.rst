@@ -101,21 +101,24 @@ TD3 can be combined with:
     - Target Network.
 
         `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_ uses soft update Target Network to ensure the TD-error remains small.
-         Since we implement soft update Target Network for actor-critic through ``TargetNetworkWrapper`` in ``model_wrap`` and configuring ``learn.target_theta``.
+        Since we implement soft update Target Network for actor-critic through ``TargetNetworkWrapper`` in ``model_wrap`` and configuring ``learn.target_theta``.
 
-    - Policy Updates Delay.
+    - Policy Updates Delay
+
         `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_ proposes delaying policy updates until the value error is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates :math:`d` to the critic.
         Since we implement Policy Updates Delay through configuring ``learn.target_theta``.
 
     - Target Policy Smoothing
+
         `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_ proposes Target Policy Smoothing Regularization to reduce variance from deterministic policies.
         Since we implement Target Policy Smoothing through configuring ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range``.
 
-    - Clipped Double-Q Learning.
+    - Clipped Double-Q Learning
+
         `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_ proposes Clipped Double Q-learning, which greatly reduces overestimation by the critic.
         Since we implement Clipped Double-Q Learning through configuring ``learn.actor_update_freq``.
 
-    - Replay Buffers.
+    - Replay Buffers
 
         DDPG/TD3 random-collect-size is set to 25000 by default, while it is 25000 for SAC.
         We only simply follow SpinningUp default setting and use random policy to collect initialization data.
@@ -236,6 +239,7 @@ We configure ``learn.target_theta`` to control the interpolation factor in avera
 
 
 .. code-block:: python
+
     # main and target models
     self._target_model = copy.deepcopy(self._model)
     self._target_model = model_wrap(
@@ -252,6 +256,7 @@ We implement Target Policy Smoothing Regularization trough target model initiali
 We configure ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range`` to control the added noise, which is clipped to keep the target close to the original action.
 
 .. code-block:: python
+
     if self._cfg.learn.noise:
         self._target_model = model_wrap(
             self._target_model,

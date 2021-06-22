@@ -116,22 +116,22 @@ SAC model includes soft Q network and Policy network:
 
     Initialization Model.
 
-    .. code:: python
+    .. code-block:: python
 
-    # build network
-    self._policy_net = PolicyNet(self._obs_shape, self._act_shape, self._policy_embedding_size)
+        # build network
+        self._policy_net = PolicyNet(self._obs_shape, self._act_shape, self._policy_embedding_size)
 
-    self._twin_q = twin_q
-    if not self._twin_q:
-        self._soft_q_net = SoftQNet(self._obs_shape, self._act_shape, self._soft_q_embedding_size)
-    else:
-        self._soft_q_net = nn.ModuleList()
-        for i in range(2):
-            self._soft_q_net.append(SoftQNet(self._obs_shape, self._act_shape, self._soft_q_embedding_size))
+        self._twin_q = twin_q
+        if not self._twin_q:
+            self._soft_q_net = SoftQNet(self._obs_shape, self._act_shape, self._soft_q_embedding_size)
+        else:
+            self._soft_q_net = nn.ModuleList()
+            for i in range(2):
+                self._soft_q_net.append(SoftQNet(self._obs_shape, self._act_shape, self._soft_q_embedding_size))
 
-    Soft Q prediction from soft Q network:
+        Soft Q prediction from soft Q network:
 
-    .. code:: python
+    .. code-block:: python
 
         def compute_critic_q(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
             action = inputs['action']
@@ -143,7 +143,7 @@ SAC model includes soft Q network and Policy network:
 
     Action prediction from policy network:
 
-    .. code:: python
+    .. code-block:: python
 
         def compute_actor(self, obs: torch.Tensor, deterministic_eval=False, epsilon=1e-6) -> Dict[str, torch.Tensor]:
             mean, log_std = self._policy_net_forward(obs)
@@ -179,7 +179,7 @@ Entropy-Regularized Reinforcement Learning as follows:
 
     Entropy in target q value.
 
-    .. code:: python
+    .. code-block:: python
 
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
@@ -197,7 +197,7 @@ Entropy-Regularized Reinforcement Learning as follows:
 
     Soft Q value network update.
 
-    .. code:: python
+    .. code-block:: python
 
         # =================
         # q network
@@ -222,7 +222,7 @@ Entropy-Regularized Reinforcement Learning as follows:
 
     Entropy in policy loss.
 
-    .. code:: python
+    .. code-block:: python
 
         # compute policy loss
         if not self._reparameterization:
@@ -243,7 +243,7 @@ Auto alpha strategy
 
     Alpha initialization through log action shape.
 
-    .. code:: python
+    .. code-block:: python
 
         if self._cfg.learn.is_auto_alpha:
             self._target_entropy = -np.prod(self._cfg.model.action_shape)
@@ -256,7 +256,7 @@ Auto alpha strategy
 
     Alpha update.
 
-    .. code:: python
+    .. code-block:: python
 
         # compute alpha loss
         if self._is_auto_alpha:
