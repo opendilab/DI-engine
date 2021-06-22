@@ -101,7 +101,7 @@ class BaseEnvManager(object):
     Interfaces:
         reset, step, seed, close, enable_save_replay, launch, env_info, default_config
     Properties:
-        env_num, ready_obs, done, method_name_list
+        env_num, ready_obs, done, method_name_list，active_env
     """
 
     @classmethod
