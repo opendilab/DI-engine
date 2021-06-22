@@ -90,9 +90,6 @@ Pseudocode
 
 .. image:: images/DDPG.jpg
 
-.. note::
-   Compared with the vanilla version, DDPG has been dramatically improved in implementation. We use Gaussian process noise for exploration.
-
 Extensions
 -----------
 DDPG can be combined with:
@@ -133,6 +130,7 @@ Train actor-critic model
 ~~~~~~~~~~~~~~~~~
 
 First, we initialize actor and critic optimizer in ``_init_learn``, respectively.
+Setting up two separate optimizers can guarantee that we **only update** actor network parameters and not critic network when we compute actor loss, vice versa.
 
     .. code-block:: python
 
@@ -221,57 +219,6 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
         self._optimizer_actor.zero_grad()
         actor_loss.backward()
         self._optimizer_actor.step()
-Exploration
-~~~~~~~~~~~~~~~~~
-We explore environment trough adding noise for policy during data collection.
-
-First, we initialize ``_collect_model`` in ``_init_collect``.  We can control the exploration through configuring ``collect.noise_sigma``.
-
-    .. code-block:: python
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect model.
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._adder = Adder(self._cuda, self._unroll_len)
-        # collect model
-        self._collect_model = model_wrap(
-            self._model,
-            wrapper_name='action_noise',
-            noise_type='gauss',
-            noise_kwargs={
-                'mu': 0.0,
-                'sigma': self._cfg.collect.noise_sigma
-            },
-            noise_range=None
-        )
-        self._collect_model.reset()
-
-Then, we use ``_collect_model`` to collect data in ``_forward_collect``.
-
-     .. code-block:: python
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of collect mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
 
 The Benchmark result of DDPG implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
