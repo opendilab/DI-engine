@@ -128,7 +128,7 @@ class ShmBufferContainer(object):
             return self._data.get()
 
 
-class CloudPickleWrapper(object):
+class CloudPickleWrapper:
     """
     Overview:
         CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
@@ -154,7 +154,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Create an AsyncSubprocessEnvManager to manage multiple environments.
         Each Environment is run by a respective subprocess.
     Interfaces:
-        seed, launch, ready_obs, step, reset, env_info
+        seed, launch, ready_obs, step, reset, env_info，active_env
     """
 
     config = dict(
