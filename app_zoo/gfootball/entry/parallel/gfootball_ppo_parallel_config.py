@@ -13,10 +13,7 @@ gfootball_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        model=dict(
-            model_type='conv1d',
-            import_names=['app_zoo.gfootball.model.conv1d.conv1d']
-        ),
+        model=dict(model_type='conv1d', import_names=['app_zoo.gfootball.model.conv1d.conv1d']),
         nstep=1,
         discount_factor=0.995,
         learn=dict(
@@ -64,7 +61,7 @@ gfootball_ppo_create_config = dict(
         type='gfootball_sp',
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo_command',),
+    policy=dict(type='ppo_command', ),
     learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
     collector=dict(
         type='one_vs_one',
