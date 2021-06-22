@@ -220,6 +220,22 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
         actor_loss.backward()
         self._optimizer_actor.step()
 
+Target Network
+~~~~~~~~~~~~~~~~~
+We implement Target Network trough target model initialization in ``_init_learn``.
+We configure ``learn.target_theta`` to control the interpolation factor in averaging.
+
+
+.. code-block:: python
+    # main and target models
+    self._target_model = copy.deepcopy(self._model)
+    self._target_model = model_wrap(
+        self._target_model,
+        wrapper_name='target',
+        update_type='momentum',
+        update_kwargs={'theta': self._cfg.learn.target_theta}
+    )
+
 The Benchmark result of DDPG implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 Other Public Implementations
