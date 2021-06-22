@@ -41,7 +41,6 @@ lunarlander_r2d2_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=10000,
-                replay_start_size=1000,
             )
         ),
     ),
