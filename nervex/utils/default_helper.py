@@ -278,19 +278,18 @@ class LimitedSpaceContainer:
 def deep_merge_dicts(original: dict, new_dict: dict) -> dict:
     """
     Overview:
-        merge two dict using deep_update
+        Merge two dicts by calling ``deep_update``
     Arguments:
         - original (:obj:`dict`): Dict 1.
         - new_dict (:obj:`dict`): Dict 2.
     Returns:
-        - (:obj:`dict`): A new dict that is d1 and d2 deeply merged.
+        - merged_dict (:obj:`dict`): A new dict that is d1 and d2 deeply merged.
     """
     original = original or {}
     new_dict = new_dict or {}
     merged = copy.deepcopy(original)
     if new_dict:  # if new_dict is neither empty dict nor None
         deep_update(merged, new_dict, True, [])
-
     return merged
 
 
@@ -303,14 +302,7 @@ def deep_update(
 ):
     """
     Overview:
-        Updates original dict with values from ``new_dict`` recursively.
-
-    .. note::
-
-        If new key is introduced in ``new_dict``, then if ``new_keys_allowed`` is not
-        True, an error will be thrown. Further, for sub-dicts, if the key is
-        in the ``whitelist``, then new subkeys can be introduced.
-
+        Update original dict with values from new_dict recursively.
     Arguments:
         - original (:obj:`dict`): Dictionary with default values.
         - new_dict (:obj:`dict`): Dictionary with values to be updated
@@ -322,7 +314,12 @@ def deep_update(
         - override_all_if_type_changes(:obj:`Optional[List[str]]`):
             List of top level
             keys with value=dict, for which we always simply override the
-            entire value (:obj:`dict`), if the ``type`` key in that value dict changes.
+            entire value (:obj:`dict`), if the "type" key in that value dict changes.
+    .. note::
+
+        If new key is introduced in new_dict, then if new_keys_allowed is not
+        True, an error will be thrown. Further, for sub-dicts, if the key is
+        in the whitelist, then new subkeys can be introduced.
     """
     whitelist = whitelist or []
     override_all_if_type_changes = override_all_if_type_changes or []
