@@ -60,14 +60,14 @@ class TestQLearning:
                 assert outputs['logit'][i].shape == (B, s)
                 assert outputs['distribution'][i].shape == (B, s, 41)
         self.output_check(model, outputs['logit'])
-   
+
     @pytest.mark.parametrize('obs_shape, act_shape', args)
     def test_qrdqn(self, obs_shape, act_shape):
         if isinstance(obs_shape, int):
             inputs = torch.randn(B, obs_shape)
         else:
             inputs = torch.randn(B, *obs_shape)
-        model = QRDQN(obs_shape, act_shape, num_quantiles = 32)
+        model = QRDQN(obs_shape, act_shape, num_quantiles=32)
         outputs = model(inputs)
         assert isinstance(outputs, dict)
         if isinstance(act_shape, int):
@@ -82,7 +82,6 @@ class TestQLearning:
                 assert outputs['q'][i].shape == (B, s, 32)
                 assert outputs['tau'][i].shape == (B, 32, 1)
         self.output_check(model, outputs['logit'])
-    
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)
     def test_drqn(self, obs_shape, act_shape):

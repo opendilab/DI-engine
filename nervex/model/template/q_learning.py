@@ -68,9 +68,9 @@ class C51DQN(nn.Module):
     pass
 
 
-
 @MODEL_REGISTRY.register('qrdqn')
 class QRDQN(nn.Module):
+
     def __init__(
         self,
         obs_shape: Union[int, SequenceType],
@@ -82,7 +82,7 @@ class QRDQN(nn.Module):
         num_quantiles: int = 32,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        noise: Optional[bool] = False, 
+        noise: Optional[bool] = False,
     ) -> None:
         super(QRDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -105,11 +105,10 @@ class QRDQN(nn.Module):
                 head_hidden_size,
                 action_shape,
                 layer_num=head_layer_num,
-                num_quantiles = num_quantiles,
+                num_quantiles=num_quantiles,
                 activation=activation,
                 norm_type=norm_type,
-                noise = noise,
-                
+                noise=noise,
             )
         else:
             self.head = QRDQNHead(
@@ -128,7 +127,6 @@ class QRDQN(nn.Module):
         x = self.encoder(x)
         x = self.head(x)
         return x
-
 
 
 class IQN(nn.Module):
