@@ -74,18 +74,16 @@ class TestQLearning:
             assert outputs['logit'].shape == (B, act_shape)
             assert outputs['q'].shape == (B, act_shape, 32)
             assert outputs['tau'].shape == (B, 32, 1)
-            #  linspace tau
         elif len(act_shape) == 1:
             assert outputs['logit'].shape == (B, *act_shape)
             assert outputs['q'].shape == (B, *act_shape, 32)
             assert outputs['tau'].shape == (B, 32, 1)
-            #  linspace tau
         else:
             for i, s in enumerate(act_shape):
                 assert outputs['logit'][i].shape == (B, s)
                 assert outputs['q'][i].shape == (B, s, 32)
                 assert outputs['tau'][i].shape == (B, 32, 1)
-                #  linspace tau
+
         self.output_check(model, outputs['logit'])
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)
