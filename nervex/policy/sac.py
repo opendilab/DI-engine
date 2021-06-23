@@ -53,8 +53,8 @@ class SACPolicy(Policy):
               | ``auto_alpha``                                      | auto temperature parameter `\alpha` .             | importance of the entropy term against the reward.
            14 | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
               | ``ignore_done``                                     |                                                   |
-           15 | ``learn.-``         float        0.005              | Used for soft update of the target network.       |
-              | ``target_theta``                                    |                                                   |
+           15 | ``learn.-``         float        0.005              | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
+              | ``target_theta``                                    |                                                   | for target networks.
            == ====================  ========   `==================  ===============================================     ========================================================
        """
 
@@ -65,14 +65,15 @@ class SACPolicy(Policy):
         cuda=False,
         # (bool type) on_policy: Determine whether on-policy or off-policy.
         # on-policy setting influences the behaviour of buffer.
-        # Please use False in sac.
+        # Default False in SAC.
         on_policy=False,
         # (bool type) priority: Determine whether to use priority in buffer sample.
-        # Please use False in sac.
+        # Default False in SAC.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        # Default 10000 in SAC.
         random_collect_size=10000,
         model=dict(
             obs_shape=17,
@@ -97,8 +98,13 @@ class SACPolicy(Policy):
             value_network=False,
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
             multi_gpu=False,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
+            # (int) Minibatch size for gradient descent.
             batch_size=256,
 
             # (float type) learning_rate_q: Learning rate for soft q network.
@@ -111,15 +117,17 @@ class SACPolicy(Policy):
             learning_rate_policy=3e-4,
             # (float type) learning_rate_value: Learning rate for value network.
             # `learning_rate_value` should be initialized, when model.value_network is True.
-            # Default to 3e-4 in sac_v1.
+            # Please set to 3e-4, when model.value_network is True.
             learning_rate_value=3e-4,
 
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
-            # (float type) target_theta: Used for soft update of the target network.
+            # (float type) target_theta: Used for soft update of the target network,
+            # aka. Interpolation factor in polyak averaging for target networks.
             # Default to 0.005.
             target_theta=0.005,
+            # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
 
             # (float type) alpha: Entropy regularization coefficient.
