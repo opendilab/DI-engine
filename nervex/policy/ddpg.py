@@ -36,8 +36,8 @@ class DDPGPolicy(Policy):
            6  | ``learn.learning_`` float       1e-4                | Learning rates for critic network                 |
               | ``rate_critic``                                     | (aka. Q-network).                                 |
            7  | ``learn.actor_``    int         1                   | When critic network updates once,                 | Default 1 for DDPG, 2 for TD3.
-              | ``update_freq``                                     | how many times will actor network update.         | Delaying policy updates method in TD3 paper.
-           8  | ``learn.noise``     bool        True                | Whether to add noise on target network's action.  | Default False for DDPG, True for TD3.
+              | ``update_freq``                                     | how many times will actor network update.         | Delayed Policy Updates method in TD3 paper.
+           8  | ``learn.noise``     bool        False               | Whether to add noise on target network's action.  | Default False for DDPG, True for TD3.
               |                                                     |                                                   | Target Policy Smoothing Regularization in TD3 paper.
            9  | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
               | ``ignore_done``                                     |                                                   |
@@ -63,10 +63,11 @@ class DDPGPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
-        # Default 25000 in DDPG/TD3
+        # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
+            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper.
             # Default False for DDPG, True for TD3.
             twin_critic=False,
         ),
@@ -98,9 +99,11 @@ class DDPGPolicy(Policy):
             # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
             # (int) When critic network updates once, how many times will actor network update.
+            # Delayed Policy Updates in original TD3 paper.
             # Default 1 for DDPG, 2 for TD3.
             actor_update_freq=1,
             # (bool) Whether to add noise on target network's action.
+            # Target Policy Smoothing Regularization in original TD3 paper.
             # Default False for DDPG, True for TD3.
             noise=False,
         ),
@@ -393,72 +396,3 @@ class DDPGPolicy(Policy):
         if self._twin_critic:
             ret += ['critic_twin_loss']
         return ret
-
-
-@POLICY_REGISTRY.register('td3')
-class TD3Policy(DDPGPolicy):
-    r"""
-    Overview:
-        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3
-        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
-    Property:
-        learn_mode, collect_mode, eval_mode
-    """
-
-    # You can refer to DDPG's default config for more details.
-    config = dict(
-        type='td3',
-        cuda=False,
-        on_policy=False,
-        priority=False,
-        priority_IS_weight=False,
-        random_collect_size=25000,
-        model=dict(twin_critic=True, ),
-        learn=dict(
-            multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
-            update_per_collect=1,
-            # Minibatch size for gradient descent.
-            batch_size=256,
-            # Learning rates for actor network(aka. policy).
-            learning_rate_actor=1e-3,
-            # Learning rates and critic network(aka. Q-network).
-            learning_rate_critic=1e-3,
-            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
-            ignore_done=False,
-            # (int) Interpolation factor in polyak averaging for target networks.
-            target_theta=0.005,
-            # (float) discount factor for the discounted sum of rewards, aka. gamma.
-            discount_factor=0.99,
-            # (int) When critic network updates once, how many times will actor network update.
-            # Default 1 for DDPG, 2 for TD3.
-            actor_update_freq=2,
-            # (bool) Whether to add noise on target network's action.
-            # Default False for DDPG, True for TD3.
-            noise=True,
-            # (float) Sigma for smoothing noise added to target policy.
-            noise_sigma=0.2,
-            # (dict) Limit for range of target policy smoothing noise, aka. noise_clip.
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
-        ),
-        collect=dict(
-            # n_sample=1,
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
-            # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
-            noise_sigma=0.1,
-            collector=dict(collect_print_freq=1000, ),
-        ),
-        eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(
-            replay_buffer=dict(
-                # (int) Maximum size of replay buffer
-                replay_buffer_size=1000000,
-            ),
-        ),
-    )
