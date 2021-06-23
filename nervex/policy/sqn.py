@@ -11,7 +11,7 @@ from torch.distributions.categorical import Categorical
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
-from nervex.model import FCDiscreteNet, SQNDiscreteNet, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from nervex.model import SQNModel
 from .base_policy import Policy

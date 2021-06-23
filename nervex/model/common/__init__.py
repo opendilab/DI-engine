@@ -1,4 +1,4 @@
 from .head import ClassificationHead, DuelingHead, DistributionHead, RainbowHead, QRDQNHead, \
-    QuantileHead, RegressionHead, ReparameterizationHead, MultiDiscreteHead
+    QuantileHead, RegressionHead, ReparameterizationHead, MultiDiscreteHead, head_cls_map
 from .encoder import ConvEncoder, FCEncoder
 from .utils import create_model

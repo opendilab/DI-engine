@@ -2,7 +2,8 @@ import pytest
 import torch
 from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data,\
     td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data, \
-    dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data, v_nstep_td_error
+    dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data, v_nstep_td_error, qrdqn_nstep_td_error,\
+    qrdqn_nstep_td_data
 
 
 @pytest.mark.unittest
@@ -48,6 +49,23 @@ def test_dist_1step_td():
 
 
 @pytest.mark.unittest
+def test_q_1step_compatible():
+    batch_size = 4
+    action_dim = 3
+    next_q = torch.randn(batch_size, action_dim)
+    done = torch.randn(batch_size)
+    action = torch.randint(0, action_dim, size=(batch_size, ))
+    next_action = torch.randint(0, action_dim, size=(batch_size, ))
+    q = torch.randn(batch_size, action_dim).requires_grad_(True)
+    reward = torch.rand(batch_size)
+    nstep_data = q_nstep_td_data(q, next_q, action, next_action, reward.unsqueeze(0), done, None)
+    onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
+    nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
+    onestep_loss = q_1step_td_error(onestep_data, 0.99)
+    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+
+
+@pytest.mark.unittest
 def test_dist_nstep_td():
     batch_size = 4
     action_dim = 3
@@ -90,20 +108,21 @@ def test_q_nstep_td_with_rescale():
 
 
 @pytest.mark.unittest
-def test_q_1step_compatible():
+def test_qrdqn_td_error():
     batch_size = 4
     action_dim = 3
-    next_q = torch.randn(batch_size, action_dim)
+    tau = 1
+    next_1_q = torch.randn(batch_size, action_dim)
+    next_1_q = next_1_q.reshape(tau, batch_size, action_dim)
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
     q = torch.randn(batch_size, action_dim).requires_grad_(True)
+    q = q.reshape(tau, batch_size, action_dim)
     reward = torch.rand(batch_size)
-    nstep_data = q_nstep_td_data(q, next_q, action, next_action, reward.unsqueeze(0), done, None)
-    onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
-    nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
-    onestep_loss = q_1step_td_error(onestep_data, 0.99)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+    nstep_data = qrdqn_nstep_td_data(q, next_1_q, action, next_action, reward.unsqueeze(0), done, tau, None)
+    nstep_loss, _ = qrdqn_nstep_td_error(nstep_data, 0.99, nstep=1)
+    print(nstep_loss)
 
 
 @pytest.mark.unittest
