@@ -21,32 +21,52 @@ class DDPGPolicy(Policy):
     Property:
         learn_mode, collect_mode, eval_mode
     Config:
-           == ==================== ======== ============== ======================================== =======================
-           ID Symbol               Type     Default Value   Description                              Other(Shape)
-           == ==================== ======== ============== ======================================== =======================
-           1  ``type``             str      ddpg           | RL policy register name, refer to      | this arg is optional,
-                                                           | registry ``POLICY_REGISTRY``           | a placeholder
-           2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
-                                                                                                    | erent from modes
-           3  | ``learn.-``        bool     False          | Determine whether to ignore done flag  | use ignore_done only
-              | ``ignore_done``                            |                                        | in halfcheetah env
-           == ==================== ======== ============== ======================================== =======================
-    """
+           == ====================  ========    ==================  ===============================================     ========================================================
+           ID Symbol                Type        Default Value       Description                                         Other(Shape)
+           == ====================  ========    ==================  ===============================================     ========================================================
+           1  ``type``              str         ddpg                | RL policy register name, refer to                 | this arg is optional,
+                                                                    | registry ``POLICY_REGISTRY``                      | a placeholder
+           2  ``cuda``              bool        True                | Whether to use cuda for network                   |
+           3  |``random_``          int         25000               | Number of training samples(randomly collected)    | Default to 25000 for DDPG/TD3, 10000 for sac.
+              |``collect_size``                                     | in replay buffer when training starts.            |
+           4  |``model.twin_critic``bool        False               | Whether to use two critic networks or only one.   | Default False for DDPG, True for TD3.
+              |                                                     |                                                   | Clipped Double Q-learning method in TD3 paper.
+           5  | ``learn.learning_`` float       1e-4                | Learning rate for actor network(aka. policy).     |
+              | ``rate_actor``                                      |                                                   |
+           6  | ``learn.learning_`` float       1e-4                | Learning rates for critic network                 |
+              | ``rate_critic``                                     | (aka. Q-network).                                 |
+           7  | ``learn.actor_``    int         1                   | When critic network updates once,                 | Default 1 for DDPG, 2 for TD3.
+              | ``update_freq``                                     | how many times will actor network update.         | Delaying policy updates method in TD3 paper.
+           8  | ``learn.noise``     bool        True                | Whether to add noise on target network's action.  | Default False for DDPG, True for TD3.
+              |                                                     |                                                   | Target Policy Smoothing Regularization in TD3 paper.
+           9  | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
+              | ``ignore_done``                                     |                                                   |
+           10 | ``learn.-``         float        0.005              | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
+              | ``target_theta``                                    |                                                   | for target networks.
+           11 | ``collect.-``       float        0.1                | Used for add noise during collection, through     | sample noise from distribution, like Ornstein-Uhlenbeck
+              | ``noise_sigma``                                     | controlling the sigma of distribution             | process in DDPG paper, Guassian process n ours.
+           == ====================  ========   `==================  ===============================================     ========================================================
+       """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='ddpg',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        # (bool type) on_policy: Determine whether on-policy or off-policy.
+        # on-policy setting influences the behaviour of buffer.
+        # Default False in DDPG.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
+        # Default False in DDPG.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        # Default 25000 in DDPG/TD3
         random_collect_size=25000,
         model=dict(
-            # Whether to use two critic networks or only one.
+            # (bool) Whether to use two critic networks or only one.
             # Default False for DDPG, True for TD3.
             twin_critic=False,
         ),
@@ -64,8 +84,16 @@ class DDPGPolicy(Policy):
             # Learning rates for critic network(aka. Q-network).
             learning_rate_critic=1e-3,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
-            # (int) Interpolation factor in polyak averaging for target networks.
+            # (float type) target_theta: Used for soft update of the target network,
+            # aka. Interpolation factor in polyak averaging for target networks.
+            # Default to 0.005.
             target_theta=0.005,
             # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
@@ -83,7 +111,6 @@ class DDPGPolicy(Policy):
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
-            collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(
