@@ -107,7 +107,6 @@ def test_q_nstep_td_with_rescale():
         print(loss)
 
 
-
 @pytest.mark.unittest
 def test_dist_1step_compatible():
     batch_size = 4
