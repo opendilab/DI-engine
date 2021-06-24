@@ -23,9 +23,9 @@ class SACPolicy(Policy):
            Policy class of SAC algorithm.
 
        Config:
-           == ====================  ========    ==================  ===============================================     ========================================================
+           == ====================  ========    ==================  ================================================    ========================================================
            ID Symbol                Type        Default Value       Description                                         Other(Shape)
-           == ====================  ========    ==================  ===============================================     ========================================================
+           == ====================  ========    ==================  ================================================    ========================================================
            1  ``type``              str         sac                 | RL policy register name, refer to                 | this arg is optional,
                                                                     | registry ``POLICY_REGISTRY``                      | a placeholder
            2  ``cuda``              bool        True                | Whether to use cuda for network                   |
@@ -39,23 +39,23 @@ class SACPolicy(Policy):
               |``embedding_size``                                   |                                                   |
            7  |``model.value_``     int         256                 | Linear layer size for value network.              | defalut value when model.-
               |``embedding_size``                                   |                                                   | model.value_network is false
-           8  | ``learn.learning_`` float       3e-4                | Learning rate for soft q network.                 | Please set to 1e-3, when
-              | ``rate_q``                                          |                                                   | model.value_network is True.
-           9  | ``learn.learning_`` float       3e-4                | Learning rate for policy network.                 | Please set to 1e-3, when
-              | ``rate_policy``                                     |                                                   | model.value_network is True.
-           10 | ``learn.learning_`` float       3e-4                | Learning rate for policy network.                 |
-              | ``rate_value``                                      |                                                   |
+           8  | ``learn.learning``  float       3e-4                | Learning rate for soft q network.                 | Please set to 1e-3, when
+              | ``_rate_q``                                         |                                                   | model.value_network is True.
+           9  | ``learn.learning``  float       3e-4                | Learning rate for policy network.                 | Please set to 1e-3, when
+              | ``_rate_policy``                                    |                                                   | model.value_network is True.
+           10 | ``learn.learning``  float       3e-4                | Learning rate for policy network.                 |
+              | ``_rate_value``                                     |                                                   |
            11 | ``learn.alpha``     float       0.2                 | Entropy regularization coefficient.               | alpha is initialization for auto `\alpha`,
               |                                                     |                                                   | when auto_alpha True
-           12 | ``learn.repara-``   bool        True                | Determine whether to use                          |
+           12 | ``learn.repara_``   bool        True                | Determine whether to use                          |
               | ``meterization``                                    | reparameterization trick.                         |
            13 | ``learn.-``         bool        False               | Determine whether to use                          | Temperature parameter determines the relative
               | ``auto_alpha``                                      | auto temperature parameter `\alpha` .             | importance of the entropy term against the reward.
            14 | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
               | ``ignore_done``                                     |                                                   |
-           15 | ``learn.-``         float        0.005              | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
+           15 | ``learn.``          float       0.005               | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
               | ``target_theta``                                    |                                                   | for target networks.
-           == ====================  ========   `==================  ===============================================     ========================================================
+           == ====================  ========    ==================  ================================================    ========================================================
        """
 
     config = dict(

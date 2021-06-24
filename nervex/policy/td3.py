@@ -1,6 +1,7 @@
 from nervex.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
 
+
 @POLICY_REGISTRY.register('td3')
 class TD3Policy(DDPGPolicy):
     r"""
