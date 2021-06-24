@@ -132,7 +132,7 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.ddpg.TD3Policy
+.. autoclass:: nervex.policy.td3.TD3Policy
 
 Model
 ~~~~~~~~~~~~~~~~~
