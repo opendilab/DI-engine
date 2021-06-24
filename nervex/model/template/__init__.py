@@ -1,4 +1,4 @@
 from .base_interface import IActorCritic
-from .q_learning import DQN, RainbowDQN, DRQN, QRDQN
+from .q_learning import DQN, RainbowDQN, DRQN, QRDQN, SQN
 from .qac import QAC
 from .vac import VAC

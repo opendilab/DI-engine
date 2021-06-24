@@ -1,3 +1,4 @@
+import nervex
 from copy import deepcopy
 from nervex.entry import serial_pipeline
 from easydict import EasyDict

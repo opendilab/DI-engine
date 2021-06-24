@@ -13,7 +13,7 @@ from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
 from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
-from nervex.model import SQNModel
+from nervex.model import SQN
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -345,7 +345,7 @@ class SQNPolicy(Policy):
 
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         assert model is None
-        return SQNModel(**cfg.model)
+        return SQN(**cfg.model)
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

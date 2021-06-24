@@ -107,23 +107,6 @@ def test_q_nstep_td_with_rescale():
         print(loss)
 
 
-@pytest.mark.unittest
-def test_qrdqn_td_error():
-    batch_size = 4
-    action_dim = 3
-    tau = 1
-    next_1_q = torch.randn(batch_size, action_dim)
-    next_1_q = next_1_q.reshape(tau, batch_size, action_dim)
-    done = torch.randn(batch_size)
-    action = torch.randint(0, action_dim, size=(batch_size, ))
-    next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    q = torch.randn(batch_size, action_dim).requires_grad_(True)
-    q = q.reshape(tau, batch_size, action_dim)
-    reward = torch.rand(batch_size)
-    nstep_data = qrdqn_nstep_td_data(q, next_1_q, action, next_action, reward.unsqueeze(0), done, tau, None)
-    nstep_loss, _ = qrdqn_nstep_td_error(nstep_data, 0.99, nstep=1)
-    print(nstep_loss)
-
 
 @pytest.mark.unittest
 def test_dist_1step_compatible():
