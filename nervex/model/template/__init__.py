@@ -1,5 +1,5 @@
 # general
-from .q_learning import DQN, RainbowDQN, IQN, DRQN
+from .q_learning import DQN, RainbowDQN, QRDQN, IQN, DRQN
 from .qac import QAC
 from .vac import VAC
 # algorithm-specific

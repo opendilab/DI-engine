@@ -48,6 +48,23 @@ def test_dist_1step_td():
 
 
 @pytest.mark.unittest
+def test_q_1step_compatible():
+    batch_size = 4
+    action_dim = 3
+    next_q = torch.randn(batch_size, action_dim)
+    done = torch.randn(batch_size)
+    action = torch.randint(0, action_dim, size=(batch_size, ))
+    next_action = torch.randint(0, action_dim, size=(batch_size, ))
+    q = torch.randn(batch_size, action_dim).requires_grad_(True)
+    reward = torch.rand(batch_size)
+    nstep_data = q_nstep_td_data(q, next_q, action, next_action, reward.unsqueeze(0), done, None)
+    onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
+    nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
+    onestep_loss = q_1step_td_error(onestep_data, 0.99)
+    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+
+
+@pytest.mark.unittest
 def test_dist_nstep_td():
     batch_size = 4
     action_dim = 3
@@ -87,23 +104,6 @@ def test_q_nstep_td_with_rescale():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
-
-
-@pytest.mark.unittest
-def test_q_1step_compatible():
-    batch_size = 4
-    action_dim = 3
-    next_q = torch.randn(batch_size, action_dim)
-    done = torch.randn(batch_size)
-    action = torch.randint(0, action_dim, size=(batch_size, ))
-    next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    q = torch.randn(batch_size, action_dim).requires_grad_(True)
-    reward = torch.rand(batch_size)
-    nstep_data = q_nstep_td_data(q, next_q, action, next_action, reward.unsqueeze(0), done, None)
-    onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
-    nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
-    onestep_loss = q_1step_td_error(onestep_data, 0.99)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
 
 
 @pytest.mark.unittest

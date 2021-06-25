@@ -4,6 +4,7 @@ import numpy as np
 
 from nervex.envs.common import EnvElement
 
+
 class GfootballSpAction(EnvElement):
     _name = "gfootballSpAction"
     _action_keys = ['action_type']
@@ -34,6 +35,7 @@ class GfootballSpAction(EnvElement):
             'dtype': int,
             'dinfo': 'int value, action_meanings: []',
         }
+
     def _to_agent_processor(self, action):
         return action
 
@@ -43,6 +45,7 @@ class GfootballSpAction(EnvElement):
     # override
     def _details(self):
         return '\t'.join(self._action_keys)
+
 
 class GfootballRawAction(EnvElement):
     '''

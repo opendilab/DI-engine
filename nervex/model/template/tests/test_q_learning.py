@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from nervex.model.template import DQN, RainbowDQN, IQN, DRQN
+from nervex.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN
 from nervex.torch_utils import is_differentiable
 
 T, B = 3, 4
@@ -85,6 +85,30 @@ class TestQLearning:
                 assert outputs['logit'][i].shape == (B, s)
                 assert outputs['q'][i].shape == (num_quantiles, B, s)
                 assert outputs['quantiles'][i].shape == (B * num_quantiles, 1)
+        self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_qrdqn(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(B, obs_shape)
+        else:
+            inputs = torch.randn(B, *obs_shape)
+        model = QRDQN(obs_shape, act_shape, num_quantiles=32)
+        outputs = model(inputs)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (B, act_shape)
+            assert outputs['q'].shape == (B, act_shape, 32)
+            assert outputs['tau'].shape == (B, 32, 1)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (B, *act_shape)
+            assert outputs['q'].shape == (B, *act_shape, 32)
+            assert outputs['tau'].shape == (B, 32, 1)
+        else:
+            for i, s in enumerate(act_shape):
+                assert outputs['logit'][i].shape == (B, s)
+                assert outputs['q'][i].shape == (B, s, 32)
+                assert outputs['tau'][i].shape == (B, 32, 1)
         self.output_check(model, outputs['logit'])
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)

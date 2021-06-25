@@ -5,7 +5,7 @@ import torch.nn as nn
 from nervex.torch_utils import get_lstm
 from nervex.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
-    QuantileHead
+    QuantileHead, QRDQNHead
 
 
 @MODEL_REGISTRY.register('dqn')
@@ -69,8 +69,63 @@ class C51DQN(nn.Module):
     pass
 
 
+@MODEL_REGISTRY.register('qrdqn')
 class QRDQN(nn.Module):
-    pass
+
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        head_hidden_size: int = 64,
+        head_layer_num: int = 1,
+        num_quantiles: int = 32,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+    ) -> None:
+        super(QRDQN, self).__init__()
+        # For compatibility: 1, (1, ), [4, 32, 32]
+        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        # FC Encoder
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        # Conv Encoder
+        elif len(obs_shape) == 3:
+            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
+            )
+        # Head Type
+        multi_head = not isinstance(action_shape, int)
+        if multi_head:
+            self.head = MultiHead(
+                QRDQNHead,
+                head_hidden_size,
+                action_shape,
+                layer_num=head_layer_num,
+                num_quantiles=num_quantiles,
+                activation=activation,
+                norm_type=norm_type,
+            )
+        else:
+            self.head = QRDQNHead(
+                head_hidden_size,
+                action_shape,
+                head_layer_num,
+                num_quantiles=num_quantiles,
+                activation=activation,
+                norm_type=norm_type,
+            )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        ReturnsKeys:
+            - necessary: ``logit``,  ``q``, ``tau``
+        """
+        x = self.encoder(x)
+        x = self.head(x)
+        return x
 
 
 class IQN(nn.Module):
