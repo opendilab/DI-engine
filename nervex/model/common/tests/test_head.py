@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from nervex.model.common.head import DuelingHead, ReparameterizationHead, MultiDiscreteHead
+from nervex.model.common.head import DuelingHead, ReparameterizationHead, MultiHead
 from nervex.torch_utils import is_differentiable
 
 B = 4
@@ -57,9 +57,9 @@ class TestHead:
                 assert mu.shape == (B, action_shape) and sigma.shape == (B, action_shape)
                 self.output_check(model, outputs)
 
-    def test_multi_discrete_head(self):
+    def test_multi_head(self):
         output_size_list = [2, 3, 7]
-        head = MultiDiscreteHead(DuelingHead, embedding_dim, output_size_list, activation=torch.nn.Tanh())
+        head = MultiHead(DuelingHead, embedding_dim, output_size_list, activation=torch.nn.Tanh())
         print(head)
         inputs = torch.randn(B, embedding_dim)
         outputs = head(inputs)

@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from nervex.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ..common import ReparameterizationHead, RegressionHead, ClassificationHead, MultiDiscreteHead, \
+from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder
 
 
@@ -54,7 +54,7 @@ class VAC(nn.Module):
         )
         self.continuous = continuous
         if self.continuous:
-            self.multi_discrete = False
+            self.multi_head = False
             self.actor_head = ReparameterizationHead(
                 actor_head_hidden_size,
                 action_shape,
@@ -64,11 +64,11 @@ class VAC(nn.Module):
                 norm_type=norm_type
             )
         else:
-            actor_head_cls = ClassificationHead
-            multi_discrete = not isinstance(action_shape, int)
-            self.multi_discrete = multi_discrete
-            if multi_discrete:
-                self.actor_head = MultiDiscreteHead(
+            actor_head_cls = DiscreteHead
+            multi_head = not isinstance(action_shape, int)
+            self.multi_head = multi_head
+            if multi_head:
+                self.actor_head = MultiHead(
                     actor_head_cls,
                     actor_head_hidden_size,
                     action_shape,

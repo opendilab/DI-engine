@@ -10,7 +10,7 @@ from nervex.rl_utils import beta_function_map
 from nervex.utils import lists_to_dicts, SequenceType
 
 
-class ClassificationHead(nn.Module):
+class DiscreteHead(nn.Module):
 
     def __init__(
         self,
@@ -33,7 +33,7 @@ class ClassificationHead(nn.Module):
             - norm_type (:obj:`str`): the type of normalization to use, see nervex.torch_utils.fc_block for more details
             - noise (:obj:`bool`): whether use noisy fc block
         """
-        super(ClassificationHead, self).__init__()
+        super(DiscreteHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
         self.Q = nn.Sequential(
@@ -470,19 +470,19 @@ class ReparameterizationHead(nn.Module):
         return {'mu': mu, 'sigma': sigma}
 
 
-class MultiDiscreteHead(nn.Module):
+class MultiHead(nn.Module):
 
     def __init__(self, head_cls: type, hidden_size: int, output_size_list: SequenceType, **head_kwargs) -> None:
         r"""
         Overview:
-            Init the MultiDiscreteHead according to arguments.
+            Init the MultiHead according to arguments.
         Arguments:
             - head_cls (:obj:`type`): The class of head, like dueling_head, distribution_head, quatile_head, etc
             - hidden_size (:obj:`int`): The number of hidden layer size
             - output_size_list (:obj:`int`): The collection of output_size, e.g.: multi discrete action, [2, 3, 5]
             - head_kwargs: (:boj:`dict`): Class-specific arguments
         """
-        super(MultiDiscreteHead, self).__init__()
+        super(MultiHead, self).__init__()
         self.pred = nn.ModuleList()
         for size in output_size_list:
             self.pred.append(head_cls(hidden_size, size, **head_kwargs))
@@ -496,7 +496,7 @@ class MultiDiscreteHead(nn.Module):
         Returns:
             - return (:obj:`Dict`): Prediction output dict
         Examples:
-            >>> head = MultiDiscreteHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)
+            >>> head = MultiHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = head(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'][0].shape == (4, 2)
@@ -506,7 +506,7 @@ class MultiDiscreteHead(nn.Module):
 
 head_cls_map = {
     # discrete
-    'classification': ClassificationHead,
+    'discrete': DiscreteHead,
     'dueling': DuelingHead,
     'distribution': DistributionHead,
     'rainbow': RainbowHead,
@@ -515,4 +515,6 @@ head_cls_map = {
     # continuous
     'regression': RegressionHead,
     'reparameterization': ReparameterizationHead,
+    # multi
+    'multi': MultiHead,
 }

@@ -36,7 +36,7 @@ class TestVAC:
         if model.continuous:
             outputs = value.sum() + logit[0].sum() + logit[1].sum()
         else:
-            if model.multi_discrete:
+            if model.multi_head:
                 outputs = value.sum() + sum([t.sum() for t in logit])
             else:
                 outputs = value.sum() + logit.sum()
