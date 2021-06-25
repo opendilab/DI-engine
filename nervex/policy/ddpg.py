@@ -21,31 +21,44 @@ class DDPGPolicy(Policy):
     Property:
         learn_mode, collect_mode, eval_mode
     Config:
-           == ====================  ========    ==================  =================================================   =========================================================
-           ID Symbol                Type        Default Value       Description                                         Other(Shape)
-           == ====================  ========    ==================  =================================================   =========================================================
-           1  ``type``              str         ddpg                | RL policy register name, refer to                 | this arg is optional,
-                                                                    | registry ``POLICY_REGISTRY``                      | a placeholder
-           2  ``cuda``              bool        True                | Whether to use cuda for network                   |
-           3  |``random_``          int         25000               | Number of training samples(randomly collected)    | Default to 25000 for DDPG/TD3, 10000 for sac.
-              |``collect_size``                                     | in replay buffer when training starts.            |
-           4  |``model.twin_``      bool        False               | Whether to use two critic networks or only one.   | Default False for DDPG, True for TD3.
-              |``critic``                                           |                                                   | Clipped Double Q-learning method in TD3 paper.
-           5  | ``learn.learning``  float       1e-4                | Learning rate for actor network(aka. policy).     |
-              | ``_rate_actor``                                     |                                                   |
-           6  | ``learn.learning``  float       1e-4                | Learning rates for critic network                 |
-              | ``_rate_critic``                                    | (aka. Q-network).                                 |
-           7  | ``learn.actor_``    int         1                   | When critic network updates once,                 | Default 1 for DDPG, 2 for TD3.
-              | ``update_freq``                                     | how many times will actor network update.         | Delayed Policy Updates method in TD3 paper.
-           8  | ``learn.noise``     bool        False               | Whether to add noise on target network action.    | Default False for DDPG, True for TD3.
-              |                                                     |                                                   | Target Policy Smoothing Regularization in TD3 paper.
-           9  | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
-              | ``ignore_done``                                     |                                                   |
-           10 | ``learn.-``         float       0.005               | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
-              | ``target_theta``                                    |                                                   | for target networks.
-           11 | ``collect.-``       float       0.1                 | Used for add noise during collection, through     | sample noise from distribution, like Ornstein-Uhlenbeck
-              | ``noise_sigma``                                     | controlling the sigma of distribution             | process in DDPG paper, Guassian process n ours.
-           == ====================  ========    ==================  =================================================   =========================================================
+   == ====================  ========    ==================  =================================   =======================
+   ID Symbol                Type        Default Value       Description                         Other(Shape)
+   == ====================  ========    ==================  =================================   =======================
+   1  ``type``              str         ddpg                | RL policy register name, refer    | this arg is optional,
+                                                            | to registry ``POLICY_REGISTRY``   | a placeholder
+   2  ``cuda``              bool        True                | Whether to use cuda for network   |
+   3  | ``random_``         int         25000               | Number of randomly collected      | Default to 25000 for
+      | ``collect_size``                                    | training samples in replay        | DDPG/TD3, 10000 for
+      |                                                     | buffer when training starts.      | sac.
+   4  | ``model.twin_``     bool        False               | Whether to use two critic         | Default False for
+      | ``critic``                                          | networks or only one.             | DDPG, Clipped Double
+      |                                                     |                                   | Q-learning method in
+      |                                                     |                                   | TD3 paper.
+   5  | ``learn.learning``  float       1e-3                | Learning rate for actor           |
+      | ``_rate_actor``                                     | network(aka. policy).             |
+   6  | ``learn.learning``  float       1e-3                | Learning rates for critic         |
+      | ``_rate_critic``                                    | network (aka. Q-network).         |
+   7  | ``learn.actor_``    int         2                   | When critic network updates       | Default 1 for DDPG,
+      | ``update_freq``                                     | once, how many times will actor   | 2 for TD3. Delayed
+      |                                                     | network update.                   | Policy Updates method
+      |                                                     |                                   | in TD3 paper.
+   8  | ``learn.noise``     bool        False               | Whether to add noise on target    | Default False for
+      |                                                     | network's action.                 | DDPG, True for TD3.
+      |                                                     |                                   | Target Policy Smoo-
+      |                                                     |                                   | thing Regularization
+      |                                                     |                                   | in TD3 paper.
+   9  | ``learn.-``         bool        False               | Determine whether to ignore       | Use ignore_done only
+      | ``ignore_done``                                     | done flag.                        | in halfcheetah env.
+   10 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation
+      | ``target_theta``                                    | target network.                   | factor in polyak aver
+      |                                                     |                                   | aging for target
+      |                                                     |                                   | networks.
+   11 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis
+      | ``noise_sigma``                                     | llection, through controlling     | tribution, Ornstein-
+      |                                                     | the sigma of distribution         | Uhlenbeck process in
+      |                                                     |                                   | DDPG paper, Guassian
+      |                                                     |                                   | process in ours.
+   == ====================  ========    ==================  =================================   =======================
     """
 
     config = dict(
