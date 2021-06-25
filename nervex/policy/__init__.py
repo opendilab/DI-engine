@@ -4,7 +4,8 @@ from .iqn import IQNPolicy
 from .qrdqn import QRDQNPolicy
 from .c51 import C51Policy
 from .rainbow import RainbowDQNPolicy
-from .ddpg import DDPGPolicy, TD3Policy
+from .ddpg import DDPGPolicy
+from .td3 import TD3Policy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
 from .sac import SACPolicy

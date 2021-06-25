@@ -21,6 +21,51 @@ class SACPolicy(Policy):
     r"""
        Overview:
            Policy class of SAC algorithm.
+
+       Config:
+           == ====================  ========    =============  ================================= =======================
+           ID Symbol                Type        Default Value  Description                       Other(Shape)
+           == ====================  ========    =============  ================================= =======================
+           1  ``type``              str         td3            | RL policy register name, refer  | this arg is optional,
+                                                               | to registry ``POLICY_REGISTRY`` | a placeholder
+           2  ``cuda``              bool        True           | Whether to use cuda for network |
+           3  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
+              | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/
+              |                                                | buffer when training starts.    | TD3.
+           4  | ``model.policy_``   int         256            | Linear layer size for policy    |
+              | ``embedding_size``                             | network.                        |
+           5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
+              | ``embedding_size``                             | network.                        |
+           6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when
+              | ``embedding_size``                             | network.                        | model.value_network
+              |                                                |                                 | is False.
+           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
+              | ``_rate_q``                                    | network.                        | model.value_network
+              |                                                |                                 | is True.
+           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
+              | ``_rate_policy``                               | network.                        | model.value_network
+              |                                                |                                 | is True.
+           9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when
+              | ``_rate_value``                                | network.                        | model.value_network
+              |                                                |                                 | is False.
+           10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
+              |                                                | coefficient.                    | zation for auto
+              |                                                |                                 | `\alpha`, when
+              |                                                |                                 | auto_alpha is True
+           11 | ``learn.repara_``   bool        True           | Determine whether to use        |
+              | ``meterization``                               | reparameterization trick.       |
+           12 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter
+              | ``auto_alpha``                                 | auto temperature parameter      | determines the
+              |                                                | `\alpha`.                       | relative importance
+              |                                                |                                 | of the entropy term
+              |                                                |                                 | against the reward.
+           13 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only
+              | ``ignore_done``                                | done flag.                      | in halfcheetah env.
+           14 | ``learn.-``         float       0.005          | Used for soft update of the     | aka. Interpolation
+              | ``target_theta``                               | target network.                 | factor in polyak aver
+              |                                                |                                 | aging for target
+              |                                                |                                 | networks.
+           == ====================  ========    =============  ================================= =======================
        """
 
     config = dict(
@@ -28,25 +73,18 @@ class SACPolicy(Policy):
         tyep='sac',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (str type) policy_type: Determine the version of sac to use.
-        # policy_type in ['sac_v1', 'sac_v2']
-        # sac_v1: learns a value function, soft q function, and actor like the original SAC paper (arXiv 1801.01290).
-        # using sac_v1 needs to set learning_rate_value, learning_rate_q and learning_rate_policy in `cfg.policy.learn`.
-        # sac_v2: learns soft q function and actor.
-        # Note that: Please consistent with the model type setting.
-        # policy_type='sac_v2',
-        # import_names=['nervex.policy.sac'],
         # (bool type) on_policy: Determine whether on-policy or off-policy.
         # on-policy setting influences the behaviour of buffer.
-        # Please use False in sac.
+        # Default False in SAC.
         on_policy=False,
         # (bool type) priority: Determine whether to use priority in buffer sample.
-        # Please use False in sac.
+        # Default False in SAC.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
-        random_collect_size=2000,
+        # Default 10000 in SAC.
+        random_collect_size=10000,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -70,8 +108,13 @@ class SACPolicy(Policy):
             value_network=False,
         ),
         learn=dict(
+            # (bool) Whether to use multi gpu
             multi_gpu=False,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
+            # (int) Minibatch size for gradient descent.
             batch_size=256,
 
             # (float type) learning_rate_q: Learning rate for soft q network.
@@ -84,20 +127,22 @@ class SACPolicy(Policy):
             learning_rate_policy=3e-4,
             # (float type) learning_rate_value: Learning rate for value network.
             # `learning_rate_value` should be initialized, when model.value_network is True.
-            # Default to 3e-4 in sac_v1.
+            # Please set to 3e-4, when model.value_network is True.
             learning_rate_value=3e-4,
 
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
-            # (float type) target_theta: Used for soft update of the target network.
+            # (float type) target_theta: Used for soft update of the target network,
+            # aka. Interpolation factor in polyak averaging for target networks.
             # Default to 0.005.
             target_theta=0.005,
+            # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
 
             # (float type) alpha: Entropy regularization coefficient.
             # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
-            # If is_auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
+            # If auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
             # Default to 0.2.
             alpha=0.2,
 
@@ -106,13 +151,19 @@ class SACPolicy(Policy):
             # Default to True.
             reparameterization=True,
 
-            # (bool type) is_auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
+            # (bool type) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
             # Temperature parameter determines the relative importance of the entropy term against the reward.
             # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
-            is_auto_alpha=True,
+            auto_alpha=True,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
         ),
         collect=dict(
@@ -122,8 +173,6 @@ class SACPolicy(Policy):
             # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # (float) The std of noise for exploration
-            noise_sigma=0.2,
         ),
         eval=dict(),
         other=dict(
@@ -172,17 +221,17 @@ class SACPolicy(Policy):
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
         # Init auto alpha
-        if self._cfg.learn.is_auto_alpha:
+        if self._cfg.learn.auto_alpha:
             self._target_entropy = -np.prod(self._cfg.model.action_shape)
             self._log_alpha = torch.log(torch.tensor([self._cfg.learn.alpha]))
             self._log_alpha = self._log_alpha.to(device='cuda' if self._cuda else 'cpu').requires_grad_()
             self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
-            self._is_auto_alpha = True
+            self._auto_alpha = True
             assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
             self._alpha = self._log_alpha.detach().exp()
         else:
             self._alpha = torch.tensor(self._cfg.learn.alpha, requires_grad=False)
-            self._is_auto_alpha = False
+            self._auto_alpha = False
         self._reparameterization = self._cfg.learn.reparameterization
 
         # Main and target models
@@ -316,7 +365,7 @@ class SACPolicy(Policy):
         self._optimizer_policy.step()
 
         # compute alpha loss
-        if self._is_auto_alpha:
+        if self._auto_alpha:
             log_prob = log_prob.detach() + self._target_entropy
             loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
 
@@ -356,7 +405,7 @@ class SACPolicy(Policy):
         }
         if self._value_network:
             ret.update({'optimizer_value': self._optimizer_value.state_dict()})
-        if self._is_auto_alpha:
+        if self._auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
         return ret
 
@@ -365,7 +414,7 @@ class SACPolicy(Policy):
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
-        if self._is_auto_alpha:
+        if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
 
     def _init_collect(self) -> None:
@@ -378,16 +427,17 @@ class SACPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._cuda, self._unroll_len)
         #TODO remove noise
-        self._collect_model = model_wrap(
-            self._model,
-            wrapper_name='action_noise',
-            noise_type='gauss',
-            noise_kwargs={
-                'mu': 0.0,
-                'sigma': self._cfg.collect.noise_sigma
-            },
-            noise_range=None
-        )
+        # self._collect_model = model_wrap(
+        #     self._model,
+        #     wrapper_name='action_noise',
+        #     noise_type='gauss',
+        #     noise_kwargs={
+        #         'mu': 0.0,
+        #         'sigma': self._cfg.collect.noise_sigma
+        #     },
+        #     noise_range=None
+        # )
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
@@ -476,7 +526,7 @@ class SACPolicy(Policy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         q_twin = ['q_twin_loss'] if self._twin_q else []
-        if self._is_auto_alpha:
+        if self._auto_alpha:
             return super()._monitor_vars_learn() + [
                 'alpha_loss', 'policy_loss', 'q_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'td_error',
                 'q_value_1', 'q_value_2', 'alpha', 'target_value'
