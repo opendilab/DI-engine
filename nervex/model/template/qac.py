@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from nervex.utils import SequenceType, squeeze
-from ..common import RegressionHead
+from ..common import RegressionHead, ReparameterizationHead
 
 
 class QAC(nn.Module):
@@ -13,6 +13,7 @@ class QAC(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
+            actor_head_type: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -24,17 +25,32 @@ class QAC(nn.Module):
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
-        self.actor = nn.Sequential(
-            nn.Linear(obs_shape, actor_head_hidden_size), activation,
-            RegressionHead(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                final_tanh=True,
-                activation=activation,
-                norm_type=norm_type
+        self.actor_head_type = actor_head_type
+        assert self.actor_head_type in ['regression', 'reparameterization']
+        if self.actor_head_type == 'regression':
+            self.actor = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                RegressionHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    final_tanh=True,
+                    activation=activation,
+                    norm_type=norm_type
+                )
             )
-        )
+        elif self.actor_head_type == 'reparameterization':
+            self.actor = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                ReparameterizationHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    sigma_type='conditioned',
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
         self.twin_critic = twin_critic
         if self.twin_critic:
             self.critic = nn.ModuleList()
@@ -72,10 +88,13 @@ class QAC(nn.Module):
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
         """
         ReturnsKeys:
-            - necessary: ``action``
+            - optional: ``action``, ``logit``
         """
         x = self.actor(inputs)
-        return {'action': x['pred']}
+        if self.actor_head_type == 'regression':
+            return {'action': x['pred']}
+        elif self.actor_head_type == 'reparameterization':
+            return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
         """
