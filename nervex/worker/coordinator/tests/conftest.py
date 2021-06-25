@@ -5,7 +5,6 @@ from nervex.config import compile_config_parallel
 from nervex.worker.coordinator.one_vs_one_parallel_commander import OneVsOneCommander
 
 
-
 @pytest.fixture(scope='module')
 def setup_1v1commander():
     nstep = 1
@@ -61,11 +60,7 @@ def setup_1v1commander():
                     collector_task_space=2,
                     learner_task_space=1,
                     eval_interval=eval_interval,
-                    league=dict(
-                        naive_sp_player=dict(
-                            one_phase_step=1000,
-                        ),
-                    ),
+                    league=dict(naive_sp_player=dict(one_phase_step=1000, ), ),
                 ),
                 replay_buffer=dict(),
             ),

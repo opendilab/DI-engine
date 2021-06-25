@@ -4,7 +4,7 @@ import pytest
 
 @pytest.mark.unittest
 class TestOneVsOnesetup_1v1commander:
-    
+
     def test_init(self, setup_1v1commander):
         # basic
         assert not setup_1v1commander._end_flag
@@ -42,7 +42,7 @@ class TestOneVsOnesetup_1v1commander:
         assert setup_1v1commander._collector_task_space.cur == 1
         evaluator_task_id = evaluator_task_info['task_id']
         assert evaluator_task_id.startswith('evaluator_task_'), evaluator_task_info['task_id']
-        assert evaluator_task_info['collector_cfg'].eval_flag == True
+        assert evaluator_task_info['collector_cfg'].eval_flag
         env_kwargs = evaluator_task_info['collector_cfg'].env
         assert env_kwargs.eval_opponent == setup_1v1commander._league.active_players[0]._eval_opponent_difficulty[0]
         assert len(evaluator_task_info['collector_cfg'].policy) == 1
@@ -74,8 +74,8 @@ class TestOneVsOnesetup_1v1commander:
         assert len(policy_update_path) == 2
         assert policy_update_path[0] == policy_update_path[1]
         policy_update_flag = collector_task_info['collector_cfg'].policy_update_flag
-        assert policy_update_flag[0] == policy_update_flag[1] == True
-        assert collector_task_info['collector_cfg'].eval_flag == False
+        assert policy_update_flag[0] == policy_update_flag[1]
+        assert not collector_task_info['collector_cfg'].eval_flag
         assert len(collector_task_info['collector_cfg'].policy) == 2
 
         # Finish collector_task
@@ -106,7 +106,7 @@ class TestOneVsOnesetup_1v1commander:
         evaluator_task_info = setup_1v1commander.get_collector_task()
         evaluator_task_id = evaluator_task_info['task_id']
         assert setup_1v1commander._collector_task_space.cur == 1
-        assert evaluator_task_info['collector_cfg'].eval_flag == True
+        assert evaluator_task_info['collector_cfg'].eval_flag
         finished_task_dict = {
             'eval_flag': True,
             'game_result': [['wins', 'wins'], ['wins', 'wins']],
@@ -124,9 +124,7 @@ class TestOneVsOnesetup_1v1commander:
         assert setup_1v1commander._collector_task_space.cur == 0
 
         # Finish learner task
-        finished_task_dict = {
-            'buffer_id': setup_1v1commander._current_buffer_id
-        }
+        finished_task_dict = {'buffer_id': setup_1v1commander._current_buffer_id}
         setup_1v1commander.finish_learner_task(learner_task_id, finished_task_dict)
         assert setup_1v1commander._learner_task_space.cur == 0
 
