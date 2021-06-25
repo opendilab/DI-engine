@@ -100,12 +100,20 @@ class QMIXPolicy(Policy):
         self._gamma = self._cfg.learn.discount_factor
 
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='momentum',
-            update_kwargs={'theta': self._cfg.learn.target_update_theta}
-        )
+        if self._cfg.learn.target_update_type=='momentum':
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='momentum',
+                update_kwargs={'theta': self._cfg.learn.target_update_theta}
+            )
+        elif self._cfg.learn.target_update_type=='assign':
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='assign',
+                update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',

@@ -32,7 +32,7 @@ class SMACReward:
     def reset(self, max_reward):
         self.max_reward = max_reward
         if self.reward_type == 'original':
-            self.info().value['max']= self.max_reward / self.reward_scale_rate
+            self.info().value['max'] = self.max_reward / self.reward_scale_rate
         self.death_tracker_ally.fill(0)
         self.death_tracker_enemy.fill(0)
 
@@ -180,8 +180,9 @@ class SMACReward:
         if self.reward_type == 'sparse':
             value = {'min': -1, 'max': 1}
         elif self.reward_type == 'original':
-            value = {'min': 0, 'max': self.max_reward / 75.5}
-            # value = {'min': 0, 'max': self.max_reward / self.reward_scale_rate}
+            value = {'min': 0, 'max': self.max_reward / self.reward_scale_rate}
+            # value = {'min': 0, 'max': 75.5}
+            # value = {'min': 0, 'max': self.max_reward / 75.5}
         #     # TODO(nyz) health + shield range
         #     if self.reduce_agent:
         #         value = {'min': 0, 'max': (self.reward_win + self.reward_death_value * self.n_enemies +1230)/20}

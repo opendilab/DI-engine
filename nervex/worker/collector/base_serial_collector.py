@@ -277,6 +277,7 @@ class BaseSerialCollector(object):
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
+                'eps': policy_kwargs['eps'],
             }
             self._episode_info.clear()
             # self._logger.print_vars(info)

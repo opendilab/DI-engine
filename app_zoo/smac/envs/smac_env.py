@@ -511,7 +511,18 @@ class SMACEnv(SC2Env, BaseEnv):
         if terminated:
             self._episode_count += 1
             # 1-dim to 0-dim
-            info['episode_info'] = {'final_eval_fake_reward': self._final_eval_fake_reward[0]}
+            # count units that are still alive
+            dead_allies, dead_enemies = 0, 0
+            for al_id, al_unit in self.agents.items():
+                if al_unit.health == 0:
+                    dead_allies += 1
+            for e_id, e_unit in self.enemies.items():
+                if e_unit.health == 0:
+                    dead_enemies += 1
+
+            info['episode_info'] = {'final_eval_fake_reward': self._final_eval_fake_reward[0],
+                                    'dead_allies': dead_allies,
+                                    'dead_enemies': dead_enemies}
             self._final_eval_fake_reward = 0.
 
         # PZH: Zero at first step
@@ -553,8 +564,8 @@ class SMACEnv(SC2Env, BaseEnv):
             for unit in self._obs.observation.raw_data.units:
                 if (unit.owner == 2) and (unit.tag not in old_unit_tags):
                     self.enemies[len(self.enemies)] = unit
-                    if self._episode_count == 0:
-                        self.max_reward += unit.health_max + unit.shield_max
+                    # if self._episode_count == 0:
+                    self.max_reward += unit.health_max + unit.shield_max
 
             all_agents_created = (len(self.agents) == self.n_agents)
             all_enemies_created = (len(self.enemies) == self.n_enemies)
