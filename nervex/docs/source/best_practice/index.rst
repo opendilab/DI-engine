@@ -9,6 +9,7 @@ Best Practice
     log
     IL
     IRL
+    rnn
     random_seed
     multi_discrete
     model_wrapper
@@ -18,3 +19,4 @@ Best Practice
     multi_buffer
     random_collect_size
     irregular_learner_log
+
