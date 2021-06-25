@@ -23,39 +23,49 @@ class SACPolicy(Policy):
            Policy class of SAC algorithm.
 
        Config:
-           == ====================  ========    ==================  ================================================    ========================================================
-           ID Symbol                Type        Default Value       Description                                         Other(Shape)
-           == ====================  ========    ==================  ================================================    ========================================================
-           1  ``type``              str         sac                 | RL policy register name, refer to                 | this arg is optional,
-                                                                    | registry ``POLICY_REGISTRY``                      | a placeholder
-           2  ``cuda``              bool        True                | Whether to use cuda for network                   |
-           3  |``random_``          int         10000               | Number of training samples(randomly collected)    | Default to 10000 for sac, 25000 for DDPG/TD3
-              |``collect_size``                                     | in replay buffer when training starts.            |
-           4  |``model.policy_``    int         256                 | Linear layer size for policy network.             |
-              |``embedding_size``                                   |                                                   |
-           5  |``model.policy_``    int         256                 | Linear layer size for policy network.             |
-              |``embedding_size``                                   |                                                   |
-           6  |``model.soft_q_``    int         256                 | Linear layer size for soft q network.             |
-              |``embedding_size``                                   |                                                   |
-           7  |``model.value_``     int         256                 | Linear layer size for value network.              | defalut value when model.-
-              |``embedding_size``                                   |                                                   | model.value_network is false
-           8  | ``learn.learning``  float       3e-4                | Learning rate for soft q network.                 | Please set to 1e-3, when
-              | ``_rate_q``                                         |                                                   | model.value_network is True.
-           9  | ``learn.learning``  float       3e-4                | Learning rate for policy network.                 | Please set to 1e-3, when
-              | ``_rate_policy``                                    |                                                   | model.value_network is True.
-           10 | ``learn.learning``  float       3e-4                | Learning rate for policy network.                 |
-              | ``_rate_value``                                     |                                                   |
-           11 | ``learn.alpha``     float       0.2                 | Entropy regularization coefficient.               | alpha is initialization for auto `\alpha`,
-              |                                                     |                                                   | when auto_alpha True
-           12 | ``learn.repara_``   bool        True                | Determine whether to use                          |
-              | ``meterization``                                    | reparameterization trick.                         |
-           13 | ``learn.-``         bool        False               | Determine whether to use                          | Temperature parameter determines the relative
-              | ``auto_alpha``                                      | auto temperature parameter `\alpha` .             | importance of the entropy term against the reward.
-           14 | ``learn.-``         bool        False               | Determine whether to ignore done flag.            | use ignore_done only in halfcheetah env.
-              | ``ignore_done``                                     |                                                   |
-           15 | ``learn.``          float       0.005               | Used for soft update of the target network.       | aka. Interpolation factor in polyak averaging
-              | ``target_theta``                                    |                                                   | for target networks.
-           == ====================  ========    ==================  ================================================    ========================================================
+           == ====================  ========    ==================  =================================   =======================
+           ID Symbol                Type        Default Value       Description                         Other(Shape)
+           == ====================  ========    ==================  =================================   =======================
+           1  ``type``              str         td3                 | RL policy register name, refer    | this arg is optional,
+                                                                    | to registry ``POLICY_REGISTRY``   | a placeholder
+           2  ``cuda``              bool        True                | Whether to use cuda for network   |
+           3  | ``random_``         int         10000               | Number of randomly collected      | Default to 10000 for
+              | ``collect_size``                                    | training samples in replay        | SAC, 25000 for DDPG/
+              |                                                     | buffer when training starts.      | TD3.
+           4  | ``model.policy_``   int         256                 | Linear layer size for policy      |
+              | ``embedding_size``                                  | network.                          |
+           5  | ``model.soft_q_``   int         256                 | Linear layer size for soft q      |
+              | ``embedding_size``                                  | network.                          |
+           6  | ``model.value_``    int         256                 | Linear layer size for value       | Defalut to None when
+              | ``embedding_size``                                  | network.                          | model.value_network
+              |                                                     |                                   | is False.
+           7  | ``learn.learning``  float       3e-4                | Learning rate for soft q          | Defalut to 1e-3, when
+              | ``_rate_q``                                         | network.                          | model.value_network
+              |                                                     |                                   | is True.
+           8  | ``learn.learning``  float       3e-4                | Learning rate for policy          | Defalut to 1e-3, when
+              | ``_rate_policy``                                    | network.                          | model.value_network
+              |                                                     |                                   | is True.
+           9  | ``learn.learning``  float       3e-4                | Learning rate for policy          | Defalut to None when
+              | ``_rate_value``                                     | network.                          | model.value_network
+              |                                                     |                                   | is False.
+           10 | ``learn.alpha``     float       0.2                 | Entropy regularization            | alpha is initiali-
+              |                                                     | coefficient.                      | zation for auto
+              |                                                     |                                   | `\alpha`, when
+              |                                                     |                                   | auto_alpha is True
+           11 | ``learn.repara_``   bool        True                | Determine whether to use          |
+              | ``meterization``                                    | reparameterization trick.         |
+           12 | ``learn.``          bool        False               | Determine whether to use          | Temperature parameter
+              | ``auto_alpha``                                      | auto temperature parameter        | determines the
+              |                                                     | `\alpha`.                         | relative importance
+              |                                                     |                                   | of the entropy term
+              |                                                     |                                   | against the reward.
+           13 | ``learn.-``         bool        False               | Determine whether to ignore       | Use ignore_done only
+              | ``ignore_done``                                     | done flag.                        | in halfcheetah env.
+           14 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation
+              | ``target_theta``                                    | target network.                   | factor in polyak aver
+              |                                                     |                                   | aging for target
+              |                                                     |                                   | networks.
+           == ====================  ========    ==================  =================================   =======================
        """
 
     config = dict(
@@ -163,8 +173,6 @@ class SACPolicy(Policy):
             # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # (float) The std of noise for exploration
-            noise_sigma=0.2,
         ),
         eval=dict(),
         other=dict(
@@ -419,16 +427,17 @@ class SACPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._adder = Adder(self._cuda, self._unroll_len)
         #TODO remove noise
-        self._collect_model = model_wrap(
-            self._model,
-            wrapper_name='action_noise',
-            noise_type='gauss',
-            noise_kwargs={
-                'mu': 0.0,
-                'sigma': self._cfg.collect.noise_sigma
-            },
-            noise_range=None
-        )
+        # self._collect_model = model_wrap(
+        #     self._model,
+        #     wrapper_name='action_noise',
+        #     noise_type='gauss',
+        #     noise_kwargs={
+        #         'mu': 0.0,
+        #         'sigma': self._cfg.collect.noise_sigma
+        #     },
+        #     noise_range=None
+        # )
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict) -> dict:
