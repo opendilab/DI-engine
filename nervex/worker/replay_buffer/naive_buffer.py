@@ -17,6 +17,8 @@ class NaiveReplayBuffer(IBuffer):
         ``sample``, ``push``, ``clear`` are all mutual to each other.
     Interface:
         start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
+    Property:
+        replay_buffer_size, push_count
     """
 
     config = dict(
