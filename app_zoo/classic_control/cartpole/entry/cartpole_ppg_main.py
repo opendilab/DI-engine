@@ -8,7 +8,7 @@ from nervex.config import compile_config
 from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import PPGPolicy
-from nervex.model import FCPPG
+from nervex.model import PPG
 from nervex.utils import set_pkg_seed, deep_merge_dicts
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config
 
@@ -38,7 +38,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
-    model = FCPPG(**cfg.policy.model)
+    model = PPG(**cfg.policy.model)
     policy = PPGPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)

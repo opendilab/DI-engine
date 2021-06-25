@@ -91,6 +91,10 @@ class VAC(nn.Module):
         else:
             self.actor = [self.actor_encoder, self.actor_head]
             self.critic = [self.critic_encoder, self.critic_head]
+        # for convenience of call some apis(such as: self.critic.parameters()), but may cause
+        # misunderstanding when print(self)
+        self.actor = nn.ModuleList(self.actor)
+        self.critic = nn.ModuleList(self.critic)
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
