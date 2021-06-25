@@ -1,6 +1,8 @@
 import pytest
 from easydict import EasyDict
-from nervex.worker.coordinator import OneVsOneCommander
+
+from nervex.config import compile_config_parallel
+from nervex.worker.coordinator.one_vs_one_parallel_commander import OneVsOneCommander
 
 
 
@@ -8,55 +10,102 @@ from nervex.worker.coordinator import OneVsOneCommander
 def setup_1v1commander():
     nstep = 1
     eval_interval = 5
-    __policy_default_config = dict(
-        use_cuda=False,
-        policy_type='dqn',
-        model=dict(
-            obs_dim=[4, 84, 84],
-            action_dim=3,
-            embedding_dim=64,
-            encoder_kwargs=dict(encoder_type='conv2d'),
+    main_config = dict(
+        env=dict(
+            collector_env_num=8,
+            collector_episode_num=2,
+            evaluator_env_num=5,
+            evaluator_episode_num=1,
+            stop_value=20,
+            opponent_type="builtin",  # opponent_type is only used in evaluator
+            env_id='cPongDouble-v0',
         ),
-        learn=dict(
-            batch_size=32,
-            learning_rate=0.0001,
-            weight_decay=0.,
-            algo=dict(
-                target_update_freq=500,
-                discount_factor=0.99,
-                nstep=nstep,
+        policy=dict(
+            cuda=False,
+            model=dict(
+                obs_shape=[4, 84, 84],
+                action_shape=3,
+                encoder_kwargs=dict(encoder_type='conv2d'),
+            ),
+            nstep=nstep,
+            learn=dict(
+                batch_size=32,
+                learning_rate=0.0001,
+                weight_decay=0.,
+                algo=dict(
+                    target_update_freq=500,
+                    discount_factor=0.99,
+                    nstep=nstep,
+                ),
+                learner=dict(
+                    learner_num=1,
+                    send_policy_freq=1,
+                ),
+            ),
+            collect=dict(
+                traj_len=15,
+                algo=dict(nstep=nstep),
+                collector=dict(
+                    collector_num=2,
+                    update_policy_second=3,
+                ),
+            ),
+            other=dict(
+                eps=dict(
+                    type='linear',
+                    start=1.,
+                    end=0.005,
+                    decay=1000000,
+                ),
+                commander=dict(
+                    collector_task_space=2,
+                    learner_task_space=1,
+                    eval_interval=eval_interval,
+                    league=dict(
+                        naive_sp_player=dict(
+                            one_phase_step=1000,
+                        ),
+                    ),
+                ),
+                replay_buffer=dict(),
             ),
         ),
-        collect=dict(
-            traj_len=15,
-            unroll_len=1,
-            algo=dict(nstep=nstep),
-        ),
-        other=dict(eps=dict(
-            type='linear',
-            start=1.,
-            end=0.005,
-            decay=1000000,
-        ), ),
     )
-    config = dict(
-        parallel_commander_type='one_vs_one',
-        collector_task_space=2,
-        learner_task_space=1,
-        max_iterations=int(1e9),
-        learner_cfg=dict(),
-        collector_cfg=dict(
-            env_kwargs=dict(eval_stop_value=20),
+    main_config = EasyDict(main_config)
+    create_config = dict(
+        env=dict(
+            import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
+            type='competitive_rl',
         ),
-        replay_buffer_cfg=dict(
-            replay_buffer_size=100000,
+        env_manager=dict(type='base'),
+        policy=dict(type='dqn_command'),
+        learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
+        collector=dict(
+            type='zergling',
+            import_names=['nervex.worker.collector.zergling_collector'],
         ),
-        policy=__policy_default_config,
-        
-        eval_interval=eval_interval,
-        league=dict(
-            league_type="one_vs_one",
+        commander=dict(
+            type='one_vs_one',
+            import_names=['nervex.worker.coordinator.one_vs_one_parallel_commander'],
         ),
+        comm_learner=dict(
+            type='flask_fs',
+            import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+        ),
+        comm_collector=dict(
+            type='flask_fs',
+            import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        ),
+        league=dict(type='one_vs_one'),
     )
-    config = EasyDict(config)
-    return OneVsOneCommander(config)
+    system_config = dict(
+        coordinator=dict(),
+        path_data='./data',
+        path_policy='./policy',
+        communication_mode='auto',
+        learner_gpu_num=1,
+    )
+    system_config = EasyDict(system_config)
+    create_config = EasyDict(create_config)
+    config = compile_config_parallel(main_config, create_cfg=create_config, system_cfg=system_config)
+    return OneVsOneCommander(config['main'])

@@ -20,7 +20,7 @@ class TestOneVsOnesetup_1v1commander:
         active_player = active_players[0]
         assert active_player.player_id == setup_1v1commander._active_player.player_id
         # policy
-        assert 'eps' in setup_1v1commander._policy.get_setting_collect({'learner_step': 100})
+        assert 'eps' in setup_1v1commander._policy.get_setting_collect({'learner_step': 100, 'envstep': 10000})
 
     def test_get_task(self, setup_1v1commander):
         # Must fist learner, then collector.
@@ -43,15 +43,15 @@ class TestOneVsOnesetup_1v1commander:
         evaluator_task_id = evaluator_task_info['task_id']
         assert evaluator_task_id.startswith('evaluator_task_'), evaluator_task_info['task_id']
         assert evaluator_task_info['collector_cfg'].eval_flag == True
-        env_kwargs = evaluator_task_info['collector_cfg'].env_kwargs
+        env_kwargs = evaluator_task_info['collector_cfg'].env
         assert env_kwargs.eval_opponent == setup_1v1commander._league.active_players[0]._eval_opponent_difficulty[0]
-        assert len(evaluator_task_info['policy']) == 1
+        assert len(evaluator_task_info['collector_cfg'].policy) == 1
 
         # Finish evaluator task, not reach stop value
         finished_task_dict = {
             'eval_flag': True,
             'game_result': [['losses', 'losses'], ['losses', 'draws']],
-            'policy_iter': 0,
+            'train_iter': 0,
             'real_episode_count': 4,
             'step_count': 4 * 120,
             'avg_time_per_episode': 1.89,
@@ -76,22 +76,30 @@ class TestOneVsOnesetup_1v1commander:
         policy_update_flag = collector_task_info['collector_cfg'].policy_update_flag
         assert policy_update_flag[0] == policy_update_flag[1] == True
         assert collector_task_info['collector_cfg'].eval_flag == False
-        assert len(collector_task_info['policy']) == 2
+        assert len(collector_task_info['collector_cfg'].policy) == 2
 
         # Finish collector_task
         finished_task_dict = {
             'eval_flag': False,
             'game_result': [['losses', 'losses'], ['losses', 'losses']],
+            'step_count': 400,
+            'train_iter': 20,
+            'real_episode_count': 8,
+            'avg_time_per_episode': 1.33,
+            'avg_time_per_step': 1.33 / 500,
+            'avg_step_per_episode': 50.,
+            'reward_mean': 11.,
+            'reward_std': 3.,
         }
         assert not setup_1v1commander.finish_collector_task(collector_task_id, finished_task_dict)
         assert setup_1v1commander._collector_task_space.cur == 0
 
-        # Get learner info
+        # Update learner info
         for i in range(0, 101, 10):
             learner_info = {
                 'learner_step': i,
             }
-            setup_1v1commander.get_learner_info(learner_info)
+            setup_1v1commander.update_learner_info('some_task_id', learner_info)
 
         # Get evaluator task; Finish evaluator task and reach stop value.
         time.sleep(5 + 0.1)
@@ -102,7 +110,7 @@ class TestOneVsOnesetup_1v1commander:
         finished_task_dict = {
             'eval_flag': True,
             'game_result': [['wins', 'wins'], ['wins', 'wins']],
-            'policy_iter': 100,
+            'train_iter': 100,
             'real_episode_count': 4,
             'step_count': 4 * 120,
             'avg_time_per_episode': 1.89,
@@ -126,7 +134,9 @@ class TestOneVsOnesetup_1v1commander:
     def test_notify(self, setup_1v1commander):
         _ = setup_1v1commander.get_learner_task()
         setup_1v1commander.notify_fail_learner_task({})
+        time.sleep(0.01)
         assert setup_1v1commander._learner_task_space.cur == 0
         _ = setup_1v1commander.get_collector_task()
         setup_1v1commander.notify_fail_collector_task({})
+        time.sleep(0.01)
         assert setup_1v1commander._collector_task_space.cur == 0

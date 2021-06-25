@@ -21,7 +21,7 @@ class OneVsOneCommander(BaseCommander):
         notify_fail_collector_task, notify_fail_learner_task, get_learner_info
     """
     config = dict(
-        collector_task_space=1,
+        collector_task_space=2,
         learner_task_space=1,
         eval_interval=60,
     )
@@ -98,7 +98,7 @@ class OneVsOneCommander(BaseCommander):
                 eval_flag = False
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             info = self._learner_info[-1]
-            info['env_step'] = self._total_collector_env_step
+            info['envstep'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
             eval_or_collect = "EVALUATOR" if eval_flag else "COLLECTOR"
             task_id = '{}_task_{}'.format(eval_or_collect.lower(), get_task_uid())
@@ -151,7 +151,7 @@ class OneVsOneCommander(BaseCommander):
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': self._cfg.replay_buffer_cfg,
+                'replay_buffer_cfg': self._cfg.policy.other.replay_buffer,
                 'policy': copy.deepcopy(self._cfg.policy),
                 # 'league_save_checkpoint_path': self._active_player.checkpoint_path,
             }
@@ -199,7 +199,7 @@ class OneVsOneCommander(BaseCommander):
                 'eval_win': eval_win,
             }
             difficulty_inc = self._league.update_active_player(player_update_info)
-            is_hardest = eval_win and difficulty_inc
+            is_hardest = eval_win and not difficulty_inc
             # Print log
             train_iter = finished_task['train_iter']
             info = {
@@ -225,6 +225,9 @@ class OneVsOneCommander(BaseCommander):
                 self._tb_logger.add_scalar('evaluator_step/' + k, v, self._total_collector_env_step)
             # If evaluator task ends, whether to stop training should be judged.
             eval_stop_value = self._cfg.env.stop_value
+            print('===', eval_stop_value)
+            print('===', finished_task['reward_mean'])
+            print('===', eval_win, difficulty_inc)
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
                     "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
@@ -237,7 +240,7 @@ class OneVsOneCommander(BaseCommander):
             self._total_collector_env_step += finished_task['step_count']
             # If collector task ends, league payoff should be updated.
             payoff_update_dict = {
-                'player_id': self._current_player_id.pop('task_id'),
+                'player_id': self._current_player_id.pop(task_id),
                 'result': finished_task['game_result'],
             }
             self._league.finish_job(payoff_update_dict)

@@ -173,7 +173,7 @@ class BaseLeague:
         try:
             idx = self.active_players_ids.index(player_info['player_id'])
             player = self.active_players[idx]
-            self._update_player(player, player_info)
+            return self._update_player(player, player_info)
         except ValueError as e:
             print(e)
 
