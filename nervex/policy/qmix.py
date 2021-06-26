@@ -69,6 +69,8 @@ class QMIXPolicy(Policy):
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
+            # (str)
+            target_update_type='momentum',
             # (float) Target network update momentum parameter.
             # in [0, 1].
             target_update_theta=0.008,

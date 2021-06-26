@@ -151,7 +151,7 @@ class BaseSerialEvaluator(object):
                         eval_monitor.update_reward(env_id, reward)
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
-                                env_id, reward, eval_monitor.get_current_episode()
+                                env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                             )
                         )
                     envstep_count += 1
@@ -225,6 +225,9 @@ class VectorEvalMonitor(object):
 
     def get_episode_reward(self) -> list:
         return sum([list(v) for v in self._reward.values()], [])  # sum(iterable, start)
+
+    def get_latest_reward(self, env_id: int) -> int:
+        return self._reward[env_id][-1]
 
     def get_current_episode(self) -> int:
         return sum([len(v) for v in self._reward.values()])

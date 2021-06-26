@@ -4,3 +4,4 @@ from .qac import QAC
 from .vac import VAC
 # algorithm-specific
 from .ppg import PPG
+from .qmix import Mixer, QMix, CollaQ

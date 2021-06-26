@@ -1,7 +1,7 @@
 import pytest
 import torch
 from nervex.torch_utils import is_differentiable
-from .qmix import Mixer, QMix, CollaQ
+from nervex.model.template.qmix import Mixer, QMix, CollaQ
 
 
 @pytest.mark.unittest
@@ -21,7 +21,7 @@ def test_qmix():
     use_mixer = [True, False]
     agent_num, bs, T = 4, 3, 8
     obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
-    embedding_dim = 32
+    embedding_dim = 64
     for mix in use_mixer:
         qmix_model = QMix(agent_num, obs_dim, global_obs_dim, action_dim, [128, embedding_dim], mix)
         data = {
@@ -52,7 +52,7 @@ def test_collaQ():
     obs_dim, obs_alone_dim, global_obs_dim, action_dim = 32, 24, 32 * 4, 9
     self_feature_range = [8, 10]
     allay_feature_range = [10, 16]
-    embedding_dim = 32
+    embedding_dim = 64
     for mix in use_mixer:
         collaQ_model = CollaQ(
             agent_num, obs_dim, obs_alone_dim, global_obs_dim, action_dim, [128, embedding_dim], True,

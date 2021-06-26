@@ -407,4 +407,4 @@ class CollaQPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For collaq, ``nervex.model.qmix.qmix``
         """
-        return 'collaq', ['nervex.model.qmix.qmix']
+        return 'collaq', ['nervex.model.template.qmix']

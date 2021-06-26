@@ -4,11 +4,11 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from nervex.model import FCRDiscreteNet, FCRGruNet
 from nervex.utils import list_split, squeeze, MODEL_REGISTRY
 from nervex.torch_utils.network.nn_module import fc_block, MLP
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
 from nervex.torch_utils import to_tensor, tensor_to_list
+from .q_learning import DRQN
 
 
 class Mixer(nn.Module):
@@ -135,10 +135,8 @@ class QMix(nn.Module):
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        if use_gru:
-            self._q_network = FCRGruNet(obs_shape, action_shape, hidden_size_list)
-        else:
-            self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
+        lstm_type = 'gru' if use_gru else 'normal'
+        self._q_network = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type)
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
@@ -333,7 +331,7 @@ class CollaQ(nn.Module):
         self._act = nn.ReLU()
         self.mixer = mixer
         if not self.attention:
-            self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
+            self._q_network = DRQN(obs_shape, action_shape, hidden_size_list)
         else:
             # TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
@@ -349,8 +347,8 @@ class CollaQ(nn.Module):
                 # )
                 torch.randn(1, 1, agent_num, obs_shape)
             ).shape[-1]
-            self._q_network = FCRDiscreteNet(obs_shape_after_attention, action_shape, hidden_size_list)
-        self._q_alone_network = FCRDiscreteNet(alone_obs_shape, action_shape, hidden_size_list)
+            self._q_network = DRQN(obs_shape_after_attention, action_shape, hidden_size_list)
+        self._q_alone_network = DRQN(alone_obs_shape, action_shape, hidden_size_list)
         embedding_size = hidden_size_list[-1]
         if self.mixer:
             self._mixer = Mixer(agent_num, embedding_size)
