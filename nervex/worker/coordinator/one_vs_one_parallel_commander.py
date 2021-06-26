@@ -1,11 +1,8 @@
 from sys import path
 from nervex.utils.default_helper import deep_merge_dicts
 import time
-import copy
 from typing import Optional, Union
-from collections import defaultdict
-from functools import partial
-import os
+import copy
 
 from nervex.utils import pretty_print
 from nervex.policy import create_policy
@@ -24,7 +21,7 @@ class OneVsOneCommander(BaseCommander):
         notify_fail_collector_task, notify_fail_learner_task, get_learner_info
     """
     config = dict(
-        collector_task_space=1,
+        collector_task_space=2,
         learner_task_space=1,
         eval_interval=60,
     )
@@ -101,10 +98,12 @@ class OneVsOneCommander(BaseCommander):
                 eval_flag = False
             collector_cfg = copy.deepcopy(self._cfg.policy.collect.collector)
             info = self._learner_info[-1]
-            info['env_step'] = self._total_collector_env_step
+            info['envstep'] = self._total_collector_env_step
             collector_cfg.collect_setting = self._policy.get_setting_collect(info)
-            task_id = 'collector_task_{}'.format(get_task_uid())
+            eval_or_collect = "EVALUATOR" if eval_flag else "COLLECTOR"
+            task_id = '{}_task_{}'.format(eval_or_collect.lower(), get_task_uid())
             league_job_dict = self._league.get_job_info(self._active_player.player_id, eval_flag)
+            # `self._current_player_id`: For eval, [id1, id2]; For collect, [id1].
             self._current_player_id[task_id] = league_job_dict['player_id']
             collector_cfg.policy_update_path = league_job_dict['checkpoint_path']
             collector_cfg.policy_update_flag = league_job_dict['player_active_flag']
@@ -121,15 +120,19 @@ class OneVsOneCommander(BaseCommander):
                 'buffer_id': self._current_buffer_id,
                 'collector_cfg': collector_cfg,
             }
-            # log_str = "EVALUATOR" if eval_flag else "COLLECTOR"
             # self._logger.info(
             #     "[{}] Task starts:\n{}".format(
-            #         log_str, '\n'.join(['{}: {}'.format(k, v) for k, v in collector_command.items()])
+            #         eval_or_collect, '\n'.join(
+            #             [
+            #                 '{}: {}'.format(k, v) for k, v in collector_command.items()
+            #                 if k not in ['collector_cfg', 'policy']
+            #             ]
+            #         )
             #     )
             # )
             return collector_command
         else:
-            # self._logger.info("[{}] Fails to start because of no launch space".format(log_str))
+            # self._logger.info("[{}] Fails to start because of no launch space".format(eval_or_collect.upper()))
             return None
 
     def get_learner_task(self) -> Optional[dict]:
@@ -148,9 +151,9 @@ class OneVsOneCommander(BaseCommander):
                 'policy_id': self._init_policy_id(),
                 'buffer_id': self._init_buffer_id(),
                 'learner_cfg': learner_cfg,
-                'replay_buffer_cfg': copy.deepcopy(self._cfg.policy.other.replay_buffer),
+                'replay_buffer_cfg': self._cfg.policy.other.replay_buffer,
                 'policy': copy.deepcopy(self._cfg.policy),
-                'league_save_checkpoint_path': os.path.join(self._path_policy, self._active_player.checkpoint_path),
+                # 'league_save_checkpoint_path': self._active_player.checkpoint_path,
             }
             # self._logger.info(
             #     "[LEARNER] Task starts:\n{}".format(
@@ -187,7 +190,7 @@ class OneVsOneCommander(BaseCommander):
             game_result = finished_task['game_result']
             for i in game_result:
                 for j in i:
-                    if j == "win":
+                    if j == "wins":
                         wins += 1
                     games += 1
             eval_win = True if wins / games > 0.7 else False
@@ -196,7 +199,7 @@ class OneVsOneCommander(BaseCommander):
                 'eval_win': eval_win,
             }
             difficulty_inc = self._league.update_active_player(player_update_info)
-            is_hardest = eval_win and difficulty_inc
+            is_hardest = eval_win and not difficulty_inc
             # Print log
             train_iter = finished_task['train_iter']
             info = {
@@ -222,6 +225,9 @@ class OneVsOneCommander(BaseCommander):
                 self._tb_logger.add_scalar('evaluator_step/' + k, v, self._total_collector_env_step)
             # If evaluator task ends, whether to stop training should be judged.
             eval_stop_value = self._cfg.env.stop_value
+            print('===', eval_stop_value)
+            print('===', finished_task['reward_mean'])
+            print('===', eval_win, difficulty_inc)
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
                     "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
@@ -234,7 +240,7 @@ class OneVsOneCommander(BaseCommander):
             self._total_collector_env_step += finished_task['step_count']
             # If collector task ends, league payoff should be updated.
             payoff_update_dict = {
-                'player_id': self._current_player_id.pop('task_id'),
+                'player_id': self._current_player_id.pop(task_id),
                 'result': finished_task['game_result'],
             }
             self._league.finish_job(payoff_update_dict)
@@ -342,7 +348,8 @@ class OneVsOneCommander(BaseCommander):
             - buffer_id (:obj:`str`): New initialized buffer id.
         """
         buffer_id = 'buffer_{}'.format(get_task_uid())
-        self._current_buffer_id = buffer_id
+        self._current_buffer_id = buffer_id  # todo(why policy 2, buffer 1)
+        # assert len(self._current_buffer_id) <= 2
         return buffer_id
 
     def increase_collector_task_space(self):

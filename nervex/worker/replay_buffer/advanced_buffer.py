@@ -17,10 +17,13 @@ class AdvancedReplayBuffer(IBuffer):
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
         This replay buffer adds:
             1) Prioritized experience replay implemented by segment tree.
-            2) Sampled data quality monitor. Monitor use count and staleness of each data.
+            2) Data quality monitor. Monitor use count and staleness of each data.
             3) Throughput monitor and control.
+            4) Logger. Log 2) and 3) in tensorboard or text.
     Interface:
         start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
+    Property:
+        beta, replay_buffer_size, push_count
     """
 
     config = dict(

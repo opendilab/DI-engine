@@ -112,6 +112,7 @@ class OneVsOneLeague(BaseLeague):
         if 'train_iteration' in player_info:
             # Update info from learner
             player.total_agent_step = player_info['train_iteration']
+            return False
         elif 'eval_win' in player_info:
             if player_info['eval_win']:
                 # Update info from evaluator
