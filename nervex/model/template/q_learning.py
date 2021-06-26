@@ -73,15 +73,15 @@ class C51DQN(nn.Module):
 class QRDQN(nn.Module):
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        head_hidden_size: int = 64,
-        head_layer_num: int = 1,
-        num_quantiles: int = 32,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: int = 64,
+            head_layer_num: int = 1,
+            num_quantiles: int = 32,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
     ) -> None:
         super(QRDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]

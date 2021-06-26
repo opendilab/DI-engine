@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from nervex.model import FCRDiscreteNet
+from nervex.model import FCRDiscreteNet, FCRGruNet
 from nervex.utils import list_split, squeeze, MODEL_REGISTRY
 from nervex.torch_utils.network.nn_module import fc_block, MLP
 from nervex.torch_utils.network.transformer import ScaledDotProductAttention
@@ -69,6 +69,50 @@ class Mixer(nn.Module):
         return hidden.squeeze(-1).squeeze(-1)
 
 
+class PMixer(nn.Module):
+
+    def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64):
+        super(PMixer, self).__init__()
+
+        self.n_agents = agent_num
+        self.state_dim = state_dim
+        self.embed_dim = mixing_embed_dim
+        self.hyper_w_1 = nn.Sequential(
+            nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(),
+            nn.Linear(hypernet_embed, self.embed_dim * self.n_agents)
+        )
+        self.hyper_w_final = nn.Sequential(
+            nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(), nn.Linear(hypernet_embed, self.embed_dim)
+        )
+
+        # State dependent bias for hidden layer
+        self.hyper_b_1 = nn.Linear(self.state_dim, self.embed_dim)
+
+        # V(s) instead of a bias for the last layers
+        self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim), nn.ReLU(), nn.Linear(self.embed_dim, 1))
+
+    def forward(self, agent_qs, states):
+        bs = agent_qs.size(0)
+        states = states.reshape(-1, self.state_dim)
+        agent_qs = agent_qs.view(-1, 1, self.n_agents)
+        # First layer
+        w1 = torch.abs(self.hyper_w_1(states))
+        b1 = self.hyper_b_1(states)
+        w1 = w1.view(-1, self.n_agents, self.embed_dim)
+        b1 = b1.view(-1, 1, self.embed_dim)
+        hidden = F.elu(torch.bmm(agent_qs, w1) + b1)
+        # Second layer
+        w_final = torch.abs(self.hyper_w_final(states))
+        w_final = w_final.view(-1, self.embed_dim, 1)
+        # State-dependent bias
+        v = self.V(states).view(-1, 1, 1)
+        # Compute final output
+        y = torch.bmm(hidden, w_final) + v
+        # Reshape and return
+        q_tot = y.view(bs, -1, 1)
+        return q_tot
+
+
 @MODEL_REGISTRY.register('qmix')
 class QMix(nn.Module):
     """
@@ -85,17 +129,27 @@ class QMix(nn.Module):
             global_obs_shape: int,
             action_shape: int,
             hidden_size_list: list,
-            mixer: bool = True
+            mixer: bool = True,
+            use_gru: bool = False,
+            use_pmixer: bool = False,
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
+        if use_gru:
+            self._q_network = FCRGruNet(obs_shape, action_shape, hidden_size_list)
+        else:
+            self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
-            self._mixer = Mixer(agent_num, embedding_size)
-            global_obs_shape = squeeze(global_obs_shape)
-            self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
+            # use pymarl mixer
+            if use_pmixer:
+                self._mixer = PMixer(agent_num, global_obs_shape, embedding_size)
+                self._global_state_encoder = nn.Sequential()
+            else:
+                self._mixer = Mixer(agent_num, embedding_size)
+                global_obs_shape = squeeze(global_obs_shape)
+                self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -169,7 +223,9 @@ class QMix(nn.Module):
 
 class CollaQMultiHeadAttention(nn.Module):
 
-    def __init__(self, n_head: int, d_model: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.):
+    def __init__(
+        self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
+    ):
         super(CollaQMultiHeadAttention, self).__init__()
 
         self.act = nn.ReLU()
@@ -178,9 +234,9 @@ class CollaQMultiHeadAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
 
-        self.w_qs = nn.Linear(d_model, n_head * d_k)
-        self.w_ks = nn.Linear(d_model, n_head * d_k)
-        self.w_vs = nn.Linear(d_model, n_head * d_v)
+        self.w_qs = nn.Linear(d_model_q, n_head * d_k)
+        self.w_ks = nn.Linear(d_model_v, n_head * d_k)
+        self.w_vs = nn.Linear(d_model_v, n_head * d_v)
 
         self.fc1 = fc_block(n_head * d_v, n_head * d_v, activation=self.act)
         self.fc2 = fc_block(n_head * d_v, d_out)
@@ -220,15 +276,12 @@ class CollaQMultiHeadAttention(nn.Module):
 class CollaQSMACAttentionModule(nn.Module):
 
     def __init__(
-        self, each_size: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
+        self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
     ):
         super(CollaQSMACAttentionModule, self).__init__()
-        self.each_size = each_size
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
-        self.attention_layer = CollaQMultiHeadAttention(
-            1, self.each_size, attention_size, attention_size, attention_size
-        )
+        self.attention_layer = CollaQMultiHeadAttention(1, q_dim, v_dim, attention_size, attention_size, attention_size)
 
     def _cut_obs(self, obs: torch.Tensor):
         # obs shape = (T, B, A, obs_shape)
@@ -282,16 +335,19 @@ class CollaQ(nn.Module):
         if not self.attention:
             self._q_network = FCRDiscreteNet(obs_shape, action_shape, hidden_size_list)
         else:
-            #TODO set the attention layer here beautifully
+            # TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
-                self_feature_range[1] - self_feature_range[0], self_feature_range, ally_feature_range, attention_size
+                self_feature_range[1] - self_feature_range[0],
+                (ally_feature_range[1] - ally_feature_range[0]) // (agent_num - 1), self_feature_range,
+                ally_feature_range, attention_size
             )
-            #TODO get the obs_shape_after_attention here beautifully
+            # TODO get the obs_dim_after_attention here beautifully
             obs_shape_after_attention = self._self_attention(
-                torch.randn(
-                    1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
-                    (self_feature_range[1] - self_feature_range[0]) + 1, obs_shape
-                )
+                # torch.randn(
+                #     1, 1, (ally_feature_range[1] - ally_feature_range[0]) //
+                #           ((self_feature_range[1] - self_feature_range[0])*2) + 1, obs_dim
+                # )
+                torch.randn(1, 1, agent_num, obs_shape)
             ).shape[-1]
             self._q_network = FCRDiscreteNet(obs_shape_after_attention, action_shape, hidden_size_list)
         self._q_alone_network = FCRDiscreteNet(alone_obs_shape, action_shape, hidden_size_list)
@@ -332,10 +388,9 @@ class CollaQ(nn.Module):
             - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
-        agent_state, agent_alone_state, agent_alone_padding_state, global_state, prev_state = data['obs'][
-            'agent_state'], data['obs']['agent_alone_state'], data['obs']['agent_alone_padding_state'], data['obs'][
-                'global_state'], data['prev_state']
-
+        agent_state, agent_alone_state = data['obs']['agent_state'], data['obs']['agent_alone_state']
+        agent_alone_padding_state = data['obs']['agent_alone_padding_state']
+        global_state, prev_state = data['obs']['global_state'], data['prev_state']
         # TODO find a better way to implement agent_along_padding_state
 
         action = data.get('action', None)
@@ -418,11 +473,19 @@ class CollaQ(nn.Module):
         agent_colla_q = agent_colla_q.reshape(T, B, A, -1)
 
         total_q_before_mix = agent_alone_q + agent_colla_q - agent_colla_alone_q
+        # total_q_before_mix = agent_colla_q
+        # total_q_before_mix = agent_alone_q
         agent_q = total_q_before_mix
 
         if action is None:
-            action = total_q_before_mix.argmax(dim=-1)
-        agent_q_act = torch.gather(total_q_before_mix, dim=-1, index=action.unsqueeze(-1))
+            # For target forward process
+            if len(data['obs']['action_mask'].shape) == 3:
+                action_mask = data['obs']['action_mask'].unsqueeze(0)
+            else:
+                action_mask = data['obs']['action_mask']
+            agent_q[action_mask == 0.0] = -9999999
+            action = agent_q.argmax(dim=-1)
+        agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         if self.mixer:
             global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding).reshape(T, B)

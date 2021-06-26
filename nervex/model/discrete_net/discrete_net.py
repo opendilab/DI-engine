@@ -347,6 +347,16 @@ FCRDiscreteNet = partial(
 )
 MODEL_REGISTRY.register('fcr_discrete_net', FCRDiscreteNet)
 
+FCRGruNet = partial(
+    DiscreteNet,
+    encoder_kwargs={'encoder_type': 'fc'},
+    lstm_kwargs={'lstm_type': 'gru'},
+    head_kwargs={
+        'head_type': 'base',
+    }
+)
+MODEL_REGISTRY.register('fcr_gru_net', FCRGruNet)
+
 ConvRDiscreteNet = partial(
     DiscreteNet,
     encoder_kwargs={'encoder_type': 'conv2d'},

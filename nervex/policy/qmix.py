@@ -4,8 +4,9 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
+from nervex.torch_utils import Adam, RMSprop, to_device
+from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder, \
+    v_1step_td_data_with_mask, v_1step_td_error_with_mask
 from nervex.model import model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
@@ -60,22 +61,26 @@ class QMIXPolicy(Policy):
             # (bool) Whether to use multi gpu
             multi_gpu=False,
             update_per_collect=20,
-            batch_size=64,
+            batch_size=32,
             learning_rate=0.0005,
-            weight_decay=0.0001,
+            clip_value=1.5,
+            # (str)
+            optimizer_type='rmsprop',
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
             # (float) Target network update momentum parameter.
             # in [0, 1].
-            target_update_theta=0.001,
+            target_update_theta=0.008,
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
+            # (bool)
+            mask_td_error=False,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=128,
+            # n_sample=32 * 16,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
@@ -91,12 +96,13 @@ class QMIXPolicy(Policy):
                 # (float) Start value for epsilon decay, in [0, 1].
                 end=0.05,
                 # (int) Decay length(env step)
-                decay=20000,
+                decay=50000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=5000,
                 # (int) The maximum reuse times of each data
-                max_reuse=10,
+                max_reuse=1e+9,
+                max_staleness=1e+9,
             ),
         ),
     )
@@ -119,27 +125,40 @@ class QMIXPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in QMIX"
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        if self._cfg.learn.optimizer_type == 'rmsprop':
+            self._optimizer = RMSprop(
+                params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
+            )
+        elif self._cfg.learn.optimizer_type == 'adam':
+            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.learn.discount_factor
 
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='momentum',
-            update_kwargs={'theta': self._cfg.learn.target_update_theta}
-        )
+        if self._cfg.learn.target_update_type == 'momentum':
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='momentum',
+                update_kwargs={'theta': self._cfg.learn.target_update_theta}
+            )
+        elif self._cfg.learn.target_update_type == 'assign':
+            self._target_model = model_wrap(
+                self._target_model,
+                wrapper_name='target',
+                update_type='assign',
+                update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -194,13 +213,33 @@ class QMIXPolicy(Policy):
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 
-        data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        with torch.no_grad():
+            if data['done'] is not None:
+                target_v = self._gamma * (1 - data['done']) * target_total_q + data['reward']
+            else:
+                target_v = self._gamma * target_total_q + data['reward']
+
+        if self._cfg.learn.mask_td_error:
+            mask = 1 - data['done']
+            T, B = mask.shape
+            for j in range(B):
+                for i in range(T):
+                    if mask[i, j] == 0:
+                        mask[i, j] = 1
+                        break
+            data = v_1step_td_data_with_mask(
+                total_q, target_total_q, data['reward'], data['done'], data['weight'], mask
+            )
+            loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
+        else:
+            data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+            loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
         # ====================
         # Q-mix update
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
         self._optimizer.step()
         # =============
         # after update
@@ -209,6 +248,10 @@ class QMIXPolicy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'total_q': total_q.mean().item() / self._cfg.model.agent_num,
+            'target_reward_total_q': target_v.mean().item() / self._cfg.model.agent_num,
+            'target_total_q': target_total_q.mean().item() / self._cfg.model.agent_num,
+            'grad_norm': grad_norm,
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -261,7 +304,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -333,7 +376,7 @@ class QMIXPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [None for _ in range(self._cfg.agent_num)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -391,4 +434,13 @@ class QMIXPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For QMIX, ``nervex.model.qmix.qmix``
         """
-        return 'qmix', ['nervex.model.qmix.qmix']
+        return 'qmix', ['nervex.model.template.qmix']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        return ['cur_lr', 'total_loss', 'total_q', 'target_total_q', 'grad_norm', 'target_reward_total_q']
