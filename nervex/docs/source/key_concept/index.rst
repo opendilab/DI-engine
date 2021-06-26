@@ -55,6 +55,11 @@ There are three types EnvManager in nerveX now:
   - SyncSubprocessEnvManager——parallel simulation for **low fluctuation environment**
   - AsyncSubprocessEnvManager——parallel simulation for **high fluctuation environment**
 
+The following demo graphs shows the detailed runtime logics between ``BaseEnvManager`` and ``SyncSubprocessEnvManager``:
+
+.. image::
+   images/env_manager_base_sync.png
+
 For the subprocess-type env manager, nerveX uses shared memory among different worker subprocesses to save the cost of IPC, and `pyarrow <https://github.com/apache/arrow>`_ will be a reliable alternative in the following version.
 
 .. note::
@@ -107,7 +112,7 @@ If you want to know about the detailed information of the pre-defined model wrap
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
 In practical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
-algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, nerveX has provided some common processing functions, which can be called a pure function. And the users can utilize these functions both in collect mode and in learning mode. 
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, nerveX has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learning mode. 
 
 For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
 training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is more wiser to offer some powerful and efficient tools rather
@@ -207,12 +212,12 @@ section.
 | policy.batch_size             | (int) the number of data for a      |
 |                               | train iteration                     |
 +-------------------------------+-------------------------------------+
-| policy.update\ *per*\ collect | (int) collect n\ *sample data,      |
-|                               | train model update*\ per_collect    |
+| policy.update_per_collect     | (int) collect n_sample data,        |
+|                               | train model update_per_collect      |
 |                               | times                               |
 +-------------------------------+-------------------------------------+
-| policy.n_sample               | (int) collect n\ *sample data,      |
-|                               | train model n*\ iteration times     |
+| policy.n_sample               | (int) collect n_sample data,        |
+|                               | train model update_per_collect times|
 +-------------------------------+-------------------------------------+
 | policy.nstep                  | (int) how many steps are used when  |
 |                               | calculating TD-error.               |
@@ -230,10 +235,10 @@ section.
 |                               | env.stop_value, the training will   |
 |                               | exits                               |
 +-------------------------------+-------------------------------------+
-| env.collector\ *env*\ num     | (int) number of env to collect data |
+| env.collector_env_num         | (int) number of env to collect data |
 |                               | when training                       |
 +-------------------------------+-------------------------------------+
-| env.evaluator\ *env*\ num     | (int) number of env to collect data |
+| env.evaluator_env_num         | (int) number of env to collect data |
 |                               | when evaluating                     |
 +-------------------------------+-------------------------------------+
 
