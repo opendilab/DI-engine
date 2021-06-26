@@ -380,7 +380,7 @@ class COMAPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For coma, ``nervex.model.coma.coma``
         """
-        return 'coma', ['nervex.model.coma.coma']
+        return 'coma', ['nervex.model.template.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
