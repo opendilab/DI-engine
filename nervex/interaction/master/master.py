@@ -16,19 +16,22 @@ from .connection import SlaveConnectionProxy, SlaveConnection, _ISlaveConnection
 from .task import TaskResultType
 from ..base import random_token, ControllableService, failure_response, success_response, get_host_ip, \
     get_http_engine_class
-from ..config import GLOBAL_HOST, DEFAULT_MASTER_PORT, DEFAULT_CHANNEL, MIN_HEARTBEAT_SPAN, DEFAULT_HEARTBEAT_SPAN, \
+from ..config import GLOBAL_HOST, DEFAULT_MASTER_PORT, DEFAULT_CHANNEL, MIN_HEARTBEAT_SPAN, \
     DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_CHECK_SPAN, DEFAULT_HEARTBEAT_CHECK_SPAN, DEFAULT_REQUEST_RETRIES, \
     DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import MasterErrorCode, get_master_exception_by_error
 
 
 class Master(ControllableService):
+    """
+    Overview:
+        Interaction master end
+    """
 
     def __init__(
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        heartbeat_span: Optional[float] = None,
         heartbeat_tolerance: Optional[float] = None,
         heartbeat_check_span: Optional[float] = None,
         request_retries: Optional[int] = None,
@@ -36,6 +39,26 @@ class Master(ControllableService):
         channel: Optional[int] = None,
         my_address: Optional[str] = None
     ):
+        """
+        Overview:
+            Constructor of Master
+        Arguments:
+            - host (:obj:`Optional[str]`): Host of the master server, based on flask (None means `0.0.0.0`)
+            - port (:obj:`Optional[int]`): Port of the master server, based on flask (None means `7235`)
+            - heartbeat_tolerance: (:obj:`Optional[float]`): Max time tolerance of the heartbeat missing (None means \
+                `15.0`, minimum is `0.2`, unit: second)
+            - heartbeat_check_span: (:obj:`Optional[float]`): Timespan between the heartbeat status check (None means \
+                `1.0`, minimum is `0.1`, unit: second)
+            - request_retries (:obj:`Optional[int]`): Max times for request retries (None means `5`)
+            - request_retry_waiting (:obj:`Optional[float]`): Sleep time before requests' retrying (None means `1.0`, \
+                unit: second)
+            - channel (:obj:`Optional[int]`): Channel id for the master client, please make sure that channel id is \
+                equal to the slave client's channel id, or the connection cannot be established. (None means `0`, \
+                but 0 channel is not recommended to be used in production)
+            - my_address (:obj:`Optional[str]`): The address of current server (None will grep local ip automatically, \
+                this address will be used when connect to slave, the slave's request will be send to this address, \
+                **so please make sure the address can be achieved by slave**)
+        """
         # server part
         self.__host = host or GLOBAL_HOST
         self.__port = port or DEFAULT_MASTER_PORT
@@ -43,7 +66,6 @@ class Master(ControllableService):
         self.__run_app_thread = Thread(target=self.__run_app, name='master_run_app')
 
         # heartbeat part
-        self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_tolerance = max(heartbeat_tolerance or DEFAULT_HEARTBEAT_TOLERANCE, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_check_span = max(
             heartbeat_check_span or DEFAULT_HEARTBEAT_CHECK_SPAN, MIN_HEARTBEAT_CHECK_SPAN
@@ -361,11 +383,24 @@ class Master(ControllableService):
     # public properties
     @property
     def my_address(self) -> str:
+        """
+        Overview:
+            Get my address property of current master client.
+        Returns:
+            - output (:obj:`str`): My address which can be used to establish connection from slave end to here.
+        """
         with self.__lock:
             return self.__my_address
 
     # public methods
     def ping(self) -> bool:
+        """
+        Overview:
+            Ping the current http server, check if it still run properly.
+        Returns:
+            - output (:obj:`bool`): The http server run properly or not. \
+                `True` means run properly, otherwise return `False`.
+        """
         with self.__lock:
             try:
                 self.__ping_once()
@@ -377,14 +412,45 @@ class Master(ControllableService):
     def new_connection(
             self, name: str, host: str, port: Optional[int] = None, https: bool = False
     ) -> SlaveConnectionProxy:
+        """
+        Overview:
+            Create a new connection object to slave end (but **the connection will be established immediately** \
+            before `connect` method in connection object is called).
+        Arguments:
+            - name (:obj:`str`): Name of the connection (this name is an unique label used in this master client)
+            - host (:obj:`str`): Host of the slave end
+            - port (:obj:`Optional[int]`): Port of the slave end (None means `7236`)
+            - https (:obj:`bool`): Use https to connect or not (Default is `False`)
+        Returns:
+            - output (:obj:`SlaveConnectionProxy`): A connection object represents the connection from here to the \
+                slave end. More actions can be operated by this connection object.
+        """
         with self.__lock:
             return self.__get_new_connection(name, host, port, https)
 
     def __contains__(self, name: str):
+        """
+        Overview:
+            Check if the active connection with the given name exist in this master client.
+            Only connections still alive can be found here.
+        Arguments:
+            - name (:obj:`str`): Name of the connection
+        Returns:
+            - output (:obj:`bool`): Whether connection with the given name exist.
+        """
         with self.__lock:
             return name in self.__slaves.keys()
 
     def __getitem__(self, name: str):
+        """
+        Overview:
+            Try get the active connection with the given name.
+            Only connections still alive can be found here.
+        Arguments:
+            - name (:obj:`str`): Name of the connection
+        Returns:
+            - output (:obj:`bool`): Connection object with the given name.
+        """
         with self.__lock:
             if name in self.__slaves.keys():
                 _token, _connection = self.__slaves[name]
@@ -393,6 +459,13 @@ class Master(ControllableService):
                 raise KeyError('Connection {name} not found.'.format(name=repr(name)))
 
     def __delitem__(self, name: str):
+        """
+        Overview:
+            Delete connection from this master client, and the deleted connection will be killed as well.
+            Only connections still alive can be found here.
+        Arguments:
+            - name (:obj:`str`): Name of the connection
+        """
         with self.__lock:
             if name in self.__slaves.keys():
                 _token, _connection = self.__slaves[name]
@@ -401,6 +474,15 @@ class Master(ControllableService):
                 raise KeyError('Connection {name} not found.'.format(name=repr(name)))
 
     def start(self):
+        """
+        Overview:
+            Start current master client
+            Here are the steps executed inside in order:
+                1. Start the result-processing thread
+                2. Start the heartbeat check thread
+                3. Start the http server thread
+                4. Wait until the http server is online (can be pinged)
+        """
         with self.__lock:
             self.__task_result_process_thread.start()
             self.__heartbeat_check_thread.start()
@@ -409,10 +491,24 @@ class Master(ControllableService):
             self.__ping_until_started()
 
     def shutdown(self):
+        """
+        Overview:
+            Shutdown current master client.
+            A shutdown request will be sent to the http server, and the shutdown signal will be apply into the \
+            threads, the server will be down soon (You can use `join` method to wait until that time).
+        """
         with self.__lock:
             self.__shutdown()
 
     def join(self):
+        """
+        Overview:
+            Wait until current slave client is down completely.
+            Here are the steps executed inside in order:
+                1. Wait until the http server thread down
+                2. Wait until the heartbeat check thread down
+                3. Wait until the result-processing thread down
+        """
         with self.__lock:
             self.__run_app_thread.join()
             self.__heartbeat_check_thread.join()
@@ -420,35 +516,138 @@ class Master(ControllableService):
 
     # inherit methods
     def _before_connect(self) -> Mapping[str, Any]:
+        """
+        Overview:
+            Behaviours executed before trying to establish connection, connection data is generated here as well.
+            Default behaviour is to do nothing and return `None`, you can reload this method to change its behaviour.
+            If exception raised in this method, the connection will be canceled.
+        Returns:
+            - output (:obj:`Mapping[str, Any]`): Connection data
+        """
         pass
 
     def _after_connect(
             self, status_code: int, success: bool, code: int, message: Optional[str], data: Optional[Mapping[str, Any]]
     ) -> Any:
+        """
+        Overview:
+            Behaviours executed after trying to establish connection.
+            Default behaviour is to do nothing and return `None`, you can reload this method to change its behaviour.
+        Arguments:
+            - status_code (:obj:`int`): Status code of the connection request
+            - success (:obj:`bool`): Connect success or not
+            - code (:obj:`int`): Error code of the connection (`0` means no error, \
+                other code can be found in `SlaveErrorCode`)
+            - message (:obj:`Optional[str]`): Connection message of the connection
+            - data (:obj:`Optional[Mapping[str, Any]]`): Connection data of the connection (returned by slave end)
+        Returns:
+            - output (:obj:`Any`): Any return data, \
+                this data will be returned in `connect` method in connection object.
+        """
         pass
 
-    def _error_connect(self, error: RequestException):
+    def _error_connect(self, error: RequestException) -> Any:
+        """
+        Overview:
+            Behaviours executed after web error occurred in connection request.
+            Default behaviour is to raise the `error` exception, you can reload this method to change its behaviour, \
+            such as return a proper value like `None`.
+        Arguments:
+            - error (:obj:`RequestException`): Error raised from requests
+        Returns:
+            - output (:obj:`Any`): Any data, this data will be returned in `connect` method in connection object
+        """
         raise error
 
     def _before_disconnect(self) -> Mapping[str, Any]:
+        """
+        Overview:
+            Behaviours executed before trying to end connection, disconnection data is generated here as well.
+            Default behaviour is to do nothing and return `None`, you can reload this method to change its behaviour.
+            If exception raised in this method, the disconnection will be canceled.
+        Returns:
+            - output (:obj:`Mapping[str, Any]`): Disconnection data
+        """
         pass
 
     def _after_disconnect(
             self, status_code: int, success: bool, code: int, message: Optional[str], data: Optional[Mapping[str, Any]]
     ) -> Any:
+        """
+        Overview:
+            Behaviours executed after trying to end connection.
+            Default behaviour is to do nothing and return `None`, you can reload this method to change its behaviour.
+        Arguments:
+            - status_code (:obj:`int`): Status code of the disconnection request
+            - success (:obj:`bool`): Disconnect success or not
+            - code (:obj:`int`): Error code of the disconnection (`0` means no error, \
+                other code can be found in `SlaveErrorCode`)
+            - message (:obj:`Optional[str]`): Disconnection message of the disconnection
+            - data (:obj:`Optional[Mapping[str, Any]]`): Disconnection data of the disconnection (returned by slave end)
+        Returns:
+            - output (:obj:`Any`): Any return data, \
+                this data will be returned in `disconnect` method in connection object.
+        """
         pass
 
     def _error_disconnect(self, error: RequestException):
+        """
+        Overview:
+            Behaviours executed after web error occurred in disconnection request.
+            Default behaviour is to raise the `error` exception, you can reload this method to change its behaviour, \
+            such as return a proper value like `None`.
+        Arguments:
+            - error (:obj:`RequestException`): Error raised from requests
+        Returns:
+            - output (:obj:`Any`): Any data, this data will be returned in `disconnect` method in connection object
+        """
         raise error
 
     # noinspection PyMethodMayBeStatic
     def _before_new_task(self, data: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:
+        """
+        Overview:
+            Behaviours executed before trying to create task.
+            Default behaviour is to do nothing and return the original task data, \
+            you can reload this method to change its behaviour, such as preprocess the task data.
+            If exception raised in this method, the task request will be canceled.
+        Arguments:
+            - data (:obj:`Optional[Mapping[str, Any]]`): Original task data
+        Returns:
+            - output (:obj:`Mapping[str, Any]`): Final task data, which will be send to slave end
+        """
         return data or {}
 
     def _after_new_task(
             self, status_code: int, success: bool, code: int, message: Optional[str], data: Optional[Mapping[str, Any]]
     ) -> Any:
+        """
+        Overview:
+            Behaviours executed after trying to create task.
+            Default behaviour is to do nothing and return `None`, \
+            you can reload this method to change its behaviour, such as return the new task data.
+        Arguments:
+            - status_code (:obj:`int`): Status code of the task request
+            - success (:obj:`bool`): Disconnect success or not
+            - code (:obj:`int`): Error code of the task request (`0` means no error, \
+                other code can be found in `SlaveErrorCode`)
+            - message (:obj:`Optional[str]`): Task message of the task request
+            - data (:obj:`Optional[Mapping[str, Any]]`): Task data of the task request (returned by slave end)
+        Returns:
+            - output (:obj:`Any`): Any return data, \
+                this data will be returned in `start` method in task object.
+        """
         pass
 
     def _error_new_task(self, error: RequestException):
+        """
+        Overview:
+            Behaviours executed after web error occurred in task request.
+            Default behaviour is to raise the `error` exception, you can reload this method to change its behaviour, \
+            such as return a proper value like `None`.
+        Arguments:
+            - error (:obj:`RequestException`): Error raised from requests
+        Returns:
+            - output (:obj:`Any`): Any data, this data will be returned in `start` method in task object
+        """
         raise error
