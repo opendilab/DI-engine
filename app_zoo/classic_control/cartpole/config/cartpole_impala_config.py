@@ -12,7 +12,7 @@ cartpole_impala_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            embedding_size=64,
+            encoder_hidden_size_list=[64, 64],
         ),
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times

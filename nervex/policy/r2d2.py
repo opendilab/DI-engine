@@ -270,7 +270,7 @@ class R2D2Policy(Policy):
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps)
+            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -342,7 +342,7 @@ class R2D2Policy(Policy):
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, data_id=data_id)
+            output = self._eval_model.forward(data, data_id=data_id, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

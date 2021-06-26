@@ -128,6 +128,7 @@ class QRDQN(nn.Module):
         return x
 
 
+@MODEL_REGISTRY.register('iqn')
 class IQN(nn.Module):
 
     def __init__(
@@ -257,10 +258,6 @@ class RainbowDQN(nn.Module):
         x = self.encoder(x)
         x = self.head(x)
         return x
-
-
-class SQN(nn.Module):
-    pass
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:

@@ -324,7 +324,7 @@ class ATOC(nn.Module):
             thought_size: int,
             n_agent: int,
             communication: bool = True,
-            group_init_freq: int = 5,
+            agent_per_group: int = 2,
             actor_1_embedding_size: Union[int, None] = None,
             actor_2_embedding_size: Union[int, None] = None,
             critic_head_hidden_size: int = 64,
@@ -342,7 +342,6 @@ class ATOC(nn.Module):
             - action_shape (:obj:`int`): the action space shape
             - n_agent (:obj:`int`): the num of agents
             - agent_per_group (:obj:`int`): the num of agent in each group
-            - group_init_freq (:obj:`int`): the time between group initiate
         """
         super(ATOC, self).__init__()
         self._communication = communication
@@ -353,7 +352,7 @@ class ATOC(nn.Module):
             action_shape,
             n_agent,
             communication,
-            group_init_freq,
+            agent_per_group,
             actor_1_embedding_size=actor_1_embedding_size,
             actor_2_embedding_size=actor_2_embedding_size
         )

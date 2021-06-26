@@ -17,6 +17,7 @@ pendulum_ddpg_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=False,
+            actor_head_type='regression',
         ),
         learn=dict(
             update_per_collect=2,

@@ -90,7 +90,7 @@ def test_iqn():
         assert False, "pipeline fail"
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_c51():
     config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -218,7 +218,7 @@ def test_qmix():
         os.popen('rm -rf log ckpt*')
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False

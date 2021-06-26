@@ -7,3 +7,4 @@ from .ppg import PPG
 from .qmix import Mixer, QMix, CollaQ
 from .coma import COMA
 from .atoc import ATOC
+from .sqn import SQN

@@ -371,5 +371,11 @@ class ATOCPolicy(Policy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         return [
-            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'attention_loss', 'total_loss', 'q_value',
+            'cur_lr_actor',
+            'cur_lr_critic',
+            'critic_loss',
+            'actor_loss',
+            'attention_loss',
+            'total_loss',
+            'q_value',
         ]

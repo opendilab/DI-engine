@@ -2,10 +2,11 @@ from typing import Union, Dict, Optional
 import torch
 import torch.nn as nn
 
-from nervex.utils import SequenceType, squeeze
+from nervex.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead
 
 
+@MODEL_REGISTRY.register('qac')
 class QAC(nn.Module):
     mode = ['compute_actor', 'compute_critic']
 
