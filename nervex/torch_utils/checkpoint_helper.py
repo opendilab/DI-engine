@@ -2,13 +2,14 @@
 Copyright 2020 Sensetime X-lab. All Rights Reserved
 
 Main Function:
-    1. checkpoint helper, used to help to save or load checkpoint by give args.
+    1. checkpoint helper, used to 
     2. CountVar, to help counting number.
 """
 import logging
 import signal
 import sys
 import traceback
+from typing import Callable
 
 import torch
 
@@ -21,43 +22,34 @@ def build_checkpoint_helper(cfg):
     r"""
     Overview:
         Use config to build checkpoint helper.
-
     Arguments:
         - cfg (:obj:`dict`): ckpt_helper config
-
     Returns:
         - (:obj:`CheckpointHelper`): checkpoint_helper created by this function
     """
     return CheckpointHelper()
 
 
-class CheckpointHelper(object):
+class CheckpointHelper:
     r"""
     Overview:
-        Concrete implementation of CheckpointHelper, to help to save or load checkpoint
-
+        Help to save or load checkpoint by give args.
     Interface:
-        __init__, save, load
+        save, load
     """
 
     def __init__(self):
-        r"""
-            Overview:
-                initialization method
-        """
         pass
 
-    def _remove_prefix(self, state_dict, prefix='module.'):
+    def _remove_prefix(self, state_dict: dict, prefix: str = 'module.') -> dict:
         r"""
         Overview:
-            remove prefix in state_dict
-
+            Remove prefix in state_dict
         Arguments:
             - state_dict (:obj:`dict`): model's state_dict
             - prefix (:obj:`str`): this prefix will be removed in keys
-
         Returns:
-            - (:obj:`dict`): new state_dict after removing prefix
+            - new_state_dict (:obj:`dict`): new state_dict after removing prefix
         """
         new_state_dict = {}
         for k, v in state_dict.items():
@@ -68,15 +60,13 @@ class CheckpointHelper(object):
             new_state_dict[new_k] = v
         return new_state_dict
 
-    def _add_prefix(self, state_dict, prefix='module.'):
+    def _add_prefix(self, state_dict: dict, prefix: str = 'module.') -> dict:
         r"""
         Overview:
-            add prefix in state_dict
-
+            Add prefix in state_dict
         Arguments:
             - state_dict (:obj:`dict`): model's state_dict
             - prefix (:obj:`str`): this prefix will be added in keys
-
         Returns:
             - (:obj:`dict`): new state_dict after adding prefix
         """
@@ -84,27 +74,27 @@ class CheckpointHelper(object):
 
     def save(
         self,
-        path,
-        model,
-        optimizer=None,
-        last_iter=None,
-        last_epoch=None,
-        last_frame=None,
-        dataset=None,
-        collector_info=None,
-        prefix_op=None,
-        prefix=None
-    ):
+        path: str,
+        model: torch.nn.Module,
+        optimizer: torch.optim.Optimizer = None,
+        last_iter: 'CountVar' = None,  # noqa
+        last_epoch: 'CountVar' = None,  # noqa
+        last_frame: 'CountVar'=None,  # noqa
+        dataset: torch.utils.data.Dataset = None,
+        collector_info: torch.nn.Module = None,
+        prefix_op: str = None,
+        prefix: str = None,
+    ) -> None:
         r"""
         Overview:
-            save checkpoint by given args
-
+            Save checkpoint by given args
         Arguments:
             - path (:obj:`str`): the path of saving checkpoint
             - model (:obj:`torch.nn.Module`): model to be saved
             - optimizer (:obj:`torch.optim.Optimizer`): optimizer obj
-            - last_iter (:obj:`CountVar`): iter num, default zero
-            - last_epoch (:obj:`CountVar`): epoch num, default zero
+            - last_iter (:obj:`CountVar`): iter num, default None
+            - last_epoch (:obj:`CountVar`): epoch num, default None
+            - last_frame (:obj:`CountVar`): frame num, default None
             - dataset (:obj:`torch.utils.data.Dataset`): dataset, should be replaydataset
             - collector_info (:obj:`torch.nn.Module`): attr of checkpoint, save collector info
             - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
@@ -136,12 +126,10 @@ class CheckpointHelper(object):
         save_file(path, checkpoint)
         logger.info('save checkpoint in {}'.format(path))
 
-    def _load_matched_model_state_dict(self, model, ckpt_state_dict):
+    def _load_matched_model_state_dict(self, model: torch.nn.Module, ckpt_state_dict: dict) -> None:
         r"""
         Overview:
-            load matched model state_dict, and show mismatch keys between
-            model's state_dict and checkpoint's state_dict
-
+            Load matched model state_dict, and show mismatch keys between model's state_dict and checkpoint's state_dict
         Arguments:
             - model (:obj:`torch.nn.Module`): model
             - ckpt_state_dict (:obj:`dict`): checkpoint's state_dict
@@ -174,41 +162,43 @@ class CheckpointHelper(object):
 
     def load(
         self,
-        load_path,
-        model,
-        optimizer=None,
-        last_frame=None,
-        last_iter=None,
-        last_epoch=None,
-        lr_schduler=None,
-        dataset=None,
-        collector_info=None,
-        prefix_op=None,
-        prefix=None,
-        strict=True,
-        logger_prefix='',
-        state_dict_mask=[],
+        load_path: str,
+        model: torch.nn.Module,
+        optimizer: torch.optim.Optimizer = None,
+        last_iter: 'CountVar' = None,  # noqa
+        last_epoch: 'CountVar' = None,  # noqa
+        last_frame: 'CountVar' = None,  # noqa
+        lr_schduler: 'Scheduler' = None,  # noqa
+        dataset: torch.utils.data.Dataset = None,
+        collector_info: torch.nn.Module = None,
+        prefix_op: str = None,
+        prefix: str = None,
+        strict: bool = True,
+        logger_prefix: str = '',
+        state_dict_mask: list = [],
     ):
         r"""
-        Overview: load checkpoint by given path
-
+        Overview:
+            Load checkpoint by given path
         Arguments:
             - load_path (:obj:`str`): checkpoint's path
             - model (:obj:`torch.nn.Module`): model definition
-            - optimizer (:obj:`Optimizer`): optimizer obj
-            - last_iter (:obj:`CountVar`): iter num, default zero
-            - last_epoch (:obj:`CountVar`): epoch num, default zero
+            - optimizer (:obj:`torch.optim.Optimizer`): optimizer obj
+            - last_iter (:obj:`CountVar`): iter num, default None
+            - last_epoch (:obj:`CountVar`): epoch num, default None
+            - last_frame (:obj:`CountVar`): frame num, default None
             - lr_schduler (:obj:`Schduler`): lr_schduler obj
-            - dataset (:obj:`Dataset`): dataset, should be replaydataset
+            - dataset (:obj:`torch.utils.data.Dataset`): dataset, should be replaydataset
             - collector_info (:obj:`torch.nn.Module`): attr of checkpoint, save collector info
             - prefix_op (:obj:`str`): should be ['remove', 'add'], process on state_dict
             - prefix (:obj:`str`): prefix to be processed on state_dict
             - strict (:obj:`bool`): args of model.load_state_dict
             - logger_prefix (:obj:`str`): prefix of logger
-            - state_dict_mask (:obj:`list`): a list contains state_dict keys,
+            - state_dict_mask (:obj:`list`): A list containing state_dict keys, \
                 which shouldn't be loaded into model(after prefix op)
-        Note:
-            the checkpoint loaded from load_path is a dict, whose format is like '{'state_dict': OrderedDict(), ...}'
+        ..note:
+
+            The checkpoint loaded from load_path is a dict, whose format is like '{'state_dict': OrderedDict(), ...}'
         """
         # TODO save config
         # Note: for reduce first GPU memory cost and compatible for cpu env
@@ -273,58 +263,46 @@ class CheckpointHelper(object):
 class CountVar(object):
     r"""
     Overview:
-        var counter
-
+        Number counter
     Interface:
-        __init__, val, update, add
+        val, update, add
     """
 
-    def __init__(self, init_val):
-        r"""
-        Overview:
-            init the var counter
-
-        Arguments:
-            - init_val (:obj:`int`): the initial value of the counter
-        """
+    def __init__(self, init_val: int) -> None:
         self._val = init_val
 
     @property
-    def val(self):
+    def val(self) -> int:
         return self._val
 
-    def update(self, val):
+    def update(self, val: int) -> None:
         r"""
         Overview:
-            update the var counter
-
+            Update the var counter
         Arguments:
             - val (:obj:`int`): the update value of the counter
         """
         self._val = val
 
-    def add(self, add_num):
+    def add(self, add_num: int):
         r"""
         Overview:
-            add the var counter
-
+            Add the number to counter
         Arguments:
             - add_num (:obj:`int`): the number added to the counter
         """
         self._val += add_num
 
 
-def auto_checkpoint(func):
+def auto_checkpoint(func: Callable) -> Callable:
     r"""
     Overview:
         Create a wrapper to wrap function, and the wrapper will call the save_checkpoint method
         whenever an exception happens.
-
     Arguments:
-        - func(:obj:`function`): the function to be wraped
-
+        - func(:obj:`Callable`): the function to be wrapped
     Returns:
-        - wrapper (:obj:`function`): the wrapper that can wrap function
+        - wrapper (:obj:`Callable`): the wrapped function
     """
     dead_signals = ['SIGILL', 'SIGINT', 'SIGKILL', 'SIGQUIT', 'SIGSEGV', 'SIGSTOP', 'SIGTERM', 'SIGBUS']
     all_signals = dead_signals + ['SIGUSR1']
