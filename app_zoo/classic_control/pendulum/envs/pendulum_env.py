@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Union, Optional
 import gym
 import torch
 import numpy as np
@@ -17,10 +17,15 @@ class PendulumEnv(BaseEnv):
         self._act_scale = cfg.act_scale
         self._env = gym.make('Pendulum-v0')
         self._init_flag = False
+        self._replay_path = None
 
     def reset(self) -> torch.Tensor:
         if not self._init_flag:
             self._env = gym.make('Pendulum-v0')
+            if self._replay_path is not None:
+                self._env = gym.wrappers.Monitor(
+                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -88,3 +93,8 @@ class PendulumEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "nerveX Pendulum Env({})".format(self._cfg.env_id)
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path

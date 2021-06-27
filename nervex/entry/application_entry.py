@@ -47,10 +47,12 @@ def eval(
         env_fn, _, evaluator_env_cfg = env_setting
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     evaluator_env.seed(seed, dynamic_seed=False)
+    if cfg.env.get('replay_path', None):
+        evaluator_env.enable_save_replay(cfg.env.replay_path)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
     if state_dict is None:
-        state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
+        state_dict = torch.load(cfg.policy.learn.learner.load_path, map_location='cpu')
     policy.eval_mode.load_state_dict(state_dict)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode)
 
