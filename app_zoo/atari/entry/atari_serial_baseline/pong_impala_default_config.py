@@ -28,7 +28,6 @@ pong_impala_default_config = dict(
             train_iteration=4,
             batch_size=32,
             learning_rate=0.0001,
-            weight_decay=0.0001,
             grad_clip_type='clip_norm',
             clip_value=0.5,
             unroll_len=64,

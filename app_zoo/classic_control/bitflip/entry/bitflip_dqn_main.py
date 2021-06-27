@@ -8,10 +8,10 @@ from nervex.config import compile_config
 from nervex.worker import BaseLearner, EpisodeCollector, BaseSerialEvaluator, EpisodeReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
-from nervex.model import FCDiscreteNet
+from nervex.model import DQN
 from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
-from nervex.reward_model import HerModel
+from nervex.reward_model import HerRewardModel
 from app_zoo.classic_control.bitflip.envs import BitFlipEnv
 from app_zoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
@@ -41,7 +41,7 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = FCDiscreteNet(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
@@ -56,7 +56,7 @@ def main(cfg, seed=0):
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
     her_cfg = cfg.policy.other.get('her', None)
     if her_cfg is not None:
-        her_model = HerModel(her_cfg, cfg.policy.cuda)
+        her_model = HerRewardModel(her_cfg, cfg.policy.cuda)
 
     # Training & Evaluation loop
     while True:

@@ -4,6 +4,7 @@ from collections import namedtuple
 from operator import attrgetter
 
 import numpy as np
+from easydict import EasyDict
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env
 from pysc2.lib import protocol
@@ -12,7 +13,7 @@ from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
 from nervex.envs import BaseEnv
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
+from nervex.utils import ENV_REGISTRY, deep_merge_dicts
 
 from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
@@ -31,6 +32,7 @@ OPPONENT_AGENT = "opponent"
 SUPPORT_MAPS = [
     "SMAC_Maps_two_player/3s5z.SC2Map",
     "SMAC_Maps_two_player/3m.SC2Map",
+    "GBU_Maps/infestor_viper.sc2map",
 ]
 
 FORCE_RESTART_INTERVAL = 50000
@@ -52,28 +54,40 @@ class SMACEnv(SC2Env, BaseEnv):
 
     SMACTimestep = namedtuple('SMACTimestep', ['obs', 'reward', 'done', 'info', 'episode_steps'])
     SMACEnvInfo = namedtuple('SMACEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'episode_limit'])
+    config = dict(
+        two_player=False,
+        mirror_opponent=False,
+        reward_type="original",
+        save_replay_episodes=None,
+        difficulty=7,
+        reward_death_value=10,
+        reward_win=200,
+        obs_alone=False,
+        game_steps_per_episode=None,
+        reward_only_positive=True,
+    )
 
     def __init__(
         self,
-        cfg=None,
-        two_player=False,
-        map_name='3s5z',
-        mirror_opponent=True,
-        reward_type="original",
-        save_replay_episodes=None
+        cfg,
     ):
-
-        assert (save_replay_episodes is None) or isinstance(
-            save_replay_episodes, int
+        cfg = deep_merge_dicts(EasyDict(self.config), cfg)
+        self.cfg = cfg
+        self.save_replay_episodes = cfg.save_replay_episodes
+        assert (self.save_replay_episodes is None) or isinstance(
+            self.save_replay_episodes, int
         )  # Denote the number of replays to save
-        if cfg is not None:
-            map_name = cfg.map_name
-        self.save_replay_episodes = save_replay_episodes
+        self.two_player = cfg.two_player
+        self.difficulty = cfg.difficulty
+        self.obs_alone = cfg.obs_alone
+        self.game_steps_per_episode = cfg.game_steps_per_episode
 
-        self.two_player = two_player
+        map_name = cfg.map_name
         assert map_name is not None
         map_params = get_map_params(map_name)
-        self.difficulty = 7
+        self.reward_only_positive = cfg.reward_only_positive
+        self.difficulty = cfg.difficulty
+        self.obs_alone=cfg.obs_alone
         self.players, self.num_players = self._get_players(
             "agent_vs_agent" if self.two_player else "game_vs_bot",
             player1_race=map_params["a_race"],
@@ -92,11 +106,11 @@ class SMACEnv(SC2Env, BaseEnv):
         self.shield_bits_enemy = 1 if self._bot_race == "P" else 0
         self.unit_type_bits = map_params["unit_type_bits"]
         self.map_type = map_params["map_type"]
+
         self.agents = {}
         self.enemies = {}
         self._episode_count = 0
         self._episode_steps = 0
-
         self._total_steps = 0
         self._next_reset_steps = FORCE_RESTART_INTERVAL
 
@@ -112,10 +126,12 @@ class SMACEnv(SC2Env, BaseEnv):
         self.hydralisk_id = self.zergling_id = self.baneling_id = 0
         self.stalker_id = self.colossus_id = self.zealot_id = 0
 
-        self.reward_death_value = 10
-        self.reward_win = 200
+        # reward
+        self.reward_death_value = cfg.reward_death_value
+        self.reward_win = cfg.reward_win
         self.reward_defeat = 0
         self.reward_negative_scale = 0.5
+        self.reward_type = cfg.reward_type
         self.max_reward = (self.n_enemies * self.reward_death_value + self.reward_win)
         self.obs_pathing_grid = False
         self.obs_own_health = True
@@ -133,13 +149,13 @@ class SMACEnv(SC2Env, BaseEnv):
         self._move_amount = 2
         self.continuing_episode = False
 
-        self._launch_env_flag = True
         self._seed = None
+        self._launch_env_flag = True
         self.just_force_restarts = False
 
         # Set to false if you need structured observation / state
         self.flatten_observation = True
-        self.mirror_opponent = mirror_opponent
+        self.mirror_opponent = cfg.mirror_opponent
         if self.mirror_opponent:
             self.flatten_observation = False
 
@@ -158,13 +174,11 @@ class SMACEnv(SC2Env, BaseEnv):
         self.previous_ally_units = None
         self.previous_enemy_units = None
 
-        # self._episode_count = 0
-        # self._episode_step = 0
-
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
-        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, reward_type)
+        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, self.reward_type, self.max_reward,
+                                        reward_only_positive=self.reward_only_positive)
 
-    def seed(self, seed):
+    def seed(self, seed, dynamic_seed=False):
         self._seed = seed
 
     def _create_join(self):
@@ -180,6 +194,7 @@ class SMACEnv(SC2Env, BaseEnv):
     def _get_players(self, game_type, player1_race, player2_race):
         if game_type == 'game_vs_bot':
             agent_num = 1
+            print('difficulty', self.difficulty)
             players = [sc2_env.Agent(races[player1_race]), sc2_env.Bot(races[player2_race], self.difficulty)]
         elif game_type == 'agent_vs_agent':
             agent_num = 2
@@ -190,7 +205,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def _launch(self):
 
-        print("*****LAUNCH*****")
+        print("*****LAUNCH FUNCTION CALLED*****")
 
         agent_interface_format = sc2_env.parse_agent_interface_format()  # Use all default setting
 
@@ -208,7 +223,7 @@ class SMACEnv(SC2Env, BaseEnv):
             save_replay_episodes=self.save_replay_episodes,
             replay_dir=None if self.save_replay_episodes is None else ".",
             replay_prefix=None,
-            game_steps_per_episode=None,
+            game_steps_per_episode=self.game_steps_per_episode,
             score_index=None,
             score_multiplier=None,
             random_seed=self._seed,
@@ -242,7 +257,7 @@ class SMACEnv(SC2Env, BaseEnv):
                     d_pb.DebugCommand(
                         kill_unit=d_pb.DebugKillUnit(
                             tag=[unit.tag for unit in self.agents.values() if unit.health > 0] +
-                            [unit.tag for unit in self.enemies.values() if unit.health > 0]
+                                [unit.tag for unit in self.enemies.values() if unit.health > 0]
                         )
                     )
                 )
@@ -267,6 +282,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def reset(self):
         self._episode_steps = 0
+        self._final_eval_fake_reward = 0.
         old_unit_tags = set(u.tag for u in self.agents.values()).union(set(u.tag for u in self.enemies.values()))
 
         if self.just_force_restarts:
@@ -275,6 +291,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if self._launch_env_flag:
             # Launch StarCraft II
+            print("*************LAUNCH TOTAL GAME********************")
             self._launch()
             self._launch_env_flag = False
         elif (self._total_steps > self._next_reset_steps) or (self.save_replay_episodes is not None):
@@ -291,7 +308,6 @@ class SMACEnv(SC2Env, BaseEnv):
         self.defeat_counted = False
 
         self.action_helper.reset()
-        self.reward_helper.reset()
 
         self.previous_ally_units = None
         self.previous_enemy_units = None
@@ -299,22 +315,41 @@ class SMACEnv(SC2Env, BaseEnv):
         # if self.heuristic_ai:
         #     self.heuristic_targets = [None] * self.n_agents
 
-        try:
+        count = 0
+        while count <= 5:
             self._update_obs()
-            self.init_units(old_unit_tags)
-        except (protocol.ProtocolError, protocol.ConnectionError) as e:
-            print("Error happen in reset. Error: ", e)
-            self.full_restart()
+            #print("INTERNAL INIT UNIT BEGIN")
+            init_flag = self.init_units(old_unit_tags)
+            #print("INTERNAL INIT UNIT OVER", init_flag)
+            count += 1
+            if init_flag:
+                break
+            else:
+                old_unit_tags = set()
+        if count >= 5:
+            raise RuntimeError("reset 5 times error")
+
+        self.reward_helper.reset(self.max_reward)
 
         assert all(u.health > 0 for u in self.agents.values())
         assert all(u.health > 0 for u in self.enemies.values())
 
         if not self.two_player:
-            return {
-                'agent_state': self.get_obs(),
-                'global_state': self.get_state(),
-                'action_mask': self.get_avail_actions()
-            }
+            if self.obs_alone:
+                agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
+                return {
+                    'agent_state': agent_state,
+                    'agent_alone_state': agent_alone_state,
+                    'agent_alone_padding_state': agent_alone_padding_state,
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
+            else:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
 
         return {
             'agent_state': {
@@ -373,6 +408,7 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def step(self, actions, force_return_two_player=False):
         processed_actions = self.action_helper.get_action(actions, self)
+        # self._submit_actions(processed_actions)
         try:
             # print("Submitting actions: ", actions)
             self._submit_actions(processed_actions)
@@ -391,15 +427,29 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if (not self.two_player) and (not force_return_two_player):
             rewards, terminates, new_infos = rewards[ORIGINAL_AGENT], terminates[ORIGINAL_AGENT], infos[ORIGINAL_AGENT]
+            self._final_eval_fake_reward += rewards
             new_infos["battle_lost"] = infos[OPPONENT_AGENT]["battle_won"]
             new_infos["draw"] = infos["draw"]
             new_infos['final_eval_reward'] = infos['final_eval_reward']
+            if 'episode_info' in infos:
+                new_infos['episode_info'] = infos['episode_info']
+            new_infos['fake_final_eval_reward'] = infos['fake_final_eval_reward']
             infos = new_infos
-            obs = {
-                'agent_state': self.get_obs(),
-                'global_state': self.get_state(),
-                'action_mask': self.get_avail_actions()
-            }
+            if self.obs_alone:
+                agent_state, agent_alone_state, agent_alone_padding_state = self.get_obs()
+                obs = {
+                    'agent_state': agent_state,
+                    'agent_alone_state': agent_alone_state,
+                    'agent_alone_padding_state': agent_alone_padding_state,
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
+            else:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions()
+                }
         else:
             raise NotImplementedError
 
@@ -420,7 +470,8 @@ class SMACEnv(SC2Env, BaseEnv):
         for k in reward:
             reward[k] = np.array(reward[k]).astype(np.float32)
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.}
+        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.,
+                'fake_final_eval_reward': 0.}
 
         if game_end_code is not None:
             # Battle is over
@@ -446,17 +497,33 @@ class SMACEnv(SC2Env, BaseEnv):
                 info[OPPONENT_AGENT]["episode_limit"] = True
             self.battles_game += 1
             self.timeouts += 1
+            # info['final_eval_reward'] = -0.5
 
-            if sum(u.health + u.shield for u in self.agents.values()) >= \
-                    sum(u.health + u.shield for u in self.enemies.values()):
-                reward[ORIGINAL_AGENT] += 1
-                reward[OPPONENT_AGENT] += -1
-            else:
-                reward[ORIGINAL_AGENT] += -1
-                reward[OPPONENT_AGENT] += 1
+            # if sum(u.health + u.shield for u in self.agents.values()) >= \
+            #         sum(u.health + u.shield for u in self.enemies.values()):
+            #     # lj fix
+            #     reward[ORIGINAL_AGENT] += 1
+            #     reward[OPPONENT_AGENT] += -1
+            # else:
+            #     reward[ORIGINAL_AGENT] += -1
+            #     reward[OPPONENT_AGENT] += 1
 
         if terminated:
             self._episode_count += 1
+            # 1-dim to 0-dim
+            # count units that are still alive
+            dead_allies, dead_enemies = 0, 0
+            for al_id, al_unit in self.agents.items():
+                if al_unit.health == 0:
+                    dead_allies += 1
+            for e_id, e_unit in self.enemies.items():
+                if e_unit.health == 0:
+                    dead_enemies += 1
+
+            info['episode_info'] = {'final_eval_fake_reward': self._final_eval_fake_reward[0],
+                                    'dead_allies': dead_allies,
+                                    'dead_enemies': dead_enemies}
+            self._final_eval_fake_reward = 0.
 
         # PZH: Zero at first step
         if self._episode_steps == 1:
@@ -467,15 +534,15 @@ class SMACEnv(SC2Env, BaseEnv):
 
         # Test purpose
         # reward = {k: 0 * v + 100 for k, v in reward.items()}
-
+        info['fake_final_eval_reward'] = reward[ORIGINAL_AGENT]
         return reward, {ORIGINAL_AGENT: terminated, OPPONENT_AGENT: terminated, "__all__": terminated}, info
 
     def close(self):
         SC2Env.close(self)
 
     def init_units(self, old_unit_tags):
-
-        while True:
+        count = 0
+        while count < 10:
             # Sometimes not all units have yet been created by SC2
             self.agents = {}
             self.enemies = {}
@@ -493,11 +560,12 @@ class SMACEnv(SC2Env, BaseEnv):
             for i in range(len(ally_units_sorted)):
                 self.agents[i] = ally_units_sorted[i]
 
+            self.max_reward = self.n_enemies * self.reward_death_value + self.reward_win
             for unit in self._obs.observation.raw_data.units:
                 if (unit.owner == 2) and (unit.tag not in old_unit_tags):
                     self.enemies[len(self.enemies)] = unit
-                    if self._episode_count == 0:
-                        self.max_reward += unit.health_max + unit.shield_max
+                    # if self._episode_count == 0:
+                    self.max_reward += unit.health_max + unit.shield_max
 
             all_agents_created = (len(self.agents) == self.n_agents)
             all_enemies_created = (len(self.enemies) == self.n_enemies)
@@ -512,16 +580,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     min_unit_type_opponent = min(unit.unit_type for unit in self.enemies.values())
                     self._init_ally_unit_types(min_unit_type)
                     self._init_enemy_unit_types(min_unit_type_opponent)
-                break
+                return True
+            else:
+                print("***ALL GOOD FAIL***", all_agents_created, all_enemies_created, all_agents_health, all_enemies_health, len(self._obs.observation.raw_data.units))
+                print((len(self.agents) == self.n_agents), (len(self.enemies) == self.n_enemies), len(self.agents), self.n_agents, len(self.enemies), self.n_enemies)
+                self._restart_episode()
+                count += 1
 
             try:
                 self._parallel.run((c.step, 1) for c in self._controllers)
                 self._update_obs()
 
-            except (protocol.ProtocolError, protocol.ConnectionError):
-                print("Error happen in init_units.")
+            except (protocol.ProtocolError, protocol.ConnectionError) as e:
+                print("Error happen in init_units.", e)
                 self.full_restart()
-                self.reset()
+                return False
+        if count >= 10:
+            self.full_restart()
+            return False
 
     def _init_enemy_unit_types(self, min_unit_type_opponent):
         """Initialise ally unit types. Should be called once from the
@@ -571,7 +647,13 @@ class SMACEnv(SC2Env, BaseEnv):
             return unit.unit_type - self._min_unit_type_opponent
         else:
             if ally:  # use new SC2 unit types
-                type_id = unit.unit_type - self._min_unit_type
+                if self.map_type == "infestor_viper":
+                    if unit.unit_type == 393:
+                        type_id = 0
+                    else:
+                        type_id = 1
+                else:
+                    type_id = unit.unit_type - self._min_unit_type
             else:  # use default SC2 unit types
                 if self.map_type == "stalkers_and_zealots":
                     # id(Stalker) = 74, id(Zealot) = 73
@@ -596,6 +678,11 @@ class SMACEnv(SC2Env, BaseEnv):
                         type_id = 1
                     else:
                         type_id = 2
+                elif self.map_type == "infestor_viper":
+                    if unit.unit_type == 393:
+                        type_id = 0
+                    else:
+                        type_id = 1
                 else:
                     raise ValueError()
             return type_id
@@ -680,7 +767,13 @@ class SMACEnv(SC2Env, BaseEnv):
 
         if not self.flatten_observation:
             agents_obs_list = self._flatten_obs(agents_obs_list)
-        return np.array(agents_obs_list).astype(np.float32)
+        if self.obs_alone:
+            agents_obs_list, agents_obs_alone_list, agents_obs_alone_padding_list = list(zip(*agents_obs_list))
+            return np.array(agents_obs_list).astype(np.float32), np.array(agents_obs_alone_list).astype(
+                np.float32
+            ), np.array(agents_obs_alone_padding_list).astype(np.float32)
+        else:
+            return np.array(agents_obs_list).astype(np.float32)
 
     def get_obs_agent(self, agent_id, is_opponent=False):
         unit = self.get_unit_by_id(agent_id, is_opponent=is_opponent)
@@ -731,7 +824,10 @@ class SMACEnv(SC2Env, BaseEnv):
                     if self.unit_type_bits > 0:
                         # If enemy is computer, than use ally=False, but since now we use
                         #  agent for enemy, ally=True
-                        type_id = self.get_unit_type_id(e_unit, True, not is_opponent)
+                        if self.two_player:
+                            type_id = self.get_unit_type_id(e_unit, True, not is_opponent)
+                        else:
+                            type_id = self.get_unit_type_id(e_unit, False, False)
                         enemy_feats[e_id, ind + type_id] = 1  # unit type
 
             # Ally features
@@ -765,8 +861,9 @@ class SMACEnv(SC2Env, BaseEnv):
                         ally_feats[i, ind + type_id] = 1
                         ind += self.unit_type_bits
 
-                    if self.obs_last_action:
-                        ally_feats[i, ind:] = self.action_helper.get_last_action(is_opponent)[al_id]
+                    # LJ fix
+                    # if self.obs_last_action:
+                    #     ally_feats[i, ind:] = self.action_helper.get_last_action(is_opponent)[al_id]
 
             # Own features
             ind = 0
@@ -792,7 +889,6 @@ class SMACEnv(SC2Env, BaseEnv):
         agent_id_feats[agent_id] = 1
         # Only set to false by outside wrapper
         if self.flatten_observation:
-
             agent_obs = np.concatenate(
                 (
                     move_feats.flatten(),
@@ -804,6 +900,32 @@ class SMACEnv(SC2Env, BaseEnv):
             )
             if self.obs_timestep_number:
                 agent_obs = np.append(agent_obs, self._episode_steps / self.episode_limit)
+            if self.obs_alone:
+                agent_obs_alone = np.concatenate(
+                    (
+                        move_feats.flatten(),
+                        enemy_feats.flatten(),
+                        own_feats.flatten(),
+                        agent_id_feats,
+                    )
+                )
+                agent_obs_alone_padding = np.concatenate(
+                    (
+                        move_feats.flatten(),
+                        enemy_feats.flatten(),
+                        np.zeros_like(ally_feats.flatten()),
+                        own_feats.flatten(),
+                        agent_id_feats,
+                    )
+                )
+                if self.obs_timestep_number:
+                    agent_obs_alone = np.append(agent_obs_alone, self._episode_steps / self.episode_limit)
+                    agent_obs_alone_padding = np.append(
+                        agent_obs_alone_padding, self._episode_steps / self.episode_limit
+                    )
+                return agent_obs, agent_obs_alone, agent_obs_alone_padding
+            else:
+                return agent_obs
         else:
             agent_obs = dict(
                 move_feats=move_feats,
@@ -843,8 +965,9 @@ class SMACEnv(SC2Env, BaseEnv):
         if self.obs_all_health:
             nf_al += 1 + self.shield_bits_ally
 
-        if self.obs_last_action:
-            nf_al += self.n_actions
+        # LJ fix
+        # if self.obs_last_action:
+        #     nf_al += self.n_actions
 
         return self.n_agents - 1, nf_al
 
@@ -905,6 +1028,22 @@ class SMACEnv(SC2Env, BaseEnv):
         else:
             agent_id_feats = self.n_agents
         return move_feats + enemy_feats + ally_feats + own_feats + agent_id_feats
+
+    def get_obs_alone_size(self, is_opponent=False):
+        # TODO suppose the agents formation are same for both opponent and me. This can be extended in future.
+        """Returns the size of the observation."""
+        own_feats = self.get_obs_own_feats_size()
+        move_feats = self.get_obs_move_feats_size()
+
+        n_enemies, n_enemy_feats = self.get_obs_enemy_feats_size()
+
+        enemy_feats = n_enemies * n_enemy_feats
+
+        if is_opponent:
+            agent_id_feats = self.n_enemies
+        else:
+            agent_id_feats = self.n_agents
+        return move_feats + enemy_feats + own_feats + agent_id_feats
 
     def get_state(self, is_opponent=False):
         if self.obs_instead_of_state:
@@ -1156,15 +1295,27 @@ class SMACEnv(SC2Env, BaseEnv):
     def info(self, is_opponent=False):
         T = EnvElementInfo
         agent_num = self.n_enemies if is_opponent else self.n_agents
-        return self.SMACEnvInfo(
-            agent_num=agent_num,
+        if self.obs_alone:
             obs_space=T(
                 {
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
-                    'global_state': (self.get_state_size(is_opponent), ),
+                    'agent_alone_state': (agent_num, self.get_obs_alone_size(is_opponent)),
+                    'agent_alone_padding_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'global_state': (self.get_state_size(is_opponent),),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None, None, None
-            ),
+                }, None,
+            )
+        else:
+            obs_space=T(
+                {
+                    'agent_state': (agent_num, self.get_obs_size(is_opponent)),
+                    'global_state': (self.get_state_size(is_opponent),),
+                    'action_mask': (agent_num, *self.action_helper.info().shape),
+                }, None,
+            )
+        return self.SMACEnvInfo(
+            agent_num=agent_num,
+            obs_space=obs_space,
             act_space=self.action_helper.info(),
             rew_space=self.reward_helper.info(),
             episode_limit=self.episode_limit,

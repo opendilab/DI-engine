@@ -40,9 +40,35 @@ NerveX recommends using a config `dict` defined in a python file as input.
     )
 
 A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in nerveX. 
-The module can be specialized defined by users or just use our pre-defined modules.
+The module can be specialized defined by users or just use our pre-defined modules. Here is a example:
 
-For more details, please refer to the `Config <../key_concept/index.html#config>`_.
+.. code-block:: python
+
+    from nervex.config import compile_config
+    from nervex.envs import BaseEnvManager, NervexEnvWrapper
+    from nervex.model import DQN, VAC
+    from nervex.policy import DQNPolicy, PPOPolicy
+    from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+    from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
+    # from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config  # ppo config
+
+    # compile config
+    cfg = compile_config(
+        cartpole_dqn_config,
+        BaseEnvManager,
+        DQNPolicy,
+        BaseLearner,
+        SampleCollector,
+        BaseSerialEvaluator,
+        AdvancedReplayBuffer,
+        save_cfg=True
+    )
+
+
+.. note::
+   For the specific config example and how to construct config, you can refer to ``app_zoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py``
+
+For more design details, please refer to the `Config <../key_concept/index.html#config>`_.
 
 When you are ready with config, you can you construct your RL training/evaluation entry program referring to the following guides step by step.
 
@@ -60,12 +86,12 @@ of using :class:`BaseEnvManager <nervex.envs.BaseEnvManager>` to build environme
 
 .. code-block:: python
 
-    from nervex.envs import BaseEnvManager, NervexEnvWrapper
+    import gym
 
     def wrapped_cartpole_env():
         return NervexEnvWrapper(gym.make('CartPole-v0'))
 
-    collector_env_num, evaluator_env_num = cfg.env.env_kwargs.collector_env_num, cfg.env.env_kwargs.evaluator_env_num
+    collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
@@ -82,18 +108,12 @@ For example, a `DQN` policy and `PPO` policy for CartPole can be defined as foll
 
 .. code-block:: python
 
-    from nervex.policy import DQNPolicy
-    from nervex.model import FCDiscreteNet
-
-    model = FCDiscreteNet(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
 
 .. code-block:: python
 
-    from nervex.policy import PPOPolicy
-    from nervex.model import FCValueAC
-
-    model = FCValueAC(**cfg.policy.model)
+    model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
 
 
@@ -112,15 +132,14 @@ An example of setting up all the above is showed as follow.
 
 .. code-block:: python
 
+    import os
     from tensorboardX import SummaryWriter    
-    from nervex.worker import BaseLearner, BaseSerialCollector, BaseSerialEvaluator
-    from nervex.data import BufferManager
 
     tb_logger = SummaryWriter(os.path.join('./log/', 'your_experiment_name'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = BaseSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = BufferManager(cfg.policy.other.replay_buffer, tb_logger)
+    replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
 
 Train and evaluate the policy
 ---------------------------------
@@ -136,85 +155,77 @@ environment.
     from nervex.rl_utils import get_epsilon_greedy_fn
     
     # DQN training loop
+    eps_cfg = cfg.policy.other.eps
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
-    while True:
+    max_iterations = int(1e8)
+    for _ in range(max_iterations):
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         eps = epsilon_greedy(collector.envstep)
-        new_data = collector.collect_data(learner.train_iter, policy_kwargs={'eps': eps})
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs={'eps': eps})
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
-            train_data = replay_buffer.sample(learner.policy.learn.batch_size, learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
 
 .. code-block:: python
 
     # PPO training loop
-    while True:
+    max_iterations = int(1e8)
+    for _ in range(max_iterations):
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data = collector.collect_data(learner.train_iter)
+        new_data = collector.collect(train_iter=learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
-            train_data = replay_buffer.sample(learner.policy.learn.batch_size, learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
         replay_buffer.clear()
 
+.. note::
+   The users can refer to the complete demo in ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py`` .
 
 Advanced features
 ------------------
 
 Some advanced features in RL training which well supported by nerveX are listed below.
 
-Epsilon Greedy & Replay buffer start and priority
+Epsilon Greedy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An easy way of deploying epsilon greedy exploration when sampling data has already been shown above. It is
-called by the `epsilon_greedy` function each step.
+called by the `epsilon_greedy` function each step. And you can select your own decay strategy, such as envstep and train_iter.
 
 .. code-block:: python
 
     from nervex.rl_utils import get_epsilon_greedy_fn
     
+    eps_cfg = cfg.policy.other.eps
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
     while True:
         eps = epsilon_greedy(learner.train_iter)
         ...
 
-Initially collecting an amount of data is supported in the following way. 
-
-
-.. code-block:: python
-
-    if replay_buffer.replay_start_size() > 0:
-        eps = epsilon_greedy(learner.train_iter)
-        new_data = collector.collect_data(learner.train_iter, n_sample=replay_buffer.replay_start_size(), policy_kwargs={'eps': eps})
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-
-
-The priority mechanism is widely used in RL training. Nervex adds easy-used interface to apply priority to replay
-buffer, shown as follow.
-
-.. code-block:: python
-
-    if use_priority:
-        replay_buffer.update(learner.priority_info)
 
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some environments have a renderd surface or visualization. NerveX adds a switch to save these replays.
+After training, the users need to indicate ``env.replay_path`` in config and add the next two lines after creating environments.
 
 .. code-block:: python
 
-    if cfg.env.env_kwargs.get('replay_path', None):
-        evaluator_env.enable_save_replay([cfg.env.env_kwargs.replay_path for _ in range(evaluator_env_num)])
+    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    cfg.env.replay_path = './video'
+    evaluator_env.enable_save_replay(cfg.env.replay_path)
+    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 A simple demo for replaying CartPole Env evaluation is shown follow.
 

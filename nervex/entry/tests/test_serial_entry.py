@@ -29,6 +29,7 @@ from app_zoo.multiagent_particle.config import cooperative_navigation_atoc_confi
 
 
 @pytest.mark.unittest
+@pytest.mark.dqn
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -218,7 +219,7 @@ def test_qmix():
         os.popen('rm -rf log ckpt*')
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False

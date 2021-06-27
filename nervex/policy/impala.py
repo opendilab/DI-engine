@@ -58,7 +58,6 @@ class IMPALAPolicy(Policy):
             # (int) the number of data for a train iteration
             batch_size=16,
             learning_rate=0.0005,
-            weight_decay=0.0001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
@@ -404,7 +403,7 @@ class IMPALAPolicy(Policy):
         return output
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

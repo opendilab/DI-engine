@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-update_per_collect = 16
+update_per_collect = 8
 cartpole_sqn_config = dict(
     env=dict(
         collector_env_num=8,
@@ -13,7 +13,7 @@ cartpole_sqn_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[64, 64],
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -27,7 +27,7 @@ cartpole_sqn_config = dict(
             target_entropy=0.2,
         ),
         collect=dict(
-            n_sample=update_per_collect,
+            n_sample=update_per_collect * 2,
             nstep=1,
         ),
         other=dict(
@@ -36,7 +36,7 @@ cartpole_sqn_config = dict(
                 start=1.,
                 end=0.8,
                 decay=2000,
-            ), replay_buffer=dict(replay_buffer_size=100000, )
+            ), replay_buffer=dict(replay_buffer_size=10000, )
         ),
     )
 )

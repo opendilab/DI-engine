@@ -43,8 +43,6 @@ class QRDQNPolicy(DQNPolicy):
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -217,4 +215,4 @@ class QRDQNPolicy(DQNPolicy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qrdqn_fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'qrdqn', ['nervex.model.template.q_learning']

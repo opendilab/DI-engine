@@ -17,8 +17,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from setuptools import setup, find_packages
 import os
+
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 meta = {}
@@ -47,7 +48,7 @@ setup(
         'requests~=2.24.0',
         'six',
         'gym>=0.15.3',  # pypy
-        #'torch>=1.3.1,<=1.7',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        'torch>=1.3.1,<=1.7',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'pyyaml',
         'easydict==1.9',
         'tensorboardX>=2.1',
@@ -65,11 +66,15 @@ setup(
         'urllib3==1.25.10',
         'readerwriterlock',
         'namedlist',
+        'opencv-python',
+        'enum_tools'
     ],
     extras_require={
         'doc': [
             'sphinx>=2.2.1',
-            'sphinx_rtd_theme',
+            'sphinx_rtd_theme~=0.4.3',
+            'enum_tools',
+            'sphinx-toolbox',
         ],
         'test': [
             'pytest==5.1.1',
@@ -79,6 +84,10 @@ setup(
             'pytest-mock~=3.3.1',
             'pytest-rerunfailures~=9.1.1',
             'pytest-timeouts~=1.2.1',
+        ],
+        'style': [
+            'yapf==0.29.0',
+            'flake8',
         ],
         'fast': [
             'numpy-stl',

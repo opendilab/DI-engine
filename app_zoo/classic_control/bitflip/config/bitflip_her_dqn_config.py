@@ -15,7 +15,7 @@ bitflip_her_dqn_config = dict(
         model=dict(
             obs_shape=2 * n_bits,
             action_shape=n_bits,
-            embedding_size=64,
+            encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
         learn=dict(

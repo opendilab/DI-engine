@@ -13,9 +13,9 @@ Feature
     policy_overview
     env_overview_en
 
-    env_manager_overview_en
+    env_manager_overview
     collector_overview
-    replay_buffer_overview
+    replay_buffer_overview_en
     learner_overview
     wrapper_hook_overview_en
     league_overview

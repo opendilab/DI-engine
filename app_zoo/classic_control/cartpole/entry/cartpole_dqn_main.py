@@ -1,13 +1,12 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
-from easydict import EasyDict
 
 from nervex.config import compile_config
 from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
 from nervex.envs import BaseEnvManager, NervexEnvWrapper
 from nervex.policy import DQNPolicy
-from nervex.model import FCDiscreteNet
+from nervex.model import DQN
 from nervex.utils import set_pkg_seed
 from nervex.rl_utils import get_epsilon_greedy_fn
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
@@ -39,7 +38,7 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = FCDiscreteNet(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities

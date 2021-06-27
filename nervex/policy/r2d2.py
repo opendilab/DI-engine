@@ -270,7 +270,7 @@ class R2D2Policy(Policy):
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps)
+            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -342,7 +342,7 @@ class R2D2Policy(Policy):
         data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, data_id=data_id)
+            output = self._eval_model.forward(data, data_id=data_id, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -352,4 +352,4 @@ class R2D2Policy(Policy):
         self._eval_model.reset(data_id=data_id)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'drqn', ['nervex.model.template.q_learning']

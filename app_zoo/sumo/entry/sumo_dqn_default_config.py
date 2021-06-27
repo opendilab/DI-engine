@@ -35,8 +35,6 @@ sumo_dqn_default_config = dict(
             train_iteration=3,
             batch_size=64,
             learning_rate=0.001,
-            # L2 norm weight for network parameters.
-            weight_decay=0.0,
             algo=dict(
                 # Frequence of target network update.
                 target_update_freq=100,

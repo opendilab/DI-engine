@@ -16,6 +16,8 @@ actions = {
     "attack": 23,  # target: PointOrUnit
     "stop": 4,  # target: None
     "heal": 386,  # Unit
+    "parasitic_bomb": 2542,  # target: Unit
+    'fungal_growth': 74,  # target: PointOrUnit
 }
 
 
@@ -131,8 +133,16 @@ class SMACAction:
         We use skip_mirror=True in get_avail_agent_actions to avoid error.
         """
         avail_actions = self.get_avail_agent_actions(a_id, engine, is_opponent=is_opponent, skip_mirror=True)
-        assert avail_actions[action] == 1, \
-            "Agent {} cannot perform action {}".format(a_id, action)
+        try:
+            assert avail_actions[action] == 1, \
+                "Agent {} cannot perform action {} in ava {}".format(a_id, action, avail_actions)
+        except Exception as e:
+            if action == 0:
+                action = 1
+            else:
+                action = 1
+                # TODO
+                # raise e
         unit = self.get_unit_by_id(a_id, engine, is_opponent=is_opponent)
 
         # if is_opponent:
@@ -140,6 +150,7 @@ class SMACAction:
 
         # ===== The follows is intact to the original =====
         tag = unit.tag
+        type_id = unit.unit_type
         x = unit.pos.x
         y = unit.pos.y
 
@@ -196,6 +207,19 @@ class SMACAction:
                                                                if is_opponent else engine.medivac_id):
                 target_unit = (engine.enemies[target_id] if is_opponent else engine.agents[target_id])
                 action_name = "heal"
+            elif engine.map_type == 'infestor_viper':
+                # viper
+                if type_id == 499:
+                    target_unit = engine.enemies[target_id]
+                    action_name = "parasitic_bomb"
+                # infestor
+                else:
+                    target_unit = engine.enemies[target_id]
+                    target_loc = (target_unit.pos.x, target_unit.pos.y)
+                    action_name = "fungal_growth"
+                    target_loc = sc_common.Point2D(x=target_loc[0], y=target_loc[1])
+                    cmd = r_pb.ActionRawUnitCommand(ability_id=actions[action_name], target_world_space_pos=target_loc, unit_tags=[tag], queue_command=False)
+                    return sc_pb.Action(action_raw=r_pb.ActionRaw(unit_command=cmd))
             else:
                 target_unit = (engine.agents[target_id] if is_opponent else engine.enemies[target_id])
                 action_name = "attack"
@@ -232,7 +256,7 @@ class SMACAction:
                 avail_actions[5] = 1
 
             # Can attack only alive units that are alive in the shooting range
-            shoot_range = self.unit_shoot_range(agent_id)
+            shoot_range = self.unit_shoot_range(unit)
 
             target_items = engine.enemies.items() if not is_opponent else engine.agents.items()
             self_items = engine.agents.items() if not is_opponent else engine.enemies.items()
@@ -244,7 +268,19 @@ class SMACAction:
                 if t_unit.health > 0:
                     dist = distance(unit.pos.x, unit.pos.y, t_unit.pos.x, t_unit.pos.y)
                     if dist <= shoot_range:
-                        avail_actions[t_id + self.n_actions_no_attack] = 1
+                        if engine.map_type == "infestor_viper":
+                            value = 0
+                            # viper
+                            if unit.unit_type == 499:
+                                if unit.energy >= 125:
+                                    value = 1
+                            # infestor
+                            else:
+                                if unit.energy >= 50:
+                                    value = 1
+                            avail_actions[t_id + self.n_actions_no_attack] = value
+                        else:
+                            avail_actions[t_id + self.n_actions_no_attack] = 1
 
         else:
             # only no-op allowed
@@ -290,9 +326,15 @@ class SMACAction:
         vals = [self.terrain_height[x, y] if self.check_bounds(x, y) else 1 for x, y in points]
         return vals
 
-    def unit_shoot_range(self, agent_id):
+    def unit_shoot_range(self, unit):
         """Returns the shooting range for an agent."""
-        return 6
+        type_id = unit.unit_type
+        if type_id == 499:
+            return 8
+        elif type_id == 111:
+            return 10
+        else:
+            return 6
 
     def get_surrounding_points(self, unit, include_self=False):
         """Returns the surrounding points of the unit in 8 directions."""

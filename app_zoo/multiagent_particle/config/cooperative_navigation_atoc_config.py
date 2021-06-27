@@ -20,6 +20,7 @@ cooperative_navigation_atoc_config = dict(
         cuda=True,
         on_policy=False,
         priority=False,
+        random_collect_size=1000,
         model=dict(
             obs_shape=2 + 2 + (n_agent - 1) * 2 + n_agent * 2,
             action_shape=5,
@@ -52,8 +53,6 @@ cooperative_navigation_atoc_config = dict(
         ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            replay_start_size=1000,
-            max_use=10,
         ), )
     ),
 )

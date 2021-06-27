@@ -60,8 +60,6 @@ class DQNPolicy(Policy):
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -337,6 +335,6 @@ class DQNPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``nervex.model.interface.DQN``
+            by import_names path. For DQN, ``nervex.model.template.q_learning.DQN``
         """
-        return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'dqn', ['nervex.model.template.q_learning']

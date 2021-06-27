@@ -13,7 +13,8 @@ from .ppo import PPOPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
-from .ddpg import DDPGPolicy, TD3Policy
+from .ddpg import DDPGPolicy
+from .td3 import TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy

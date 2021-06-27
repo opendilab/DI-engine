@@ -41,7 +41,7 @@ _NTYPE_TO_CTYPE = {
 class ShmBuffer():
     """
     Overview:
-        Shared Memory Buffer
+        Shared memory buffer to store numpy array.
     """
 
     def __init__(self, dtype: np.generic, shape: Tuple[int]) -> None:
@@ -82,10 +82,18 @@ class ShmBuffer():
 class ShmBufferContainer(object):
     """
     Overview:
-        Support dictionary of shared memory buffer.
+        Support multiple shared memory buffers. Each key-value is name-buffer.
     """
 
     def __init__(self, dtype: np.generic, shape: Union[Dict[Any, tuple], tuple]) -> None:
+        """
+        Overview:
+            Initialize the buffer container.
+        Arguments:
+            - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
+            - shape (:obj:`Union[Dict[Any, tuple], tuple]`): If `Dict[Any, tuple]`, use a dict to manage \
+                multiple buffers; If `tuple`, use single buffer.
+        """
         if isinstance(shape, dict):
             self._data = {k: ShmBufferContainer(dtype, v) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
@@ -95,6 +103,12 @@ class ShmBufferContainer(object):
         self._shape = shape
 
     def fill(self, src_arr: Union[Dict[Any, np.ndarray], np.ndarray]) -> None:
+        """
+        Overview:
+            Fill the one or many shared memory buffer.
+        Arguments:
+            - src_arr (:obj:`Union[Dict[Any, np.ndarray], np.ndarray]`): array to fill the buffer.
+        """
         if isinstance(self._shape, dict):
             for k in self._shape.keys():
                 self._data[k].fill(src_arr[k])
@@ -102,13 +116,19 @@ class ShmBufferContainer(object):
             self._data.fill(src_arr)
 
     def get(self) -> Union[Dict[Any, np.ndarray], np.ndarray]:
+        """
+        Overview:
+            Get the one or many arrays stored in the buffer.
+        Return:
+            - data (:obj:`np.ndarray`): The array(s) stored in the buffer.
+        """
         if isinstance(self._shape, dict):
             return {k: self._data[k].get() for k in self._shape.keys()}
         elif isinstance(self._shape, (tuple, list)):
             return self._data.get()
 
 
-class CloudPickleWrapper(object):
+class CloudPickleWrapper:
     """
     Overview:
         CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
@@ -132,14 +152,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     """
     Overview:
         Create an AsyncSubprocessEnvManager to manage multiple environments.
-        Each Environment is run by a seperate subprocess.
+        Each Environment is run by a respective subprocess.
     Interfaces:
-        seed, launch, ready_obs, step, reset, env_info
+        seed, launch, ready_obs, step, reset, env_info，active_env
     """
 
     config = dict(
         episode_num=float("inf"),
-        max_retry=1,
+        max_retry=5,
         step_timeout=60,
         auto_reset=True,
         reset_timeout=60,
@@ -161,7 +181,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Overview:
             Initialize the AsyncSubprocessEnvManager.
         Arguments:
-            - env_fn (:obj:`function`): the function to create environment
+            - env_fn (:obj:`List[Callable]`): The function to create environment
+            - cfg (:obj:`EasyDict`): Config
         """
         super().__init__(env_fn, cfg)
         self._shared_memory = self._cfg.shared_memory
@@ -176,7 +197,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def _create_state(self) -> None:
         r"""
         Overview:
-            Fork/spawn sub-processes and create pipes to transfer the data.
+            Fork/spawn sub-processes(Call ``_create_env_subprocess``) and create pipes to transfer the data.
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
@@ -228,8 +249,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         r"""
         Overview:
             Set up the async arguments utilized in method ``step``.
-            wait_num: for each time the minimum number of env return to gather
-            timeout: for each time the minimum number of env return to gather
+        .. note::
+
+            - wait_num: for each time the minimum number of env return to gather
+            - timeout: for each time the minimum number of env return to gather
         """
         self._async_args = {
             'step': {
@@ -270,9 +293,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Set up the environments and hyper-params.
+            Set up the environments and their parameters.
         Arguments:
-            - reset_param (:obj:`List`): list of reset parameters for each environment.
+            - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \
+                value is the cooresponding reset parameters.
         """
         assert self._closed, "please first close the env manager"
         if reset_param is not None:
@@ -292,11 +316,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Reset the environments and hyper-params.
+            Reset the environments their parameters.
         Arguments:
-            - reset_param (:obj:`List`): list of reset parameters for each environment.
-        Note:
-            Create separate thread to reset each environment to avoid blocking.
+            - reset_param (:obj:`List`): Dict of reset parameters for each environment, key is the env_id, \
+                value is the cooresponding reset parameters.
         """
         self._check_closed()
         # clear previous info
@@ -370,6 +393,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             reset_fn()
         except Exception as e:
             logging.error('VEC_ENV_MANAGER: env {} reset error'.format(env_id))
+            logging.error('\nEnv Process Reset Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
             if self._closed:  # exception cased by main thread closing parent_remote
                 return
             else:
@@ -379,20 +403,21 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
         Overview:
-            Wrapper of step function in the environment.
+            Step all environments. Reset an env if abnormal or done.
         Arguments:
             - actions (:obj:`Dict[int, Any]`): {env_id: action}
-        Return:
-            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. \
-                Each element of timestep is in ``torch.Tensor`` type.
-        Note:
-            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+        Returns:
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
+                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+        .. note:
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+            - Async subprocess env manager use ``connection.wait`` to poll.
         """
         self._check_closed()
         env_ids = list(actions.keys())
@@ -406,37 +431,30 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._pipe_parents[env_id].send(['step', [act], {}])
 
         timesteps = {}
-        if self._async_args['step']['mode'] == 'async':
-            step_args = self._async_args['step']
-            wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
-            rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
-            ready_env_ids = []
-            cur_rest_env_ids = copy.deepcopy(rest_env_ids)
-            while True:
-                rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
-                ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(
-                    rest_conn, min(wait_num, len(rest_conn)), timeout
-                )
-                cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
-                assert len(cur_ready_env_ids) == len(ready_conn)
-                timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
-                self._check_data(timesteps)
-                ready_env_ids += cur_ready_env_ids
-                cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
-                # At least one not done env timestep, or all envs' steps are finished
-                if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
-                    break
-            self._waiting_env['step']: set
-            for env_id in rest_env_ids:
-                if env_id in ready_env_ids:
-                    if env_id in self._waiting_env['step']:
-                        self._waiting_env['step'].remove(env_id)
-                else:
-                    self._waiting_env['step'].add(env_id)
-        elif self._async_args['step']['mode'] == 'sync':
-            ready_conn = [self._pipe_parents[env_id] for env_id in env_ids]
-            timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
+        step_args = self._async_args['step']
+        wait_num, timeout = min(step_args['wait_num'], len(env_ids)), step_args['timeout']
+        rest_env_ids = list(set(env_ids).union(self._waiting_env['step']))
+        ready_env_ids = []
+        cur_rest_env_ids = copy.deepcopy(rest_env_ids)
+        while True:
+            rest_conn = [self._pipe_parents[env_id] for env_id in cur_rest_env_ids]
+            ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
+            cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
+            assert len(cur_ready_env_ids) == len(ready_conn)
+            timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
             self._check_data(timesteps)
+            ready_env_ids += cur_ready_env_ids
+            cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
+            # At least one not done env timestep, or all envs' steps are finished
+            if any([not t.done for t in timesteps.values()]) or len(ready_conn) == len(rest_conn):
+                break
+        self._waiting_env['step']: set
+        for env_id in rest_env_ids:
+            if env_id in ready_env_ids:
+                if env_id in self._waiting_env['step']:
+                    self._waiting_env['step'].remove(env_id)
+            else:
+                self._waiting_env['step'].add(env_id)
 
         if self._shared_memory:
             for i, (env_id, timestep) in enumerate(timesteps.items()):
@@ -464,6 +482,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     # This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)
     # Env must be created in worker, which is a trick of avoiding env pickle errors.
+    # A more robust version is used by default. But this one is also preserved.
     @staticmethod
     def worker_fn(
             p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'CloudPickleWrapper',
@@ -527,6 +546,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def worker_fn_robust(
             parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60
     ) -> None:
+        """
+        Overview:
+            A more robust version of subprocess's target function to run. Used by default.
+        """
         torch.set_num_threads(1)
         env_fn = env_fn_wrapper.data
         env = env_fn()
@@ -618,12 +641,23 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     # override
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
+        """
+        Overview:
+            Set each env's replay save path.
+        Arguments:
+            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
+                Or one path for all environments.
+        """
         if isinstance(replay_path, str):
             replay_path = [replay_path] * self.env_num
         self._env_replay_path = replay_path
 
     # override
     def close(self) -> None:
+        """
+        Overview:
+            CLose the env manager and release all related resources.
+        """
         if self._closed:
             return
         self._closed = True
@@ -680,3 +714,62 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
                 'timeout': None,
             },
         }
+
+    def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
+        """
+        Overview:
+            Step all environments. Reset an env if abnormal or done.
+        Arguments:
+            - actions (:obj:`Dict[int, Any]`): {env_id: action}
+        Returns:
+            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
+                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
+        Note:
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+        Example:
+            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            >>>     timesteps = env_manager.step(actions_dict):
+            >>>     for env_id, timestep in timesteps.items():
+            >>>         pass
+        """
+        self._check_closed()
+        env_ids = list(actions.keys())
+        assert all([self._env_states[env_id] == EnvState.RUN for env_id in env_ids]
+                   ), 'current env state are: {}, please check whether the requested env is in reset or done'.format(
+                       {env_id: self._env_states[env_id]
+                        for env_id in env_ids}
+                   )
+        for env_id, act in actions.items():
+            self._pipe_parents[env_id].send(['step', [act], {}])
+
+        # ===     This part is different from async one.     ===
+        # === Because operate in this way is more efficient. ===
+        timesteps = {}
+        ready_conn = [self._pipe_parents[env_id] for env_id in env_ids]
+        timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
+        self._check_data(timesteps)
+        # ======================================================
+
+        if self._shared_memory:
+            for i, (env_id, timestep) in enumerate(timesteps.items()):
+                timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
+        for env_id, timestep in timesteps.items():
+            if timestep.info.get('abnormal', False):
+                self._env_states[env_id] = EnvState.RESET
+                reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='abnormal_reset')
+                reset_thread.daemon = True
+                reset_thread.start()
+                continue
+            if timestep.done:
+                self._env_episode_count[env_id] += 1
+                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
+                    self._env_states[env_id] = EnvState.RESET
+                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
+                    reset_thread.daemon = True
+                    reset_thread.start()
+                else:
+                    self._env_states[env_id] = EnvState.DONE
+            else:
+                self._ready_obs[env_id] = timestep.obs
+        return timesteps

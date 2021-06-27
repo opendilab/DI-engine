@@ -7,7 +7,7 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
      v_nstep_td_data, v_nstep_td_error
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY, deep_merge_dicts
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -42,7 +42,6 @@ class PPOPolicy(Policy):
             update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0.0001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -309,7 +308,7 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

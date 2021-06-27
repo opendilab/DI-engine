@@ -14,8 +14,7 @@ cartpole_iqn_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
-            head_kwargs=dict(head_type='quantile', ),
+            encoder_hidden_size_list=[128, 128, 64],
             num_quantiles=32,
         ),
         discount_factor=0.97,

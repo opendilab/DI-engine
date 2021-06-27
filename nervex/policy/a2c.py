@@ -6,7 +6,7 @@ import copy
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -35,7 +35,6 @@ class A2CPolicy(Policy):
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -76,9 +75,7 @@ class A2CPolicy(Policy):
             Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
-        self._optimizer = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
-        )
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
         # Algorithm config
         self._priority = self._cfg.priority
@@ -264,7 +261,7 @@ class A2CPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']

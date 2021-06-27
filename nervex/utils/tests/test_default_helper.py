@@ -4,13 +4,14 @@ import torch
 from collections import namedtuple
 
 from nervex.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper,\
-    list_split, LimitedSpaceContainer
+    list_split, LimitedSpaceContainer, set_pkg_seed, deep_merge_dicts, deep_update, flatten_dict
 
 
 @pytest.mark.unittest
 class TestDefaultHelper():
 
     def test_lists_to_dicts(self):
+        set_pkg_seed(12)
         with pytest.raises(ValueError):
             lists_to_dicts([])
         with pytest.raises(TypeError):
@@ -107,6 +108,107 @@ class TestLimitedSpaceContainer():
         left = container.get_residual_space()
         assert left == 4
         assert container.cur == container.max_val == 5
-        for i in range(5):
+        no_space = container.acquire_space()
+        assert not no_space
+        container.increase_space()
+        six = container.acquire_space()
+        assert six
+        for i in range(6):
             container.release_space()
-            assert container.cur == 4 - i
+            assert container.cur == 5 - i
+        container.decrease_space()
+        assert container.max_val == 5
+
+
+class TestDict:
+
+    def test_deep_merge_dicts(self):
+        dict1 = {
+            'a': 3,
+            'b': {
+                'c': 3,
+                'd': {
+                    'e': 6,
+                    'f': 5,
+                }
+            }
+        }
+        dict2 = {
+            'b': {
+                'c': 5,
+                'd': 6,
+                'g': 4,
+            }
+        }
+        new_dict = deep_merge_dicts(dict1, dict2)
+        assert new_dict['a'] == 3
+        assert isinstance(new_dict['b'], dict)
+        assert new_dict['b']['c'] == 5
+        assert new_dict['b']['c'] == 5
+        assert new_dict['b']['g'] == 4
+
+    def test_deep_update(self):
+        dict1 = {
+            'a': 3,
+            'b': {
+                'c': 3,
+                'd': {
+                    'e': 6,
+                    'f': 5,
+                },
+                'z': 4,
+            }
+        }
+        dict2 = {
+            'b': {
+                'c': 5,
+                'd': 6,
+                'g': 4,
+            }
+        }
+        with pytest.raises(RuntimeError):
+            new1 = deep_update(dict1, dict2, new_keys_allowed=False)
+        new2 = deep_update(dict1, dict2, new_keys_allowed=False, whitelist=['b'])
+        assert new2['a'] == 3
+        assert new2['b']['c'] == 5
+        assert new2['b']['d'] == 6
+        assert new2['b']['g'] == 4
+        assert new2['b']['z'] == 4
+
+        dict1 = {
+            'a': 3,
+            'b': {
+                'type': 'old',
+                'z': 4,
+            }
+        }
+        dict2 = {
+            'b': {
+                'type': 'new',
+                'c': 5,
+            }
+        }
+        new3 = deep_update(dict1, dict2, new_keys_allowed=True, whitelist=[], override_all_if_type_changes=['b'])
+        assert new3['a'] == 3
+        assert new3['b']['type'] == 'new'
+        assert new3['b']['c'] == 5
+        assert 'z' not in new3['b']
+
+    def test_flatten_dict(self):
+        dict = {
+            'a': 3,
+            'b': {
+                'c': 3,
+                'd': {
+                    'e': 6,
+                    'f': 5,
+                },
+                'z': 4,
+            }
+        }
+        flat = flatten_dict(dict)
+        assert flat['a'] == 3
+        assert flat['b/c'] == 3
+        assert flat['b/d/e'] == 6
+        assert flat['b/d/f'] == 5
+        assert flat['b/z'] == 4

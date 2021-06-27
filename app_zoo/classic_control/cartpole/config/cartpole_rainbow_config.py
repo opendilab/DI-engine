@@ -16,7 +16,7 @@ cartpole_rainbow_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 128, 64],
         ),
         learn=dict(
             update_per_collect=3,
