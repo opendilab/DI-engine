@@ -16,8 +16,4 @@ Utils
     lock_helper
     log_helper
     system_helper
-    registory_factory
-    registory
     segment_tree
-    
-

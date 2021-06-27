@@ -171,9 +171,9 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
 
     Returns:
         - TimeWrapperCuda(:obj:`class`): See ``TimeWrapperCuda`` class
-        .. note::
-                Must use ``torch.cuda.synchronize()``, reference: \
-                <https://blog.csdn.net/u013548568/article/details/81368019>
+
+    .. note::
+        Must use ``torch.cuda.synchronize()``, reference: <https://blog.csdn.net/u013548568/article/details/81368019>
 
     """
 

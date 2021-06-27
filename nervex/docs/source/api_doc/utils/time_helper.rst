@@ -11,15 +11,6 @@ build_time_helper
 .. automodule:: nervex.utils.time_helper.build_time_helper
 
 
-
-
-TimeWrapperCuda
-~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.utils.time_helper.get_cuda_time_wrapper.TimeWrapperCuda
-:members: start_time, end_time
-
-
-
 TimeWrapper
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.utils.time_helper.TimeWrapper
@@ -32,7 +23,7 @@ TimeWrapperTime
     :members: start_time, end_time
 
 get_cuda_time_wrapper
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.time_helper.get_cuda_time_wrapper
 
