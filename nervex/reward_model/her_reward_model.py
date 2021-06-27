@@ -4,7 +4,7 @@ import numpy as np
 import torch
 
 
-class HerModel:
+class HerRewardModel:
     """
     Overview:
         Hindsight Experience Replay model.
@@ -58,11 +58,11 @@ class HerModel:
             - new_episode (:obj:`List[Dict[str, Any]]`): the processed transitions
         """
         if merge_func is None:
-            merge_func = HerModel.__her_default_merge_func
+            merge_func = HerRewardModel.__her_default_merge_func
         if split_func is None:
-            split_func = HerModel.__her_default_split_func
+            split_func = HerRewardModel.__her_default_split_func
         if goal_reward_func is None:
-            goal_reward_func = HerModel.__her_default_goal_reward_func
+            goal_reward_func = HerRewardModel.__her_default_goal_reward_func
         new_episodes = [[] for _ in range(self._her_replay_k)]
         if self._sample_per_episode is None:
             # Use complete episode
