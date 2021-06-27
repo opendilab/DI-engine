@@ -17,7 +17,7 @@ class DQN(nn.Module):
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             dueling: bool = True,
-            head_hidden_size: int = 64,
+            head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
@@ -25,6 +25,8 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -77,7 +79,7 @@ class QRDQN(nn.Module):
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            head_hidden_size: int = 64,
+            head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             num_quantiles: int = 32,
             activation: Optional[nn.Module] = nn.ReLU(),
@@ -86,6 +88,8 @@ class QRDQN(nn.Module):
         super(QRDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -136,7 +140,7 @@ class IQN(nn.Module):
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            head_hidden_size: int = 64,
+            head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             num_quantiles: int = 32,
             quantile_embedding_size: int = 128,
@@ -146,6 +150,8 @@ class IQN(nn.Module):
         super(IQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -203,7 +209,7 @@ class RainbowDQN(nn.Module):
         obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        head_hidden_size: int = 64,
+        head_hidden_size: Optional[int] = None,
         head_layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
@@ -214,6 +220,8 @@ class RainbowDQN(nn.Module):
         super(RainbowDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -300,7 +308,7 @@ class DRQN(nn.Module):
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             dueling: bool = True,
-            head_hidden_size: int = 64,
+            head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             lstm_type: Optional[str] = 'normal',
             activation: Optional[nn.Module] = nn.ReLU(),
@@ -309,6 +317,8 @@ class DRQN(nn.Module):
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)

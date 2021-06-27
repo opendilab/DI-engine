@@ -16,11 +16,9 @@ qbert_c51_config = dict(
         cuda=True,
         priority=True,
         model=dict(
-            encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_shape=[4, 84, 84],
             action_shape=6,
-            hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='distribution', ),
+            encoder_hidden_size_list=[128, 128, 512],
             v_min=-10,
             v_max=10,
             n_atom=51,
