@@ -1,7 +1,6 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
-from easydict import EasyDict
 
 from nervex.config import compile_config
 from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
