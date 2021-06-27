@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from nervex.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN
+from nervex.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
 from nervex.torch_utils import is_differentiable
 
 T, B = 3, 4
@@ -47,6 +47,27 @@ class TestQLearning:
         else:
             inputs = torch.randn(B, *obs_shape)
         model = RainbowDQN(obs_shape, act_shape, n_atom=41)
+        outputs = model(inputs)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (B, act_shape)
+            assert outputs['distribution'].shape == (B, act_shape, 41)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (B, *act_shape)
+            assert outputs['distribution'].shape == (B, *act_shape, 41)
+        else:
+            for i, s in enumerate(act_shape):
+                assert outputs['logit'][i].shape == (B, s)
+                assert outputs['distribution'][i].shape == (B, s, 41)
+        self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_c51(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(B, obs_shape)
+        else:
+            inputs = torch.randn(B, *obs_shape)
+        model = C51DQN(obs_shape, act_shape, n_atom=41)
         outputs = model(inputs)
         assert isinstance(outputs, dict)
         if isinstance(act_shape, int):
