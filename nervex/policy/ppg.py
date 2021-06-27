@@ -10,7 +10,7 @@ from nervex.data import default_collate, default_decollate
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.model import model_wrap
 from .base_policy import Policy
 
 
@@ -151,8 +151,8 @@ class PPGPolicy(Policy):
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
         """
         # Optimizer
-        self._optimizer_policy = Adam(self._model._policy_net.parameters(), lr=self._cfg.learn.learning_rate)
-        self._optimizer_value = Adam(self._model._value_net.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer_ac = Adam(self._model.actor_critic.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer_aux_critic = Adam(self._model.aux_critic.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
@@ -240,24 +240,24 @@ class PPGPolicy(Policy):
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
             value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
         # Policy Phase(Policy)
-        policy_output = self._learn_model.forward(policy_data, mode='compute_actor')
+        policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
         policy_error_data = ppo_policy_data(
             policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
         )
         ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
         policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss
-        self._optimizer_policy.zero_grad()
+        self._optimizer_ac.zero_grad()
         policy_loss.backward()
-        self._optimizer_policy.step()
+        self._optimizer_ac.step()
 
         # Policy Phase(Value)
         return_ = value_data['value'] + value_adv
-        value_output = self._learn_model.forward(value_data, mode='compute_critic')
+        value_output = self._learn_model.forward(value_data['obs'], mode='compute_critic')
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
-        self._optimizer_value.zero_grad()
+        self._optimizer_aux_critic.zero_grad()
         value_loss.backward()
-        self._optimizer_value.step()
+        self._optimizer_aux_critic.step()
 
         # ====================
         # PPG update
@@ -274,8 +274,8 @@ class PPGPolicy(Policy):
         if self._train_iteration % self._cfg.learn.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
             return {
-                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
-                'value_cur_lr': self._optimizer_value.defaults['lr'],
+                'policy_cur_lr': self._optimizer_ac.defaults['lr'],
+                'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
                 'policy_loss': ppo_policy_loss.policy_loss.item(),
                 'value_loss': value_loss.item(),
                 'entropy_loss': ppo_policy_loss.entropy_loss.item(),
@@ -288,8 +288,8 @@ class PPGPolicy(Policy):
             }
         else:
             return {
-                'policy_cur_lr': self._optimizer_policy.defaults['lr'],
-                'value_cur_lr': self._optimizer_value.defaults['lr'],
+                'policy_cur_lr': self._optimizer_ac.defaults['lr'],
+                'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
                 'policy_loss': ppo_policy_loss.policy_loss.item(),
                 'value_loss': value_loss.item(),
                 'entropy_loss': ppo_policy_loss.entropy_loss.item(),
@@ -307,8 +307,8 @@ class PPGPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
-            'optimizer_policy': self._optimizer_policy.state_dict(),
-            'optimizer_value': self._optimizer_value.state_dict(),
+            'optimizer_ac': self._optimizer_ac.state_dict(),
+            'optimizer_aux_critic': self._optimizer_aux_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -319,15 +319,15 @@ class PPGPolicy(Policy):
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.\
                 When the value is distilled into the policy network, we need to make sure the policy \
                 network does not change the action predictions, we need two optimizers, \
-                _optimizer_policy is used in policy net, and _optimizer_value is used in value net.
+                _optimizer_ac is used in policy net, and _optimizer_aux_critic is used in value net.
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
-        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_ac.load_state_dict(state_dict['optimizer_ac'])
+        self._optimizer_aux_critic.load_state_dict(state_dict['optimizer_aux_critic'])
 
     def _init_collect(self) -> None:
         r"""
@@ -454,10 +454,9 @@ class PPGPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For ppg, ``nervex.model.ppg.ppg``
+            by import_names path.
         """
-        # return 'fc_vac', ['nervex.model.actor_critic.value_ac']
-        return 'fc_ppg', ['nervex.model.ppg']
+        return 'ppg', ['nervex.model.template.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
@@ -515,7 +514,7 @@ class PPGPolicy(Policy):
         data['weight'] = torch.cat(weights)
         # compute current policy logit_old
         with torch.no_grad():
-            data['logit_old'] = self._model.forward({'obs': data['obs']}, mode='compute_actor')['logit']
+            data['logit_old'] = self._model.forward(data['obs'], mode='compute_actor')['logit']
 
         # prepared dataloader for auxiliary phase training
         dl = create_shuffled_dataloader(data, self._cfg.learn.batch_size)
@@ -531,7 +530,7 @@ class PPGPolicy(Policy):
 
         for epoch in range(self._aux_train_epoch):
             for data in dl:
-                policy_output = self._model.forward(data, mode='compute_actor_critic')
+                policy_output = self._model.forward(data['obs'], mode='compute_actor_critic')
 
                 # Calculate ppg error 'logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'
                 data_ppg = ppg_data(
@@ -547,20 +546,20 @@ class PPGPolicy(Policy):
                 # loss_kl = F.kl_div(action_logprobs, old_action_probs, reduction='batchmean')
                 # policy_loss = aux_loss + loss_kl
 
-                self._optimizer_policy.zero_grad()
+                self._optimizer_ac.zero_grad()
                 total_loss.backward()
-                self._optimizer_policy.step()
+                self._optimizer_ac.step()
 
                 # paper says it is important to train the value network extra during the auxiliary phase
                 # Calculate ppg error 'value_new', 'value_old', 'return_', 'weight'
-                values = self._model.forward(data, mode='compute_critic')['value']
+                values = self._model.forward(data['obs'], mode='compute_critic')['value']
                 data_aux = ppo_value_data(values, data['value'], data['return_'], data['weight'])
 
                 value_loss = ppo_value_error(data_aux, self._clip_ratio)
 
-                self._optimizer_value.zero_grad()
+                self._optimizer_aux_critic.zero_grad()
                 value_loss.backward()
-                self._optimizer_value.step()
+                self._optimizer_aux_critic.step()
 
                 auxiliary_loss_ += ppg_joint_loss.auxiliary_loss.item()
                 behavioral_cloning_loss_ += ppg_joint_loss.behavioral_cloning_loss.item()

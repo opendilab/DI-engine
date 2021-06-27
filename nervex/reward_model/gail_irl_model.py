@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from nervex.utils import REWARD_MODEL_REGISTRY
-from .base_reward_estimate import BaseRewardModel
+from .base_reward_model import BaseRewardModel
 
 
 def concat_state_action_pairs(iterator):

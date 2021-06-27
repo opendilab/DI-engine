@@ -8,7 +8,7 @@ except ImportError:
     SVC = None
 from nervex.torch_utils import cov
 from nervex.utils import REWARD_MODEL_REGISTRY
-from .base_reward_estimate import BaseRewardModel
+from .base_reward_model import BaseRewardModel
 
 
 @REWARD_MODEL_REGISTRY.register('pdeil')

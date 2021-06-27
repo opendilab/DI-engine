@@ -53,7 +53,6 @@ cooperative_navigation_atoc_config = dict(
         ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            max_use=10,
         ), )
     ),
 )

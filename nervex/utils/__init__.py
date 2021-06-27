@@ -20,3 +20,4 @@ from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER
     COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY, \
     ENV_MANAGER_REGISTRY, REWARD_MODEL_REGISTRY, BUFFER_REGISTRY
 from .segment_tree import SumSegmentTree, MinSegmentTree, SegmentTree
+from .type_helper import SequenceType

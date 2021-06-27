@@ -220,4 +220,4 @@ class IQNPolicy(DQNPolicy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'iqn_fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'iqn', ['nervex.model.template.q_learning']

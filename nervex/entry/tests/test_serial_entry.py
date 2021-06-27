@@ -219,7 +219,7 @@ def test_qmix():
         os.popen('rm -rf log ckpt*')
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False

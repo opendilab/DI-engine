@@ -393,6 +393,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             reset_fn()
         except Exception as e:
             logging.error('VEC_ENV_MANAGER: env {} reset error'.format(env_id))
+            logging.error('\nEnv Process Reset Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
             if self._closed:  # exception cased by main thread closing parent_remote
                 return
             else:

@@ -16,7 +16,7 @@ cartpole_r2d2_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128,128,64],
+            encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.997,
         burnin_step=5,

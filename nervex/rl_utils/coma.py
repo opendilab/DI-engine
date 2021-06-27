@@ -42,7 +42,7 @@ def coma_error(data: namedtuple, gamma: float, lambda_: float) -> namedtuple:
 
     dist = torch.distributions.categorical.Categorical(logits=logit)
     logp = dist.log_prob(action)
-    baseline = (torch.softmax(logit, dim=-1) * q_value).sum(-1)
+    baseline = (torch.softmax(logit, dim=-1) * q_value).sum(-1).detach()
     adv = (q_taken - baseline).detach()
     entropy_loss = (dist.entropy() * weight).mean()
     policy_loss = -(logp * adv * weight).mean()

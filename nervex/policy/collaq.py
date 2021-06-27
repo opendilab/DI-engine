@@ -6,7 +6,7 @@ from easydict import EasyDict
 
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
-from nervex.model import CollaQ, model_wrap
+from nervex.model import model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
@@ -78,7 +78,7 @@ class CollaQPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=128,
+            # n_sample=32 * 16,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=20,
@@ -94,7 +94,7 @@ class CollaQPolicy(Policy):
                 # (float) Start value for epsilon decay, in [0, 1].
                 end=0.05,
                 # (int) Decay length(env step)
-                decay=20000,
+                decay=200000,
             ),
             replay_buffer=dict(
                 # (int) max size of replay buffer
@@ -138,13 +138,13 @@ class CollaQPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -276,7 +276,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -348,7 +348,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.agent_num)] for _ in range(3)]
+            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -406,4 +406,4 @@ class CollaQPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For collaq, ``nervex.model.qmix.qmix``
         """
-        return 'collaq', ['nervex.model.qmix.qmix']
+        return 'collaq', ['nervex.model.template.qmix']

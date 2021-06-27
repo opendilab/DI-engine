@@ -7,7 +7,7 @@ import copy
 from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
 from nervex.data import default_collate, default_decollate
-from nervex.model import QAC, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -42,8 +42,6 @@ class ATOCPolicy(Policy):
             thought_size=8,
             # (int) The number of agent for each communication group
             agent_per_group=2,
-            # (int) The frequency(update) of communication group reinitialization
-            group_init_freq=5,
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -117,16 +115,16 @@ class ATOCPolicy(Policy):
         self._actor_update_freq = self._cfg.learn.actor_update_freq
         # actor and critic optimizer
         self._optimizer_actor = Adam(
-            self._model._actor.parameters(),
+            self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
         )
         self._optimizer_critic = Adam(
-            self._model._critic.parameters(),
+            self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
         if self._communication:
             self._optimizer_actor_attention = Adam(
-                self._model._actor._attention.parameters(),
+                self._model.actor.attention.parameters(),
                 lr=self._cfg.learn.learning_rate_actor,
             )
         self._reward_batch_norm = self._cfg.learn.reward_batch_norm
@@ -180,17 +178,11 @@ class ATOCPolicy(Policy):
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
-        q_value_dict = {}
-        q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
-        next_data = {'obs': next_obs}
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
-        next_data = {'obs': next_obs, 'action': next_action}
-        with torch.no_grad():
+            next_data = {'obs': next_obs, 'action': next_action}
             target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
-        # td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
-        # TODO what should we do here to keep shape
         td_data = v_1step_td_data(q_value.mean(-1), target_q_value.mean(-1), reward, data['done'], data['weight'])
         critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
         loss_dict['critic_loss'] = critic_loss
@@ -198,9 +190,7 @@ class ATOCPolicy(Policy):
         # critic update
         # ================
         self._optimizer_critic.zero_grad()
-        for k in loss_dict:
-            if 'critic' in k:
-                loss_dict[k].backward()
+        critic_loss.backward()
         self._optimizer_critic.step()
         # ===============================
         # actor learn forward and update
@@ -210,16 +200,16 @@ class ATOCPolicy(Policy):
             if self._communication:
                 output = self._learn_model.forward(data['obs'], mode='compute_actor', get_delta_q=False)
                 output['delta_q'] = data['delta_q']
-                attention_loss = -self._learn_model.forward(
-                    output, mode='optimize_actor_attention'
-                )['actor_attention_loss'].mean()
+                attention_loss = self._learn_model.forward(output, mode='optimize_actor_attention')['loss']
                 loss_dict['attention_loss'] = attention_loss
                 self._optimizer_actor_attention.zero_grad()
                 attention_loss.backward()
                 self._optimizer_actor_attention.step()
+
             output = self._learn_model.forward(data['obs'], mode='compute_actor', get_delta_q=False)
-            output['obs'] = data['obs']
-            actor_loss = -self._learn_model.forward(output, mode='compute_critic')['q_value'].mean()
+
+            critic_input = {'obs': data['obs'], 'action': output['action']}
+            actor_loss = -self._learn_model.forward(critic_input, mode='compute_critic')['q_value'].mean()
             loss_dict['actor_loss'] = actor_loss
             # actor update
             self._optimizer_actor.zero_grad()
@@ -234,11 +224,9 @@ class ATOCPolicy(Policy):
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            # 'q_value': np.array(q_value).mean(),
-            'action': data.get('action').mean(),
             'priority': td_error_per_sample.abs().tolist(),
+            'q_value': q_value.mean().item(),
             **loss_dict,
-            **q_value_dict,
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -246,12 +234,14 @@ class ATOCPolicy(Policy):
             'model': self._learn_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
+            'optimize_actor_attention': self._optimizer_actor_attention.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
+        self._optimizer_actor_attention.load_state_dict(state_dict['optimize_actor_attention'])
 
     def _init_collect(self) -> None:
         r"""
@@ -289,7 +279,7 @@ class ATOCPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+            output = self._collect_model.forward(data, mode='compute_actor', get_delta_q=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -367,7 +357,7 @@ class ATOCPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'atoc', ['nervex.model.atoc.atoc_network']
+        return 'atoc', ['nervex.model.template.atoc']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
@@ -377,6 +367,11 @@ class ATOCPolicy(Policy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         return [
-            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'attention_loss', 'total_loss', 'q_value',
-            'action'
+            'cur_lr_actor',
+            'cur_lr_critic',
+            'critic_loss',
+            'actor_loss',
+            'attention_loss',
+            'total_loss',
+            'q_value',
         ]

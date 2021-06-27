@@ -541,3 +541,11 @@ class RMSprop(torch.optim.RMSprop):
                             p.grad.zero_()
 
         return super().step(closure=closure)
+
+    def get_grad(self) -> float:
+        total_norm = 0.
+        params = [t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None]
+        for p in params:
+            param_norm = p.grad.data.norm(self._clip_norm_type)
+            total_norm += param_norm.item() ** self._clip_norm_type
+        return total_norm

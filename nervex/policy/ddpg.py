@@ -393,7 +393,7 @@ class DDPGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['nervex.model.qac.q_ac']
+        return 'qac', ['nervex.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

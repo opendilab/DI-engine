@@ -12,7 +12,9 @@ cartpole_ppg_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            embedding_size=64,
+            encoder_hidden_size_list=[64, 64, 128],
+            critic_head_hidden_size=128,
+            actor_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=5,

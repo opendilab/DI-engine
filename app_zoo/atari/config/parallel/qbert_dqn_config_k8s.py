@@ -15,11 +15,9 @@ qbert_dqn_config = dict(
         cuda=False,
         priority=True,
         model=dict(
-            encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_shape=[4, 84, 84],
             action_shape=6,
-            hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='base', ),
+            encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=3,
         discount_factor=0.99,

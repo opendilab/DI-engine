@@ -1407,3 +1407,8 @@ policy_*
 /data
 .vscode
 *total_config.py
+**/exp
+**/benchmark
+**/model_zoo
+*ckpt*
+*log*

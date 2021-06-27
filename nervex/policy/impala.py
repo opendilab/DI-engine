@@ -403,7 +403,7 @@ class IMPALAPolicy(Policy):
         return output
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

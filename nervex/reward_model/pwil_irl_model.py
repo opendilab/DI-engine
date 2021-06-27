@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from nervex.utils import REWARD_MODEL_REGISTRY
-from .base_reward_estimate import BaseRewardModel
+from .base_reward_model import BaseRewardModel
 
 
 def collect_state_action_pairs(iterator):

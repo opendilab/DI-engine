@@ -2,7 +2,7 @@ import pytest
 from nervex.worker import EpisodeCollector
 from nervex.envs import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from nervex.policy import DQNPolicy
-from nervex.model import FCDiscreteNet
+from nervex.model import DQN
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 
@@ -11,7 +11,7 @@ from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 def test_collect(env_manager_type):
     env = env_manager_type([lambda: CartPoleEnv({}) for _ in range(8)], env_manager_type.default_config())
     env.seed(0)
-    model = FCDiscreteNet(obs_shape=4, action_shape=1)
+    model = DQN(obs_shape=4, action_shape=1)
     policy = DQNPolicy(DQNPolicy.default_config(), model=model).collect_mode
     collector = EpisodeCollector(EpisodeCollector.default_config(), env, policy)
 
