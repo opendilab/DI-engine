@@ -5,7 +5,7 @@ from nervex.config import compile_config_parallel
 from nervex.worker.coordinator.one_vs_one_parallel_commander import OneVsOneCommander
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def setup_1v1commander():
     nstep = 1
     eval_interval = 5
@@ -16,8 +16,6 @@ def setup_1v1commander():
             evaluator_env_num=5,
             evaluator_episode_num=1,
             stop_value=20,
-            opponent_type="builtin",  # opponent_type is only used in evaluator
-            env_id='cPongDouble-v0',
         ),
         policy=dict(
             cuda=False,
@@ -69,8 +67,11 @@ def setup_1v1commander():
     main_config = EasyDict(main_config)
     create_config = dict(
         env=dict(
-            import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
-            type='competitive_rl',
+            # 1v1 commander should use “competitive_rl”.
+            # However, because this env is hard to install, we use "cartpole" instead.
+            # But commander does not need a real env, it is just preserved to use `compile_config_parallel`.
+            type='cartpole',
+            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
         ),
         env_manager=dict(type='base'),
         policy=dict(type='dqn_command'),
