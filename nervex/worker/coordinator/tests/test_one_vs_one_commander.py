@@ -2,7 +2,7 @@ import time
 import pytest
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 class Test1v1Commander:
 
     def test_init(self, setup_1v1commander):
