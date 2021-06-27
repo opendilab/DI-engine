@@ -29,8 +29,7 @@ def setup_demo_buffer_factory():
             cfg.alpha = 0.6
             cfg.beta = 0.6
             cfg.enable_track_used_data = False
-            demo_buffer = AdvancedReplayBuffer(name="demo", cfg=cfg)
-            yield demo_buffer
+            yield AdvancedReplayBuffer(name="demo", cfg=cfg)
 
     return generator()
 
@@ -266,7 +265,7 @@ class TestDemonstrationBuffer:
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
 
         state_dict = setup_demo_buffer.state_dict()
-        naive_demo_buffer.load_state_dict(state_dict)
+        naive_demo_buffer.load_state_dict(state_dict, deepcopy=True)
         assert naive_demo_buffer._tail == setup_demo_buffer._tail
         assert naive_demo_buffer._max_priority == setup_demo_buffer._max_priority
 

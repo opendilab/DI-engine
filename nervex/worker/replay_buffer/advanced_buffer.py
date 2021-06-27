@@ -194,11 +194,13 @@ class AdvancedReplayBuffer(IBuffer):
             Clear the buffer; Join the buffer's used_data_remover thread if enables track_used_data.
             Join periodic throughtput monitor, flush tensorboard logger.
         """
+        if self._end_flag:
+            return
+        self._end_flag = True
         self.clear()
         self._periodic_thruput_monitor.close()
         self._tb_logger.flush()
         self._tb_logger.close()
-        self._end_flag = True
         if self._enable_track_used_data:
             self._used_data_remover.close()
 
@@ -454,7 +456,7 @@ class AdvancedReplayBuffer(IBuffer):
         with self._lock:
             for i in range(len(self._data)):
                 self._remove(i)
-            assert self._valid_count == 0
+            assert self._valid_count == 0, self._valid_count
             self._head = 0
             self._tail = 0
             self._max_priority = 1.0
@@ -722,7 +724,7 @@ class AdvancedReplayBuffer(IBuffer):
             'min_tree': self._min_tree,
         }
 
-    def load_state_dict(self, _state_dict: dict) -> None:
+    def load_state_dict(self, _state_dict: dict, deepcopy: bool = False) -> None:
         """
         Overview:
             Load state dict to reproduce the buffer.
@@ -734,7 +736,10 @@ class AdvancedReplayBuffer(IBuffer):
             self._extend(_state_dict['data'])
         else:
             for k, v in _state_dict.items():
-                setattr(self, '_{}'.format(k), v)
+                if deepcopy:
+                    setattr(self, '_{}'.format(k), copy.deepcopy(v))
+                else:
+                    setattr(self, '_{}'.format(k), v)
 
     @property
     def replay_buffer_size(self) -> int:
