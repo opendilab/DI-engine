@@ -14,19 +14,40 @@ from flask import Flask, request
 from .action import ConnectionRefuse, DisconnectionRefuse, TaskRefuse, TaskFail
 from ..base import random_token, ControllableService, get_http_engine_class, split_http_address, success_response, \
     failure_response, DblEvent
-from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN
+from ..config import DEFAULT_SLAVE_PORT, DEFAULT_CHANNEL, GLOBAL_HOST, DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN, \
+    DEFAULT_REQUEST_RETRIES, DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import SlaveErrorCode, get_slave_exception_by_error, get_master_exception_by_error
 
 
 class Slave(ControllableService):
+    r"""
+    Overview:
+        Interaction slave client
+    """
 
     def __init__(
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
         heartbeat_span: Optional[float] = None,
+        request_retries: Optional[int] = None,
+        request_retry_waiting: Optional[float] = None,
         channel: Optional[int] = None
     ):
+        """
+        Overview:
+            Constructor of Slave class
+        Arguments:
+            - host (:obj:`Optional[str]`): Host of the slave server, based on flask (None means `0.0.0.0`)
+            - port (:obj:`Optional[int]`): Port of the slave server, based on flask (None means `7236`)
+            - heartbeat_span (:obj:`Optional[float]`): Time span of heartbeat packages in seconds \
+                (None means `3.0`, minimum is `0.2`)
+            - request_retries (:obj:`Optional[int]`): Max times for request retries (None means `5`)
+            - request_retry_waiting (:obj:`Optional[float]`): Sleep time before requests' retrying (None means `1.0`)
+            - channel (:obj:`Optional[int]`): Channel id for the slave client, please make sure that channel id is \
+                equal to the master client's channel id, or the connection cannot be established. (None means `0`, \
+                but 0 channel is not recommended to be used in production)
+        """
         # server part
         self.__host = host or GLOBAL_HOST
         self.__port = port or DEFAULT_SLAVE_PORT
@@ -36,6 +57,8 @@ class Slave(ControllableService):
         # heartbeat part
         self.__heartbeat_span = max(heartbeat_span or DEFAULT_HEARTBEAT_SPAN, MIN_HEARTBEAT_SPAN)
         self.__heartbeat_thread = Thread(target=self.__heartbeat, name='slave_heartbeat')
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
+        self.__request_retry_waiting = max(request_retry_waiting or DEFAULT_REQUEST_RETRY_WAITING, 0.0)
 
         # task part
         self.__has_task = DblEvent()
@@ -50,8 +73,8 @@ class Slave(ControllableService):
                 'Token': lambda: self.__self_token,
             },
             http_error_gene=get_slave_exception_by_error,
-        )()('localhost', self.__port, False)
-        # )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
+            # )()('localhost', self.__port, False)
+        )()(self.__host, self.__port, False)  # TODO: Confirm how to ping itself
         self.__self_token = random_token()
 
         # master-connection part
@@ -299,7 +322,12 @@ class Slave(ControllableService):
 
     # self request operations
     def __self_request(self, method: Optional[str] = 'GET', path: Optional[str] = None) -> requests.Response:
-        return self.__self_http_engine.request(method, path)
+        return self.__self_http_engine.request(
+            method,
+            path,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     def __ping_once(self):
         return self.__self_request('GET', '/ping')
@@ -323,7 +351,13 @@ class Slave(ControllableService):
             path: Optional[str] = None,
             data: Optional[Mapping[str, Any]] = None
     ) -> requests.Response:
-        return self.__master_http_engine.request(method, path, data)
+        return self.__master_http_engine.request(
+            method,
+            path,
+            data,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     def __master_heartbeat(self):
         return self.__master_request('GET', '/slave/heartbeat')
@@ -350,6 +384,13 @@ class Slave(ControllableService):
 
     # public methods
     def ping(self) -> bool:
+        """
+        Overview:
+            Ping the current http server, check if it still run properly.
+        Returns:
+            - output (:obj:`bool`): The http server run properly or not. \
+                `True` means run properly, otherwise return `False`.
+        """
         with self.__lock:
             try:
                 self.__ping_once()
@@ -359,6 +400,15 @@ class Slave(ControllableService):
                 return True
 
     def start(self):
+        """
+        Overview:
+            Start current slave client
+            Here are the steps executed inside in order:
+                1. Start the task-processing thread
+                2. Start the heartbeat thread
+                3. Start the http server thread
+                4. Wait until the http server is online (can be pinged)
+        """
         with self.__lock:
             self.__task_thread.start()
             self.__heartbeat_thread.start()
@@ -367,10 +417,24 @@ class Slave(ControllableService):
             self.__ping_until_started()
 
     def shutdown(self):
+        """
+        Overview:
+            Shutdown current slave client.
+            A shutdown request will be sent to the http server, and the shutdown signal will be apply into the \
+            threads, the server will be down soon (You can use `join` method to wait until that time).
+        """
         with self.__lock:
             self.__shutdown()
 
     def join(self):
+        """
+        Overview:
+            Wait until current slave client is down completely.
+            Here are the steps executed inside in order:
+                1. Wait until the http server thread down
+                2. Wait until the heartbeat thread down
+                3. Wait until the task-processing thread down
+        """
         with self.__lock:
             self.__run_app_thread.join()
             self.__heartbeat_thread.join()
@@ -378,17 +442,74 @@ class Slave(ControllableService):
 
     # inherit method
     def _before_connection(self, data: Mapping[str, Any]):
+        """
+        Overview:
+            Behaviours that will be executed before connection is established.
+        Arguments:
+            - data (:obj:`Mapping[str, Any]`): Connection data when connect to this slave, sent from master.
+        Raises:
+            - `ConnectionRefuse` After raise this, the connection from master end will be refused, \
+                no new connection will be established.
+        """
         pass
 
     def _before_disconnection(self, data: Mapping[str, Any]):
+        """
+        Overview:
+            Behaviours that will be executed before disconnection is executed.
+        Arguments:
+            - data (:obj:`Mapping[str, Any]`): Disconnection data when disconnect with this slave, sent from master.
+        Raises:
+            - `DisconnectionRefuse` After raise this, the disconnection request will be refused, \
+                current connection will be still exist.
+        """
         pass
 
     def _before_task(self, data: Mapping[str, Any]):
+        """
+        Overview:
+            Behaviours that will be executed before task is executed.
+        Arguments:
+            - data (:obj:`Mapping[str, Any]`): Data of the task
+        Raises:
+            - `TaskRefuse` After raise this, the new task will be refused.
+        """
         pass
 
     def _lost_connection(self, master_address: str, err: requests.exceptions.RequestException):
+        """
+        Overview:
+            Behaviours that will be executed after connection is lost.
+        Arguments:
+            - master_address (:obj:`str`): String address of master end
+            - err (:obj:`request.exceptions.RequestException`): Http exception of this connection loss
+        """
         pass
 
     @abstractmethod
     def _process_task(self, task: Mapping[str, Any]):
+        """
+        Overview:
+            Execute the task, this protected method must be implement in the subclass.
+        Arguments:
+            - task (:obj:`Mapping[str, Any]`): Data of the task
+        Raises:
+            - `TaskFail` After raise this, this task will be recognized as run failed, \
+                master will received the failure signal.
+        Example:
+            - A success task with return value (the return value will be received in master end)
+            >>> def _process_task(self, task):
+            >>>     print('this is task data :', task)
+            >>>     return str(task)
+
+            - A failed task with data (the data will be received in master end)
+            >>> def _process_task(self, task):
+            >>>     print('this is task data :', task)
+            >>>     raise TaskFail(task)  # this is a failed task
+
+            - A failed task with data and message (both will be received in master end)
+            >>> def _process_task(self, task):
+            >>>     print('this is task data :', task)
+            >>>     raise TaskFail(task, 'this is message')  # this is a failed task with message
+        """
         raise NotImplementedError

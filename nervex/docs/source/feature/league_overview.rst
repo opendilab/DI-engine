@@ -135,6 +135,12 @@ Base Class Definition：
                         def _sp_branch(self) -> ActivePlayer:
                             return self
 
+    The class hierarchy of player can be shown as follows：
+    
+        .. image:: images/league_player_img.png
+            :align: center
+
+
 
 Payoff
 ~~~~~~~~

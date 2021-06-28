@@ -45,7 +45,7 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-    * TODO
+    .. autoclass:: nervex.policy.collaq.CollaQPolicy
 
 The network interface CollaQ used is defined as follows:
 

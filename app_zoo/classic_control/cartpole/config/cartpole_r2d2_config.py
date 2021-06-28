@@ -16,16 +16,16 @@ cartpole_r2d2_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 128, 64],
         ),
-        discount_factor=0.995,
-        burnin_step=2,
-        nstep=3,
+        discount_factor=0.997,
+        burnin_step=5,
+        nstep=5,
         learn=dict(
-            update_per_collect=1,
+            update_per_collect=4,
             batch_size=64,
-            learning_rate=0.0001,
-            target_update_freq=200,
+            learning_rate=0.0005,
+            target_update_freq=100,
         ),
         collect=dict(
             n_sample=32,
@@ -38,11 +38,7 @@ cartpole_r2d2_config = dict(
                 start=0.95,
                 end=0.05,
                 decay=100000,
-            ),
-            replay_buffer=dict(
-                replay_buffer_size=5000,
-                replay_start_size=1000,
-            )
+            ), replay_buffer=dict(replay_buffer_size=5000, )
         ),
     ),
 )

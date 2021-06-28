@@ -35,7 +35,6 @@ halfcheetah_sac_default_config = dict(
             learning_rate_value=0.0003,
             learning_rate_policy=0.0003,
             learning_rate_alpha=0.003,
-            weight_decay=0.0001,
             ignore_done=True,
             algo=dict(
                 target_theta=0.005,

@@ -4,7 +4,7 @@ Tensorboard and Logging demo
 .. toctree::
    :maxdepth: 3
 
-In this page, the default tensorboard and logging infomation is detailly described. A `CartPole` DQN experiment
+In this page, the default tensorboard and logging infomation is detailly described. A ``CartPole DQN`` experiment
 is used as example.
 
 Tensorboard info
@@ -14,8 +14,8 @@ There are 4 main parts in tensorboard: buffer, collector, learner and evaluator,
 Buffer tensorboard records useful information about sampled data in replay buffer, collector and evaluator tensorboard
 records interactive information between them and environments, learner tensorboard records parameters during updating models.
 
-The most essential information during training may be the reward of evaluator and collector. they are showed in 'collector_iter',
-'collector_step' and 'evaluator_iter', 'evaluator_step', named 'reward_mean'.
+The most essential information during training may be the reward of evaluator and collector. they are showed in ``collector_iter``,
+``collector_step`` and ``evaluator_iter``, ``evaluator_step``, named ``reward_mean``.
 
 Buffer
 ~~~~~~~

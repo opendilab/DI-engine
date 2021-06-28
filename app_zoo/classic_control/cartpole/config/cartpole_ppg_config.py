@@ -12,7 +12,9 @@ cartpole_ppg_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            embedding_size=64,
+            encoder_hidden_size_list=[64, 64, 128],
+            critic_head_hidden_size=128,
+            actor_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=5,
@@ -32,12 +34,10 @@ cartpole_ppg_config = dict(
             replay_buffer=dict(
                 multi_buffer=True,
                 policy=dict(
-                    type='priority',
                     replay_buffer_size=100,
                     max_use=10,
                 ),
                 value=dict(
-                    type='priority',
                     replay_buffer_size=1000,
                     max_use=100,
                 ),
@@ -54,6 +54,10 @@ cartpole_ppg_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppg'),
+    replay_buffer=dict(
+        policy=dict(type='priority'),
+        value=dict(type='priority'),
+    )
 )
 cartpole_ppg_create_config = EasyDict(cartpole_ppg_create_config)
 create_config = cartpole_ppg_create_config

@@ -32,7 +32,6 @@ ant_ddpg_default_config = dict(
             batch_size=128,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,
-            weight_decay=0.0001,
             ignore_done=True,
             algo=dict(
                 target_theta=0.005,

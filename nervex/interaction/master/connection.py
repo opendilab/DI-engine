@@ -10,7 +10,7 @@ from requests.exceptions import RequestException
 from .base import _BEFORE_HOOK_TYPE, _AFTER_HOOK_TYPE, _ERROR_HOOK_TYPE
 from .task import Task, _task_complete, _task_fail
 from ..base import random_token, ControllableContext, get_http_engine_class, get_values_from_response
-from ..config import DEFAULT_CHANNEL, DEFAULT_SLAVE_PORT
+from ..config import DEFAULT_CHANNEL, DEFAULT_SLAVE_PORT, DEFAULT_REQUEST_RETRIES, DEFAULT_REQUEST_RETRY_WAITING
 from ..exception import get_slave_exception_by_error
 
 _COMPLETE_TRIGGER_NAME = '__TASK_COMPLETE__'
@@ -18,27 +18,72 @@ _FAIL_TRIGGER_NAME = '__TASK_FAIL__'
 
 
 class _ISlaveConnection(ControllableContext, metaclass=ABCMeta):
+    """
+    Overview:
+        Basic model of the connection classes, such as `SlaveConnection` and `SlaveConnectionProxy`, \
+        which are used widely in interaction module.
+    Example:
+        - The following code shows a sample to correctly use slave connection
+        >>> connection = master.new_connection('cnn1,', '127.0.0.1', 2333)
+        >>> connection.connect()
+        >>> try:
+        >>>     pass # do anything you like
+        >>> finally:
+        >>>     connection.disconnect()
+
+        - Another simple structure of the code above
+        >>> with master.new_connection('cnn1,', '127.0.0.1', 2333) as connection:
+        >>>     pass # do anything you like, connect and disconnect will be done automatically
+    """
 
     @abstractmethod
     def connect(self):
+        """
+        Overview:
+            Connect to slave end.
+        """
         raise NotImplementedError  # pragma: no cover
 
     @abstractmethod
     def disconnect(self):
+        """
+        Overview:
+            Disconnect from slave end.
+        """
         raise NotImplementedError  # pragma: no cover
 
     @abstractmethod
     def new_task(self, data: Optional[Mapping[str, Any]] = None):
+        """
+        Overview:
+            Send new task to slave end and receive task result from it.
+        Arguments:
+            - data (:obj:`Optional[Mapping[str, Any]]`): Data of the new task
+        Returns:
+            - result (:obj:`Mapping[str, Any]`): Result of the task processed by slave end
+        """
         raise NotImplementedError  # pragma: no cover
 
     def start(self):
+        """
+        Overview:
+            Alias for `connect`, for supporting context manager.
+        """
         self.connect()
 
     def close(self):
+        """
+        Overview:
+            Alias for `disconnect`, for support context manager.
+        """
         self.disconnect()
 
 
 class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
+    """
+    Overview:
+        Slave connection object, which need to directly interact with slave end.
+    """
 
     def __init__(
         self,
@@ -47,8 +92,27 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
         https: bool = False,
         channel: Optional[int] = None,
         my_address: Optional[str] = None,
-        token: Optional[str] = None
+        token: Optional[str] = None,
+        request_retries: Optional[int] = None,
+        request_retry_waiting: Optional[float] = None,
     ):
+        """
+        Overview:
+            Constructor of `SlaveConnection`
+        Arguments:
+            - host (:obj:`str`): Host of the slave server
+            - port (:obj:`Optional[int]`): Port of the slave server (None means `7236`)
+            - https (:obj:`bool`): Use https or not
+            - channel (:obj:`Optional[int]`): Channel id for the slave client.
+            - my_address (:obj:`Optional[str]`): The address of current server (None will grep local ip automatically, \
+                this address will be used when connect to slave, the slave's request will be send to this address, \
+                **so please make sure the address can be achieved by slave**)
+            - token (:obj:`Optional[str]`): Token of this connection, it is a token for authenticate to the \
+                connection (`None` means this token would be randomly generated)
+            - request_retries (:obj:`Optional[int]`): Max times for request retries (None means `5`)
+            - request_retry_waiting (:obj:`Optional[float]`): Sleep time before requests' retrying (None means `1.0`, \
+                unit: second)
+        """
         # meta info part
         self.__channel = channel or DEFAULT_CHANNEL
         self.__my_address = my_address
@@ -62,6 +126,8 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
             },
             http_error_gene=get_slave_exception_by_error,
         )()(host, port or DEFAULT_SLAVE_PORT, https)
+        self.__request_retries = max(request_retries or DEFAULT_REQUEST_RETRIES, 0)
+        self.__request_retry_waiting = max(request_retry_waiting or DEFAULT_REQUEST_RETRY_WAITING, 0.0)
 
         # threading part
         self.__lock = Lock()
@@ -73,10 +139,22 @@ class SlaveConnection(_ISlaveConnection, metaclass=ABCMeta):
         self.__init_triggers()
 
     def __request(self, method: str, path: str, data: Optional[Mapping[str, Any]] = None) -> requests.Response:
-        return self.__http_engine.request(method, path, data)
+        return self.__http_engine.request(
+            method,
+            path,
+            data,
+            retries=self.__request_retries,
+            retry_waiting=self.__request_retry_waiting,
+        )
 
     @property
     def is_connected(self) -> bool:
+        """
+        Overview:
+            Check connection status
+        Returns:
+            - connected (:obj:`bool`): Whether this connection is still alive
+        """
         with self.__lock:
             return self.__is_connected
 
@@ -201,6 +279,10 @@ def _connection_task_fail(connection: SlaveConnection, task_id: UUID, task_resul
 
 
 class SlaveConnectionProxy(_ISlaveConnection):
+    """
+    Overview:
+        Proxy class for `SlaveConnection` class, which wraps the original methods.
+    """
 
     def __init__(
         self,
@@ -208,6 +290,14 @@ class SlaveConnectionProxy(_ISlaveConnection):
         after_connect: Optional[Callable] = None,
         after_disconnect: Optional[Callable] = None
     ):
+        """
+        Overview:
+            Constructor of `SlaveConnectionProxy`
+        Arguments:
+            - connection (:obj:`SlaveConnection`): Slave connection object
+            - after_connect (:obj:`Optional[Callable]`): Behaviour going to be executed after connection established
+            - after_disconnect (:obj:`Optional[Callable]`): Behaviour going to be executed after connection killed
+        """
         self.__connection = connection
         self.__lock = Lock()
         self.__after_connect = after_connect
@@ -217,6 +307,12 @@ class SlaveConnectionProxy(_ISlaveConnection):
 
     @property
     def is_connected(self) -> bool:
+        """
+        Overview:
+            Check connection status
+        Returns:
+            - connected (:obj:`bool`): Whether this connection is still alive
+        """
         with self.__lock:
             return self.__connection.is_connected
 

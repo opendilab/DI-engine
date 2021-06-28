@@ -35,7 +35,6 @@ class ILPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        model=dict(),
         learn=dict(
             multi_gpu=False,
             # (int) collect n_episode data, train model n_iteration time
@@ -44,20 +43,16 @@ class ILPolicy(Policy):
             batch_size=64,
             # (float) gradient-descent step size
             learning_rate=0.0002,
-            # (float) weight decay of optimizer
-            weight_decay=0.0,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_sample=128,
+            # n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
-            collector=dict(type='sample', ),
         ),
         eval=dict(evaluator=dict(eval_freq=800, ), ),
         other=dict(
             replay_buffer=dict(
-                type='priority',
                 replay_buffer_size=100000,
                 # (int) max use count of data, if count is bigger than this value,
                 # the data will be removed from buffer
@@ -74,7 +69,7 @@ class ILPolicy(Policy):
             Init optimizers, algorithm config, main and target models.
         """
         # actor and critic optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=0.0001)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
 
         # main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')

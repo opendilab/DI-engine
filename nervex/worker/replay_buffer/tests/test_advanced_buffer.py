@@ -5,6 +5,7 @@ import pytest
 from easydict import EasyDict
 import os
 import pickle
+import time
 
 from nervex.worker.replay_buffer import AdvancedReplayBuffer
 from nervex.utils import deep_merge_dicts
@@ -28,8 +29,7 @@ def setup_demo_buffer_factory():
             cfg.alpha = 0.6
             cfg.beta = 0.6
             cfg.enable_track_used_data = False
-            demo_buffer = AdvancedReplayBuffer(name="demo", cfg=cfg)
-            yield demo_buffer
+            yield AdvancedReplayBuffer(name="demo", cfg=cfg)
 
     return generator()
 
@@ -114,7 +114,7 @@ class TestAdvancedBuffer:
             advanced_buffer.push(data, 0)
         use_dict = defaultdict(int)
         while True:
-            can_sample = advanced_buffer._sample_check(32, 0)
+            can_sample, _ = advanced_buffer._sample_check(32, 0)
             if not can_sample:
                 break
             batch = advanced_buffer.sample(32, 0)
@@ -195,6 +195,51 @@ class TestAdvancedBuffer:
         weights = get_weights(data[-36:])
         assert (np.fabs(weights.sum() - advanced_buffer._sum_tree.reduce(start=0, end=36)) < 1e-6)
 
+    @pytest.mark.rate
+    def test_rate_limit(self):
+        buffer_cfg = AdvancedReplayBuffer.default_config()
+        buffer_cfg.replay_buffer_size = 1000
+        buffer_cfg.thruput_controller = EasyDict(
+            push_sample_rate_limit=dict(
+                max=2,
+                min=0.5,
+            ),
+            window_seconds=5,
+            sample_min_limit_ratio=1.5,
+        )
+        prioritized_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+
+        # Too many samples
+        data = generate_data_list(30)
+        prioritized_buffer.push(data, 0)  # push: 30
+        for _ in range(3):
+            _ = prioritized_buffer.sample(19, 0)  # sample: 3 * 19 = 57
+        sampled_data = prioritized_buffer.sample(19, 0)
+        assert sampled_data is None
+
+        # Too big batch_size
+        sampled_data = prioritized_buffer.sample(21, 0)
+        assert sampled_data is None
+
+        # Too many pushes
+        assert prioritized_buffer.count() == 30
+        for _ in range(2):
+            data = generate_data_list(30)
+            prioritized_buffer.push(data, 0)  # push: 30 + 2 * 30 = 90
+        assert prioritized_buffer.count() == 90
+        data = generate_data_list(30)
+        prioritized_buffer.push(data, 0)
+        assert prioritized_buffer.count() == 90
+
+        # Test thruput_controller
+        cur_sample_count = prioritized_buffer._thruput_controller.history_sample_count
+        cur_push_count = prioritized_buffer._thruput_controller.history_push_count
+        time.sleep(buffer_cfg.thruput_controller.window_seconds)
+        assert abs(prioritized_buffer._thruput_controller.history_sample_count - cur_sample_count *
+                   0.01) < 1e-5, (cur_sample_count, prioritized_buffer._thruput_controller.history_sample_count)
+        assert abs(prioritized_buffer._thruput_controller.history_push_count - cur_push_count *
+                   0.01) < 1e-5, (cur_push_count, prioritized_buffer._thruput_controller.history_push_count)
+
 
 @pytest.mark.unittest
 class TestDemonstrationBuffer:
@@ -220,7 +265,7 @@ class TestDemonstrationBuffer:
                 assert abs(sample['priority'] - 1.44) <= 0.02 + 1e-5, sample
 
         state_dict = setup_demo_buffer.state_dict()
-        naive_demo_buffer.load_state_dict(state_dict)
+        naive_demo_buffer.load_state_dict(state_dict, deepcopy=True)
         assert naive_demo_buffer._tail == setup_demo_buffer._tail
         assert naive_demo_buffer._max_priority == setup_demo_buffer._max_priority
 

@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from nervex.utils import REWARD_MODEL_REGISTRY
-from .base_reward_estimate import BaseRewardModel
+from .base_reward_model import BaseRewardModel
 
 
 class SENet(nn.Module):
@@ -31,10 +31,23 @@ class SENet(nn.Module):
 class RedRewardModel(BaseRewardModel):
     """
     Overview:
-       The implement of reward model in RED(https://arxiv.org/abs/1905.06750)
+         The implement of reward model in RED (https://arxiv.org/abs/1905.06750)
+    Interface:
+        ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
+            ``__init__``, ``_train``
+    Properties:
+        - online_net (:obj: `SENet`): The reward model, in default initialized once as the training begins.
     """
 
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+        Arguments:
+            - cfg (:obj:`Dict`): Training config
+            - device (:obj:`str`): Device usage, i.e. "cpu" or "cuda"
+            - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
+        """
         super(RedRewardModel, self).__init__()
         self.config: Dict = config
         self.expert_data: List[tuple] = []
@@ -52,6 +65,12 @@ class RedRewardModel(BaseRewardModel):
         self.load_expert_data()
 
     def load_expert_data(self) -> None:
+        """
+        Overview:
+            Getting the expert data from ``config['expert_data_path']`` attribute in self.
+        Effects:
+            This is a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
+        """
         with open(self.config['expert_data_path'], 'rb') as f:
             self.expert_data = pickle.load(f)
         sample_size = min(len(self.expert_data), self.config['sample_size'])
@@ -59,6 +78,14 @@ class RedRewardModel(BaseRewardModel):
         print('the expert data size is:', len(self.expert_data))
 
     def _train(self, batch_data: torch.Tensor) -> float:
+        """
+        Overview:
+            Helper function for ``train`` which caclulates loss for train data and expert data.
+        Arguments:
+            - batch_data (:obj:`torch.Tensor`): Data used for training
+        Returns:
+            - Combined loss calculated of reward model from using ``batch_data`` in both target and reward models.
+        """
         with torch.no_grad():
             target = self.target_net(batch_data)
         hat: torch.Tensor = self.online_net(batch_data)
@@ -69,6 +96,12 @@ class RedRewardModel(BaseRewardModel):
         return loss.item()
 
     def train(self) -> None:
+        """
+        Overview:
+            Training the RED reward model. In default, RED model should be trained once.
+        Effects:
+            - This is a side effect function which updates the reward model and increment the train iteration count.
+        """
         if self.train_once_flag:
             if not self.warning_flag:
                 logging.warning('RED model should be trained once, we do not train it anymore')
@@ -90,6 +123,15 @@ class RedRewardModel(BaseRewardModel):
             self.train_once_flag = True
 
     def estimate(self, data: list) -> None:
+        """
+        Overview:
+            Estimate reward by rewriting the reward key
+        Arguments:
+            - data (:obj:`list`): the list of data used for estimation, \
+                with at least ``obs`` and ``action`` keys.
+        Effects:
+            - This is a side effect function which updates the reward values in place.
+        """
         states_data = []
         actions_data = []
         for item in data:
@@ -108,9 +150,19 @@ class RedRewardModel(BaseRewardModel):
             item['reward'] = rew
 
     def collect_data(self, data) -> None:
+        """
+        Overview:
+            Collecting training data, not implemented if reward model (i.e. online_net) is only trained ones, \
+                if online_net is trained continuously, there should be some implementations in collect_data method
+        """
         # if online_net is trained continuously, there should be some implementations in collect_data method
         pass
 
     def clear_data(self):
+        """
+        Overview:
+            Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones, \
+                if online_net is trained continuously, there should be some implementations in clear_data method
+        """
         # if online_net is trained continuously, there should be some implementations in clear_data method
         pass

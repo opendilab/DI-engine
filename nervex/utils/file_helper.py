@@ -26,11 +26,11 @@ rediscluster = try_import_rediscluster()
 def read_from_ceph(path: str) -> object:
     """
     Overview:
-        read file from ceph
+        Read file from ceph
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://"
+        - path (:obj:`str`): File path in ceph, start with ``"s3://"``
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     value = ceph.Get(path)
     if not value:
@@ -40,6 +40,14 @@ def read_from_ceph(path: str) -> object:
 
 
 def _ensure_redis(host='localhost', port=6379):
+    """
+    Overview: Ensures redis usage
+    Arguments:
+        - host (:obj:`str`): Host string
+        - port (:obj:`int`): Port number
+    Returns:
+        - (:obj:`Redis(object)`): Redis object with given ``host``, ``port``, and ``db=0``
+    """
     global r
     if r is None:
         r = redis.StrictRedis(host=host, port=port, db=0)
@@ -48,11 +56,12 @@ def _ensure_redis(host='localhost', port=6379):
 
 def read_from_redis(path: str) -> object:
     """
-    Overview: read file from redis
+    Overview:
+        Read file from redis
     Arguments:
-        - path (:obj:`str`): file path in redis, could be a string key
+        - path (:obj:`str`): Dile path in redis, could be a string key
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     global r
     _ensure_redis()
@@ -62,6 +71,17 @@ def read_from_redis(path: str) -> object:
 
 
 def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
+    """
+    Overview:
+        Ensures redis usage
+    Arguments:
+        - List of startup nodes (:obj:`dict`) of
+            - host (:obj:`str`): Host string
+            - port (:obj:`int`): Port number
+    Returns:
+        - (:obj:`RedisCluster(object)`): RedisCluster object with given ``host``, ``port``, \
+            and ``False`` for ``decode_responses`` in default.
+    """
     global rc
     if rc is None:
         rc = rediscluster.RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
@@ -70,11 +90,12 @@ def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
 
 def read_from_rediscluster(path: str) -> object:
     """
-    Overview: read file from rediscluster
+    Overview:
+        Read file from rediscluster
     Arguments:
-        - path (:obj:`str`): file path in rediscluster, could be a string key
+        - path (:obj:`str`): Dile path in rediscluster, could be a string key
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     global rc
     _ensure_rediscluster()
@@ -86,11 +107,11 @@ def read_from_rediscluster(path: str) -> object:
 def read_from_file(path: str) -> object:
     """
     Overview:
-        read file from local file system
+        Read file from local file system
     Arguments:
-        - path (:obj:`str`): file path in local file system
+        - path (:obj:`str`): File path in local file system
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     with open(path, "rb") as f:
         value = pickle.load(f)
@@ -99,6 +120,13 @@ def read_from_file(path: str) -> object:
 
 
 def _ensure_memcached():
+    """
+    Overview:
+        Ensures memcache usage
+    Returns:
+        - (:obj:`MemcachedClient instance`): MemcachedClient's class instance built with current \
+            memcached_client's ``server_list.conf`` and ``client.conf`` files
+    """
     global mclient
     if mclient is None:
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
@@ -110,11 +138,11 @@ def _ensure_memcached():
 def read_from_mc(path: str, flush=False) -> object:
     """
     Overview:
-        read file from memcache, file must be saved by `torch.save()`
+        Read file from memcache, file must be saved by `torch.save()`
     Arguments:
-        - path (:obj:`str`): file path in local system
+        - path (:obj:`str`): File path in local system
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     global mclient
     _ensure_memcached()
@@ -138,11 +166,11 @@ def read_from_mc(path: str, flush=False) -> object:
 def read_from_path(path: str):
     """
     Overview:
-        read file from ceph
+        Read file from ceph
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://", or use local file system
+        - path (:obj:`str`): File path in ceph, start with ``"s3://"``, or use local file system
     Returns:
-        - (:obj`data`): deserialized data
+        - (:obj:`data`): Deserialized data
     """
     if ceph is None:
         logging.info(
@@ -157,10 +185,10 @@ def read_from_path(path: str):
 def save_file_ceph(path, data):
     """
     Overview:
-        save pickle dumped data file to ceph
+        Save pickle dumped data file to ceph
     Arguments:
-        - path (:obj:`str`): file path in ceph, start with "s3://", use file system when not
-        - data (:obj:`anything`): could be dict, list or tensor etc.
+        - path (:obj:`str`): File path in ceph, start with ``"s3://"``, use file system when not
+        - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
     data = pickle.dumps(data)
     save_path = os.path.dirname(path)
@@ -192,10 +220,11 @@ def save_file_ceph(path, data):
 
 def save_file_redis(path, data):
     """
-    Overview: save pickle dumped data file to redis
+    Overview:
+        Save pickle dumped data file to redis
     Arguments:
-        - path (:obj:`str`): file path (could be a string key) in redis
-        - data (:obj:`anything`): could be dict, list or tensor etc.
+        - path (:obj:`str`): File path (could be a string key) in redis
+        - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
     global r
     _ensure_redis()
@@ -206,10 +235,11 @@ def save_file_redis(path, data):
 
 def save_file_rediscluster(path, data):
     """
-    Overview: save pickle dumped data file to rediscluster
+    Overview:
+        Save pickle dumped data file to rediscluster
     Arguments:
-        - path (:obj:`str`): file path (could be a string key) in redis
-        - data (:obj:`anything`): could be dict, list or tensor etc.
+        - path (:obj:`str`): File path (could be a string key) in redis
+        - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
     global rc
     _ensure_rediscluster()
@@ -221,11 +251,11 @@ def save_file_rediscluster(path, data):
 def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = False) -> object:
     r"""
     Overview:
-        read file from path
+        Read file from path
     Arguments:
-        - path (:obj:`str`): the path of file to read
-        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
-        - use_lock (:obj:`bool`): whether use_lock in local normal file system
+        - path (:obj:`str`): The path of file to read
+        - fs_type (:obj:`str` or :obj:`None`): The file system type, support ``{'normal', 'ceph'}``
+        - use_lock (:obj:`bool`): Whether ``use_lock`` is in local normal file system
     """
     if fs_type is None:
         if path.lower().startswith('s3'):
@@ -251,12 +281,12 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
 def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> NoReturn:
     r"""
     Overview:
-        save data to file of path
+        Save data to file of path
     Arguments:
-        - path (:obj:`str`): the path of file to save to
-        - data (:obj:`object`): the data to save
-        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
-        - use_lock (:obj:`bool`): whether use_lock in local normal file system
+        - path (:obj:`str`): The path of file to save to
+        - data (:obj:`object`): The data to save
+        - fs_type (:obj:`str` or :obj:`None`): The file system type, support ``{'normal', 'ceph'}``
+        - use_lock (:obj:`bool`): Whether ``use_lock`` is in local normal file system
     """
     if fs_type is None:
         if path.lower().startswith('s3'):
@@ -282,10 +312,10 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
 def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
     r"""
     Overview:
-        remove file
+        Remove file
     Arguments:
-        - path (:obj:`str`): the path of file you want to remove
-        - fs_type (:obj:`str` or :obj:`None`): the file system type, support 'normal' and 'ceph'
+        - path (:obj:`str`): The path of file you want to remove
+        - fs_type (:obj:`str` or :obj:`None`): The file system type, support ``{'normal', 'ceph'}``
     """
     if fs_type is None:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'

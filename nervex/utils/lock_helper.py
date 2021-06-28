@@ -25,7 +25,7 @@ class LockContext(object):
         Generate a LockContext in order to make sure the thread safety.
 
     Interfaces:
-        __init__, __enter__, __exit__
+        ``__init__``, ``__enter__``, ``__exit__``
 
     Example:
         >>> with LockContext() as lock:
@@ -35,7 +35,7 @@ class LockContext(object):
     def __init__(self, type_: LockContextType = LockContextType.THREAD_LOCK):
         r"""
         Overview:
-            init the lock according to given type
+            Init the lock according to given type
         """
         self.lock = _LOCK_TYPE_MAPPING[type_]()
 
@@ -64,6 +64,15 @@ rw_lock_mapping = {}
 
 
 def get_rw_lock(name: str, op: str):
+    r'''
+    Overview:
+        Get generated lock with name and operator
+    Arguments:
+        - name (:obj:`str`) Lock's name.
+        - op (:obj:`str`) Assigned operator, i.e. ``read`` or ``write``.
+    Returns:
+        - (:obj:`RWLockFairD object`) Generated rwlock
+    '''
     assert op in ['read', 'write']
     if name not in rw_lock_mapping:
         rw_lock_mapping[name] = rwlock.RWLockFairD()

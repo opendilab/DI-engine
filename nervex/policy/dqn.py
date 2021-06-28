@@ -60,8 +60,6 @@ class DQNPolicy(Policy):
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -73,17 +71,9 @@ class DQNPolicy(Policy):
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=8,
+            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (bool) Whether to use hindsight experience replay
-            her=False,
-            her_strategy='future',
-            her_replay_k=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # other config
@@ -97,10 +87,7 @@ class DQNPolicy(Policy):
                 # (int) Decay length(env step)
                 decay=10000,
             ),
-            replay_buffer=dict(
-                type='priority',
-                replay_buffer_size=10000,
-            ),
+            replay_buffer=dict(replay_buffer_size=10000, ),
         ),
     )
 
@@ -180,7 +167,7 @@ class DQNPolicy(Policy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._multi_gpu:
+        if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 
@@ -231,13 +218,7 @@ class DQNPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
-        self._her = self._cfg.collect.her
-        if self._her:
-            her_strategy = self._cfg.collect.her_strategy
-            her_replay_k = self._cfg.collect.her_replay_k
-            self._adder = Adder(self._cuda, self._unroll_len, her_strategy=her_strategy, her_replay_k=her_replay_k)
-        else:
-            self._adder = Adder(self._cuda, self._unroll_len)
+        self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -287,8 +268,6 @@ class DQNPolicy(Policy):
         """
         # adder is defined in _init_collect
         data = self._adder.get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        if self._cfg.collect.her:
-            data = self._adder.get_her(data)
         return self._adder.get_train_sample(data)
 
     def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
@@ -356,6 +335,6 @@ class DQNPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``nervex.model.interface.DQN``
+            by import_names path. For DQN, ``nervex.model.template.q_learning.DQN``
         """
-        return 'fc_discrete_net', ['nervex.model.discrete_net.discrete_net']
+        return 'dqn', ['nervex.model.template.q_learning']

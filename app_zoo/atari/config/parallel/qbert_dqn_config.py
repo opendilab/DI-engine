@@ -9,17 +9,15 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, ),
+        manager=dict(shared_memory=True, ),
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=True,
         model=dict(
-            encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_shape=[4, 84, 84],
             action_shape=6,
-            hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='base', ),
+            encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=3,
         discount_factor=0.99,
@@ -32,7 +30,7 @@ qbert_dqn_config = dict(
             ),
         ),
         collect=dict(
-            n_sample=16,
+            n_sample=32,
             collector=dict(
                 collector_num=2,
                 update_policy_second=3,
@@ -90,10 +88,11 @@ qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
 create_config = qbert_dqn_create_config
 
 qbert_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=1,
 )
 qbert_dqn_system_config = EasyDict(qbert_dqn_system_config)
 system_config = qbert_dqn_system_config

@@ -14,7 +14,8 @@ cartpole_iqn_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 128, 64],
+            num_quantiles=32,
         ),
         discount_factor=0.97,
         nstep=3,
@@ -23,10 +24,7 @@ cartpole_iqn_config = dict(
             batch_size=64,
             learning_rate=0.001,
             target_update_freq=100,
-            iqn=True,
-            quantile_thresholds_N=8,
-            quantile_thresholds_N_prime=8,
-            quantile_thresholds_K=8,
+            kappa=1.0,
         ),
         collect=dict(
             n_sample=80,

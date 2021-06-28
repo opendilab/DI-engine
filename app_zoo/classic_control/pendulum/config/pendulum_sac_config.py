@@ -13,16 +13,20 @@ pendulum_sac_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
+        random_collect_size=1000,
         model=dict(
             obs_shape=3,
             action_shape=1,
-            twin_q=True,
+            twin_critic=True,
+            actor_head_type='reparameterization',
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=1,
             batch_size=128,
-            learning_rate_q=0.0003,
-            learning_rate_policy=0.0003,
+            learning_rate_q=0.001,
+            learning_rate_policy=0.001,
             ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
@@ -33,9 +37,11 @@ pendulum_sac_config = dict(
             n_sample=128,
             noise_sigma=0.2,
         ),
+        eval=dict(
+            evaluator=dict(eval_freq=100, )
+        ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            replay_start_size=1000,
         ), ),
     ),
 )

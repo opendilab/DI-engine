@@ -6,7 +6,7 @@ import copy
 from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -35,7 +35,12 @@ class A2CPolicy(Policy):
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0,
+            # (List[float])
+            betas=(0.9, 0.999),
+            # (float)
+            eps=1e-8,
+            # (float)
+            grad_norm=0.5,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -49,7 +54,7 @@ class A2CPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=80,
+            # n_sample=80,
             unroll_len=1,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -62,15 +67,11 @@ class A2CPolicy(Policy):
             nstep_return=False,
             # (int) N-step td
             nstep=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(
-            type='priority',
-            replay_buffer_size=1000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
     )
 
     def _init_learn(self) -> None:
@@ -81,7 +82,10 @@ class A2CPolicy(Policy):
         """
         # Optimizer
         self._optimizer = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self._cfg.learn.weight_decay
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            betas=self._cfg.learn.betas,
+            eps=self._cfg.learn.eps
         )
 
         # Algorithm config
@@ -90,6 +94,7 @@ class A2CPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._adv_norm = self._cfg.learn.normalize_advantage
+        self._grad_norm = self._cfg.learn.grad_norm
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -131,9 +136,9 @@ class A2CPolicy(Policy):
         self._optimizer.zero_grad()
         total_loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(
+        grad_norm = torch.nn.utils.clip_grad_norm_(
             list(self._learn_model.parameters()),
-            max_norm=0.5,
+            max_norm=self._grad_norm,
         )
         self._optimizer.step()
 
@@ -147,6 +152,7 @@ class A2CPolicy(Policy):
             'value_loss': a2c_loss.value_loss.item(),
             'entropy_loss': a2c_loss.entropy_loss.item(),
             'adv_abs_max': adv.abs().max().item(),
+            'grad_norm': grad_norm,
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -268,7 +274,7 @@ class A2CPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']
+        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']

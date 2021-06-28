@@ -17,14 +17,13 @@ install:
 style:
   stage: style
   script:
-    - pip install yapf==0.29.0 flake8
+    - pip install .[style]
     - make format_test flake_check
 
 pages:
   stage: doc
   script:
-    - pip install -e .
-    - pip install sphinx sphinx_rtd_theme
+    - pip install -e .[doc]
     - make docs
     - mv nervex/docs/build/html public
     - rm -rf nervex/docs/build
@@ -33,6 +32,7 @@ pages:
       - public
   only:
     - master
+    - dev-0.2.0rc0
     - /^doc/.*$/
 
 test_unittest:
@@ -43,7 +43,7 @@ test_unittest:
     WORKERS: 8 # if you need to change to concurrency, just change here
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
   script:
-    - pip install -e .
+    - pip install -e .[test]
     - make unittest
 
 test_algotest:
@@ -54,7 +54,7 @@ test_algotest:
     DURATIONS: 10 # the count of durations
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
   script:
-    - pip install -e .
+    - pip install -e .[test]
     - make algotest
   only:
     changes:
@@ -70,7 +70,7 @@ test_benchmark:
     WORKERS: 8 # if you need to change to concurrency, just change here
   #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
   script:
-    - pip install -e .
+    - pip install -e .[test]
     - make benchmark
 
 test_cudatest:
@@ -83,5 +83,5 @@ test_cudatest:
   image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
   script:
     - yum -y install gcc automake autoconf libtool libsm6 make
-    - pip install -e .
+    - pip install -e .[test]
     - make cudatest

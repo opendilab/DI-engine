@@ -11,9 +11,9 @@ from torch.distributions.categorical import Categorical
 from nervex.torch_utils import Adam, to_device
 from nervex.data import default_collate, default_decollate
 from nervex.rl_utils import Adder
-from nervex.model import FCDiscreteNet, SQNDiscreteNet, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY
-from nervex.model import SQNModel
+from nervex.model import SQN
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -25,21 +25,19 @@ class SQNPolicy(Policy):
         Policy class of SQN algorithm (arxiv: 1912.10891).
     """
 
-    update_per_collect = 16
     config = dict(
         cuda=False,
-        policy_type='sqn',
+        type='sqn',
         on_policy=False,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
             multi_gpu=False,
-            update_per_collect=update_per_collect,
+            update_per_collect=16,
             batch_size=64,
             learning_rate_q=0.001,
             learning_rate_alpha=0.001,
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -52,10 +50,9 @@ class SQNPolicy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            n_sample=update_per_collect,
+            # n_sample=16,
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         other=dict(
@@ -65,10 +62,7 @@ class SQNPolicy(Policy):
                 end=0.8,
                 decay=2000,
             ),
-            replay_buffer=dict(
-                type='priority',
-                replay_buffer_size=100000,
-            ),
+            replay_buffer=dict(replay_buffer_size=100000, ),
         ),
     )
 
@@ -81,16 +75,14 @@ class SQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizers
-        self._optimizer_q = Adam(
-            self._model.parameters(), lr=self._cfg.learn.learning_rate_q, weight_decay=self._cfg.learn.weight_decay
-        )
+        self._optimizer_q = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate_q)
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
         self._action_shape = self._cfg.model.action_shape
         self._target_entropy = self._cfg.learn.target_entropy
         self._log_alpha = torch.FloatTensor([math.log(self._cfg.learn.alpha)]).to(self._device).requires_grad_(True)
-        self._optimizer_alpha = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+        self._optimizer_alpha = Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
 
         # Main and target models
         self._target_model = copy.deepcopy(self._model)
@@ -171,8 +163,8 @@ class SQNPolicy(Policy):
         action = data.get('action')
         done = data.get('done')
         # Q-function
-        q_value = self._learn_model.forward({'obs': obs})['q_value']
-        target_q_value = self._target_model.forward({'obs': next_obs})['q_value']  # TODO:check grad
+        q_value = self._learn_model.forward(obs)['q_value']
+        target_q_value = self._target_model.forward(next_obs)['q_value']
 
         num_s_env = 1 if isinstance(self._action_shape, int) else len(self._action_shape)  # num of seperate env
 
@@ -348,9 +340,8 @@ class SQNPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
-        assert model is None
-        return SQNModel(**cfg.model)
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'sqn', ['nervex.model.template.sqn']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

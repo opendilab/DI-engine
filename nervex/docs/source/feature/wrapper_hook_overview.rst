@@ -5,14 +5,14 @@ Wrapper & Hook Overview
 Wrapper
 --------------------
 概述：
-    Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper就可以被派上用场。用Wrapper对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于model方面的操作，例如 ``.cuda()`` 或者 train/eval 模式切换以及不同mode下是否共享模型本身，交给用户在policy中直接对model进行操作。
+    Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper 就可以被派上用场。用 Wrapper 对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于 model 方面的操作，例如 ``.cuda()`` 或者 train/eval 模式切换以及不同 mode 下是否共享模型本身，交给用户在 policy 中直接对 model 进行操作。
 
 用处：
-    nervex中用到wrapper的地方有三个，分别是 env，model，以及learner
+    nervex 中用到 wrapper 的地方有三个，分别是 env，model，以及 learner
 
     - env
 
-        env里面用到的wrapper，实际上就是 ``gym.Wrapper`` 的子类。为了方便地对环境类的输入输出做一些操作或者适配，Wrapper 是非常方便且有效的工具。可以简单地理解为，这部分的Wrapper是对环境类的一个包装。env_wrapper中只对常用的gym的一些wrapper做了封装。
+        env 里面用到的 wrapper，实际上就是 ``gym.Wrapper`` 的子类。为了方便地对环境类的输入输出做一些操作或者适配，Wrapper 是非常方便且有效的工具。可以简单地理解为，这部分的 Wrapper 是对环境类的一个包装。env_wrapper 中只对常用的 `gym` 库的一些 wrapper 做了封装。
 
         - 使用：
             .. code:: python
@@ -26,7 +26,9 @@ Wrapper
             2. 使用 ``env = MyWrapper(env)`` 来得到新的经过包装的环境
 
     - model
+
         对于 policy 中使用的 model，我们对其也实现了和 ``gym.Wrapper`` 相似的封装，以实现对 ``model`` 类更为快速方便的更改。
+
         - 使用：
 
             已经定义好的 wrapper 统一放在 ``nervex.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
@@ -38,14 +40,19 @@ Wrapper
             * wrapper 可以是所需要使用的任何 wrapper
                 * 自定义 wrapper 使用参考下一节
             * ``wrapper_name`` 为已经注册的任意 wrapper 的名称。如果是自定义的 wrapper，注册的时候需要提供名称。
-            * kwargs 部分为该 wrapper 所需要的参数
+            * ``kwargs`` 部分为该 wrapper 所需要的参数
             * 在此情况下，得到的 ``model`` 可以像原本的 model 那样去使用。例如，当调用 ``model.forward`` 的时候，会优先调用 wrapper 中定义的 ``forward`` 函数。如果没有定义的话，会到下一层的 wrapper 中继续寻找。
 
         - 定义自己的 model wrapper：
+
             对于用户自定义的 ``MyWrapper``，需要完成以下几步：
+
             1. 继承 ``nervex.model.model_wrappers.IModelWrapper``，该类是 model 所使用的 wrapper 的基类。
+            
             2. 在 ``MyWrapper`` 中，依据需求实现所需要的 forward 等函数。
+            
             3. 将 ``MyWrapper`` 通过 ``register_wrapper()`` 的方法添加到 ``model_wrappers.wrapper_name_map`` 这个字典中。如此一来，便可以通过 ``add_wrapper`` 方便地对 model 进行添加 wrapper 的操作。
+        
         - 调用流程：
 
             .. image:: wrapper_structure.jpg
@@ -54,7 +61,7 @@ Wrapper
 
         - 目前已经支持的 wrapper：
 
-            .. csv-table:: Accessible Model Wrapper in nerveX
+            .. csv-table:: 
                 :header: "Wrapper Name", "Wrapper Class Name", "Wrapper Usage"
                 :widths: 50, 50, 60
 
@@ -68,6 +75,7 @@ Wrapper
                 "teacher", "TeacherNetworkWrapper", "用于实现 teacher network"
 
         - 查看Wrapper嵌套情况
+
             调用最外层的model.info()方法即可看到所有当前model所添加的wrapper嵌套情况。
             
             .. code:: python
@@ -150,7 +158,7 @@ Hook
         - 定义自己的 hook, 对于用户自定义的 ``MyHook``，需要完成以下几步：
 
             1. 继承 ``nervex.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
-            2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对l earner 中的任意变量进行操作。
+            2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对 learner 中的任意变量进行操作。
             3. 调用 ``register_learner_hook()`` 对自定义的 ``MyHook`` 进行注册，需要提供 hook 名称。
             4. 现在已经可以在 cfg 中使用自定义的 ``MyHook`` 了。
 
@@ -160,7 +168,7 @@ Hook
 
         - 目前已经支持的 hook：
 
-            .. csv-table:: Accessible Hook in nerveX
+            .. csv-table:: 
                 :header: "Hook Name", "Hook Class Name", "Hook Usage"
                 :widths: 50, 50, 60
 
@@ -170,6 +178,7 @@ Hook
                 "log_reduce", "LogReduceHook", "集合处理日志"
 
         - 简化调用的 hook：
+
             由于前面提到的 hook 存在参数复杂，不利于初学者上手等原因，nervex 提供了更为简单的调用方法：
 
             .. csv-table:: Simplified Hook in nerveX
@@ -177,9 +186,9 @@ Hook
                 :widths: 50, 50, 60
 
                 "log_show_after_iter", "freq", "根据参数给定的freq每隔一定数量个iter之后打印日志"
-                "load_ckpt_before_run", " - ", "在训练程序运行之前读取检查点"
+                "load_ckpt_before_run", "None", "在训练程序运行之前读取检查点"
                 "save_ckpt_after_iter", "freq", "根据参数给定的freq每隔一定数量个iter之后保存模型"
-                "save_ckpt_after_run", " - ", "在训练程序运行完全之后保存模型"
+                "save_ckpt_after_run", "None", "在训练程序运行完全之后保存模型"
 
             调用方法也更为简单，通过下面的代码即可得到所需 hooks:
             
@@ -192,6 +201,7 @@ Hook
                 hooks = build_learner_hook_by_cfg(hook_cfg)
 
         - 查看 hook 调用情况：
+
             nerveX 提供了 ``show_hooks()`` 方法以便查看各个位置的 hook 调用情况，具体如下：
             
             .. code:: python  

@@ -46,6 +46,7 @@ def create_serial_collector(cfg: EasyDict) -> ISerialCollector:
 
 
 def get_serial_collector_cls(cfg: EasyDict) -> type:
+    assert hasattr(cfg, 'type'), "{}-{}-{}".format(type(cfg), cfg.keys(), cfg['type'])
     import_module(cfg.get('import_names', []))
     return SERIAL_COLLECTOR_REGISTRY.get(cfg.type)
 

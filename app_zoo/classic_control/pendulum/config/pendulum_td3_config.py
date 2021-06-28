@@ -16,6 +16,7 @@ pendulum_td3_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
+            actor_head_type='regression',
         ),
         learn=dict(
             update_per_collect=2,
@@ -39,7 +40,6 @@ pendulum_td3_config = dict(
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(
             replay_buffer_size=20000,
-            max_use=16,
         ), ),
     ),
 )

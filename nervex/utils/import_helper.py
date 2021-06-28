@@ -10,10 +10,10 @@ ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag = True, True, T
 def try_import_ceph():
     """
     Overview:
-        Try import ceph module, if failed, return None
+        Try import ceph module, if failed, return ``None``
 
     Returns:
-        module: imported module, or None when ceph not found
+        - (:obj:`Module`): Imported module, or ``None`` when ceph not found
     """
     global ceph_flag
     try:
@@ -36,10 +36,10 @@ def try_import_ceph():
 def try_import_mc():
     """
     Overview:
-        Try import mc module, if failed, return None
+        Try import mc module, if failed, return ``None``
 
     Returns:
-        module: imported module, or None when mc not found
+        - (:obj:`Module`): Imported module, or ``None`` when mc not found
     """
     global mc_flag
     try:
@@ -55,10 +55,10 @@ def try_import_mc():
 def try_import_redis():
     """
     Overview:
-        Try import redis module, if failed, return None
+        Try import redis module, if failed, return ``None``
 
     Returns:
-        module: imported module, or None when redis not found
+        - (:obj:`Module`): Imported module, or ``None`` when redis not found
     """
     global redis_flag
     try:
@@ -74,10 +74,10 @@ def try_import_redis():
 def try_import_rediscluster():
     """
     Overview:
-        Try import rediscluster module, if failed, return None
+        Try import rediscluster module, if failed, return ``None``
 
     Returns:
-        module: imported module, or None when rediscluster not found
+        - (:obj:`Module`): Imported module, or ``None`` when rediscluster not found
     """
     global rediscluster_flag
     try:
@@ -97,7 +97,7 @@ def try_import_link():
         Try import linklink module, if failed, import nervex.tests.fake_linklink instead
 
     Returns:
-        module: imported module (may be fake_linklink)
+        - (:obj:`Module`): Imported module (may be ``fake_linklink``)
     """
     if nervex.enable_linklink:
         try:
@@ -118,8 +118,8 @@ def import_module(modules: List[str]) -> None:
     """
     Overview:
         Import several module as a list
-    Args:
-        - modules (:obj:`list` of `str`): List of module names
+    Arguments:
+        - (:obj:`str list`): List of module names
     """
     for name in modules:
         importlib.import_module(name)

@@ -7,19 +7,43 @@ replay buffer
 IBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.replay_buffer.base_buffer.IBuffer
-    :members: push, update, sample, clear, count, state_dict, load_state_dict
+    :members: push, update, sample, clear, count, state_dict, load_state_dict, defaulf_config
 
 NaiveReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.replay_buffer.naive_buffer.NaiveReplayBuffer
-    :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+    :members: start, close, push, update, sample, clear, count, state_dict, load_state_dict, defaulf_config
 
 AdvancedReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer
-    :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+    :members: start, close, push, update, sample, clear, count, state_dict, load_state_dict, defaulf_config
 
 EpisodeReplayBuffer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer
-    :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict
+    :members: __init__, start, close, push, update, sample, clear, count, state_dict, load_state_dict, defaulf_config
+
+create_buffer
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: nervex.worker.replay_buffer.base_buffer.create_buffer
+
+get_buffer_cls
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. automodule:: nervex.worker.replay_buffer.base_buffer.get_buffer_cls
+
+utils
+-------------------
+
+UsedDataRemover
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.replay_buffer.utils.UsedDataRemover
+    :members: start, close, add_used_data
+
+SampledDataAttrMonitor
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.replay_buffer.utils.SampledDataAttrMonitor
+
+PeriodicThruputMonitor
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.worker.replay_buffer.utils.PeriodicThruputMonitor

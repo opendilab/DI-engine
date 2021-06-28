@@ -20,13 +20,13 @@ cooperative_navigation_coma_config = dict(
         model=dict(
             agent_num=n_agent,
             obs_shape=dict(
-                agent_state=[n_agent, 2 + 2 + (n_agent - 1) * 2 + num_landmarks * 2],
+                agent_state=2 + 2 + (n_agent - 1) * 2 + num_landmarks * 2,
                 global_state=n_agent * 2 + num_landmarks * 2 + n_agent * 2,
             ),
-            act_shape=[
+            action_shape=[
                 5,
             ],
-            hidden_size_list=[128, 128, 64],
+            actor_hidden_size_list=[128, 128, 64],
         ),
         agent_num=n_agent,
         learn=dict(
@@ -54,7 +54,7 @@ cooperative_navigation_coma_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=64,
-                max_use=100,
+                max_use=10,
             ),
         ),
     ),

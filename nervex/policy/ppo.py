@@ -7,7 +7,7 @@ from nervex.torch_utils import Adam, to_device
 from nervex.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
      v_nstep_td_data, v_nstep_td_error
 from nervex.data import default_collate, default_decollate
-from nervex.model import FCValueAC, ConvValueAC, model_wrap
+from nervex.model import model_wrap
 from nervex.utils import POLICY_REGISTRY, deep_merge_dicts
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -42,7 +42,6 @@ class PPOPolicy(Policy):
             update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,
-            weight_decay=0.0001,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -58,7 +57,7 @@ class PPOPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=64,
+            # n_sample=64,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # ==============================================================
@@ -68,15 +67,11 @@ class PPOPolicy(Policy):
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
-            collector=dict(type='sample', ),
         ),
         eval=dict(),
         # Although ppo is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(
-            type='naive',
-            replay_buffer_size=1000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
     )
 
     def _init_learn(self) -> None:
@@ -88,6 +83,12 @@ class PPOPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
+        # Orthogonal init
+        for m in self._model.modules():
+            if isinstance(m, torch.nn.Conv2d):
+                torch.nn.init.orthogonal_(m.weight)
+            if isinstance(m, torch.nn.Linear):
+                torch.nn.init.orthogonal_(m.weight)
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -313,7 +314,7 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'fc_vac', ['nervex.model.vac.value_ac']
+        return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

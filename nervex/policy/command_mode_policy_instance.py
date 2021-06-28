@@ -3,14 +3,18 @@ from nervex.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy
-from .rainbow import RainbowDQNPolicy, IQNPolicy
+from .c51 import C51Policy
+from .qrdqn import QRDQNPolicy
+from .iqn import IQNPolicy
+from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
-from .ddpg import DDPGPolicy, TD3Policy
+from .ddpg import DDPGPolicy
+from .td3 import TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
@@ -71,13 +75,23 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('rainbow_command')
-class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('c51_command')
+class C51CommandModePolicy(C51Policy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('qrdqn_command')
+class QRDQNCommandModePolicy(QRDQNPolicy, EpsCommandModePolicy):
     pass
 
 
 @POLICY_REGISTRY.register('iqn_command')
 class IQNCommandModePolicy(IQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('rainbow_command')
+class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
     pass
 
 

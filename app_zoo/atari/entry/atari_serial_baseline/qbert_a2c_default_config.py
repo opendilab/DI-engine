@@ -1,76 +1,71 @@
+from copy import deepcopy
+from nervex.entry import serial_pipeline
 from easydict import EasyDict
 
-qbert_a2c_default_config = dict(
+qbert_a2c_config = dict(
     env=dict(
-        env_manager_type='subprocess',
-        import_names=['app_zoo.atari.envs.atari_env'],
-        env_type='atari',
+        collector_env_num=16,
+        evaluator_env_num=4,
+        n_evaluator_episode=8,
+        stop_value=1000000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        is_train=True,
-        collector_tor_tor_env_num=16,
-        evaluator_env_num=8,
+        manager=dict(
+            shared_memory=False,
+        )
     ),
     policy=dict(
-        use_cuda=True,
-        policy_type='a2c',
-        import_names=['nervex.policy.a2c'],
+        cuda=True,
         on_policy=True,
+        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
-            model_type='conv_vac',
-            import_names=['nervex.model.collector_tor_tor_critic'],
-            obs_dim=[4, 84, 84],
-            action_dim=6,
-            embedding_dim=128,
+            obs_shape=[4, 84, 84],
+            action_shape=6,
+            encoder_hidden_size_list=[32, 64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
+            critic_head_layer_num=2,
         ),
         learn=dict(
-            train_iteration=1,
-            batch_size=80,
-            learning_rate=0.0001,
-            weight_decay=0.0,
-            algo=dict(
-                value_weight=0.5,
-                entropy_weight=0.01,
-            ),
+            update_per_collect=1,
+            batch_size=160,
+            # (bool) Whether to normalize advantage. Default to False.
+            normalize_advantage=False,
+            learning_rate=0.0001414,
+            # (float) loss weight of the value network, the weight of policy network is set to 1
+            value_weight=0.5,
+            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            entropy_weight=0.01,
+            grad_norm=0.5,
+            betas=(0.0, 0.99),
         ),
         collect=dict(
-            unroll_len=1,
-            algo=dict(
-                gae_lambda=0.99,
-                discount_factor=0.99,
-            ),
+            # (int) collect n_sample data, train model n_iteration times
+            n_sample=160,
+            # (float) the trade-off factor lambda to balance 1step td and mc
+            gae_lambda=0.99,
+            discount_factor=0.99,
         ),
-        command=dict(),
-    ),
-    replay_buffer=dict(
-        buffer_name=['agent'],
-        agent=dict(
-            replay_buffer_size=10000,
-            max_use=1,
-        ),
-    ),
-    collector=dict(
-        n_sample=80,
-        collect_print_freq=1000,
-    ),
-    evaluator=dict(
-        n_episode=8,
-        eval_freq=10000,
-        stop_value=9000,
-    ),
-    learner=dict(
-        load_path='',
-        hook=dict(
-            log_show=dict(
-                name='log_show',
-                type='log_show',
-                priority=20,
-                position='after_iter',
-                ext_args=dict(freq=100, ),
+        eval=dict(evaluator=dict(eval_freq=500, )),
+        other=dict(
+            replay_buffer=dict(
+                        replay_buffer_size=160,
+                        max_use=1,
             ),
         ),
     ),
-    commander=dict(),
 )
-qbert_a2c_default_config = EasyDict(qbert_a2c_default_config)
-main_config = qbert_a2c_default_config
+main_config = EasyDict(qbert_a2c_config)
+
+qbert_a2c_create_config = dict(
+    env=dict(
+        type='atari',
+        import_names=['app_zoo.atari.envs.atari_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='a2c'),
+)
+create_config = EasyDict(qbert_a2c_create_config)
+
+if __name__ == '__main__':
+    serial_pipeline((main_config, create_config), seed=0)

@@ -13,7 +13,7 @@ cartpole_dqn_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
         nstep=3,
@@ -85,10 +85,11 @@ cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
 
 cartpole_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=1,
 )
 cartpole_dqn_system_config = EasyDict(cartpole_dqn_system_config)
 system_config = cartpole_dqn_system_config

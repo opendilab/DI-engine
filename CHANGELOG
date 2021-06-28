@@ -1,3 +1,19 @@
+2021.6.16(v0.2.0b2)
+ - C51 + QRDQN
+ - 重构serial collector为SampleCollector和EpisodeCollector两类
+ - 重构BufferManager，新增naive_buffer, episode_buffer，multi-buffer demo
+ - 重新设计文档内容，新增quick start, key concept, hands on rl模块，文档主语言改为英文
+ - 添加Atari环境上算法的最优config
+ - 添加gfootball环境PPO训练代码，可达95%+对战bot胜率
+ - 添加lunarlander环境部分训练配置文件
+ - 添加env manager手动reset机制
+ - 分布式训练入口适配k8s operator，支持动态增删
+ - interaction中http engine添加自动retry机制
+ - 修复atari env中使用wrapper导致shape变化，无法使用shared memory的bug
+ - 修复mujoco env中多次调用info的bug
+ - 修复OU noise在cuda device上的bug
+ - 若干细节优化
+
 2021.5.20(v0.2.0b1)
  - 重构config系统(重大改动)，请参见各个算法单元测试所用config进行适配
  - 提供在mujoco上训练收敛的SAC算法实现(内部有两个版本，区别在于是否使用额外的value network)

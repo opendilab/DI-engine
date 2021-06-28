@@ -1,9 +1,6 @@
 import time
-import sys
 import copy
 from typing import Optional, Union
-from collections import defaultdict
-from easydict import EasyDict
 
 from nervex.policy import create_policy
 from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
@@ -242,3 +239,17 @@ class SoloCommander(BaseCommander):
         buffer_id = 'buffer_{}'.format(get_task_uid())
         self._current_buffer_id = buffer_id
         return buffer_id
+
+    def increase_collector_task_space(self):
+        r""""
+        Overview:
+        Increase task space when a new collector has added dynamically.
+        """
+        self._collector_task_space.increase_space()
+
+    def decrease_collector_task_space(self):
+        r""""
+        Overview:
+        Decrease task space when a new collector has removed dynamically.
+        """
+        self._collector_task_space.decrease_space()

@@ -24,21 +24,28 @@ Quick Facts
 
 Key Equations or Key Graphs
 ---------------------------
-ATOC communication architecture for one single agent:
+ATOC overall architecture for one single agent:
 
 .. image:: images/marl/atoc.png
    :align: center
    :scale: 50%
 
+The communication architecture for each agent consists of:
+
+- Attention Unit: determining communication when necessary
+
+- Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively output information that promotes cooperation and forget information that impedes cooperation through gates.
+
 The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.
 
-The loss to update critics in ATOC:
+Select experiences where the action is determined by an agent independently (i.e., without communication) and experiences with communication, respectively, to update the action-value function :math:`Q^{\mu}`:
 
 .. image:: images/marl/atoc_loss_q.png
    :align: center
    :scale: 50%
 
-The policy gradient:
+The gradients are backpropagated to the policy network and communication channel to update the
+parameters. 
 
 .. image:: images/marl/atoc_gradient_mu.png
    :align: center
@@ -50,7 +57,7 @@ The gradient of integrated thought in the communication channel:
    :align: center
    :scale: 50%
 
-The log loss to update attention unit of ATOC:
+The attention unit is trained as a binary classifier for communication. The log loss to update attention unit of ATOC:
 
 .. image:: images/marl/atoc_loss_p.png
    :align: center

@@ -11,17 +11,16 @@ Feature
 
     algorithm_overview
     policy_overview
-    env_overview
-    env_manager_overview
+    env_overview_en
 
+    env_manager_overview
     collector_overview
-    replay_buffer_overview
+    replay_buffer_overview_en
     learner_overview
-    adder_overview
-    wrapper_hook_overview
+    wrapper_hook_overview_en
     league_overview
 
-    hpc_rl_overview
+    hpc_rl_overview_en
     dataloader_overview
     autolog_overview
     interaction_overview

@@ -27,17 +27,16 @@ def build_logger(
 ) -> Tuple[Optional['TextLogger'], Optional['SummaryWriter']]:  # noqa
     r'''
     Overview:
-        Build TextLogger and SummaryWriter.
+        Build ``TextLogger`` and ``SummaryWriter``.
     Arguments:
-        - path (:obj:``str``): logger(Textlogger & SummaryWriter)'s saved dir
-        - name (:obj:``str``): the logger file name
-        - need_tb (:obj:``bool``): whether SummaryWriter instance would be created and returned
-        - need_text (:obj:``bool``): whether TextLogger instance would be created and returned
-        - text_level (:obj:``int`` or :obj:``str``): logging level of TextLogger, default set to ``logging.INFO``
+        - path (:obj:`str`): Logger(``Textlogger`` & ``SummaryWriter``)'s saved dir
+        - name (:obj:`str`): The logger file name
+        - need_tb (:obj:`bool`): Whether ``SummaryWriter`` instance would be created and returned
+        - need_text (:obj:`bool`): Whether ``TextLogger`` instance would be created and returned
+        - text_level (:obj:`int`` or :obj:`str`): Logging level of ``TextLogger``, default set to ``logging.INFO``
     Returns:
-        - logger (:obj:``Optional['TextLogger']``): logger that displays terminal output
-        - tb_logger (:obj:``Optional['SummaryWriter']``): logger that saves output to tensorboard, \
-            only return when ``need_tb`` is True
+        - logger (:obj:`Optional['TextLogger']`): Logger that displays terminal output
+        - tb_logger (:obj:`Optional['SummaryWriter']`): Saves output to tfboard, only return when ``need_tb``.
     '''
     if name is None:
         name = 'default'
@@ -52,17 +51,17 @@ class TextLogger(object):
     Overview:
         Logger that saves terminal output to file
     Interface:
-        __init__, info, debug
+        ``__init__``, ``info``, ``print_vars``, ``print_vars_hor``, ``debug``, ``error``, ``level``
     """
 
     def __init__(self, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> None:
         r"""
         Overview:
-            initialization method, create logger.
+            Initialization method, create logger.
         Arguments:
-            - path (:obj:`str`): logger's save dir
-            - name (:obj:`str`): logger's name, default set to 'default'
-            - level (:obj:`int` or :obj:`str`): Set the logging level of logger, reference Logger class setLevel method.
+            - path (:obj:`str`): Logger's save dir
+            - name (:obj:`str`): Logger's name, default set to 'default'
+            - level (:obj:`int` or :obj:`str`): Set the logging level of logger. Reference: ``Logger.setLevel`` method.
         """
         name += '_logger'
         # ensure the path exists
@@ -77,12 +76,11 @@ class TextLogger(object):
         Overview:
             Create logger using logging
         Arguments:
-            - name (:obj:`str`): logger's name
-            - path (:obj:`str`): logger's save dir
-            - level (:obj:`int` or :obj:`str`): used to set the logging level of logger, you can reference \
-                Logger class ``setLevel`` method.
+            - name (:obj:`str`): Logger's name
+            - path (:obj:`str`): Logger's save dir
+            - level (:obj:`int` or :obj:`str`): Used to set the level. Reference: ``Logger.setLevel`` method.
         Returns:
-            - (:obj`logging.Logger`): new logging logger
+            - (:obj:`logging.Logger`): new logging logger
         """
         logger = logging.getLogger(name)
         if not logger.handlers:
@@ -98,12 +96,14 @@ class TextLogger(object):
         Overview:
             Get the text description in tabular form of all vars
         Arguments:
-            - names (:obj:`List[str]`): names of the vars to query. If you want to query all vars, you can omit this \
+            - names (:obj:`List[str]`):
+                Names of the vars to query.
+                If you want to query all vars, you can omit this
                 argument and thus ``need_print`` will be set to True all the time by default.
-            - var_type (:obj:`str`): default set to scalar, support ['scalar']
-            - level (:obj:`int`): log level
+            - var_type (:obj:`str`): Default set to scalar, support ['scalar']
+            - level (:obj:`int`): Log level
         Returns:
-            - ret (:obj:`list` of :obj:`str`): text description in tabular form of all vars
+            - ret (:obj:`str list`): Text description in tabular form of all vars
         """
         headers = ["Name", "Value"]
         data = []
@@ -132,26 +132,34 @@ class TextLogger(object):
     def info(self, s: str) -> None:
         r"""
         Overview:
-            add message to logger
+            Add message to logger
         Arguments:
-            - s (:obj:`str`): message to add to logger
-        Notes:
-            you can reference Logger class in the python3 /logging/__init__.py
+            - s (:obj:`str`): Message to add to logger
+        .. note::
+           Reference: Logger class in the python3 ``/logging/__init__.py``
         """
         self.logger.info(s)
 
     def debug(self, s: str) -> None:
         r"""
         Overview:
-            call logger.debug
+            Call ``logger.debug``
         Arguments:
-            - s (:obj:`str`): message to add to logger
-        Notes:
-            you can reference Logger class in the python3 /logging/__init__.py
+            - s (:obj:`str`): Message to add to logger
+        .. note::
+            Reference: Logger class in the python3 ``/logging/__init__.py``
         """
         self.logger.debug(s)
 
     def error(self, s: str) -> None:
+        r"""
+        Overview:
+            Call ``logger.error``
+        Arguments:
+            - s (:obj:`str`): Message to add to logger
+        .. note::
+            Reference: Logger class in the python3 ``/logging/__init__.py``
+        """
         self.logger.error(s)
 
     @property
@@ -162,20 +170,19 @@ class TextLogger(object):
 class DistributionTimeImage:
     r"""
     Overview:
-        DistributionTimeImage can be used to store images accorrding to time_steps,
-        for data with 3 dims(time, category, value)
+        ``DistributionTimeImage`` can be used to store images accorrding to ``time_steps``,
+        for data with 3 dims``(time, category, value)``
     Interface:
-        __init__, add_one_time_step, get_image
+        ``__init__``, ``add_one_time_step``, ``get_image``
     """
 
     def __init__(self, maxlen: int = 600, val_range: Optional[dict] = None):
         r"""
         Overview:
-            init the DistributionTimeImage class
+            Init the ``DistributionTimeImage`` class
         Arguments:
-            - maxlen (:obj:`int`): the max length of data inputs
-            - val_range (:obj:`dict` or :obj:`None`): contain :obj:`int` type val_range['min'] and val_range['max'], \
-                default set to None
+            - maxlen (:obj:`int`): The max length of data inputs
+            - val_range (:obj:`dict` or :obj:`None`): Dict with ``val_range['min']`` and ``val_range['max']``.
         """
         self.maxlen = maxlen
         self.val_range = val_range
@@ -186,9 +193,9 @@ class DistributionTimeImage:
     def add_one_time_step(self, data: np.ndarray) -> None:
         r"""
         Overview:
-            step one timestep in DistributionTimeImage and add the data to distribution image
+            Step one timestep in ``DistributionTimeImage`` and add the data to distribution image
         Arguments:
-            - data (:obj:`np.ndarray`):the data input
+            - data (:obj:`np.ndarray`): The data input
         """
         assert (isinstance(data, np.ndarray))
         data = np.expand_dims(data, 1)
@@ -202,9 +209,9 @@ class DistributionTimeImage:
     def get_image(self) -> np.ndarray:
         r"""
         Overview:
-            return the distribution image
+            Return the distribution image
         Returns:
-            - img (:obj:`np.ndarray`): the calculated distribution image
+            - img (:obj:`np.ndarray`): The calculated distribution image
         """
         norm_img = np.copy(self.img)
         valid = norm_img[:, :self.time_step]
@@ -222,10 +229,10 @@ def pretty_print(result: dict, direct_print: bool = True) -> str:
     Overview:
         Print a dict ``result`` in a pretty way
     Arguments:
-        - result (:obj:`dict`): the result to print
-        - direct_print (:obj:`bool`): whether to print directly
+        - result (:obj:`dict`): The result to print
+        - direct_print (:obj:`bool`): Whether to print directly
     Returns:
-        - string (:obj:`str`): the pretty-printed result in str format
+        - string (:obj:`str`): The pretty-printed result in str format
     """
     result = result.copy()
     out = {}

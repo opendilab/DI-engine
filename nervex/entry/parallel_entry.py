@@ -43,7 +43,6 @@ def parallel_pipeline(
     else:
         raise TypeError("invalid config type: {}".format(input_cfg))
     config = compile_config_parallel(main_cfg, create_cfg=create_cfg, system_cfg=system_cfg, seed=seed)
-    set_pkg_seed(config.seed)
     learner_handle = []
     collector_handle = []
     for k, v in config.system.items():
@@ -57,7 +56,8 @@ def parallel_pipeline(
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
 # for they can be used to read correponding config from file.
-def run_learner(config, start_learner_event, close_learner_event):
+def run_learner(config, seed, start_learner_event, close_learner_event):
+    set_pkg_seed(seed)
     log = logging.getLogger('werkzeug')
     log.disabled = True
     learner = create_comm_learner(config)
@@ -70,7 +70,6 @@ def run_learner(config, start_learner_event, close_learner_event):
 def launch_learner(
         seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
 ) -> list:
-    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
@@ -78,13 +77,14 @@ def launch_learner(
     close_learner_event = Event()
 
     learner_thread = Process(
-        target=run_learner, args=(config, start_learner_event, close_learner_event), name='learner_entry_process'
+        target=run_learner, args=(config, seed, start_learner_event, close_learner_event), name='learner_entry_process'
     )
     learner_thread.start()
     return learner_thread, start_learner_event, close_learner_event
 
 
-def run_collector(config, start_collector_event, close_collector_event):
+def run_collector(config, seed, start_collector_event, close_collector_event):
+    set_pkg_seed(seed)
     log = logging.getLogger('werkzeug')
     log.disabled = True
     collector = create_comm_collector(config)
@@ -97,7 +97,6 @@ def run_collector(config, start_collector_event, close_collector_event):
 def launch_collector(
         seed: int, config: Optional[dict] = None, filename: Optional[str] = None, name: Optional[str] = None
 ) -> list:
-    set_pkg_seed(seed)
     if config is None:
         with open(filename, 'rb') as f:
             config = pickle.load(f)[name]
@@ -106,7 +105,7 @@ def launch_collector(
 
     collector_thread = Process(
         target=run_collector,
-        args=(config, start_collector_event, close_collector_event),
+        args=(config, seed, start_collector_event, close_collector_event),
         name='collector_entry_process'
     )
     collector_thread.start()
@@ -149,11 +148,3 @@ def launch_coordinator(
     shutdown_monitor_thread.start()
     system_shutdown_event.wait()
     print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
-
-
-def launch_learner_aggregator(seed: int, filename: Optional[str] = None, name: Optional[str] = None) -> None:
-    set_pkg_seed(seed)
-    with open(filename, 'rb') as f:
-        config = pickle.load(f)[name]
-    aggregator = LearnerAggregator(config)
-    aggregator.start()
