@@ -25,12 +25,7 @@ smac_3s5z_coma_config4 = dict(
         on_policy=False,
         use_priority=False,
         model=dict(
-            agent_num=agent_num,
-            obs_dim=150,
-            global_obs_dim=216,
-            action_dim=14,
-            rnn_hidden_dim=64,
-            critic_dim=64
+            agent_num=agent_num, obs_dim=150, global_obs_dim=216, action_dim=14, rnn_hidden_dim=64, critic_dim=64
         ),
         learn=dict(
             train_step=20,

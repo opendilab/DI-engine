@@ -38,9 +38,7 @@ pendulum_td3_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=20000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
     ),
 )
 pendulum_td3_config = EasyDict(pendulum_td3_config)

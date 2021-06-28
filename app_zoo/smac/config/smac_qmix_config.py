@@ -40,7 +40,9 @@ smac_qmix_config = dict(
             action_shape=15,
             # (List[int]) The size of hidden layer
             hidden_size_list=[
-                64, 128, 128,
+                64,
+                128,
+                128,
             ],
             # (bool) Whether to use mixer for q_value aggregation
             mixer=True
@@ -52,30 +54,21 @@ smac_qmix_config = dict(
             learning_rate=0.0005,
             target_update_theta=0.001,
             discount_factor=0.99,
-            learner=dict(
-                hook=dict(
-                    save_ckpt_after_iter=50,
-                )
-            )
+            learner=dict(hook=dict(save_ckpt_after_iter=50, ))
         ),
         collect=dict(
             n_episode=8,
             unroll_len=16,
             env_num=4,
         ),
-        eval=dict(
-            env_num=1,
-        ),
+        eval=dict(env_num=1, ),
         other=dict(
             eps=dict(
                 type='exp',
                 start=1.,
                 end=0.05,
                 decay=200000,
-            ),
-            replay_buffer=dict(
-                replay_buffer_size=10000,
-            )
+            ), replay_buffer=dict(replay_buffer_size=10000, )
         )
     ),
 )

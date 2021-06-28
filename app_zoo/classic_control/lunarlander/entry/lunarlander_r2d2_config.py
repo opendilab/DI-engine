@@ -16,7 +16,7 @@ lunarlander_r2d2_config = dict(
         model=dict(
             obs_shape=8,
             action_shape=4,
-            hidden_size_list=[128,128,64],
+            hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.999,
         burnin_step=20,
@@ -38,10 +38,7 @@ lunarlander_r2d2_config = dict(
                 start=0.95,
                 end=0.05,
                 decay=10000,
-            ),
-            replay_buffer=dict(
-                replay_buffer_size=10000,
-            )
+            ), replay_buffer=dict(replay_buffer_size=10000, )
         ),
     ),
 )
@@ -57,4 +54,3 @@ lunarlander_r2d2_create_config = dict(
 )
 lunarlander_r2d2_create_config = EasyDict(lunarlander_r2d2_create_config)
 create_config = lunarlander_r2d2_create_config
-

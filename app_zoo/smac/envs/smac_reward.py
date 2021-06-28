@@ -8,8 +8,17 @@ OPPONENT_AGENT = "opponent"
 class SMACReward:
     info_template = namedtuple('EnvElementInfo', ['shape', 'value', 'to_agent_processor', 'from_agent_processor'])
 
-    def __init__(self, n_agents, n_enemies, two_player, reward_type, max_reward, reward_scale=True, reduce_agent=True,
-                 reward_only_positive=True):
+    def __init__(
+        self,
+        n_agents,
+        n_enemies,
+        two_player,
+        reward_type,
+        max_reward,
+        reward_scale=True,
+        reduce_agent=True,
+        reward_only_positive=True
+    ):
         self.reward_only_positive = reward_only_positive
         self.reward_scale = reward_scale
         self.max_reward = max_reward
@@ -196,5 +205,5 @@ class SMACReward:
         #             'min': 0,
         #             'max': self.reward_win + 2 + self.reward_death_value * self.n_enemies / self.n_agents
         #         }
-        shape = (1,) if self.reduce_agent else (self.n_agents,)
+        shape = (1, ) if self.reduce_agent else (self.n_agents, )
         return SMACReward.info_template(shape, value, None, None)

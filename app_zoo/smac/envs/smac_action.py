@@ -218,7 +218,12 @@ class SMACAction:
                     target_loc = (target_unit.pos.x, target_unit.pos.y)
                     action_name = "fungal_growth"
                     target_loc = sc_common.Point2D(x=target_loc[0], y=target_loc[1])
-                    cmd = r_pb.ActionRawUnitCommand(ability_id=actions[action_name], target_world_space_pos=target_loc, unit_tags=[tag], queue_command=False)
+                    cmd = r_pb.ActionRawUnitCommand(
+                        ability_id=actions[action_name],
+                        target_world_space_pos=target_loc,
+                        unit_tags=[tag],
+                        queue_command=False
+                    )
                     return sc_pb.Action(action_raw=r_pb.ActionRaw(unit_command=cmd))
             else:
                 target_unit = (engine.agents[target_id] if is_opponent else engine.enemies[target_id])

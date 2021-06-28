@@ -10,9 +10,7 @@ qbert_a2c_config = dict(
         stop_value=1000000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -47,12 +45,10 @@ qbert_a2c_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),
-        other=dict(
-            replay_buffer=dict(
-                        replay_buffer_size=160,
-                        max_use=1,
-            ),
-        ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=160,
+            max_use=1,
+        ), ),
     ),
 )
 main_config = EasyDict(qbert_a2c_config)

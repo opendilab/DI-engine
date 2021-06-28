@@ -44,12 +44,10 @@ space_invaders_a2c_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),
-        other=dict(
-            replay_buffer=dict(
-                        replay_buffer_size=160,
-                        max_use=1,
-            ),
-        ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=160,
+            max_use=1,
+        ), ),
     ),
 )
 main_config = EasyDict(space_invaders_a2c_config)

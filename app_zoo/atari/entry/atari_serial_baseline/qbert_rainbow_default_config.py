@@ -10,9 +10,7 @@ qbert_rainbow_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -34,9 +32,7 @@ qbert_rainbow_config = dict(
             target_update_freq=500,
             iqn=False,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

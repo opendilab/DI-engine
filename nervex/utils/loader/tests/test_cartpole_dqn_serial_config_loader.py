@@ -3,7 +3,8 @@ import math
 import pytest
 
 from app_zoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
-from nervex.utils.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, check_only
+from nervex.utils.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, \
+    check_only
 from nervex.utils import pretty_print
 
 

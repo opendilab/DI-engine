@@ -87,7 +87,7 @@ class SMACEnv(SC2Env, BaseEnv):
         map_params = get_map_params(map_name)
         self.reward_only_positive = cfg.reward_only_positive
         self.difficulty = cfg.difficulty
-        self.obs_alone=cfg.obs_alone
+        self.obs_alone = cfg.obs_alone
         self.players, self.num_players = self._get_players(
             "agent_vs_agent" if self.two_player else "game_vs_bot",
             player1_race=map_params["a_race"],
@@ -175,8 +175,14 @@ class SMACEnv(SC2Env, BaseEnv):
         self.previous_enemy_units = None
 
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
-        self.reward_helper = SMACReward(self.n_agents, self.n_enemies, self.two_player, self.reward_type, self.max_reward,
-                                        reward_only_positive=self.reward_only_positive)
+        self.reward_helper = SMACReward(
+            self.n_agents,
+            self.n_enemies,
+            self.two_player,
+            self.reward_type,
+            self.max_reward,
+            reward_only_positive=self.reward_only_positive
+        )
 
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
@@ -257,7 +263,7 @@ class SMACEnv(SC2Env, BaseEnv):
                     d_pb.DebugCommand(
                         kill_unit=d_pb.DebugKillUnit(
                             tag=[unit.tag for unit in self.agents.values() if unit.health > 0] +
-                                [unit.tag for unit in self.enemies.values() if unit.health > 0]
+                            [unit.tag for unit in self.enemies.values() if unit.health > 0]
                         )
                     )
                 )
@@ -470,8 +476,16 @@ class SMACEnv(SC2Env, BaseEnv):
         for k in reward:
             reward[k] = np.array(reward[k]).astype(np.float32)
 
-        info = {ORIGINAL_AGENT: {"battle_won": False}, OPPONENT_AGENT: {"battle_won": False}, 'final_eval_reward': 0.,
-                'fake_final_eval_reward': 0.}
+        info = {
+            ORIGINAL_AGENT: {
+                "battle_won": False
+            },
+            OPPONENT_AGENT: {
+                "battle_won": False
+            },
+            'final_eval_reward': 0.,
+            'fake_final_eval_reward': 0.
+        }
 
         if game_end_code is not None:
             # Battle is over
@@ -520,9 +534,11 @@ class SMACEnv(SC2Env, BaseEnv):
                 if e_unit.health == 0:
                     dead_enemies += 1
 
-            info['episode_info'] = {'final_eval_fake_reward': self._final_eval_fake_reward[0],
-                                    'dead_allies': dead_allies,
-                                    'dead_enemies': dead_enemies}
+            info['episode_info'] = {
+                'final_eval_fake_reward': self._final_eval_fake_reward[0],
+                'dead_allies': dead_allies,
+                'dead_enemies': dead_enemies
+            }
             self._final_eval_fake_reward = 0.
 
         # PZH: Zero at first step
@@ -582,8 +598,14 @@ class SMACEnv(SC2Env, BaseEnv):
                     self._init_enemy_unit_types(min_unit_type_opponent)
                 return True
             else:
-                print("***ALL GOOD FAIL***", all_agents_created, all_enemies_created, all_agents_health, all_enemies_health, len(self._obs.observation.raw_data.units))
-                print((len(self.agents) == self.n_agents), (len(self.enemies) == self.n_enemies), len(self.agents), self.n_agents, len(self.enemies), self.n_enemies)
+                print(
+                    "***ALL GOOD FAIL***", all_agents_created, all_enemies_created, all_agents_health,
+                    all_enemies_health, len(self._obs.observation.raw_data.units)
+                )
+                print(
+                    (len(self.agents) == self.n_agents), (len(self.enemies) == self.n_enemies), len(self.agents),
+                    self.n_agents, len(self.enemies), self.n_enemies
+                )
                 self._restart_episode()
                 count += 1
 
@@ -1296,22 +1318,24 @@ class SMACEnv(SC2Env, BaseEnv):
         T = EnvElementInfo
         agent_num = self.n_enemies if is_opponent else self.n_agents
         if self.obs_alone:
-            obs_space=T(
+            obs_space = T(
                 {
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
                     'agent_alone_state': (agent_num, self.get_obs_alone_size(is_opponent)),
                     'agent_alone_padding_state': (agent_num, self.get_obs_size(is_opponent)),
-                    'global_state': (self.get_state_size(is_opponent),),
+                    'global_state': (self.get_state_size(is_opponent), ),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None,
+                },
+                None,
             )
         else:
-            obs_space=T(
+            obs_space = T(
                 {
                     'agent_state': (agent_num, self.get_obs_size(is_opponent)),
-                    'global_state': (self.get_state_size(is_opponent),),
+                    'global_state': (self.get_state_size(is_opponent), ),
                     'action_mask': (agent_num, *self.action_helper.info().shape),
-                }, None,
+                },
+                None,
             )
         return self.SMACEnvInfo(
             agent_num=agent_num,

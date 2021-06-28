@@ -36,7 +36,7 @@ smac_3s5z_qmix_config5_24_1_4_14_1 = dict(
             batch_size=32,
             agent_num=agent_num,
             optimzier_type='rmsprop',
-            clip_value=1.5,     
+            clip_value=1.5,
             learning_rate=0.0005,
             # weight_decay=0.0001,
             algo=dict(
@@ -65,7 +65,7 @@ smac_3s5z_qmix_config5_24_1_4_14_1 = dict(
         buffer_name=['agent'],
         agent=dict(
             maxlen=15000,
-            max_reuse=1e+9,            
+            max_reuse=1e+9,
             max_staleness=1e+9,
             min_sample_ratio=1,
         ),
