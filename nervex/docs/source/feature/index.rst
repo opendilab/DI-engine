@@ -14,7 +14,7 @@ Feature
     env_overview_en
 
     env_manager_overview
-    collector_overview
+    collector_overview_en
     replay_buffer_overview_en
     learner_overview
     wrapper_hook_overview_en

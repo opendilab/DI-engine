@@ -135,6 +135,7 @@ class TextLogger(object):
             Add message to logger
         Arguments:
             - s (:obj:`str`): Message to add to logger
+
         .. note::
            Reference: Logger class in the python3 ``/logging/__init__.py``
         """
@@ -146,6 +147,7 @@ class TextLogger(object):
             Call ``logger.debug``
         Arguments:
             - s (:obj:`str`): Message to add to logger
+
         .. note::
             Reference: Logger class in the python3 ``/logging/__init__.py``
         """
@@ -157,6 +159,7 @@ class TextLogger(object):
             Call ``logger.error``
         Arguments:
             - s (:obj:`str`): Message to add to logger
+
         .. note::
             Reference: Logger class in the python3 ``/logging/__init__.py``
         """

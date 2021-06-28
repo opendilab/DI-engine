@@ -117,17 +117,18 @@ Implementations
 The default config is defined as follows:
 
 .. autoclass:: nervex.policy.ddpg.DDPGPolicy
+   :noindex:
 
 
 Model
 ~~~~~~~~~~~~~~~~~
 Here we provide examples of `QAC` model as default model for `DDPG`.
 
-.. autoclass:: nervex.model.qac.q_ac.QAC
-    :members: __init__, forward, seed, optimize_actor, compute_q, compute_action, mimic
+.. autoclass:: nervex.model.template.qac.QAC
+    :members: __init__, forward, compute_actor, compute_critic
 
 Train actor-critic model
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, we initialize actor and critic optimizer in ``_init_learn``, respectively.
 Setting up two separate optimizers can guarantee that we **only update** actor network parameters and not critic network when we compute actor loss, vice versa.

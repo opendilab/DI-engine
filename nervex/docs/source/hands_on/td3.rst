@@ -138,11 +138,12 @@ Model
 ~~~~~~~~~~~~~~~~~
 Here we provide examples of `td3` model as default model for `TD3`.
 
-.. autoclass:: nervex.model.qac.q_ac.QAC
-    :members: __init__, forward, seed, optimize_actor, compute_q, compute_action, mimic
+.. autoclass:: nervex.model.template.qac.QAC
+    :members: __init__, forward, compute_actor, compute_critic
+    :noindex:
 
 Train actor-critic model
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 First, we initialize actor and critic optimizer in ``_init_learn``, respectively.
 Setting up two separate optimizers can guarantee that we **only update** actor network parameters and not critic network when we compute actor loss, vice versa.
 
@@ -251,7 +252,7 @@ We configure ``learn.target_theta`` to control the interpolation factor in avera
 
 
 Target Policy Smoothing Regularization
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We implement Target Policy Smoothing Regularization trough target model initialization in ``_init_learn``.
 We configure ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range`` to control the added noise, which is clipped to keep the target close to the original action.
 
