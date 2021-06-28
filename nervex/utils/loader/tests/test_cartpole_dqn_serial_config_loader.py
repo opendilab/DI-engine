@@ -22,7 +22,7 @@ def test_main_config():
             model=item('model') >> dict_(
                 obs_dim=item('obs_shape') >> (is_type(int) | collection(int)),
                 action_dim=item('action_shape') >> (is_type(int) | collection(int)),
-                hidden_size_list=item('hidden_size_list') >> is_type(list),
+                hidden_size_list=item('encoder_hidden_size_list') >> is_type(list),
                 dueling=item('dueling') >> is_type(bool),
             ),
             learn=item('learn') >> dict_(
