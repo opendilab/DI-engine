@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.loader import Loader
+from nervex.utils.loader import Loader
 
 
 @pytest.mark.unittest

@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from nervex.loader import item, item_or, numeric, interval, negative, plus, minus, minus_with, multi, divide, \
+from nervex.utils.loader import item, item_or, numeric, interval, negative, plus, minus, minus_with, multi, divide, \
     divide_with, power, power_with, positive, msum, mmulti, mcmp, is_positive, is_negative, non_positive, \
     non_negative, keep
 
