@@ -8,7 +8,7 @@ class BaseRewardModel(ABC):
     Overview:
         the base class of reward model
     Interface:
-        ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``
+        ``estimate``, ``train``, ``clear_data``, ``collect_data``, ``load_expert_date``
     """
 
     @abstractmethod
@@ -37,18 +37,6 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def load_expert_data(self, data) -> None:
-        """
-        Overview:
-            Getting the expert data
-        Arguments:
-            - data (:obj:`Any`): Expert data
-        Effects:
-            This is mostly a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def collect_data(self, data) -> None:
         """
         Overview:
@@ -68,6 +56,17 @@ class BaseRewardModel(ABC):
             This can be a side effect function which clears the data attribute in ``self``
         """
         raise NotImplementedError()
+
+    def load_expert_data(self, data) -> None:
+        """
+        Overview:
+            Getting the expert data, usually used in inverse RL reward model
+        Arguments:
+            - data (:obj:`Any`): Expert data
+        Effects:
+            This is mostly a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
+        """
+        pass
 
 
 def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa

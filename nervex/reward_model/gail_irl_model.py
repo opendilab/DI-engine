@@ -57,7 +57,7 @@ class GailRewardModel(BaseRewardModel):
             ``__init__``, ``_train``,
     """
 
-    def __init__(self, config: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, config: dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate signature.
