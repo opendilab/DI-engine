@@ -83,6 +83,12 @@ class PPOPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
+        # Orthogonal init
+        for m in self._model.modules():
+            if isinstance(m, torch.nn.Conv2d):
+                torch.nn.init.orthogonal_(m.weight)
+            if isinstance(m, torch.nn.Linear):
+                torch.nn.init.orthogonal_(m.weight)
         # Optimizer
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._learn_model = model_wrap(self._model, wrapper_name='base')

@@ -17,7 +17,7 @@ class ConvEncoder(nn.Module):
     def __init__(
             self,
             obs_shape: SequenceType,
-            hidden_size_list: SequenceType = [32, 64, 64],
+            hidden_size_list: SequenceType = [32, 64, 64, 128],
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
@@ -34,8 +34,8 @@ class ConvEncoder(nn.Module):
             layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
             layers.append(self.act)
             input_size = hidden_size_list[i]
-        assert len(set(hidden_size_list[3:])) <= 1, "Please indicate the same hidden size for res block parts"
-        for i in range(3, len(self.hidden_size_list)):
+        assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
+        for i in range(3, len(self.hidden_size_list) - 1):
             layers.append(ResBlock(self.hidden_size_list[i], activation=self.act, norm_type=norm_type))
         layers.append(nn.Flatten())
         self.main = nn.Sequential(*layers)

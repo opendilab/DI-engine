@@ -18,11 +18,11 @@ class TestEncoder:
 
     def test_conv_encoder(self):
         inputs = torch.randn(B, C, H, W)
-        model = ConvEncoder((C, H, W), hidden_size_list=[32, 48, 64, 64, 64], activation=torch.nn.Tanh())
+        model = ConvEncoder((C, H, W), hidden_size_list=[32, 48, 64, 64, 128], activation=torch.nn.Tanh())
         print(model)
         outputs = model(inputs)
         self.output_check(model, outputs)
-        assert outputs.shape == (B, 64)
+        assert outputs.shape == (B, 128)
 
     def test_fc_encoder(self):
         inputs = torch.randn(B, 32)

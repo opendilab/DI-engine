@@ -35,6 +35,12 @@ class A2CPolicy(Policy):
             update_per_collect=1,  # this line should not be seen by users
             batch_size=64,
             learning_rate=0.001,
+            # (List[float])
+            betas=(0.9, 0.999),
+            # (float)
+            eps=1e-8,
+            # (float)
+            grad_norm=0.5,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -75,7 +81,12 @@ class A2CPolicy(Policy):
             Init the optimizer, algorithm config, main and target models.
         """
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            betas=self._cfg.learn.betas,
+            eps=self._cfg.learn.eps
+        )
 
         # Algorithm config
         self._priority = self._cfg.priority
@@ -83,6 +94,7 @@ class A2CPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._adv_norm = self._cfg.learn.normalize_advantage
+        self._grad_norm = self._cfg.learn.grad_norm
 
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
@@ -124,9 +136,9 @@ class A2CPolicy(Policy):
         self._optimizer.zero_grad()
         total_loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(
+        grad_norm = torch.nn.utils.clip_grad_norm_(
             list(self._learn_model.parameters()),
-            max_norm=0.5,
+            max_norm=self._grad_norm,
         )
         self._optimizer.step()
 
@@ -140,6 +152,7 @@ class A2CPolicy(Policy):
             'value_loss': a2c_loss.value_loss.item(),
             'entropy_loss': a2c_loss.entropy_loss.item(),
             'adv_abs_max': adv.abs().max().item(),
+            'grad_norm': grad_norm,
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -264,4 +277,4 @@ class A2CPolicy(Policy):
         return 'vac', ['nervex.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max']
+        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']
