@@ -75,7 +75,12 @@ def to_dtype(item: Any, dtype: type) -> Any:
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_tensor(item: Any, dtype: Optional[torch.dtype] = None, ignore_keys: list = [], transform_scalar: bool = True) -> torch.Tensor:
+def to_tensor(
+        item: Any,
+        dtype: Optional[torch.dtype] = None,
+        ignore_keys: list = [],
+        transform_scalar: bool = True
+) -> torch.Tensor:
     r"""
     Overview:
         Change `numpy.ndarray`, sequence of scalars to torch.Tensor, and keep other data types unchanged.
@@ -88,6 +93,7 @@ def to_tensor(item: Any, dtype: Optional[torch.dtype] = None, ignore_keys: list 
 
         Now supports item type: :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
     """
+
     def transform(d):
         if dtype is None:
             return torch.as_tensor(d)
@@ -274,6 +280,7 @@ class LogDict(dict):
     Overview:
         Derived from ``dict``; Specialized in transforming to ``list`` when storing ``torch.Tensor``.
     '''
+
     def _transform(self, data):
         if isinstance(data, torch.Tensor):
             new_data = data.tolist()

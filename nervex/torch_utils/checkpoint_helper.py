@@ -6,7 +6,6 @@ from typing import Callable
 import torch
 from nervex.utils import read_file, save_file
 
-
 logger = logging.getLogger('default_logger')
 
 
@@ -65,17 +64,17 @@ class CheckpointHelper:
         return {prefix + k: v for k, v in state_dict.items()}
 
     def save(
-        self,
-        path: str,
-        model: torch.nn.Module,
-        optimizer: torch.optim.Optimizer = None,
-        last_iter: 'CountVar' = None,  # noqa
-        last_epoch: 'CountVar' = None,  # noqa
-        last_frame: 'CountVar'=None,  # noqa
-        dataset: torch.utils.data.Dataset = None,
-        collector_info: torch.nn.Module = None,
-        prefix_op: str = None,
-        prefix: str = None,
+            self,
+            path: str,
+            model: torch.nn.Module,
+            optimizer: torch.optim.Optimizer = None,
+            last_iter: 'CountVar' = None,  # noqa
+            last_epoch: 'CountVar' = None,  # noqa
+            last_frame: 'CountVar' = None,  # noqa
+            dataset: torch.utils.data.Dataset = None,
+            collector_info: torch.nn.Module = None,
+            prefix_op: str = None,
+            prefix: str = None,
     ) -> None:
         r"""
         Overview:
