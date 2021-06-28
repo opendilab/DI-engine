@@ -1,19 +1,11 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. checkpoint helper, used to 
-    2. CountVar, to help counting number.
-"""
 import logging
 import signal
 import sys
 import traceback
 from typing import Callable
-
 import torch
-
 from nervex.utils import read_file, save_file
+
 
 logger = logging.getLogger('default_logger')
 
