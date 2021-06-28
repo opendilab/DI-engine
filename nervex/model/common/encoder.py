@@ -9,9 +9,9 @@ from nervex.utils import SequenceType
 class ConvEncoder(nn.Module):
     r"""
     Overview:
-        The Convolution Encoder used in models. Used to encoder raw 2-dim observation.
+        The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.
     Interfaces:
-        __init__, forward
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -21,6 +21,18 @@ class ConvEncoder(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
+        r"""
+        Overview:
+            Init the Convolution Encoder according to arguments.
+        Arguments:
+            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``
+            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
+            - activation (:obj:`nn.Module`):
+                The type of activation to use in the conv ``layers`` and ``ResBlock``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``nervex.torch_utils.ResBlock`` for more details
+        """
         super(ConvEncoder, self).__init__()
         self.obs_shape = obs_shape
         self.act = activation
@@ -46,7 +58,11 @@ class ConvEncoder(nn.Module):
     def _get_flatten_size(self) -> int:
         r"""
         Overview:
-            Get the encoding size after ``self.main``
+            Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Encoded Tensor after ``self.main``
+        Returns:
+            - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature
         """
         test_data = torch.randn(1, *self.obs_shape)
         with torch.no_grad():
@@ -58,9 +74,9 @@ class ConvEncoder(nn.Module):
         Overview:
             Return embedding tensor of the env observation
         Arguments:
-            - x (:obj:`torch.Tensor`): env raw observation
+            - x (:obj:`torch.Tensor`): Env raw observation
         Returns:
-            - return (:obj:`torch.Tensor`): embedding tensor
+            - outputs (:obj:`torch.Tensor`): Embedding tensor
         """
         x = self.main(x)
         x = self.mid(x)
@@ -68,6 +84,12 @@ class ConvEncoder(nn.Module):
 
 
 class FCEncoder(nn.Module):
+    r"""
+    Overview:
+        The ``FCEncoder`` used in models. Used to encoder raw 1-dim observation.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -77,6 +99,19 @@ class FCEncoder(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
+        r"""
+        Overview:
+            Init the FC Encoder according to arguments.
+        Arguments:
+            - obs_shape (:obj:`int`): Observation shape
+            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
+            - res_block (:obj:`bool`): Whether use ``res_block``.
+            - activation (:obj:`nn.Module`):
+                The type of activation to use in the ``ResFCBlock``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``nervex.torch_utils.ResFCBlock`` for more details
+        """
         super(FCEncoder, self).__init__()
         self.obs_shape = obs_shape
         self.act = activation
@@ -99,6 +134,14 @@ class FCEncoder(nn.Module):
             self.main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        r"""
+        Overview:
+            Return embedding tensor of the env observation
+        Arguments:
+            - x (:obj:`torch.Tensor`): Env raw observation
+        Returns:
+            - outputs (:obj:`torch.Tensor`): Embedding tensor
+        """
         x = self.act(self.init(x))
         x = self.main(x)
         return x
