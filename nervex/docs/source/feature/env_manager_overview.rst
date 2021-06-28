@@ -114,7 +114,7 @@ Env Manager
         - VOID: 初始化了 env manager，尚未实例化子环境
         - INIT: 实例化了子环境，尚未进行 launch 或 reset
         - RUN: 完成了 reset 或 step ，正在运行中的子环境
-        - RESET: 正在进行
+        - RESET: 正在进行 reset 的子环境
         - DONE: 运行至 done 的子环境
         - ERROR: 发生异常的子环境
         

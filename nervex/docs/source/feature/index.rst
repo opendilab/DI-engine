@@ -13,7 +13,7 @@ Feature
     policy_overview
     env_overview_en
 
-    env_manager_overview
+    env_manager_overview_en
     collector_overview
     replay_buffer_overview_en
     learner_overview
