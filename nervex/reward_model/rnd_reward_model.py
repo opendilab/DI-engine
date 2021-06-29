@@ -54,10 +54,10 @@ class RndRewardModel(BaseRewardModel):
     config = dict(
         intrinsic_reward_type='add',
         learning_rate=1e-3,
-        # obs_shape
+        # obs_shape=6,
         batch_size=64,
         hidden_size_list=[64, 64, 128],
-        train_iterations=100,
+        update_per_collect=100,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -83,7 +83,7 @@ class RndRewardModel(BaseRewardModel):
         self.opt.step()
 
     def train(self) -> None:
-        for _ in range(self.cfg.train_iterations):
+        for _ in range(self.cfg.update_per_collect):
             self._train()
         self.clear_data()
 

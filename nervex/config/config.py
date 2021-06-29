@@ -13,6 +13,7 @@ from nervex.envs import get_env_cls, get_env_manager_cls
 from nervex.policy import get_policy_cls
 from nervex.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
+from nervex.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s
 
 
@@ -438,6 +439,7 @@ def compile_config(
         evaluator: type = BaseSerialEvaluator,
         buffer: type = None,
         env: type = None,
+        reward_model: type = None,
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
@@ -457,6 +459,7 @@ def compile_config(
         - evaluator (:obj:`type`): Input evaluator class, defaults to BaseSerialEvaluator
         - buffer (:obj:`type`): Input buffer class, defaults to BufferManager
         - env (:obj:`type`): Environment class which is to be used in the following pipeline
+        - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward
         - seed (:obj:`int`): Random number seed
         - auto (:obj:`bool`): Compile create_config dict or not
         - create_cfg (:obj:`dict`): Input create config dict
@@ -493,6 +496,11 @@ def compile_config(
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
 
         policy_config.other.commander = BaseSerialCommander.default_config()
+        if 'reward_model' in create_cfg:
+            reward_model = get_reward_model_cls(create_cfg.reward_model)
+            reward_model_config = reward_model.default_config()
+        else:
+            reward_model_config = EasyDict()
     else:
         if 'default_config' in dir(env):
             env_config = env.default_config()
@@ -502,6 +510,10 @@ def compile_config(
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         policy_config = policy.default_config()
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
+        if reward_model is None:
+            reward_model_config = EasyDict()
+        else:
+            reward_model_config = reward_model.default_config()
     policy_config.learn.learner = deep_merge_dicts(
         learner.default_config(),
         policy_config.learn.learner,
@@ -513,6 +525,8 @@ def compile_config(
     )
     policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
+    if len(reward_model_config) > 0:
+        default_config['reward_model'] = reward_model_config
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config

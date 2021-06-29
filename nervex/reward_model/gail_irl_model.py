@@ -1,6 +1,7 @@
 import pickle
 import random
 from collections.abc import Iterable
+from easydict import EasyDict
 
 import torch
 import torch.nn as nn
@@ -31,10 +32,10 @@ def concat_state_action_pairs(iterator):
 
 class RewardModelNetwork(nn.Module):
 
-    def __init__(self, input_dims: int, hidden_dims: int, output_dims: int) -> None:
+    def __init__(self, input_size: int, hidden_size: int, output_size: int) -> None:
         super(RewardModelNetwork, self).__init__()
-        self.l1 = nn.Linear(input_dims, hidden_dims)
-        self.l2 = nn.Linear(hidden_dims, output_dims)
+        self.l1 = nn.Linear(input_size, hidden_size)
+        self.l2 = nn.Linear(hidden_size, output_size)
         self.a1 = nn.Tanh()
         self.a2 = nn.Sigmoid()
 
@@ -56,27 +57,36 @@ class GailRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``,
     """
+    config = dict(
+        learning_rate=1e-3,
+        # expert_data_path='expert_data.pkl'
+        update_per_collect=100,
+        batch_size=64,
+        # input_size=4,
+        target_new_data_count=64,
+        hidden_size=128,
+    )
 
-    def __init__(self, config: dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate signature.
         Arguments:
-            - cfg (:obj:`Dict`): Training config
+            - cfg (:obj:`EasyDict`): Training config
             - device (:obj:`str`): Device usage, i.e. "cpu" or "cuda"
-            - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
+            - tb_logger (:obj:`SummaryWriter`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(GailRewardModel, self).__init__()
-        self.config = config
+        self.cfg = config
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = RewardModelNetwork(config['input_dims'], config['hidden_dims'], 1)
+        self.reward_model = RewardModelNetwork(config.input_size, config.hidden_size, 1)
         self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []
         self.expert_data_loader = None
-        self.opt = optim.Adam(self.reward_model.parameters())
+        self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
         self.train_iter = 0
 
         self.load_expert_data()
@@ -84,14 +94,13 @@ class GailRewardModel(BaseRewardModel):
     def load_expert_data(self) -> None:
         """
         Overview:
-            Getting the expert data from ``config['expert_data_path']`` attribute in self
+            Getting the expert data from ``config.expert_data_path`` attribute in self
         Effects:
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
-        with open(self.config['expert_data_path'], 'rb') as f:
+        with open(self.cfg.expert_data_path, 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
-            print("the data size is:", len(self.expert_data_loader))
         self.expert_data = concat_state_action_pairs(self.expert_data_loader)
 
     def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
@@ -120,14 +129,14 @@ class GailRewardModel(BaseRewardModel):
         """
         Overview:
             Training the Gail reward model. The training and expert data are randomly sampled with designated\
-                 batch size abstracted from the ``batch_size`` attribute in ``self.config`` and \
+                 batch size abstracted from the ``batch_size`` attribute in ``self.cfg`` and \
                     correspondingly, the ``expert_data`` as well as ``train_data`` attributes initialized ``self`
         Effects:
             - This is a side effect function which updates the reward model and increment the train iteration count.
         """
-        for _ in range(self.config.update_per_collect):
-            sample_expert_data: list = random.sample(self.expert_data, self.config['batch_size'])
-            sample_train_data: list = random.sample(self.train_data, self.config['batch_size'])
+        for _ in range(self.cfg.update_per_collect):
+            sample_expert_data: list = random.sample(self.expert_data, self.cfg.batch_size)
+            sample_train_data: list = random.sample(self.train_data, self.cfg.batch_size)
             sample_expert_data = torch.stack(sample_expert_data).to(self.device)
             sample_train_data = torch.stack(sample_train_data).to(self.device)
             loss = self._train(sample_train_data, sample_expert_data)

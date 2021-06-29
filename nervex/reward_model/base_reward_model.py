@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from easydict import EasyDict
 import copy
 from nervex.utils import REWARD_MODEL_REGISTRY, import_module
 
@@ -8,8 +9,14 @@ class BaseRewardModel(ABC):
     Overview:
         the base class of reward model
     Interface:
-        ``estimate``, ``train``, ``clear_data``, ``collect_data``, ``load_expert_date``
+        ``default_config``, ``estimate``, ``train``, ``clear_data``, ``collect_data``, ``load_expert_date``
     """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     @abstractmethod
     def estimate(self, data: list) -> None:
@@ -85,3 +92,8 @@ def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> B
         import_module(cfg.pop('import_names'))
     reward_model_type = cfg.pop('type')
     return REWARD_MODEL_REGISTRY.build(reward_model_type, cfg, device=device, tb_logger=tb_logger)
+
+
+def get_reward_model_cls(cfg: EasyDict) -> type:
+    import_module(cfg.get('import_names', []))
+    return REWARD_MODEL_REGISTRY.get(cfg.type)

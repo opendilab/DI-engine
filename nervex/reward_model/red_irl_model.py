@@ -1,4 +1,5 @@
 from typing import Dict, List
+from easydict import EasyDict
 import pickle
 import logging
 import random
@@ -13,10 +14,10 @@ from .base_reward_model import BaseRewardModel
 class SENet(nn.Module):
     """support estimation network"""
 
-    def __init__(self, input_dims: int, hidden_dims: int, output_dims: int) -> None:
+    def __init__(self, input_size: int, hidden_size: int, output_dims: int) -> None:
         super(SENet, self).__init__()
-        self.l_1 = nn.Linear(input_dims, hidden_dims)
-        self.l_2 = nn.Linear(hidden_dims, output_dims)
+        self.l_1 = nn.Linear(input_size, hidden_size)
+        self.l_2 = nn.Linear(hidden_size, output_dims)
         self.act = nn.Tanh()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -38,6 +39,16 @@ class RedRewardModel(BaseRewardModel):
     Properties:
         - online_net (:obj: `SENet`): The reward model, in default initialized once as the training begins.
     """
+    config = dict(
+        # input_size=4,
+        sample_size=1000,
+        hidden_size=128,
+        learning_rate=1e-3,
+        update_per_collect=100,
+        # expert_data_path='expert_data.pkl',
+        batch_size=64,
+        sigma=0.5,
+    )
 
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
@@ -49,16 +60,16 @@ class RedRewardModel(BaseRewardModel):
             - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(RedRewardModel, self).__init__()
-        self.config: Dict = config
+        self.cfg: Dict = config
         self.expert_data: List[tuple] = []
         self.device = device
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.tb_logger = tb_logger
-        self.target_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])
-        self.online_net: SENet = SENet(config['input_dims'], config['hidden_dims'], config['output_dims'])
+        self.target_net: SENet = SENet(config.input_size, config.hidden_size, 1)
+        self.online_net: SENet = SENet(config.input_size, config.hidden_size, 1)
         self.target_net.to(device)
         self.online_net.to(device)
-        self.opt: optim.Adam = optim.Adam(self.online_net.parameters())
+        self.opt: optim.Adam = optim.Adam(self.online_net.parameters(), config.learning_rate)
         self.train_once_flag = False
         self.warning_flag = False
 
@@ -71,9 +82,9 @@ class RedRewardModel(BaseRewardModel):
         Effects:
             This is a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
         """
-        with open(self.config['expert_data_path'], 'rb') as f:
+        with open(self.cfg.expert_data_path, 'rb') as f:
             self.expert_data = pickle.load(f)
-        sample_size = min(len(self.expert_data), self.config['sample_size'])
+        sample_size = min(len(self.expert_data), self.cfg.sample_size)
         self.expert_data = random.sample(self.expert_data, sample_size)
         print('the expert data size is:', len(self.expert_data))
 
@@ -107,8 +118,8 @@ class RedRewardModel(BaseRewardModel):
                 logging.warning('RED model should be trained once, we do not train it anymore')
                 self.warning_flag = True
         else:
-            for i in range(self.config.update_per_collect):
-                sample_batch = random.sample(self.expert_data, self.config['batch_size'])
+            for i in range(self.cfg.update_per_collect):
+                sample_batch = random.sample(self.expert_data, self.cfg.batch_size)
                 states_data = []
                 actions_data = []
                 for item in sample_batch:
@@ -145,7 +156,7 @@ class RedRewardModel(BaseRewardModel):
             hat_1 = self.online_net(states_actions_tensor)
             hat_2 = self.target_net(states_actions_tensor)
         c = ((hat_1 - hat_2) ** 2).mean(dim=1)
-        r = torch.exp(-self.config['sigma'] * c)
+        r = torch.exp(-self.cfg.sigma * c)
         for item, rew in zip(data, r):
             item['reward'] = rew
 

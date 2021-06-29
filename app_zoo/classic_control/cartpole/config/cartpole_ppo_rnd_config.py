@@ -12,8 +12,7 @@ cartpole_ppo_rnd_config = dict(
         learning_rate=1e-3,
         obs_shape=4,
         batch_size=32,
-        hidden_size_list=[64, 64, 128],
-        train_iterations=10,
+        update_per_collect=10,
     ),
     policy=dict(
         cuda=False,

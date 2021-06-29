@@ -25,6 +25,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         SampleCollector,
         BaseSerialEvaluator,
         NaiveReplayBuffer,
+        reward_model=RndRewardModel,
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
