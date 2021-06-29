@@ -1,7 +1,7 @@
 from nervex.model.atoc import ATOCActorNet, ATOCAttentionUnit, ATOCCommunicationNet, ATOCCriticNet, ATOCQAC
 import pytest
 import torch
-from nervex.torch_utils.nn_test_helper import is_differentiable, is_differentiable_print_no_grad
+from nervex.torch_utils import is_differentiable
 
 
 @pytest.mark.unittest
@@ -11,13 +11,13 @@ class TestATOCNets:
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
         torch.autograd.set_detect_anomaly(True)
         model = ATOCActorNet(obs_dim, thought_dim, act_dim, A, True, 2, 2)
-        for _ in range(1):
+        for i in range(1):
             out = model.forward(torch.randn(B, A, obs_dim))
             assert out['action'].shape == (B, A, act_dim)
             assert out['group'].shape == (B, A, A)
             loss1 = out['action'].sum()
-            if _ == 0:
-                is_differentiable_print_no_grad(loss1, model)
+            if i == 0:
+                is_differentiable(loss1, model, print_instead=True)
 
     def test_critic_net(self):
         B, A, obs_dim, act_dim, thought_dim = 6, 5, 12, 6, 14
