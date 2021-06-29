@@ -68,7 +68,7 @@ class CategoricalPd(Pd):
     Overview:
         Catagorical probility distribution sampler
     Interface:
-        __init__, update_logits, neglogp, entropy, noise_mode, mode, sample
+        update_logits, neglogp, entropy, noise_mode, mode, sample
     """
 
     def __init__(self, logits: torch.Tensor = None) -> None:
@@ -194,7 +194,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
             https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions\
                 Categorical
     Interface:
-        __init__, update_logits, updata_probs, sample, neglogp, mode, entropy
+        update_logits, updata_probs, sample, neglogp, mode, entropy
     """
 
     def __init__(self, probs: torch.Tensor = None) -> None:
