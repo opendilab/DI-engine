@@ -1,6 +1,3 @@
-torch_utils.nn_test_helper
-================================
-
 nn_test_helper
 -------------------------
 

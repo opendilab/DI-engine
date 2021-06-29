@@ -1,7 +1,4 @@
-torch_utils.loss
-================================
-
-cross_entropy_loss
+loss.cross_entropy_loss
 -------------------------
 
 LabelSmoothCELoss
@@ -19,7 +16,7 @@ build_ce_criterion
 .. automodule:: nervex.torch_utils.loss.cross_entropy_loss.build_ce_criterion
 
 
-multi_logits_loss
+loss.multi_logits_loss
 -------------------------
 
 MultiLogitsLoss

@@ -1,6 +1,3 @@
-torch_utils.checkpoint_helper
-================================
-
 checkpoint_helper
 -------------------------
 
