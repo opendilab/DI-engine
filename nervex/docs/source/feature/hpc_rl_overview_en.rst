@@ -4,11 +4,11 @@ HPC_RL Overview
 
 
 Overview
-*****
+************
 The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in nervex ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
 
 How to use
-*********
+************
     1. Installation
 
         The environment version currently supported by HPC_RL is:
@@ -93,14 +93,14 @@ How to use
 
 
 Currently supported operators
-****************
+******************************
     ``rl_utils`` : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO
 
     ``torch_utils/network`` : LSTM，scatter_connection
 
 
 Performance comparison
-********
+***********************
 
     .. csv-table:: Performance between Pytorch and HPC_RL
         :header: "operator", "shape", "test environment", "pytorch", "HPC_RL"
