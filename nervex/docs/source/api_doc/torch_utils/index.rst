@@ -1,4 +1,4 @@
-torch_utils
+Torch Utils
 =============
 
 .. toctree::
