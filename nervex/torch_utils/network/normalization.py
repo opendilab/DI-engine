@@ -7,6 +7,7 @@ Main Function:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Any
 
 from nervex.utils import get_group, try_import_link
 
@@ -16,37 +17,43 @@ link = try_import_link()
 class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     """
     Overview:
-        Applies Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]D inputs with additional channel
+        Apply Batch Normalization over a N-Dimensional input (a mini-batch of [N-2]-D inputs with additional channel
         dimension) as described in the paper:
         Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
-
-    .. note::
-        you can reference https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
-
-    .. tip::
-        This class relies on linklink, you can find details on:\
-            http://spring.sensetime.com/docs/linklink/api/index.html#syncbn
-
     Interface:
         __init__, __repr__
+    
+    .. note::
+
+        you can refer to https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
+
+    .. tip::
+
+        This class relies on linklink, you can find details at:
+        http://spring.sensetime.com/docs/linklink/api/index.html#syncbn
     """
 
     def __init__(
-        self, num_features, bn_group_size=None, momentum=0.1, sync_stats=True, var_mode=link.syncbnVarMode_t.L2
-    ):
+            self,
+            num_features: int,
+            bn_group_size: int = None,
+            momentum: float = 0.1,
+            sync_stats: bool = True,
+            var_mode: Any = link.syncbnVarMode_t.L2
+    ) -> None:
         """
         Overview:
             Init class GroupSyncBatchNorm
         Arguments:
-            - num_features (:obj:`int`): size of input feature, C of (N, C, +)\
-                bn_group_size (:obj:`int`): synchronization of stats happen within each process group\
+            - num_features (:obj:`int`): size of input feature, C of (N, C, +)
+            - bn_group_size (:obj:`int`): synchronization of stats happen within each process group \
                 individually Default behavior is synchronization across the whole world
             - momentum (:obj:`float`): the value used for the running_mean and running_var\
                 computation. Can be set to ``None`` for cumulative moving average
             - sync_stats (:obj:`bool`): a boolean value that when set to True, this module will\
                 average the running mean and variance among all ranks; and when set to False,\
                 the running mean and variance only track statistics among the group. Default: False
-            - var_mode (:obj:`object`): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm\
+            - var_mode (:obj:`Any`): when set to linklink.nn.syncbnVarMode_t.L1, will use L1 norm\
                 mentioned in Norm matters: efficient and accurate normalization schemes in deep networks
         """
         self.group_size = bn_group_size
@@ -61,8 +68,7 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
     def __repr__(self):
         r"""
         Overview:
-            output the basic information of the class
-
+            Return the basic information of the class
         Returns:
             - ret (:obj:`str`): the basic information and discription of class GroupSyncBatchNorm
         """
@@ -78,19 +84,18 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         )
 
 
-def build_normalization(norm_type, dim=None):
+def build_normalization(norm_type: str, dim: int = None) -> nn.Module:
     r"""
     Overview:
-        build the corresponding normalization module
-
-        Notes:
-            For beginers, you can reference <https://zhuanlan.zhihu.com/p/34879333> to learn more about batch normalization  # noqa
+        Build the corresponding normalization module
     Arguments:
         - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'IN', 'SyncBN', 'AdaptiveIN']
         - dim (:obj:`int`): dimension of the normalization, when norm_type is in [BN, IN]
-
     Returns:
         - norm_func (:obj:`nn.Module`): the corresponding batch normalization function
+    
+    .. note::
+        For beginers, you can refer to <https://zhuanlan.zhihu.com/p/34879333> to learn more about batch normalization.
     """
     if dim is None:
         key = norm_type

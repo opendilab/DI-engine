@@ -42,7 +42,9 @@ class SoftFocalLoss(nn.Module):
         forward
     """
 
-    def __init__(self, gamma: int = 2, weight: Any = None, size_average: bool = True, reduce: Optional[bool] = None) -> None:
+    def __init__(
+            self, gamma: int = 2, weight: Any = None, size_average: bool = True, reduce: Optional[bool] = None
+    ) -> None:
         super().__init__()
         self.gamma = gamma
         self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)

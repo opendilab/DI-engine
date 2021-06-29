@@ -86,7 +86,7 @@ network.normalization
 GroupSyncBatchNorm
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.torch_utils.network.normalization.GroupSyncBatchNorm
-    :members: __repr__
+    :members: __init__
 
 build_normalization
 ~~~~~~~~~~~~~~~~~~~~
@@ -161,21 +161,20 @@ SoftArgmax
 network.transformer
 ----------------------
 
-Transformer
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.torch_utils.network.transformer.Transformer
-    :members: forward
+Attention
+~~~~~~~~~~~~
+.. autoclass:: nervex.torch_utils.network.transformer.Attention
+    :members: forward, split
 
 TransformerLayer
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.torch_utils.network.transformer.TransformerLayer
     :members: forward
 
-Attention
-~~~~~~~~~~~~
-.. autoclass:: nervex.torch_utils.network.transformer.Attention
-    :members: forward, split
-
+Transformer
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: nervex.torch_utils.network.transformer.Transformer
+    :members: forward
 
 
 

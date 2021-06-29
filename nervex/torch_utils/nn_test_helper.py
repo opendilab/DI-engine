@@ -2,7 +2,9 @@ from typing import Union, List
 import torch
 
 
-def is_differentiable(loss: torch.Tensor, model: Union[torch.nn.Module, List[torch.nn.Module]], print_instead: bool = False) -> None:
+def is_differentiable(
+        loss: torch.Tensor, model: Union[torch.nn.Module, List[torch.nn.Module]], print_instead: bool = False
+) -> None:
     """
     Overview:
         Judge whether the model/models are differentiable. First check whether module's grad is None,

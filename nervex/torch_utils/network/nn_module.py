@@ -71,7 +71,15 @@ def sequential_pack(layers: list) -> nn.Sequential:
 
 
 def conv1d_block(
-    in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0, dilation: int = 1, groups: int = 1, activation: nn.Module = None, norm_type: str = None
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 0,
+        dilation: int = 1,
+        groups: int = 1,
+        activation: nn.Module = None,
+        norm_type: str = None
 ) -> nn.Sequential:
     r"""
     Overview:
@@ -102,16 +110,16 @@ def conv1d_block(
 
 
 def conv2d_block(
-    in_channels: int,
-    out_channels: int,
-    kernel_size: int,
-    stride: int = 1,
-    padding: int = 0,
-    dilation: int = 1,
-    groups: int = 1,
-    pad_type: str = 'zero',
-    activation: nn.Module = None,
-    norm_type: str = None
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 0,
+        dilation: int = 1,
+        groups: int = 1,
+        pad_type: str = 'zero',
+        activation: nn.Module = None,
+        norm_type: str = None
 ) -> nn.Sequential:
     r"""
     Overview:
@@ -154,15 +162,15 @@ def conv2d_block(
 
 
 def deconv2d_block(
-    in_channels: int,
-    out_channels: int,
-    kernel_size: int,
-    stride: int = 1,
-    padding: int = 0,
-    output_padding: int = 0,
-    groups: int = 1,
-    activation: int = None,
-    norm_type: int = None
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 0,
+        output_padding: int = 0,
+        groups: int = 1,
+        activation: int = None,
+        norm_type: int = None
 ) -> nn.Sequential:
     r"""
     Overview:
@@ -202,7 +210,14 @@ def deconv2d_block(
     return sequential_pack(block)
 
 
-def fc_block(in_channels: int, out_channels: int, activation: nn.Module = None, norm_type: str = None, use_dropout: bool = False, dropout_probability: float = 0.5) -> nn.Sequential:
+def fc_block(
+        in_channels: int,
+        out_channels: int,
+        activation: nn.Module = None,
+        norm_type: str = None,
+        use_dropout: bool = False,
+        dropout_probability: float = 0.5
+) -> nn.Sequential:
     r"""
     Overview:
         Create a fully-connected block with activation, normalization and dropout.
