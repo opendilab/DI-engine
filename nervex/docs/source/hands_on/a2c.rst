@@ -16,7 +16,7 @@ Quick Facts
 4. A2C can be equipped with RNN.
 
 Key Equations or Key Graphs
--------------
+----------------------------
 A2C use advantage estimation in the policy gradient:
 
 .. image:: images/a2c_pg.png
