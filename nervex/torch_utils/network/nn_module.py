@@ -51,7 +51,7 @@ def sequential_pack(layers: list) -> nn.Sequential:
     r"""
     Overview:
         Pack the layers in the input list to a `nn.Sequential` module.
-        If there is a convolutional layer in module, an extra attribute `out_channels` will be added 
+        If there is a convolutional layer in module, an extra attribute `out_channels` will be added
         to the module and set to the out_channel of the conv layer.
     Arguments:
         - layers (:obj:`list`): the input list
@@ -298,7 +298,7 @@ def MLP(
 class ChannelShuffle(nn.Module):
     r"""
     Overview:
-        Apply channelShuffle to the input tensor    
+        Apply channelShuffle to the input tensor
     Interface:
         forward
     .. note::

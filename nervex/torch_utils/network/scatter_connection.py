@@ -27,7 +27,7 @@ class ScatterConnection(nn.Module):
     r"""
     Overview:
         Scatter feature to its corresponding location
-        In AlphaStar, each entity is embedded into a tensor, 
+        In AlphaStar, each entity is embedded into a tensor,
         and these tensors are scattered into a feature map with map size.
     """
 

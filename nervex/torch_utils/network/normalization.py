@@ -22,7 +22,7 @@ class GroupSyncBatchNorm(link.nn.SyncBatchNorm2d):
         Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift .
     Interface:
         __init__, __repr__
-    
+
     .. note::
 
         you can refer to https://pytorch.org/docs/stable/generated/torch.nn.SyncBatchNorm.html
@@ -93,7 +93,7 @@ def build_normalization(norm_type: str, dim: int = None) -> nn.Module:
         - dim (:obj:`int`): dimension of the normalization, when norm_type is in [BN, IN]
     Returns:
         - norm_func (:obj:`nn.Module`): the corresponding batch normalization function
-    
+
     .. note::
         For beginers, you can refer to <https://zhuanlan.zhihu.com/p/34879333> to learn more about batch normalization.
     """

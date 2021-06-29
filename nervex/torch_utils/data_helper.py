@@ -329,7 +329,8 @@ class CudaFetcher(object):
     def run(self) -> None:
         """
         Overview:
-            Start `producer` thread: Keep fetching data from source, change the device, and put into `queue` for request.
+            Start `producer` thread: Keep fetching data from source,
+            change the device, and put into `queue` for request.
         """
         self._end_flag = False
         self._producer_thread.start()

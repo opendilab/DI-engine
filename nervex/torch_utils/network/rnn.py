@@ -193,7 +193,8 @@ s
             Take the previous state and the input and calculate the output and the nextstate
         Arguments:
             - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`torch.Tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
+            - prev_state (:obj:`torch.Tensor`): None or tensor of size \
+                [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
             - x (:obj:`torch.Tensor`): output from lstm
@@ -251,8 +252,10 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         Overview:
             Wrapped nn.LSTM.forward
         Arguments:
-            - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`torch.Tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
+            - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size \
+                [seq_len, batch_size, input_size]
+            - prev_state (:obj:`torch.Tensor`): None or tensor of size \
+                [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
             - output (:obj:`torch.Tensor`): output from lstm
