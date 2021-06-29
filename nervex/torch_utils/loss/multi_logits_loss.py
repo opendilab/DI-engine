@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from nervex.torch_utils.network import one_hot
 
 
-def get_distance_matrix(lx, ly, mat, M):
+def get_distance_matrix(lx, ly, mat, M: int) -> np.ndarray:
     nlx = np.broadcast_to(lx, [M, M]).T
     nly = np.broadcast_to(ly, [M, M])
     nret = nlx + nly - mat
@@ -29,16 +29,19 @@ def get_distance_matrix(lx, ly, mat, M):
 
 class MultiLogitsLoss(nn.Module):
     '''
-        Overview: base class for supervised learning on linklink, including basic processes.
-        Interface: __init__, forward
+    Overview:
+        Base class for supervised learning on linklink, including basic processes.
+    Interface:
+        forward
     '''
 
-    def __init__(self, criterion=None, smooth_ratio=0.1):
+    def __init__(self, criterion: str = None, smooth_ratio: float = 0.1) -> None:
         '''
-            Overview: initialization method, use cross_entropy as default criterion
-            Arguments:
-                - criterion (:obj:`str`): criterion type
-                - smooth_ratio (:obs:`float`): smooth_ratio for label smooth
+        Overview:
+            initialization method, use cross_entropy as default criterion
+        Arguments:
+            - criterion (:obj:`str`): criterion type, supports ['cross_entropy', 'label_smooth_ce']
+            - smooth_ratio (:obs:`float`): smooth_ratio for label smooth
         '''
         super(MultiLogitsLoss, self).__init__()
         if criterion is None:
@@ -48,7 +51,7 @@ class MultiLogitsLoss(nn.Module):
         if self.criterion == 'label_smooth_ce':
             self.ratio = smooth_ratio
 
-    def _label_process(self, labels, logits):
+    def _label_process(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.LongTensor:
         N = logits.shape[1]
         if self.criterion == 'cross_entropy':
             return one_hot(labels, num=N)
@@ -58,13 +61,13 @@ class MultiLogitsLoss(nn.Module):
             ret.scatter_(1, labels.unsqueeze(1), 1 - val)
             return ret
 
-    def _nll_loss(self, nlls, labels):
+    def _nll_loss(self, nlls: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
         ret = (-nlls * (labels.detach()))
         return ret.sum(dim=1)
 
-    def _get_metric_matrix(self, logits, labels):
+    def _get_metric_matrix(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
         M, N = logits.shape
-        labels = self._label_process(labels, logits)
+        labels = self._label_process(logits, labels)
         logits = F.log_softmax(logits, dim=1)
         metric = []
         for i in range(M):
@@ -73,7 +76,7 @@ class MultiLogitsLoss(nn.Module):
             metric.append(self._nll_loss(logit, labels))
         return torch.stack(metric, dim=0)
 
-    def _match(self, matrix):
+    def _match(self, matrix: torch.Tensor):
         mat = matrix.clone().detach().to('cpu').numpy()
         mat = -mat  # maximize
         M = mat.shape[0]
@@ -112,7 +115,16 @@ class MultiLogitsLoss(nn.Module):
                 ly[visy] += d
         return index
 
-    def forward(self, logits, labels):
+    def forward(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
+        r"""
+        Overview:
+            Calculate multiple logits loss.
+        Arguments:
+            - logits (:obj:`torch.Tensor`): Predicted logits, whose shape must be 2-dim, like (B, N).
+            - labels (:obj:`torch.LongTensor`): Ground truth.
+        Returns:
+            - loss (:obj:`torch.Tensor`): Calculated loss.
+        """
         assert (len(logits.shape) == 2)
         metric_matrix = self._get_metric_matrix(logits, labels)
         index = self._match(metric_matrix)
