@@ -315,6 +315,7 @@ def deep_update(
             List of top level
             keys with value=dict, for which we always simply override the
             entire value (:obj:`dict`), if the "type" key in that value dict changes.
+
     .. note::
 
         If new key is introduced in new_dict, then if new_keys_allowed is not

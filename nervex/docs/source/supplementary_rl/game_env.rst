@@ -816,8 +816,8 @@ AI 竞争，以收集资源，建造建筑物并建立部队单位以击败对�
 | bane_vs_bane   | 20 Zerglings & | 20 Zerglings & | micro-trick:   |
 |                | 4 Banelings    | 4 Banelings    | positioning    |
 +----------------+----------------+----------------+----------------+
-| so_            | 7 Zealots      | 32 Banelings   | micro-trick:   |
-| many_banelings |                |                | positioning    |
+| so_many        | 7 Zealots      | 32 Banelings   | micro-trick:   |
+| _banelings     |                |                | positioning    |
 +----------------+----------------+----------------+----------------+
 | 2c_vs_64zg     | 2 Colossi      | 64 Zerglings   | micro-trick:   |
 |                |                |                | positioning    |

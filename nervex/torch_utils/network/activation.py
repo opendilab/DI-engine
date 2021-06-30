@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. build activation: you can use build_activation to build relu or glu
-"""
 import torch
 import torch.nn as nn
 
@@ -11,28 +5,29 @@ import torch.nn as nn
 class GLU(nn.Module):
     r"""
     Overview:
-        Gating Linear Unit (GLU):
-            Inputs: input, context, output_size
+        Gating Linear Unit.
+        This class does a thing like this:
 
+        .. code::python
+
+            # Inputs: input, context, output_size
             # The gate value is a learnt function of the input.
             gate = sigmoid(linear(input.size)(context))
-
             # Gate the input and return an output of desired size.
             gated_input = gate * input
             output = linear(output_size)(gated_input)
-
             return output
+    Interfaces:
+        forward
+    .. tip::
 
-        This module also supports 2D convolution, in which case, the input and context must have same shape.
-
-    Interface:
-        __init__, forward
+        This module also supports 2D convolution, in which case, the input and context must have the same shape.
     """
 
-    def __init__(self, input_dim, output_dim, context_dim, input_type='fc'):
+    def __init__(self, input_dim: int, output_dim: int, context_dim: int, input_type: str = 'fc') -> None:
         r"""
         Overview:
-            Init glu
+            Init GLU
         Arguments:
             - input_dim (:obj:`int`): the input dimension
             - output_dim (:obj:`int`): the output dimension
@@ -48,17 +43,15 @@ class GLU(nn.Module):
             self.layer1 = nn.Conv2d(context_dim, input_dim, 1, 1, 0)
             self.layer2 = nn.Conv2d(input_dim, output_dim, 1, 1, 0)
 
-    def forward(self, x, context):
+    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            return glu computed tensor
-
+            Return GLU computed tensor
         Arguments:
-            - x (:obj:`tensor`) : the input tensor
-            - context (:obj:`tensor`) : the context tensor
-
+            - x (:obj:`torch.Tensor`) : the input tensor
+            - context (:obj:`torch.Tensor`) : the context tensor
         Returns:
-            - x (:obj:`tensor`): the computed tensor
+            - x (:obj:`torch.Tensor`): the computed tensor
         """
         gate = self.layer1(context)
         gate = torch.sigmoid(gate)
@@ -67,17 +60,15 @@ class GLU(nn.Module):
         return x
 
 
-def build_activation(activation, inplace=None):
+def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     r"""
     Overview:
-        return the activation module match the given activation descripion
-
+        Return the activation module according to the given type.
     Arguments:
-        - actvation (:obj:`str`): the type of activation module needed, now support ['relu', 'glu', 'prelu']
-        - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default: ``None``
-
+        - actvation (:obj:`str`): the type of activation module, now supports ['relu', 'glu', 'prelu']
+        - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``
     Returns:
-        - act_func (:obj:`torch.nn.module`): the corresponding activation module
+        - act_func (:obj:`nn.module`): the corresponding activation module
     """
     if inplace is not None:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)

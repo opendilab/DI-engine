@@ -9,7 +9,18 @@ def cov(
         ddof: Optional[int] = None,
         aweights: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
-    """Estimates covariance matrix like numpy.cov"""
+    r"""
+    Overview:
+        Estimates covariance matrix like ``numpy.cov``
+    Arguments:
+        - x (:obj:`torch.Tensor`)
+        - rowvar (:obj:`bool`)
+        - bias (:obj:`bool`)
+        - ddof (:obj:`Optional[int]`)
+        - aweights (:obj:`Optional[torch.Tensor]`)
+    Returns:
+        - cov_mat (:obj:`torch.Tensor`): Covariance matrix
+    """
     if x.dim() == 1 and rowvar:
         raise NotImplementedError
     # ensure at least 2D

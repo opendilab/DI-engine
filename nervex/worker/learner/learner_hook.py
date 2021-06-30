@@ -2,7 +2,6 @@ import numbers
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
-
 import torch
 from easydict import EasyDict
 
@@ -61,6 +60,7 @@ class LearnerHook(Hook):
         name, priority, position
 
     .. note::
+
         Subclass should implement ``self.__call__``.
     """
     positions = ['before_run', 'after_run', 'before_iter', 'after_iter']
@@ -105,7 +105,7 @@ class LoadCkptHook(LearnerHook):
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
         Overview:
-            Load checkpoint to learner.
+            Load checkpoint to learner. Checkpoint info includes policy state_dict and iter num.
         Arguments:
             - engine (:obj:`BaseLearner`): The BaseLearner to load checkpoint to.
         """
@@ -146,7 +146,8 @@ class SaveCkptHook(LearnerHook):
     def __call__(self, engine: 'BaseLearner') -> None:  # noqa
         """
         Overview:
-            Save check point in corresponding path, using ``engine.checkpoint_manager``
+            Save checkpoint in corresponding path.
+            Checkpoint info includes policy state_dict and iter num.
         Arguments:
             - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint
         """

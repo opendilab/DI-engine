@@ -1,5 +1,5 @@
 interaction.base
-==========
+=================
 
 .. toctree::
     :maxdepth: 3

@@ -4,12 +4,12 @@ from typing import Tuple
 from nervex.hpc_rl import hpc_wrapper
 
 
-def shape_fn_scatter_connection(args, kwargs):
+def shape_fn_scatter_connection(args, kwargs) -> list:
     r"""
     Overview:
         Return shape of scatter_connection for hpc
     Returns:
-        shape: [B, M, N, H, W, scatter_type]
+        - shape (:obj:`list`): List like [B, M, N, H, W, scatter_type]
     """
     if len(args) <= 1:
         tmp = list(kwargs['x'].shape)
@@ -25,19 +25,19 @@ def shape_fn_scatter_connection(args, kwargs):
 
 class ScatterConnection(nn.Module):
     r"""
-        Overview:
-            Scatter feature to its corresponding location
-            In alphastar, each entity is embedded into a tensor, these tensors are scattered into a feature map
-            with map size
+    Overview:
+        Scatter feature to its corresponding location
+        In AlphaStar, each entity is embedded into a tensor,
+        and these tensors are scattered into a feature map with map size.
     """
 
-    def __init__(self, scatter_type) -> None:
+    def __init__(self, scatter_type: str) -> None:
         r"""
-            Overview:
-                Init class
-            Arguments:
-                - scatter_type (:obj:`str`): add or cover, if two entities have same location, scatter type decides the
-                    first one should be covered or added to second one
+        Overview:
+            Init class
+        Arguments:
+            - scatter_type (:obj:`str`): Supports ['add', 'cover']. If two entities have the same location, \
+                scatter_type decides the first one should be covered or added to second one
         """
         super(ScatterConnection, self).__init__()
         self.scatter_type = scatter_type
@@ -52,26 +52,27 @@ class ScatterConnection(nn.Module):
     )
     def forward(self, x: torch.Tensor, spatial_size: Tuple[int, int], location: torch.Tensor) -> torch.Tensor:
         """
-            Overview:
-                scatter x into a spatial feature map
-            Arguments:
-                - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means\
-                  the dimension of entity attributes
-                - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into
-                - location (:obj:`tensor`): :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
-            Returns:
-                - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\
-                    scattered feature map
-            Shapes:
-                - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means\
-                  the dimension of entity attributes
-                - Size: Tuple[H, W]
-                - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
-                - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
+        Overview:
+            scatter x into a spatial feature map
+        Arguments:
+            - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means \
+                the dimension of entity attributes
+            - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into
+            - location (:obj:`tensor`): :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
+        Returns:
+            - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\
+                scattered feature map
+        Shapes:
+            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means \
+                the dimension of entity attributes
+            - Size: Tuple type :math: `[H, W]`
+            - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)
+            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
 
-            .. note::
-                when there are some overlapping in locations, ``cover`` mode will result in the loss of information, we
-                use the addition as temporal substitute.
+        .. note::
+
+            When there are some overlapping in locations, ``cover`` mode will result in the loss of information, we
+            use the addition as temporal substitute.
         """
         device = x.device
         B, M, N = x.shape

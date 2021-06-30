@@ -16,6 +16,7 @@ def get_rank():
     r"""
     Overview:
         Get the rank of ``linklink`` model, return 0 if use ``FakeLink``.
+
     .. note::
         Reference ``import_helper.try_import_link`` and ``linklink.get_rank``.
     """
@@ -28,6 +29,7 @@ def get_world_size():
     r"""
     Overview:
         Get the ``world_size`` of ``linklink model``, return 0 if use ``FakeLink``.
+
     .. note::
         Reference ``import_helper.try_import_link`` and ``linklink.get_world_size``.
     """
@@ -134,6 +136,7 @@ def simple_group_split(world_size, rank, num_groups):
     r"""
     Overview:
         Split the group according to ``worldsize``, ``rank`` and ``num_groups``
+
     .. note::
         With faulty input, raise ``array split does not result in an equal division``
     """
