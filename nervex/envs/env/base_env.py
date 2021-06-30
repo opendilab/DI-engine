@@ -129,6 +129,7 @@ def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
         - env_fn (:obj:`type`): Callable object, call it with proper arguments and then get a new env instance.
         - collector_env_cfg (:obj:`List[dict]`): A list contains the config of collecting data envs.
         - evaluator_env_cfg (:obj:`List[dict]`): A list contains the config of evaluation envs.
+
     .. note::
         elements(env config) in collector_env_cfg/evaluator_env_cfg can be different, such as server ip and port.
 

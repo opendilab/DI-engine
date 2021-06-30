@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from typing import List, Optional, Tuple
+
 from .nn_module import fc_block, build_normalization
 
 
@@ -9,9 +11,11 @@ class Attention(nn.Module):
     r"""
     Overview:
         For each entry embedding, compute individual attention across all entries, add them up to get output attention
+    Interfaces:
+        split, forward
     """
 
-    def __init__(self, input_dim, head_dim, output_dim, head_num, dropout):
+    def __init__(self, input_dim: int, head_dim: int, output_dim: int, head_num: int, dropout: nn.Module) -> None:
         r"""
         Overview:
             Init attention
@@ -29,15 +33,15 @@ class Attention(nn.Module):
         self.attention_pre = fc_block(input_dim, head_dim * head_num * 3)  # query, key, value
         self.project = fc_block(head_dim * head_num, output_dim)
 
-    def split(self, x, T=False):
+    def split(self, x: torch.Tensor, T: bool = False) -> List[torch.Tensor]:
         r"""
         Overview:
             Split input to get multihead queries, keys, values
         Arguments:
-            - x (:obj:`tensor`): query or key or value
+            - x (:obj:`torch.Tensor`): query or key or value
             - T (:obj:`bool`): whether to transpose output
         Returns:
-            - x (:obj:`list`): list of output tensors for each head
+            - x (:obj:`List[torch.Tensor]`): list of output tensors for each head
         """
         B, N = x.shape[:2]
         x = x.view(B, N, self.head_num, self.head_dim)
@@ -46,15 +50,15 @@ class Attention(nn.Module):
             x = x.permute(0, 1, 3, 2).contiguous()
         return x
 
-    def forward(self, x, mask=None):
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         r"""
         Overview:
            Compute attention
         Arguments:
-            - x (:obj:`tensor`): input tensor
-            - mask (:obj:`tensor`): mask out invalid entries
+            - x (:obj:`torch.Tensor`): input tensor
+            - mask (:obj:`Optional[torch.Tensor]`): mask out invalid entries
         Returns:
-            - attention (:obj:`tensor`): attention tensor
+            - attention (:obj:`torch.Tensor`): attention tensor
         """
         assert (len(x.shape) == 3)
         B, N = x.shape[:2]
@@ -82,7 +86,10 @@ class TransformerLayer(nn.Module):
         In transformer layer, first computes entries's attention and applies a feedforward layer
     """
 
-    def __init__(self, input_dim, head_dim, hidden_dim, output_dim, head_num, mlp_num, dropout, activation):
+    def __init__(
+            self, input_dim: int, head_dim: int, hidden_dim: int, output_dim: int, head_num: int, mlp_num: int,
+            dropout: nn.Module, activation: nn.Module
+    ) -> None:
         r"""
         Overview:
             Init transformer layer
@@ -110,14 +117,14 @@ class TransformerLayer(nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.layernorm2 = build_normalization('LN')(output_dim)
 
-    def forward(self, inputs):
+    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Overview:
-            transformer layer forward
+            Transformer layer forward
         Arguments:
-            - inputs (:obj:`tuple`): x and mask
+            - inputs (:obj:`Tuple[torch.Tensor, torch.Tensor]`): x and mask
         Returns:
-            - output (:obj:`tuple`): x and mask
+            - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): predict value and mask
         """
         x, mask = inputs
         a = self.dropout(self.attention(x, mask))
@@ -132,21 +139,22 @@ class Transformer(nn.Module):
     Overview:
         Transformer implementation
 
-        Note:
-            For details refer to Attention is all you need: http://arxiv.org/abs/1706.03762
+    .. note::
+
+        For details refer to Attention is all you need: http://arxiv.org/abs/1706.03762
     '''
 
     def __init__(
         self,
-        input_dim,
-        head_dim=128,
-        hidden_dim=1024,
-        output_dim=256,
-        head_num=2,
-        mlp_num=2,
-        layer_num=3,
-        dropout_ratio=0.0,
-        activation=nn.ReLU(),
+        input_dim: int,
+        head_dim: int = 128,
+        hidden_dim: int = 1024,
+        output_dim: int = 256,
+        head_num: int = 2,
+        mlp_num: int = 2,
+        layer_num: int = 3,
+        dropout_ratio: float = 0.,
+        activation: nn.Module = nn.ReLU(),
     ):
         r"""
         Overview:
@@ -174,17 +182,17 @@ class Transformer(nn.Module):
             )
         self.main = nn.Sequential(*layers)
 
-    def forward(self, x, mask=None):
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         r"""
         Overview:
             Transformer forward
         Arguments:
-            - x (:obj:`tensor`): input tensor, shape (B, N, C), B is batch size, N is number of entries,
-                C is feature dimension
-            - mask (:obj:`tensor` or :obj:`None`): bool tensor, can be used to mask out invalid entries in attention,
-                shape (B, N), B is batch size, N is number of entries
+            - x (:obj:`torch.Tensor`): input tensor. Shape (B, N, C), B is batch size, \
+                N is number of entries, C is feature dimension
+            - mask (:obj:`Optional[torch.Tensor]`): bool tensor, can be used to mask out invalid entries in attention. \
+                Shape (B, N), B is batch size, N is number of entries
         Returns:
-            - x (:obj:`tensor`): transformer output
+            - x (:obj:`torch.Tensor`): transformer output
         """
         if mask is not None:
             mask = mask.unsqueeze(dim=1).repeat(1, mask.shape[1], 1).unsqueeze(dim=1)
@@ -195,17 +203,26 @@ class Transformer(nn.Module):
 
 
 class ScaledDotProductAttention(nn.Module):
+    '''
+    Overview:
+        Implementation of dot product attentionn with scaling.
+    '''
 
-    def __init__(self, d_k: int, dropout: float = 0.0):
+    def __init__(self, d_k: int, dropout: float = 0.0) -> None:
         super(ScaledDotProductAttention, self).__init__()
         self.d_k = d_k
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, q, k, v, mask=None):
+    def forward(
+            self,
+            q: torch.Tensor,
+            k: torch.Tensor,
+            v: torch.Tensor,
+            mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         attn = torch.matmul(q / (self.d_k ** 0.5), k.transpose(2, 3))
         if mask is not None:
             attn = attn.masked_fill(~mask, -1e9)
-
         attn = self.dropout(F.softmax(attn, dim=-1))
         output = torch.matmul(attn, v)
         return output

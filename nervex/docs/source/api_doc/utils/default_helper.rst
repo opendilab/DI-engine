@@ -43,9 +43,9 @@ error_wrapper
 
 
 LimitedSpaceContainer
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: nervex.utils.default_helper.LimitedSpaceContainer
-    :members: __init__, get_residual_space, aquire_space, release_space, increase_space, decrease_space
+    :members: __init__, get_residual_space, acquire_space, release_space, increase_space, decrease_space
 
 
 deep_merge_dicts

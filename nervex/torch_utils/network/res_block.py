@@ -5,6 +5,7 @@ Main Function:
     1. build ResBlock: you can use this classes to build residual blocks
 """
 import torch.nn as nn
+import torch
 
 from .nn_module import conv2d_block, fc_block
 
@@ -20,22 +21,26 @@ class ResBlock(nn.Module):
             bottleneck block:
                 x -> 1*1*(1/4*C) -> norm -> act -> 3*3*(1/4*C) -> norm -> act -> 1*1*C -> norm -> act -> out
                 \_____________________________________________________________________________/+
-
-    Interface:
-        __init__, forward
+    Interfaces:
+        forward
     '''
 
-    def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN', res_type='basic'):
+    def __init__(
+            self,
+            in_channels: int,
+            activation: nn.Module = nn.ReLU(),
+            norm_type: str = 'BN',
+            res_type: str = 'basic'
+    ) -> None:
         r"""
         Overview:
             Init the Residual Block
-
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor
             - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization,
-                                      support ['BN', 'IN', 'SyncBN', None]
-            - res_type (:obj:`str`): type of residual block, support ['basic', 'bottleneck'], see overview for details
+            - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'(Batch Normalization), \
+                supports ['BN', 'IN', 'SyncBN', None].
+            - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck']
         """
         super(ResBlock, self).__init__()
         self.act = activation
@@ -50,16 +55,14 @@ class ResBlock(nn.Module):
             self.conv2 = conv2d_block(in_channels, in_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
             self.conv3 = conv2d_block(in_channels, in_channels, 1, 1, 0, activation=None, norm_type=norm_type)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            return the redisual block output
-
+            Return the redisual block output
         Arguments:
-            - x (:obj:`tensor`): the input tensor
-
+            - x (:obj:`torch.Tensor`): the input tensor
         Returns:
-            - x(:obj:`tensor`): the resblock output tensor
+            - x(:obj:`torch.Tensor`): the resblock output tensor
         """
         residual = x
         x = self.conv1(x)
@@ -77,34 +80,32 @@ class ResFCBlock(nn.Module):
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \_____________________________________/+
 
-    Interface:
-        __init__, forward
+    Interfaces:
+        forward
     '''
 
-    def __init__(self, in_channels, activation=nn.ReLU(), norm_type='BN'):
+    def __init__(self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN'):
         r"""
         Overview:
             Init the Residual Block
-
         Arguments:
+            - in_channels (:obj:`int`): Number of channels in the input tensor
             - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to batch normalization
+            - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'
         """
         super(ResFCBlock, self).__init__()
         self.act = activation
         self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=norm_type)
         self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            return  output of  the residual block with 2 fully connected block
-
+            Return the redisual block output
         Arguments:
-            - x (:obj:`tensor`): the input tensor
-
+            - x (:obj:`torch.Tensor`): the input tensor
         Returns:
-            - x(:obj:`tensor`): the resblock output tensor
+            - x(:obj:`torch.Tensor`): the resblock output tensor
         """
         residual = x
         x = self.fc1(x)

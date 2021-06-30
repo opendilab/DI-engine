@@ -1,7 +1,7 @@
 import pytest
 import torch
-from nervex.torch_utils.nn_test_helper import is_differentiable, is_differentiable_print_no_grad
 from nervex.model.template.atoc import ATOCActorNet, ATOC
+from nervex.torch_utils import is_differentiable
 
 
 @pytest.mark.unittest
@@ -18,7 +18,7 @@ class TestATOC:
             assert out['group'].shape == (B, A, A)
             loss1 = out['action'].sum()
             if i == 0:
-                is_differentiable_print_no_grad(loss1, model)
+                is_differentiable(loss1, model, print_instead=True)
             else:
                 loss1.backward()
 

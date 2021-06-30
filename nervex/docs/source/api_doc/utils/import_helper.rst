@@ -21,7 +21,7 @@ try_import_redis
 .. automodule:: nervex.utils.import_helper.try_import_redis
 
 try_import_rediscluster
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.import_helper.try_import_rediscluster
 

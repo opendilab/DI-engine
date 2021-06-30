@@ -21,7 +21,7 @@ read_from_redis
 .. automodule:: nervex.utils.file_helper.read_from_redis
 
 read_from_rediscluster
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.file_helper.read_from_rediscluster
 
@@ -54,7 +54,7 @@ save_file_redis
 .. automodule:: nervex.utils.file_helper.save_file_redis
 
 save_file_rediscluster
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: nervex.utils.file_helper.save_file_rediscluster
 

@@ -89,6 +89,7 @@ Implementation
 The default config is defined as follows:
 
 .. autoclass:: nervex.policy.rainbow.RainbowDQNPolicy
+   :noindex:
 
 The network interface of Rainbow used is defined as follows:
 
