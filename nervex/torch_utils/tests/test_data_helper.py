@@ -63,6 +63,29 @@ class TestCudaFetcher:
         dataloader.close()
 
 
+@pytest.mark.cudatest
+def test_to_device():
+    module  = nn.Linear(3, 5)
+    tensor = torch.tensor(4)
+    seq = [1, 2, 3]
+    num = 10.
+    array = np.array(4)
+    string = "asdf"
+    other = EasyTimer()
+    d = {
+        'm': module,
+        't': tensor,
+        's': seq,
+        'n': num,
+        'a': array,
+        's': string
+    }
+    device = 'cuda'
+    cuda_d = to_device(d, device, ignore_keys=['m'])
+    assert cuda_d['m'].device == 'cpu'
+    with pytest.raises(TypeError):
+        to_device(other)
+
 @pytest.mark.unittest
 class TestDataFunc:
 

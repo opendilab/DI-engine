@@ -1,5 +1,6 @@
 import time
 import pytest
+import os
 
 
 @pytest.mark.unittest
@@ -138,3 +139,6 @@ class Test1v1Commander:
         setup_1v1commander.notify_fail_collector_task({})
         time.sleep(0.01)
         assert setup_1v1commander._collector_task_space.cur == 0
+        
+        os.popen('rm -rf log')
+        os.popen('rm -rf total_config.py')
