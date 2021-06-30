@@ -1,11 +1,10 @@
+import nervex
+
 from .collection_helper import iter_mapping
 from .compression_helper import get_data_compressor, get_data_decompressor
 from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, default_get, error_wrapper, list_split,\
     LimitedSpaceContainer, deep_merge_dicts, set_pkg_seed, flatten_dict
 from .design_helper import SingletonMetaclass
-from .dist_helper import get_rank, get_world_size, distributed_mode, dist_init, dist_finalize, \
-    allreduce, get_group, broadcast
-from .fake_linklink import link, FakeLink
 from .file_helper import read_file, save_file, remove_file
 from .import_helper import try_import_ceph, try_import_mc, try_import_link, import_module, try_import_redis,\
      try_import_rediscluster
@@ -21,3 +20,9 @@ from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER
     ENV_MANAGER_REGISTRY, REWARD_MODEL_REGISTRY, BUFFER_REGISTRY
 from .segment_tree import SumSegmentTree, MinSegmentTree, SegmentTree
 from .type_helper import SequenceType
+if nervex.enable_linklink:
+    from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
+        allreduce, broadcast, DistContext
+else:
+    from .pytorch_ddp_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
+        allreduce, broadcast, DistContext

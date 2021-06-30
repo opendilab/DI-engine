@@ -72,7 +72,7 @@ class Policy(ABC):
             model = self._create_model(cfg, model)
             self._cuda = cfg.cuda and torch.cuda.is_available()
             # now only support multi-gpu for only enable learn mode
-            if self._enable_field == ['learn']:
+            if len(set(self._enable_field).intersection(set(['learn']))) > 0:
                 self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
                 if self._cuda:
                     torch.cuda.set_device(self._rank)

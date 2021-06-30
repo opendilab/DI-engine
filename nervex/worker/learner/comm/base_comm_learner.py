@@ -110,7 +110,7 @@ class BaseCommLearner(ABC):
         """
         # Prepare learner config and instantiate a learner object.
         learner_cfg = EasyDict(task_info['learner_cfg'])
-        learner = create_learner(learner_cfg)
+        learner = create_learner(learner_cfg, dist_info=[self._rank, self._world_size])
         # Set 3 methods and dataloader in created learner that are necessary in parallel setting.
         for item in ['get_data', 'send_policy', 'send_learn_info']:
             setattr(learner, item, getattr(self, item))

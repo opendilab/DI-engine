@@ -6,14 +6,15 @@ Main Function:
 """
 import time
 import copy
-from typing import Any, Union, Callable, List, Dict, Optional
+from typing import Any, Union, Callable, List, Dict, Optional, Tuple
 from functools import partial
 from easydict import EasyDict
 from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, EasyTimer, pretty_print, deep_merge_dicts, import_module, LEARNER_REGISTRY
+from nervex.utils import build_logger, EasyTimer, pretty_print, deep_merge_dicts, import_module, LEARNER_REGISTRY, \
+    get_rank, get_world_size
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -26,7 +27,7 @@ class BaseLearner(object):
     Interface:
         train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
-        learn_info, priority_info, last_iter, name, rank, policy
+        learn_info, priority_info, last_iter, name, rank, world_size, policy
         monitor, log_buffer, logger, tb_logger
     """
 
@@ -43,7 +44,6 @@ class BaseLearner(object):
         hook=dict(
             load_ckpt_before_run='',
             log_show_after_iter=100,
-            # log_reduce_after_iter=True,  # for multi-gpu training
             save_ckpt_after_iter=10000,
             save_ckpt_after_run=True,
         ),
@@ -56,7 +56,7 @@ class BaseLearner(object):
             cfg: EasyDict,
             policy: namedtuple = None,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
-            rank: int = 0,
+            dist_info: Tuple[int, int] = None,
     ) -> None:
         """
         Overview:
@@ -74,29 +74,37 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._cfg = cfg
-        self._rank = rank  # Learner rank. Used to discriminate which GPU it uses.
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
         self._ckpt_name = None
         self._timer = EasyTimer()
-        # Setup policy
-        if policy is not None:
-            self.policy = policy
 
         # These 2 attributes are only used in parallel mode.
         self._end_flag = False
         self._learner_done = False
+        if dist_info is None:
+            self._rank = get_rank()
+            self._world_size = get_world_size()
+        else:
+            # Learner rank. Used to discriminate which GPU it uses.
+            self._rank, self._world_size = dist_info
+        if self._world_size > 1:
+            self._cfg.hook.log_reduce_after_iter = True
+
+        # Setup policy
+        if policy is not None:
+            self.policy = policy
 
         # Logger (Monitor will be initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
-        if tb_logger is not None:
-            self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
-            self._tb_logger = tb_logger
-        else:
-            if self._rank == 0:
-                self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
-            else:
+        if self._rank == 0:
+            if tb_logger is not None:
                 self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
-                self._tb_logger = None
+                self._tb_logger = tb_logger
+            else:
+                self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
+        else:
+            self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
+            self._tb_logger = None
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
@@ -306,10 +314,7 @@ class BaseLearner(object):
         Arguments:
             - s (:obj:`str`): The message to add into the logger.
         """
-        self._logger.info(s)
-
-    def debug(self, s: str) -> None:
-        self._logger.debug(s)
+        self._logger.info('[RANK{}]: {}'.format(self._rank, s))
 
     def save_checkpoint(self, ckpt_name: str = None) -> None:
         """
@@ -383,6 +388,10 @@ class BaseLearner(object):
     @property
     def rank(self) -> int:
         return self._rank
+
+    @property
+    def world_size(self) -> int:
+        return self._world_size
 
     @property
     def policy(self) -> 'Policy':  # noqa
