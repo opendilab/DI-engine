@@ -28,7 +28,7 @@ pong_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=100, ),
+        collect=dict(n_sample=96, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

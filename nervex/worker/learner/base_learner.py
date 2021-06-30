@@ -13,8 +13,7 @@ from collections import namedtuple
 
 from nervex.data import AsyncDataLoader, default_collate
 from nervex.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from nervex.utils import build_logger, EasyTimer, pretty_print, get_task_uid, import_module, LEARNER_REGISTRY, \
-    deep_merge_dicts, get_rank
+from nervex.utils import build_logger, EasyTimer, pretty_print, deep_merge_dicts, import_module, LEARNER_REGISTRY
 from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 
@@ -28,7 +27,7 @@ class BaseLearner(object):
         train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
     Property:
         learn_info, priority_info, last_iter, name, rank, policy
-        tick_time, monitor, log_buffer, logger, tb_logger
+        monitor, log_buffer, logger, tb_logger
     """
 
     @classmethod
@@ -44,6 +43,7 @@ class BaseLearner(object):
         hook=dict(
             load_ckpt_before_run='',
             log_show_after_iter=100,
+            # log_reduce_after_iter=True,  # for multi-gpu training
             save_ckpt_after_iter=10000,
             save_ckpt_after_run=True,
         ),
@@ -56,6 +56,7 @@ class BaseLearner(object):
             cfg: EasyDict,
             policy: namedtuple = None,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
+            rank: int = 0,
     ) -> None:
         """
         Overview:
@@ -64,6 +65,7 @@ class BaseLearner(object):
             Policy is not initialized here, but set afterwards through policy setter.
         Arguments:
             - cfg (:obj:`EasyDict`): Learner config, you can view `cfg <../../../configuration/index.html>`_ for ref.
+            - rank (:obj:`int`): Process number in multi-gpu training
         Notes:
             If you want to debug in sync CUDA mode, please add the following code at the beginning of ``__init__``.
 
@@ -72,41 +74,41 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._cfg = cfg
-        self._cuda = False
-        self._device = 'cpu'
+        self._rank = rank  # Learner rank. Used to discriminate which GPU it uses.
         self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
         self._ckpt_name = None
+        self._timer = EasyTimer()
+        # Setup policy
+        if policy is not None:
+            self.policy = policy
 
-        # These 3 attributes are only used in parallel mode.
-        self._rank = get_rank()  # Learner rank. Used to discriminate which GPU it uses.
+        # These 2 attributes are only used in parallel mode.
         self._end_flag = False
         self._learner_done = False
 
         # Logger (Monitor will be initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
-        self._timer = EasyTimer()
-        rank0 = True if self._rank == 0 else False  # todo
         if tb_logger is not None:
             self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
             self._tb_logger = tb_logger
         else:
-            self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
+            if self._rank == 0:
+                self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
+            else:
+                self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
+                self._tb_logger = None
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),
             'histogram': build_log_buffer(),
         }
-        self.info(pretty_print({"learner config": self._cfg}, direct_print=False))
+
         # Learner hooks. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
-        # Priority info. Used to update replay buffer according to data's priority.
-        self._priority_info = {}
         # Last iteration. Used to record current iter.
         self._last_iter = CountVar(init_val=0)
 
-        # Setup policy, time wrapper and hook.
-        if policy is not None:
-            self.policy = policy
+        # Setup time wrapper and hook.
         self._setup_wrapper()
         self._setup_hook()
 
@@ -189,7 +191,7 @@ class BaseLearner(object):
         if priority is not None:
             replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
             replay_unique_id = [d.get('replay_unique_id', None) for d in data]
-            self._priority_info = {
+            self.priority_info = {
                 'priority': priority,
                 'replay_buffer_idx': replay_buffer_idx,
                 'replay_unique_id': replay_unique_id,
@@ -229,8 +231,7 @@ class BaseLearner(object):
         # before run hook
         self.call_hook('before_run')
 
-        train_iterations = self._cfg.train_iterations
-        for i in range(train_iterations):
+        for i in range(self._cfg.train_iterations):
             data = self._next_data()
             if self._end_flag:
                 break
@@ -255,9 +256,10 @@ class BaseLearner(object):
         """
         cfg = self._cfg.dataloader
         batch_size = self._policy.get_attribute('batch_size')
+        device = self._policy.get_attribute('device')
         chunk_size = cfg.chunk_size if 'chunk_size' in cfg else batch_size
         self._dataloader = AsyncDataLoader(
-            self.get_data, batch_size, self._device, chunk_size, collate_fn=lambda x: x, num_workers=cfg.num_workers
+            self.get_data, batch_size, device, chunk_size, collate_fn=lambda x: x, num_workers=cfg.num_workers
         )
         self._next_data = self._time_wrapper(self._next_data, 'scalar', 'data_time')
 
@@ -341,7 +343,7 @@ class BaseLearner(object):
         """
         ret = {
             'learner_step': self._last_iter.val,
-            'priority_info': self._priority_info,
+            'priority_info': self.priority_info,
             'learner_done': self._learner_done
         }
         return ret
@@ -353,10 +355,6 @@ class BaseLearner(object):
     @property
     def train_iter(self) -> int:
         return self._last_iter.val
-
-    @property
-    def tick_time(self) -> TickTime:
-        return self._tick_time
 
     @property
     def monitor(self) -> 'TickMonitor':  # noqa
@@ -397,14 +395,13 @@ class BaseLearner(object):
             Policy variable monitor is set alongside with policy, because variables are determined by specific policy.
         """
         self._policy = _policy
-        self._cuda = self._policy.get_attribute('cuda')
-        self._device = self._policy.get_attribute('device')
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
-        self.info(self._policy.info())
 
     @property
     def priority_info(self) -> dict:
+        if not hasattr(self, '_priority_info'):
+            self._priority_info = {}
         return self._priority_info
 
     @priority_info.setter
@@ -420,7 +417,7 @@ class BaseLearner(object):
         self._ckpt_name = _ckpt_name
 
 
-def create_learner(cfg: EasyDict) -> BaseLearner:
+def create_learner(cfg: EasyDict, **kwargs) -> BaseLearner:
     """
     Overview:
         Given the key(learner_name), create a new learner instance if in learner_mapping's values,
@@ -433,7 +430,7 @@ def create_learner(cfg: EasyDict) -> BaseLearner:
             learner_mapping's values.
     """
     import_module(cfg.get('import_names', []))
-    return LEARNER_REGISTRY.build(cfg.type, cfg=cfg)
+    return LEARNER_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
 
 
 class TickMonitor(LoggedModel):
