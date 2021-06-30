@@ -51,7 +51,7 @@ You can know about the specific format from the following code example.
             __init__, train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
         Property:
             learn_info, priority_info, last_iter, name, rank, policy
-            tick_time, monitor, log_buffer, logger, tb_logger, load_path, checkpoint_manager
+            tick_time, monitor, log_buffer, logger, tb_logger, load_path
         """
 
         _name = "BaseLearner"  # override this variable for sub-class learner
