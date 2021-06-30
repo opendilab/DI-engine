@@ -316,6 +316,9 @@ class BaseLearner(object):
         """
         self._logger.info('[RANK{}]: {}'.format(self._rank, s))
 
+    def debug(self, s: str) -> None:
+        self._logger.debug('[RANK{}]: {}'.format(self._rank, s))
+
     def save_checkpoint(self, ckpt_name: str = None) -> None:
         """
         Overview:
