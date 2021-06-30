@@ -9,8 +9,6 @@ import torch
 import torch.nn as nn
 from typing import Optional, Union, List, Tuple
 
-from torch.nn.modules.container import T
-
 import nervex
 from nervex.torch_utils.network.normalization import build_normalization
 if nervex.enable_hpc_rl:
