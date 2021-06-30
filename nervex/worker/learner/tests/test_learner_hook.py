@@ -1,6 +1,6 @@
 import pytest
 from nervex.worker.learner import register_learner_hook, build_learner_hook_by_cfg, LearnerHook
-from nervex.worker.learner.learner_hook import SaveCkptHook
+from nervex.worker.learner.learner_hook import SaveCkptHook, show_hooks
 
 
 @pytest.fixture(scope='function')
@@ -25,6 +25,7 @@ class TestLearnerHook:
 
     def test_build_learner_hook_by_cfg(self, setup_simplified_hook_cfg):
         hooks = build_learner_hook_by_cfg(setup_simplified_hook_cfg)
+        show_hooks(hooks)
         assert len(hooks['before_run']) == 0
         assert len(hooks['before_iter']) == 0
         assert len(hooks['after_iter']) == 1

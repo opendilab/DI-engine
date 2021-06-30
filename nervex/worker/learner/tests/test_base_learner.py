@@ -31,7 +31,16 @@ class FakePolicy:
         self._model = torch.nn.Identity()
 
     def forward(self, x):
-        return {'total_loss': torch.randn(1).squeeze(), 'cur_lr': 0.1}
+        return {
+            'total_loss': torch.randn(1).squeeze(),
+            'cur_lr': 0.1,
+            'priority': [1., 2., 3.],
+            '[histogram]h_example': [1.2, 2.3, 3.4],
+            '[scalars]s_example': {
+                'a': 5.,
+                'b': 4.
+            },
+        }
 
     def data_preprocess(self, x):
         return x
@@ -73,9 +82,12 @@ class TestBaseLearner:
         cfg.learner_type = 'fake'
         cfg.train_iterations = 10
         cfg.hook.load_ckpt_before_run = path
+        cfg.hook.log_show_after_iter = 5
+        # Another way to build hook: Complete config
         cfg.hook.save_ckpt_after_iter = dict(
             name='save_ckpt_after_iter', type='save_ckpt', priority=40, position='after_iter', ext_args={'freq': 5}
         )
+
         return cfg
 
     def test_naive(self):
@@ -100,6 +112,13 @@ class TestBaseLearner:
             assert os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
         for n in [0, 4, 7, 12]:
             assert not os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
+        learner.debug('iter [5, 10, 15] exists; iter [0, 4, 7, 12] does not exist.')
+
+        learner.save_checkpoint('best')
+
+        info = learner.learn_info
+        for info_name in ['learner_step', 'priority_info', 'learner_done']:
+            assert info_name in info
 
         class FakeHook(LearnerHook):
 
@@ -113,3 +132,5 @@ class TestBaseLearner:
         os.popen('rm -rf iteration_5.pth.tar*')
         os.popen('rm -rf ' + dir_name)
         os.popen('rm -rf learner')
+        os.popen('rm -rf log')
+        learner.close()
