@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import torch
 from easydict import EasyDict
 
+import nervex
 from nervex.utils import allreduce, read_file, save_file
 
 
@@ -275,10 +276,20 @@ class LogReduceHook(LearnerHook):
                 new_data = [aggregate(t) for t in data]
             elif isinstance(data, torch.Tensor):
                 new_data = data.clone().detach()
-                allreduce(new_data)  # get data from other processes
+                if nervex.enable_linklink:
+                    allreduce(new_data)
+                else:
+                    new_data = new_data.cuda()
+                    allreduce(new_data)
+                    new_data = new_data.cpu()
             elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
                 new_data = torch.scalar_tensor(data).reshape([1])
-                allreduce(new_data)
+                if nervex.enable_linklink:
+                    allreduce(new_data)
+                else:
+                    new_data = new_data.cuda()
+                    allreduce(new_data)
+                    new_data = new_data.cpu()
                 new_data = new_data.item()
             else:
                 raise TypeError("invalid type in reduce: {}".format(type(data)))
