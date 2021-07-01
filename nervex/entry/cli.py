@@ -4,7 +4,7 @@ from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .serial_entry import serial_pipeline
 from .parallel_entry import parallel_pipeline
 from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config, \
-    dist_launch_learner_aggregator
+    dist_launch_learner_aggregator, dist_launch_spawn_learner
 from .application_entry import eval
 
 
@@ -74,7 +74,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option(
     '--module',
-    type=click.Choice(['config', 'collector', 'learner', 'coordinator', 'learner_aggregator']),
+    type=click.Choice(['config', 'collector', 'learner', 'coordinator', 'learner_aggregator', 'spawn_learner']),
     help='dist module type'
 )
 @click.option('--module-name', type=str, help='dist module name')
@@ -118,6 +118,8 @@ def cli(
             dist_launch_collector(config, seed, collector_port, module_name, disable_flask_log)
         elif module == 'learner':
             dist_launch_learner(config, seed, learner_port, module_name, disable_flask_log)
+        elif module == 'spawn_learner':
+            dist_launch_spawn_learner(config, seed, learner_port, module_name, disable_flask_log)
         else:
             raise Exception
     elif mode == 'eval':

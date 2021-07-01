@@ -1,4 +1,7 @@
 import os
+import sys
+import subprocess
+import signal
 import pickle
 import logging
 import time
@@ -144,3 +147,76 @@ def dist_launch_learner_aggregator(filename: str, seed: int, name: str = None, d
         config = pickle.load(f).system[name]
     learner_aggregator = LearnerAggregator(config)
     learner_aggregator.start()
+
+
+def dist_launch_spawn_learner(
+        filename: str, seed: int, learner_port: int, name: str = None, disable_flask_log: bool = True
+) -> None:
+    current_env = os.environ.copy()
+    local_world_size = int(os.environ.get('LOCAL_WORLD_SIZE', 1))
+    processes = []
+
+    for local_rank in range(0, local_world_size):
+        dist_rank = int(os.environ.get('START_RANK', 0)) + local_rank
+        current_env["RANK"] = str(dist_rank)
+        current_env["LOCAL_RANK"] = str(local_rank)
+
+        executable = subprocess.getoutput('which nervex')
+        assert len(executable) > 0, "cannot find executable \"nervex\""
+
+        cmd = [executable, '-m', 'dist', '--module', 'learner']
+        if filename is not None:
+            cmd += ['-c', f'{filename}']
+        if seed is not None:
+            cmd += ['-s', f'{seed}']
+        if learner_port is not None:
+            cmd += ['-lp', f'{learner_port}']
+        if name is not None:
+            cmd += ['--module-name', f'{name}']
+        if disable_flask_log is not None:
+            cmd += ['--disable_flask_log', f'{int(disable_flask_log)}']
+
+        sig_names = {2: "SIGINT", 15: "SIGTERM"}
+        last_return_code = None
+
+        def sigkill_handler(signum, frame):
+            for process in processes:
+                print(f"Killing subprocess {process.pid}")
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+            if last_return_code is not None:
+                raise subprocess.CalledProcessError(returncode=last_return_code, cmd=cmd)
+            if signum in sig_names:
+                print(f"Main process received {sig_names[signum]}, exiting")
+            sys.exit(1)
+
+        # pass SIGINT/SIGTERM to children if the parent is being terminated
+        signal.signal(signal.SIGINT, sigkill_handler)
+        signal.signal(signal.SIGTERM, sigkill_handler)
+
+        process = subprocess.Popen(cmd, env=current_env, stdout=None, stderr=None)
+        processes.append(process)
+
+    try:
+        alive_processes = set(processes)
+        while len(alive_processes):
+            finished_processes = []
+            for process in alive_processes:
+                if process.poll() is None:
+                    # the process is still running
+                    continue
+                else:
+                    if process.returncode != 0:
+                        last_return_code = process.returncode  # for sigkill_handler
+                        sigkill_handler(signal.SIGTERM, None)  # not coming back
+                    else:
+                        # exited cleanly
+                        finished_processes.append(process)
+            alive_processes = set(alive_processes) - set(finished_processes)
+
+            time.sleep(1)
+    finally:
+        # close open file descriptors
+        pass

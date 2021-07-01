@@ -76,20 +76,22 @@ def dist_init(backend: str = 'nccl',
     if port is None:
         port = "10314"  # hard-code
     if rank is None:
-        local_id = os.environ['SLURM_LOCALID']
+        local_id = os.environ.get('SLURM_LOCALID', os.environ.get('LOCAL_RANK', None))
         if local_id is None:
             raise RuntimeError("please indicate rank explicitly in dist_init method")
         else:
             rank = int(local_id)
     if world_size is None:
-        ntasks = os.environ['SLURM_NTASKS']
+        ntasks = os.environ.get('SLURM_NTASKS', os.environ.get('WORLD_SIZE', None))
         if ntasks is None:
             raise RuntimeError("please indicate world_size explicitly in dist_init method")
         else:
             world_size = int(ntasks)
 
-    os.environ['MASTER_ADDR'] = addr
-    os.environ['MASTER_PORT'] = port
+    if os.environ.get('MASTER_ADDR', None) is None:
+        os.environ['MASTER_ADDR'] = addr
+    if os.environ.get('MASTER_PORT', None) is None:
+        os.environ['MASTER_PORT'] = port
     dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
 
     num_gpus = torch.cuda.device_count()
