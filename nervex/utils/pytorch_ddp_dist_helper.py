@@ -71,10 +71,9 @@ def dist_init(backend: str = 'nccl',
         Init the distributed training setting
     """
     assert backend in ['nccl', 'gloo'], backend
-    if addr is None:
-        addr = "localhost"
-    if port is None:
-        port = "10314"  # hard-code
+    os.environ['MASTER_ADDR'] = addr or os.environ.get('MASTER_ADDR', "localhost")
+    os.environ['MASTER_PORT'] = port or os.environ.get('MASTER_PORT', "10314")  # hard-code
+
     if rank is None:
         local_id = os.environ.get('SLURM_LOCALID', os.environ.get('LOCAL_RANK', None))
         if local_id is None:
@@ -88,10 +87,6 @@ def dist_init(backend: str = 'nccl',
         else:
             world_size = int(ntasks)
 
-    if os.environ.get('MASTER_ADDR', None) is None:
-        os.environ['MASTER_ADDR'] = addr
-    if os.environ.get('MASTER_PORT', None) is None:
-        os.environ['MASTER_PORT'] = port
     dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
 
     num_gpus = torch.cuda.device_count()
