@@ -10,9 +10,11 @@ class ConnectionRefuse(ResponsibleException):
         Exception represents the refuse to connection to slave from master, can be used in method `_before_connection`.
     Example:
         - Without data
+
         >>> raise ConnectionRefuse
 
         - With refuse data
+
         >>> raise ConnectionRefuse({'data': 233})
     """
 
@@ -39,9 +41,11 @@ class DisconnectionRefuse(ResponsibleException):
         can be used in method `_before_disconnection`.
     Example:
         - Without data
+
         >>> raise DisconnectionRefuse
 
         - With refuse data
+
         >>> raise DisconnectionRefuse({'data': 233})
     """
 
@@ -67,9 +71,11 @@ class TaskRefuse(ResponsibleException):
         Exception represents the refuse to tasks, can be used in method `_before_task`.
     Example:
         - Without data
+
         >>> raise TaskRefuse
 
         - With refuse data
+
         >>> raise TaskRefuse({'data': 233})
     """
 
@@ -95,12 +101,15 @@ class TaskFail(Exception):
         Exception represents the failure of tasks, can be used in method `_process_task`.
     Example:
         - Without data
+
         >>> raise TaskFail
 
         - With failure data
+
         >>> raise TaskFail({'data': 233})
 
         - With both data and message
+
         >>> raise TaskFail({'data': 233}, 'this is message')
     """
 

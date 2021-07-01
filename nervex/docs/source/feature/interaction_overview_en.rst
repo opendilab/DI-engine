@@ -6,7 +6,7 @@ Interaction Overview
 .. _header-n2:
 
 Overview
-----
+---------
 
 Interaction module is an interactive service framework independent of any specific business, which used to support simple non-blocking single-thread tasks. It provides support for training(multi-machine multi-card) in a distributed environment based on nerveX.
 
@@ -16,7 +16,7 @@ Interaction module is divided into two ends, the ``Master`` and the ``Slave``, w
 .. _header-n9:
 
 Slave
-----
+------
 
 ``Slave`` receives task information from ``Master``, executes the task by rewriting the ``_process_task`` method, and returns the message through the return value and exception raising.
 
@@ -160,7 +160,7 @@ Q & A
 .. _header-n13:
 
 Q: What is a non-blocking single-threaded task? Why make this design?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A: That is, **when Master issues a task, if the Slave is idle, the task will be executed; if there is already a task running on the Slave, the task request will be rejected**.
 
@@ -177,7 +177,7 @@ Considering **the large amount of concurrent computing in reinforcement learning
 .. _header-n122:
 
 Q: What are the issues that the Interaction module is suitable for use?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A: Actually, according to the current preliminary investigation, the training tasks will be divided into the following situations:
 
@@ -194,14 +194,14 @@ Therefore, **for Interaction, the best environment to show its advantage is a mu
 .. _header-n120:
 
 Q: What should I do if an error occurs when the Master and Slave are sending network requests?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A: The network exception thrown is classified in the Interaction framework based on the error code (non-HTTP status code). In actual use, **please be careful not to directly use HTTPError to capture exceptions**. This exception can only capture non-business exceptions (such as DNS failures, connection timeouts, etc.). For business exceptions, please use the corresponding exception class that has been captured, and **it is recommended to use corresponding exception classes according to different business exception types** to accurately capture and handle problems.
 
 .. _header-n110:
 
 Q: How to correctly integrate Master and Slave into existing business services?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A: A more recommended way is **to treat Master/Slave as a private attribute of the class and integrated into the class**, and **it is also recommended to properly manage the life cycle for the class itself** (for example, set up start, shutdown, join and other life cycle management methods ), and it is recommended to implement the ``__enter__`` and ``__exit__`` methods, so that the class can be quickly created and recycled through ``with``.
 

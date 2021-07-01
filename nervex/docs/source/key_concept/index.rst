@@ -8,7 +8,7 @@ Key Concept
 Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX. One of basic control flow(serial pipeline) can be described as:
 
 .. image::
-   images/serial_pipeline.png
+   images/serial_pipeline.svg
    :align: center
 
 In the following sections, nerveX first introduces the key concepts/components separately, then combines them like building a special "Evolution Graph" to offer different computation patterns(serial, parallel, dist).
@@ -84,7 +84,7 @@ the model forward without gradient computation and use epsilon-greedy to select 
 prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
 
 .. image::
-   images/policy_mode.png
+   images/policy_mode.svg
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
 own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
@@ -511,10 +511,50 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 
 Worker-Learner
 ~~~~~~~~~~~~~~~~~~
+TBD
 
-
-Entry(optional)
+Entry
 ~~~~~~~~~~~~~~~~~
+nerveX offers 3 training entries for different usage, users can choose any one they like:
+
+    1. CLI
+        
+        **Simply run a training program, validate correctness, acquire RL model or expert data.**
+
+        .. code:: bash
+
+            # usage 1(without config)
+            nervex -m serial --env cartpole --policy dqn --train_iter 100000 -s 0
+            # usage 2(with config)
+            nervex -m serial -c cartpole_dqn_config.py -s 0
+
+        You can refer to `CLI Overview <../feature/cli_overview.html>`_ for more details.
+        
+    2. Customized Main Function
+
+        **Customize you RL training pipeline, design algorithm or apply it in your environment.**
+
+        refer to some example main function python file in ``app_zoo/envname/entry/envname_policyname_main.py`` , such as:
+
+            - app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py
+            - app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py
+            - app_zoo/classic_control/pendulum/entry/pendulum_td3_main.py
+
+        .. code:: bash
+
+            python3 -u cartpole_dqn_main.py  # users can also add arguments list in your own entry file
+
+    3. Unified Entry Function
+
+        **Config-mode entry, just adjust hyper-parameters and do comparsion experiements in the existing algorithms and pipelines.** 
+
+        .. code:: python
+
+            from nervex.entry import serial_pipeline
+            from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+            serial_pipeline([main_config, create_config], seed=0)
+
+        You can refer to ``nervex/entry`` directory and read related entry functions and tests.
 
 .. tip::
   If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of `Feature <../feature/index.html>`_, 
@@ -524,6 +564,7 @@ Computation Pattern
 
 Serial Pipeline
 ~~~~~~~~~~~~~~~~~
+TBD
 
 Parallel/Dist Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~

@@ -27,6 +27,7 @@ class ControllableContext(metaclass=ABCMeta):
         Basic context-supported class structure
     Example:
         - Common usage
+
         >>> c = MyControllableContext()  # One of the superclasses if ControllableContext
         >>> c.start()
         >>> try:
@@ -35,6 +36,7 @@ class ControllableContext(metaclass=ABCMeta):
         >>>     c.close()
 
         - Use with keyword (the same as code above)
+
         >>> c = MyControllableContext()  # One of the superclasses if ControllableContext
         >>> with c as cc:   # cc is c, have the same id
         >>>     pass  # do anything you like
@@ -80,6 +82,7 @@ class ControllableService(ControllableContext, metaclass=ABCMeta):
         Controllable service with context support, usually has concurrent feature.
     Example:
         - A common usage
+
         >>> c = MyControllableService()  # One of its superclasses is ControllableService
         >>> c.start()
         >>> try:
@@ -89,6 +92,7 @@ class ControllableService(ControllableContext, metaclass=ABCMeta):
         >>>     c.join()  # wait until service is down
 
         - Use with keyword (the same as code above)
+
         >>> c = MyControllableService()  # One of its superclasses is ControllableService
         >>> with c as cc:   # cc is c, have the same id
         >>>     pass  # do anything you like
