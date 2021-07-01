@@ -125,5 +125,5 @@ def to_tensor_transitions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         data = to_tensor(data, ignore_keys=['next_obs'], transform_scalar=False)
         for i in range(len(data) - 1):
             data[i]['next_obs'] = data[i + 1]['obs']
-        data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'])
+        data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'], transform_scalar=False)
         return data
