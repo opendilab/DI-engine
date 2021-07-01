@@ -274,8 +274,7 @@ is a dictionary, that is, ``dict`` in python. So to set
    policy=dict(learn=dict(nstep=3))
 
 After writing the user config, we can run our DQN experiment according
-to `Quick
-Start <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html>`__.
+to `Quick Start <../quick_start/index.html>`_.
 
 Worker-Collector
 ~~~~~~~~~~~~~~~~~~
