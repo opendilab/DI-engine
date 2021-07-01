@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>How to use RNN &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Random seed" href="random_seed.html" />
+    <link rel="prev" title="Inverse RL" href="IRL.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nstep_td.html">N-step TD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="priority.html">How to Use PER(Prioritized Experience Replay)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">Log and Tensorboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IL.html">Imitation Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IRL.html">Inverse RL</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to use RNN</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction-to-rnn">Introduction to RNN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-components-in-nervex">Related Components in NerveX</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rnn-example-in-nervex">RNN example in NerveX</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#build-a-model-with-rnn">Build a Model with RNN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#use-model-wrapper-to-wrap-your-rnn-model-in-policy">Use model wrapper to wrap your RNN model in policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-arrangement">Data Arrangement</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#initialize-hidden-state">Initialize Hidden State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#burn-in-optional">Burn-in(Optional)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="random_seed.html">Random seed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_discrete.html">Multi-Discrete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_wrapper.html">How to Customize Model Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_wrapper.html">How to Customize an Env Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="registry.html">Registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
+<li class="toctree-l2"><a class="reference internal" href="training_generated_folders.html">How to understand training generated folders?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_buffer.html">How to use multiple buffers?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="irregular_learner_log.html">How to correctly print irregular log?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>How to use RNN</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/best_practice/rnn.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="how-to-use-rnn">
+<h1>How to use RNN<a class="headerlink" href="#how-to-use-rnn" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction-to-rnn">
+<h2>Introduction to RNN<a class="headerlink" href="#introduction-to-rnn" title="Permalink to this headline">¶</a></h2>
+<p>Recurrent neural network (RNN) is a class of neural network where
+connections between nodes form a directed graph along a temporal
+sequence. This allows it to exhibit temporal dynamic behavior. Derived
+from feedforward neural networks, RNNs can use their internal state
+(memory) to process variable length sequences of inputs. This makes them
+applicable to tasks such as unsegmented, connected handwriting
+recognition or speech recognition.</p>
+<p>In deep reinforcement learning, RNN is first used in DRQN(Deep Recurrent
+Q-Learning Network), which aims to solve the problem of paritial
+observation in atari games. After that, RNN has become an important
+method to solve the environments of complex temporal dependence.</p>
+<p>After many years of research, RNN has many variants like LSTM, GRU, etc.
+The core update process still remains similar. In every timestep
+<span class="math notranslate nohighlight">\(t\)</span> in MDP, agent needs observation <span class="math notranslate nohighlight">\(s_t\)</span> and historical
+observations <span class="math notranslate nohighlight">\(s_{t-1}, s_{t-2}, ...\)</span> to infer <span class="math notranslate nohighlight">\(a_t\)</span>. This
+requires RNN agent to hold previous observations and maintain RNN hidden
+states.</p>
+<p>NerveX supports for RNN , and provides easy to use API to allow users to
+implement variants of RNN.</p>
+</div>
+<div class="section" id="related-components-in-nervex">
+<h2>Related Components in NerveX<a class="headerlink" href="#related-components-in-nervex" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nervex/model/wrappers/model_wrappers.py:</span> <span class="pre">HiddenStateWrapper</span></code> :
+Used to maintain hidden states</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nervex/torch_utils/network/rnn.py</span></code>: Used to build RNN model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nervex/rl_utils/adder.py:</span> <span class="pre">Adder:</span></code>: Used to arrange origin data into
+time sequence data(by calling <code class="docutils literal notranslate"><span class="pre">nervex/utils/default_helper.py:</span> <span class="pre">list_split()</span></code> function)</p></li>
+</ol>
+</div>
+<div class="section" id="rnn-example-in-nervex">
+<h2>RNN example in NerveX<a class="headerlink" href="#rnn-example-in-nervex" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 39%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>policy</p></th>
+<th class="head"><p>RNN-support</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>a2c</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>atoc</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>c51</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>collaq</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-even"><td><p>coma</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>ddpg</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>dqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>il</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>impala</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>iqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>ppg</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>ppo</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>qmix</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>qrdqn</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>r2d2</p></td>
+<td><p>√</p></td>
+</tr>
+<tr class="row-odd"><td><p>rainbow</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-even"><td><p>sac</p></td>
+<td><p>×</p></td>
+</tr>
+<tr class="row-odd"><td><p>sqn</p></td>
+<td><p>×</p></td>
+</tr>
+</tbody>
+</table>
+<p>Use RNN in NerveX can be described as the following precedures.</p>
+<ul class="simple">
+<li><p>Build your RNN model</p></li>
+<li><p>Wrap you model in policy</p></li>
+<li><p>Arrange original data to time sequence</p></li>
+<li><p>Initialize hidden state</p></li>
+<li><p>Burn-in(Optional)</p></li>
+</ul>
+<div class="section" id="build-a-model-with-rnn">
+<h3>Build a Model with RNN<a class="headerlink" href="#build-a-model-with-rnn" title="Permalink to this headline">¶</a></h3>
+<p>You can use either nerveX’s built-in recurrent model or your own RNN
+model.</p>
+<ol class="arabic simple">
+<li><p>Use nerveX’s built-in model. NerveX’s discrete network provide RNN
+support(default to LSTM) for discrete action space environments. You
+can easily specify model type in config or set model in policy to use
+it.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># in config file</span>
+<span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span>
+    <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+      <span class="n">model_type</span><span class="o">=</span><span class="s1">&#39;fcr_discrete_net&#39;</span><span class="p">,</span> <span class="c1"># or &#39;convr_discrete_net&#39; if use image as input</span>
+      <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nervex.model.discrete_net.discrete_net&#39;</span><span class="p">]),</span>
+      <span class="o">...</span>
+    <span class="p">),</span>
+    <span class="o">...</span>
+
+<span class="c1"># set policy default model</span>
+  <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">return</span> <span class="s1">&#39;fcr_discrete_net&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;nervex.model.discrete_net.discrete_net&#39;</span><span class="p">]</span>
+    <span class="c1"># or &#39;convr_discrete_net&#39; if use image as input</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Use customized model. To use customized model, you can refer to <a class="reference external" href="http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html#set-up-policy-and-nn-model">Set
+up Policy and NN
+model</a>.
+To adapt your model into nerveX’s pipline with minimal code changes,
+the output dict of model should contain <code class="docutils literal notranslate"><span class="pre">'next_state'</span></code> key.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">your_rnn_model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+  <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+      <span class="c1"># the input data `x` must be a dict, contains the key &#39;prev_state&#39;, the hidden state of last timestep</span>
+      <span class="o">...</span>
+      <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span>
+        <span class="s1">&#39;next_state&#39;</span><span class="p">:</span> <span class="n">hidden_state</span><span class="p">,</span>
+        <span class="o">...</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>NerveX also provide RNN module. You can use <code class="docutils literal notranslate"><span class="pre">get_lstm()</span></code> function by <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">nervex.torch_utils</span> <span class="pre">import</span> <span class="pre">get_lstm</span></code>. This function allows users to build LSTM implemented by nerveX/pytorch/HPC.</p>
+</div>
+</div>
+<div class="section" id="use-model-wrapper-to-wrap-your-rnn-model-in-policy">
+<span id="id1"></span><h3>Use model wrapper to wrap your RNN model in policy<a class="headerlink" href="#use-model-wrapper-to-wrap-your-rnn-model-in-policy" title="Permalink to this headline">¶</a></h3>
+<p>As RNN model need to maintain hidden state of data, nerveX provide
+<code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> for it. Users only need to add a wrapper in
+policy’s learn/collect/eval initialization to wrap model. The wrapper
+will help agent to keep hidden states after model forward and send
+hidden states to model in next time forward.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In policy</span>
+<span class="k">class</span> <span class="nc">your_policy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">env_num</span><span class="p">,</span> <span class="n">save_prev_state</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+     <span class="o">...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">env_num</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Set <code class="docutils literal notranslate"><span class="pre">save_prev_state=True</span></code> in collect model’s wrapper to make sure there is previous hidden state for learner to initialize RNN.</p>
+</div>
+<p>More details of <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> can be found in <a class="reference external" href="./model_wrapper.rst">model
+wrapper</a>, the work flow of it can be shown as
+the following figure:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/model_hiddenwrapper_img.png"><img alt="../_images/model_hiddenwrapper_img.png" class="align-center" src="../_images/model_hiddenwrapper_img.png" style="width: 456.59999999999997px; height: 649.8px;" /></a>
+</div></blockquote>
+</div>
+<div class="section" id="data-arrangement">
+<h3>Data Arrangement<a class="headerlink" href="#data-arrangement" title="Permalink to this headline">¶</a></h3>
+<p>The mini-batch data used for RNN is different from usual RL data, it
+should be arranged in time series. For nerveX, this process happens in
+<code class="docutils literal notranslate"><span class="pre">collector</span></code>. Users need to specify <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> in config to make
+sure the length of sequence data matches your algorithm. For most cases,
+<code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be equal to RNN’s historical length. For example,
+the original sampled data is <span class="math notranslate nohighlight">\([x_1,x_2,x_3,x_4,x_5,x_6]\)</span>, each
+<span class="math notranslate nohighlight">\(x\)</span> represents <span class="math notranslate nohighlight">\([s_t,a_t,r_t,d_t,s_{t+1}]\)</span> (maybe
+<span class="math notranslate nohighlight">\(log_\pi(a_t|s_t)\)</span>, hidden state, etc in it), and we need RNN’s
+historical length to be 3. By specify <code class="docutils literal notranslate"><span class="pre">unroll_len=3</span></code>, the data will be
+arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3],[x_4,x_5,x_6]]\)</span>.</p>
+<p>If the <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is not divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> of collector, the
+residual data will be filled by last sample, i.e. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and
+<code class="docutils literal notranslate"><span class="pre">unroll_len=4</span></code>, the data will be arranged as
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_5,x_6,x_6,x_6]]\)</span> by default. NerveX’s
+<code class="docutils literal notranslate"><span class="pre">Adder</span></code> have <code class="docutils literal notranslate"><span class="pre">drop</span></code> and <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> method for this case, to
+use it, you need to specify adder in policy’s collect model.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">drop</span></code>, it means data’ll be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4]]\)</span>,
+For <code class="docutils literal notranslate"><span class="pre">null_padding</span></code>, it means data’ll be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]\)</span>,
+<span class="math notranslate nohighlight">\(x_{null}\)</span> is similar to <span class="math notranslate nohighlight">\(x_6\)</span> but its <code class="docutils literal notranslate"><span class="pre">done=True</span></code> and <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>. More details can be found in <a class="reference external" href="http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/api_doc/rl_utils/adder.html?highlight=adder#nervex.rl_utils.adder.Adder">Adder</a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+     <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_adder</span> <span class="o">=</span> <span class="n">Adder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">,</span> <span class="n">last_fn_type</span><span class="o">=</span><span class="s1">&#39;last&#39;</span><span class="p">)</span> <span class="c1"># &#39;last&#39;, &#39;drop&#39;, &#39;null_padding&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="initialize-hidden-state">
+<h3>Initialize Hidden State<a class="headerlink" href="#initialize-hidden-state" title="Permalink to this headline">¶</a></h3>
+<p>The <cite>_learn_model</cite> of policy needs to initialize RNN. These hidden states comes from <cite>prev_state</cite> saved by <cite>_collect_model</cite>.
+Users need to add these states to <cite>_learn_model</cite> input data dict by <cite>_process_transition</cite> function.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+
+     <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+         <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+         <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+         <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">],</span> <span class="c1"># add `prev_state` key here</span>
+         <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+         <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+     <span class="p">}</span>
+     <span class="k">return</span> <span class="n">transition</span>
+</pre></div>
+</div>
+<p>Then in <cite>_learn_model</cite> forward function, call its reset function(overwritten by HiddenStateWrapper) to initialize RNN with data’s
+<cite>prev_state</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+     <span class="c1"># forward</span>
+     <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+     <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+     <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="burn-in-optional">
+<h3>Burn-in(Optional)<a class="headerlink" href="#burn-in-optional" title="Permalink to this headline">¶</a></h3>
+<p>This concept comes from R2D2(Recurrent Experience Replay in Distributed
+Reinforcement Learning). When using LSTM, we either use a zero start
+state to initialize the network at the beginning of sampled sequences,
+or replay whole episode trajectories. The former brings bias and the
+latter is hard to implement.</p>
+<p>Burn-in allow the network a
+<code class="docutils literal notranslate"><span class="pre">burn-in</span> <span class="pre">period</span></code> by using a portion of the replay sequenceonly for
+unrolling the network and producing a start state, and update the
+network only onthe remaining part of the sequence. In nerveX, to
+implement <code class="docutils literal notranslate"><span class="pre">burn-in</span></code>, <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be set to
+<code class="docutils literal notranslate"><span class="pre">burnin_step+1</span></code>(if use n-step return, it should be
+<code class="docutils literal notranslate"><span class="pre">burnin_step+2*n_steps</span></code>). In this setting, the unrolled data is split
+into <code class="docutils literal notranslate"><span class="pre">burnin_data</span></code> and <code class="docutils literal notranslate"><span class="pre">main_data</span></code>. The former is only used to
+initialize the network the the latter is used to train the network. This
+data process can be implemented by the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][:</span><span class="n">bs</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">:]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Burn-in is not conflict with RNN reset. Use burn-in also needs RNN to reset by last timestep’s hidden state. Burn-in only make a specific number of forward steps before usual forward.</p>
+</div>
+<p>For more details of RNN and burn-in, you can refer to <cite>nervex/policy/r2d2.py</cite>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="random_seed.html" class="btn btn-neutral float-right" title="Random seed" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="IRL.html" class="btn btn-neutral float-left" title="Inverse RL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -3,11 +3,17 @@ import torch
 import torch.nn as nn
 
 from nervex.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ..common import RegressionHead, ReparameterizationHead
+from nervex.model.common import RegressionHead, ReparameterizationHead
 
 
 @MODEL_REGISTRY.register('qac')
 class QAC(nn.Module):
+    r"""
+    Overview:
+        The QAC model.
+    Interfaces:
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+    """
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
@@ -23,6 +29,26 @@ class QAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
+        r"""
+        Overview:
+            Init the QAC Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
+            - twin_critic (:obj:`bool`): Whether include twin critic.
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
+            - actor_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for actor's nn.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
+            - critic_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
@@ -83,13 +109,59 @@ class QAC(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict output.
+            Parameter updates with QAC's MLPs forward setup.
+        Arguments:
+            Forward with ``'compute_actor'``:
+                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+
+            Forward with ``'compute_critic'``, inputs (`Dict`) Necessary Keys:
+                - ``obs``, ``action`` encoded tensors.
+
+            - mode (:obj:`str`): Name of the forward mode.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Forward with ``'compute_actor'``, Necessary Keys (either):
+                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
+                    - logit (:obj:`torch.Tensor`):
+                        Logit tensor encoding ``mu`` and ``sigma`, both with same size as input ``x``.
+
+                Forward with ``'compute_critic'``, Necessary Keys:
+                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+
+        Actor Examples:
+            >>> # Regression mode
+            >>> model = QAC(64, 64, 'regression')
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> # Reparameterization Mode
+            >>> model = QAC(64, 64, 'reparameterization')
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> actor_outputs['logit'][0].shape # mu
+            >>> torch.Size([4, 64])
+            >>> actor_outputs['logit'][1].shape # sigma
+            >>> torch.Size([4, 64])
+
+        Critic Examples:
+            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model(inputs, mode='compute_critic')['q_value'] # q value
+            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
+
+        """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - optional: ``action``, ``logit``
+        r"""
+        Overview:
+           Refer to the ``forward fn``.
         """
         x = self.actor(inputs)
         if self.actor_head_type == 'regression':
@@ -98,12 +170,11 @@ class QAC(nn.Module):
             return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
+        r"""
+        Overview:
+           Refer to the ``forward fn``.
         """
-        ArgumentsKeys:
-            - necessary: ``obs``, ``action``
-        ReturnsKeys:
-            - necessary: ``q_value``
-        """
+
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
         if len(action.shape) == 1:  # (B, ) -> (B, 1)

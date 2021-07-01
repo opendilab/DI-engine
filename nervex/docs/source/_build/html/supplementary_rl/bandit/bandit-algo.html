@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Bandit Concepts &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Developer Guide" href="../../guide/index.html" />
+    <link rel="prev" title="Bandit" href="index.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Supplementary of RL</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../algorithm/index.html">算法与训练/Algorithm and Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../game_env.html">强化学习常用的游戏环境/RL Game Environments</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Bandit</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Bandit Concepts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-settings">Basic Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multi-arm-bandit">Multi-Arm Bandit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bandit-algorithms">Bandit Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Supplementary of RL</a> &raquo;</li>
+        
+          <li><a href="index.html">Bandit</a> &raquo;</li>
+        
+      <li>Bandit Concepts</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/supplementary_rl/bandit/bandit-algo.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="bandit-concepts">
+<h1>Bandit Concepts<a class="headerlink" href="#bandit-concepts" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-settings">
+<h2>Basic Settings<a class="headerlink" href="#basic-settings" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-default">
+<img alt="img" src="https://pic2.zhimg.com/80/v2-de3eeb3c1136b278f72df468078f97dc_720w.jpg?source=1940ef5c" />
+</div>
+<p>什么叫bandit? 赌场的赌博机有个外号叫单臂强盗（single-armed BANDIT），因为即使老虎机只有一个摇臂，也会抢走你口袋里的钱。
+我们用 <span class="math notranslate nohighlight">\(A\)</span> 这个集合表示action space，也就是arm的集合。只考虑最基本的情形，因此我们让 <span class="math notranslate nohighlight">\(A\)</span> 只包含有限个元素（记元素个数为 <span class="math notranslate nohighlight">\(K\)</span> ，即一共有 <span class="math notranslate nohighlight">\(K\)</span> 个arm）。同样，只考虑离散时间的决策问题，我们认为我们一共有 <span class="math notranslate nohighlight">\(T\)</span> 个阶段进行决策， <span class="math notranslate nohighlight">\(T\)</span> 事先已知。那么在 <span class="math notranslate nohighlight">\(t=1, ..., T\)</span> 的每个阶段中，一个bandit算法应该做如下两件事：</p>
+<ul class="simple">
+<li><p>算法从 <span class="math notranslate nohighlight">\(A\)</span> 中选择一个arm <span class="math notranslate nohighlight">\(a_t\)</span></p></li>
+<li><p>算法观察到 <span class="math notranslate nohighlight">\(a_t\)</span> 这个arm返回的奖励 (reward) <span class="math notranslate nohighlight">\(r_t\)</span></p></li>
+</ul>
+<p>这是最基本的RL setting，我们的算法每次选择一个action，所得到的feedback即我们的reward。IID的setting即是说每个arm返回的reward都是独立于彼此，且分布在整个时间轴上不变。</p>
+</div>
+<div class="section" id="multi-arm-bandit">
+<h2>Multi-Arm Bandit<a class="headerlink" href="#multi-arm-bandit" title="Permalink to this headline">¶</a></h2>
+<p>一家赌场有 <span class="math notranslate nohighlight">\(K\)</span> 台老虎机，假设每台老虎机都有一定概率(<span class="math notranslate nohighlight">\(p_i\)</span>)吐出一块钱，有一定概率(<span class="math notranslate nohighlight">\(1-p_i\)</span>)不吐钱。现在你无法提前知道老虎机的概率分布，只能通过使用老虎机的结果去推测概率。但是你一共只能摇:math:<cite>T</cite> 次老虎机，在这种情况下，使用什么样的策略才能使得你摇出更多的钱呢？</p>
+<ul class="simple">
+<li><p>去试一试每个赌博机，并且要有策略的去试</p>
+<ul>
+<li><p>想要获得各个老虎机的吐钱概率：试验各个老虎机，Exploration</p></li>
+<li><p>想要获得最大的收益：多摇那个吐钱概率高的老虎机，Exploitation</p></li>
+</ul>
+</li>
+<li><p>bandit算法就是为了平衡<strong>Exploration and Exploitation</strong></p></li>
+<li><p>bandit算法应用广泛，比如最直接的应用就是推荐系统，还可应用于MDP模型的游戏、等等。</p></li>
+</ul>
+</div>
+<div class="section" id="bandit-algorithms">
+<h2>Bandit Algorithms<a class="headerlink" href="#bandit-algorithms" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="bandit">
+<h3>朴素bandit<a class="headerlink" href="#bandit" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>先随机试若干次，然后一直选最大的那个</p></li>
+</ul>
+</div>
+<div class="section" id="epsilon-greedy">
+<h3>Epsilon-Greedy<a class="headerlink" href="#epsilon-greedy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\epsilon\)</span>概率随机选择做exploration，<span class="math notranslate nohighlight">\(1-\epsilon\)</span>概率选择当前平均收益最大的臂做exploitation</p></li>
+<li><p>比较常见的改进是通过控制<span class="math notranslate nohighlight">\(\epsilon\)</span>值来平衡exploration和exploitation</p></li>
+<li><p>Epsilon-Greedy曲线</p></li>
+</ul>
+</div>
+<div class="section" id="thompson-sampling">
+<h3>Thompson sampling<a class="headerlink" href="#thompson-sampling" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>假设每个臂是否产生收益，其背后有一个概率分布，产生收益的概率为 <span class="math notranslate nohighlight">\(p\)</span>，同时该概率 <span class="math notranslate nohighlight">\(p\)</span>
+分布，每个臂都维护一个 <span class="math notranslate nohighlight">\(Beta\)</span> 分布。每次试验后，选中一个臂摇一下，有收益则该臂的 <span class="math notranslate nohighlight">\(wins\)</span> 增加 1，否则该臂的 <span class="math notranslate nohighlight">\(lose\)</span> 增加 1。</p></li>
+<li><p>beta分布介绍：<a class="reference external" href="https://www.zhihu.com/question/30269898">https://www.zhihu.com/question/30269898</a></p></li>
+<li><p>选择方式：用每个臂现有的Beta分布产生随机数，选择随机数中最大的那个臂</p></li>
+<li><p>Thompson
+bandit算法的本质是后验证采样，性能与最好的无分布方法(UCB)相似</p></li>
+</ul>
+</div>
+<div class="section" id="ucb-upper-confidence-bound">
+<h3>UCB（Upper Confidence Bound）<a class="headerlink" href="#ucb-upper-confidence-bound" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>对每一个臂都试一遍，之后在任意时刻 <span class="math notranslate nohighlight">\(t\)</span>
+按照如下公式计算每个臂的分数，然后选择分数最大的臂</p>
+<p><span class="math notranslate nohighlight">\(x_j(t) + \sqrt{\frac{2lnt}{T_{j,t}}}\)</span></p>
+<p>其中 <span class="math notranslate nohighlight">\(j\)</span> 为编号即表示第j臂， <span class="math notranslate nohighlight">\(T_{j,t}\)</span> 为在t时刻第j个臂累计的被使用次数。</p>
+</li>
+<li><p>UCB算法虽然简单，但其在实际应用中往往能取得相对好的效果，可见下文中的bandit example。</p></li>
+<li><p>UCB的效果是有理论保障的。UCB的累计regret为 <span class="math notranslate nohighlight">\(O(Knlog(n))\)</span> ，即其在选用了n次arm之后产生的regret为 <span class="math notranslate nohighlight">\(O(log(n))\)</span> 的。在2002年提出UCB的论文 <a class="reference external" href="https://www.jmlr.org/papers/volume3/auer02a/auer02a.pdf">Using Confidence Bounds for Exploitation-Exploration Trade-offs</a> 中已有了证明。</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../../guide/index.html" class="btn btn-neutral float-right" title="Developer Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Bandit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

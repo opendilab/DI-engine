@@ -1,0 +1,481 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nervex.interaction.master.task &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>nervex.interaction.master.task</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nervex.interaction.master.task</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">unique</span><span class="p">,</span> <span class="n">IntEnum</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span><span class="p">,</span> <span class="n">uuid4</span>
+
+<span class="kn">import</span> <span class="nn">enum_tools</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">RequestException</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_BEFORE_HOOK_TYPE</span><span class="p">,</span> <span class="n">_AFTER_HOOK_TYPE</span><span class="p">,</span> <span class="n">_ERROR_HOOK_TYPE</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="kn">import</span> <span class="n">HttpEngine</span><span class="p">,</span> <span class="n">get_values_from_response</span><span class="p">,</span> <span class="n">default_func</span>
+
+
+<div class="viewcode-block" id="TaskResultType"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.TaskResultType">[docs]</a><span class="nd">@enum_tools</span><span class="o">.</span><span class="n">documentation</span><span class="o">.</span><span class="n">document_enum</span>
+<span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">TaskResultType</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Types of the task result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">COMPLETED</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># doc: Task complete without error</span>
+    <span class="n">FAILED</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># doc: Task end with error</span></div>
+
+
+<div class="viewcode-block" id="TaskStatus"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.TaskStatus">[docs]</a><span class="nd">@enum_tools</span><span class="o">.</span><span class="n">documentation</span><span class="o">.</span><span class="n">document_enum</span>
+<span class="nd">@unique</span>
+<span class="k">class</span> <span class="nc">TaskStatus</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Status of a task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">IDLE</span> <span class="o">=</span> <span class="mh">0x00</span>  <span class="c1"># doc: Task not started, waiting for awake</span>
+
+    <span class="n">STARTING</span> <span class="o">=</span> <span class="mh">0x11</span>  <span class="c1"># doc: Task is starting, but initialization is not completed.</span>
+    <span class="n">STARTED</span> <span class="o">=</span> <span class="mh">0x12</span>  <span class="c1"># doc: Task started, initialization is completed.</span>
+    <span class="n">START_FAILED</span> <span class="o">=</span> <span class="mh">0x13</span>  <span class="c1"># doc: Task start failed, error occurred when initializing.</span>
+
+    <span class="n">COMPLETED</span> <span class="o">=</span> <span class="mh">0x21</span>  <span class="c1"># doc: Task completed without error</span>
+    <span class="n">FAILED</span> <span class="o">=</span> <span class="mh">0x22</span>  <span class="c1"># doc: Task ended with error</span></div>
+
+
+<span class="n">_COMPLETE_TRIGGER_NAME</span> <span class="o">=</span> <span class="s1">&#39;__TASK_COMPLETE__&#39;</span>
+<span class="n">_FAIL_TRIGGER_NAME</span> <span class="o">=</span> <span class="s1">&#39;__TASK_FAIL__&#39;</span>
+
+
+<div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Task object of the connections.</span>
+<span class="sd">        Linking call is fully supported.</span>
+<span class="sd">    Example:</span>
+<span class="sd">        - A simple and common usage</span>
+<span class="sd">        &gt;&gt;&gt; with master.new_connection(&#39;cnn1,&#39;, &#39;127.0.0.1&#39;, 2333) as connection:</span>
+<span class="sd">        &gt;&gt;&gt;     task = connection.new_task({&#39;data&#39;: 233})</span>
+<span class="sd">        &gt;&gt;&gt;     # task is not sent yet</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;     task = task.on_complete(func1).on_fail(func2).on_complete(func3).start().join()</span>
+<span class="sd">        &gt;&gt;&gt;     # task is completed or failed after this line</span>
+<span class="sd">        &gt;&gt;&gt;     # when task completed : func1(result) --&gt; func3(result)</span>
+<span class="sd">        &gt;&gt;&gt;     # when task failed : func2(result)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Task.__init__"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">http_engine</span><span class="p">:</span> <span class="n">HttpEngine</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">task_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">before_task_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">_BEFORE_HOOK_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">after_task_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">_AFTER_HOOK_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">error_task_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">_ERROR_HOOK_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Constructor of `Task`</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - http_engine (:obj:`HttpEngine`): Http engine object used by the task</span>
+<span class="sd">            - data (:obj:`Mapping[str, Any]`): Task data of the task</span>
+<span class="sd">            - task_id (:obj:`Optional[UUID]`): Id of the task</span>
+<span class="sd">            - before_task_start (:obj:`Optional[_BEFORE_HOOK_TYPE]`): Callback to be executed before task start \</span>
+<span class="sd">                (`None` means do nothing)</span>
+<span class="sd">            - after_task_start (:obj:`Optional[_AFTER_HOOK_TYPE]`): Callback to be executed after task start \</span>
+<span class="sd">                (`None` means do nothing)</span>
+<span class="sd">            - error_task_start (:obj:`Optional[_ERROR_HOOK_TYPE]`): Callback to be executed when task start failed \</span>
+<span class="sd">                (`None` means do nothing)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__http_engine</span> <span class="o">=</span> <span class="n">http_engine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span> <span class="o">=</span> <span class="n">task_id</span> <span class="ow">or</span> <span class="n">uuid4</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">IDLE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__before_task_start</span> <span class="o">=</span> <span class="n">before_task_start</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_start</span> <span class="o">=</span> <span class="n">default_func</span><span class="p">(</span><span class="kc">None</span><span class="p">)(</span><span class="n">after_task_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__error_task_start</span> <span class="o">=</span> <span class="n">default_func</span><span class="p">(</span><span class="kc">None</span><span class="p">)(</span><span class="n">error_task_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_completed_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_failed_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__init_triggers</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__http_engine</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__task_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTING</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__request</span><span class="p">(</span>
+                <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;/task/new&#39;</span><span class="p">,</span> <span class="p">{</span>
+                    <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span><span class="p">)</span>
+                    <span class="p">},</span>
+                    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__before_task_start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">RequestException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">START_FAILED</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__error_task_start</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTED</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_start</span><span class="p">(</span><span class="o">*</span><span class="n">get_values_from_response</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">__task_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">COMPLETED</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_result</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">for</span> <span class="n">_callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_completed_callbacks</span><span class="p">:</span>
+            <span class="n">_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__task_fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">=</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">FAILED</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_result</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">for</span> <span class="n">_callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_failed_callbacks</span><span class="p">:</span>
+            <span class="n">_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+    <span class="c1"># trigger methods</span>
+    <span class="k">def</span> <span class="nf">__task_complete_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTED</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__task_complete</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Only task with </span><span class="si">{expect}</span><span class="s2"> status can be completed, but </span><span class="si">{actual}</span><span class="s2"> found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">expect</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTED</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="n">actual</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__task_fail_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTED</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__task_fail</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Only task with </span><span class="si">{expect}</span><span class="s2"> status can be failed, but </span><span class="si">{actual}</span><span class="s2"> found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">expect</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">TaskStatus</span><span class="o">.</span><span class="n">STARTED</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="n">actual</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_COMPLETE_TRIGGER_NAME</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_complete_trigger</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_FAIL_TRIGGER_NAME</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_fail_trigger</span><span class="p">)</span>
+
+    <span class="c1"># public properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TaskStatus</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get status of the current task</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - status (:obj:`TaskStatus`): Task status</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get task data of the current task</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - data (:obj:`Mapping[str, Any]`): Task data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get task result of the current task, return `None` if task is not completed or failed.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - result (:obj:`Optional[Mapping[str, Any]]`): Task result (`None` when not completed or failed)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_result</span>
+
+    <span class="c1"># public methods</span>
+<div class="viewcode-block" id="Task.start"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Start current task.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): Self object, supporting linking call</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span> <span class="o">==</span> <span class="n">TaskStatus</span><span class="o">.</span><span class="n">IDLE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__task_start</span><span class="p">()</span>
+                <span class="k">return</span> <span class="bp">self</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Only task with </span><span class="si">{expect}</span><span class="s2"> status can be started, but </span><span class="si">{actual}</span><span class="s2"> found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">expect</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">TaskStatus</span><span class="o">.</span><span class="n">IDLE</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                        <span class="n">actual</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_status</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Task.join"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wait until the task is completed or failed.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): Self object, supporting linking call</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Task.on_complete"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task.on_complete">[docs]</a>    <span class="k">def</span> <span class="nf">on_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute the callback when the task completed. Multiple callbacks is supported by using linking call.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - callback (:obj:`Callable[[Mapping[str, Any], Mapping[str, Any]], Any]`): Function to be executed when \</span>
+<span class="sd">                task completed.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): Self object, supporting linking call</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_completed_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Task.on_fail"><a class="viewcode-back" href="../../../../api_doc/interaction/master/task.html#nervex.interaction.master.task.Task.on_fail">[docs]</a>    <span class="k">def</span> <span class="nf">on_fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute the callback when the task failed. Multiple callbacks is supported by using linking call.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - callback (:obj:`Callable[[Mapping[str, Any], Mapping[str, Any]], Any]`): Function to be executed when \</span>
+<span class="sd">                task failed.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): Self object, supporting linking call</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__after_task_failed_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_task_complete</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">_COMPLETE_TRIGGER_NAME</span><span class="p">)(</span><span class="n">result</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_task_fail</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+    <span class="nb">getattr</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">_FAIL_TRIGGER_NAME</span><span class="p">)(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,627 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Multi Agent Reinforcement Learning &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="RL Exploration" href="rl-exploration.html" />
+    <link rel="prev" title="Large Scale RL Training" href="large-scale-rl.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Supplementary of RL</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">算法与训练/Algorithm and Training</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="rl-algo.html">RL Algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="large-scale-rl.html">Large Scale RL Training</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Multi Agent Reinforcement Learning</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#marl-concepts">MARL Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#difficulty-in-multi-agent-learning-mal">Difficulty in Multi-Agent Learning (MAL)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#perspective-from-sequential-decision-making">Perspective from Sequential Decision Making</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#problems-in-marl">Problems in MARL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#current-solutions-for-above-problems">Current Solutions for above Problems</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dial-rial">DIAL &amp; RIAL</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#maddpg">MADDPG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coma">COMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#commnet">CommNet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qmix">QMIX</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#q-a">Q&amp;A</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rl-exploration.html">RL Exploration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../game_env.html">强化学习常用的游戏环境/RL Game Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bandit/index.html">Bandit</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Supplementary of RL</a> &raquo;</li>
+        
+          <li><a href="index.html">算法与训练/Algorithm and Training</a> &raquo;</li>
+        
+      <li>Multi Agent Reinforcement Learning</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/supplementary_rl/algorithm/multi-agent.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="multi-agent-reinforcement-learning">
+<h1>Multi Agent Reinforcement Learning<a class="headerlink" href="#multi-agent-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="marl-concepts">
+<h2>MARL Concepts<a class="headerlink" href="#marl-concepts" title="Permalink to this headline">¶</a></h2>
+<p>Based concept: A set of autonomous agents that share a common environment and interact with each other</p>
+</div>
+<div class="section" id="difficulty-in-multi-agent-learning-mal">
+<h2>Difficulty in Multi-Agent Learning (MAL)<a class="headerlink" href="#difficulty-in-multi-agent-learning-mal" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Agents not only interact with the environment but also with each other</p></li>
+<li><p>If use single-agent Q learning by considering other agents as a part of the environment</p>
+<p>– Such a setting breaks the theoretical convergence guarantees and makes the learning unstable.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="perspective-from-sequential-decision-making">
+<h2>Perspective from Sequential Decision Making<a class="headerlink" href="#perspective-from-sequential-decision-making" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Markov decision processes</p>
+<ol class="arabic simple">
+<li><p>one decision maker</p></li>
+<li><p>multiple states</p></li>
+</ol>
+</li>
+<li><p>Repeated games</p>
+<ol class="arabic simple">
+<li><p>multiple decision makers</p></li>
+<li><p>one state (e.g., one normal form game)</p></li>
+</ol>
+</li>
+<li><p>Stochastic games (Markov games)</p>
+<ol class="arabic simple">
+<li><p>multiple decision makers</p></li>
+<li><p>multiple states (e.g., multiple normal form games)</p></li>
+</ol>
+</li>
+</ul>
+<p><strong>Stochastic Game</strong></p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Each state corresponds to a normal-form game</p></li>
+<li><p>After a round, the game randomly transitions to another state</p></li>
+<li><p>Transition probabilities depend on state and joint actions taken by all agents</p></li>
+</ol>
+</div></blockquote>
+<div class="section" id="classification-of-stochastic-games">
+<h3>Classification of Stochastic Games<a class="headerlink" href="#classification-of-stochastic-games" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Zero-sum stochastic game</strong>: all of the states must define a zero-sum matrix game</p></li>
+<li><p><strong>Team stochastic game</strong>: all of the states must define team matrix games</p></li>
+</ul>
+<ul class="simple">
+<li><p>their reward is the same for every joint action</p></li>
+</ul>
+<ul class="simple">
+<li><p>The one that do not fall in any of these categories are generally called <strong>general-sum stochastic games</strong>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="problems-in-marl">
+<h2>Problems in MARL<a class="headerlink" href="#problems-in-marl" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Cooperation: 如何在复杂环境下同时训练多个智能体相互协作，并且如何让这种合作更快地适应环境和其他智能体的变化。</p></li>
+<li><p>Decentralized and Centralized: 如何做到更有效的集中式训练与分布式执行，即如何通过中心化的训练，执行时即使控制信息的获取也能取得好的合作效果。</p></li>
+<li><p>Credit assignment: 在joint-reward设定下，如何分配合作团队中各个智能体的reward。</p></li>
+<li><p>Efficient Communication: 智能体之间信息流的交互，如何尽可能的减少交流成本的情况下进行更有价值的信息交流。</p></li>
+<li><p>Agents modeling agents: 智能体之间的对抗与合作模式下，对环境中其他的智能体进行建模。</p></li>
+</ol>
+</div>
+<div class="section" id="current-solutions-for-above-problems">
+<h2>Current Solutions for above Problems<a class="headerlink" href="#current-solutions-for-above-problems" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>智能体之间的合作问题：(CTDE框架) MADDPG, VDN, QMIX, COMA, QTRAN</p></li>
+<li><p>智能体之间的交流问题：CommNet, RIAL, DIAL, BiCNet, ATOC</p></li>
+<li><p>智能体之间的建模问题：MADDPG, M3DDPG, LOLA</p></li>
+</ol>
+<p>在下面的内容中，更加详细地介绍了以上列举的一部分算法。</p>
+</div>
+<div class="section" id="dial-rial">
+<h2>DIAL &amp; RIAL<a class="headerlink" href="#dial-rial" title="Permalink to this headline">¶</a></h2>
+<p>DIAL和RIAL两方法由2016年NIPS论文 <a class="reference external" href="https://proceedings.neurips.cc/paper/2016/file/c7635bfd99248a2cdef8249ef7bfbef4-Paper.pdf">Learning to communicate with deep multi-agent reinforcement learning</a>
+提出。</p>
+<p>从论文的名字就可以看出，论文的重点在于如何利用深度学习，使得多智能体中的各个agent学会如何与其他agent进行交流。
+论文整体的motivation也是希望通过使用交流的方式，使得agent能解决partial local observation的问题。</p>
+<p>论文使用了CTDE的设定，即Centralised Training and Decentralized Execution。</p>
+<p>论文将用于沟通信道设定为了一定带宽的 <strong>“离散的”</strong> 信息流。
+这个设定一是由于受限于Decentralized Execution的形式，导致在执行的时候各个agent之间的带宽受限，
+另一部分上是由于论文将所传输的信号当作了action space, 而论文的模型又是基于Deep-Q-learning的，
+因此对action space的大小有一定的要求，若action space过大也会出现探索问题。</p>
+<p>论文的setting是希望得到多个agent使得他们的共有的utility最大化，因此所有agent有相同的reward，同时也不支持competive的设定。</p>
+<p>论文提出了两个算法，RIAL和DIAL。
+简单来说，RIAL就是shared parameter的DRQN的基础上增加了离散的通信，而DIAL则是在训练过程中直接将当前agent的信息输出给其他agent，并且在训练过程中允许各个agent之间的message携带梯度。</p>
+<p>论文对应的算法特点：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>所有agent有相同的reward，不支持competive的设定</p></li>
+<li><p>所有agent的模型一样，共享参数</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="rial">
+<h3>RIAL<a class="headerlink" href="#rial" title="Permalink to this headline">¶</a></h3>
+<p>RIAL算法相对比较简单易懂：</p>
+<blockquote>
+<div><p>其各个agent是一个DRQN网络，且其Q网络对应分为两个部分 <span class="math notranslate nohighlight">\(Q_u\)</span> 和 <span class="math notranslate nohighlight">\(Q_m\)</span> ，分别对应与环境交互的动作u和与其他agent沟通的信息m。</p>
+<p>每个agent将他们输出的Q值传入action selector, action selector会根据:math:<cite>Q_u</cite> 和 <span class="math notranslate nohighlight">\(Q_m\)</span> 分别选择与环境交互的动作u和与其他agent沟通的信息m，并且将u返回给其他环境，在下一时间段将m传给其他agent。</p>
+<p>action selector在训练过程中是epsilon greedy，在执行过程中是argmax。</p>
+</div></blockquote>
+<p>RIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯度的传导：</p>
+<blockquote>
+<div><img alt="../../_images/RIAL-model.jpg" class="align-center" src="../../_images/RIAL-model.jpg" />
+</div></blockquote>
+<p>显然的，RIAL既可以进行centralised training也可以进行decentralised training。 不过在进行centralised training时，RIAL可以利用centralised training，通过所有agent共享网络参数的方式加快模型的训练速度。</p>
+</div>
+<div class="section" id="dial">
+<h3>DIAL<a class="headerlink" href="#dial" title="Permalink to this headline">¶</a></h3>
+<p>尽管RIAL可以通过shared parameter的方式获得centralised training对应的优势，但很明显RIAL并没有完全利用centralised training对应的优势，
+比如communication对应的feedback。
+因此，基于RIAL，提出了DIAL算法，使得其中的communication channel也可以传送梯度。
+在DIAL算法中：</p>
+<blockquote>
+<div><p>其各个agent的网络C-Net由两个部分组成，一个部分对应与环境交互的动作u的Q值，一个部分计算与其他agent沟通的信息m，此处的m是一个实数即一个连续值。</p>
+<p>每个agent将他们输出的Q值传入action selector，信息值m则是绕过了action selector，通过DRU（discretise/regularise unit）然后将信息传给其他agent。</p>
+<p>DRU的作用是在训练过程中，对信息m进行regulization并且附加一个方差为 <span class="math notranslate nohighlight">\(simga\)</span> 的噪声；在执行过程中，则是将连续的信息m转化为离散的信息。</p>
+</div></blockquote>
+<p>DIAL算法的模型如下图，其中黑色表示动作的选择/信息的交流，红色表示梯度的传导：</p>
+<blockquote>
+<div><img alt="../../_images/DIAL-model.jpg" class="align-center" src="../../_images/DIAL-model.jpg" />
+</div></blockquote>
+<p>DIAL算法的具体伪代码如下：</p>
+<blockquote>
+<div><img alt="../../_images/DIAL-code.jpg" class="align-center" src="../../_images/DIAL-code.jpg" />
+</div></blockquote>
+</div>
+<div class="section" id="id1">
+<h3>实验及实验环境<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>文章使用的实验环境也十分有趣，包括switch riddle和MNIST game，都不是传统意义上的RL环境。</p>
+<p>switch riddle不同于传统RL论文使用的游戏，其本质上是一个数学问题：</p>
+<ul>
+<li><p>说有 100 个囚犯分别关在 100 间牢房里。牢房外有一个空荡荡的房间，房间里有一个由开关控制的灯泡。初始时，灯是关着的。看守每次随便选择一名囚犯进入房间，但保证每个囚犯都会被选中无穷多次。如果在某一时刻，有囚犯成功断定出所有人都进过这个房间了，所有囚犯都能释放。游戏开始前，所有囚犯可以聚在一起商量对策，但在此之后它们唯一可用来交流的工具就只有那个灯泡。他们应该设计一个怎样的协议呢？</p>
+<blockquote>
+<div><img alt="../../_images/switch_riddle.jpg" class="align-center" src="../../_images/switch_riddle.jpg" />
+</div></blockquote>
+</li>
+</ul>
+<p>在此限于篇幅原因不展开了，有兴趣可以查阅 <a class="reference external" href="https://www.researchgate.net/publication/225742302_One_Hundred_Prisoners_and_a_Lightbulb">One Hundred Prisoners and a Lightbulb</a> 。</p>
+<p>其实验结果如下：</p>
+<blockquote>
+<div><img alt="../../_images/switch_riddle_result.jpg" class="align-center" src="../../_images/switch_riddle_result.jpg" />
+</div></blockquote>
+<p>分别为3个囚犯时实验效果、4个囚犯时实验效果、和3个囚犯时的协议</p>
+<p>MNIST game则是分为两个小游戏：</p>
+<blockquote>
+<div><p>Colour-Digit MNIST 游戏由两个agent执行猜测颜色和数字，而信道只有一个带块，因此agent需要约定好是沟通颜色或者是数字的奇偶性</p>
+<p>Multi-Step MNIST 游戏则是将之前的游戏进行多步。</p>
+</div></blockquote>
+<p>MNIST game 过程：</p>
+<blockquote>
+<div><img alt="../../_images/MNIST_game.jpg" class="align-center" src="../../_images/MNIST_game.jpg" />
+</div></blockquote>
+<p>MNIST game 实验结果：</p>
+<blockquote>
+<div><img alt="../../_images/MNIST_game_result.jpg" class="align-center" src="../../_images/MNIST_game_result.jpg" />
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="maddpg">
+<h2>MADDPG<a class="headerlink" href="#maddpg" title="Permalink to this headline">¶</a></h2>
+<p>MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文
+<a class="reference external" href="https://papers.nips.cc/paper/2017/file/68a9750337a418a86fe06c1991a1d64c-Paper.pdf">Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments</a> 中提出。</p>
+<p>论文首先阐述了当时在MultiAgent的setting下，已有的传统independent RL方式问题。</p>
+<p>随后提出了一种基于actor-critic的改进：通过分布式的actor和中心化的critic，使得各个分布的actor能够考虑到其他actor的策略，
+并且通过实验，在一系列的需要多智能体合作的环境上获得了进展，证明了该方法可以在该setting下学习到相对复杂的多智能体协作过程。</p>
+<p>论文也提出了一系列的基于多智能体设定下的可能改进，包括让各个agent去维持对其他agent策略的一个估计，
+不断进行对应的调整，使得各个agent在选取自己的action前能够通过所维持估计去猜测其他agent所做的行动，
+一定程度上达到协作的目的，即 <strong>Inferring Policies</strong> 。
+同时，由于agent在其他agent策略改变的前提下，因为对之前的其他agent的策略已经产生overfitting，
+就很容易导致无法适应其他agent策略的情况，因此文章提出通过让每个agent维持并随机使用多个策略，达到降低overfitting情况的效果，
+即 <strong>Policu Ensembles</strong> 。</p>
+<p>该论文所使用的环境也由OpenAI开源，并且被很多MARL的论文所使用。nerveX也会迁移配置这些环境进行，方便进行实验。</p>
+<div class="section" id="rl">
+<h3>传统RL存在的问题<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h3>
+<p>传统的深度学习主要可以分为value based算法和policy based算法两大类。而这两种方法在MultiAgent的设定下都有其缺点：</p>
+<p>1.Value based的算法，如Q-learning等，由于其他agent的策略相对不可见，且训练过程中在不断变化，因此任意一个agent个体，
+其所看到的环境（其他agent的策略行为也可看作是本agent的环境）是在不断变化的，即 <strong>环境不稳定</strong> ，而这会导致算法的稳定性出现问题。
+稳定性问题会导致算法的收敛问题，更会导致 <strong>experience replay的不可用</strong> ，因为之前agent在当时环境下的action和对应reward对已经产生变化后的agent不再有指导意义。
+同时，由于其他agent的策略不可见，因此问题不再满足Markov假设，问题设定从MDP过程退化为了POMDP（Partially Observed Markov Decision Process），
+Q-learning不再有收敛保证，问题变得不可解。</p>
+<p>2.Policy based的算法，以Policy Gradient即策略梯度下降为例，常常收到 <strong>过高方差</strong> 的困扰。
+而在多智能体的设定下，这种问题会进一步变得严重： 各个agent所获得的reward会因其他agent的action产生变化，而在优化过程中agent无法考虑到其他agent的策略，因此会导致更高的方差。
+同时Policy base的算法常常用baseline的方式去缓解训练中的高方差，但是在MultiAgent的设定下则会由于先前提到的 <strong>不稳定</strong> 问题而变得难以使用。</p>
+</div>
+<div class="section" id="multi-agent-actor-critic-maddpg">
+<h3>Multi Agent Actor-Critic (MADDPG)算法<a class="headerlink" href="#multi-agent-actor-critic-maddpg" title="Permalink to this headline">¶</a></h3>
+<p>MADDPG的使用设定中，学习到的policy在运行时只能使用自己的observation，并且没有假设任何在agent之间的特殊通信结构。在这种设定下，MADDPG算法给出了一个可广泛应用的算法。</p>
+<p>MADDPG采用了集中训练，分布执行的方式。在训练过程中，可以允许policy使用额外的信息去降低训练的难度，只要在进行执行的时候没有使用额外的信息即可。
+在这种情况下，MADDPG在actor-critic policy gradient的基础上做了一个简单的拓展，即将在训练时使用额外的关于其他agent的信息去增强critic的训练。</p>
+<p>MADDPG的模型示意图如下：</p>
+<blockquote>
+<div><img alt="../../_images/MADDPG-model.jpg" class="align-center" src="../../_images/MADDPG-model.jpg" />
+</div></blockquote>
+<p>我们从示意图就可以看出，MADDPG对于每个agent单独训练了一个critic <span class="math notranslate nohighlight">\(Q_i\)</span> ，这也是MADDPG与COMA算法的一大不同。</p>
+<p>各个Agent的梯度 <span class="math notranslate nohighlight">\(\nabla J_i\)</span> 可以写为下式：</p>
+<blockquote>
+<div><img alt="../../_images/MADDPG-gradient.jpg" class="align-center" src="../../_images/MADDPG-gradient.jpg" />
+</div></blockquote>
+<p>其中 <span class="math notranslate nohighlight">\(Q_{i}^{\pi}(\boldsymbol{x},a_1, ...,a_N)\)</span> 是中心化的action-value函数，使用所有agent的action和一些状态信息 <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> 作为输入。
+对于 <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> 来说，一种简单是实现即为 <span class="math notranslate nohighlight">\(\boldsymbol{x} = (o_1, ...,o_N)\)</span> 。</p>
+<p>鉴于 <span class="math notranslate nohighlight">\(Q_i^{\pi}\)</span> 是分开训练的，因此不同的agent可以有不同的reward架构，因此MADDPG也可以在competive的设定下使用。</p>
+<p>而在DDPG的设定下，也可写为下式：</p>
+<blockquote>
+<div><img alt="../../_images/MADDPG-gradient-ddpg.jpg" class="align-center" src="../../_images/MADDPG-gradient-ddpg.jpg" />
+</div></blockquote>
+<p>其中D代表replay buffer，存放 <span class="math notranslate nohighlight">\((\boldsymbol{x}, \boldsymbol{x'}, a_1, ...,a_N, r_1, ..., r_N)\)</span> 。</p>
+<p>这时，中心化的 <span class="math notranslate nohighlight">\(Q_i^{\pi}\)</span> 可以有下式更新</p>
+<blockquote>
+<div><img alt="../../_images/MADDPG-update.jpg" class="align-center" src="../../_images/MADDPG-update.jpg" />
+</div></blockquote>
+</div>
+<div class="section" id="agent-inferring-policies">
+<h3>对其他agent进行策略估计（Inferring Policies）<a class="headerlink" href="#agent-inferring-policies" title="Permalink to this headline">¶</a></h3>
+<p>为了移去中心化critic中知道其他agent policy的假设，我们让每个agent i去额外维持对其他每个agent j的policy的近似估计。
+近似估计的policy可以使用最大化agent j action log概率的方式，再加上一个entropy regularizer。
+我们可以用 <span class="math notranslate nohighlight">\(\hat{\mu_i^j}\)</span> 表示agent i 对agent j的策略的近似估计，则agent i 中critic的估计价值可以改写成：</p>
+<blockquote>
+<div><img alt="../../_images/MADDPG-esti.jpg" class="align-center" src="../../_images/MADDPG-esti.jpg" />
+</div></blockquote>
+<p>同时，对agent j的策略估计可以完全online进行。</p>
+</div>
+<div class="section" id="policy-ensembles">
+<h3>维持多个策略（Policy Ensembles）<a class="headerlink" href="#policy-ensembles" title="Permalink to this headline">¶</a></h3>
+<p>为了一定程度上缓解agent对其他agent的policy产生over-fitting的问题，增加agent策略的鲁棒性，可以让每个agent维持K个子策略，在每个episode随机选择一个子策略进行执行。</p>
+<p>由于每个子策略在不同的episode去执行，各个子策略的训练也很简单，只需要为每个子策略维持一个buffer即可。</p>
+</div>
+<div class="section" id="id2">
+<h3>实验及实验环境<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>本篇的实验是在2D的小球物理仿真模型环境中进行的，实验环境开源且很具有代表性。</p>
+<p>各个算法的实验结果可以见 <a class="reference external" href="https://sites.google.com/site/multiagentac/">视频</a> 。</p>
+<p>OpenAI也将其实验环境 <a class="reference external" href="https://github.com/openai/multiagent-particle-envs">Multi-Agent_Particle_Environment</a> 开源放出，我们也会将其整合到我们的nerveX框架中。</p>
+</div>
+</div>
+<div class="section" id="coma">
+<h2>COMA<a class="headerlink" href="#coma" title="Permalink to this headline">¶</a></h2>
+<p>COMA由牛津大学的实验室在2017年提出，后来论文 <a class="reference external" href="https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/view/17193/16614">Counterfactual Multi-Agent Policy Gradients</a> 被收录在2018年的AAAI会议上。</p>
+<p>COMA与DDPG同样是基于actor-critic的多智能体强化学习算法，但是与MADDPG在实现方面有许多不同。</p>
+<p>COMA不同于MADDPG，COMA的critic是将所有agent的状态和动作输入，同时计算所有agent对应的value，而MADDPG是对每个不同的agent单独训练不同的critic网络。
+COMA使用的算法适用于离散型的action space，而MADDPG则是适用于连续性的action space。</p>
+<p>COMA在一定程度上尝试解决了critic assign问题。COMA收到 <a class="reference external" href="https://www.researchgate.net/publication/2831330_Optimal_Payoff_Functions_for_Members_of_Collectives">difference_rewards</a> 的启发，
+通过构造和使用 <strong>counterfactual baseline</strong> ，可以对比当前agent所选动作相较于其他可选动作，是否作出该动作对整体reward产生了利益。</p>
+<p>COMA的实验在StarCraft微操环境中进行，该环境也被很多MARL选用为测试环境，有一定代表性。</p>
+<div class="section" id="id4">
+<h3>传统RL存在的问题<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>如果使用传统的RL算法，可能存在以下问题：</p>
+<ol class="arabic simple">
+<li><p>输入的action space将会是所有agent的联合动作空间（joint action space），action space大小会随着agent数量增加而指数上升。</p></li>
+<li><p>在多智能体的设定下，agent只能依照自己当前的local observation做决策，无法与其他agent进行信息共享，导致agent无法完成协作。</p></li>
+</ol>
+<p>3. 每个agent所获得的reward是所有agent action获得的共同的reward，而这样每个agent就很难知道自己这次动作应该得到多少回报。
+别的agent如果做出正确/错误的动作会导致当前agent对自己所做动作的价值判断不准确，训练过程产生 <strong>高方差</strong> 。</p>
+</div>
+<div class="section" id="id5">
+<h3>COMA算法<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>COMA算法的设计思路是使用centralized的critic去对decentralised actors的policy去进行评判和估计，其结构示意图如下：</p>
+<blockquote>
+<div><img alt="../../_images/COMA-model.jpg" class="align-center" src="../../_images/COMA-model.jpg" />
+</div></blockquote>
+<p>而COMA的actor和critic的网络结构如下：</p>
+<blockquote>
+<div><img alt="../../_images/COMA-network.jpg" class="align-center" src="../../_images/COMA-network.jpg" />
+</div></blockquote>
+<p>记 <span class="math notranslate nohighlight">\(Q(s, \boldsymbol{u})\)</span> 以central state <span class="math notranslate nohighlight">\(s\)</span> 和joint action <span class="math notranslate nohighlight">\(\boldsymbol{u}\)</span> 为输入的Q值估计，则其计算每个agent所选动作对应的advantage为：</p>
+<blockquote>
+<div><img alt="../../_images/COMA-advantage.jpg" class="align-center" src="../../_images/COMA-advantage.jpg" />
+</div></blockquote>
+<p>COMA的advantage选取巧妙的地方就在于，尽管其policy function和utility function相互递归迭代会产生自包含问题，
+但是由于advantage的作用是对梯度做选取，而advantage的期望梯度贡献值是0，因此不会由于自身的递归迭代而产生自包含问题。
+这个advantage就被称为 <strong>counterfactual baseline</strong> ，是COMA解决credit assign问题的solution。</p>
+<p>同时值得注意的是，COMA算法critic部分的输出的大小为 <span class="math notranslate nohighlight">\(|U|\)</span> 而不是 <span class="math notranslate nohighlight">\(|U|^n\)</span> ，即critic在输出的时候是分别输出每个actor的动作所对应的value值，
+因此总共的输出是 :math: <cite>n*|U|</cite> 而非 <span class="math notranslate nohighlight">\(|U|^n\)</span> 。 COMA通过这种方式规避了joint action space随着agent数量上升指数增加的问题。</p>
+<p>COMA的具体算法如下：</p>
+<blockquote>
+<div><img alt="../../_images/COMA-algo.jpg" class="align-center" src="../../_images/COMA-algo.jpg" />
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>我们可以看到COMA算法在实现过程中使用了buffer，那么这是否意味着COMA是Offline算法呢？</p>
+<p>答案是否定的，COMA算法虽然将数据collect到了buffer里面，但是只使用了当前策略的数据去更新当前策略。
+算法在calculate COMA和accumulate actor gradients之后其策略改变，也随之对buffer进行了清空，所以COMA算法是Online算法。</p>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>实验和实验环境<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>COMA在StarCraft环境下分别与 使用Q值的Independent Actor-Critic、使用V值的Independent Actor-Critic，COMA中心化的QV值估计，COMA中心化的V值估计 进行了对比实验，结果如下图：</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../../_images/COMA-experiment.jpg"><img alt="../../_images/COMA-experiment.jpg" class="align-center" src="../../_images/COMA-experiment.jpg" style="width: 816.9px; height: 596.4px;" /></a>
+</div></blockquote>
+<p>StarCraft的2d3z环境图：</p>
+<blockquote>
+<div><img alt="../../_images/COMA-2d3z.jpg" class="align-center" src="../../_images/COMA-2d3z.jpg" />
+</div></blockquote>
+<p>StarCraft的实验环境是通过TorchCraft实现，该环境发布在 Torchcraft: a library for machine learning research on real- time strategy games 一文中。
+在github上也开源了 <a class="reference external" href="https://github.com/TorchCraft/TorchCraft">Torchcraft代码</a></p>
+</div>
+</div>
+<div class="section" id="commnet">
+<h2>CommNet<a class="headerlink" href="#commnet" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="qmix">
+<h2>QMIX<a class="headerlink" href="#qmix" title="Permalink to this headline">¶</a></h2>
+<p>QMIX 是一个多智能体强化学习算法。它是一个value-based的算法：可以中心式学习，并引入全局状态信息来提高算法效果；
+然后再分解得到分布式策略，该分布式策略只需要单个智能体自己的局部观测。
+QMIX的一大特点是：联合动作值函数与每个局部值函数的单调性相同，因此对局部值函数取最大便是对联合动作值函数取最大。
+<a class="reference external" href="https://arxiv.org/pdf/1803.11485.pdf">QMIX</a></p>
+<p>在MARL问题中，一种常见的学习范式是：中心式训练，分布式执行（Centralised training with Decentralised Execution），在这种模式下，
+如何去表达和使用学习到的联合动作值函数（joint action-value function） 是一个十分关键的问题。
+一方面，如果想准确得知智能体的动作产生的影响，就需要一个中心式函数 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> ，它基于全局的状态和联合的动作学习得到。
+另一方面，在有多个智能体的时候的动作价值函数是难以学习的，因为该函数的参数会随着智能体数量的增多而成指数增长；
+即使能学习，也很难从联合函数中抽取出针对单个智能体的分布式策略（即该策略仅依据智能体自身的observation）。</p>
+<div class="section" id="id8">
+<h3>现有办法<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>针对这个问题，现有的一些解决方法如下：</p>
+<p><strong>IQL（Independent Q-Learning）</strong> <a class="reference external" href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.55.8066">IQL</a></p>
+<p>直接让每个智能体都执行一个Q-Learning算法。因为环境是共享的，故会因为每个智能体的行动而发生状态改变，
+对每个智能体来说，环境是动态不稳定的，因此这个算法并不能保证收敛性。</p>
+<p><strong>COMA（Counterfactual Multi-Agent）</strong> <a class="reference external" href="https://arxiv.org/pdf/1705.08926.pdf">COMA</a></p>
+<p>训练一个完全中心化的action-value函数，然后以此为指导在actor-critic框架下得到分布式策略。
+其缺点是：1）必须是on-policy算法, 采样效率低；2）智能体个数增加时，训练完全中心化的critic将变得十分困难。</p>
+<p><strong>VDN（Value Decomposition Networks）</strong> <a class="reference external" href="https://arxiv.org/pdf/1706.05296.pdf">VDN</a></p>
+<p>处于 IQL 和 COMA 之间的方法，通过将每一个智能体用自己的观测数据学习到的局部动作值函数 <span class="math notranslate nohighlight">\(Q_a\)</span> 进行加和，
+就得到了全局联合动作值函数 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 。
+由于其：1）没有在学习时利用状态信息；2）没有采用非线性方式对单智能体局部值函数进行整合，因此VDN算法还有很大的提升空间。</p>
+</div>
+<div class="section" id="id10">
+<h3>QMIX及其网络结构<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>QMIX 便是在 VDN 上进行的一次提升。QMIX 认为，VDN这种将 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 完全分解为 <span class="math notranslate nohighlight">\(Q_a\)</span> 加和并非必须。
+为了达到分布策略与中心策略一致的效果，我们需要保证在 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 的全局argmax和所有 <span class="math notranslate nohighlight">\(Q_a\)</span> 同时局部argmax结果相同，即：</p>
+<a class="reference internal image-reference" href="../../_images/QMIX-argmax.png"><img alt="../../_images/QMIX-argmax.png" src="../../_images/QMIX-argmax.png" style="width: 277.0px; height: 75.5px;" /></a>
+<p>这使得每个智能体只需要在自己的 <span class="math notranslate nohighlight">\(Q_a\)</span> 上贪心地选择Q值最大的动作即可。</p>
+<p>QMIX在这个的基础上又将其做了一些调整，转化为对单调性的约束：</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial Q_{tot}}{\partial Q_i} \geq 0, \forall i \in {1,2,...,n}\)</span></p>
+<p>QMIX的架构是：每个智能体均有一个自己的agent network，用于合并局部值函数的mixing network和一系列hypernetwork。架构图如下：</p>
+<img alt="../../_images/QMIX-architecture.png" src="../../_images/QMIX-architecture.png" />
+<p><strong>智能体网络 agent network</strong></p>
+<p>如上图c所示。每一个智能体都实现一个DRQN网络，输入是当前时刻的的观测值 <span class="math notranslate nohighlight">\(o^a_t\)</span> 和上一个时刻动作 <span class="math notranslate nohighlight">\(v^a_{t-1}\)</span>，
+计算得到自己的Q值并输出。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DRQN是一个用来处理POMDP（部分可观马尔可夫决策过程）的一个算法。
+它采用LSTM替换DQN卷积层后的一个全连接层，用于记忆历史状态，因此可以在部分可观的情况下提高算法性能。</p>
+</div>
+<p><strong>混合网络mixing network 与 超网络hypernetwork</strong></p>
+<p>如上图a所示。其输入为每个DRQN网络的输出。为了满足上述的单调性约束，要求网络中所有权值都是非负数（对偏移量则不做限制）。
+它对单智能体局部值函数进行合并，并在训练学习过程中加入全局状态信息辅助，以提高算法性能。</p>
+<p>为了能够更多的利用到系统的状态信息 <span class="math notranslate nohighlight">\(s_t\)</span> ，还采用一种超网络（hypernetwork），如红色方格所示。
+其输入状态 <span class="math notranslate nohighlight">\(s_t\)</span> ，输出混合网络的权值及偏移量。
+为了保证权值的非负性，超网络采用一个线性网络以及绝对值激活函数保证输出不为负数。
+混合网络最后一层的偏移量通过两层超网络以及ReLU激活函数得到非线性映射网络。</p>
+<p>为什么要使用超网络而不是直接将状态作为输入传递给混合网络，文中的解释是：
+将 <span class="math notranslate nohighlight">\(s_t\)</span> 传递给超参数网络允许 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 通过非单调的方法依赖这些额外的状态信息。
+如果直接输入，则限制了每个智能体的Q值都通过一个单调的网络进行传递，这是过于约束（overly constraining）的，
+让Q值网络的权重都为正时，会丢失较多信息。
+而使用超参数网络来生成参数的话，超参数网络的参数就可以不被约束为正，只要保证输出为正就可以了，这样的话就充分利用了 <span class="math notranslate nohighlight">\(s_t\)</span> 的特征信息。</p>
+<p>由于满足上文的单调性约束，对 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 进行 <span class="math notranslate nohighlight">\(\arg\max\)</span> 操作的计算量就不再随智能体数量指数增长了，而是线性增长，这极大提高了算法效率。</p>
+<p><strong>损失函数</strong></p>
+<p>QMIX最终的损失函数为：</p>
+<p><span class="math notranslate nohighlight">\(L(\theta) = \sum_{i=1}^{b}[(y_i^{tot}-Q_{tot}(\tau,a,s;\theta))^2]\)</span></p>
+<p>其中，<span class="math notranslate nohighlight">\(y_i^{tot} = r+\gamma \max_{a'}\bar{Q}(\tau',a',s';\bar{\theta})\)</span> 。
+在这里，<span class="math notranslate nohighlight">\(\bar{\theta}\)</span> 表示target network的参数。</p>
+</div>
+</div>
+<div class="section" id="q-a">
+<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div></div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="rl-exploration.html" class="btn btn-neutral float-right" title="RL Exploration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="large-scale-rl.html" class="btn btn-neutral float-left" title="Large Scale RL Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Tutorial-Developer &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Code Comment" href="../guide/code_comment.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial-Developer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">代码结构概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#nervex">nervex (框架核心)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#app-zoo-nervexdrl">app_zoo (基于nerveX的DRL应用)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">数据流图</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Tutorial-Developer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/tutorial_dev/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tutorial-developer">
+<h1>Tutorial-Developer<a class="headerlink" href="#tutorial-developer" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="id1">
+<h2>代码结构概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="nervex">
+<h3>nervex (框架核心)<a class="headerlink" href="#nervex" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nervex
+├── config <span class="o">(</span>配置文件及其工具<span class="o">)</span>
+│   ├── buffer_manager.py <span class="o">(</span>buffer manager配置文件<span class="o">)</span>
+│   ├── config.py <span class="o">(</span>Config类<span class="o">)</span>
+│   ├── league.py <span class="o">(</span>league配置文件<span class="o">)</span>
+│   ├── parallel.py <span class="o">(</span>并行配置文件<span class="o">)</span>
+│   ├── serial.py <span class="o">(</span>串行配置文件<span class="o">)</span>
+│   └── utils.py <span class="o">(</span>配置文件工具<span class="o">)</span>
+├── data <span class="o">(</span>数据加载<span class="o">)</span>
+│   ├── buffer_manager.py <span class="o">(</span>多buffer管理<span class="o">)</span>
+│   ├── collate_fn.py <span class="o">(</span>数据处理函数<span class="o">)</span>
+│   ├── dataloader.py <span class="o">(</span>异步数据加载器<span class="o">)</span>
+│   └── structure <span class="o">(</span>所需数据结构<span class="o">)</span>
+├── design <span class="o">(</span>设计图<span class="o">)</span>
+├── docs <span class="o">(</span>文档<span class="o">)</span>
+├── entry <span class="o">(</span>启动入口<span class="o">)</span>
+│   ├── cli.py <span class="o">(</span>命令行<span class="o">)</span>
+│   ├── parallel_entry.py <span class="o">(</span>并行入口<span class="o">)</span>
+│   └── serial_entry.py <span class="o">(</span>串行入口<span class="o">)</span>
+├── envs <span class="o">(</span>强化学习环境接口<span class="o">)</span>
+│   ├── common <span class="o">(</span>通用环境元素基类<span class="o">)</span>
+│   ├── env <span class="o">(</span>环境基类和具体的环境类<span class="o">)</span>
+│   └── env_manager <span class="o">(</span>环境管理器类<span class="o">)</span>
+├── hpc_rl <span class="o">(</span>加速算子组件<span class="o">)</span>
+│   ├── hpc_rll-0.0.1-cp36-cp36m-linux_x86_64.whl <span class="o">(</span>环境库打包whl文件<span class="o">)</span>
+│   └── wrapper.py
+├── interaction <span class="o">(</span>独立于业务的交互式服务框架<span class="o">)</span>
+│   ├── base
+│   ├── config
+│   ├── exception
+│   ├── master
+│   └── slave
+├── league <span class="o">(</span>联盟训练决策调度模块<span class="o">)</span>
+│   ├── algorithm.py
+│   ├── base_league.py
+│   ├── league_wrapper.py
+│   ├── payoff.py
+│   ├── player.py
+│   ├── shared_payoff.py
+│   ├── solo_league.py
+│   └── starcraft_player.py
+├── loader <span class="o">(</span>数据组合框架组件<span class="o">)</span>
+│   ├── base.py
+│   ├── collection.py
+│   ├── dict.py
+│   ├── exception.py
+│   ├── mapping.py
+│   ├── norm.py
+│   ├── number.py
+│   ├── string.py
+│   ├── tests
+│   ├── types.py
+│   └── utils.py
+├── model <span class="o">(</span>强化学习神经网络接口<span class="o">)</span>
+│   ├── actor_critic
+│   ├── atoc
+│   ├── coma
+│   ├── common
+│   ├── common_arch
+│   ├── discrete_net
+│   ├── qac
+│   ├── qmix
+│   ├── sac
+│   └── model_wrappers
+├── policy <span class="o">(</span>强化学习策略库<span class="o">)</span>
+│   ├── a2c.py
+│   ├── base_policy.py
+│   ├── collaQ.py
+│   ├── coma.py
+│   ├── common_policy.py
+│   ├── ddpg.py
+│   ├── dqn.py
+│   ├── dqn_vanilla.py
+│   ├── impala.py
+│   ├── ppo.py
+│   ├── ppo_vanilla.py
+│   ├── qmix.py
+│   ├── r2d2.py
+│   ├── rainbow_dqn.py
+│   └── sac.py
+├── rl_utils <span class="o">(</span>强化学习工具库<span class="o">)</span>
+│   ├── a2c.py
+│   ├── adder.py
+│   ├── beta_function.py
+│   ├── coma.py
+│   ├── exploration.py
+│   ├── gae.py
+│   ├── isw.py
+│   ├── ppo.py
+│   ├── td.py
+│   ├── tests
+│   ├── upgo.py
+│   ├── value_rescale.py
+│   └── vtrace.py
+├── scripts <span class="o">(</span>命令行脚本<span class="o">)</span>
+│   ├── local_parallel.sh
+│   ├── local_serial.sh
+│   └── slurm_parallel.sh
+├── torch_utils <span class="o">(</span>PyTorch相关工具库<span class="o">)</span>
+│   ├── checkpoint_helper.py <span class="o">(</span>训练现场保存和加载<span class="o">)</span>
+│   ├── data_helper.py <span class="o">(</span>Tensor数据转换库<span class="o">)</span>
+│   ├── distribution.py <span class="o">(</span>概率分布库<span class="o">)</span>
+│   ├── loss <span class="o">(</span>损失函数库<span class="o">)</span>
+│   ├── metric.py <span class="o">(</span>距离度量库<span class="o">)</span>
+│   ├── network <span class="o">(</span>神经网络库<span class="o">)</span>
+│   ├── nn_test_helper.py <span class="o">(</span>神经网络测试库<span class="o">)</span>
+│   └── optimizer_helper.py <span class="o">(</span>优化器和梯度操作库<span class="o">)</span>
+├── utils
+│   ├── autolog <span class="o">(</span>变量追踪工具<span class="o">)</span>
+│   ├── collection_helper.py
+│   ├── compression_helper.py <span class="o">(</span>数据压缩<span class="o">)</span>
+│   ├── config_helper.py <span class="o">(</span>配置文件读取与合并<span class="o">)</span>
+│   ├── default_helper.py <span class="o">(</span>数据变换函数<span class="o">)</span>
+│   ├── design_helper.py <span class="o">(</span>代码设计工具<span class="o">)</span>
+│   ├── dist_helper.py <span class="o">(</span>多卡训练<span class="o">)</span>
+│   ├── fake_linklink.py <span class="o">(</span>伪linklink<span class="o">)</span>
+│   ├── file_helper.py （文件系统）
+│   ├── import_helper.py <span class="o">(</span>库导入<span class="o">)</span>
+│   ├── lock_helper.py <span class="o">(</span>同步和互斥锁<span class="o">)</span>
+│   ├── log_helper.py <span class="o">(</span>日志和可视化<span class="o">)</span>
+│   ├── slurm_helper.py <span class="o">(</span>slurm工具<span class="o">)</span>
+│   ├── system_helper.py <span class="o">(</span>系统工具<span class="o">)</span>
+│   └── time_helper.py （计时函数）
+└── worker
+    ├── collector <span class="o">(</span>数据生成器<span class="o">)</span>
+    ├── adapter <span class="o">(</span>适配器<span class="o">)</span>
+    ├── coordinator <span class="o">(</span>协作器<span class="o">)</span>
+    └── learner <span class="o">(</span>训练学习器<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="app-zoo-nervexdrl">
+<h3>app_zoo (基于nerveX的DRL应用)<a class="headerlink" href="#app-zoo-nervexdrl" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>app_zoo
+├── atari
+├── classic_control
+│   ├── bitflip
+│   ├── cartpole
+│   └── pendulum
+├── gfootball <span class="o">(</span>multi-agent football<span class="o">)</span>
+├── mujoco
+├── multiagent_particle
+├── smac
+└── sumo <span class="o">(</span>traffic light control<span class="o">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>数据流图<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Collector(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:</p>
+<img alt="../_images/dataflow.png" src="../_images/dataflow.png" />
+<p>而上述几个核心模块之间的数据流序列关系可以参考下图:</p>
+<img alt="../_images/flow_sequence.png" src="../_images/flow_sequence.png" />
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../guide/code_comment.html" class="btn btn-neutral float-left" title="Code Comment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

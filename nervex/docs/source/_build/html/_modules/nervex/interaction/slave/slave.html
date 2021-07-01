@@ -1,0 +1,732 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nervex.interaction.slave.slave &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>nervex.interaction.slave.slave</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nervex.interaction.slave.slave</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">Lock</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">request</span>
+
+<span class="kn">from</span> <span class="nn">.action</span> <span class="kn">import</span> <span class="n">ConnectionRefuse</span><span class="p">,</span> <span class="n">DisconnectionRefuse</span><span class="p">,</span> <span class="n">TaskRefuse</span><span class="p">,</span> <span class="n">TaskFail</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="kn">import</span> <span class="n">random_token</span><span class="p">,</span> <span class="n">ControllableService</span><span class="p">,</span> <span class="n">get_http_engine_class</span><span class="p">,</span> <span class="n">split_http_address</span><span class="p">,</span> <span class="n">success_response</span><span class="p">,</span> \
+    <span class="n">failure_response</span><span class="p">,</span> <span class="n">DblEvent</span>
+<span class="kn">from</span> <span class="nn">..config</span> <span class="kn">import</span> <span class="n">DEFAULT_SLAVE_PORT</span><span class="p">,</span> <span class="n">DEFAULT_CHANNEL</span><span class="p">,</span> <span class="n">GLOBAL_HOST</span><span class="p">,</span> <span class="n">DEFAULT_HEARTBEAT_SPAN</span><span class="p">,</span> <span class="n">MIN_HEARTBEAT_SPAN</span><span class="p">,</span> \
+    <span class="n">DEFAULT_REQUEST_RETRIES</span><span class="p">,</span> <span class="n">DEFAULT_REQUEST_RETRY_WAITING</span>
+<span class="kn">from</span> <span class="nn">..exception</span> <span class="kn">import</span> <span class="n">SlaveErrorCode</span><span class="p">,</span> <span class="n">get_slave_exception_by_error</span><span class="p">,</span> <span class="n">get_master_exception_by_error</span>
+
+
+<div class="viewcode-block" id="Slave"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave">[docs]</a><span class="k">class</span> <span class="nc">Slave</span><span class="p">(</span><span class="n">ControllableService</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Interaction slave client</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Slave.__init__"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">heartbeat_span</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">request_retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">request_retry_waiting</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Constructor of Slave class</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - host (:obj:`Optional[str]`): Host of the slave server, based on flask (None means `0.0.0.0`)</span>
+<span class="sd">            - port (:obj:`Optional[int]`): Port of the slave server, based on flask (None means `7236`)</span>
+<span class="sd">            - heartbeat_span (:obj:`Optional[float]`): Time span of heartbeat packages in seconds \</span>
+<span class="sd">                (None means `3.0`, minimum is `0.2`)</span>
+<span class="sd">            - request_retries (:obj:`Optional[int]`): Max times for request retries (None means `5`)</span>
+<span class="sd">            - request_retry_waiting (:obj:`Optional[float]`): Sleep time before requests&#39; retrying (None means `1.0`)</span>
+<span class="sd">            - channel (:obj:`Optional[int]`): Channel id for the slave client, please make sure that channel id is \</span>
+<span class="sd">                equal to the master client&#39;s channel id, or the connection cannot be established. (None means `0`, \</span>
+<span class="sd">                but 0 channel is not recommended to be used in production)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># server part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__host</span> <span class="o">=</span> <span class="n">host</span> <span class="ow">or</span> <span class="n">GLOBAL_HOST</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__port</span> <span class="o">=</span> <span class="n">port</span> <span class="ow">or</span> <span class="n">DEFAULT_SLAVE_PORT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__flask_app_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__run_app_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__run_app</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;slave_run_app&#39;</span><span class="p">)</span>
+
+        <span class="c1"># heartbeat part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat_span</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">heartbeat_span</span> <span class="ow">or</span> <span class="n">DEFAULT_HEARTBEAT_SPAN</span><span class="p">,</span> <span class="n">MIN_HEARTBEAT_SPAN</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;slave_heartbeat&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__request_retries</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">request_retries</span> <span class="ow">or</span> <span class="n">DEFAULT_REQUEST_RETRIES</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__request_retry_waiting</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">request_retry_waiting</span> <span class="ow">or</span> <span class="n">DEFAULT_REQUEST_RETRY_WAITING</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># task part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span> <span class="o">=</span> <span class="n">DblEvent</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__task_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__task</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;slave_task&#39;</span><span class="p">)</span>
+
+        <span class="c1"># self-connection part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__self_http_engine</span> <span class="o">=</span> <span class="n">get_http_engine_class</span><span class="p">(</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;Token&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__self_token</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">http_error_gene</span><span class="o">=</span><span class="n">get_slave_exception_by_error</span><span class="p">,</span>
+            <span class="c1"># )()(&#39;localhost&#39;, self.__port, False)</span>
+        <span class="p">)()(</span><span class="bp">self</span><span class="o">.</span><span class="n">__host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__port</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># TODO: Confirm how to ping itself</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__self_token</span> <span class="o">=</span> <span class="n">random_token</span><span class="p">()</span>
+
+        <span class="c1"># master-connection part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__channel</span> <span class="o">=</span> <span class="n">channel</span> <span class="ow">or</span> <span class="n">DEFAULT_CHANNEL</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span> <span class="o">=</span> <span class="n">DblEvent</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_token</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_address</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_http_engine</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># global part</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown_event</span> <span class="o">=</span> <span class="n">Event</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span></div>
+
+    <span class="c1"># master connection</span>
+    <span class="k">def</span> <span class="nf">__register_master</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_token</span> <span class="o">=</span> <span class="n">token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_address</span> <span class="o">=</span> <span class="n">address</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_http_engine</span> <span class="o">=</span> <span class="n">get_http_engine_class</span><span class="p">(</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;Channel&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__channel</span><span class="p">),</span>
+                <span class="s1">&#39;Token&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_token</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">http_error_gene</span><span class="o">=</span><span class="n">get_master_exception_by_error</span><span class="p">,</span>
+        <span class="p">)()(</span><span class="o">*</span><span class="n">split_http_address</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__master_address</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__unregister_master</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_token</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_address</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__master_http_engine</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__open_master_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register_master</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__close_master_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__unregister_master</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># server part</span>
+    <span class="k">def</span> <span class="nf">__generate_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="c1"># master apis</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/connect&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_master_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__connect</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/disconnect&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_master_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__disconnect</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/task/new&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_master_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__new_task</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+
+        <span class="c1"># self apis</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/ping&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">])(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_self_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__self_ping</span><span class="p">))</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/shutdown&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DELETE&#39;</span><span class="p">])(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_self_request</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__self_shutdown</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">app</span>
+
+    <span class="k">def</span> <span class="nf">__flask_app</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Flask</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__flask_app_value</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">__generate_app</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__run_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__flask_app</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__host</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__port</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># both method checkers</span>
+    <span class="k">def</span> <span class="nf">__check_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_func</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">SYSTEM_SHUTTING_DOWN</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;System has already been shutting down.&#39;</span>
+                <span class="p">),</span> <span class="mi">401</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">_func</span>
+
+    <span class="c1"># server method checkers (master)</span>
+    <span class="k">def</span> <span class="nf">__check_master_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">],</span>
+                               <span class="n">need_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__check_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_master_token</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">need_match</span><span class="p">)))</span>
+
+    <span class="c1"># noinspection DuplicatedCode</span>
+    <span class="k">def</span> <span class="nf">__check_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_func</span><span class="p">():</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Channel&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span> <span class="k">if</span> <span class="n">channel</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">CHANNEL_NOT_FOUND</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Channel not found.&#39;</span><span class="p">),</span> <span class="mi">400</span>
+            <span class="k">elif</span> <span class="n">channel</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">CHANNEL_INVALID</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Channel not match with this endpoint.&#39;</span>
+                <span class="p">),</span> <span class="mi">403</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">_func</span>
+
+    <span class="k">def</span> <span class="nf">__check_master_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                             <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Any</span><span class="p">],</span>
+                             <span class="n">need_match</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_func</span><span class="p">():</span>
+            <span class="n">master_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Token&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">master_token</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">MASTER_TOKEN_NOT_FOUND</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Master token not found.&#39;</span>
+                <span class="p">),</span> <span class="mi">400</span>
+            <span class="k">elif</span> <span class="n">need_match</span> <span class="ow">and</span> <span class="p">(</span><span class="n">master_token</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_token</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">MASTER_TOKEN_INVALID</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Master not match with this endpoint.&#39;</span>
+                <span class="p">),</span> <span class="mi">403</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">master_token</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">()))</span>
+
+        <span class="k">return</span> <span class="n">_func</span>
+
+    <span class="c1"># server method checkers (self)</span>
+    <span class="c1"># noinspection DuplicatedCode</span>
+    <span class="k">def</span> <span class="nf">__check_self_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__check_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__check_slave_token</span><span class="p">(</span><span class="n">func</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__check_slave_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_func</span><span class="p">():</span>
+            <span class="n">slave_token</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Token&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">slave_token</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">SELF_TOKEN_NOT_FOUND</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Slave token not found.&#39;</span><span class="p">),</span> <span class="mi">400</span>
+            <span class="k">elif</span> <span class="n">slave_token</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__self_token</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                    <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">SELF_TOKEN_INVALID</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Slave token not match with this endpoint.&#39;</span>
+                <span class="p">),</span> <span class="mi">403</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">_func</span>
+
+    <span class="c1"># server methods (self)</span>
+    <span class="c1"># noinspection PyMethodMayBeStatic</span>
+    <span class="k">def</span> <span class="nf">__self_ping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">success_response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;PONG!&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__self_shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_shutdown_func</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;werkzeug.server.shutdown&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_shutdown_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Not running with the Werkzeug Server&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown_event</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+        <span class="n">_shutdown_func</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">success_response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Shutdown request received, this server will be down later.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># server methods (master)</span>
+    <span class="c1"># noinspection PyUnusedLocal</span>
+    <span class="k">def</span> <span class="nf">__connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span><span class="o">.</span><span class="n">is_open</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">SLAVE_ALREADY_CONNECTED</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;This slave already connected.&#39;</span>
+            <span class="p">),</span> <span class="mi">400</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_master_info</span><span class="p">,</span> <span class="n">_connection_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;master&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_before_connection</span><span class="p">(</span><span class="n">_connection_data</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ConnectionRefuse</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">err</span><span class="o">.</span><span class="n">get_response</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__open_master_connection</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">_master_info</span><span class="p">[</span><span class="s1">&#39;address&#39;</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">success_response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Connect success.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># noinspection PyUnusedLocal</span>
+    <span class="k">def</span> <span class="nf">__new_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__task_lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">is_open</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">TASK_ALREADY_EXIST</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Already has a task.&#39;</span><span class="p">),</span> <span class="mi">400</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_task_info</span><span class="p">,</span> <span class="n">_task_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+                <span class="n">_task_id</span> <span class="o">=</span> <span class="n">_task_info</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_before_task</span><span class="p">(</span><span class="n">_task_data</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">TaskRefuse</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">err</span><span class="o">.</span><span class="n">get_response</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span> <span class="o">=</span> <span class="n">UUID</span><span class="p">(</span><span class="n">_task_id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span> <span class="o">=</span> <span class="n">_task_data</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="n">success_response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Task received!&#39;</span><span class="p">)</span>
+
+    <span class="c1"># noinspection PyUnusedLocal</span>
+    <span class="k">def</span> <span class="nf">__disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span><span class="o">.</span><span class="n">is_close</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">failure_response</span><span class="p">(</span>
+                <span class="n">code</span><span class="o">=</span><span class="n">SlaveErrorCode</span><span class="o">.</span><span class="n">SLAVE_NOT_CONNECTED</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;This slave not connected yet.&#39;</span>
+            <span class="p">),</span> <span class="mi">400</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_disconnection_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_before_disconnection</span><span class="p">(</span><span class="n">_disconnection_data</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">DisconnectionRefuse</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">err</span><span class="o">.</span><span class="n">get_response</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__close_master_connection</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">success_response</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s1">&#39;Disconnect success.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># heartbeat part</span>
+    <span class="k">def</span> <span class="nf">__heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__connected</span><span class="o">.</span><span class="n">is_open</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__master_heartbeat</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_lost_connection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__master_address</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__close_master_connection</span><span class="p">()</span>
+                    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">(),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+            <span class="n">_last_time</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat_span</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">_last_time</span> <span class="o">-</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="c1"># task part</span>
+    <span class="k">def</span> <span class="nf">__task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown_event</span><span class="o">.</span><span class="n">is_set</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">wait_for_open</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">is_open</span><span class="p">():</span>
+                <span class="c1"># noinspection PyBroadException</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_data</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">TaskFail</span> <span class="k">as</span> <span class="n">fail</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__master_task_fail</span><span class="p">(</span><span class="n">fail</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exception</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">(),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__has_task</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__master_task_complete</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="c1"># self request operations</span>
+    <span class="k">def</span> <span class="nf">__self_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__self_http_engine</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__request_retries</span><span class="p">,</span>
+            <span class="n">retry_waiting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__request_retry_waiting</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ping_once</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__self_request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/ping&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ping_until_started</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__ping_once</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">BaseHTTPError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">):</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">__shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__self_request</span><span class="p">(</span><span class="s1">&#39;DELETE&#39;</span><span class="p">,</span> <span class="s1">&#39;/shutdown&#39;</span><span class="p">)</span>
+
+    <span class="c1"># master request operations</span>
+    <span class="k">def</span> <span class="nf">__master_request</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_http_engine</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">retries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__request_retries</span><span class="p">,</span>
+            <span class="n">retry_waiting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__request_retry_waiting</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__master_heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;/slave/heartbeat&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__master_task_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_request</span><span class="p">(</span>
+            <span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;/slave/task/complete&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span><span class="p">)</span>
+                <span class="p">},</span>
+                <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="n">result</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__master_task_fail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__master_request</span><span class="p">(</span>
+            <span class="s1">&#39;PUT&#39;</span><span class="p">,</span> <span class="s1">&#39;/slave/task/fail&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__task_id</span><span class="p">)</span>
+                <span class="p">},</span>
+                <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="n">result</span> <span class="ow">or</span> <span class="p">{},</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="c1"># public methods</span>
+<div class="viewcode-block" id="Slave.ping"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave.ping">[docs]</a>    <span class="k">def</span> <span class="nf">ping</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Ping the current http server, check if it still run properly.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`bool`): The http server run properly or not. \</span>
+<span class="sd">                `True` means run properly, otherwise return `False`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__ping_once</span><span class="p">()</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">BaseHTTPError</span><span class="p">,</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Slave.start"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Start current slave client</span>
+<span class="sd">            Here are the steps executed inside in order:</span>
+<span class="sd">                1. Start the task-processing thread</span>
+<span class="sd">                2. Start the heartbeat thread</span>
+<span class="sd">                3. Start the http server thread</span>
+<span class="sd">                4. Wait until the http server is online (can be pinged)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__run_app_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__ping_until_started</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Slave.shutdown"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Shutdown current slave client.</span>
+<span class="sd">            A shutdown request will be sent to the http server, and the shutdown signal will be apply into the \</span>
+<span class="sd">            threads, the server will be down soon (You can use `join` method to wait until that time).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__shutdown</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Slave.join"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wait until current slave client is down completely.</span>
+<span class="sd">            Here are the steps executed inside in order:</span>
+<span class="sd">                1. Wait until the http server thread down</span>
+<span class="sd">                2. Wait until the heartbeat thread down</span>
+<span class="sd">                3. Wait until the task-processing thread down</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__run_app_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__heartbeat_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__task_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+    <span class="c1"># inherit method</span>
+<div class="viewcode-block" id="Slave._before_connection"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave._before_connection">[docs]</a>    <span class="k">def</span> <span class="nf">_before_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Behaviours that will be executed before connection is established.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Mapping[str, Any]`): Connection data when connect to this slave, sent from master.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - `ConnectionRefuse` After raise this, the connection from master end will be refused, \</span>
+<span class="sd">                no new connection will be established.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Slave._before_disconnection"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave._before_disconnection">[docs]</a>    <span class="k">def</span> <span class="nf">_before_disconnection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Behaviours that will be executed before disconnection is executed.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Mapping[str, Any]`): Disconnection data when disconnect with this slave, sent from master.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - `DisconnectionRefuse` After raise this, the disconnection request will be refused, \</span>
+<span class="sd">                current connection will be still exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Slave._before_task"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave._before_task">[docs]</a>    <span class="k">def</span> <span class="nf">_before_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Behaviours that will be executed before task is executed.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Mapping[str, Any]`): Data of the task</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - `TaskRefuse` After raise this, the new task will be refused.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Slave._lost_connection"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave._lost_connection">[docs]</a>    <span class="k">def</span> <span class="nf">_lost_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">err</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Behaviours that will be executed after connection is lost.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - master_address (:obj:`str`): String address of master end</span>
+<span class="sd">            - err (:obj:`request.exceptions.RequestException`): Http exception of this connection loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Slave._process_task"><a class="viewcode-back" href="../../../../api_doc/interaction/slave/slave.html#nervex.interaction.slave.slave.Slave._process_task">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_process_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute the task, this protected method must be implement in the subclass.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - task (:obj:`Mapping[str, Any]`): Data of the task</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - `TaskFail` After raise this, this task will be recognized as run failed, \</span>
+<span class="sd">                master will received the failure signal.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            - A success task with return value (the return value will be received in master end)</span>
+<span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
+<span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
+<span class="sd">            &gt;&gt;&gt;     return str(task)</span>
+
+<span class="sd">            - A failed task with data (the data will be received in master end)</span>
+<span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
+<span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
+<span class="sd">            &gt;&gt;&gt;     raise TaskFail(task)  # this is a failed task</span>
+
+<span class="sd">            - A failed task with data and message (both will be received in master end)</span>
+<span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
+<span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
+<span class="sd">            &gt;&gt;&gt;     raise TaskFail(task, &#39;this is message&#39;)  # this is a failed task with message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

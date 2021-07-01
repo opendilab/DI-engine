@@ -1,0 +1,860 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>RL Algorithm &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Large Scale RL Training" href="large-scale-rl.html" />
+    <link rel="prev" title="算法与训练/Algorithm and Training" href="index.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Supplementary of RL</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">算法与训练/Algorithm and Training</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">RL Algorithm</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dqn">DQN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#double-dqn">Double DQN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dueling-dqn">Dueling DQN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prioritized-replay-buffer-in-dqn">Prioritized Replay Buffer in DQN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#policy-gradient">Policy Gradient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#actor-critic">Actor Critic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#a2c">A2C</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddpg">DDPG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ppo">PPO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gae">GAE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sac">SAC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#td3">TD3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mcts">MCTS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#value-prediction-network">Value Prediction Network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#paper-list">Paper List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#q-a">Q&amp;A</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="large-scale-rl.html">Large Scale RL Training</a></li>
+<li class="toctree-l3"><a class="reference internal" href="multi-agent.html">Multi Agent Reinforcement Learning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rl-exploration.html">RL Exploration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../game_env.html">强化学习常用的游戏环境/RL Game Environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bandit/index.html">Bandit</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Supplementary of RL</a> &raquo;</li>
+        
+          <li><a href="index.html">算法与训练/Algorithm and Training</a> &raquo;</li>
+        
+      <li>RL Algorithm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/supplementary_rl/algorithm/rl-algo.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="rl-algorithm">
+<h1>RL Algorithm<a class="headerlink" href="#rl-algorithm" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dqn">
+<h2>DQN<a class="headerlink" href="#dqn" title="Permalink to this headline">¶</a></h2>
+<p>DQN在 <a class="reference external" href="https://arxiv.org/abs/1312.5602">Playing Atari with Deep Reinforcement Learning</a> 一文中被提出，将Q-learning的思路与神经网络结合。一年后做出了微小改进后又发表在 <a class="reference external" href="https://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlDeepRL.pdf">Human-level control through deep reinforcement learning</a> 一文;</p>
+<p>DQN使用神经网络接受state输入进行价值估计，然后使用argmax选择预计value最大的action作为策略，通过计算td-loss进行神经网络的梯度下降。</p>
+<p>算法可见：</p>
+<img alt="../../_images/DQN1.png" src="../../_images/DQN1.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>有关Q-Learning中的off-policy correction（即Importance Sampling），在one-step和n-step上是有所区别的。一言以蔽之，one-step不需要IS，而n-step需要IS。</p>
+<p>Importance Sampling的直观理解是：首先我们想计算f(x)的期望，其中x服从分布p；
+但我们却因为某些原因只能从分布q进行采样，因此要在f(x)上乘上一个系数p/q，来做一个修正，使得二者在期望上相等。公式表示为：</p>
+<p><span class="math notranslate nohighlight">\(\mathbb{E}_{x\sim p} = \int f(x)p(x)dx = \int f(x)\frac{p(x)}{q(x)}q(x)dx = \mathbb{E}_{x\sim q}[f(x)\frac{p(x)}{q(x)}]\)</span></p>
+<p>在one-step的Q-learning中， <span class="math notranslate nohighlight">\(Q(s,a)\)</span>
+需要去拟合 <span class="math notranslate nohighlight">\(r(s,a)+\gamma \mathop{max}\limits_{a^*}Q(s',a^*)\)</span></p>
+<p>对于当前的 <span class="math notranslate nohighlight">\(s,a\)</span> ， <span class="math notranslate nohighlight">\(r(s,a)\)</span> 是由环境反馈得来的， <span class="math notranslate nohighlight">\(s'\)</span> 是环境step后得到的，都与是否为off-policy无关。
+接下来在寻找使得Q函数最大的 <span class="math notranslate nohighlight">\(a^*\)</span> 时，是通过原始策略 <span class="math notranslate nohighlight">\(\pi\)</span> （对应当前的Q函数）计算得到的，同样与采样的策略 <span class="math notranslate nohighlight">\(\mu\)</span> 无关。
+这意味着，尽管我们使用了不同的策略采样，但是它在训练的时候没有发挥任何作用，因此不需要重要性采样来修正。</p>
+<p>换个方式理解，在环境状态 <span class="math notranslate nohighlight">\(s\)</span> 下，采样动作 <span class="math notranslate nohighlight">\(a1\)</span> ，得到的结果存储在 <span class="math notranslate nohighlight">\(Q(s,a1)\)</span> 中；
+采样动作 <span class="math notranslate nohighlight">\(a2\)</span> ，结果存储在 <span class="math notranslate nohighlight">\(Q(s,a2)\)</span> 中。
+即使采样a1和a2的概率 <span class="math notranslate nohighlight">\(p(a1|x), p(a2|x)\)</span> 改变了，也不会影响到 <span class="math notranslate nohighlight">\(Q(s,a1), Q(s,a2)\)</span> ，因此不需要修正。</p>
+<p>而在n-step的Q-learning中， <span class="math notranslate nohighlight">\(Q(s,a)\)</span>
+需要去拟合 <span class="math notranslate nohighlight">\(\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \mathop{max}\limits_{a^*}Q(s_n,a^*)\)</span></p>
+<p>同one-step情况，<span class="math notranslate nohighlight">\(r(s_0,a_0)\)</span> 和 <span class="math notranslate nohighlight">\(s_1\)</span> 都与是否为off-policy无关。
+但之后在确定接下来的动作 <span class="math notranslate nohighlight">\(a_1\)</span> 时，是根据当前采样的策略 <span class="math notranslate nohighlight">\(\mu\)</span> 得到的，而不是原始的策略 <span class="math notranslate nohighlight">\(\pi\)</span> 。
+同样，对于后面的 <span class="math notranslate nohighlight">\(a_2, a_3, ...\)</span> ，都存在概率分布不同的情况，因此我们就需要使用重要性采样的方法对不同的分布进行修正，
+这样我们对当前状态-动作价值函数，即Q函数的估计才是无偏估计。</p>
+</div>
+</div>
+<div class="section" id="double-dqn">
+<h2>Double DQN<a class="headerlink" href="#double-dqn" title="Permalink to this headline">¶</a></h2>
+<p>Double DQN是利用双学习，仿照Double Q-learning思路对DQN做的改进，发表在 <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a> 。</p>
+<p>Double DQN不再是直接在目标Q网络里面找各个动作中最大Q值，而是先在当前Q网络中先找出最大Q值对应的动作，然后利用这个选择出来的动作在目标网络里面去计算目标Q值。其余与普通的DQN相同。</p>
+<p>Double DQN的目的是更加精确的估计目标Q值的计算，解决over estimation的问题，并且减少过大的bias。</p>
+</div>
+<div class="section" id="dueling-dqn">
+<h2>Dueling DQN<a class="headerlink" href="#dueling-dqn" title="Permalink to this headline">¶</a></h2>
+<p>Dueling DQN在 <a class="reference external" href="https://arxiv.org/abs/1511.06581">Dueling Network Architectures for Deep Reinforcement Learning</a> 一文中提出。通过使用Dueling结构，成果优化了网络结构，使得Q值的估计分为了两部分，分为state-value 和 advantages for each action，使得神经网络能更好的对单独价值进行评估。</p>
+<p>结构变化如下：</p>
+<a class="reference internal image-reference" href="../../_images/Dueling_DQN1.png"><img alt="../../_images/Dueling_DQN1.png" src="../../_images/Dueling_DQN1.png" style="width: 331.79999999999995px; height: 247.79999999999998px;" /></a>
+</div>
+<div class="section" id="prioritized-replay-buffer-in-dqn">
+<h2>Prioritized Replay Buffer in DQN<a class="headerlink" href="#prioritized-replay-buffer-in-dqn" title="Permalink to this headline">¶</a></h2>
+<p>Prioritized Replay Buffer的提出是在 <a class="reference external" href="https://arxiv.org/abs/1511.05952">PRIORITIZED EXPERIENCE REPLAY</a> 一文，使用buffer sample时通过加权提高训练数据质量，加快训练速度并提高效率。</p>
+<p>nerveX系统中buffer的实现结构可见下图：</p>
+<img alt="../../_images/buffer.jpg" src="../../_images/buffer.jpg" />
+<p>具体的Prioritized DDQN算法可见：</p>
+<img alt="../../_images/PDDQN.png" src="../../_images/PDDQN.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DQN算法的基础实现教程可以参考pytorch官方上的 <a class="reference external" href="https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html">pytorch的DQN教程</a> ，该教程只是最基本的demo，适合作为入门参考。</p>
+<p>有关于Double、Dueling DQN和prioritized replay DQN的算法实现可以参考Github上的 <a class="reference external" href="https://github.com/higgsfield/RL-Adventure">RL-Adventure</a>， 该repo上的各种DQN实现较全，尽管torch版本较低，但不失作为参考。</p>
+<p>DQN算法在nervex框架中的入口可以参考 <a class="reference external" href="http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/app_zoo/cartpole/entry/cartpole_dqn_main.py">nervx框架下的DQN实现</a>。</p>
+</div>
+</div>
+<div class="section" id="policy-gradient">
+<h2>Policy Gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h2>
+<p>之前所提的大部分方法都是基于“动作价值函数”，通过学习动作价值函数，然后根据估计的动作价值函数选择动作 <a class="reference external" href="https://homes.cs.washington.edu/~todorov/courses/amath579/reading/PolicyGradient.pdf">Policy Gradient</a>。</p>
+<p>而策略梯度方法则是可以直接学习参数化的策略，动作选择不再直接依赖于价值函数，而是将价值函数作为学习策略的参数，不再是动作选择必须的了。</p>
+<p>Policy Gradient公式及其推导过程:</p>
+<p>我们Policy Gradient的目的是通过gradient ascend去最大化在一个策略下的reward之和。
+我们记某个策略对应的参数为 <span class="math notranslate nohighlight">\({\theta}^{\pi}\)</span> 简写为 <span class="math notranslate nohighlight">\(\theta\)</span>，
+记从开始到结束的整个过程为 <span class="math notranslate nohighlight">\(\tau\)</span>，在策略 <span class="math notranslate nohighlight">\(\theta\)</span> 下整个过程为 <span class="math notranslate nohighlight">\(\tau\)</span> 的概率为 <span class="math notranslate nohighlight">\(p_{\theta}(\tau)\)</span>。</p>
+<p>整个过程中的reward之和记为 <span class="math notranslate nohighlight">\(R(\tau) = \sum_{t=1}^{T} r_t\)</span>，某个策略下reward之和的期望记为 <span class="math notranslate nohighlight">\(\bar{R_{\theta}} = \sum_{\tau} R(\tau) p_{\theta}(\tau)\)</span>。</p>
+<p>我们要最大化整个过程中的reward之和的期望，即对 <span class="math notranslate nohighlight">\(\bar{R_{\theta}}\)</span> 进行梯度上升。</p>
+<p><span class="math notranslate nohighlight">\(\bar{R_{\theta}(\tau)}\)</span> 的梯度为 <span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}(\tau)}\)</span>， 而 <span class="math notranslate nohighlight">\(\bar{R_{\theta}} = \sum_{\tau}R(\tau) p_{\theta}(\tau)\)</span>。</p>
+<p>其中 <span class="math notranslate nohighlight">\(p_{\theta}(\tau) = p(s_1) \prod_{t=1}^{T}p_{\theta}(a_t|s_t)p_{\theta}(s_{t+1}|s_t, a_t)\)</span>，
+而 <span class="math notranslate nohighlight">\(p_{\theta}(s_{t+1} | s_t, a_t)\)</span> 不随策略 <span class="math notranslate nohighlight">\(\theta\)</span> 的变化而改变，因此梯度为零。</p>
+<p>我们可以做一个变化，即利用公式 <span class="math notranslate nohighlight">\(\nabla p_{\theta}(\tau) = p_{\theta}(\tau) \frac{\nabla p_{\theta}(\tau)}{p_{\theta}(\tau)} = p_{\theta}(\tau) \nabla \log{P_{\theta}(\tau)}\)</span> ，转化概率分布。</p>
+<p>再通过使用 <span class="math notranslate nohighlight">\(N\)</span> 次重复取平均的方式消去 <span class="math notranslate nohighlight">\(\sum_{\tau} p_{\theta}(\tau)\)</span> ；</p>
+<p>由此可以推导出：
+<span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span> 。</p>
+<p>这就是Policy Gradient的最基本的公式。Policy Gradient是一个On-policy的算法。</p>
+<p>不过这个基本的公式还有很多不足之处：
+比如由于是整体的概率分布，要求所有概率和为1，因此在进行梯度下降时，如果某一个不常见的动作一直没有被sample到，那么随着其他动作被sample后概率上升，这个动作的对应概率就会下降。</p>
+<p>动作的常见与否与某个阶段是否应该采取一个动作无关，因此我们需要通过引入baseline的方式，让公式更合理：</p>
+<p><strong>Add baseline</strong></p>
+<p>公式从 <span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span></p>
+<p>变化为：<span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}}\)</span> <span class="math notranslate nohighlight">\(= \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span>，
+其中可取 <span class="math notranslate nohighlight">\(b \approx E[R(\tau)]\)</span>。</p>
+<p>再加入baseline后，该公式依旧存在一定的问题，即使用policy gradient由于一次sample的reward会等量的影响到整个过程中的动作选择，虽然从均值上讲依旧无偏，但是过程中的方差会极大。
+这时，我们通过修改公式，让每个动作在一次过程中不考虑该动作发生前的reward，只关联动作发生后所产生的reward，即减小了动作取值的方差，加快收敛。</p>
+<p>我们通过<strong>Assign credit</strong>的方式，将公式从 <span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (R(\tau) - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span></p>
+<p>变为 <span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T}\)</span>
+<span class="math notranslate nohighlight">\((\sum_{t' = t}^{T_n} r_{t'}^{n} - b)\nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span></p>
+<p>我们还可以加入discount factor，使得：</p>
+<p><span class="math notranslate nohighlight">\(R(\tau) - b \rightarrow \sum_{t' =t}^{T_n} (r_{t'}^{n} - b) \rightarrow \sum_{t' = t}^{T_n} (\gamma^{t' - t}r_{t'}^{n} - b)\)</span> ，
+这一项可以称为advantage。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>优点：对于连续的策略参数化，动作选择的概率会平滑的变化；而基于动作价值函数的方法会随Q值变化而导致动作选择的概率有很大变化。因此，基于policy gradient的方法能比基于动作价值函数的方法有更好的收敛性保证。</p>
+<p>缺点：在没有自举的时候，方差相对较高，学习相对较慢。因此引入了advantage。</p>
+</div>
+</div>
+<div class="section" id="actor-critic">
+<h2>Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h2>
+<p>Actor Critic 模型早在2000年的paper <a class="reference external" href="http://papers.nips.cc/paper/1786-actor-critic-algorithms.pdf">Actor Critic Algorithm</a> 中被提出。</p>
+<p>在Policy Gradient的基础上，如果用状态动作价值函数 Q 代替reward，并用状态价值函数 V 代替baseline，我们就得到了Actor Critic方法，此时
+<span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (Q^{\pi_\theta}(s_t^n,a_t^n) - V^{\pi_\theta}(s_t^n)) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span></p>
+<p>Actor Critic作为最基本的一种强化学习算法，后面衍生除了很多种改进，包括DDPG、A2C、A3C等等。</p>
+</div>
+<div class="section" id="a2c">
+<h2>A2C<a class="headerlink" href="#a2c" title="Permalink to this headline">¶</a></h2>
+<p>在Actor Critic中，我们需要分别拟合Q函数和V函数，而Q与V之间存在如下关系
+<span class="math notranslate nohighlight">\(Q^{\pi_\theta}(s_t^n,a_t^n) = \mathrm{E} [r_t^n + V^{\pi_\theta}(s_{t+1}^n)]\)</span>。</p>
+<p>如果我们令
+<span class="math notranslate nohighlight">\(Q^{\pi_\theta}(s_t^n,a_t^n) = r_t^n + V^{\pi_\theta}(s_{t+1}^n)\)</span>，
+即有：</p>
+<p><span class="math notranslate nohighlight">\(Q^{\pi_\theta}(s_t^n,a_t^n) - V^{\pi_\theta}(s_t^n) = r_t^n + V^{\pi_\theta}(s_{t+1}^n) - V^{\pi_\theta}(s_t^n) = advantage\)</span>，</p>
+<p><span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (r_t^n + V^{\pi_\theta}(s_{t+1}^n) - V^{\pi_\theta}(s_t^n)) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span>，</p>
+<p>这样我们就得到了Advantage Actor-Critic（A2C）方法。此时Critic网络的损失函数为实际的状态价值和估计的状态价值之差的平方：
+<span class="math notranslate nohighlight">\(loss = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} (r_t^n + V^{\pi_\theta}(s_{t+1}^n) - V^{\pi_\theta}(s_t^n))^2\)</span></p>
+</div>
+<div class="section" id="ddpg">
+<h2>DDPG<a class="headerlink" href="#ddpg" title="Permalink to this headline">¶</a></h2>
+<p>DDPG即Deep Deterministic Policy Gradient，在2015年的paper <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> 中提出。
+DDPG是基于actor-critic的model-free算法，是基于policy gradient和actor critic的改进，其改进思路借鉴了DDQN的改进方式，并且整体思想偏向于Q-learning。</p>
+<p>从Policy Gradient到Deterministic Policy Gradient：</p>
+<p>在使用随机策略时，假如像DQN一样研究策略中所有的可能动作的概率，并计算各个可能的动作的价值的话( <span class="math notranslate nohighlight">\(Q(s_t, a_t)\)</span>)，就需要大量的样本进行训练。如果在同一个状态处的动作，只取策略中最大概率的动作，就能去掉策略的概率分布，完成一定的化简。</p>
+<p>从Deterministic Policy Gradient到Deep Deterministic Policy Gradient：</p>
+<p>在DDPG中，我们还引入了双网络的概念。Actor Critic中本身就有两个网络，在引入双网络后，DDPG总共持有四个网络，分别是：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Actor Current Network <span class="math notranslate nohighlight">\(\mu\)</span>：计算当前状态对应的动作，与环境交互。</p></li>
+<li><p>Actor Target Network <span class="math notranslate nohighlight">\(\mu'\)</span>：在计算Target Q时，用buffer中取出的状态选择对应用动作；定期从Current Network中复制信息。</p></li>
+<li><p>Critic Current Network <span class="math notranslate nohighlight">\(Q\)</span>：计算当前状态和动作对应的Q值。</p></li>
+<li><p>Critic Target Network <span class="math notranslate nohighlight">\(Q'\)</span>：计算Target Q时，用buffer中取出的状态和Actor Target Network选出的该状态对应的动作，去计算对应Q值。</p></li>
+</ul>
+</div></blockquote>
+<p>DDPG相比于DDQN算法，其区别就在于引入了Actor Network。DDPG实质上是使用了神经网络Actor Network去选取动作，而DQN则是使用了贪心策略（argmax），根据Q值表中的动作中选择对应Q值估计最大的动作。</p>
+<p>因为DDPG使用神经网络去选择动作，将Actor Network的输出直接当作action，因此action space是连续的，可以用于解决连续动作空间的问题。</p>
+<p>具体算法实现如图：</p>
+<img alt="../../_images/DDPG1.jpg" src="../../_images/DDPG1.jpg" />
+</div>
+<div class="section" id="ppo">
+<h2>PPO<a class="headerlink" href="#ppo" title="Permalink to this headline">¶</a></h2>
+<p>PPO即Proximal Policy Optimization，在2017年的 <a class="reference external" href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a> 中被提出。是基于Policy Gradient方法的改进。
+PPO 是OpenAI的default reinforcement learning algorithm， 足见这个算法的强大。</p>
+<p>相比于朴素的Policy Gradient，PPO将PG从On-policy引入了Off-policy的思想，使得梯度上升的过程中可以使用之前策略所产生的数据，不再是一条sample只能使用一次，大大的提高了收敛速度和算法效率。</p>
+<p>PPO通过使用Importance Sampling，使得算法可以使用之前策略得到的轨迹进行训练。PPO通过设定一定的constrain，使得之前策略轨迹的训练不会导致大的偏差，而相比于TRPO，constrain的实现也更加简单有效。</p>
+<p>PPO利用一个期望上的等同，使得可以使用旧策略下的概率分布 <span class="math notranslate nohighlight">\(q\)</span>，去等同计算当前策略下的概率分布 <span class="math notranslate nohighlight">\(p\)</span>， 概率的等同如下式：</p>
+<p><span class="math notranslate nohighlight">\(E_{x~p}[f(x)] = E_{x~q}[f(x) \frac{p(x)}{q(x)}]\)</span>。</p>
+<p>这样梯度下降的公式就可以转换为：</p>
+<p><span class="math notranslate nohighlight">\(J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]\)</span></p>
+<p>其中 <span class="math notranslate nohighlight">\(A^{\theta'}(s_t, a_t)\)</span> 即为 <span class="math notranslate nohighlight">\(\theta'\)</span> 策略下的advantage</p>
+<p>该公式虽然在大样本量的情况下没有偏差，但是在sample样本过小的时候，若两个策略的概率分布 <span class="math notranslate nohighlight">\(\theta ~ p(x)\)</span> 与 <span class="math notranslate nohighlight">\(\theta' ~ q(x)\)</span> 相差过大，则会产生很大的方差，导致训练结果不稳定难以收敛。</p>
+<p>因此，我们在训练过程中，加入一定的constrain，使得两个策略的概率分布不会过大。在此我们通过 <a class="reference external" href="https://baike.baidu.com/item/%E7%9B%B8%E5%AF%B9%E7%86%B5/4233536">相对熵</a>
+（ <a class="reference external" href="https://wiki2.org/en/Kullback%E2%80%93Leibler_divergence">Kullback-Leibler Divergence</a> ）即 <span class="math notranslate nohighlight">\(KL(\theta, \theta')\)</span> 来判断两个策略概率分布的差距。</p>
+<p>在TRPO中，通过引入 <a class="reference external" href="https://optimization.mccormick.northwestern.edu/index.php/Trust-region_methods">trust region method</a> 来推导限定在两个策略的概率分布差别不大时，训练的结果是可靠的。</p>
+<p>TRPO在梯度推导时大致就是：</p>
+<p><span class="math notranslate nohighlight">\(J_{TRPO}^{\theta'}(\theta) = J^{\theta'}(\theta) | KL(\theta, \theta') &lt; \delta\)</span></p>
+<p>其中 <span class="math notranslate nohighlight">\(J^{\theta'}(\theta) = E_{(s_t, a_t)~\pi_{\theta'}} [\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t)]\)</span></p>
+<p>而目前的PPO则是有两个种实现方式，PPO1和PPO2。</p>
+<p>PPO1直接将两个策略的 <span class="math notranslate nohighlight">\(KL(\theta, \theta')\)</span> 引入到梯度计算当中，通过直接计算
+<span class="math notranslate nohighlight">\(J_{PPO1}^{\theta'}(\theta) = J^{\theta'}(\theta) - \beta KL(\theta, \theta')\)</span> ，
+其中 <span class="math notranslate nohighlight">\(\beta\)</span> 可以直接定为参数，也可以通过自适应调整。
+在求梯度的过程中自然的减少了两个策略的概率分布差距。</p>
+<p>而PPO2则是使用了Clipping的方式：</p>
+<p><span class="math notranslate nohighlight">\(J^{\theta'}(\theta) = \sum_{(s_t, a_t)} min(\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)} A^{\theta'}(s_t, a_t) , clip(\frac{p_{\theta}(a_t | s_t)}{p_{\theta'}(a_t | s_t)}, 1-\epsilon, 1+\epsilon) A^{\theta'}(s_t, a_t) )\)</span></p>
+<p>在PPO的实际实现中，PPO2的实现最为简单高效，而PPO1和TRPO由于要计算KL Divergence花销相对较大。在实际实现的效果上，PPO2是要好于PPO1和TRPO的。在nerveX系统中我们也是以PPO2的形式实现算法模块。</p>
+<p>在此处只是介绍了PPO的一个基本思路，PPO的具体理解可以参考下面的lecture和slides，如果对数学概念和收敛性证明感兴趣，建议阅读原文 <a class="reference external" href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a>。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>lecture可见李宏毅强化学习课程P4和P5，在 <a class="reference external" href="https://www.youtube.com/watch?v=OAKAZhFmYoI&amp;list=PLJV_el3uVTsODxQFgzMzPLa16h6B8kWM_&amp;index=2">youtube</a> 和 <a class="reference external" href="https://www.bilibili.com/video/BV1UE411G78S?p=5">b站</a> 上均有课程视频。</p>
+<p>课程对应的ppt可见 <a class="reference external" href="http://speech.ee.ntu.edu.tw/~tlkagk/courses/MLDS_2018/Lecture/PPO%20(v3).pdf">slides</a>。</p>
+<p>李宏毅老师的强化学习课程虽然没有包括所有算法，但是对于基本概念的解释很清楚，对于RL算法的理解很深刻，推荐有时间看一下。</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl>
+<dt>Question：</dt><dd><p>PPO和TRPO是On-policy算法还是Off-policy算法？</p>
+</dd>
+<dt>Answer：</dt><dd><p>回答这个问题，我们要理解On-policy和Off-policy的定义。</p>
+<p>若简单的把On-policy和Off-policy理解为是否使用当前的策略去更新策略，那么由于PPO和TRPO都采用了Importance Sampling技术，是在用之前策略产生的数据去训练被更新的策略，那么则应该算为Off-policy算法。</p>
+<p>但是实际上，所谓On-policy和Off-policy的区分在于采样的策略和改进的策略是不是同一个策略。
+虽然PPO和TRPO在更新策略时中使用到了之前策略的trajectory，但只是<strong>借助了之前策略的轨迹去拟合当前被更新策略的期望值</strong>，
+相当于采样的策略和改进策略还是同一个策略，只是利用了Importance Sampling技术方便我们能利用过去策略去求得我们所采样策略的期望。</p>
+<p>因此PPO和TRPO是属于On-policy算法。</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="gae">
+<h2>GAE<a class="headerlink" href="#gae" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h3>基本思路<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>GAE不是一种算法，而是一种梯度策略方法中可以采用的技术改进。GAE全称为generalized advantage estimation, 在2016年ICLR上发布，论文为 <a class="reference external" href="https://arxiv.org/pdf/1506.02438.pdf">High-dimensional continuous control using generalized advantage estimation</a> 。
+GAE是一种能够广泛适用的advantage估计方式。GAE方法的目的是为了能够有效的 <strong>降低</strong>梯度策略方法中的 <strong>方差</strong>，从而一定程度上解决了梯度策略方法常遇到的两个难题：</p>
+<blockquote>
+<div><p>1.在梯度训练方法中，收敛需要极大的样本量。</p>
+<p>2.在训练过程中，由于得到的样本输入不稳定，会导致训练过程中很难保证获得稳定提升。</p>
+</div></blockquote>
+<p>GAE方法通过减小方差解决第一个问题，使得训练能更快收敛，并且提议使用基于trust region的优化方式来解决第二个问题。现在通常用于带有trust region机制的trpo和ppo来保证训练效果能稳定提升。</p>
+</div>
+<div class="section" id="id5">
+<h3>具体方法回顾<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>为了讲述GAE的实现方式，我们需要先回顾下Policy Gradient是如何实现的。
+在Policy Gradient一节中，我们将优化目标简单直接的定义为整个过程中的reward之和的期望，即对 <span class="math notranslate nohighlight">\(\bar{R_{\theta}} = \sum_{\tau} R(\tau) p_{\theta}(\tau)\)</span> 即推导出的
+<span class="math notranslate nohighlight">\(\nabla \bar{R_{\theta}} = \frac{1}{N} \sum_{n=1}^{N} \sum_{t = 1}^{T} R(\tau) \nabla \log{P_{\theta}(a_t^n|s_t^n)}\)</span> 进行优化。</p>
+<p>实际上，根据不同的情况，Policy Gradient可以定义为多种不同的优化目标，而不一定是整体的reward。优化目标可以定义为：
+<span class="math notranslate nohighlight">\(g=E[\sum_{t=0}^{\infty}{\Psi_{t}\nabla_{\theta}log\pi_{\theta}(a_t|s_t)}]\)</span></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>其中 <span class="math notranslate nohighlight">\(\Psi_t\)</span> 可以定义为：</dt><dd><ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(\sum_{t=0}^{\infty}r_t\)</span> : 即整个策略过程的reward和， 与我们之前在Policy Gradient一节中介绍相同。</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sum_{t'=0}^{\infty}r_{t'}\)</span> : 即t时刻动作 <span class="math notranslate nohighlight">\(a_t\)</span> 之后跟随的reward之和。</p></li>
+<li><p><span class="math notranslate nohighlight">\(\sum_{t'=0}^{\infty}r_{t'} - b(s_t)\)</span> : 即上式引入baseline。</p></li>
+<li><p><span class="math notranslate nohighlight">\(Q^{\pi}(s_t, a_t)\)</span> : 即Q值，状态动作价值函数。</p></li>
+<li><p><span class="math notranslate nohighlight">\(A^{\pi}(s_t, a_t)\)</span> : 即Advantage估计，某时刻选取某个动作的状态动作价值函数相比于当前状态估值的提升，即 <span class="math notranslate nohighlight">\(Q^{\pi}(s_t, a_t) - V^{\pi}(s_t)\)</span> 。</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_t + V^{\pi}(s_{t+1}) - V^{\pi}(s_t)\)</span> : 即td值，时序差分的值。</p></li>
+</ol>
+</dd>
+</dl>
+</div>
+<p>选用不同的优化目标，Policy Gradient的效果和收敛性也会随之不同。如引入baseline后的3式在一般情况下会比2式有小的方差且更加容易收敛。
+本小节讲的是GAE即generalized advantage estimation, 从名字上我们就可以看出，算法选用了Advantage函数作为优化目标。</p>
+<p>选用Advantage函数作为优化目标的主要原因就是因为方差小。从定义上，Advantage函数表示了某个时刻，一个action是否要好于policy的默认行为。
+此外，我们的估计函数基于 <span class="math notranslate nohighlight">\(\Psi_t = A^{\pi}(s_t, a_t)\)</span> ，因为这样在计算梯度时，当且仅当 <span class="math notranslate nohighlight">\(A^{\pi}(s_t, a_t) &gt; 0\)</span> 时 <span class="math notranslate nohighlight">\(\pi_{theta}(a_t|s_t)\)</span> 会向上升方向优化。</p>
+</div>
+<div class="section" id="id6">
+<h3>GAE具体公式<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>除了单纯的使用Advantage函数作为优化目标，GAE还引入了两个参数，分别为 <span class="math notranslate nohighlight">\(\lambda,\gamma\)</span> 。</p>
+<dl>
+<dt>其中 <span class="math notranslate nohighlight">\(\gamma\)</span> 我们已经较为熟悉，即对之后的各个step使用的discount factor。 在引入 <span class="math notranslate nohighlight">\(\gamma\)</span> 后的value、Q和Advantage可定义如下：</dt><dd><p><span class="math notranslate nohighlight">\(V^{\pi, \gamma}(s_t) = E_{s_{t+1} ~ \infty, a_{t} ~ \infty}[\sum_{l=0}^{\infty}\gamma^{l}r_{t+l}]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q^{\pi, \gamma}(s_t, a_t) = E_{s_{t+1} ~ \infty, a_{t+1} ~ \infty}[\sum_{l=0}^{\infty}\gamma^{l}r_{t+l}]\)</span></p>
+<p><span class="math notranslate nohighlight">\(A^{\pi, \gamma}(s_t, a_t) = Q^{\pi, \gamma}(s_t, a_t) - V^{\pi, \gamma}(s_t)\)</span></p>
+</dd>
+<dt>我们声明如下定义：</dt><dd><p>一个估计 <span class="math notranslate nohighlight">\(A\)</span> 是 <span class="math notranslate nohighlight">\(\gamma -just\)</span> 的，当且仅当：</p>
+<blockquote>
+<div><img alt="../../_images/rjust.jpg" src="../../_images/rjust.jpg" />
+</div></blockquote>
+<p>因此，如果一个估计是 <span class="math notranslate nohighlight">\(\gamma -just\)</span> 的，那么优化其带有discount factor即 <span class="math notranslate nohighlight">\(\gamma\)</span> 的估计等同于优化其原始估计。</p>
+</dd>
+</dl>
+<p>而对于以上几个引入 <span class="math notranslate nohighlight">\(\gamma\)</span> 后的估计，都有 <span class="math notranslate nohighlight">\(\gamma -just\)</span> 的性质。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>在此处我们不做有关 <span class="math notranslate nohighlight">\(\gamma -just\)</span> 性质的证明，如果有兴趣请参考 <a class="reference external" href="https://arxiv.org/pdf/1506.02438.pdf">原文</a> 附录。</p>
+</div>
+<p>在明确了 <span class="math notranslate nohighlight">\(\gamma\)</span> 的意义之后，我们开始介绍GAE。
+我们引入 <span class="math notranslate nohighlight">\(\delta\)</span> 如下公式：</p>
+<img alt="../../_images/gae-delta.jpg" src="../../_images/gae-delta.jpg" />
+<p>再引入基于 <span class="math notranslate nohighlight">\(\delta\)</span> 的 <span class="math notranslate nohighlight">\(\hat{A_{t}^{(k)}}\)</span> 如下公式：</p>
+<img alt="../../_images/gae-estimation.jpg" src="../../_images/gae-estimation.jpg" />
+<p>注意到，偏差值在 <span class="math notranslate nohighlight">\(k \rightarrow \infty\)</span> 时，是趋向于0的。因此我们可以将 <span class="math notranslate nohighlight">\(\hat{A_{t}^{(k)}}\)</span> 近似为无偏估计。</p>
+<p>之后，我们再引入参数 <span class="math notranslate nohighlight">\(\lambda\)</span> 。</p>
+<p>参数 <span class="math notranslate nohighlight">\(\lambda\)</span> 是在 <span class="math notranslate nohighlight">\(\gamma\)</span> 之后的另外一个估计参数，引入即可得到GAE的公式：</p>
+<img alt="../../_images/gae-formula.jpg" src="../../_images/gae-formula.jpg" />
+<p>为了方便理解参数 <span class="math notranslate nohighlight">\(\lambda\)</span> 的取值，我们可以将 <span class="math notranslate nohighlight">\(\lambda\)</span> 的取值设置为0和1，此时可以看到：</p>
+<img alt="../../_images/gae-lambda.jpg" src="../../_images/gae-lambda.jpg" />
+<p>可以看出，在 <span class="math notranslate nohighlight">\(\lambda\)</span> 的取值为0时，若取 <span class="math notranslate nohighlight">\(V = V^{\pi, \gamma}\)</span> 则该式 <span class="math notranslate nohighlight">\(\gamma -just\)</span> 的，其他取值都可能有一定程度的偏差，不过其方差相对较小。
+而当 <span class="math notranslate nohighlight">\(\lambda\)</span> 的取值为1时，GAE为无偏估计，但是会有相对较高的方差值。</p>
+<p>因此，最后使用GAE方法的Policy Gradient的优化目标是：</p>
+<img alt="../../_images/gae-pg.jpg" src="../../_images/gae-pg.jpg" />
+<p>当 <span class="math notranslate nohighlight">\(\lambda\)</span> 的取值为1时约等号可以化为等号。</p>
+<dl class="simple">
+<dt>Q&amp;A</dt><dd><p>GAE的公式推导过程相对复杂，并且引入了 <span class="math notranslate nohighlight">\(\lambda,\gamma\)</span> 两个参数， 我们该如何理解 <span class="math notranslate nohighlight">\(\gamma, \lambda\)</span> 这两个参数呢？</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="id8">
+<h3>实验<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>原论文在3D机器人模拟控制环境上测试了算法的有效性。</p>
+<p>由于3D控制环境中需要对多个节点的连续动作进行控制，因此action space很大；并且由于控制环境之后最后的一个是否成功的reward，因此reward是相对稀疏的；
+这导致3D机器人模拟控制环境是一个很有挑战性的环境，需要算法能很好的探索动作空间的同时保持很好的收敛性。</p>
+<p>3D机器人模拟控制环境:</p>
+<img alt="3D机器人模拟控制环境" src="../../_images/3D_motion_env.jpg" />
+<p>GAE在这个环境下取得了比较喜人的结果。具体训练过程可见 <a class="reference external" href="https://sites.google.com/site/gaepapersupp/">视频</a> 。 整个训练过程换算为真实世界时间后总共为两周左右，足以证明使用GAE的梯度下降算法能很好的在探索动作空间的同时保持收敛性。</p>
+</div>
+</div>
+<div class="section" id="sac">
+<h2>SAC<a class="headerlink" href="#sac" title="Permalink to this headline">¶</a></h2>
+<p>SAC算法即Soft Actor-Critic，该算法在2018年发表在论文 <a class="reference external" href="https://arxiv.org/pdf/1801.01290.pdf">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> 中。
+该算法集 <strong>Actor-Critic、Off-Policy、Maximum Entropy Model</strong> 三者于一体，着力解决Model-Free RL的两大问题：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>采样效率低：TRPO/PPO/A3C等On-Policy方法的每一次策略更新都需要在当前策略下进行采样，而不能使用之前在旧的策略下的采样数据。</p></li>
+<li><p>对超参数敏感：DDPG等Off-Policy方法虽然使用Replay Buffer解决了样本利用效率问题，但是确定性actor网络与Q函数相互耦合，性能不稳定，容易受超参的影响。</p></li>
+</ul>
+</div></blockquote>
+<p>SAC将异步AC与一个随机actor结合训练，并以最大熵来改进目标函数。
+在真实世界的连续的状态与动作空间的控制任务上，表现优于以前的On-Policy和Off-Policy算法，并在不同随机种子下保持了较高的稳定性。</p>
+<div class="section" id="id10">
+<h3>最大熵模型<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>首先，熵被定义为信息量的期望，是一种描述随机变量的不确定性的度量，计算公式是： <span class="math notranslate nohighlight">\(H(x) = - \sum_{x_i \in X}P(x_i)\log P(x_i)\)</span> 。</p>
+<p>熵描述了事件的不确定性：如果熵很大，说明事件发生的不确定性很大，很难预测；
+如果熵很小，可以比较容易的预测某个状态的发生与否。
+可以证明，当事件的各状态为均匀分布的时，事件的熵最大。</p>
+<p>因此，最大熵模型的直观理解就是：令对未知的推断为随机不确定，即各随机变量是等概率的。
+在RL算法中，我们希望策略能够尽可能的去探索环境，获得最优策略，但是如果策略输出为低熵的概率分布，则可能会贪婪采样某些值而难以广泛探索。
+最大熵模型就是用于解决这个困境的。</p>
+<p>在标准RL目标函数，即仅包含reward期望的加和的基础上，再加上一个熵的期望，就是最大熵RL模型的目标函数：</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(J(\pi) = \sum_{t=0}^T \mathbb{E}_{(s_t,a_t)\sim \rho_\pi}[r(s_t,a_t)+\alpha \mathcal{H}(\pi(\cdot|s_t))]\)</span></p>
+</div></blockquote>
+<p>其中，<span class="math notranslate nohighlight">\(\alpha\)</span> 是温度参数，定义了熵和reward之间的重要性，控制着最优策略的随机性。</p>
+<p>SAC通过最大熵鼓励策略探索，为Q值相近的动作分配相近的概率，不会给动作范围内任何一个动作分配非常高的概率，避免反复选择同一个动作而陷入次优。
+同时通过最大化奖赏，放弃明显低奖赏的策略。</p>
+<p>这个目标函数有以下几个优势：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>熵项鼓励策略去更多地探索，reward项保证可以及时放弃一些回报较小的尝试</p></li>
+<li><p>最优策略可以捕捉到多个近似最优的行为，提高鲁棒性</p></li>
+<li><p>和SOTA方法相比，由于探索得更加均匀，所以可以极大地加快学习速度</p></li>
+</ul>
+</div></blockquote>
+<p>相比于DDPG、TD3等也都使用了Actor-Critic和Off-policy的算法，SAC算法在连续控制任务上表现更加出色的原因，可能就是引入了最大熵模型。</p>
+</div>
+<div class="section" id="tabular-setting-sac">
+<h3>表格型(Tabular Setting)SAC推导<a class="headerlink" href="#tabular-setting-sac" title="Permalink to this headline">¶</a></h3>
+<p>首先，在表格型（离散）的设定下论证最大熵RL模型下的soft policy iteration (policy evaluation + poloci improvement)，
+然后在下一部分再论证连续设定下的SAC。</p>
+<div class="section" id="policy-evaluation">
+<h4>Policy Evaluation<a class="headerlink" href="#policy-evaluation" title="Permalink to this headline">¶</a></h4>
+<p>对于一个固定的策略 <span class="math notranslate nohighlight">\(\pi\)</span> ，其soft Q-value可以通过Bellman backup算子迭代计算得到：</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\mathcal{T}^\pi Q(s_t,a_t) = r(s_t,a_t)+\gamma \mathbb{E}_{s_{t+1}\sim \pi}[V(s_{t+1})]\)</span></p>
+</div></blockquote>
+<p>其中， <span class="math notranslate nohighlight">\(V(s_t)=\mathbb{E}_{a_t\sim \pi}[Q(s_t.a_t)-\log \pi(a_t|s_t)]\)</span></p>
+<p>由论文中的引理1可知：soft policy evaluation可以通过 <span class="math notranslate nohighlight">\(Q^{k+1}=\mathcal{T}^\pi Q^k\)</span> 进行迭代，
+若无限迭代下去，则最终Q会收敛到固定策略π下的soft Q-value。</p>
+</div>
+<div class="section" id="policy-improvement">
+<h4>Policy Improvement<a class="headerlink" href="#policy-improvement" title="Permalink to this headline">¶</a></h4>
+<p>与往常off-policy方法最大化Q值不同的是，在SAC中策略会向着正比于Q的指数分布的方向更新。
+即传统方法将策略分布更新为当前Q函数的的高斯分布（单峰，如下图左图所示），而SAC会更新为softmax分布（多峰，如下图右图所示)。</p>
+<a class="reference internal image-reference" href="../../_images/SAC-policy_improvement.png"><img alt="../../_images/SAC-policy_improvement.png" src="../../_images/SAC-policy_improvement.png" style="width: 697.0px; height: 193.0px;" /></a>
+<p>但在实际操作中，为了方便处理，我们还是将策略输出为高斯分布，但通过最小化KL散度去最小化两个分布的差距：</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\pi_{new}=\arg \min \rm D_{KL}(\pi'(\cdot|s_t)||\frac{\exp(Q^{\pi_{old}}(s_t, \cdot))}{Z^{\pi_{old}}(s_t)}\)</span></p>
+</div></blockquote>
+<p>其中 <span class="math notranslate nohighlight">\(Z^{\pi_{old}}\)</span> 为对Q值进行归一化分布。</p>
+<p>我们的策略被约束在参数空间中： <span class="math notranslate nohighlight">\(\pi \in \Pi\)</span> 。由论文中的引理2可知：
+对于所有的 <span class="math notranslate nohighlight">\((s_t,a_t) \in S \times A\)</span> ，满足 <span class="math notranslate nohighlight">\(Q^{\pi_{new}}(s_t, a_t) \ge Q^{\pi_{old}}(s_t, a_t)\)</span> ,
+即保证每次更新的新策略不差于旧策略。</p>
+</div>
+<div class="section" id="soft-policy-iteration">
+<h4>Soft Policy Iteration<a class="headerlink" href="#soft-policy-iteration" title="Permalink to this headline">¶</a></h4>
+<p>在Soft Policy Iteration中，Soft Policy Evaluation和Soft Policy Improvement两个过程交替迭代求解，
+通过论文中的定理1可知：最终策略 <span class="math notranslate nohighlight">\(\pi\)</span> 会收敛到最优策略 <span class="math notranslate nohighlight">\(\pi\)</span> ，
+使得对于所有的 <span class="math notranslate nohighlight">\(\pi \in \Pi\)</span> ，以及 <span class="math notranslate nohighlight">\((s_t,a_t) \in S \times A\)</span> ，
+均满足 <span class="math notranslate nohighlight">\(Q^{\pi_{new}}(s_t, a_t) \ge Q^{\pi_{old}}(s_t, a_t)\)</span> 。</p>
+</div>
+</div>
+<div class="section" id="id11">
+<h3>连续任务下的SAC<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>表格型SAC保证状态动作空间是有限离散的情况下，可以获得最优策略。
+但是对于具有连续状态动作空间的控制任务来说，通常必须利用神经网络近似来找到SAC的最优策略。
+本节就重点介绍各个神经网络参数的目标函数。</p>
+<div class="section" id="id12">
+<h4>目标函数及更新方式<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
+<p>SAC用神经网络定义了状态价值函数 <span class="math notranslate nohighlight">\(V_\psi(s_t)\)</span> 、soft Q-value函数 <span class="math notranslate nohighlight">\(Q_\theta(s_t,a_t)\)</span> 以及策略函数 <span class="math notranslate nohighlight">\(\pi_\phi(a_t|s_t)\)</span></p>
+<p><strong>状态价值函数：MSE最小化残差</strong></p>
+<p>由公式 <span class="math notranslate nohighlight">\(V(s_t)=\mathbb{E}_{a_t\sim \pi}[Q(s_t.a_t)-\log \pi(a_t|s_t)]\)</span> ，其实可以发现，V函数可以由soft Q-value函数写出。
+但作者提出，为了稳定训练，还是为V值函数涉及了目标函数：</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(J_V(\psi) = \mathbb{E}_{s_t\sim\mathcal{D}}[\frac{1}{2}(V_\psi(s_t)-\mathbb{E}_{a_t\sim \pi_\phi}[Q_\theta (s_t,a_t)]-\log \pi_\phi(a_t|s_t))^2]\)</span></p>
+</div></blockquote>
+<p>其中D为replay buffer。</p>
+<p><strong>soft Q-value函数：MSE最小化软贝尔曼残差(soft Bellman residual)</strong></p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(J_Q(\theta) = \mathbb{E}_{(s_t,a_t)\sim \mathcal{D}}[\frac12(Q_\theta(s_t,a_t)-\hat{Q}(s_t,a_t))^2]\)</span></p>
+</div></blockquote>
+<p>其中，借鉴了DQN算法的target network，SAC中也定义了一个soft Q-value函数的target网络 <span class="math notranslate nohighlight">\(\hat{Q}(s_t,a_t)\)</span> ：</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\hat{Q}(s_t,a_t) = r(s_t,a_t)+\gamma\mathbb{E}_{s_{t+1}\sim p}[V_{\bar{\psi}}(s_{t+1})]\)</span></p>
+</div></blockquote>
+<p><strong>策略函数：最小化两分布之间的KL散度</strong></p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(J_\pi(\phi) =\mathbb{E}_{s_t\sim\mathcal{D}}[ \rm D_{KL}(\pi_\phi(\cdot|s_t)||\frac{\exp(Q_\theta(s_t, \cdot))}{Z_\theta(s_t)}]\)</span></p>
+</div></blockquote>
+<p>三者对目标函数求梯度并进行更新，具体数学公式可见论文。</p>
+</div>
+<div class="section" id="id13">
+<h4>算法流程<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<p>整个算法的流程如下所示：</p>
+<a class="reference internal image-reference" href="../../_images/SAC-algorithm1.png"><img alt="../../_images/SAC-algorithm1.png" src="../../_images/SAC-algorithm1.png" style="width: 413.0px; height: 328.0px;" /></a>
+<p>在更新（上图黄色框）的部分，先后按照V, soft Q, policy, target V的顺序对参数进行更新。</p>
+</div>
+</div>
+</div>
+<div class="section" id="td3">
+<h2>TD3<a class="headerlink" href="#td3" title="Permalink to this headline">¶</a></h2>
+<p>TD3算法即Twin Delayed Deep Deterministic policy gradient，
+算法在2018年发表在论文 <a class="reference external" href="https://arxiv.org/pdf/1802.09477.pdf">Addressing Function Approximation Error in Actor-Critic Methods</a> 中。并且附有对应 <a class="reference external" href="https://github.com/sfujim/TD3">实现实验的代码</a> 。
+该算法是对DDPG算法的改进，通过一系列的减少bias和方差的方式，在实际应用中取得了明显优于DDPG算法的结果。</p>
+<p>TD3算法的思路具体来说就是解决DDPG算法和其他actor-critic算法中出现的累积错误，包括overestimation bias和high variance build-up。</p>
+<p>在之前的DQN与Double-DQN环节中，我们已经探讨了overestimation的问题。
+在function approximation即函数近似的setting下，噪声的存在会使得函数的估计产生一定程度的偏差。
+而由于策略总是倾向于选择更优的估计值，每次对策略or价值的较高估计会被累积起来，导致出现overestimation的偏差。
+overestimation偏差的问题可能导致任意差的估计结果，从而导致得到次优策和偏离最优策略的行为。</p>
+<p>为了解决over estimation的问题，比较常用的方式就是仿照Double-DQN，设置target Network并且进行延迟的更新，从而减缓或者避免短期的误差积累。
+不过Double-DQN的解决方案对于actor-critic模式下的算法可能相对无效，
+因为在actor-critic中，Network的更新速度比value-based的算法更缓慢，使用延迟更新target Network的方式依然不能很好的消除累积误差。</p>
+<p>为此，TD3算法仿照了Double Q-learning的做法，直接将Target Network单独进行训练，这样使得两个网络的相似程度更小，进一步减少了产生的累积误差。</p>
+<p>TD3 减小overestimation bias 的方式包括：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Twin：即actor和critic都有两个独立训练的网络。</p></li>
+<li><p>Delay：即对policy进行延迟更新。</p></li>
+</ul>
+</div></blockquote>
+<p>不过尽管此时能做到无偏估计，但是训练两个网络可能导致算法的方差较大，因此TD3结合了一些方式并且使用了一些小技巧去降低方差。</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>TD3使用了clipped Double Q-learning的思想，将存在overestimation bias的估计结果作为真实估计结果的上界，实现clipping。</p></li>
+<li><p>TD3使用了SARSA风格的动作价值更新，即在Target policy进行了smoothing，进一步降低了variance。</p></li>
+</ul>
+</div></blockquote>
+<p>TD3的具体算法如下图：</p>
+<a class="reference internal image-reference" href="../../_images/TD3.jpg"><img alt="../../_images/TD3.jpg" src="../../_images/TD3.jpg" style="width: 394.8px; height: 452.4px;" /></a>
+</div>
+<div class="section" id="mcts">
+<h2>MCTS<a class="headerlink" href="#mcts" title="Permalink to this headline">¶</a></h2>
+<p>Monte Carlo Tree Search即蒙特卡洛树搜索，在2006～2007年发明。Monte Carlo Tree Search 的核心思想是使用蒙特卡洛算法进行决策树搜索。</p>
+<div class="section" id="id15">
+<h3>决策树搜索模型<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>决策树搜索模型很早就被用于进行棋类游戏的决策搜索。
+基本的决策树算法包括min-max tree和alpha-beta tree。</p>
+<p>其中min-max tree是通过博弈论中的 <a class="reference external" href="https://en.wikipedia.org/wiki/Minimax#Minimax_algorithm_with_alternate_moves">minmax</a> 算法直接求解树搜索过程。</p>
+<a class="reference internal image-reference" href="../../_images/min-max.png"><img alt="../../_images/min-max.png" src="../../_images/min-max.png" style="width: 376.2px; height: 172.2px;" /></a>
+<p>为了在决策树上使用min-max算法，需要获得 <strong>整个</strong> 决策树。</p>
+<p>而事实上，我们在求解决策树的过程中，我们可以忽略掉一些“低质量”的分支。
+就好比我们在下棋的过程中，我们没有必要去刻意思考对面如果走了一步烂棋后我们该怎么办，因为那些“低质量”的分支很可能不会出现，而即使出现了也能够轻松应对。
+基于这种思路，我们就可以使用 <a class="reference external" href="https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning">alpha-beta pruning</a> 去对决策树进行剪枝。</p>
+<a class="reference internal image-reference" href="../../_images/alpha-beta.png"><img alt="../../_images/alpha-beta.png" src="../../_images/alpha-beta.png" style="width: 376.2px; height: 192.0px;" /></a>
+<p>在1997年打败国际象棋世界冠军的IBM深蓝 <a class="reference external" href="https://en.wikipedia.org/wiki/Deep_Blue_(chess_computer)">DeepBlue</a> 就是基于简单的决策树算法alpha-beta pruning（再加上一些硬编码求解残局定式的剪枝）。</p>
+</div>
+<div class="section" id="id16">
+<h3>为什么要使用MCTS<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<p>即使基于alpha-beta剪枝的决策树算法在国际象棋和其他棋类比赛中取得了很好的成果，但是无法对某些博弈游戏，比如围棋（Go），进行有效的求解。</p>
+<p>其原因在于基于alpha-beta剪枝的决策树算法在本质上还是一种需要遍历决策树的暴力算法，而围棋虽然规则简单，但是其动作空间大（19x19）， 博弈步数长（一盘大约300步），
+导致其决策树以指数级的速度扩充(围棋的决策树节点数超过 <span class="math notranslate nohighlight">\(10^{300}\)</span> 个)，传统的决策树算法就遇到了瓶颈。</p>
+<p>MCTS在发明就是来自解决围棋（Go）的尝试。</p>
+<p>由于围棋的决策树节点数过多，任何算法在运行的过程中注定只能访问很小的一部分节点。因此，需要解决的问题就是如何有效的选取访问的决策树节点。
+任何算法想要有效的求解类似问题时，都必须要尽可能的选择更加重要的节点进行访问，即尽可能访问那些更可能在之后博弈过程中被访问到的节点，相当于Exploitation；
+与此同时，也要一定程度上要尽量考虑到不同可能的走法，即Exploration。</p>
+<p>而这就和之前我们所说的Bandit问题很相似，对于Bandit问题，使用UCB（Upper Confidence Bandit）算法就能有效且有保障的平衡Exploration和Exploitation。</p>
+<p>而MCTS通过使用能够平衡Exploration和Exploitation的算法（通常使用UCT即Upper Confidence Trees，UCB的变种）去合理的选择决策树节点，
+并且使用了蒙特卡洛算法去判断决策树节点的质量，从而很好的解决了传统决策树算法的问题。</p>
+<img alt="../../_images/UCT.jpg" src="../../_images/UCT.jpg" />
+<p>选择决策树节点的策略被称为 <strong>Tree Policy</strong> ， 蒙特卡洛算法Simulation过程中使用的策略被称 <strong>Default Policy</strong> 。</p>
+</div>
+<div class="section" id="id17">
+<h3>MCTS算法流程<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<p>MCTS算法大致分为四步：</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>Selection： 探索决策树，选择更加“重要”的节点进行拓展。 此处的选择方式被称为 <strong>Tree Policy</strong> 。比如UCB的变种UCT就是MCTS最常用的 <strong>Tree Policy</strong> 。</p>
+<img alt="../../_images/MCTS-selection.jpg" src="../../_images/MCTS-selection.jpg" />
+</li>
+<li><p>Expansion： 根据所选择的节点去拓展现有的决策树，得到更多的子节点。</p>
+<img alt="../../_images/MCTS-expansion.jpg" src="../../_images/MCTS-expansion.jpg" />
+</li>
+</ol>
+<p>3. Simulation： 从子节点使用 <strong>Default Policy</strong> 开始模拟，根据模拟运行的结果去估计该节点的对应价值（即蒙特卡洛算法的思想
+从一个决策树节点模拟至游戏结束返回reward的过程在MCTS算法中也被称为一次<strong>Rollout</strong> 。比如UCB的变种UCT就是常用的</p>
+<blockquote>
+<div><img alt="../../_images/MCTS-simulation.jpg" src="../../_images/MCTS-simulation.jpg" />
+</div></blockquote>
+<ol class="arabic" start="4">
+<li><p>Backpropagation： 根据子节点模拟得到的价值估计，更新其各个父节点的价值估计，将Simulation的结果从子节点反向传播到父节点。</p>
+<img alt="../../_images/MCTS-backpropagation.jpg" src="../../_images/MCTS-backpropagation.jpg" />
+</li>
+</ol>
+</div></blockquote>
+<p>其大致流程图表示如下：</p>
+<blockquote>
+<div><img alt="../../_images/MCTS-flow.jpg" src="../../_images/MCTS-flow.jpg" />
+</div></blockquote>
+</div>
+<div class="section" id="id18">
+<h3>MCTS的分析<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<p>MCTS有一些很好的性质，包括但不限于：</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>性能保证：当MCTS运行的步数足够多，趋近于无穷时，在保证defalut-policy可以拟合最优策略函数的前提下，MCTS所得到的策略趋近于min-max tree的策略，即最优的博弈策略。</p></li>
+<li><p>非启发性算法：实现MCTS只需要知道最基本的规则，而不需要任何先验的domain knowledge。比如AlphaGoZero的整个训练过程就是没有使用任何human prior knowledge。</p></li>
+<li><p>即时性：MCTS算法可以在运行过程中的任意一步随时终止，不需要任何的延迟，且能输出当前计算出的最好的选择。这是一个非常优秀的性质。当然，每一步给出的计算时间越长，效果也会变好。</p></li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="id19">
+<h3>MCTS的应用<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<p>MCTS是在2006年为了围棋而发明的。目前，基于MCTS算法的最瞩目的结果也当属2016年和2017年打败世界顶尖选手的AlphaGo和AlphaZero。
+但是经过多年的发展，MCTS算法也在不同的领域得到了对应的应用，包括多智能体博弈、决策选择、网络结构搜索（NAS）等等。
+MCTS作为一种需有许多良好性质和性能保障的决策算法，可以应用到各种各样的问题中去。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>如果对MCTS的一些相关理论感兴趣的话，可以参阅 <a class="reference external" href="https://www.researchgate.net/publication/235985858_A_Survey_of_Monte_Carlo_Tree_Search_Methods">A survey of MCTS</a> .</p>
+</div>
+</div>
+</div>
+<div class="section" id="value-prediction-network">
+<h2>Value Prediction Network<a class="headerlink" href="#value-prediction-network" title="Permalink to this headline">¶</a></h2>
+<p>Value Prediction Network是一种对传统model based算法的改进，也是Muzero算法的一个前身。
+<a class="reference external" href="https://arxiv.org/pdf/1707.03497.pdf">Value Prediction Network</a> 论文是Google Brain 2017年发表的工作，发表在2017年nips会议上。</p>
+<div class="section" id="id21">
+<h3>算法简介<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<p>VPN算法的动机是Planning过程仅仅需要根据当前state预测未来的reward和value，而并不需要对observation进行准确的预测。因此，一个不需要准确预测observation但能预测未来reward和value的模型是更容易学习的，能在更复杂的环境中有更好的表现。</p>
+<p>该算法通过学习一个通过提取abstract state对未来reward和value进行预测的dynamics model，而不是直接通过observation对未来环境的state和reward进行预测。
+通过训练学习abstract state的方式，Value Prediction Network在observation相对复杂、对planning要求高、随机性较强的环境中取得更好的效果，因为在此环境中，Observation Prediction Model很难对环境进行精确的建模。
+Value Prediction Network经实验验证后，其实际应用效果相比于纯粹的model-free和model-based方法有一定的优势。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Model-based和Model-free算法：</dt><dd><ul class="simple">
+<li><p>model-based算法指该算法会学习环境的转移过程并对环境进行建模，而model-free算法则不需要对环境进行建模。</p></li>
+<li><p>model-based算法的样本效率相对较高，但理论比较复杂；model-free的方法样本效率相对低，但是相对简单且更容易实现。</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="model-based">
+<h3>model-based算法的问题<a class="headerlink" href="#model-based" title="Permalink to this headline">¶</a></h3>
+<p>model-based算法虽然有更高的样本效率，但是其使用相比model-free的算法更为复杂，不如model-free方法流行，多用于获取数据成本较高的环境，如机器人控制等环境。
+这是由于model-base算法涉及到环境建模，导致其建模过程复杂，且由于环境建模同样需要训练，整体模型训练难度远高于model-free方法。</p>
+<p>大多数大多model-based算法建模的环境模型都是通过observation和action去推测下一个observation和reward，这种模型被称为observation-prediction model。</p>
+<p>而在相对复杂的环境中，observation通常具有较高的维度，且有一定的随机性，导致model-based算法很难学会环境对应的observation-prediction model。</p>
+</div>
+<div class="section" id="dynamics-model">
+<h3>dynamics model<a class="headerlink" href="#dynamics-model" title="Permalink to this headline">¶</a></h3>
+<p>为了解决model-based算法现有的一些问题，Value Prediction Network一文提出了一种介于传统model-based算法和model-free算法之间的方式，使用dynamics model对环境进行建模。</p>
+<p>dynamics model即使用abstract state空间，对未来的环境reward和value进行多步的一个预测。</p>
+<p>从model-based的角度来看，dynamics model通过提取abstract state的形式，对环境的状态转移过程、reward和discount function进行了一定程度上的建模。</p>
+<p>而从model-free的角度来看，dynamics对abstract state的提取可以看作是critic在对reward和value进行预测的辅助性任务，是为了更好的提取state的相关表示。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>由于每个option之后会运行的步数不同，因此VPN需要对discount进行预测，所预测的discount应该能与该option的步数相对应。
+在论文的Atari实验中，实验设计的option是连续10步重复相同动作(因为在Atari中比较难以手动设计option)，因此相当于所有option对应的步数固定，因此discount也固定。对于discount固定的情况，VPN则不需要预测输出discount。</p>
+</div>
+</div>
+<div class="section" id="vpn">
+<h3>VPN 算法结构<a class="headerlink" href="#vpn" title="Permalink to this headline">¶</a></h3>
+<p>Value Prediction Network包括四个部分：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-structure.png" src="../../_images/vpn-structure.png" />
+</div></blockquote>
+<ul class="simple">
+<li><p>Encoding：将observation编码为abstract state。</p></li>
+<li><p>Value：价值估计，输入为abstract state而不是observation，输出为对应state的value值。</p></li>
+<li><p>Outcome： 输入当前的abstract state和option（强化学习中，option的概念提出于1999年的论文 <a class="reference external" href="http://www.incompleteideas.net/papers/SPS-aij.pdf">A framework for temporal abstraction in reinforcement learning</a> , 具体定义为“closed-loop policies for taking action over a period of time”， 即从几种可能的短期Policy选择一种，根据于选择的option一次运行 k step的action），输出对应的option-reward和option-discount。</p></li>
+<li><p>Transition： 输入当前的abstract state和option（action），输出对应的下一个abstract state。</p></li>
+</ul>
+<p>此时就可以通过以上四个部分对Q值进行估计，即输入一个observation和对应的option（action），输出对应的价值估计。</p>
+<p>对应的Q-value预测公式为：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-dstep.png" src="../../_images/vpn-dstep.png" />
+</div></blockquote>
+<p>d-step planning方式如下图：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-planning.png" src="../../_images/vpn-planning.png" />
+</div></blockquote>
+<p>planning可以分为expansion和backup两部分。Expansion部分直接进行d步的rollout，Back up则是根据公式，用最好结果的序列对Q value进行计算。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>在VPN论文中，作者提及了VPN算法兼容其他树搜索算法如MCTS等，但其在具体实验出于简化的目的选择了简单的Rollout。</p>
+</div>
+<p>VPN算法在训练时，使用k-step prediction的方式进行训练：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-kstep.png" src="../../_images/vpn-kstep.png" />
+</div></blockquote>
+<p>通过如下公式计算第t步的loss：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-kstep-loss.png" src="../../_images/vpn-kstep-loss.png" />
+<img alt="../../_images/vpn-kstep-loss2.png" src="../../_images/vpn-kstep-loss2.png" />
+</div></blockquote>
+<p>最后使用rollout过程上的accumulate loss进行更新。</p>
+<p>整个更新流程图如下：</p>
+<blockquote>
+<div><img alt="../../_images/vpn-learning.png" src="../../_images/vpn-learning.png" />
+</div></blockquote>
+</div>
+<div class="section" id="id22">
+<h3>实验对比<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<p>下图是VPN网络和DQN、OPN的实验对比表：</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../../_images/vpn-exp1.png"><img alt="../../_images/vpn-exp1.png" src="../../_images/vpn-exp1.png" style="width: 293.4px; height: 265.2px;" /></a>
+</div></blockquote>
+<p>其中VPN(1)表示进行1-step planning的VPN算法，而VPN(5)表示进行5-step planning的VPN算法，OPN表示不进行抽象状态提取（不使用abstract state）而直接预测observaiton的模型。</p>
+<p>从实验对比表中可以看出，OPN和VPN在相对较简单的环境下效果相差不大，但在有随机性的环境中VPN的算法效果明显优于OPN。</p>
+<p>在VPN中，Planning的方式也十分重要，下图对比表示了不同d-step planning的VPN效果：</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../../_images/vpn-exp2.png"><img alt="../../_images/vpn-exp2.png" src="../../_images/vpn-exp2.png" style="width: 310.2px; height: 291.0px;" /></a>
+</div></blockquote>
+<p>从该图可以看出，加深Planning中rollout的深度可以使得VPN算法获得更好的实验效果。作者也提及了VPN兼容其他的树搜索算法，因此使用MCTS rollout进行Planning的Muzero算法也是Google团队顺理成章的后续工作。</p>
+</div>
+<div class="section" id="id23">
+<h3>后继工作<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<p>DeepMind提出的Muzero算法可以视为Value Prediction Network的dynamics model方法与AlphaZero MCTS rollout planning方法的结合。
+该后继工作使用model-based的方法，不仅在围棋、国际象棋、将棋等棋类游戏中取得了极佳的效果，还在通常使用model-free算法的Atari环境中都取得了超过或持平之前sota的结果，将model-based算法带到了新的高度。</p>
+</div>
+</div>
+<div class="section" id="paper-list">
+<h2>Paper List<a class="headerlink" href="#paper-list" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="q-a">
+<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="large-scale-rl.html" class="btn btn-neutral float-right" title="Large Scale RL Training" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="算法与训练/Algorithm and Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>config.config &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Env" href="../env/index.html" />
+    <link rel="prev" title="Config" href="index.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Config</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">config.config</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config">config</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">Config</a> &raquo;</li>
+        
+      <li>config.config</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/api_doc/config/config.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="config-config">
+<h1>config.config<a class="headerlink" href="#config-config" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="config">
+<h2>config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Config<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.config.config.Config">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">Config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg_dict</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cfg_text</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/nervex/config/config.html#Config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.Config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base class for config.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, file_to_dict</p>
+</dd>
+<dt>Property:</dt><dd><p>cfg_dict</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nervex.config.config.Config.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg_dict</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cfg_text</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/nervex/config/config.html#Config.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.Config.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init method. Create config including dict type config and text type config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): dict type config</p></li>
+<li><p>cfg_text (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): text type config</p></li>
+<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.config.config.Config._file_to_dict">
+<em class="property">static </em><code class="sig-name descname">_file_to_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>dict<span class="p">, </span>str<span class="p">]</span><a class="reference internal" href="../../_modules/nervex/config/config.html#Config._file_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.Config._file_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Read config file and convert the config file to dict type config and text type config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): dict type config</p></li>
+<li><p>cfg_text (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): text type config</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.config.config.Config.file_to_dict">
+<em class="property">static </em><code class="sig-name descname">file_to_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#nervex.config.config.Config" title="nervex.config.config.Config">nervex.config.config.Config</a><a class="reference internal" href="../../_modules/nervex/config/config.html#Config.file_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.Config.file_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Read config file and create config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg_dict (<a class="reference internal" href="#nervex.config.config.Config" title="nervex.config.config.Config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Config</span></code></a>): config class</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="read-config-yaml">
+<h3>read_config_yaml<a class="headerlink" href="#read-config-yaml" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.read_config_yaml">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">read_config_yaml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; easydict.EasyDict<a class="reference internal" href="../../_modules/nervex/config/config.html#read_config_yaml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.read_config_yaml" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>read configuration from path</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of source yaml</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config data from this file with dict type</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="save-config-yaml">
+<h3>save_config_yaml<a class="headerlink" href="#save-config-yaml" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.save_config_yaml">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">save_config_yaml</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; NoReturn<a class="reference internal" href="../../_modules/nervex/config/config.html#save_config_yaml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.save_config_yaml" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>save configuration to path</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>config (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="save-config-py">
+<h3>save_config_py<a class="headerlink" href="#save-config-py" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.save_config_py">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">save_config_py</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; NoReturn<a class="reference internal" href="../../_modules/nervex/config/config.html#save_config_py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.save_config_py" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>save configuration to python file</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>config (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="read-config">
+<h3>read_config<a class="headerlink" href="#read-config" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.read_config">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">read_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">direct</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>dict<span class="p">, </span>dict<span class="p">]</span><a class="reference internal" href="../../_modules/nervex/config/config.html#read_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.read_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>read configuration from python file</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of python file</p></li>
+<li><p>direct (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Read config directly if direct is true or divide config into main_config,            create_config and system_config if direct is false</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[dict,</span> <span class="pre">dict]</span></code>): Config dict, such as [main_config, create_config, system_config]            or main_config, create_config, system_config</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="save-config">
+<h3>save_config<a class="headerlink" href="#save-config" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.save_config">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">save_config</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">type_</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'py'</span></em>, <em class="sig-param"><span class="n">save_formatted</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; NoReturn<a class="reference internal" href="../../_modules/nervex/config/config.html#save_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.save_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>save configuration to python file or yaml file</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p><a href="#id2"><span class="problematic" id="id3">config_</span></a> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml or target python file</p></li>
+<li><p>type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): If type is ‘yaml’, save configuration to yaml file. If type is ‘py’, save             configuration to python file.</p></li>
+<li><p>save_formatted (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): If save_formatted is true, save formatted config to path.            Formatted config can be read by serial_pipeline directly.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="save-config-formatted">
+<h3>save_config_formatted<a class="headerlink" href="#save-config-formatted" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.save_config_formatted">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">save_config_formatted</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'formatted_total_config.py'</span></em><span class="sig-paren">)</span> &#x2192; NoReturn<a class="reference internal" href="../../_modules/nervex/config/config.html#save_config_formatted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.save_config_formatted" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>save formatted configuration to python file that can be read by serial_pipeline directly.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p><a href="#id4"><span class="problematic" id="id5">config_</span></a> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of python file</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="compile-config">
+<h3>compile_config<a class="headerlink" href="#compile-config" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.compile_config">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">compile_config</code><span class="sig-paren">(</span><em class="sig-param">cfg: easydict.EasyDict</em>, <em class="sig-param">env_manager: type = None</em>, <em class="sig-param">policy: type = None</em>, <em class="sig-param">learner: type = &lt;class 'nervex.worker.learner.base_learner.BaseLearner'&gt;</em>, <em class="sig-param">collector: type = None</em>, <em class="sig-param">evaluator: type = &lt;class 'nervex.worker.collector.base_serial_evaluator.BaseSerialEvaluator'&gt;</em>, <em class="sig-param">buffer: type = None</em>, <em class="sig-param">env: type = None</em>, <em class="sig-param">seed: int = 0</em>, <em class="sig-param">auto: bool = False</em>, <em class="sig-param">create_cfg: dict = None</em>, <em class="sig-param">save_cfg: bool = True</em>, <em class="sig-param">save_path: str = 'total_config.py'</em><span class="sig-paren">)</span> &#x2192; easydict.EasyDict<a class="reference internal" href="../../_modules/nervex/config/config.html#compile_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.compile_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Combine the input config information with other input information.
+Compile config to make it easy to be called by other programs</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Input config dict which is to be used in the following pipeline</p></li>
+<li><p>env_manager (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Env_manager class which is to be used in the following pipeline</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Policy class which is to be used in the following pipeline</p></li>
+<li><p>learner (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input learner class, defaults to BaseLearner</p></li>
+<li><p>collector (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input collector class, defaults to BaseSerialCollector</p></li>
+<li><p>evaluator (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input evaluator class, defaults to BaseSerialEvaluator</p></li>
+<li><p>buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input buffer class, defaults to BufferManager</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Environment class which is to be used in the following pipeline</p></li>
+<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Random number seed</p></li>
+<li><p>auto (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Compile create_config dict or not</p></li>
+<li><p>create_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input create config dict</p></li>
+<li><p>save_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Save config or not</p></li>
+<li><p>save_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of saving file</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config after compiling</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="compile-config-parallel">
+<h3>compile_config_parallel<a class="headerlink" href="#compile-config-parallel" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="nervex.config.config.compile_config_parallel">
+<code class="sig-prename descclassname">nervex.config.config.</code><code class="sig-name descname">compile_config_parallel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em>, <em class="sig-param"><span class="n">create_cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em>, <em class="sig-param"><span class="n">system_cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">save_cfg</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">save_path</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'total_config.py'</span></em>, <em class="sig-param"><span class="n">platform</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'local'</span></em>, <em class="sig-param"><span class="n">coordinator_host</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">learner_host</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">collector_host</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coordinator_port</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">learner_port</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">collector_port</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; easydict.EasyDict<a class="reference internal" href="../../_modules/nervex/config/config.html#compile_config_parallel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.config.config.compile_config_parallel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Combine the input parallel mode configuration information with other input information. Compile config             to make it easy to be called by other programs</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Input main config dict</p></li>
+<li><p>create_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input create config dict, including type parameters, such as environment type</p></li>
+<li><p>system_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input system config dict, including system parameters, such as file path,            communication mode, use multiple GPUs or not</p></li>
+<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Random number seed</p></li>
+<li><p>save_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Save config or not</p></li>
+<li><p>save_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of saving file</p></li>
+<li><p>platform (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Where to run the program, ‘local’ or ‘slurm’</p></li>
+<li><p>coordinator_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input coordinator’s host when platform is slurm</p></li>
+<li><p>learner_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input learner’s host when platform is slurm</p></li>
+<li><p>collector_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input collector’s host when platform is slurm</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config after compiling</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../env/index.html" class="btn btn-neutral float-right" title="Env" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Config" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>league.league &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="league.player" href="player.html" />
+    <link rel="prev" title="League" href="index.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">League</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">league.league</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#base-league">base_league</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#league-one-vs-one-league">league.one_vs_one_league</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#one-vs-one-league">one_vs_one_league</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="player.html">league.player</a></li>
+<li class="toctree-l3"><a class="reference internal" href="payoff.html">league.payoff</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../worker/replay_buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">League</a> &raquo;</li>
+        
+      <li>league.league</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/api_doc/league/league.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="league-league">
+<h1>league.league<a class="headerlink" href="#league-league" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="base-league">
+<h2>base_league<a class="headerlink" href="#base-league" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="baseleague">
+<h3>BaseLeague<a class="headerlink" href="#baseleague" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.league.base_league.BaseLeague">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.league.base_league.</code><code class="sig-name descname">BaseLeague</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.</p>
+</dd>
+<dt>Interface:</dt><dd><p>get_job_info, judge_snapshot, update_active_player, finish_job, save_checkpoint</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, league would also initialized players as well(in <code class="docutils literal notranslate"><span class="pre">_init_players</span></code> method).</p>
+</div>
+<dl class="py method">
+<dt id="nervex.league.base_league.BaseLeague.finish_job">
+<code class="sig-name descname">finish_job</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague.finish_job"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague.finish_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Finish current job. Update shared payoff to record the game results.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>job_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): A dict containing job result information.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.base_league.BaseLeague.get_job_info">
+<code class="sig-name descname">get_job_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_flag</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague.get_job_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get info dict of the job which is to be launched to an active player.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The active player’s id.</p></li>
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this is an evaluation job.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>job_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Job info.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <a href="#id1"><span class="problematic" id="id2">`</span></a>launch_player`(the active player)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.base_league.BaseLeague.judge_snapshot">
+<code class="sig-name descname">judge_snapshot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague.judge_snapshot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether a player is trained enough for snapshot. If yes, call player’s <code class="docutils literal notranslate"><span class="pre">snapshot</span></code>, create a
+historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
+Otherwise, return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ActivePlayer</span></code>): The active player’s id.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_or_not (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Whether the active player is snapshotted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.base_league.BaseLeague.save_checkpoint">
+<em class="property">static </em><code class="sig-name descname">save_checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_checkpoint</span></em>, <em class="sig-param"><span class="n">dst_checkpoint</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague.save_checkpoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Copy a checkpoint from path <code class="docutils literal notranslate"><span class="pre">src_checkpoint</span></code> to path <code class="docutils literal notranslate"><span class="pre">dst_checkpoint</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>src_checkpoint (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Source checkpoint’s path, e.g. s3://alphastar_fake_data/ckpt.pth</p></li>
+<li><p>dst_checkpoint (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Destination checkpoint’s path, e.g. s3://alphastar_fake_data/ckpt.pth</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.base_league.BaseLeague.update_active_player">
+<code class="sig-name descname">update_active_player</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/nervex/league/base_league.html#BaseLeague.update_active_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.base_league.BaseLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update an active player’s info.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Info dict of the player which is to be updated.</p></li>
+</ul>
+</dd>
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <cite>player_id</cite>, <cite>train_iteration</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nervex.league.base_league.create_league">
+<span id="create-league"></span><h3>create_league<a class="headerlink" href="#module-nervex.league.base_league.create_league" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Given the key (league_type), create a new league instance if in league_mapping’s values,
+or raise an KeyError. In other words, a derived league must first register then call <code class="docutils literal notranslate"><span class="pre">create_league</span></code>
+to get the instance object.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): league config, necessary keys: [league.import_module, league.learner_type]</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>league (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLeague</span></code>): the created new league, should be an instance of one of             league_mapping’s values</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="section" id="league-one-vs-one-league">
+<h1>league.one_vs_one_league<a class="headerlink" href="#league-one-vs-one-league" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="one-vs-one-league">
+<h2>one_vs_one_league<a class="headerlink" href="#one-vs-one-league" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="onevsoneleague">
+<h3>OneVsOneLeague<a class="headerlink" href="#onevsoneleague" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.league.one_vs_one_league.</code><code class="sig-name descname">OneVsOneLeague</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/nervex/league/one_vs_one_league.html#OneVsOneLeague"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>One vs One battle game league.
+Decide which two players will play against each other.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, run, close, finish_job, update_active_player</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague.finish_job">
+<code class="sig-name descname">finish_job</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague.finish_job" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Finish current job. Update shared payoff to record the game results.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>job_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): A dict containing job result information.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague.get_job_info">
+<code class="sig-name descname">get_job_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_id</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eval_flag</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get info dict of the job which is to be launched to an active player.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The active player’s id.</p></li>
+<li><p>eval_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this is an evaluation job.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>job_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Job info.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <a href="#id3"><span class="problematic" id="id4">`</span></a>launch_player`(the active player)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague.judge_snapshot">
+<code class="sig-name descname">judge_snapshot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether a player is trained enough for snapshot. If yes, call player’s <code class="docutils literal notranslate"><span class="pre">snapshot</span></code>, create a
+historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
+Otherwise, return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ActivePlayer</span></code>): The active player’s id.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>snapshot_or_not (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Whether the active player is snapshotted.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague.save_checkpoint">
+<em class="property">static </em><code class="sig-name descname">save_checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_checkpoint</span></em>, <em class="sig-param"><span class="n">dst_checkpoint</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Copy a checkpoint from path <code class="docutils literal notranslate"><span class="pre">src_checkpoint</span></code> to path <code class="docutils literal notranslate"><span class="pre">dst_checkpoint</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>src_checkpoint (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Source checkpoint’s path, e.g. s3://alphastar_fake_data/ckpt.pth</p></li>
+<li><p>dst_checkpoint (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Destination checkpoint’s path, e.g. s3://alphastar_fake_data/ckpt.pth</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.league.one_vs_one_league.OneVsOneLeague.update_active_player">
+<code class="sig-name descname">update_active_player</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#nervex.league.one_vs_one_league.OneVsOneLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update an active player’s info.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Info dict of the player which is to be updated.</p></li>
+</ul>
+</dd>
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <cite>player_id</cite>, <cite>train_iteration</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="player.html" class="btn btn-neutral float-right" title="league.player" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="League" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

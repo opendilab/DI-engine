@@ -1,0 +1,623 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nervex.utils.default_helper &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>nervex.utils.default_helper</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for nervex.utils.default_helper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2020 Sensetime X-lab. All Rights Reserved</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+
+<span class="k">def</span> <span class="nf">lists_to_dicts</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]]],</span>
+        <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">NamedTuple</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Transform a list of dicts to a dict of lists.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]]`):</span>
+<span class="sd">            A dict of lists need to be transformed</span>
+<span class="sd">        - recursive (:obj:`bool`): whether recursively deals with dict element</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - newdata (:obj:`Union[Mapping[object, object], NamedTuple]`): A list of dicts as a result</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from nervex.utils import *</span>
+<span class="sd">        &gt;&gt;&gt; lists_to_dicts([{1: 1, 10: 3}, {1: 2, 10: 4}])</span>
+<span class="sd">        {1: [1, 2], 10: [3, 4]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;empty data&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">k</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))]</span>
+                    <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">lists_to_dicts</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;_fields&#39;</span><span class="p">):</span>  <span class="c1"># namedtuple</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not support element type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+    <span class="k">return</span> <span class="n">new_data</span>
+
+
+<span class="k">def</span> <span class="nf">dicts_to_lists</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Transform a dict of lists to a list of dicts.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`Mapping[object, list]`): A list of dicts need to be transformed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        - newdata (:obj:`List[Mapping[object, object]]`): A dict of lists as a result</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from nervex.utils import *</span>
+<span class="sd">        &gt;&gt;&gt; dicts_to_lists({1: [1, 2], 10: [3, 4]})</span>
+<span class="sd">        [{1: 1, 10: 3}, {1: 2, 10: 4}]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+    <span class="n">new_data</span> <span class="o">=</span> <span class="p">[{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">t</span><span class="p">)}</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">new_data</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="n">new_data</span>
+
+
+<span class="k">def</span> <span class="nf">override</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span>
+        <span class="n">Callable</span><span class="p">,</span>
+<span class="p">],</span> <span class="n">Callable</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Annotation for documenting method overrides.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cls (:obj:`type`): The superclass that provides the overridden method. If this</span>
+<span class="sd">            cls does not actually have the method, an error is raised.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_override</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not override any method of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="bp">cls</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">method</span>
+
+    <span class="k">return</span> <span class="n">check_override</span>
+
+
+<span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Squeeze data from tuple, list or dict to single object</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; a = (4, )</span>
+<span class="sd">        &gt;&gt;&gt; a = squeeze(a)</span>
+<span class="sd">        &gt;&gt;&gt; print(a)</span>
+<span class="sd">        &gt;&gt;&gt; 4</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="n">default_get_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">default_get</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">default_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">judge_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Getting the value by input, checks generically on the inputs with \</span>
+<span class="sd">        at least ``data`` and ``name``. If ``name`` exists in ``data``, \</span>
+<span class="sd">        get the value at ``name``; else, add ``name`` to ``default_get_set``\</span>
+<span class="sd">        with value generated by \</span>
+<span class="sd">        ``default_fn`` (or directly as ``default_value``) that \</span>
+<span class="sd">        is checked by `` judge_fn`` to be legal.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data(:obj:`dict`): Data input dictionary</span>
+<span class="sd">        - name(:obj:`str`): Key name</span>
+<span class="sd">        - default_value(:obj:`Optional[Any]`) = None,</span>
+<span class="sd">        - default_fn(:obj:`Optional[Callable]`) = Value</span>
+<span class="sd">        - judge_fn(:obj:`Optional[Callable]`) = None</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - ret(:obj:`list`): Splitted data</span>
+<span class="sd">        - residual(:obj:`list`): Residule list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">default_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">default_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">default_fn</span><span class="p">()</span> <span class="k">if</span> <span class="n">default_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_value</span>
+        <span class="k">if</span> <span class="n">judge_fn</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">judge_fn</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="s2">&quot;defalut value(</span><span class="si">{}</span><span class="s2">) is not accepted by judge_fn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_get_set</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> use default value </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="n">default_get_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Split list of data by step.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data(:obj:`list`): List of data for spliting</span>
+<span class="sd">        - step(:obj:`int`): Number of step for spliting</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - ret(:obj:`list`): List of splitted data.</span>
+<span class="sd">        - residual(:obj:`list`): Residule list. This value is ``None`` when  ``data`` divides ``steps``.</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; list_split([1,2,3,4],2)</span>
+<span class="sd">        ([[1, 2], [3, 4]], None)</span>
+<span class="sd">        &gt;&gt;&gt; list_split([1,2,3,4],3)</span>
+<span class="sd">        ([[1, 2, 3]], [4])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">step</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="n">data</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">divide_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">//</span> <span class="n">step</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">divide_num</span><span class="p">):</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">step</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">divide_num</span> <span class="o">*</span> <span class="n">step</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">divide_num</span> <span class="o">*</span> <span class="n">step</span><span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">,</span> <span class="n">residual</span>
+
+
+<span class="k">def</span> <span class="nf">error_wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">default_ret</span><span class="p">,</span> <span class="n">warning_msg</span><span class="o">=</span><span class="s2">&quot;[WARNING]: call linklink error, return default_ret.&quot;</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        wrap the function, so that any Exception in the function will be catched and return the default_ret</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - fn (:obj:`Callable`): the function to be wraped</span>
+<span class="sd">        - default_ret (:obj:`obj`): the default return when an Exception occured in the function</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - wrapper (:obj:`Callable`): the wrapped function</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # Used to checkfor Fakelink (Refer to utils.dist_helper.py)</span>
+<span class="sd">        &gt;&gt;&gt; def get_rank():  # Get the rank of linklink model, return 0 if use FakeLink.</span>
+<span class="sd">        &gt;&gt;&gt;    if is_fake_link:</span>
+<span class="sd">        &gt;&gt;&gt;        return 0</span>
+<span class="sd">        &gt;&gt;&gt;    return error_wrapper(link.get_rank, 0)()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">default_ret</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">default_ret = </span><span class="si">{}</span><span class="se">\t</span><span class="s2">error = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">default_ret</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<div class="viewcode-block" id="LimitedSpaceContainer"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer">[docs]</a><span class="k">class</span> <span class="nc">LimitedSpaceContainer</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        A space simulator.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``get_residual_space``, ``release_space``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.__init__"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for initialization.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - min_val (:obj:`int`): Min volume of the container, usually 0.</span>
+<span class="sd">            - max_val (:obj:`int`): Max volume of the container.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="n">min_val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">=</span> <span class="n">max_val</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">&gt;</span> <span class="n">min_val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span></div>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.get_residual_space"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.get_residual_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_residual_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get all residual pieces of space. Set ``cur`` to ``max_val``</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ret (:obj:`int`): Residual space, calculated by ``max_val`` - ``cur``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.acquire_space"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.acquire_space">[docs]</a>    <span class="k">def</span> <span class="nf">acquire_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Try to get one pice of space. If there is one, return True; Otherwise return False.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - flag (:obj:`bool`): Whether there is any piece of residual space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.release_space"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.release_space">[docs]</a>    <span class="k">def</span> <span class="nf">release_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Release only one piece of space. Decrement ``cur``, but ensure it won&#39;t be negative.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.increase_space"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.increase_space">[docs]</a>    <span class="k">def</span> <span class="nf">increase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Increase one piece in space. Increment ``max_val``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="LimitedSpaceContainer.decrease_space"><a class="viewcode-back" href="../../../api_doc/utils/default_helper.html#nervex.utils.default_helper.LimitedSpaceContainer.decrease_space">[docs]</a>    <span class="k">def</span> <span class="nf">decrease_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Decrease one piece in space. Decrement ``max_val``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">-=</span> <span class="mi">1</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">deep_merge_dicts</span><span class="p">(</span><span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Merge two dicts by calling ``deep_update``</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - original (:obj:`dict`): Dict 1.</span>
+<span class="sd">        - new_dict (:obj:`dict`): Dict 2.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - merged_dict (:obj:`dict`): A new dict that is d1 and d2 deeply merged.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">original</span> <span class="o">=</span> <span class="n">original</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="n">new_dict</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">merged</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">original</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">new_dict</span><span class="p">:</span>  <span class="c1"># if new_dict is neither empty dict nor None</span>
+        <span class="n">deep_update</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">return</span> <span class="n">merged</span>
+
+
+<span class="k">def</span> <span class="nf">deep_update</span><span class="p">(</span>
+    <span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">new_keys_allowed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">whitelist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">override_all_if_type_changes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Update original dict with values from new_dict recursively.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - original (:obj:`dict`): Dictionary with default values.</span>
+<span class="sd">        - new_dict (:obj:`dict`): Dictionary with values to be updated</span>
+<span class="sd">        - new_keys_allowed (:obj:`bool`): Whether new keys are allowed.</span>
+<span class="sd">        - whitelist (:obj:`Optional[List[str]]`):</span>
+<span class="sd">            List of keys that correspond to dict</span>
+<span class="sd">            values where new subkeys can be introduced. This is only at the top</span>
+<span class="sd">            level.</span>
+<span class="sd">        - override_all_if_type_changes(:obj:`Optional[List[str]]`):</span>
+<span class="sd">            List of top level</span>
+<span class="sd">            keys with value=dict, for which we always simply override the</span>
+<span class="sd">            entire value (:obj:`dict`), if the &quot;type&quot; key in that value dict changes.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        If new key is introduced in new_dict, then if new_keys_allowed is not</span>
+<span class="sd">        True, an error will be thrown. Further, for sub-dicts, if the key is</span>
+<span class="sd">        in the whitelist, then new subkeys can be introduced.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">whitelist</span> <span class="o">=</span> <span class="n">whitelist</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">override_all_if_type_changes</span> <span class="o">=</span> <span class="n">override_all_if_type_changes</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">new_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">original</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">new_keys_allowed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unknown config parameter `</span><span class="si">{}</span><span class="s2">`. Base config have: </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">original</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+        <span class="c1"># Both original value and new one are dicts.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">original</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Check old type vs old one. If different, override entire value.</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">override_all_if_type_changes</span> <span class="ow">and</span> \
+                    <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">and</span> <span class="s2">&quot;type&quot;</span> <span class="ow">in</span> <span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">and</span> \
+                    <span class="n">value</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                <span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="c1"># Whitelisted key -&gt; ok to add new subkeys.</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">whitelist</span><span class="p">:</span>
+                <span class="n">deep_update</span><span class="p">(</span><span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Non-whitelisted key.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">deep_update</span><span class="p">(</span><span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">value</span><span class="p">,</span> <span class="n">new_keys_allowed</span><span class="p">)</span>
+        <span class="c1"># Original value not a dict OR new value not a dict:</span>
+        <span class="c1"># Override entire value.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">original</span>
+
+
+<span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Flatten the dict, see example</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`dict`): Original nested dict</span>
+<span class="sd">        - delimiter (str): Delimiter of the keys of the new dict</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - data (:obj:`dict`): Flattened nested dict</span>
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; a</span>
+<span class="sd">        {&#39;a&#39;: {&#39;b&#39;: 100}}</span>
+<span class="sd">        &gt;&gt;&gt; flatten_dict(a)</span>
+<span class="sd">        {&#39;a/b&#39;: 100}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">add</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">subkey</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">add</span><span class="p">[</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">key</span><span class="p">,</span> <span class="n">subkey</span><span class="p">])]</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="n">remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">add</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">remove</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">def</span> <span class="nf">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_cuda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Side effect function to set seed for ``random``, ``numpy random``, and ``torch&#39;s manual seed``.\</span>
+<span class="sd">        This is usaually used in entry scipt in the section of setting random seed for all package and instance</span>
+<span class="sd">    Argument:</span>
+<span class="sd">        - seed(:obj:`int`): Set seed</span>
+<span class="sd">        - use_cuda(:obj:`bool`) Whether use cude</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; # ../entry/xxxenv_xxxpolicy_main.py</span>
+<span class="sd">        &gt;&gt;&gt; ...</span>
+<span class="sd">        # Set random seed for all package and instance</span>
+<span class="sd">        &gt;&gt;&gt; collector_env.seed(seed)</span>
+<span class="sd">        &gt;&gt;&gt; evaluator_env.seed(seed, dynamic_seed=False)</span>
+<span class="sd">        &gt;&gt;&gt; set_pkg_seed(seed, use_cuda=cfg.policy.cuda)</span>
+<span class="sd">        &gt;&gt;&gt; ...</span>
+<span class="sd">        # Set up RL Policy, etc.</span>
+<span class="sd">        &gt;&gt;&gt; ...</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">use_cuda</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

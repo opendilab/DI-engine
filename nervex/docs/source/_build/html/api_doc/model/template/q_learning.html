@@ -1,0 +1,745 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>template.q_learning &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="template.QAC" href="QAC.html" />
+    <link rel="prev" title="Template" href="index.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Model</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../common/index.html">Common</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">Template</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">template.q_learning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="QAC.html">template.QAC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="VAC.html">common.head</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../worker/replay_buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="../index.html">Model</a> &raquo;</li>
+        
+          <li><a href="index.html">Template</a> &raquo;</li>
+        
+      <li>template.q_learning</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../_sources/api_doc/model/template/q_learning.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="template-q-learning">
+<h1>template.q_learning<a class="headerlink" href="#template-q-learning" title="Permalink to this headline">¶</a></h1>
+<p>Please Reference nerveX/nervex/docs/source/api_doc/model/template/q_learning.py for usage</p>
+<div class="section" id="dqn">
+<h2>DQN<a class="headerlink" href="#dqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nervex.model.template.q_learning.DQN">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">DQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">dueling</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#DQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.DQN" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nervex.model.template.q_learning.DQN.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">dueling</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#DQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.DQN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the DQN Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>dueling (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dueling</span></code>): Whether choose <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code> or <code class="docutils literal notranslate"><span class="pre">DiscreteHead(default)</span></code>.</p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.DQN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#DQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.DQN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict output.
+Parameter updates with DQN’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="c51dqn">
+<h2>C51DQN<a class="headerlink" href="#c51dqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nervex.model.template.q_learning.C51DQN">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">C51DQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#C51DQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.C51DQN" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nervex.model.template.q_learning.C51DQN.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#C51DQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.C51DQN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the C51 Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+<li><p>n_atom (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Number of atoms in the prediction distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.C51DQN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#C51DQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.C51DQN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict C51DQN’s output.
+Parameter updates with C51DQN’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor w/ <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=head_hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head. Return the result prediction dictionary.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Distribution tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">n_atom)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">C51DQN</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default head_hidden_size: int = 64,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default n_atom: int = 51</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">51</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="qrdqn">
+<h2>QRDQN<a class="headerlink" href="#qrdqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nervex.model.template.q_learning.QRDQN">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">QRDQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">num_quantiles</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">32</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#QRDQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.QRDQN" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nervex.model.template.q_learning.QRDQN.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">num_quantiles</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">32</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#QRDQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.QRDQN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the QRDQN Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><p>num_quantiles (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of quantiles in the prediction distribution.</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.QRDQN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#QRDQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.QRDQN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict QRDQN’s output.
+Parameter updates with QRDQN’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor with <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head. Return the result prediction dictionary.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q valye tensor tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">num_quantiles)</span></code></p></li>
+<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): tau tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">1)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QRDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default num_quantiles : int = 32</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="iqn">
+<h2>IQN<a class="headerlink" href="#iqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nervex.model.template.q_learning.IQN">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">IQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">num_quantiles</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">32</span></em>, <em class="sig-param"><span class="n">quantile_embedding_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">128</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#IQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.IQN" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="nervex.model.template.q_learning.IQN.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">num_quantiles</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">32</span></em>, <em class="sig-param"><span class="n">quantile_embedding_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">128</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#IQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.IQN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the IQN Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><p>num_quantiles (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of quantiles in the prediction distribution.</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.IQN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#IQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.IQN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict IQN’s output.
+Parameter updates with IQN’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor with <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head. Return the result prediction dictionary.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q valye tensor tensor of size <code class="docutils literal notranslate"><span class="pre">(num_quantiles,</span> <span class="pre">N,</span> <span class="pre">B)</span></code></p></li>
+<li><p>quantiles (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): quantiles tensor of size <code class="docutils literal notranslate"><span class="pre">(quantile_embedding_size,</span> <span class="pre">1)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">IQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default num_quantiles: int = 32</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default quantile_embedding_size: int = 128</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;quantiles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="rainbowdqn">
+<h2>RainbowDQN<a class="headerlink" href="#rainbowdqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nervex.model.template.q_learning.RainbowDQN">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">RainbowDQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.RainbowDQN" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>RainbowDQN contains dueling architecture by default</p>
+</div>
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.RainbowDQN.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.RainbowDQN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the Rainbow Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+<li><p>n_atom (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Number of atoms in the prediction distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.model.template.q_learning.RainbowDQN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.model.template.q_learning.RainbowDQN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict Rainbow output.
+Parameter updates with Rainbow’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor with <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run <code class="docutils literal notranslate"><span class="pre">MLP</span></code> with <code class="docutils literal notranslate"><span class="pre">RainbowHead</span></code> setups and return the result prediction dictionary.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Distribution tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">n_atom)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">RainbowDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default n_atom: int =51</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">51</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="drqn">
+<h2>DRQN<a class="headerlink" href="#drqn" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="id0">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.model.template.q_learning.</code><code class="sig-name descname">RainbowDQN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>RainbowDQN contains dueling architecture by default</p>
+</div>
+<dl class="py method">
+<dt id="id1">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v_min</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">- 10</span></em>, <em class="sig-param"><span class="n">v_max</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">51</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the Rainbow Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><p>head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">nervex.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+<li><p>n_atom (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): Number of atoms in the prediction distribution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id2">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../../../_modules/nervex/model/template/q_learning.html#RainbowDQN.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict Rainbow output.
+Parameter updates with Rainbow’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor with <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run <code class="docutils literal notranslate"><span class="pre">MLP</span></code> with <code class="docutils literal notranslate"><span class="pre">RainbowHead</span></code> setups and return the result prediction dictionary.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>distribution (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Distribution tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">n_atom)</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">RainbowDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default n_atom: int =51</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">51</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="QAC.html" class="btn btn-neutral float-right" title="template.QAC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Template" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

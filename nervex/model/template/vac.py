@@ -3,12 +3,18 @@ import torch
 import torch.nn as nn
 
 from nervex.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
+from nervex.model.common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder
 
 
 @MODEL_REGISTRY.register('vac')
 class VAC(nn.Module):
+    r"""
+    Overview:
+        The VAC model.
+    Interfaces:
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+    """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
     def __init__(
@@ -25,6 +31,27 @@ class VAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
+        r"""
+        Overview:
+            Init the VAC Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - share_encoder (:obj:`bool`): Whether share encoder.
+            - continuous (:obj:`bool`): Whether collect continuously.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
+            - actor_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for actor's nn.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
+            - critic_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(VAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
@@ -97,13 +124,52 @@ class VAC(nn.Module):
         self.critic = nn.ModuleList(self.critic)
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict output.
+            Parameter updates with VAC's MLPs forward setup.
+        Arguments:
+            Forward with ``'compute_actor'`` or ``'compute_critic'``:
+                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Forward with ``'compute_actor'``, Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+
+                Forward with ``'compute_critic'``, Necessary Keys:
+                    - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+
+        Actor Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+
+        Critic Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> critic_outputs = model(inputs,'compute_critic')
+            >>> critic_outputs['value']
+            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+
+        Actor-Critic Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs,'compute_actor_critic')
+            >>> outputs['value']
+            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+
+        """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``logit``
+        r"""
+        Overview:
+           Refer to the ``forward fn``.
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -115,9 +181,9 @@ class VAC(nn.Module):
         return x
 
     def compute_critic(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``value``
+        r"""
+        Overview:
+           Refer to the ``forward fn``.
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -129,9 +195,10 @@ class VAC(nn.Module):
     def compute_actor_critic(self, x: torch.Tensor) -> Dict:
         """
         .. note::
-            ``compute_actor_critic`` interface aims to save computation when shares encoder
-        ReturnsKeys:
-            - necessary: ``value``, ``logit``
+            ``compute_actor_critic`` interface aims to save computation when shares encoder.
+            Returning the combination dictionry.
+            Refer to the ``forward fn``.
+
         """
         if self.share_encoder:
             actor_embedding = critic_embedding = self.encoder(x)

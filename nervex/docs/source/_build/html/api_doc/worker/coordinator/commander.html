@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>worker.coordinator.commander &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>worker.coordinator.commander</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../../_sources/api_doc/worker/coordinator/commander.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="worker-coordinator-commander">
+<h1>worker.coordinator.commander<a class="headerlink" href="#worker-coordinator-commander" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="base-serial-commander">
+<h2>base_serial_commander<a class="headerlink" href="#base-serial-commander" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="baseserialcommander">
+<h3>BaseSerialCommander<a class="headerlink" href="#baseserialcommander" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.worker.coordinator.base_serial_commander.BaseSerialCommander">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.worker.coordinator.base_serial_commander.</code><code class="sig-name descname">BaseSerialCommander</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">learner</span><span class="p">:</span> <span class="n">BaseLearner</span></em>, <em class="sig-param"><span class="n">collector</span><span class="p">:</span> <span class="n">BaseSerialCollector</span></em>, <em class="sig-param"><span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseSerialEvaluator</span></em>, <em class="sig-param"><span class="n">replay_buffer</span><span class="p">:</span> <span class="n">IBuffer</span></em>, <em class="sig-param"><span class="n">policy</span><span class="p">:</span> <span class="n">collections.namedtuple</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_serial_commander.html#BaseSerialCommander"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_serial_commander.BaseSerialCommander" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base serial commander class.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, step</p>
+</dd>
+<dt>Property:</dt><dd><p>policy</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">learner</span><span class="p">:</span> <span class="n">BaseLearner</span></em>, <em class="sig-param"><span class="n">collector</span><span class="p">:</span> <span class="n">BaseSerialCollector</span></em>, <em class="sig-param"><span class="n">evaluator</span><span class="p">:</span> <span class="n">BaseSerialEvaluator</span></em>, <em class="sig-param"><span class="n">replay_buffer</span><span class="p">:</span> <span class="n">IBuffer</span></em>, <em class="sig-param"><span class="n">policy</span><span class="p">:</span> <span class="n">collections.namedtuple</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_serial_commander.html#BaseSerialCommander.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the BaseSerialCommander</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the config of commander</p></li>
+<li><p>learner (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseLearner</span></code>): the learner</p></li>
+<li><p>collector (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseSerialCollector</span></code>): the collector</p></li>
+<li><p>evaluator (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseSerialEvaluator</span></code>): the evaluator</p></li>
+<li><p>replay_buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">IBuffer</span></code>): the buffer</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_serial_commander.BaseSerialCommander.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_serial_commander.html#BaseSerialCommander.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_serial_commander.BaseSerialCommander.step" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Step the commander</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="base-parallel-commander">
+<h2>base_parallel_commander<a class="headerlink" href="#base-parallel-commander" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="basecommander">
+<h3>BaseCommander<a class="headerlink" href="#basecommander" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.worker.coordinator.base_parallel_commander.BaseCommander">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.worker.coordinator.base_parallel_commander.</code><code class="sig-name descname">BaseCommander</code><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#BaseCommander"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.BaseCommander" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base parallel commander abstract class.</p>
+</dd>
+<dt>Interface:</dt><dd><p>get_collector_task</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="naivecommander">
+<h3>NaiveCommander<a class="headerlink" href="#naivecommander" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.worker.coordinator.base_parallel_commander.</code><code class="sig-name descname">NaiveCommander</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>A naive implementation of parallel commander.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, get_collector_task, get_learner_task, finsh_collector_task, finish_learner_task,
+notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the naive commander according to config</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The config to init commander. Should include </dt><dd><p>“collector_task_space” and “learner_task_space”.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task">
+<code class="sig-name descname">finish_collector_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>finish collector task will add the collector_task_finish_count</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task">
+<code class="sig-name descname">finish_learner_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>finish learner task will add the learner_task_finish_count and get the buffer_id of task to close the buffer</p>
+</dd>
+<dt>Return:</dt><dd><p>the finished_task buffer_id</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task">
+<code class="sig-name descname">get_collector_task</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get a new collector task when <code class="docutils literal notranslate"><span class="pre">collector_task_count</span></code> is smaller than <code class="docutils literal notranslate"><span class="pre">collector_task_space</span></code>.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): New collector task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task">
+<code class="sig-name descname">get_learner_task</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the new learner task when task_count is less than task_space</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the new learner task</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task">
+<code class="sig-name descname">notify_fail_collector_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>naive coordinator will pass when need to notify_fail_collector_task</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task">
+<code class="sig-name descname">notify_fail_learner_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>naive coordinator will pass when need to notify_fail_learner_task</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nervex.worker.coordinator.base_parallel_commander.create_parallel_commander">
+<span id="create-parallel-commander"></span><h3>create_parallel_commander<a class="headerlink" href="#module-nervex.worker.coordinator.base_parallel_commander.create_parallel_commander" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>create the commander according to cfg</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the commander cfg to create, should include import_names and parallel_commander_type</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="solo-parallel-commander">
+<h2>solo_parallel_commander<a class="headerlink" href="#solo-parallel-commander" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="solocommander">
+<h3>SoloCommander<a class="headerlink" href="#solocommander" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander">
+<em class="property">class </em><code class="sig-prename descclassname">nervex.worker.coordinator.solo_parallel_commander.</code><code class="sig-name descname">SoloCommander</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Parallel commander for solo games.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
+notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the solo commander according to config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type config file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task">
+<code class="sig-name descname">finish_collector_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get collector’s finish_task_info and release collector_task_space.
+If collector’s task is evaluation, judge the convergence and return it.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>task_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the collector task_id</p></li>
+<li><p>finished_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the finished task</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>convergence (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether the stop val is reached and the algorithm is converged. </dt><dd><p>If True, the pipeline can be finished.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task">
+<code class="sig-name descname">finish_learner_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; str<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get learner’s finish_task_info, release learner_task_space, reset corresponding variables.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>task_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Learner task_id</p></li>
+<li><p>finished_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Learner’s finish_learn_info.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>buffer_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Buffer id of the finished learner.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task">
+<code class="sig-name descname">get_collector_task</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>dict<span class="p">]</span><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the new collector task when there is residual task space; Otherwise return None.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): New collector task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task">
+<code class="sig-name descname">get_learner_task</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>dict<span class="p">]</span><a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the new learner task when there is residual task space; Otherwise return None.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): New learner task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task">
+<code class="sig-name descname">notify_fail_collector_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Release task space when collector task fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nervex.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task">
+<code class="sig-name descname">notify_fail_learner_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/nervex/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nervex.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Release task space when learner task fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

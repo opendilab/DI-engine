@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Hands on RL &mdash; nerveX 0.2.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DQN" href="dqn.html" />
+    <link rel="prev" title="Basic Concepts" href="../intro_rl/basic_en.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> nerveX
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hands on RL</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#iqn">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">Impala</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../supplementary_rl/index.html">Supplementary of RL</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">nerveX</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Hands on RL</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/hands_on/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="hands-on-rl">
+<h1>Hands on RL<a class="headerlink" href="#hands-on-rl" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dqn.html">DQN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqn.html#implementations">Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="c51_qrdqn_iqn.html">C51</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="c51_qrdqn_iqn.html#qrdqn">QRDQN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id1">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id2">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id3">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id4">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id5">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id6">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="c51_qrdqn_iqn.html#iqn">IQN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id8">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id9">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#key-equations">Key Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#key-graphs">Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id10">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#id11">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rainbow.html">Rainbow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#double-q-learning">Double Q-learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#prioritized-experience-replay-per">Prioritized Experience Replay(PER)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#dueling-network">Dueling Network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#multi-step-learning">Multi-step Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#noisy-net">Noisy Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="a2c.html">A2C</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ppo.html">PPO</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ppg.html">PPG</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#key-graphs">Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#key-equations">Key Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="impala.html">Impala</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="impala.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html#key-equations">Key Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html#key-graphs">Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html#implementations">Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ddpg.html">DDPG</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#pseudocode">Pseudocode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#implementations">Implementations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ddpg.html#model">Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ddpg.html#train-actor-critic-model">Train actor-critic model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ddpg.html#target-network">Target Network</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html#other-public-implementations">Other Public Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="td3.html">TD3</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#pseudocode">Pseudocode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#implementations">Implementations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="td3.html#model">Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="td3.html#train-actor-critic-model">Train actor-critic model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="td3.html#target-network">Target Network</a></li>
+<li class="toctree-l3"><a class="reference internal" href="td3.html#target-policy-smoothing-regularization">Target Policy Smoothing Regularization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html#other-public-implementations">Other Public Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sac.html">SAC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#pseudocode">Pseudocode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#implementation">Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html#other-public-implementations">Other Public Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="qmix.html">QMIX</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#implementations">Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coma.html">COMA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#implementations">Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atoc.html">ATOC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#implementations">Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="collaq.html">CollaQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#implementations">Implementations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html#implementations">Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcts.html">MCTS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#quick-facts">Quick Facts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#extensions">Extensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html#implementations">Implementations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="dqn.html" class="btn btn-neutral float-right" title="DQN" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../intro_rl/basic_en.html" class="btn btn-neutral float-left" title="Basic Concepts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, X-Lab.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
