@@ -102,7 +102,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
 
    print("master has been stopped")  # after quit the master with block, all the resources will be automatically released, and wait until master completely stopped
 
-基于\ ``with``\ 的使用，我们可以通过一下方式进行任务的下达、管理以及结果的获取。结合上文中Slave的例子，举例如下：
+基于\ ``with``\ 的使用，我们可以通过以下方式进行任务的下达、管理以及结果的获取。结合上文中Slave的例子，举例如下：
 
 .. code:: python
 
@@ -148,9 +148,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
 
 -  为了方便对功能的扩展，\ **请继承Master类，且在需要的时候实现诸如\ ``_before_new_task``\ 等的一系列方法**\ ，不要直接使用Master类创建Master端。
 
--  关于channel，可以视为对不同具体业务的一种标识，其概念类似于无线电频道、网络端口等。\ **建议对于特定的业务设定特定的channel值**\ ，不要直接使用0或缺省等容易碰撞的值，以确保当发生误连的时候可以立刻得到反馈。
-
--  基于上一条，\ **Master和Slave端的channel务必设置为同一个整数**\ ，否则将导致无法正常建立连接。
+-  **Master和Slave端的channel务必设置为同一个整数**\ ，否则将导致无法正常建立连接。
 
 .. _header-n54:
 
