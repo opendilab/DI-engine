@@ -23,7 +23,7 @@ class SampleCollector(ISerialCollector):
         envstep
     """
 
-    config = dict(collect_print_freq=100, )
+    config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
             self,
@@ -42,6 +42,8 @@ class SampleCollector(ISerialCollector):
             - tb_logger (:obj:`SummaryWriter`): tensorboard handle
         """
         self._collect_print_freq = cfg.collect_print_freq
+        self._deepcopy_obs = cfg.deepcopy_obs
+        self._transform_obs = cfg.transform_obs
         self._cfg = cfg
         self._timer = EasyTimer()
         self._end_flag = False
@@ -88,7 +90,7 @@ class SampleCollector(ISerialCollector):
         if _policy is not None:
             self.reset_policy(_policy)
 
-        self._obs_pool = CachePool('obs', self._env_num)
+        self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
@@ -154,8 +156,10 @@ class SampleCollector(ISerialCollector):
                 # Get current env obs.
                 obs = self._env.ready_obs
                 # Policy forward.
-                policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._obs_pool.update(obs)
+                if self._transform_obs:
+                    obs = to_tensor(obs, dtype=torch.float32)
+                policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
