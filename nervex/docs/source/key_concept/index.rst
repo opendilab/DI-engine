@@ -28,7 +28,7 @@ Last but not least, ``config`` is the recommended tool to control and record the
 
 Environment
 ~~~~~~~~~~~~~
-nerveX environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Link <../feature/env_overview.html>`_
+nerveX environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Overview <../feature/env_overview_en.html>`_
 
 ``EnvManager``, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows the collector to interact with N homogeneous environments per step, which means that ``action`` passed to ``env.step`` is a vector with a length of N, and the return value of ``env.step`` (obs, reward, done) is the same as it.
 
@@ -70,7 +70,7 @@ For the subprocess-type env manager, nerveX uses shared memory among different w
 
 Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, nerveX also provides a series of **Error Tolerance** tools, e.g.: watchdog and auto-retry.
 
-For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview.html>`_ for more details.
+For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview_en.html>`_ for more details.
 
 Policy
 ~~~~~~~
@@ -88,7 +88,7 @@ prepares some simple interface methods, and combines them into 3 common modes—
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
 own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
-the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
+the users can refer to `Policy Overview <../feature/policy_overview_en.html>`_.
 
 .. note::
    ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their policy class just ensuring the same method names and input/output arguments as the corresponding modes.
@@ -99,15 +99,17 @@ Neural network, often called model, is the one of most important components in t
 
 .. code:: python
 
-    from nervex.model import model_wrap, DiscreteNet
+    from nervex.model import model_wrap, DQN
 
-    model = DiscreteNet(obs_shape=(4, 84, 84), action_shape=6, encoder_type='conv2d')
+    model = DQN(obs_shape=(4, 84, 84), action_shape=6)
     # only wrapper, no model copy
     learn_model = model_wrap(model_wrap, wrapper_name='base')
     collector_model = model_wrap(model, wrapper_name='multinomial_sample')
     eval_model = model_wrap(model, wrapper_name='argmax_sample')
 
-If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview.html>`_ can help you a lot.
+If you want to know more about pre-defined models for each algorithms and customize you model, please refer to `Model Overview <../feature/model_overview_en.html>`_.
+
+If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview_en.html>`_ can help you a lot.
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -202,7 +204,7 @@ config overview
 
 The specific meanings and default values of some common keys are shown
 in the table below. For policy-related keys, please refer to the
-document `Hans On
+document `Hands On
 RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/hands_on/index.html>`__
 section.
 
@@ -424,7 +426,7 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
 
 In nerveX, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.
 
-If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview.html>`_
+If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview_en.html>`_
 
 Worker-Evaluator
 ~~~~~~~~~~~~~~~~
@@ -528,7 +530,7 @@ nerveX offers 3 training entries for different usage, users can choose any one t
             # usage 2(with config)
             nervex -m serial -c cartpole_dqn_config.py -s 0
 
-        You can refer to `CLI Overview <../feature/cli_overview.html>`_ for more details.
+        You can refer to `CLI Overview <../feature/cli_overview_en.html>`_ for more details.
         
     2. Customized Main Function
 
