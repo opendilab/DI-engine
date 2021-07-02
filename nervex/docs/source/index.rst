@@ -54,7 +54,7 @@ If you want to deeply customize your algorithm and application with nerveX, also
    best_practice/index
    api_doc/index
 
-   faq/index
+   faq/index_en
    feature/index
    supplementary_rl/index
 
