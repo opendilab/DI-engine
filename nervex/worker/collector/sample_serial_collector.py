@@ -1,6 +1,7 @@
 from typing import Optional, Any, List
 from collections import namedtuple, deque
 from easydict import EasyDict
+import logging
 import numpy as np
 import torch
 
@@ -145,7 +146,11 @@ class SampleCollector(ISerialCollector):
                 raise RuntimeError("Please specify collect n_sample")
             else:
                 n_sample = self._default_n_sample
-        assert n_sample % self._env_num == 0, "Please make sure env_num is divisible by n_sample"
+        if n_sample % self._env_num != 0:
+            logging.warning(
+                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence problems in a few algorithms"
+                .format(n_sample, self._env_num)
+            )
         if policy_kwargs is None:
             policy_kwargs = {}
         collected_sample = 0
