@@ -25,7 +25,7 @@ class BaseLearner(object):
     Overview:
         Base class for model learning.
     Interface:
-        train, start, setup_dataloader, close, call_hook, register_hook, save_checkpoint
+        train, call_hook, register_hook, save_checkpoint, start, setup_dataloader, close
     Property:
         learn_info, priority_info, last_iter, name, rank, policy
         tick_time, monitor, log_buffer, logger, tb_logger
