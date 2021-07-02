@@ -148,8 +148,8 @@ class SampleCollector(ISerialCollector):
                 n_sample = self._default_n_sample
         if n_sample % self._env_num != 0:
             logging.warning(
-                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence problems in a few algorithms"
-                .format(n_sample, self._env_num)
+                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence \
+                problems in a few algorithms".format(n_sample, self._env_num)
             )
         if policy_kwargs is None:
             policy_kwargs = {}

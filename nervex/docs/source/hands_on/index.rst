@@ -25,3 +25,4 @@ Hands on RL
 
     vpn
     mcts
+    alphago
