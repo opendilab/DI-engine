@@ -414,7 +414,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+
         .. note:
+
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
             - Async subprocess env manager use ``connection.wait`` to poll.
@@ -724,14 +726,16 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         Returns:
             - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
                 ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
-        Note:
-            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+
+        .. note::
+
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         """
         self._check_closed()
         env_ids = list(actions.keys())

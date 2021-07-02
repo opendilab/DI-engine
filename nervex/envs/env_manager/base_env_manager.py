@@ -281,6 +281,7 @@ class BaseEnvManager(object):
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+
         .. note:
 
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
