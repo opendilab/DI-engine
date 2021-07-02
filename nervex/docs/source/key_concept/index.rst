@@ -55,7 +55,7 @@ There are three types EnvManager in nerveX now:
   - SyncSubprocessEnvManager——parallel simulation for **low fluctuation environment**
   - AsyncSubprocessEnvManager——parallel simulation for **high fluctuation environment**
 
-The following demo graphs shows the detailed runtime logics between ``BaseEnvManager`` and ``SyncSubprocessEnvManager``:
+The following demo image shows the detailed runtime logics between ``BaseEnvManager`` and ``SyncSubprocessEnvManager``:
 
 .. image::
    images/env_manager_base_sync.png
@@ -81,7 +81,7 @@ The Multi-Mode of Policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 In most cases, RL policy needs to execute different algorithm procedures for different usages, e.g.: for DQN, the model forward and calculating TD error in training,
 the model forward without gradient computation and use epsilon-greedy to select actions for exploration in collecting. Therefore, nerveX policy unifies all the algorithm content in only one python file,
-prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
+prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next image:
 
 .. image::
    images/policy_mode.svg
@@ -331,7 +331,7 @@ The core usage of collector is quite simple, the users just need to create a cor
     For all cases, the number of collect data, n_sample/n_episode, is fixed in the total training procedure, so our example codes set this field in configs, such as ``config.policy.collect.n_sample``.
 
 
-The structure and main loop of collector can be summarized as the next graph, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
+The structure and main loop of collector can be summarized as the next image, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
 ``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing, 
 ``policy.get_train_sample`` is disabled and the users can do anything after receiving the collected data.
 
@@ -370,7 +370,7 @@ expert policy. And all the demands can be implemented by ``reset_policy``, ``res
 Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the 
 users just need to ensure the correct value of ``config.policy.on_policy``.
 
-Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview.html>`_.
+Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview_en.html>`_.
 
 Parallel Collector
 ^^^^^^^^^^^^^^^^^^^
@@ -512,7 +512,19 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 
 Worker-Learner
 ~~~~~~~~~~~~~~~~~~
-TBD
+Learner is one of the most important components among all the workers, who is reponsible for optimizing the policy by training data. Unlike another important component ``Collector``, learner is not divided into serial and parralel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.
+
+**Serial pipeline** would call learner's ``train`` method for training. ``train`` method receives a batch of data, and call learn_mode policy's ``_forward_learn`` to train for one iteraton.
+
+**Parallel pipeline** would call learner's ``start`` method for a complete process of training. ``start`` method has a loop, which includes fetching data from source(Often file system), and calling ``train`` for one-iteration training. ``start`` will train for a specific number of iterations, which is set by use config.
+
+Besides ``train`` and ``start``, learner also provides a useful interface called ``save_checkpoint``, which can save current state_dict as a checkpoint during training.
+
+In learner, there is a special concept called ``Hook``. Hook is responsible for doing some fixed jobs at specific timings, including "before_run"(at the beginning of ``start`` ), "after_run"(at the ending of ``start`` ), "before_iter"(at the beginning of ``train`` ), "after_iter"(at the ending of ``train`` ).
+
+Hook has many different types. nerveX now has hooks to save checkpoint( ``save_checkpoint`` also uses this hook), load checkpoint, print log(text & tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to `Wrapper & Hook Overview <../feature/wrapper_hook_overview_en.html>`_.
+
+For more details about learner, please refer to `Learner Overview <../feature/learner_overview_en.html>`_.
 
 Entry
 ~~~~~~~~~~~~~~~~~
