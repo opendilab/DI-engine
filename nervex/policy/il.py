@@ -193,7 +193,6 @@ class ILPolicy(Policy):
             Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._eval_model.train()
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
