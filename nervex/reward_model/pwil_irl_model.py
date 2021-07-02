@@ -41,6 +41,7 @@ class PwilRewardModel(BaseRewardModel):
         - reward_table (:obj: `Dict`): In this algorithm, reward model is a dictionary.
     """
     config = dict(
+        type='pwil',
         # expert_data_path='expert_data.pkl',
         sample_size=1000,
         alpha=5,

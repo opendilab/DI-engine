@@ -52,6 +52,7 @@ class RndNetwork(nn.Module):
 @REWARD_MODEL_REGISTRY.register('rnd')
 class RndRewardModel(BaseRewardModel):
     config = dict(
+        type='rnd',
         intrinsic_reward_type='add',
         learning_rate=1e-3,
         # obs_shape=6,
@@ -63,7 +64,7 @@ class RndRewardModel(BaseRewardModel):
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(RndRewardModel, self).__init__()
         self.cfg = config
-        assert device in ["cpu", "cuda"]
+        assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
         self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
@@ -97,6 +98,7 @@ class RndRewardModel(BaseRewardModel):
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
             reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
+            reward = reward.to(data[0]['reward'].device)
             reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
             if self.intrinsic_reward_type == 'add':

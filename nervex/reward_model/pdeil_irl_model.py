@@ -21,6 +21,7 @@ class PdeilRewardModel(BaseRewardModel):
             ``__init__``, ``_train``, ``_batch_mn_pdf``
     """
     config = dict(
+        type='pdeil',
         # expert_data_path='expert_data.pkl',
         discrete_action=False,
         alpha=0.5,

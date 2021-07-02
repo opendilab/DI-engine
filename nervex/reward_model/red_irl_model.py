@@ -40,6 +40,7 @@ class RedRewardModel(BaseRewardModel):
         - online_net (:obj: `SENet`): The reward model, in default initialized once as the training begins.
     """
     config = dict(
+        type='red',
         # input_size=4,
         sample_size=1000,
         hidden_size=128,
