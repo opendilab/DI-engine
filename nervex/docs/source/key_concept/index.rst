@@ -5,13 +5,15 @@ Key Concept
    :maxdepth: 3
 
 
-Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX. One of basic control flow(serial pipeline) can be described as:
+Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX.
+One of the basic control flows(serial pipeline) can be described as:
 
 .. image::
    images/serial_pipeline.svg
    :align: center
 
-In the following sections, nerveX first introduces the key concepts/components separately, then combines them like building a special "Evolution Graph" to offer different computation patterns(serial, parallel, dist).
+In the following sections, nerveX first introduces key concepts/components separately, then combines them like building
+a special "Evolution Graph" to offer different computation patterns(serial, parallel, dist).
 
 Concept
 ----------
@@ -352,7 +354,7 @@ expert policy. And all the demands can be implemented by ``reset_policy``, ``res
     collector = SampleCollector(...)
     replay_buffer = NaiveBuffer(...)
 
-    # train begining(random_policy)
+    # train beginning(random_policy)
     collector.reset_policy(random_policy.collect_mode)
     random_data = collector.collect(n_sample=10000)
     replay_buffer.push(random_data)
@@ -430,19 +432,28 @@ If you want to know more details about the three types of replay buffers, or the
 Worker-Evaluator
 ~~~~~~~~~~~~~~~~
 
-Evaluator is also the basic execution component of nerveX. It is used to determine whether a policy meets the convergence standard. And we explicitly construct this module to make the evaluation more clear, 
-instead of some implicit functions in other frameworks. After every fixed training iterations, we use the evaluator to interact with the environment to judge whether the reward reaches the convergence standard.
+Evaluator, another key execution component of nerveX, is used to determine whether the training model is convergent
+or not. Similar to collector, evaluator consists of three key components ——env manager, policy(eval_mode), evaluator
+controller.
 
-Like collector, there are 3 core parts for an evaluator——env manager, policy(eval_mode), evaluator controller, and these parts can be implemented in a single process or located in several machines. Usually, nerveX
-uses a multi-process env_manager and another main loop controller process with policy to construct an evaluator, which may be extended in the future.
+Env manager allow us to run multiple environments one by one(``base_env_manager`) or in parallel
+(``subprocess_env_manager``). For example, if we use subprocess env manager, we will run different environments
+in different subprocesses, which will greatly increase the efficiency of collecting episodes.
+
+Policy(eval_mode) is the rl model which we need to check.
+
+Evaluator controller is a component to determine if we should stop evaluating or not. For example, in ``Serial
+Evaluator``, ``n_evaluator_episode`` is an argument to determine how many episodes we want to collect and evaluate. Once
+we collect these number of episodes, evaluator will stop collecting and start to compute the average reward. If the average
+is larger than ``stop_value``, ``stop_flag`` will be True, and we will know our model is already convergent.
 
 Serial Evaluator
 ^^^^^^^^^^^^^^^^^^^
 
-Serial evaluator uses ``n_episode`` argument to interact with environment. It means that we need to collect n episodes results to judge whether the model reaches the convergence condition.
+Serial evaluator is used in serial pipeline. Key concepts are ``n_evaluator_episode`` and ``stop_value``, which has been
+explained above.
 
-The core usage of evaluator is quite simple. 
-And in practice, the users just need to create a evaluator and indicate n_episode as the argument of eval method. Here is a naive example:
+The following is an example of how to use serial evaluator:
 
 .. code:: python
 
@@ -468,12 +479,12 @@ And in practice, the users just need to create a evaluator and indicate n_episod
        break
 
 .. note::
-   For evaluation criterion, ``stop_value`` and ``n_evaluator_episode`` are two essential arguments, such as ``stop_value=195`` and ``n_evaluator_episode=100`` in cartpole environment. And the users should
-   indicate these two arguments in the ``env`` field of config(i.e. ``env.stop_value``, ``env.n_evaluator_episode``). And they will be passed to evaluator so that we don't need to set them in eval method except
-   some special cases.
+   Different environments may have different  ``stop_value`` and ``n_evaluator_episode``. For example, in cartpole,
+   we have``stop_value=195`` and ``n_evaluator_episode=100``. Users should indicate these two arguments in ``env``
+   config(i.e. ``env.stop_value``, ``env.n_evaluator_episode``), and then they will be passed to evaluator.
 
 
-Combined with the evaluation condition(i.e. ``should_eval`` method), We can add the evalulator into the training pipeline as follows:
+Combined with the evaluation condition(i.e. ``should_eval`` method), We can add the evaluator into the serial pipeline as follows:
 
 .. code:: python
 
@@ -493,21 +504,38 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 .. tip::
    **How to judge whether the model converges or not?**
 
-   We judge whether the model converges or not by the average value of several episode rewards. There are three types of average reward: winning probability, total cumulative reward and average unit step reward.
-   Winning probability: In some games, we don't pay attention to the rewards in the game process, but we focus on whether the final result is successful. In these environments, we use winning probability as the
-   convergence condition. Such as ``SMAC`` environment, we can use the winning probability (like 1.0 in 3s5z) as the convergence condition.
-   Total cumulative reward: In some games, we need to make the total score as large as possible. In these environments, we use total cumulative reward as the convergence condition. Such as ``cartpole``， ``lunarlander`` environment, we can use the total cumulative reward (like 200) as the convergence condition.
-   Average unit step reward: In some games, we need to make the total reward as large as possible and reduce the number of unnecessary exploration steps. In these environments, we use average unit step reward as the convergence condition.
-   Besides, a reliable RL experiment should be repeated 3~5 times with different random seeds, and some statistics such as the median value and the mean/std value can be more convincing.
+   We judge whether the model converges or not based on average reward. In Nervex, there are three types of average
+   reward: winning probability, total cumulative reward and average unit step reward.
+
+   Winning probability: In games like ``SMAC``, we focus on the final result and don't care too much about the
+   game process. For such environments, we use winning probability(for ``SMAC`` 1.0 in 3s5z) as the convergence condition.
+
+   Total cumulative reward: In games like ``cartpole`` and ``lunarlander``, we need to make the total score as large as
+   possible. So we use total cumulative reward as the convergence condition.
+
+   Average unit step reward: In some games, we need to make the total reward as large as possible and reduce the number
+   of unnecessary exploration steps in the meantime. For such environments, we use average unit step reward as the
+   convergence condition.
+
+   Besides, a reliable RL experiment should be repeated 3~5 times with different random seeds, and some statistics
+   such as the median value and the mean/std value can be more convincing.
 
 
 .. tip::
 
-   **How to solve the problem that the environment in each evaluator has the different length?**
+   **How to solve the problem that different environment in evaluator may collect different length episode?**
    
-   In nerveX, You may have registered n evaluator episodes but you only have m environments (n is more than m). In these case, the environment in each evaluator has the different length.
-   We use ``VectorEvalMonitor`` to solve these problems. For example, we have five environments and we need eight evaluator episdodes. In this case, we register two episodes for each of the first three environments and register one episode for each of the last two environments.
-   We use ``get_episode_reward`` to get the sum of the rewards of k episodes in each environment. And we use ``get_current_episode`` to get the episode num k in each environment. 
+   In some cases, this is really a big problem. For example, suppose we want to collect 12 episodes in evaluator
+   but only have 5 environments, if we didn't do any thing, it is likely that we will get more short episodes than long
+   episodes. As a result, our average reward will have a bias and may not be accurate. This is obvious since short
+   episodes need less time.
+
+   In order to solve such problem, we use ``VectorEvalMonitor``, a component to balance how many episodes to collect
+   per environment. Let's go back to the above example, we will collect three episodes for either of the first two
+   environments but only two for each of the remaining environments.
+
+   Besides, we use ``get_episode_reward`` to get the sum of the rewards of k episodes in each environment, and
+   ``get_current_episode`` to get the episode num k in each environment.
 
 
 Worker-Learner
