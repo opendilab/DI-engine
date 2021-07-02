@@ -130,7 +130,9 @@ class VAC(nn.Module):
             Parameter updates with VAC's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'`` or ``'compute_critic'``:
-                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+                - inputs (:obj:`torch.Tensor`):
+                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head.
@@ -169,7 +171,24 @@ class VAC(nn.Module):
     def compute_actor(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
-           Refer to the ``forward fn``.
+            Execute parameter updates with ``'compute_actor'`` mode
+            Use encoded embedding tensor to predict output.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`):
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                ``hidden_size = actor_head_hidden_size``
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+
+        Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -183,7 +202,25 @@ class VAC(nn.Module):
     def compute_critic(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
-           Refer to the ``forward fn``.
+            Execute parameter updates with ``'compute_critic'`` mode
+            Use encoded embedding tensor to predict output.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`):
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                ``hidden_size = critic_head_hidden_size``
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys:
+                    - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+
+        Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> critic_outputs = model(inputs,'compute_critic')
+            >>> critic_outputs['value']
+            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -193,11 +230,33 @@ class VAC(nn.Module):
         return {'value': x['pred']}
 
     def compute_actor_critic(self, x: torch.Tensor) -> Dict:
-        """
+        r"""
+        Overview:
+            Execute parameter updates with ``'compute_actor_critic'`` mode
+            Use encoded embedding tensor to predict output.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+            `
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+                    - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+
+        Examples:
+            >>> model = VAC(64,64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs,'compute_actor_critic')
+            >>> outputs['value']
+            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+
+
         .. note::
             ``compute_actor_critic`` interface aims to save computation when shares encoder.
             Returning the combination dictionry.
-            Refer to the ``forward fn``.
 
         """
         if self.share_encoder:

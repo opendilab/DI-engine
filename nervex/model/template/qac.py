@@ -115,7 +115,9 @@ class QAC(nn.Module):
             Parameter updates with QAC's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
-                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+                - inputs (:obj:`torch.Tensor`):
+                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
 
             Forward with ``'compute_critic'``, inputs (`Dict`) Necessary Keys:
                 - ``obs``, ``action`` encoded tensors.
@@ -161,7 +163,37 @@ class QAC(nn.Module):
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
         r"""
         Overview:
-           Refer to the ``forward fn``.
+            Use encoded embedding tensor to predict output.
+            Execute parameter updates with ``'compute_actor'`` mode
+            Use encoded embedding tensor to predict output.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`):
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                ``hidden_size = actor_head_hidden_size``
+            - mode (:obj:`str`): Name of the forward mode.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys (either):
+                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
+                    - logit (:obj:`torch.Tensor`):
+                        Logit tensor encoding ``mu`` and ``sigma`, both with same size as input ``x``.
+
+        Examples:
+            >>> # Regression mode
+            >>> model = QAC(64, 64, 'regression')
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> # Reparameterization Mode
+            >>> model = QAC(64, 64, 'reparameterization')
+            >>> inputs = torch.randn(4, 64)
+            >>> actor_outputs = model(inputs,'compute_actor')
+            >>> actor_outputs['logit'][0].shape # mu
+            >>> torch.Size([4, 64])
+            >>> actor_outputs['logit'][1].shape # sigma
+            >>> torch.Size([4, 64])
         """
         x = self.actor(inputs)
         if self.actor_head_type == 'regression':
@@ -172,7 +204,24 @@ class QAC(nn.Module):
     def compute_critic(self, inputs: Dict) -> Dict:
         r"""
         Overview:
-           Refer to the ``forward fn``.
+            Execute parameter updates with ``'compute_critic'`` mode
+            Use encoded embedding tensor to predict output.
+        Arguments:
+            - ``obs``, ``action`` encoded tensors.
+            - mode (:obj:`str`): Name of the forward mode.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys:
+                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+
+        Examples:
+            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model(inputs, mode='compute_critic')['q_value'] # q value
+            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
+
         """
 
         obs, action = inputs['obs'], inputs['action']
