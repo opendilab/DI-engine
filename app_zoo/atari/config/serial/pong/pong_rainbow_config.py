@@ -18,11 +18,9 @@ pong_rainbow_config = dict(
         cuda=True,
         priority=False,
         model=dict(
-            encoder_kwargs=dict(encoder_type='conv2d', ),
             obs_shape=[4, 84, 84],
             action_shape=6,
-            hidden_size_list=[128, 128, 512],
-            head_kwargs=dict(head_type='rainbow', ),
+            encoder_hidden_size_list=[128, 128, 512],
             v_min=-10,
             v_max=10,
             n_atom=51,
@@ -34,7 +32,6 @@ pong_rainbow_config = dict(
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            iqn=False,
         ),
         collect=dict(
             n_sample=100,
@@ -43,7 +40,7 @@ pong_rainbow_config = dict(
         other=dict(
             eps=dict(
                 type='exp',
-                start=0.05,
+                start=0.95,
                 end=0.05,
                 decay=250000,
             ),
