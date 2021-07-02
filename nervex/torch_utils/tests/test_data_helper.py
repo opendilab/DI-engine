@@ -103,7 +103,7 @@ class TestDataFunction:
         tback = to_tensor(tlist1, torch.float)
         for i in range(3):
             assert (tback[i] == t[i]).all()
-        
+
         with pytest.raises(TypeError):
             tensor_to_list(EasyTimer())
 
@@ -117,7 +117,7 @@ class TestDataFunction:
         assert same_shape(tlist)
         tlist = [torch.randn(3, 5), torch.randn(4, 5)]
         assert not same_shape(tlist)
-    
+
     def test_get_tensor_data(self):
         a = {
             'tensor': torch.tensor([1, 2, 3.], requires_grad=True),
@@ -138,10 +138,7 @@ def test_log_dict():
     log_buffer['not_tensor'] = torch.randn(3)
     assert isinstance(log_buffer['not_tensor'], list)
     assert len(log_buffer['not_tensor']) == 3
-    log_buffer.update({
-        'not_tensor': 4,
-        'a': 5
-    })
+    log_buffer.update({'not_tensor': 4, 'a': 5})
     assert log_buffer['not_tensor'] == 4
 
 
