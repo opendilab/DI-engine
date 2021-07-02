@@ -142,7 +142,7 @@ class TestSubprocessEnvManager:
         obs = env_manager.reset({i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeError):
             timestep = env_manager.step(action)
             obs = env_manager.ready_obs
             while 0 not in obs:

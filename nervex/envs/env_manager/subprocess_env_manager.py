@@ -233,6 +233,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.method_name_list,
                 self._reset_timeout,
                 self._step_timeout,
+                self._max_retry,
             ),
             daemon=True,
             name='subprocess_env_manager{}_{}'.format(env_id, time.time())
@@ -347,8 +348,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
                 self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
-            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-            self._check_data(ret)
+            try:
+                ret = {i: p.recv() for i, p in self._pipe_parents.items()}
+                self._check_data(ret)
+            except Exception as e:
+                logging.warning("subprocess reset set seed failed, ignore and continue...")
 
         # reset env
         reset_thread_list = []
@@ -544,7 +548,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     @staticmethod
     def worker_fn_robust(
-            parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60
+            parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60, max_retry=1
     ) -> None:
         """
         Overview:
@@ -555,6 +559,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         env = env_fn()
         parent.close()
 
+        @retry_wrapper(max_retry=max_retry)
         @timeout_wrapper(timeout=step_timeout)
         def step_fn(*args, **kwargs):
             timestep = env.step(*args, **kwargs)
@@ -567,6 +572,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 ret = timestep
             return ret
 
+        # self._reset method has add retry_wrapper decorator
         @timeout_wrapper(timeout=reset_timeout)
         def reset_fn(*args, **kwargs):
             try:
