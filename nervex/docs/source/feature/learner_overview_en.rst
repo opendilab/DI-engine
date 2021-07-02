@@ -123,13 +123,13 @@ Then we start to introduce the workflow of FlaskFileSystemLearner, that is, the 
 
 3. Learner get data
 
-    After learner is established, dataloader will call ``get_data'' method implemented in the comm learner to make an attempt to get data. ``get_data'' will put the request in the ``_data_demand_queue'' of the comm learner, then try fetching data from ``_data_result_queue``. If it is empty, it is **blocked** here.
+    After learner is established, dataloader will call ``get_data`` method implemented in the comm learner to make an attempt to get data. ``get_data`` will put the request in the ``_data_demand_queue`` of the comm learner, then try fetching data from ``_data_result_queue``. If it is empty, it is **blocked** here.
 
-    Let's return back to the coordinator, when the coordinator receives the information that ``learner_start_task`` was successfully executed, it sends the task ``learner_get_data_task``. And learner slave calls ``deal_with_get_data'' in comm learner to take out the request in ``_data_demand_queue``, then returns it to the coordinator.
+    Let's return back to the coordinator, when the coordinator receives the information that ``learner_start_task`` was successfully executed, it sends the task ``learner_get_data_task``. And learner slave calls ``deal_with_get_data`` in comm learner to take out the request in ``_data_demand_queue``, then returns it to the coordinator.
 
 4. Learner train
 
-    After coordinator receives the learner's data request, it will send ``learner_learn_task`` to the learner slave, which contains the **data** (or metadata) requested by the learner. After the learner slave receives it, it calls the ``deal_with_learner_learn'' method of the comm learner, puts the received data information into the ``_data_result_queue``, and waits for the learner to finish training, and the training information can be obtained from the ``_learn_info_queue``.
+    After coordinator receives the learner's data request, it will send ``learner_learn_task`` to the learner slave, which contains the **data** (or metadata) requested by the learner. After the learner slave receives it, it calls the ``deal_with_learner_learn`` method of the comm learner, puts the received data information into the ``_data_result_queue``, and waits for the learner to finish training, and the training information can be obtained from the ``_learn_info_queue``.
 
     Let's return back to learner, learner is blocked because the dataloader cannot obtain data. Now that there is data information in ``_data_result_queue``, the dataloader can take it out(here by reading from file system), process it into the format required by the learner, and hand it over to the learner **to train for one iteration**. After the training is completed, learner stores learn information in ``_learn_info_queue``.
 
@@ -139,4 +139,5 @@ Then we start to introduce the workflow of FlaskFileSystemLearner, that is, the 
         - Learner completes the training: Comm learner will close learner and wait for the coordinator to assign a new task ``learner_start_task`` again, and return to process 2.
 
 5. Comm learner close
-     You can manually close the comm learner by entering a command; Otherwise, the comm learner will be **resident**, waiting for the coordinator to assign a new task, and return the result after execution.
+
+    You can manually close the comm learner by entering a command; Otherwise, the comm learner will be **resident**, waiting for the coordinator to assign a new task, and return the result after execution.
