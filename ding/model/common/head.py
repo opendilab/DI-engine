@@ -57,7 +57,7 @@ class DiscreteHead(nn.Module):
             Parameter updates with DiscreteHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``DiscreteHead`` setups
@@ -132,7 +132,7 @@ class DistributionHead(nn.Module):
             Parameter updates with DistributionHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``DistributionHead`` setups and return the result prediction dictionary.
@@ -224,7 +224,7 @@ class RainbowHead(nn.Module):
             Parameter updates with RainbowHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
@@ -302,14 +302,14 @@ class QRDQNHead(nn.Module):
             Parameter updates with QRDQNHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``QRDQNHead`` setups and return the result prediction dictionary.
 
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, n_quantiles)``
+                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
                     - tau (:obj:`torch.Tensor`): tau tensor of size ``(B, N, 1)``
         Examples:
             >>> head = QRDQNHead(64, 64)
@@ -411,7 +411,7 @@ class QuantileHead(nn.Module):
             Parameter updates with QuantileHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``QuantileHead`` setups and return the result prediction dictionary.
@@ -516,7 +516,7 @@ class DuelingHead(nn.Module):
             Parameter updates with DuelingHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``DuelingHead`` setups and return the result prediction dictionary.
@@ -575,7 +575,7 @@ class RegressionHead(nn.Module):
             Parameter updates with RegressionHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``RegressionHead`` setups and return the result prediction dictionary.
@@ -648,7 +648,7 @@ class ReparameterizationHead(nn.Module):
             Parameter updates with ReparameterizationHead's MLPs forward setup.
         Arguments:
             - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``output_size``, i.e. ``(B, N=hidden_size)``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``ReparameterizationHead`` setups and return the result prediction dictionary.

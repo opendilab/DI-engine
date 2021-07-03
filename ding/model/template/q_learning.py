@@ -22,6 +22,22 @@ class DQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
+        r"""
+        Overview:
+            Init the DQN Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -58,9 +74,28 @@ class DQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``logit``
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict output.
+            Parameter updates with DQN's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding``hidden_size``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+        Examples:
+            >>> model = DQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 64])
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -83,6 +118,22 @@ class C51DQN(nn.Module):
         v_max: Optional[float] = 10,
         n_atom: Optional[int] = 51,
     ) -> None:
+        r"""
+        Overview:
+            Init the C51 Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+            - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
+        """
         super(C51DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -123,9 +174,34 @@ class C51DQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``logit``, ``distribution``
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict C51DQN's output.
+            Parameter updates with C51DQN's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor w/ ``(B, N=head_hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head. Return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - distribution(:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+
+        Examples:
+            >>> model = C51DQN(128, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 128)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> # default head_hidden_size: int = 64,
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default n_atom: int = 51
+            >>> assert outputs['distribution'].shape == torch.Size([4, 64, 51])
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -146,6 +222,22 @@ class QRDQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
+        r"""
+        Overview:
+            Init the QRDQN Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - num_quantiles (:obj:`int`): Number of quantiles in the prediction distribution.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(QRDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -184,9 +276,35 @@ class QRDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``logit``,  ``q``, ``tau``
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict QRDQN's output.
+            Parameter updates with QRDQN's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor with ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head. Return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
+                    - tau (:obj:`torch.Tensor`): tau tensor of size ``(B, N, 1)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - tau (:obj:`torch.Tensor`):  :math:`(B, N, 1)`
+
+        Examples:
+            >>> model = QRDQN(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles : int = 32
+            >>> assert outputs['q'].shape == torch.Size([4, 64, 32])
+            >>> assert outputs['tau'].shape == torch.Size([4, 32, 1])
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -208,6 +326,22 @@ class IQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
+        r"""
+        Overview:
+            Init the IQN Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - num_quantiles (:obj:`int`): Number of quantiles in the prediction distribution.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(IQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -249,9 +383,35 @@ class IQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-             - necessary: ``logit``, ``q``, ``quantiles``
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict IQN's output.
+            Parameter updates with IQN's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor with ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head. Return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
+                    - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(quantile_embedding_size, 1)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - quantiles (:obj:`torch.Tensor`):  :math:`(quantile_embedding_size, 1)`
+        Examples:
+            >>> model = IQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles: int = 32
+            >>> assert outputs['q'].shape == torch.Size([32, 4, 64]
+            >>> # default quantile_embedding_size: int = 128
+            >>> assert outputs['quantiles'].shape == torch.Size([128, 1])
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -278,6 +438,22 @@ class RainbowDQN(nn.Module):
         v_max: Optional[float] = 10,
         n_atom: Optional[int] = 51,
     ) -> None:
+        r"""
+        Overview:
+            Init the Rainbow Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+            - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
+        """
         super(RainbowDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -320,9 +496,33 @@ class RainbowDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        """
-        ReturnsKeys:
-            - necessary: ``logit``, ``distribution``
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict Rainbow output.
+            Parameter updates with Rainbow's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor with ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+         Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - distribution(:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+
+        Examples:
+            >>> model = RainbowDQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default n_atom: int =51
+            >>> assert outputs['distribution'].shape == torch.Size([4, 64, 51])
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -335,9 +535,9 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
         Process timestep T and batch_size B at the same time, in other words, treat different timestep data as
         different trajectories in a batch.
     Arguments:
-        - forward_fn (:obj:`Callable`): normal nn.Module's forward function
+        - forward_fn (:obj:`Callable`): Normal ``nn.Module`` 's forward function
     Returns:
-        - wrapper (:obj:`Callable`): wrapped function
+        - wrapper (:obj:`Callable`): Wrapped function
     """
 
     def wrapper(x: torch.Tensor) -> Union[torch.Tensor, List[torch.Tensor]]:
@@ -375,6 +575,21 @@ class DRQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
+        r"""
+        Overview:
+            Init the DRQN Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - lstm_type (:obj:`Optional[str]`): Version of lstm cell, now support ``['normal', 'pytorch']``
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+        """
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
@@ -413,12 +628,44 @@ class DRQN(nn.Module):
             )
 
     def forward(self, inputs: Dict, inference: bool = False) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict DRQN output.
+            Parameter updates with DRQN's MLPs forward setup.
+        Arguments:
+            - inputs (:obj:`Dict`):
+
+               Necessary Keys:
+                    - obs (:obj:`torch.Tensor`): Encoded observation
+                    - prev_state (:obj:`list`): Previous state's tensor of size ``(B, N)``
+
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run ``MLP`` with ``DRQN`` setups and return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``obs``.
+                    - next_state (:obj:`list`): Next state's tensor of size ``(B, N)``
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N=obs_space)`, where B is batch size.
+            - prev_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - next_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
+
+        Examples:
+            >>> # Init input's Keys:
+            >>> prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4
+            >>> obs = torch.randn(4,64)
+            >>> model = DRQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> outputs = model({'obs': inputs, 'prev_state': prev_state}, inference=True)
+            >>> # Check outputs's Keys
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == (4, 64)
+            >>> assert len(outputs['next_state']) == 4
+            >>> assert all([len(t) == 2 for t in outputs['next_state']])
+            >>> assert all([t[0].shape == (1, 1, 64) for t in outputs['next_state']])
         """
-        ArgumentsKeys:
-            - necessary: ``obs``, ``prev_state``
-        ReturnsKeys:
-            - necessary: ``logit``, ``next_state``
-        """
+
         x, prev_state = inputs['obs'], inputs['prev_state']
         if inference:
             x = self.encoder(x)

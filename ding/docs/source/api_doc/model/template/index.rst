@@ -1,8 +1,9 @@
-Model
+Template
 ==========
 
 .. toctree::
     :maxdepth: 2
 
-    common/index
-    template/index
+    q_learning
+    QAC
+    VAC
