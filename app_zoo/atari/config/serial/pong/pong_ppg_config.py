@@ -1,5 +1,5 @@
 from copy import deepcopy
-from nervex.entry import serial_pipeline
+from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_ppg_config = dict(
@@ -20,7 +20,7 @@ pong_ppg_config = dict(
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             model_type='conv_ppg',
-            import_names=['nervex.model.ppg'],
+            import_names=['ding.model.ppg'],
             obs_shape=[4, 84, 84],
             action_shape=6,
             embedding_size=128,

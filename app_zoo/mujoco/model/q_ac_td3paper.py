@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Union, Optional
 
-from nervex.model.common import QActorCriticBase
-from nervex.utils import squeeze
+from ding.model.common import QActorCriticBase
+from ding.utils import squeeze
 
 
 class FCContinuousNet(nn.Module):
@@ -57,7 +57,7 @@ class QAC_Td3paper(QActorCriticBase):
         self._obs_dim: int = squeeze(obs_dim)
         self._act_dim: int = squeeze(action_dim)
         # hidden_dim
-        # Original QAC in nervex/model has hidden layers with same hidden nodes,
+        # Original QAC in ding/model has hidden layers with same hidden nodes,
         # while TD3 paper proposed 2 hidden layers with hidden nodes [400, 300].
         # That is why we implement a new version of QAC and FCContinuousNet here.
         self._hidden_dim = [400, 300]

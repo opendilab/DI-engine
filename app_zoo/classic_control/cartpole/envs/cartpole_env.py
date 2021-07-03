@@ -5,10 +5,10 @@ import torch
 import copy
 import numpy as np
 from easydict import EasyDict
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElementInfo
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import ENV_REGISTRY
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElementInfo
+from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.utils import ENV_REGISTRY
 
 
 def disable_gym_view_window():
@@ -106,7 +106,7 @@ class CartPoleEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX CartPole Env"
+        return "DI-engine CartPole Env"
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

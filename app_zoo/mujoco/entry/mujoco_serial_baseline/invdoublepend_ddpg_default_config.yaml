@@ -23,7 +23,7 @@ env:
 policy:
     use_cuda: False
     policy_type: 'ddpg'
-    import_names: ['nervex.policy.ddpg']
+    import_names: ['ding.policy.ddpg']
     on_policy: False
     use_priority: True
     model:

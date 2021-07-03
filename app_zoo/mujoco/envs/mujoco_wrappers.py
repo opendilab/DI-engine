@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import pybulletgym
 
-from nervex.envs import ObsNormEnv, RewardNormEnv
+from ding.envs import ObsNormEnv, RewardNormEnv
 
 
 def wrap_mujoco(env_id, norm_obs=True, norm_reward=True, only_info=False) -> gym.Env:

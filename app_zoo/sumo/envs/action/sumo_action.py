@@ -1,7 +1,7 @@
 import torch
 
-from nervex.envs.common import EnvElement
-from nervex.torch_utils import tensor_to_list
+from ding.envs.common import EnvElement
+from ding.torch_utils import tensor_to_list
 
 
 class SumoRawAction(EnvElement):

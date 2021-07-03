@@ -11,9 +11,9 @@ from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
-from nervex.envs import BaseEnv
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY, deep_merge_dicts
+from ding.envs import BaseEnv
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY, deep_merge_dicts
 
 from .smac_map import get_map_params
 from .smac_action import SMACAction, distance
@@ -1346,7 +1346,7 @@ class SMACEnv(SC2Env, BaseEnv):
         )
 
     def __repr__(self):
-        return "nervex SMAC Env"
+        return "DI-engine SMAC Env"
 
 
 def _flatten(obs, get_keys):

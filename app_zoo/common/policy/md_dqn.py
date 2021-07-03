@@ -1,8 +1,8 @@
 from typing import Dict, Any
 import torch
-from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error
-from nervex.policy import DQNPolicy
-from nervex.utils import POLICY_REGISTRY
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error
+from ding.policy import DQNPolicy
+from ding.utils import POLICY_REGISTRY
 
 
 @POLICY_REGISTRY.register('md_dqn')

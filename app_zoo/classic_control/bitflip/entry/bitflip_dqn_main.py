@@ -4,14 +4,14 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 from functools import partial
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, EpisodeCollector, BaseSerialEvaluator, EpisodeReplayBuffer
-from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import DQNPolicy
-from nervex.model import DQN
-from nervex.utils import set_pkg_seed
-from nervex.rl_utils import get_epsilon_greedy_fn
-from nervex.reward_model import HerRewardModel
+from ding.config import compile_config
+from ding.worker import BaseLearner, EpisodeCollector, BaseSerialEvaluator, EpisodeReplayBuffer
+from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.policy import DQNPolicy
+from ding.model import DQN
+from ding.utils import set_pkg_seed
+from ding.rl_utils import get_epsilon_greedy_fn
+from ding.reward_model import HerRewardModel
 from app_zoo.classic_control.bitflip.envs import BitFlipEnv
 from app_zoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 

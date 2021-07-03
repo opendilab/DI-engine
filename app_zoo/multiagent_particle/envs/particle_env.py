@@ -5,10 +5,10 @@ import copy
 import numpy as np
 import torch
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from app_zoo.multiagent_particle.envs.make_env import make_env
 from app_zoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
 import gym
@@ -119,7 +119,7 @@ class ParticleEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nervex wrapped Multiagent particle Env({})".format(self._cfg.env_name)
+        return "DI-engine wrapped Multiagent particle Env({})".format(self._cfg.env_name)
 
 
 CNEnvTimestep = namedtuple('CNEnvTimestep', ['obs', 'reward', 'done', 'info'])
@@ -264,7 +264,7 @@ class CooperativeNavigation(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nervex wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
+        return "DI-engine wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

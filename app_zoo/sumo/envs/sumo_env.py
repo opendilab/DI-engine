@@ -9,10 +9,10 @@ import yaml
 from easydict import EasyDict
 from sumolib import checkBinary
 
-from nervex.envs.env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.utils import ENV_REGISTRY
-from nervex.torch_utils import to_ndarray, to_tensor
-from nervex.utils import deep_merge_dicts
+from ding.envs.env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_ndarray, to_tensor
+from ding.utils import deep_merge_dicts
 from app_zoo.sumo.envs.action.sumo_action_runner import SumoRawActionRunner
 from app_zoo.sumo.envs.obs.sumo_obs_runner import SumoObsRunner
 from app_zoo.sumo.envs.reward.sumo_reward_runner import SumoRewardRunner

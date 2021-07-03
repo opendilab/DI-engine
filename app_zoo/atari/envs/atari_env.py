@@ -2,10 +2,10 @@ from typing import Any, List, Union, Sequence
 import copy
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
 
 ATARIENV_INFO_DICT = {
@@ -190,7 +190,7 @@ class AtariEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Atari Env({})".format(self._cfg.env_id)
+        return "DI-engine Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

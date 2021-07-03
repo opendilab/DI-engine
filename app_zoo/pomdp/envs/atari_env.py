@@ -3,10 +3,10 @@ import copy
 import torch
 import gym
 import numpy as np
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
 from pprint import pprint
@@ -46,7 +46,7 @@ POMDP_INFO_DICT = {
 def PomdpEnv(cfg, only_info=False):
     '''
     For debug purpose, create an env follow openai gym standard so it can be widely test by
-    other library with same environment setting in nerveX
+    other library with same environment setting in DI-engine
     env = PomdpEnv(cfg)
     obs = env.reset()
     obs, reward, done, info = env.step(action)
@@ -129,7 +129,7 @@ class PomdpAtariEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX POMDP Atari Env({})".format(self._cfg.env_id)
+        return "DI-engine POMDP Atari Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

@@ -3,12 +3,12 @@ import copy
 import torch
 import numpy as np
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.envs.common.common_function import affine_transform
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs.common.common_function import affine_transform
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .mujoco_wrappers import wrap_mujoco
-from nervex.utils import ENV_REGISTRY
+from ding.utils import ENV_REGISTRY
 
 MUJOCO_INFO_DICT = {
     'Ant-v3': BaseEnvInfo(
@@ -326,7 +326,7 @@ class MujocoEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Mujoco Env({})".format(self._cfg.env_id)
+        return "DI-engine Mujoco Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

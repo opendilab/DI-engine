@@ -14,7 +14,7 @@ maze_dqn_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='dqn',
-        import_names=['nervex.policy.dqn'],
+        import_names=['ding.policy.dqn'],
         on_policy=False,
         model=dict(
             encoder_kwargs=dict(encoder_type='conv2d', ),

@@ -22,7 +22,7 @@ lunarlander_sqn_default_config = dict(
         use_cuda=False,
         # RL policy register name (refer to function "register_policy").
         policy_type='sqn',
-        import_names=['nervex.policy.sqn'],
+        import_names=['ding.policy.sqn'],
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.

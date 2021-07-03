@@ -2,10 +2,10 @@ import copy
 
 import numpy as np
 
-from nervex.envs.common import EnvElementRunner, EnvElement
-from nervex.envs.env.base_env import BaseEnv
+from ding.envs.common import EnvElementRunner, EnvElement
+from ding.envs.env.base_env import BaseEnv
 from .gfootball_obs import PlayerObs, MatchObs
-from nervex.utils import deep_merge_dicts
+from ding.utils import deep_merge_dicts
 
 
 class GfootballObsRunner(EnvElementRunner):

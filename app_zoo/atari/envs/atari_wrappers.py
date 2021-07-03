@@ -5,7 +5,7 @@ import cv2
 import gym
 import numpy as np
 from collections import deque
-from nervex.envs import NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, ScaledFloatFrame, \
+from ding.envs import NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, ScaledFloatFrame, \
                         ClipRewardEnv, FrameStack
 
 

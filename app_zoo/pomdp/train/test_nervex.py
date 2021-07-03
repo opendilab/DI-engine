@@ -2,9 +2,9 @@ from copy import deepcopy
 import numpy as np
 import torch
 from pprint import pprint
-from nervex.model import FCDiscreteNet
-from nervex.model.actor_critic import FCValueAC
-from nervex.entry import serial_pipeline
+from ding.model import FCDiscreteNet
+from ding.model.actor_critic import FCValueAC
+from ding.entry import serial_pipeline
 from app_zoo.classic_control.cartpole.entry import cartpole_dqn_default_config
 from app_zoo.pomdp.entry import pomdp_dqn_default_config, pomdp_ppo_default_config
 from app_zoo.atari.entry.atari_serial_baseline import pong_dqn_default_config

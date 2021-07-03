@@ -1,6 +1,6 @@
-import nervex
+import ding
 from copy import deepcopy
-from nervex.entry import serial_pipeline
+from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 lunarlander_qrdqn_config = dict(

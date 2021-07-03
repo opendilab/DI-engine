@@ -2,7 +2,7 @@ import random
 import os
 
 import torch
-from nervex.utils import get_data_compressor
+from ding.utils import get_data_compressor
 
 
 class FakeSumoDataset:

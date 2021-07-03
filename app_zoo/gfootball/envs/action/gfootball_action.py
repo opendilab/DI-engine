@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from nervex.envs.common import EnvElement
+from ding.envs.common import EnvElement
 
 
 class GfootballSpAction(EnvElement):

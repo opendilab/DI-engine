@@ -4,7 +4,7 @@ import os
 import yaml
 from easydict import EasyDict
 # from app_zoo.gfootball.envs.gfootball_env import GfootballEnv
-# from nervex.utils import read_config
+# from ding.utils import read_config
 
 
 @pytest.fixture(scope='function')

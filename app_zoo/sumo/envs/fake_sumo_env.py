@@ -5,7 +5,7 @@ import torch
 import yaml
 from easydict import EasyDict
 
-from nervex.utils import deep_merge_dicts, ENV_REGISTRY
+from ding.utils import deep_merge_dicts, ENV_REGISTRY
 from .sumo_env import SumoWJ3Env
 
 

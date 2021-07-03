@@ -1,5 +1,5 @@
 from copy import deepcopy
-from nervex.entry import serial_pipeline
+from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_c51_config = dict(

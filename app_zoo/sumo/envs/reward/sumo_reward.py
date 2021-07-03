@@ -4,7 +4,7 @@ from typing import Tuple, Union
 import torch
 import traci
 
-from nervex.envs.common import EnvElement
+from ding.envs.common import EnvElement
 
 
 class SumoReward(EnvElement):

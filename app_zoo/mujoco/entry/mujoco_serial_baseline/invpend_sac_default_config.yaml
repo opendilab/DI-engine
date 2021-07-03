@@ -23,7 +23,7 @@ env:
 policy:
     use_cuda: True
     policy_type: 'sac'
-    import_names: ['nervex.policy.sac']
+    import_names: ['ding.policy.sac']
     on_policy: False
     use_priority: True
     model:

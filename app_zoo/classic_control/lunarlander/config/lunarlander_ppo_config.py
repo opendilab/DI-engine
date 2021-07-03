@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from nervex.entry import serial_pipeline
+from ding.entry import serial_pipeline
 
 lunarlander_ppo_config = dict(
     env=dict(

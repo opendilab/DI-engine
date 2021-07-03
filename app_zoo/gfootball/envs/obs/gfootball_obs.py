@@ -2,10 +2,10 @@ import numpy as np
 import torch
 import math
 
-from nervex.envs.common import EnvElement
+from ding.envs.common import EnvElement
 from functools import partial
-from nervex.torch_utils import one_hot
-from nervex.envs.common import div_func, div_one_hot
+from ding.torch_utils import one_hot
+from ding.envs.common import div_func, div_one_hot
 
 N_PLAYER = 11
 

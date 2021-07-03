@@ -2,11 +2,11 @@
 
 ==setting: SC2 version=4.6.2.69232, difficulty=7==
 
-目前表格中nervex的结果是tensorboard的smooth=0.7时reward的最大值
+目前表格中DI-engine的结果是tensorboard的smooth=0.7时reward的最大值
 
 #### 3s5z
 
-| 算法        | pymarl |      | nerveX |      | nervex config                                                |
+| 算法        | pymarl |      |DI-engine|      | DI-engine config                                                |
 | ----------- | ------ | ---- | ------ | ---- | ------------------------------------------------------------ |
 | env step    | 2M     | 3M   | 2M     | 3M   |                                                              |
 | vdn         |        |      |        |      |                                                              |
@@ -20,7 +20,7 @@
 
 #### 5m vs. 6m
 
-| 算法        | pymarl |      | nerveX |      | nervex config                                                |
+| 算法        | pymarl |      |DI-engine|      | DI-engine config                                                |
 | ----------- | ------ | ---- | ------ | ---- | ------------------------------------------------------------ |
 | env step    | 2M     | 3M   | 2M     | 3M   |                                                              |
 | vdn         |        |      |        |      |                                                              |

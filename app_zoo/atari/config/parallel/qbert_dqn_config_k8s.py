@@ -66,22 +66,22 @@ qbert_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn_command'),
-    learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
+    learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
         type='zergling',
-        import_names=['nervex.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_collector'],
     ),
     commander=dict(
         type='solo',
-        import_names=['nervex.worker.coordinator.solo_parallel_commander'],
+        import_names=['ding.worker.coordinator.solo_parallel_commander'],
     ),
     comm_learner=dict(
         type='flask_fs',
-        import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+        import_names=['ding.worker.learner.comm.flask_fs_learner'],
     ),
     comm_collector=dict(
         type='flask_fs',
-        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        import_names=['ding.worker.collector.comm.flask_fs_collector'],
     ),
 )
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)

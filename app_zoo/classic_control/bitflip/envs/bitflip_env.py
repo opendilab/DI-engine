@@ -4,9 +4,9 @@ import numpy as np
 
 from typing import Any, Dict, Optional, Union, List
 
-from nervex.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
+from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY
 
 
 @ENV_REGISTRY.register('bitflip')
@@ -100,4 +100,4 @@ class BitFlipEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX BitFlip Env({})".format('bitflip')
+        return "DI-engine BitFlip Env({})".format('bitflip')

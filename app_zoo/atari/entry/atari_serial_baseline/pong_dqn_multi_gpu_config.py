@@ -1,7 +1,7 @@
 from copy import deepcopy
 from easydict import EasyDict
-from nervex.entry import serial_pipeline
-from nervex.utils import DistContext
+from ding.entry import serial_pipeline
+from ding.utils import DistContext
 
 pong_dqn_config = dict(
     env=dict(

@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from nervex.utils import MODEL_REGISTRY, deep_merge_dicts
-from nervex.config import read_config
+from ding.utils import MODEL_REGISTRY, deep_merge_dicts
+from ding.config import read_config
 from app_zoo.gfootball.model.conv1d.conv1d_default_config import conv1d_default_config
 
 

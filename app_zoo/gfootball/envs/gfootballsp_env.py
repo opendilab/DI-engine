@@ -5,10 +5,10 @@ from typing import Any, List, Union
 import gfootball
 import gfootball.env as football_env
 import numpy as np
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.torch_utils import to_ndarray
-from nervex.utils import ENV_REGISTRY
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.torch_utils import to_ndarray
+from ding.utils import ENV_REGISTRY
 from app_zoo.gfootball.envs.obs.encoder import FeatureEncoder
 from app_zoo.gfootball.envs.obs.gfootball_obs import FullObs
 from app_zoo.gfootball.envs.action.gfootball_action import GfootballSpAction
@@ -130,7 +130,7 @@ class GfootballEnv(BaseEnv):
         return GfootballEnv.info_template(**info_data)
 
     def __repr__(self) -> str:
-        return "nerveX Gfootball Env({})".format(self.env_name)
+        return "DI-engine Gfootball Env({})".format(self.env_name)
 
     @staticmethod
     def calc_reward(rew, prev_obs, obs):

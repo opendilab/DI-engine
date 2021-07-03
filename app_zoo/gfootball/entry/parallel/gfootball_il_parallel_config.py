@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from nervex.config import parallel_transform
+from ding.config import parallel_transform
 
 __policy_default_config = dict(
     use_cuda=False,
@@ -49,7 +49,7 @@ __base_learner_default_config = dict(
 
 __zergling_collector_default_config = dict(
     collector_type='zergling',
-    import_names=['nervex.worker.collector.zergling_collector'],
+    import_names=['ding.worker.collector.zergling_collector'],
     print_freq=10,
     compressor='lz4',
     policy_update_freq=3,
@@ -74,7 +74,7 @@ __coordinator_default_config = dict(
     ),
     commander=dict(
         parallel_commander_type='solo',
-        import_names=['nervex.worker.coordinator.solo_parallel_commander'],
+        import_names=['ding.worker.coordinator.solo_parallel_commander'],
         collector_task_space=2,
         learner_task_space=1,
         learner_cfg=__base_learner_default_config,
@@ -93,7 +93,7 @@ __coordinator_default_config = EasyDict(__coordinator_default_config)
 main_config = dict(
     coordinator=__coordinator_default_config,
     learner0=dict(
-        import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+        import_names=['ding.worker.learner.comm.flask_fs_learner'],
         comm_learner_type='flask_fs',
         host='auto',
         port='auto',
@@ -103,7 +103,7 @@ main_config = dict(
         use_distributed=False,
     ),
     collector0=dict(
-        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        import_names=['ding.worker.collector.comm.flask_fs_collector'],
         comm_collector_type='flask_fs',
         host='auto',
         port='auto',
@@ -112,7 +112,7 @@ main_config = dict(
         queue_maxsize=8,
     ),
     collector1=dict(
-        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        import_names=['ding.worker.collector.comm.flask_fs_collector'],
         comm_collector_type='flask_fs',
         host='auto',
         port='auto',

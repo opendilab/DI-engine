@@ -2,8 +2,8 @@ import copy
 
 import numpy as np
 
-from nervex.envs.common import EnvElementRunner
-from nervex.envs.env.base_env import BaseEnv
+from ding.envs.common import EnvElementRunner
+from ding.envs.env.base_env import BaseEnv
 from .gfootball_action import GfootballRawAction
 
 

@@ -2,8 +2,8 @@ import pytest
 import copy
 import torch
 from app_zoo.gfootball.model.iql.iql_network import FootballIQL, ScalarEncoder, PlayerEncoder, FootballHead
-from nervex.utils import deep_merge_dicts
-from nervex.torch_utils import to_tensor
+from ding.utils import deep_merge_dicts
+from ding.torch_utils import to_tensor
 from app_zoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 import pprint
 

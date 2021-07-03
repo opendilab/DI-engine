@@ -3,7 +3,7 @@ from math import sqrt
 from enum import Enum
 import torch
 import numpy as np
-from nervex.torch_utils import tensor_to_list, one_hot
+from ding.torch_utils import tensor_to_list, one_hot
 from .TamakEriFever.submission import agent
 
 

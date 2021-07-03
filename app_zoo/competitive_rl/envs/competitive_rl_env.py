@@ -5,12 +5,12 @@ import numpy as np
 import gym
 import competitive_rl
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.envs.common.common_function import affine_transform
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs.common.common_function import affine_transform
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .competitive_rl_env_wrapper import BuiltinOpponentWrapper, wrap_env
-from nervex.utils import ENV_REGISTRY
+from ding.utils import ENV_REGISTRY
 
 competitive_rl.register_competitive_envs()
 """
@@ -150,7 +150,7 @@ class CompetitiveRlEnv(BaseEnv):
         return wrap_env(self._env_id, self._builtin_wrap, self._opponent, only_info=only_info)
 
     def __repr__(self) -> str:
-        return "nerveX Competitve RL Env({})".format(self._cfg.env_id)
+        return "DI-engine Competitve RL Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

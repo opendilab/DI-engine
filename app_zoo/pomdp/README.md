@@ -1,4 +1,4 @@
-1. train文件夹里加入了一个训练脚本test_nervx.py 可以调用nerveX实现在POMDP环境上的训练和可视化分析
+1. train文件夹里加入了一个训练脚本test_nervx.py 可以调用DI-engine实现在POMDP环境上的训练和可视化分析
 2. POMDP的实现主要在FrameStackRam这个wrapper中，目前有三种处理方式
 * 对一些obs不及时更新，使用之前的obs作为现在的obs
 * 以一定的概率将obs置为全0

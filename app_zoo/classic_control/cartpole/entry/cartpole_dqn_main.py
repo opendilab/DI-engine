@@ -2,19 +2,19 @@ import os
 import gym
 from tensorboardX import SummaryWriter
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import DQNPolicy
-from nervex.model import DQN
-from nervex.utils import set_pkg_seed
-from nervex.rl_utils import get_epsilon_greedy_fn
+from ding.config import compile_config
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.policy import DQNPolicy
+from ding.model import DQN
+from ding.utils import set_pkg_seed
+from ding.rl_utils import get_epsilon_greedy_fn
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 
 
-# Get nerveX form env class
+# Get DI-engine form env class
 def wrapped_cartpole_env():
-    return NervexEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(gym.make('CartPole-v0'))
 
 
 def main(cfg, seed=0):

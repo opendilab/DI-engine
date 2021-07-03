@@ -4,17 +4,17 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 from copy import deepcopy
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import PPGPolicy
-from nervex.model import PPG
-from nervex.utils import set_pkg_seed, deep_merge_dicts
+from ding.config import compile_config
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.policy import PPGPolicy
+from ding.model import PPG
+from ding.utils import set_pkg_seed, deep_merge_dicts
 from app_zoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config
 
 
 def wrapped_cartpole_env():
-    return NervexEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(gym.make('CartPole-v0'))
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):

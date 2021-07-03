@@ -1,7 +1,7 @@
 import math
 
-from nervex.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, check_only
-from nervex.utils import pretty_print
+from ding.loader import dict_, is_type, to_type, collection, interval, is_positive, mcmp, enum, item, raw, check_only
+from ding.utils import pretty_print
 
 cartpole_ppo_main_loader = dict_(
     env=item('env') >> dict_(

@@ -2,12 +2,12 @@ import os
 import gym
 from tensorboardX import SummaryWriter
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import DDPGPolicy
-from nervex.model import QAC
-from nervex.utils import set_pkg_seed
+from ding.config import compile_config
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.policy import DDPGPolicy
+from ding.model import QAC
+from ding.utils import set_pkg_seed
 from app_zoo.classic_control.pendulum.envs import PendulumEnv
 from app_zoo.classic_control.pendulum.config.pendulum_td3_config import pendulum_td3_config
 

@@ -1,8 +1,8 @@
 from typing import Dict, Any
 import torch
-from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, dist_1step_td_data, dist_1step_td_error
-from nervex.policy import RainbowDQNPolicy
-from nervex.utils import POLICY_REGISTRY
+from ding.rl_utils import dist_nstep_td_data, dist_nstep_td_error, dist_1step_td_data, dist_1step_td_error
+from ding.policy import RainbowDQNPolicy
+from ding.utils import POLICY_REGISTRY
 
 
 @POLICY_REGISTRY.register('md_rainbow_dqn')

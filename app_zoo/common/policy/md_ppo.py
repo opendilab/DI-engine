@@ -2,10 +2,10 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nervex.rl_utils import ppo_data, ppo_error
-from nervex.policy import PPOPolicy
-from nervex.utils import POLICY_REGISTRY
-from nervex.model.actor_critic.value_ac import ValueAC
+from ding.rl_utils import ppo_data, ppo_error
+from ding.policy import PPOPolicy
+from ding.utils import POLICY_REGISTRY
+from ding.model.actor_critic.value_ac import ValueAC
 
 
 class SepValueAC(ValueAC):

@@ -12,7 +12,7 @@ import torch
 import numpy as np
 from kaggle_environments.envs.football.helpers import *
 
-from nervex.torch_utils import tensor_to_list, one_hot
+from ding.torch_utils import tensor_to_list, one_hot
 """
 Readable Reminder
 *********************

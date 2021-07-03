@@ -6,8 +6,8 @@ from collections import namedtuple
 from typing import List, Any
 
 import numpy as np
-from nervex.envs import BaseEnv
-from nervex.utils import ENV_REGISTRY
+from ding.envs import BaseEnv
+from ding.utils import ENV_REGISTRY
 from .action.gfootball_action_runner import GfootballRawActionRunner
 from .obs.gfootball_obs_runner import GfootballObsRunner
 from .reward.gfootball_reward_runner import GfootballRewardRunner

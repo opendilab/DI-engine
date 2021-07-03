@@ -3,13 +3,13 @@ import gym
 from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from nervex.envs import SyncSubprocessEnvManager
-from nervex.policy import QMIXPolicy
-from nervex.model import QMix
-from nervex.utils import set_pkg_seed, deep_merge_dicts
-from nervex.rl_utils import get_epsilon_greedy_fn
+from ding.config import compile_config
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.envs import SyncSubprocessEnvManager
+from ding.policy import QMIXPolicy
+from ding.model import QMix
+from ding.utils import set_pkg_seed, deep_merge_dicts
+from ding.rl_utils import get_epsilon_greedy_fn
 from app_zoo.multiagent_particle.envs import CooperativeNavigation
 from app_zoo.multiagent_particle.config.cooperative_navigation_qmix_config import cooperative_navigation_qmix_config
 

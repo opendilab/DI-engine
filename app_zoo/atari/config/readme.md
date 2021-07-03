@@ -1,6 +1,6 @@
 Qbert
 
-| Algorithm | nerveX   | tianshou | xingtian |   sb3    |
+| Algorithm | DI-engine| tianshou | xingtian |   sb3    |
 | --------- | -------- | -------- | -------- | -------  |
 | dqn       | 17866    | 7307     | 14087    | 9496     |
 | c51       | 19034    | 16245    | n/a      | n/a      |
@@ -13,7 +13,7 @@ Qbert
 
 Space Invaders
 
-| Algorithm | nerveX   | tianshou | xingtian |   sb3    |
+| Algorithm | DI-engine| tianshou | xingtian |   sb3    |
 | --------- | -------- | -------- | -------- | -------  |
 | dqn       | 1880     | 812      | 947      | 622      |
 | c51       | 2396     | 989      | n/a      | n/a      |

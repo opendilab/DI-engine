@@ -2,11 +2,11 @@ from typing import Any, Union, Optional
 import gym
 import torch
 import numpy as np
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.envs.common.common_function import affine_transform
-from nervex.utils import ENV_REGISTRY
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs.common.common_function import affine_transform
+from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 
 
 @ENV_REGISTRY.register('pendulum')
@@ -92,7 +92,7 @@ class PendulumEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Pendulum Env({})".format(self._cfg.env_id)
+        return "DI-engine Pendulum Env({})".format(self._cfg.env_id)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

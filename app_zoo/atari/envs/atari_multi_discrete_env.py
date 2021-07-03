@@ -2,9 +2,9 @@ from typing import List
 import copy
 import numpy as np
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.utils import ENV_REGISTRY
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.utils import ENV_REGISTRY
 from .atari_env import AtariEnv, ATARIENV_INFO_DICT
 
 
@@ -85,7 +85,7 @@ class AtariMultiDiscreteEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Atari Multi Discrete Env({})".format(self._cfg.env_id)
+        return "DI-engine Atari Multi Discrete Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

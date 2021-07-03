@@ -2,18 +2,18 @@ import os
 import gym
 from tensorboardX import SummaryWriter
 
-from nervex.config import compile_config
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, NaiveReplayBuffer
-from nervex.envs import BaseEnvManager, NervexEnvWrapper
-from nervex.policy import PPOPolicy
-from nervex.model import VAC
-from nervex.utils import set_pkg_seed, deep_merge_dicts
-from nervex.reward_model import RndRewardModel
+from ding.config import compile_config
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, NaiveReplayBuffer
+from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.policy import PPOPolicy
+from ding.model import VAC
+from ding.utils import set_pkg_seed, deep_merge_dicts
+from ding.reward_model import RndRewardModel
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config
 
 
 def wrapped_cartpole_env():
-    return NervexEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(gym.make('CartPole-v0'))
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):

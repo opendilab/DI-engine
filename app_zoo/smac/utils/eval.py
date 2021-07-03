@@ -3,10 +3,10 @@ import pickle
 import torch
 from functools import partial
 
-from nervex.config import compile_config, read_config
-from nervex.envs import get_vec_env_setting
-from nervex.policy import create_policy
-from nervex.utils import set_pkg_seed
+from ding.config import compile_config, read_config
+from ding.envs import get_vec_env_setting
+from ding.policy import create_policy
+from ding.utils import set_pkg_seed
 
 
 def eval(
