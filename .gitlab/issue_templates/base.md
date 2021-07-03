@@ -10,6 +10,6 @@
 - [ ] I have searched through the [issue tracker](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/issues) and [mr tracker](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/merge_requests) for duplicates
 - [ ] I have mentioned version numbers, operating system and environment, where applicable:
   ```python
-  import nervex, torch, sys
-  print(nervex.__version__, torch.__version__, sys.version, sys.platform)
+  import ding, torch, sys
+  print(ding.__version__, torch.__version__, sys.version, sys.platform)
   ```

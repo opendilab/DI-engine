@@ -7,12 +7,12 @@ DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
-COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
-FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./nervex)
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
+COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
+FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 
 docs:
-	$(MAKE) -C ./nervex/docs html
+	$(MAKE) -C ./ding/docs html
 
 unittest:
 	pytest ${TEST_DIR} \
@@ -44,6 +44,6 @@ all_test: unittest algotest cudatest benchmark
 format:
 	yapf --in-place --recursive -p --verbose --style .style.yapf ${FORMAT_DIR}
 format_test:
-	bash format.sh ./nervex --test
+	bash format.sh ./ding --test
 flake_check:
-	flake8 ./nervex
+	flake8 ./ding
