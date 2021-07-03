@@ -142,15 +142,3 @@ def test_serial_pipeline_il_dqn():
     _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
     os.popen('rm -rf ' + expert_data_path)
-
-
-@pytest.mark.unittest
-@pytest.mark.dqn
-def test_il_policy():
-    cfg = compile_config(cartpole_dqn_config, seed=0, auto=True, create_cfg=cartpole_dqn_create_config)
-    il_policy = ILPolicy(cfg.policy)
-    learn_mode_policy = il_policy.learn_mode
-    state_dict = learn_mode_policy.state_dict()
-    assert 'model' in state_dict
-    assert 'optimizer' in state_dict
-    learn_mode_policy.load_state_dict(state_dict)

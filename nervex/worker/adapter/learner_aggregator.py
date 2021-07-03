@@ -4,6 +4,7 @@ import numbers
 import copy
 import time
 from functools import reduce
+
 from nervex.interaction import Master, Slave, TaskFail
 from nervex.interaction.master.task import TaskStatus
 from nervex.utils import build_logger
