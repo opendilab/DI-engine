@@ -37,12 +37,6 @@ You can know about the specific format from the following code example.
 
 .. code::
 
-    '''
-    Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-    Main Function:
-        1. Base learner for both serial and parallel training pipeline.
-    '''
     class BaseLearner(object):
         r"""
         Overview:

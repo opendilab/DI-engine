@@ -207,7 +207,7 @@ config overview
 The specific meanings and default values of some common keys are shown
 in the table below. For policy-related keys, please refer to the
 document `Hands On
-RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/hands_on/index.html>`__
+RL <../hands_on/index.html>`__
 section.
 
 +-------------------------------+-------------------------------------+

@@ -106,7 +106,7 @@ model.
 
 2. Use customized model. To use customized model, you can refer to `Set
    up Policy and NN
-   model <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/quick_start/index.html#set-up-policy-and-nn-model>`__.
+   model <..//quick_start/index.html#set-up-policy-and-nn-model>`_.
    To adapt your model into DI-engine's pipline with minimal code changes,
    the output dict of model should contain ``'next_state'`` key.
 
@@ -189,7 +189,7 @@ use it, you need to specify adder in policy's collect model.
 
 For ``drop``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4]]`,
 For ``null_padding``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]`,
-:math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``. More details can be found in `Adder <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/api_doc/rl_utils/adder.html?highlight=adder#ding.rl_utils.adder.Adder>`__.
+:math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``. More details can be found in `Adder <../api_doc/rl_utils/adder.html?highlight=adder#ding.rl_utils.adder.Adder>`_.
 
 .. code:: python
 

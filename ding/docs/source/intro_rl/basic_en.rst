@@ -158,7 +158,7 @@ In the value-based approach, we iteratively compute the value function and then 
 Comparing to the value-based approach, the policy gradient reinforcement learning tends to converge to a local minimum, which is not sufficient when evaluating an individual policy and has a large variance.
 
 For a more detailed understanding of the policy based approach, please refer to the specific algorithms in our documentation：　`Hans On
-RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/hands_on/index.html>`__
+RL <../hands_on/index.html>`__
 
 
 

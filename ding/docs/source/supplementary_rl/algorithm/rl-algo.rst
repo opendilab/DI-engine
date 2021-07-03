@@ -75,7 +75,7 @@ DI-engine系统中buffer的实现结构可见下图：
    
    有关于Double、Dueling DQN和prioritized replay DQN的算法实现可以参考Github上的 `RL-Adventure <https://github.com/higgsfield/RL-Adventure>`_， 该repo上的各种DQN实现较全，尽管torch版本较低，但不失作为参考。
 
-   DQN算法在DI-engine框架中的入口可以参考 `nervx框架下的DQN实现 <http://gitlab.bj.sensetime.com/open-XLab/cell/ding/blob/master/ding/app_zoo/cartpole/entry/cartpole_dqn_main.py>`_。
+   DQN算法在DI-engine框架中的入口可以参考 nervx框架下的DQN实现 ``app_zoo/cartpole/entry/cartpole_dqn_main.py`` 。
 
 
 
