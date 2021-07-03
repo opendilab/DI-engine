@@ -2,8 +2,8 @@ from typing import Union, Optional, Dict, Callable, List
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils import get_lstm
-from nervex.utils import MODEL_REGISTRY, SequenceType, squeeze
+from ding.torch_utils import get_lstm
+from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
 

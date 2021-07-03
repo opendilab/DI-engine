@@ -1,7 +1,7 @@
 import pytest
 import torch
-from nervex.torch_utils import is_differentiable
-from nervex.model.template.qmix import Mixer, QMix, CollaQ
+from ding.torch_utils import is_differentiable
+from ding.model.template.qmix import Mixer, QMix, CollaQ
 
 
 @pytest.mark.unittest

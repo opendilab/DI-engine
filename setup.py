@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 meta = {}
-with open(os.path.join(here, 'nervex', '__init__.py'), 'r') as f:
+with open(os.path.join(here, 'ding', '__init__.py'), 'r') as f:
     exec(f.read(), meta)
 
 setup(
@@ -35,20 +35,20 @@ setup(
     keywords='DRL Framework',
     packages=[
         # framework
-        *find_packages(include=('nervex', "nervex.*")),
+        *find_packages(include=('ding', "ding.*")),
         # application
         *find_packages(include=('app_zoo'
                                 'app_zoo.*')),
     ],
     package_data={package_name: ['*.yaml', '*.xml', '*cfg']
-                  for package_name in find_packages(include=('nervex.*'))},
+                  for package_name in find_packages(include=('ding.*'))},
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
         'requests~=2.24.0',
         'six',
         'gym>=0.15.3',  # pypy
-        'torch>=1.3.1,<=1.7',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        'torch>=1.3.1,<=1.7.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'pyyaml',
         'easydict==1.9',
         'tensorboardX>=2.1',
@@ -126,7 +126,7 @@ setup(
             'joblib',
         ],
     },
-    entry_points={'console_scripts': ['nervex=nervex.entry.cli:cli']},
+    entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research/Developers',

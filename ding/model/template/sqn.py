@@ -2,7 +2,7 @@ from typing import Dict
 import torch
 import torch.nn as nn
 
-from nervex.utils import MODEL_REGISTRY
+from ding.utils import MODEL_REGISTRY
 from .q_learning import DQN
 
 

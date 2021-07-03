@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.torch_utils import build_activation
+from ding.torch_utils import build_activation
 
 
 @pytest.mark.unittest

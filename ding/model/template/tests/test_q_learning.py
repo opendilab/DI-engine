@@ -1,8 +1,8 @@
 import pytest
 from itertools import product
 import torch
-from nervex.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
-from nervex.torch_utils import is_differentiable
+from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
+from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
 obs_shape = [4, (8, ), (4, 64, 64)]

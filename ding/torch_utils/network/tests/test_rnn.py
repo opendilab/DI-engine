@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.torch_utils import get_lstm, sequence_mask
+from ding.torch_utils import get_lstm, sequence_mask
 
 
 @pytest.mark.unittest

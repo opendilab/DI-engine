@@ -1,6 +1,6 @@
 import os
 
-__TITLE__ = 'nerveX'
+__TITLE__ = 'DI-engine'
 __VERSION__ = 'v0.2.0-b2'
 __DESCRIPTION__ = 'X-Lab DRL Framework'
 __AUTHOR__ = "X-Lab"

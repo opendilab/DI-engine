@@ -1,6 +1,6 @@
 import pytest
 from copy import deepcopy
-from nervex.entry import parallel_pipeline
+from ding.entry import parallel_pipeline
 from app_zoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import main_config, create_config,\
     system_config
 

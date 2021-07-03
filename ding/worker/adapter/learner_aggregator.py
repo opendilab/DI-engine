@@ -5,9 +5,9 @@ import copy
 import time
 from functools import reduce
 
-from nervex.interaction import Master, Slave, TaskFail
-from nervex.interaction.master.task import TaskStatus
-from nervex.utils import build_logger
+from ding.interaction import Master, Slave, TaskFail
+from ding.interaction.master.task import TaskStatus
+from ding.utils import build_logger
 
 
 class LearnerAggregatorSlave(Slave):

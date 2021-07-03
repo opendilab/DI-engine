@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.torch_utils import build_normalization
+from ding.torch_utils import build_normalization
 
 num_features = 2
 batch_size = 2

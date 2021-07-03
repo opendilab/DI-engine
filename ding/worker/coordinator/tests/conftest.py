@@ -1,8 +1,8 @@
 import pytest
 from easydict import EasyDict
 
-from nervex.config import compile_config_parallel
-from nervex.worker.coordinator.one_vs_one_parallel_commander import OneVsOneCommander
+from ding.config import compile_config_parallel
+from ding.worker.coordinator.one_vs_one_parallel_commander import OneVsOneCommander
 
 
 @pytest.fixture(scope='function')
@@ -75,22 +75,22 @@ def setup_1v1commander():
         ),
         env_manager=dict(type='base'),
         policy=dict(type='dqn_command'),
-        learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
+        learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
         collector=dict(
             type='zergling',
-            import_names=['nervex.worker.collector.zergling_collector'],
+            import_names=['ding.worker.collector.zergling_collector'],
         ),
         commander=dict(
             type='one_vs_one',
-            import_names=['nervex.worker.coordinator.one_vs_one_parallel_commander'],
+            import_names=['ding.worker.coordinator.one_vs_one_parallel_commander'],
         ),
         comm_learner=dict(
             type='flask_fs',
-            import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+            import_names=['ding.worker.learner.comm.flask_fs_learner'],
         ),
         comm_collector=dict(
             type='flask_fs',
-            import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+            import_names=['ding.worker.collector.comm.flask_fs_collector'],
         ),
         league=dict(type='one_vs_one'),
     )

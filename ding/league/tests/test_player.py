@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 from easydict import EasyDict
 
-from nervex.league.player import Player, HistoricalPlayer, ActivePlayer, create_player
-from nervex.league.shared_payoff import create_payoff
-from nervex.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
-from nervex.league.tests.league_test_default_config import league_test_config
+from ding.league.player import Player, HistoricalPlayer, ActivePlayer, create_player
+from ding.league.shared_payoff import create_payoff
+from ding.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
+from ding.league.tests.league_test_default_config import league_test_config
 
 ONE_PHASE_STEP = 2000
 

@@ -7,8 +7,8 @@ import torch
 import torch.nn as nn
 import logging
 
-from nervex.torch_utils import get_lstm
-from nervex.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
+from ding.torch_utils import get_lstm
+from ding.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
 
 
 class TempMLP(torch.nn.Module):

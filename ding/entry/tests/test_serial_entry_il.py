@@ -8,15 +8,15 @@ import os
 
 from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config, \
     cartpole_dqn_config, cartpole_dqn_create_config
-from nervex.torch_utils import Adam, to_device
-from nervex.config import compile_config
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import Adder
-from nervex.model import model_wrap
-from nervex.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
-from nervex.policy import PPOPolicy, ILPolicy
-from nervex.policy.common_utils import default_preprocess_learn
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.config import compile_config
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import Adder
+from ding.model import model_wrap
+from ding.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
+from ding.policy import PPOPolicy, ILPolicy
+from ding.policy.common_utils import default_preprocess_learn
+from ding.utils import POLICY_REGISTRY
 
 
 @POLICY_REGISTRY.register('ppo_il')
@@ -115,7 +115,7 @@ class DQNILPolicy(ILPolicy):
         return super()._forward_eval(new_data)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'dqn', ['nervex.model.template.q_learning']
+        return 'dqn', ['ding.model.template.q_learning']
 
 
 @pytest.mark.unittest

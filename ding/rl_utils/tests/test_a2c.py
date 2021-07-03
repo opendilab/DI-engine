@@ -2,7 +2,7 @@ import pytest
 from itertools import product
 import numpy as np
 import torch
-from nervex.rl_utils import a2c_data, a2c_error
+from ding.rl_utils import a2c_data, a2c_error
 
 random_weight = torch.rand(4) + 1
 weight_args = [None, random_weight]

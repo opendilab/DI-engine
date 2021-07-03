@@ -2,7 +2,7 @@ from typing import Union, Dict, Optional
 import torch
 import torch.nn as nn
 
-from nervex.utils import SequenceType, squeeze, MODEL_REGISTRY
+from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead
 
 

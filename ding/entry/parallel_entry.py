@@ -7,9 +7,9 @@ import threading
 from threading import Thread
 from easydict import EasyDict
 
-from nervex.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
-from nervex.config import read_config, compile_config_parallel
-from nervex.utils import set_pkg_seed
+from ding.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
+from ding.config import read_config, compile_config_parallel
+from ding.utils import set_pkg_seed
 
 
 def parallel_pipeline(
@@ -24,10 +24,10 @@ def parallel_pipeline(
     Arguments:
         - config (:obj:`Union[str, dict]`): Config file path.
         - seed (:obj:`int`): Random seed.
-        - enable_total_log (:obj:`Optional[bool]`): whether enable total nervex system log
+        - enable_total_log (:obj:`Optional[bool]`): whether enable total DI-engine system log
         - disable_flask_log (:obj:`Optional[bool]`): whether disable flask log
     """
-    # Disable some part nervex log
+    # Disable some part of DI-engine log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
         coordinator_log.disabled = True
@@ -147,4 +147,6 @@ def launch_coordinator(
     shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()
     system_shutdown_event.wait()
-    print("[nerveX parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
+    print(
+        "[DI-engine parallel pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details"
+    )

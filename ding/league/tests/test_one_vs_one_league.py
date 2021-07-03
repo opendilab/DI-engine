@@ -5,12 +5,12 @@ import pytest
 from easydict import EasyDict
 import torch
 
-from nervex.league import create_league
+from ding.league import create_league
 
 one_vs_one_league_default_config = dict(
     league=dict(
         league_type='one_vs_one',
-        import_names=["nervex.league"],
+        import_names=["ding.league"],
         # ---player----
         # "player_category" is just a name. Depends on the env.
         # For example, in StarCraft, this can be ['zerg', 'terran', 'protoss'].

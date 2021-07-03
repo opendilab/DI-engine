@@ -23,8 +23,8 @@ def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callabl
 
     Returns:
         - time_wrapper (:obj:`TimeWrapper`):
-            Return the corresponding timewrapper, Reference: ``nervex.utils.timehelper.TimeWrapperTime``
-            and ``nervex.utils.timehelper.get_cuda_time_wrapper``.
+            Return the corresponding timewrapper, Reference: ``ding.utils.timehelper.TimeWrapperTime``
+            and ``ding.utils.timehelper.get_cuda_time_wrapper``.
     """
     # Note: wrapper_type has higher priority
     if wrapper_type is not None:

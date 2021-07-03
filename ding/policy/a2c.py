@@ -3,11 +3,11 @@ from collections import namedtuple, deque
 import torch
 import copy
 
-from nervex.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY
+from ding.rl_utils import a2c_data, a2c_error, Adder, nstep_return_data, nstep_return
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -69,7 +69,7 @@ class A2CPolicy(Policy):
             nstep=1,
         ),
         eval=dict(),
-        # Although a2c is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
+        # Although a2c is an on-policy algorithm, DI-engine reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
         other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
     )
@@ -274,7 +274,7 @@ class A2CPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['nervex.model.template.vac']
+        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']

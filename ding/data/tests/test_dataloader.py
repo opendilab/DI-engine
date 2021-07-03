@@ -6,8 +6,8 @@ import torch.nn as nn
 from functools import partial
 from itertools import product
 
-from nervex.data import AsyncDataLoader
-from nervex.utils import EasyTimer
+from ding.data import AsyncDataLoader
+from ding.utils import EasyTimer
 
 batch_size_args = [3, 6]
 num_workers_args = [0, 4]

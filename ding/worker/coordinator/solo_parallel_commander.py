@@ -2,8 +2,8 @@ import time
 import copy
 from typing import Optional, Union
 
-from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
+from ding.policy import create_policy
+from ding.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from .base_parallel_commander import BaseCommander
 
 
@@ -165,7 +165,7 @@ class SoloCommander(BaseCommander):
             eval_stop_value = self._cfg.env.stop_value
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value:
                 self._logger.info(
-                    "[nerveX parallel pipeline] current eval_reward: {} is greater than the stop_value: {}".
+                    "[DI-engine parallel pipeline] current eval_reward: {} is greater than the stop_value: {}".
                     format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True

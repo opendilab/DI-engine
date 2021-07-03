@@ -1,6 +1,6 @@
 import os
 from easydict import EasyDict
-from nervex.interaction.base import split_http_address
+from ding.interaction.base import split_http_address
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_POD_NAME = 'nervexjob-example-coordinator'

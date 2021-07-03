@@ -3,11 +3,11 @@ from collections import namedtuple, deque
 import torch
 import copy
 
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY
 from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
 
@@ -288,7 +288,7 @@ class RainbowDQNPolicy(DQNPolicy):
         return self._adder.get_train_sample(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'rainbowdqn', ['nervex.model.template.q_learning']
+        return 'rainbowdqn', ['ding.model.template.q_learning']
 
     def _reset_noise(self, model: torch.nn.Module):
         r"""

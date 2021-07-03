@@ -1,5 +1,5 @@
 import torch
-from nervex.interaction.slave import Slave, TaskFail
+from ding.interaction.slave import Slave, TaskFail
 
 
 class NaiveCollector(Slave):

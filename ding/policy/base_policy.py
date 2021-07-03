@@ -6,8 +6,8 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
+from ding.model import create_model
+from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
 
 
 class Policy(ABC):
@@ -180,7 +180,7 @@ class Policy(ABC):
             raise NotImplementedError
 
     def __repr__(self) -> str:
-        return "nerveX DRL Policy\n{}".format(repr(self._model))
+        return "DI-engine DRL Policy\n{}".format(repr(self._model))
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
         for name, param in model.named_parameters():

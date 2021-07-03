@@ -9,11 +9,11 @@ from functools import partial
 from easydict import EasyDict
 import torch
 
-from nervex.policy import Policy
-from nervex.envs import BaseEnvManager
-from nervex.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, PARALLEL_COLLECTOR_REGISTRY
-from nervex.torch_utils import build_log_buffer, to_tensor, to_ndarray
+from ding.policy import Policy
+from ding.envs import BaseEnvManager
+from ding.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
+from ding.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, PARALLEL_COLLECTOR_REGISTRY
+from ding.torch_utils import build_log_buffer, to_tensor, to_ndarray
 
 
 class BaseCollector(ABC):
@@ -63,7 +63,7 @@ class BaseCollector(ABC):
         """
         Overview:
             Setup TimeWrapper for base_collector. TimeWrapper is a decent timer wrapper that can be used easily.
-            You can refer to ``nervex/utils/time_helper.py``.
+            You can refer to ``ding/utils/time_helper.py``.
 
         Note:
             - _policy_inference (:obj:`Callable`): The wrapper to acquire a policy's time.

@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.system_helper import get_ip, get_pid, get_task_uid
+from ding.utils.system_helper import get_ip, get_pid, get_task_uid
 
 
 @pytest.mark.unittest

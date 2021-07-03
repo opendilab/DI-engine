@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.loader import Loader, collection, contains, length_is, length, tuple_, CollectionError, cofilter, \
+from ding.utils.loader import Loader, collection, contains, length_is, length, tuple_, CollectionError, cofilter, \
     tpselector, plus, minus, interval, negative, to_type, optional, check_only
 
 

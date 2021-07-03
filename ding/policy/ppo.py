@@ -3,12 +3,12 @@ from collections import namedtuple, deque
 import torch
 import copy
 
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
+from ding.torch_utils import Adam, to_device
+from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
      v_nstep_td_data, v_nstep_td_error
-from nervex.data import default_collate, default_decollate
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.data import default_collate, default_decollate
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -69,7 +69,7 @@ class PPOPolicy(Policy):
             gae_lambda=0.95,
         ),
         eval=dict(),
-        # Although ppo is an on-policy algorithm, nervex reuses the buffer mechanism, and clear buffer after update.
+        # Although ppo is an on-policy algorithm, ding reuses the buffer mechanism, and clear buffer after update.
         # Note replay_buffer_size must be greater than n_sample.
         other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
     )
@@ -314,7 +314,7 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['nervex.model.template.vac']
+        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [

@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from nervex.torch_utils.distribution import Pd, CategoricalPd, CategoricalPdPytorch
+from ding.torch_utils.distribution import Pd, CategoricalPd, CategoricalPdPytorch
 
 
 @pytest.mark.unittest

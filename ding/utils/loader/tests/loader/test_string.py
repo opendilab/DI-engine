@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from nervex.utils.loader import enum, rematch, regrep, to_type
+from ding.utils.loader import enum, rematch, regrep, to_type
 
 
 @pytest.mark.unittest

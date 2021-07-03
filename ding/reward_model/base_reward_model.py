@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from easydict import EasyDict
 import copy
-from nervex.utils import REWARD_MODEL_REGISTRY, import_module
+from ding.utils import REWARD_MODEL_REGISTRY, import_module
 
 
 class BaseRewardModel(ABC):

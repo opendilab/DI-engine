@@ -2,7 +2,7 @@ from collections import namedtuple
 from typing import Optional, Tuple
 import torch
 from torch.distributions import Independent, Normal
-from nervex.hpc_rl import hpc_wrapper
+from ding.hpc_rl import hpc_wrapper
 
 ppo_data = namedtuple(
     'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']

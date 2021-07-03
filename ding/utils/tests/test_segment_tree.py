@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-import nervex
-nervex.enable_numba = False  # noqa
-from nervex.utils import SumSegmentTree, MinSegmentTree  # noqa
+import ding
+ding.enable_numba = False  # noqa
+from ding.utils import SumSegmentTree, MinSegmentTree  # noqa
 
 
 @pytest.mark.unittest

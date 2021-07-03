@@ -6,9 +6,9 @@ import copy
 import numpy as np
 import torch
 
-from nervex.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts
-from nervex.envs import BaseEnvManager
-from nervex.torch_utils import to_tensor, to_ndarray, tensor_to_list
+from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts
+from ding.envs import BaseEnvManager
+from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 from .base_serial_collector import CachePool
 
 
@@ -192,7 +192,7 @@ class BaseSerialEvaluator(object):
         stop_flag = eval_reward >= self._stop_value and train_iter > 0
         if stop_flag:
             self._logger.info(
-                "[nerveX serial pipeline] " +
+                "[DI-engine serial pipeline] " +
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )

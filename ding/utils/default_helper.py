@@ -23,7 +23,7 @@ def lists_to_dicts(
     Returns:
         - newdata (:obj:`Union[Mapping[object, object], NamedTuple]`): A list of dicts as a result
     Example:
-        >>> from nervex.utils import *
+        >>> from ding.utils import *
         >>> lists_to_dicts([{1: 1, 10: 3}, {1: 2, 10: 4}])
         {1: [1, 2], 10: [3, 4]}
     """
@@ -59,7 +59,7 @@ def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, 
         - newdata (:obj:`List[Mapping[object, object]]`): A dict of lists as a result
 
     Example:
-        >>> from nervex.utils import *
+        >>> from ding.utils import *
         >>> dicts_to_lists({1: [1, 2], 10: [3, 4]})
         [{1: 1, 10: 3}, {1: 2, 10: 4}]
     """

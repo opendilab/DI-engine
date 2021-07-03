@@ -8,8 +8,8 @@ from threading import Thread
 from collections import defaultdict
 from easydict import EasyDict
 
-from nervex.utils import build_logger, LockContext, LockContextType, get_task_uid
-from nervex.worker import create_buffer
+from ding.utils import build_logger, LockContext, LockContextType, get_task_uid
+from ding.worker import create_buffer
 from .comm_coordinator import CommCoordinator
 from .base_parallel_commander import create_parallel_commander
 

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from nervex.torch_utils.network import SoftArgmax
+from ding.torch_utils.network import SoftArgmax
 
 
 @pytest.mark.unittest

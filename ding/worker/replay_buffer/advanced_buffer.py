@@ -3,10 +3,10 @@ import time
 from typing import Union, NoReturn, Any, Optional, List, Dict, Tuple
 import numpy as np
 
-from nervex.worker.replay_buffer import IBuffer
-from nervex.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
-from nervex.utils import LockContext, LockContextType, build_logger
-from nervex.utils.autolog import TickTime
+from ding.worker.replay_buffer import IBuffer
+from ding.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
+from ding.utils import LockContext, LockContextType, build_logger
+from ding.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
 

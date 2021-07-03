@@ -6,12 +6,12 @@ from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 
-from nervex.worker import BaseLearner, BaseSerialEvaluator
-from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.config import read_config, compile_config
-from nervex.policy import create_policy
-from nervex.data import NaiveRLDataset
-from nervex.utils import set_pkg_seed
+from ding.worker import BaseLearner, BaseSerialEvaluator
+from ding.envs import get_vec_env_setting, create_env_manager
+from ding.config import read_config, compile_config
+from ding.policy import create_policy
+from ding.data import NaiveRLDataset
+from ding.utils import set_pkg_seed
 
 
 def serial_pipeline_il(

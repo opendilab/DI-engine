@@ -2,7 +2,7 @@ import pytest
 import random
 import pickle
 
-from nervex.utils.file_helper import read_file, read_from_file, remove_file, save_file, read_from_path, save_file_ceph
+from ding.utils.file_helper import read_file, read_from_file, remove_file, save_file, read_from_path, save_file_ceph
 
 
 @pytest.mark.unittest

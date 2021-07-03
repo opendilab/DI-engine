@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.loader import Loader, interval, to_type, is_type, keep, optional, check_only, raw, check
+from ding.utils.loader import Loader, interval, to_type, is_type, keep, optional, check_only, raw, check
 
 
 @pytest.mark.unittest

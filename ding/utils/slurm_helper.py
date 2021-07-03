@@ -83,7 +83,7 @@ def find_free_port_slurm(node: str) -> int:
     else:
         comment = ''
     output = subprocess.getoutput(
-        "srun -p {} -w {} {} python -c \"from nervex.utils import find_free_port; print('port' + str(find_free_port(0)))\""  # noqa
+        "srun -p {} -w {} {} python -c \"from ding.utils import find_free_port; print('port' + str(find_free_port(0)))\""  # noqa
         .format(partition, node, comment)
     )
     port = output.split('port')[-1]

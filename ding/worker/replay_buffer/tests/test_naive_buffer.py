@@ -3,9 +3,9 @@ from easydict import EasyDict
 import os
 import time
 
-from nervex.worker.replay_buffer import NaiveReplayBuffer
-from nervex.utils import deep_merge_dicts
-from nervex.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
+from ding.worker.replay_buffer import NaiveReplayBuffer
+from ding.utils import deep_merge_dicts
+from ding.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
 
 
 @pytest.mark.unittest

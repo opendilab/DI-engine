@@ -3,8 +3,8 @@ import numpy as np
 import torch
 from itertools import product
 
-from nervex.model import VAC
-from nervex.torch_utils import is_differentiable
+from ding.model import VAC
+from ding.torch_utils import is_differentiable
 
 B, C, H, W = 4, 3, 128, 128
 obs_shape = [4, (8, ), (4, 64, 64)]

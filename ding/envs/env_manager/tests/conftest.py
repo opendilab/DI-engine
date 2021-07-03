@@ -7,12 +7,12 @@ import torch
 import numpy as np
 from easydict import EasyDict
 from functools import partial
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.env_manager.base_env_manager import EnvState
-from nervex.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import WatchDog, deep_merge_dicts
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
+from ding.envs.env_manager.base_env_manager import EnvState
+from ding.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
+from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.utils import WatchDog, deep_merge_dicts
 
 
 class EnvException(Exception):

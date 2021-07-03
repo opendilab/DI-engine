@@ -2,8 +2,8 @@ import copy
 from typing import Union, Any, Optional, List
 import numpy as np
 
-from nervex.worker.replay_buffer import IBuffer
-from nervex.utils import LockContext, LockContextType, BUFFER_REGISTRY
+from ding.worker.replay_buffer import IBuffer
+from ding.utils import LockContext, LockContextType, BUFFER_REGISTRY
 from .utils import UsedDataRemover, generate_id
 
 

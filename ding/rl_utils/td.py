@@ -4,8 +4,8 @@ from typing import Union, Optional, Callable, List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from nervex.rl_utils.value_rescale import value_transform, value_inv_transform
-from nervex.hpc_rl import hpc_wrapper
+from ding.rl_utils.value_rescale import value_transform, value_inv_transform
+from ding.hpc_rl import hpc_wrapper
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 

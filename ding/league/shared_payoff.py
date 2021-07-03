@@ -5,7 +5,7 @@ from functools import partial
 from easydict import EasyDict
 import numpy as np
 
-from nervex.utils import LockContext, LockContextType
+from ding.utils import LockContext, LockContextType
 from .player import Player, ActivePlayer, HistoricalPlayer
 
 

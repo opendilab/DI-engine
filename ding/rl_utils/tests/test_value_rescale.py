@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils.value_rescale import value_inv_transform, value_transform
+from ding.rl_utils.value_rescale import value_inv_transform, value_transform
 
 
 @pytest.mark.unittest

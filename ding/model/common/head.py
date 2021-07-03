@@ -5,9 +5,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from nervex.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
-from nervex.rl_utils import beta_function_map
-from nervex.utils import lists_to_dicts, SequenceType
+from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
+from ding.rl_utils import beta_function_map
+from ding.utils import lists_to_dicts, SequenceType
 
 
 class DiscreteHead(nn.Module):
@@ -32,7 +32,7 @@ class DiscreteHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP
         """
         super(DiscreteHead, self).__init__()
@@ -102,7 +102,7 @@ class DistributionHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use noisy ``fc_block``
         """
         super(DistributionHead, self).__init__()
@@ -183,7 +183,7 @@ class RainbowHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use noisy ``fc_block``
         """
         super(RainbowHead, self).__init__()
@@ -275,7 +275,7 @@ class QRDQNHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use noisy ``fc_block``
         """
         super(QRDQNHead, self).__init__()
@@ -355,7 +355,7 @@ class QuantileHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use noisy ``fc_block``
         """
         super(QuantileHead, self).__init__()
@@ -476,7 +476,7 @@ class DuelingHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
             - noise (:obj:`bool`): Whether use noisy ``fc_block``
         """
         super(DuelingHead, self).__init__()
@@ -559,7 +559,7 @@ class RegressionHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
         """
         super(RegressionHead, self).__init__()
         self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
@@ -625,7 +625,7 @@ class ReparameterizationHead(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
         """
         super(ReparameterizationHead, self).__init__()
         self.sigma_type = sigma_type

@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 
-from nervex.utils import list_split, lists_to_dicts
+from ding.utils import list_split, lists_to_dicts
 from .gae import gae, gae_data
 
 

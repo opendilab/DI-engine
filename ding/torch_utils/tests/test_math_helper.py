@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from nervex.torch_utils.math_helper import cov
+from ding.torch_utils.math_helper import cov
 
 
 @pytest.mark.unittest

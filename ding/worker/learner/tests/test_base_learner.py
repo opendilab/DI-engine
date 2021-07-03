@@ -7,8 +7,8 @@ from easydict import EasyDict
 from typing import Any
 from functools import partial
 
-from nervex.worker import BaseLearner
-from nervex.worker.learner import LearnerHook, add_learner_hook, create_learner
+from ding.worker import BaseLearner
+from ding.worker.learner import LearnerHook, add_learner_hook, create_learner
 
 
 class FakeLearner(BaseLearner):

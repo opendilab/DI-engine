@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from typing import Tuple
-from nervex.hpc_rl import hpc_wrapper
+from ding.hpc_rl import hpc_wrapper
 
 
 def shape_fn_scatter_connection(args, kwargs) -> list:

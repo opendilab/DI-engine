@@ -13,10 +13,10 @@ import enum
 import time
 import traceback
 import signal
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts
-from nervex.envs.env.base_env import BaseEnvTimestep
-from nervex.utils.time_helper import WatchDog
+from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts
+from ding.envs.env.base_env import BaseEnvTimestep
+from ding.utils.time_helper import WatchDog
 
 
 class EnvState(enum.IntEnum):

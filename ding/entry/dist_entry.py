@@ -4,9 +4,9 @@ import logging
 import time
 from threading import Thread
 import numpy as np
-from nervex.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
-from nervex.config import read_config, compile_config_parallel
-from nervex.utils import set_pkg_seed
+from ding.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
+from ding.config import read_config, compile_config_parallel
+from ding.utils import set_pkg_seed
 
 
 def dist_prepare_config(
@@ -50,7 +50,7 @@ def dist_launch_coordinator(
         enable_total_log: bool = False
 ) -> None:
     set_pkg_seed(seed)
-    # Disable some part nervex log
+    # Disable some part of DI-engine log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
         # coordinator_log.disabled = True
@@ -82,7 +82,7 @@ def dist_launch_coordinator(
     shutdown_monitor_thread = Thread(target=shutdown_monitor, args=(), daemon=True, name='shutdown_monitor')
     shutdown_monitor_thread.start()
     shutdown_monitor_thread.join()
-    print("[nerveX dist pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
+    print("[DI-engine dist pipeline]Your RL agent is converged, you can refer to 'log' and 'tensorboard' for details")
 
 
 def dist_launch_learner(

@@ -4,9 +4,9 @@ from collections import namedtuple, deque
 from easydict import EasyDict
 import copy
 
-from nervex.envs import BaseEnvManager
-from nervex.utils import SERIAL_COLLECTOR_REGISTRY, import_module
-from nervex.torch_utils import to_tensor
+from ding.envs import BaseEnvManager
+from ding.utils import SERIAL_COLLECTOR_REGISTRY, import_module
+from ding.torch_utils import to_tensor
 
 INF = float("inf")
 

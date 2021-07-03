@@ -3,7 +3,7 @@ import copy
 from typing import Union, Optional, Dict, Any, List, Tuple
 from easydict import EasyDict
 
-from nervex.utils import import_module, BUFFER_REGISTRY
+from ding.utils import import_module, BUFFER_REGISTRY
 
 
 class IBuffer(ABC):

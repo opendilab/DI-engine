@@ -5,8 +5,8 @@ import queue
 import torch
 import torch.nn as nn
 
-from nervex.utils import squeeze, MODEL_REGISTRY, SequenceType
-from nervex.torch_utils import MLP
+from ding.utils import squeeze, MODEL_REGISTRY, SequenceType
+from ding.torch_utils import MLP
 from ..common import RegressionHead
 
 

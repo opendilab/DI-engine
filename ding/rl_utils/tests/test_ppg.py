@@ -2,7 +2,7 @@ import pytest
 from itertools import product
 import numpy as np
 import torch
-from nervex.rl_utils import ppg_data, ppg_joint_error
+from ding.rl_utils import ppg_data, ppg_joint_error
 
 use_value_clip_args = [True, False]
 random_weight = torch.rand(4) + 1

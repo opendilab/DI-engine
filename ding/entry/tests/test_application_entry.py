@@ -4,8 +4,8 @@ import os
 import pickle
 
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from nervex.entry import serial_pipeline, eval, collect_demo_data
-from nervex.config import compile_config
+from ding.entry import serial_pipeline, eval, collect_demo_data
+from ding.config import compile_config
 
 
 @pytest.fixture(scope='module')

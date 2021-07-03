@@ -9,9 +9,9 @@ import torch
 import torch.nn as nn
 from typing import Optional, Union, List, Tuple
 
-import nervex
-from nervex.torch_utils.network.normalization import build_normalization
-if nervex.enable_hpc_rl:
+import ding
+from ding.torch_utils.network.normalization import build_normalization
+if ding.enable_hpc_rl:
     from hpc_rl.network.rnn import HPCLSTM
 else:
     HPCLSTM = None

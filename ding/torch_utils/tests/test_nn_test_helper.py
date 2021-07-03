@@ -2,7 +2,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils.nn_test_helper import is_differentiable
+from ding.torch_utils.nn_test_helper import is_differentiable
 
 
 @pytest.mark.unittest

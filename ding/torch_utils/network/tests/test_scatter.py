@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.torch_utils import ScatterConnection
+from ding.torch_utils import ScatterConnection
 
 
 @pytest.mark.unittest

@@ -1,6 +1,6 @@
 from typing import Optional, Mapping, Any
 from requests.exceptions import RequestException
-from nervex.interaction.base import get_http_engine_class, get_values_from_response
+from ding.interaction.base import get_http_engine_class, get_values_from_response
 
 
 class OperatorServer:

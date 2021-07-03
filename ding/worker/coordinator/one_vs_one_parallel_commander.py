@@ -1,13 +1,13 @@
 from sys import path
-from nervex.utils.default_helper import deep_merge_dicts
+from ding.utils.default_helper import deep_merge_dicts
 import time
 from typing import Optional, Union
 import copy
 
-from nervex.utils import pretty_print
-from nervex.policy import create_policy
-from nervex.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
-from nervex.league import create_league, OneVsOneLeague
+from ding.utils import pretty_print
+from ding.policy import create_policy
+from ding.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
+from ding.league import create_league, OneVsOneLeague
 from .base_parallel_commander import BaseCommander
 
 
@@ -230,7 +230,7 @@ class OneVsOneCommander(BaseCommander):
             print('===', eval_win, difficulty_inc)
             if eval_stop_value is not None and finished_task['reward_mean'] >= eval_stop_value and is_hardest:
                 self._logger.info(
-                    "[nerveX parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
+                    "[DI-engine parallel pipeline] Current eval_reward: {} is greater than the stop_value: {}".
                     format(finished_task['reward_mean'], eval_stop_value) + ", so the total training program is over."
                 )
                 self._end_flag = True

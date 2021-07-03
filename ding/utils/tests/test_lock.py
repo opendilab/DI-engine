@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from collections import deque
 
-from nervex.utils import LockContext, LockContextType
+from ding.utils import LockContext, LockContextType
 
 
 @pytest.mark.unittest

@@ -3,8 +3,8 @@ from collections import defaultdict
 from easydict import EasyDict
 import copy
 
-from nervex.utils import import_module, COMMANDER_REGISTRY, LimitedSpaceContainer
-from nervex.league import create_league
+from ding.utils import import_module, COMMANDER_REGISTRY, LimitedSpaceContainer
+from ding.league import create_league
 
 
 class BaseCommander(ABC):

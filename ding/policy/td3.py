@@ -1,4 +1,4 @@
-from nervex.utils import POLICY_REGISTRY
+from ding.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
 
 

@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils import get_epsilon_greedy_fn, create_noise_generator
+from ding.rl_utils import get_epsilon_greedy_fn, create_noise_generator
 
 
 @pytest.mark.unittest

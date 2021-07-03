@@ -1,7 +1,7 @@
 import torch
 import pytest
-from nervex.torch_utils import build_activation, build_normalization
-from nervex.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
+from ding.torch_utils import build_activation, build_normalization
+from ding.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
     one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_
 
 batch_size = 2

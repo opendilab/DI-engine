@@ -1,6 +1,6 @@
 import pytest
-from nervex.worker.learner import register_learner_hook, build_learner_hook_by_cfg, LearnerHook
-from nervex.worker.learner.learner_hook import SaveCkptHook, show_hooks
+from ding.worker.learner import register_learner_hook, build_learner_hook_by_cfg, LearnerHook
+from ding.worker.learner.learner_hook import SaveCkptHook, show_hooks
 
 
 @pytest.fixture(scope='function')

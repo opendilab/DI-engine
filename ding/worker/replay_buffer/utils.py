@@ -1,4 +1,4 @@
-from nervex.utils import remove_file
+from ding.utils import remove_file
 from queue import Queue
 from typing import Union, Tuple
 from threading import Thread
@@ -7,8 +7,8 @@ from functools import partial
 import threading
 from typing import Any
 
-from nervex.utils.autolog import LoggedValue, LoggedModel
-from nervex.utils import LockContext, LockContextType
+from ding.utils.autolog import LoggedValue, LoggedModel
+from ding.utils import LockContext, LockContextType
 
 
 def generate_id(name, data_id: int) -> str:

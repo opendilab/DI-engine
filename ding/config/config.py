@@ -8,12 +8,12 @@ from typing import Optional, Tuple, NoReturn
 import yaml
 from easydict import EasyDict
 
-from nervex.utils import deep_merge_dicts
-from nervex.envs import get_env_cls, get_env_manager_cls
-from nervex.policy import get_policy_cls
-from nervex.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
+from ding.utils import deep_merge_dicts
+from ding.envs import get_env_cls, get_env_manager_cls
+from ding.policy import get_policy_cls
+from ding.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, \
     get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
-from nervex.reward_model import get_reward_model_cls
+from ding.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s
 
 

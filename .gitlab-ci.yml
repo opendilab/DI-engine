@@ -25,8 +25,8 @@ pages:
   script:
     - pip install -e .[doc]
     - make docs
-    - mv nervex/docs/build/html public
-    - rm -rf nervex/docs/build
+    - mv ding/docs/build/html public
+    - rm -rf ding/docs/build
   artifacts:
     paths:
       - public
@@ -41,7 +41,7 @@ test_unittest:
     - nervex-gitlab-ci-runner-k8s
   variables:
     WORKERS: 8 # if you need to change to concurrency, just change here
-  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
   script:
     - pip install -e .[test]
     - make unittest
@@ -52,15 +52,15 @@ test_algotest:
     - nervex-gitlab-ci-runner-k8s
   variables:
     DURATIONS: 10 # the count of durations
-  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
   script:
     - pip install -e .[test]
     - make algotest
   only:
     changes:
-      - nervex/policy/*
-      - nervex/model/*
-      - nervex/rl_utils/*
+      - ding/policy/*
+      - ding/model/*
+      - ding/rl_utils/*
 
 test_benchmark:
   stage: test
@@ -68,7 +68,7 @@ test_benchmark:
     - nervex-gitlab-ci-runner-k8s
   variables:
     WORKERS: 8 # if you need to change to concurrency, just change here
-  #    RANGE_DIR: ./nervex/xxxx # if you need to test some of the dirs, just change here
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
   script:
     - pip install -e .[test]
     - make benchmark

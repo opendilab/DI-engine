@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import torch
 
-from nervex.torch_utils import one_hot
+from ding.torch_utils import one_hot
 
 num_first_one_hot = partial(one_hot, num_first=True)
 

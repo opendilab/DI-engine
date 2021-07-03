@@ -3,9 +3,9 @@ import numpy as np
 import pytest
 from itertools import product
 
-from nervex.model.template import QAC
-from nervex.torch_utils import is_differentiable
-from nervex.utils import squeeze
+from ding.model.template import QAC
+from ding.torch_utils import is_differentiable
+from ding.utils import squeeze
 
 B = 4
 T = 6

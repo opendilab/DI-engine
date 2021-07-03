@@ -2,7 +2,7 @@ from functools import reduce
 import torch
 import torch.nn.functional as F
 from .td import generalized_lambda_returns
-from nervex.hpc_rl import hpc_wrapper
+from ding.hpc_rl import hpc_wrapper
 
 
 def tb_cross_entropy(logit, label, mask=None):

@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 from easydict import EasyDict
 
-from nervex.policy import create_policy
-from nervex.utils import get_task_uid, import_module, COMM_COLLECTOR_REGISTRY
+from ding.policy import create_policy
+from ding.utils import get_task_uid, import_module, COMM_COLLECTOR_REGISTRY
 from ..base_parallel_collector import create_parallel_collector, BaseCollector
 
 

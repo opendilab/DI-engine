@@ -2,9 +2,9 @@ import numpy as np
 import logging
 from functools import partial
 from typing import Callable, Optional, Union, Any
-import nervex
+import ding
 try:
-    if nervex.enable_numba:
+    if ding.enable_numba:
         from numba import njit
     else:
         njit = partial

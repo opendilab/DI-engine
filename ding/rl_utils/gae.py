@@ -1,6 +1,6 @@
 from collections import namedtuple
 import torch
-from nervex.hpc_rl import hpc_wrapper
+from ding.hpc_rl import hpc_wrapper
 
 gae_data = namedtuple('gae_data', ['value', 'reward'])
 

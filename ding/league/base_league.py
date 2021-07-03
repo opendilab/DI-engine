@@ -4,9 +4,9 @@ from abc import abstractmethod
 from easydict import EasyDict
 import os.path as osp
 
-from nervex.league.player import ActivePlayer, HistoricalPlayer, create_player
-from nervex.league.shared_payoff import create_payoff
-from nervex.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY
+from ding.league.player import ActivePlayer, HistoricalPlayer, create_player
+from ding.league.shared_payoff import create_payoff
+from ding.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY
 
 
 class BaseLeague:

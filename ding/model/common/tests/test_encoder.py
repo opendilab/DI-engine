@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import pytest
 
-from nervex.model import ConvEncoder, FCEncoder
-from nervex.torch_utils import is_differentiable
+from ding.model import ConvEncoder, FCEncoder
+from ding.torch_utils import is_differentiable
 
 B = 4
 C, H, W = 3, 128, 128

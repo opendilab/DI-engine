@@ -4,7 +4,7 @@ import sys
 import traceback
 from typing import Callable
 import torch
-from nervex.utils import read_file, save_file
+from ding.utils import read_file, save_file
 
 logger = logging.getLogger('default_logger')
 

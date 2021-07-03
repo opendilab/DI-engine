@@ -5,9 +5,9 @@ import requests
 from typing import Dict, Callable
 from threading import Thread
 
-from nervex.utils import LockContext, LockContextType, get_operator_server_kwargs
-from nervex.interaction import Master
-from nervex.interaction.master.task import TaskStatus
+from ding.utils import LockContext, LockContextType, get_operator_server_kwargs
+from ding.interaction import Master
+from ding.interaction.master.task import TaskStatus
 from .resource_manager import NaiveResourceManager
 from .operator_server import OperatorServer
 
@@ -118,7 +118,7 @@ class CommCoordinator(object):
                             len(self._connection_collector), len(self._connection_learner)
                         )
                     )
-                    self._logger.info("Total nervex pipeline start...")
+                    self._logger.info("Total DI-engine pipeline start...")
                     enough_flag = True
                     break
 
@@ -463,7 +463,7 @@ class CommCoordinator(object):
     def _period_sync_with_server(self) -> None:
         start_time = time.time()
         while not self._end_flag:
-            # First: send failed list to notify nerveX-server which replicas are failed, then terminate such replicas.
+            # First: send failed list to notify DI-engine server which replicas are failed, then terminate such replicas.
             # self._logger.info("failed list:", list(self._failed_collector_conn), list(self._failed_learner_conn))
             if len(self._failed_learner_conn) > 0 or len(self._failed_collector_conn) > 0:
                 collector_conn = []

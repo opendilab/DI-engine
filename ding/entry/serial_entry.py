@@ -5,11 +5,11 @@ import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
-from nervex.envs import get_vec_env_setting, create_env_manager
-from nervex.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer
-from nervex.config import read_config, compile_config
-from nervex.policy import create_policy, PolicyFactory
-from nervex.utils import set_pkg_seed
+from ding.envs import get_vec_env_setting, create_env_manager
+from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer
+from ding.config import read_config, compile_config
+from ding.policy import create_policy, PolicyFactory
+from ding.utils import set_pkg_seed
 
 
 def serial_pipeline(

@@ -4,11 +4,11 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, Adder
-from nervex.model import model_wrap
-from nervex.data import timestep_collate, default_collate, default_decollate
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, Adder
+from ding.model import model_wrap
+from ding.data import timestep_collate, default_collate, default_decollate
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 
 
@@ -352,4 +352,4 @@ class R2D2Policy(Policy):
         self._eval_model.reset(data_id=data_id)
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'drqn', ['nervex.model.template.q_learning']
+        return 'drqn', ['ding.model.template.q_learning']

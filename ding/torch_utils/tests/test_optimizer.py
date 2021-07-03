@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from nervex.torch_utils.optimizer_helper import Adam, RMSprop
+from ding.torch_utils.optimizer_helper import Adam, RMSprop
 import pytest
 import time
 

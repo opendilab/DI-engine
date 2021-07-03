@@ -3,7 +3,7 @@ from easydict import EasyDict
 league_test_config = dict(
     league=dict(
         # league_type='fake',
-        import_names=['nervex.league'],
+        import_names=['ding.league'],
         # ---player----
         player_category=['zerg', 'terran', 'protoss'],
         active_players=dict(

@@ -11,8 +11,8 @@ import torch.nn.functional as F
 import torch.nn.init as I
 from torch.distributions.categorical import Categorical
 
-from nervex.utils import SequenceType, REWARD_MODEL_REGISTRY
-from nervex.model import FCEncoder, ConvEncoder
+from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 
 

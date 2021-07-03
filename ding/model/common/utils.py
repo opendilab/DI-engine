@@ -1,6 +1,6 @@
 import torch
 from easydict import EasyDict
-from nervex.utils import import_module, MODEL_REGISTRY
+from ding.utils import import_module, MODEL_REGISTRY
 
 
 def create_model(cfg: EasyDict) -> torch.nn.Module:

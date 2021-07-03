@@ -10,10 +10,10 @@ import numpy as np
 import torch
 from easydict import EasyDict
 
-from nervex.policy import create_policy, Policy
-from nervex.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
-from nervex.torch_utils import to_device, tensor_to_list
-from nervex.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
+from ding.policy import create_policy, Policy
+from ding.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
+from ding.torch_utils import to_device, tensor_to_list
+from ding.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
 from .base_parallel_collector import BaseCollector
 from .base_serial_collector import CachePool, TrajBuffer
 

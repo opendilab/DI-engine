@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.collection_helper import iter_mapping
+from ding.utils.collection_helper import iter_mapping
 
 
 @pytest.mark.unittest

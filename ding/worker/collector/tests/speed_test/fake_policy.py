@@ -4,13 +4,13 @@ import torch
 from easydict import EasyDict
 import time
 
-from nervex.data import default_collate, default_decollate
-from nervex.model import create_model
-from nervex.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
-from nervex.policy import Policy
-from nervex.rl_utils import Adder
+from ding.data import default_collate, default_decollate
+from ding.model import create_model
+from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
+from ding.policy import Policy
+from ding.rl_utils import Adder
 
-from nervex.worker.collector.tests.speed_test.utils import random_change
+from ding.worker.collector.tests.speed_test.utils import random_change
 
 
 class FakePolicy(Policy):

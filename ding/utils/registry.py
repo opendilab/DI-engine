@@ -5,7 +5,7 @@ from typing import Optional, Iterable, Callable
 
 _innest_error = True
 
-_NERVEX_REG_TRACE_IS_ON = os.environ.get('NERVEXREGTRACE', 'ON').upper() == 'ON'
+_DI_ENGINE_REG_TRACE_IS_ON = os.environ.get('DIENGINEREGTRACE', 'ON').upper() == 'ON'
 
 
 class Registry(dict):
@@ -36,7 +36,7 @@ class Registry(dict):
         self.__trace__ = dict()
 
     def register(self, module_name: Optional[str] = None, module: Optional[Callable] = None) -> Callable:
-        if _NERVEX_REG_TRACE_IS_ON:
+        if _DI_ENGINE_REG_TRACE_IS_ON:
             frame = inspect.stack()[1][0]
             info = inspect.getframeinfo(frame)
             filename = info.filename
@@ -45,7 +45,7 @@ class Registry(dict):
         if module is not None:
             assert module_name is not None
             Registry._register_generic(self, module_name, module)
-            if _NERVEX_REG_TRACE_IS_ON:
+            if _DI_ENGINE_REG_TRACE_IS_ON:
                 self.__trace__[module_name] = (filename, lineno)
             return
 
@@ -56,7 +56,7 @@ class Registry(dict):
             else:
                 name = module_name
             Registry._register_generic(self, name, fn)
-            if _NERVEX_REG_TRACE_IS_ON:
+            if _DI_ENGINE_REG_TRACE_IS_ON:
                 self.__trace__[name] = (filename, lineno)
             return fn
 
@@ -93,7 +93,7 @@ class Registry(dict):
         return self.keys()
 
     def query_details(self, aliases: Optional[Iterable] = None) -> OrderedDict:
-        assert _NERVEX_REG_TRACE_IS_ON, "please exec 'export NERVEXREGTRACE=ON' first"
+        assert _DI_ENGINE_REG_TRACE_IS_ON, "please exec 'export DIENGINEREGTRACE=ON' first"
         if aliases is None:
             aliases = self.keys()
         return OrderedDict((alias, self.__trace__[alias]) for alias in aliases)

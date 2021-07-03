@@ -3,7 +3,7 @@ from collections import namedtuple
 import random
 import numpy as np
 import torch
-from nervex.data import timestep_collate, default_collate, default_decollate, diff_shape_collate
+from ding.data import timestep_collate, default_collate, default_decollate, diff_shape_collate
 
 B, T = 4, 3
 

@@ -3,7 +3,7 @@ from collections import namedtuple
 import numpy as np
 from easydict import EasyDict
 
-from nervex.utils import deep_merge_dicts, import_module, PLAYER_REGISTRY
+from ding.utils import deep_merge_dicts, import_module, PLAYER_REGISTRY
 from .algorithm import pfsp
 
 

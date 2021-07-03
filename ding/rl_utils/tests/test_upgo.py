@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils.upgo import upgo_loss, upgo_returns, tb_cross_entropy
+from ding.rl_utils.upgo import upgo_loss, upgo_returns, tb_cross_entropy
 
 
 @pytest.mark.unittest

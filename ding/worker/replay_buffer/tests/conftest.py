@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from nervex.utils import save_file
+from ding.utils import save_file
 
 ID_COUNT = 0
 np.random.seed(1)

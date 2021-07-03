@@ -3,7 +3,7 @@ import copy
 from collections import deque
 import numpy as np
 import torch
-from nervex.rl_utils import Adder
+from ding.rl_utils import Adder
 
 
 @pytest.mark.unittest

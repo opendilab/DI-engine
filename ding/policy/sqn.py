@@ -8,12 +8,12 @@ from collections import namedtuple, deque
 from typing import List, Dict, Any, Tuple, Union, Optional
 from torch.distributions.categorical import Categorical
 
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import Adder
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY
-from nervex.model import SQN
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import Adder
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY
+from ding.model import SQN
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -341,7 +341,7 @@ class SQNPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'sqn', ['nervex.model.template.sqn']
+        return 'sqn', ['ding.model.template.sqn']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

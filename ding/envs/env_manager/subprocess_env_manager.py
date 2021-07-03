@@ -18,8 +18,8 @@ from easydict import EasyDict
 from types import MethodType
 from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
-from nervex.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager, EnvState, retry_wrapper, timeout_wrapper
 
 _NTYPE_TO_CTYPE = {

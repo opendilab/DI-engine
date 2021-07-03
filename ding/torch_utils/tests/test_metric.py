@@ -3,7 +3,7 @@ import random
 import pytest
 import torch
 
-from nervex.torch_utils.metric import levenshtein_distance, hamming_distance
+from ding.torch_utils.metric import levenshtein_distance, hamming_distance
 
 
 @pytest.mark.unittest

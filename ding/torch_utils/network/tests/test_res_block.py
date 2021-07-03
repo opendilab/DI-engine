@@ -1,6 +1,6 @@
 import torch
 import pytest
-from nervex.torch_utils.network import ResBlock, ResFCBlock
+from ding.torch_utils.network import ResBlock, ResFCBlock
 
 batch_size = 2
 in_channels = 2

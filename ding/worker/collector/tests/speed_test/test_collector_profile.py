@@ -5,14 +5,14 @@ import pytest
 from functools import partial
 import copy
 
-from nervex.worker import SampleCollector, NaiveReplayBuffer
-from nervex.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
+from ding.worker import SampleCollector, NaiveReplayBuffer
+from ding.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
-from nervex.utils import deep_merge_dicts, set_pkg_seed
+from ding.utils import deep_merge_dicts, set_pkg_seed
 
-from nervex.worker.collector.tests.speed_test.fake_policy import FakePolicy
-from nervex.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
-from nervex.worker.collector.tests.speed_test.test_config import test_config
+from ding.worker.collector.tests.speed_test.fake_policy import FakePolicy
+from ding.worker.collector.tests.speed_test.fake_env import FakeEnv, env_sum
+from ding.worker.collector.tests.speed_test.test_config import test_config
 
 # SLOW MODE:
 #   - Repeat 3 times; Collect 300 iterations;

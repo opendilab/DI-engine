@@ -6,7 +6,7 @@ import os
 import yaml
 from easydict import EasyDict
 
-from nervex.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print
+from ding.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print
 from app_zoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
 
 default_host = '0.0.0.0'
@@ -253,23 +253,23 @@ parallel_test_create_config = dict(
     policy=dict(type='dqn_command'),
     comm_learner=dict(
         type='flask_fs',
-        import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+        import_names=['ding.worker.learner.comm.flask_fs_learner'],
     ),
     comm_collector=dict(
         type='flask_fs',
-        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        import_names=['ding.worker.collector.comm.flask_fs_collector'],
     ),
     learner=dict(
         type='base',
-        import_names=['nervex.worker.learner.base_learner'],
+        import_names=['ding.worker.learner.base_learner'],
     ),
     collector=dict(
         type='zergling',
-        import_names=['nervex.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_collector'],
     ),
     commander=dict(
         type='naive',
-        import_names=['nervex.worker.coordinator.base_parallel_commander'],
+        import_names=['ding.worker.coordinator.base_parallel_commander'],
     ),
 )
 parallel_test_create_config = EasyDict(parallel_test_create_config)

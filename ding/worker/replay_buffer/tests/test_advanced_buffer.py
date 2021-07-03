@@ -7,9 +7,9 @@ import os
 import pickle
 import time
 
-from nervex.worker.replay_buffer import AdvancedReplayBuffer
-from nervex.utils import deep_merge_dicts
-from nervex.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
+from ding.worker.replay_buffer import AdvancedReplayBuffer
+from ding.utils import deep_merge_dicts
+from ding.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
 
 demo_data_path = "test_demo_data.pkl"
 

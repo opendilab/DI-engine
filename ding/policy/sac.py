@@ -8,11 +8,11 @@ import torch
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent
 
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, Adder
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, Adder
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -530,7 +530,7 @@ class SACPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['nervex.model.template.qac']
+        return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

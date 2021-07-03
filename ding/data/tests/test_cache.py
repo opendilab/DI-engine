@@ -5,7 +5,7 @@ from threading import Thread
 import numpy as np
 import pytest
 
-from nervex.data.structure import Cache
+from ding.data.structure import Cache
 
 
 @pytest.mark.unittest

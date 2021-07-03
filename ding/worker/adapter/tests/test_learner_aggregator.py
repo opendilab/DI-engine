@@ -1,12 +1,12 @@
-from nervex.worker.adapter.learner_aggregator import LearnerAggregator
+from ding.worker.adapter.learner_aggregator import LearnerAggregator
 from typing import Union
 import numpy as np
 import pytest
 from easydict import EasyDict
 
-from nervex.interaction import Master, Slave, TaskFail
-from nervex.interaction.master.task import TaskStatus
-from nervex.utils import build_logger
+from ding.interaction import Master, Slave, TaskFail
+from ding.interaction.master.task import TaskStatus
+from ding.utils import build_logger
 
 
 class LearnerSlave(Slave):

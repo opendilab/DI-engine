@@ -5,8 +5,8 @@ from typing import Any, Dict, List
 import torch
 from easydict import EasyDict
 
-import nervex
-from nervex.utils import allreduce, read_file, save_file
+import ding
+from ding.utils import allreduce, read_file, save_file
 
 
 class Hook(ABC):
@@ -276,7 +276,7 @@ class LogReduceHook(LearnerHook):
                 new_data = [aggregate(t) for t in data]
             elif isinstance(data, torch.Tensor):
                 new_data = data.clone().detach()
-                if nervex.enable_linklink:
+                if ding.enable_linklink:
                     allreduce(new_data)
                 else:
                     new_data = new_data.cuda()
@@ -284,7 +284,7 @@ class LogReduceHook(LearnerHook):
                     new_data = new_data.cpu()
             elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
                 new_data = torch.scalar_tensor(data).reshape([1])
-                if nervex.enable_linklink:
+                if ding.enable_linklink:
                     allreduce(new_data)
                 else:
                     new_data = new_data.cuda()
@@ -310,9 +310,6 @@ def register_learner_hook(name: str, hook_type: type) -> None:
     """
     Overview:
         Add a new LearnerHook class to hook_mapping, so you can build one instance with `build_learner_hook_by_cfg`.
-        You can reference
-        <https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/worker/learner/tests/test_base_learner.py#L81>
-        or see Example below
     Arguments:
         - name (:obj:`str`): name of the register hook
         - hook_type (:obj:`type`): the register hook_type you implemented that realize LearnerHook

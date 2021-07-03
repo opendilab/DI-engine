@@ -1,7 +1,7 @@
 import time
 import os
-from nervex.interaction import Slave, TaskFail
-from nervex.utils import lists_to_dicts
+from ding.interaction import Slave, TaskFail
+from ding.utils import lists_to_dicts
 
 
 class NaiveLearner(Slave):

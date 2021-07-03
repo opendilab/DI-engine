@@ -1,6 +1,6 @@
 import random
 
-from nervex.utils.compression_helper import get_data_compressor, get_data_decompressor
+from ding.utils.compression_helper import get_data_compressor, get_data_decompressor
 
 import pytest
 

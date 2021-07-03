@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod, abstractproperty
 from easydict import EasyDict
 
-from nervex.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize, COMM_LEARNER_REGISTRY
-from nervex.policy import create_policy
-from nervex.worker.learner import create_learner
+from ding.utils import EasyTimer, import_module, get_task_uid, dist_init, dist_finalize, COMM_LEARNER_REGISTRY
+from ding.policy import create_policy
+from ding.worker.learner import create_learner
 
 
 class BaseCommLearner(ABC):

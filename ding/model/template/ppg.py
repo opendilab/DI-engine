@@ -2,7 +2,7 @@ from typing import Optional, Dict, Union
 import copy
 import torch
 import torch.nn as nn
-from nervex.utils import SequenceType, MODEL_REGISTRY
+from ding.utils import SequenceType, MODEL_REGISTRY
 from .vac import VAC
 
 

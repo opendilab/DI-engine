@@ -1,8 +1,8 @@
 import pytest
-from nervex.worker import EpisodeCollector
-from nervex.envs import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
-from nervex.policy import DQNPolicy
-from nervex.model import DQN
+from ding.worker import EpisodeCollector
+from ding.envs import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
+from ding.policy import DQNPolicy
+from ding.model import DQN
 from app_zoo.classic_control.cartpole.envs import CartPoleEnv
 
 

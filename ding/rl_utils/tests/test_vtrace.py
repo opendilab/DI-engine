@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils import vtrace_data, vtrace_error
+from ding.rl_utils import vtrace_data, vtrace_error
 
 
 @pytest.mark.unittest

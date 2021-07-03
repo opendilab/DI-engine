@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from nervex.data import default_collate
+from ding.data import default_collate
 
 
 def default_preprocess_learn(

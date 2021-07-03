@@ -7,8 +7,8 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import read_file, save_file, get_data_decompressor, COMM_LEARNER_REGISTRY
-from nervex.interaction import Slave, TaskFail
+from ding.utils import read_file, save_file, get_data_decompressor, COMM_LEARNER_REGISTRY
+from ding.interaction import Slave, TaskFail
 from .base_comm_learner import BaseCommLearner
 from ..learner_hook import LearnerHook
 

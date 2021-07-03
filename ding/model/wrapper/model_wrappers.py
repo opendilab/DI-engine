@@ -6,8 +6,8 @@ from typing import Any, Tuple, Callable, Union, Optional, Dict, List
 import numpy as np
 import torch
 import logging
-from nervex.torch_utils import get_tensor_data
-from nervex.rl_utils import create_noise_generator
+from ding.torch_utils import get_tensor_data
+from ding.rl_utils import create_noise_generator
 
 
 class IModelWrapper(ABC):

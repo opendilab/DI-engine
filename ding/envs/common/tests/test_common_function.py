@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from nervex.envs.common.common_function import num_first_one_hot, sqrt_one_hot, div_one_hot, div_func, clip_one_hot, \
+from ding.envs.common.common_function import num_first_one_hot, sqrt_one_hot, div_one_hot, div_func, clip_one_hot, \
     reorder_one_hot, reorder_one_hot_array, reorder_boolean_vector, \
     get_to_and, batch_binary_encode, compute_denominator, get_postion_vector, \
     affine_transform

@@ -1,5 +1,5 @@
-from nervex.utils import POLICY_REGISTRY
-from nervex.rl_utils import get_epsilon_greedy_fn
+from ding.utils import POLICY_REGISTRY
+from ding.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
 from .dqn import DQNPolicy

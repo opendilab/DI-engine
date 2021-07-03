@@ -7,8 +7,8 @@ from typing import Union, Dict, Callable
 from queue import Queue
 from threading import Thread
 
-from nervex.utils import read_file, save_file, COMM_COLLECTOR_REGISTRY
-from nervex.interaction import Slave, TaskFail
+from ding.utils import read_file, save_file, COMM_COLLECTOR_REGISTRY
+from ding.interaction import Slave, TaskFail
 from .base_comm_collector import BaseCommCollector
 
 

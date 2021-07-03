@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import pytest
 
-from nervex.model.common.head import DuelingHead, ReparameterizationHead, MultiHead
-from nervex.torch_utils import is_differentiable
+from ding.model.common.head import DuelingHead, ReparameterizationHead, MultiHead
+from ding.torch_utils import is_differentiable
 
 B = 4
 T = 6

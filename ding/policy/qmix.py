@@ -4,12 +4,12 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, RMSprop, to_device
-from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder, \
+from ding.torch_utils import Adam, RMSprop, to_device
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder, \
     v_1step_td_data_with_mask, v_1step_td_error_with_mask
-from nervex.model import model_wrap
-from nervex.data import timestep_collate, default_collate, default_decollate
-from nervex.utils import POLICY_REGISTRY
+from ding.model import model_wrap
+from ding.data import timestep_collate, default_collate, default_decollate
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 
 
@@ -286,7 +286,7 @@ class QMIXPolicy(Policy):
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
-            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
@@ -434,9 +434,9 @@ class QMIXPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For QMIX, ``nervex.model.qmix.qmix``
+            by import_names path. For QMIX, ``ding.model.qmix.qmix``
         """
-        return 'qmix', ['nervex.model.template.qmix']
+        return 'qmix', ['ding.model.template.qmix']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

@@ -6,8 +6,8 @@ try:
     from sklearn.svm import SVC
 except ImportError:
     SVC = None
-from nervex.torch_utils import cov
-from nervex.utils import REWARD_MODEL_REGISTRY
+from ding.torch_utils import cov
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 
 

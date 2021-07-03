@@ -1,4 +1,4 @@
-import nervex
+import ding
 
 from .collection_helper import iter_mapping
 from .compression_helper import get_data_compressor, get_data_decompressor
@@ -20,7 +20,7 @@ from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER
     ENV_MANAGER_REGISTRY, REWARD_MODEL_REGISTRY, BUFFER_REGISTRY
 from .segment_tree import SumSegmentTree, MinSegmentTree, SegmentTree
 from .type_helper import SequenceType
-if nervex.enable_linklink:
+if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
         allreduce, broadcast, DistContext
 else:

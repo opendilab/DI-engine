@@ -7,12 +7,12 @@ import json
 from queue import Queue
 from flask import Flask, request
 
-from nervex.worker import Coordinator
-from nervex.worker.learner.comm import NaiveLearner
-from nervex.worker.collector.comm import NaiveCollector
-from nervex.utils import find_free_port
-from nervex.config import compile_config_parallel
-from nervex.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
+from ding.worker import Coordinator
+from ding.worker.learner.comm import NaiveLearner
+from ding.worker.collector.comm import NaiveCollector
+from ding.utils import find_free_port
+from ding.config import compile_config_parallel
+from ding.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
 
 DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_FAKE_OPERATOR_TEST'
 init_replicas_request = {

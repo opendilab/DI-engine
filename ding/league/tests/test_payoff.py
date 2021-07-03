@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from easydict import EasyDict
 
-from nervex.league.player import Player
-from nervex.league.shared_payoff import BattleRecordDict, create_payoff
+from ding.league.player import Player
+from ding.league.shared_payoff import BattleRecordDict, create_payoff
 
 
 @pytest.mark.unittest

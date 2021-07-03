@@ -1,6 +1,6 @@
 import click
 from click.core import Context, Option
-from nervex import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
+from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .serial_entry import serial_pipeline
 from .parallel_entry import parallel_pipeline
 from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config, \
@@ -19,7 +19,7 @@ def print_version(ctx: Context, param: Option, value: bool) -> None:
 def print_registry(ctx: Context, param: Option, value: str):
     if value is None:
         return
-    from nervex.utils import registries  # noqa
+    from ding.utils import registries  # noqa
     if value not in registries:
         click.echo('[ERROR]: not support registry name: {}'.format(value))
     else:
@@ -66,7 +66,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     default=0,
     help='random generator seed(for all the possible package: random, numpy, torch and user env)'
 )
-@click.option('--enable_total_log', type=bool, help='whether enable the total nervex system log', default=False)
+@click.option('--enable_total_log', type=bool, help='whether enable the total DI-engine system log', default=False)
 @click.option('--disable_flask_log', type=bool, help='whether disable flask log', default=True)
 # the following arguments are only applied to dist mode
 @click.option(

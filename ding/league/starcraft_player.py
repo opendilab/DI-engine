@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
 
-from nervex.utils import PLAYER_REGISTRY
+from ding.utils import PLAYER_REGISTRY
 from .player import ActivePlayer, HistoricalPlayer
 from .algorithm import pfsp
 

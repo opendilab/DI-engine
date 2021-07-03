@@ -4,11 +4,11 @@ import gym
 import torch
 import numpy as np
 
-from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.torch_utils import to_ndarray
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.torch_utils import to_ndarray
 
-from nervex.worker.collector.tests.speed_test.utils import random_change
+from ding.worker.collector.tests.speed_test.utils import random_change
 
 global env_sum
 env_sum = 0
@@ -78,7 +78,7 @@ class FakeEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Fake Env for collector profile test"
+        return "DI-engine Fake Env for collector profile test"
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

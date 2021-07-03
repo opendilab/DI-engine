@@ -1,6 +1,6 @@
 import pytest
 import torch
-from nervex.rl_utils import gae_data, gae
+from ding.rl_utils import gae_data, gae
 
 
 @pytest.mark.unittest

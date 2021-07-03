@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from nervex.torch_utils import Transformer
+from ding.torch_utils import Transformer
 
 
 @pytest.mark.unittest

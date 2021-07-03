@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-from nervex.utils import POLICY_REGISTRY, squeeze
-from nervex.data import default_collate, default_decollate
-from nervex.torch_utils import Adam, to_device
-from nervex.rl_utils import \
+from ding.utils import POLICY_REGISTRY, squeeze
+from ding.data import default_collate, default_decollate
+from ding.torch_utils import Adam, to_device
+from ding.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
-from nervex.model import model_wrap
+from ding.model import model_wrap
 from .base_policy import Policy
 
 
@@ -322,7 +322,7 @@ class PPGPolicy(Policy):
                 _optimizer_ac is used in policy net, and _optimizer_aux_critic is used in value net.
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
-            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
@@ -456,7 +456,7 @@ class PPGPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path.
         """
-        return 'ppg', ['nervex.model.template.ppg']
+        return 'ppg', ['ding.model.template.ppg']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

@@ -3,11 +3,11 @@ import os
 import time
 from multiprocessing import Process
 
-from nervex.worker import Coordinator, create_comm_learner
-from nervex.worker.collector.comm import NaiveCollector
-from nervex.utils import lists_to_dicts
-from nervex.config import compile_config_parallel
-from nervex.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
+from ding.worker import Coordinator, create_comm_learner
+from ding.worker.collector.comm import NaiveCollector
+from ding.utils import lists_to_dicts
+from ding.config import compile_config_parallel
+from ding.config.utils import parallel_test_main_config, parallel_test_create_config, parallel_test_system_config
 
 DATA_PREFIX = 'SLAVE_COLLECTOR_DATA_LEARNER_TEST'
 

@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import time
-from nervex.utils.time_helper import build_time_helper, WatchDog
+from ding.utils.time_helper import build_time_helper, WatchDog
 
 
 @pytest.mark.unittest

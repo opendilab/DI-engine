@@ -3,7 +3,7 @@ from queue import Queue
 from threading import Thread
 from typing import Any
 
-from nervex.utils import LockContext, LockContextType
+from ding.utils import LockContext, LockContextType
 
 
 class Cache:

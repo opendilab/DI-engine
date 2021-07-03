@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from nervex.utils import REWARD_MODEL_REGISTRY
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 
 

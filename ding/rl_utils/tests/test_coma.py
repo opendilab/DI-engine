@@ -2,7 +2,7 @@ import pytest
 from itertools import product
 import numpy as np
 import torch
-from nervex.rl_utils import coma_data, coma_error
+from ding.rl_utils import coma_data, coma_error
 
 random_weight = torch.rand(128, 4, 8) + 1
 weight_args = [None, random_weight]

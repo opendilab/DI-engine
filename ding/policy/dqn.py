@@ -5,11 +5,11 @@ import torch
 import logging
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import q_nstep_td_data, q_nstep_td_error, Adder
-from nervex.model import model_wrap
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, Adder
+from ding.model import model_wrap
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -203,7 +203,7 @@ class DQNPolicy(Policy):
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
-            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
@@ -335,6 +335,6 @@ class DQNPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``nervex.model.template.q_learning.DQN``
+            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
-        return 'dqn', ['nervex.model.template.q_learning']
+        return 'dqn', ['ding.model.template.q_learning']

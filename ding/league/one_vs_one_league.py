@@ -3,7 +3,7 @@ from easydict import EasyDict
 import os.path as osp
 from typing import Optional
 
-from nervex.utils import deep_merge_dicts, LEAGUE_REGISTRY
+from ding.utils import deep_merge_dicts, LEAGUE_REGISTRY
 from .base_league import BaseLeague
 from .player import ActivePlayer
 
@@ -19,7 +19,7 @@ class OneVsOneLeague(BaseLeague):
     """
     config = dict(
         league_type='one_vs_one',
-        import_names=["nervex.league"],
+        import_names=["ding.league"],
         # ---player----
         # "player_category" is just a name. Depends on the env.
         # For example, in StarCraft, this can be ['zerg', 'terran', 'protoss'].

@@ -3,12 +3,12 @@ from typing import List, Dict, Any, Tuple
 
 import torch
 
-from nervex.data import default_collate, default_decollate
-from nervex.model import model_wrap
-from nervex.rl_utils import Adder, vtrace_data, vtrace_error
-from nervex.torch_utils import Adam, RMSprop, to_device
-from nervex.utils import POLICY_REGISTRY
-from nervex.policy.base_policy import Policy
+from ding.data import default_collate, default_decollate
+from ding.model import model_wrap
+from ding.rl_utils import Adder, vtrace_data, vtrace_error
+from ding.torch_utils import Adam, RMSprop, to_device
+from ding.utils import POLICY_REGISTRY
+from ding.policy.base_policy import Policy
 
 
 @POLICY_REGISTRY.register('impala')
@@ -282,7 +282,7 @@ class IMPALAPolicy(Policy):
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
-            load_state_dict to ``False``, or refer to ``nervex.torch_utils.checkpoint_helper`` for more \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
@@ -403,7 +403,7 @@ class IMPALAPolicy(Policy):
         return output
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['nervex.model.template.vac']
+        return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
@@ -413,6 +413,6 @@ class IMPALAPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same interface definition indicated \
-            by import_names path. For IMPALA, ``nervex.model.interface.IMPALA``
+            by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']

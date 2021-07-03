@@ -4,12 +4,12 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
-from nervex.data import default_collate, default_decollate
-from nervex.rl_utils import coma_data, coma_error, get_epsilon_greedy_fn, Adder
-from nervex.model import model_wrap
-from nervex.data import timestep_collate
-from nervex.utils import POLICY_REGISTRY
+from ding.torch_utils import Adam, to_device
+from ding.data import default_collate, default_decollate
+from ding.rl_utils import coma_data, coma_error, get_epsilon_greedy_fn, Adder
+from ding.model import model_wrap
+from ding.data import timestep_collate
+from ding.utils import POLICY_REGISTRY
 from .base_policy import Policy
 
 
@@ -377,9 +377,9 @@ class COMAPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For coma, ``nervex.model.coma.coma``
+            by import_names path. For coma, ``ding.model.coma.coma``
         """
-        return 'coma', ['nervex.model.template.coma']
+        return 'coma', ['ding.model.template.coma']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

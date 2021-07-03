@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from nervex.utils import SingletonMetaclass
+from ding.utils import SingletonMetaclass
 
 
 @pytest.mark.unittest

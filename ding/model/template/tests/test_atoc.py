@@ -1,7 +1,7 @@
 import pytest
 import torch
-from nervex.model.template.atoc import ATOCActorNet, ATOC
-from nervex.torch_utils import is_differentiable
+from ding.model.template.atoc import ATOCActorNet, ATOC
+from ding.torch_utils import is_differentiable
 
 
 @pytest.mark.unittest

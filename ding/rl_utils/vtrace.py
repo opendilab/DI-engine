@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from collections import namedtuple
 from .isw import compute_importance_weights
-from nervex.hpc_rl import hpc_wrapper
+from ding.hpc_rl import hpc_wrapper
 
 
 def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamma=0.99, lambda_=0.95):

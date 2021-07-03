@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from nervex.config import parallel_transform
+from ding.config import parallel_transform
 
 fake_cpong_dqn_config = dict(
     env=dict(
@@ -59,27 +59,27 @@ main_config = fake_cpong_dqn_config
 
 fake_cpong_dqn_create_config = dict(
     env=dict(
-        import_names=['nervex.worker.collector.tests.test_one_vs_one_collector'],
+        import_names=['ding.worker.collector.tests.test_one_vs_one_collector'],
         type='fake_competitive_rl',
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
-    learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
+    learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
         type='one_vs_one',
-        import_names=['nervex.worker.collector.one_vs_one_collector'],
+        import_names=['ding.worker.collector.one_vs_one_collector'],
     ),
     commander=dict(
         type='one_vs_one',
-        import_names=['nervex.worker.coordinator.one_vs_one_parallel_commander'],
+        import_names=['ding.worker.coordinator.one_vs_one_parallel_commander'],
     ),
     comm_learner=dict(
         type='flask_fs',
-        import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+        import_names=['ding.worker.learner.comm.flask_fs_learner'],
     ),
     comm_collector=dict(
         type='flask_fs',
-        import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+        import_names=['ding.worker.collector.comm.flask_fs_collector'],
     ),
 )
 fake_cpong_dqn_create_config = EasyDict(fake_cpong_dqn_create_config)

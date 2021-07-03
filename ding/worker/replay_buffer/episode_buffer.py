@@ -1,6 +1,6 @@
 from typing import List
-from nervex.worker.replay_buffer import NaiveReplayBuffer
-from nervex.utils import BUFFER_REGISTRY
+from ding.worker.replay_buffer import NaiveReplayBuffer
+from ding.utils import BUFFER_REGISTRY
 
 
 @BUFFER_REGISTRY.register('episode')

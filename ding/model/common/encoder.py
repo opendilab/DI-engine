@@ -2,8 +2,8 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from nervex.torch_utils import fc_block, ResFCBlock, ResBlock
-from nervex.utils import SequenceType
+from ding.torch_utils import fc_block, ResFCBlock, ResBlock
+from ding.utils import SequenceType
 
 
 class ConvEncoder(nn.Module):
@@ -31,7 +31,7 @@ class ConvEncoder(nn.Module):
                 The type of activation to use in the conv ``layers`` and ``ResBlock``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.ResBlock`` for more details
+                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
         """
         super(ConvEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -110,7 +110,7 @@ class FCEncoder(nn.Module):
                 The type of activation to use in the ``ResFCBlock``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`str`):
-                The type of normalization to use, see ``nervex.torch_utils.ResFCBlock`` for more details
+                The type of normalization to use, see ``ding.torch_utils.ResFCBlock`` for more details
         """
         super(FCEncoder, self).__init__()
         self.obs_shape = obs_shape

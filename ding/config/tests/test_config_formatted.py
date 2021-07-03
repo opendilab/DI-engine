@@ -1,7 +1,7 @@
 import pytest
 import importlib
 from typing import Union, Optional, List, Any, Callable, Tuple
-from nervex.config import read_config, compile_config
+from ding.config import read_config, compile_config
 import app_zoo.classic_control.cartpole.config.cartpole_ppo_config as cppo
 import app_zoo.classic_control.cartpole.config.cartpole_dqn_config as cdqn
 import app_zoo.classic_control.cartpole.config.cartpole_a2c_config as ca2c

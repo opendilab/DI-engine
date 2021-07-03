@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from functools import reduce
-from nervex.torch_utils import one_hot, MLP
-from nervex.utils import squeeze, list_split, MODEL_REGISTRY, SequenceType
+from ding.torch_utils import one_hot, MLP
+from ding.utils import squeeze, list_split, MODEL_REGISTRY, SequenceType
 from .q_learning import DRQN
 
 

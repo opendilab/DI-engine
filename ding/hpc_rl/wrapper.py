@@ -2,7 +2,7 @@ import importlib
 import logging
 from collections import OrderedDict
 from functools import wraps
-import nervex
+import ding
 '''
 Overview:
     `hpc_wrapper` is the wrapper for functions which are supported by hpc. If a function is wrapped by it, we will
@@ -89,7 +89,7 @@ def hpc_wrapper(shape_fn=None, namedtuple_data=False, include_args=[], include_k
 
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            if nervex.enable_hpc_rl:
+            if ding.enable_hpc_rl:
                 shape = shape_fn(args, kwargs)
                 if is_cls_method:
                     fn_name = args[0].__class__.__name__

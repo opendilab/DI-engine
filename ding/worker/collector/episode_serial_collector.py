@@ -4,9 +4,9 @@ from easydict import EasyDict
 import numpy as np
 import torch
 
-from nervex.envs import BaseEnvManager
-from nervex.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
-from nervex.torch_utils import to_tensor, to_ndarray
+from ding.envs import BaseEnvManager
+from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
+from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
 
