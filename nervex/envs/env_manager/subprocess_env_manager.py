@@ -548,7 +548,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     @staticmethod
     def worker_fn_robust(
-            parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60, max_retry=1
+            parent,
+            child,
+            env_fn_wrapper,
+            obs_buffer,
+            method_name_list,
+            reset_timeout=60,
+            step_timeout=60,
+            max_retry=1
     ) -> None:
         """
         Overview:

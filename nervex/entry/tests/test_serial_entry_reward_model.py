@@ -6,6 +6,7 @@ from copy import deepcopy
 
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from nervex.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model
 
 cfg = [
@@ -60,3 +61,12 @@ def test_irl(reward_model_config):
     serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")
+
+
+@pytest.mark.unittest
+def test_rnd():
+    config = [deepcopy(cartpole_ppo_rnd_config), deepcopy(cartpole_ppo_rnd_create_config)]
+    try:
+        serial_pipeline_reward_model(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
