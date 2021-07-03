@@ -9,3 +9,4 @@ omit =
   nervex/entry/tests/test_serial_entry_algo.py
   nervex/entry/dist_entry.py
   nervex/hpc_rl
+  nervex/worker/collector/tests/speed_test

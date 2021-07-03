@@ -1,11 +1,20 @@
 from copy import deepcopy
-
 import pytest
 import torch.nn.functional as F
+from typing import Tuple, List, Dict, Any
+import torch
+from collections import namedtuple
+import os
 
-from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config
+from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config, \
+    cartpole_dqn_config, cartpole_dqn_create_config
+from nervex.torch_utils import Adam, to_device
+from nervex.config import compile_config
+from nervex.data import default_collate, default_decollate
+from nervex.rl_utils import Adder
+from nervex.model import model_wrap
 from nervex.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
-from nervex.policy import PPOPolicy
+from nervex.policy import PPOPolicy, ILPolicy
 from nervex.policy.common_utils import default_preprocess_learn
 from nervex.utils import POLICY_REGISTRY
 
@@ -35,23 +44,113 @@ class PPOILPolicy(PPOPolicy):
 
 
 @pytest.mark.unittest
-def test_serial_pipeline_il():
+def test_serial_pipeline_il_ppo():
     # train expert policy
     train_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     expert_policy = serial_pipeline(train_config, seed=0)
 
     # collect expert demo data
     collect_count = 10000
-    expert_data_path = 'expert_data.pkl'
+    expert_data_path = 'expert_data_ppo.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
     collect_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
 
-    # il training
+    # il training 1
     il_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     il_config[0].policy.learn.train_epoch = 10
     il_config[0].policy.type = 'ppo_il'
     _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
+
+    os.popen('rm -rf ' + expert_data_path)
+
+
+@POLICY_REGISTRY.register('dqn_il')
+class DQNILPolicy(ILPolicy):
+
+    def _forward_learn(self, data: dict) -> dict:
+        for d in data:
+            if isinstance(d['obs'], torch.Tensor):
+                d['obs'] = {'processed_obs': d['obs']}
+            else:
+                assert 'processed_obs' in d['obs']
+        return super()._forward_learn(data)
+
+    def _init_collect(self) -> None:
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._gamma = self._cfg.discount_factor  # necessary for parallel
+        self._nstep = self._cfg.nstep  # necessary for parallel
+        self._adder = Adder(self._cuda, self._unroll_len)
+        self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: dict):
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            output = self._collect_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
+        ret = super()._process_transition(obs, model_output, timestep)
+        ret['next_obs'] = timestep.obs
+        return ret
+
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        super()._get_train_sample(data)
+        data = self._adder.get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        return self._adder.get_train_sample(data)
+
+    def _forward_eval(self, data: dict) -> dict:
+        new_data = {id: {'obs': {'processed_obs': t}} for id, t in data.items()}
+        return super()._forward_eval(new_data)
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'dqn', ['nervex.model.template.q_learning']
+
+
+@pytest.mark.unittest
+def test_serial_pipeline_il_dqn():
+    # train expert policy
+    train_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
+    expert_policy = serial_pipeline(train_config, seed=0)
+
+    # collect expert demo data
+    collect_count = 10000
+    expert_data_path = 'expert_data_dqn.pkl'
+    state_dict = expert_policy.collect_mode.state_dict()
+    collect_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
+    collect_config[0].policy.type = 'dqn_il'
+    collect_demo_data(
+        collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+    )
+
+    # il training 2
+    il_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
+    il_config[0].policy.learn.train_epoch = 10
+    il_config[0].policy.type = 'dqn_il'
+    il_config[0].env.stop_value = 50
+    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
+    assert converge_stop_flag
+    os.popen('rm -rf ' + expert_data_path)
+
+
+@pytest.mark.unittest
+@pytest.mark.dqn
+def test_il_policy():
+    cfg = compile_config(cartpole_dqn_config, seed=0, auto=True, create_cfg=cartpole_dqn_create_config)
+    il_policy = ILPolicy(cfg.policy)
+    learn_mode_policy = il_policy.learn_mode
+    state_dict = learn_mode_policy.state_dict()
+    assert 'model' in state_dict
+    assert 'optimizer' in state_dict
+    learn_mode_policy.load_state_dict(state_dict)

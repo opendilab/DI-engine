@@ -65,6 +65,7 @@ def ppo_error(
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
 
     .. note::
+
         adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
         ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
         this part into ppo_error, you can refer to our examples for different ways.
@@ -157,6 +158,7 @@ def ppo_error_continous(
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
 
     .. note::
+
         adv is already normalized value (adv - adv.mean()) / (adv.std() + 1e-8), and there are many
         ways to calculate this mean and std, like among data buffer or train batch, so we don't couple
         this part into ppo_error, you can refer to our examples for different ways.

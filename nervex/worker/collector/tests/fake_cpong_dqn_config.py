@@ -1,22 +1,20 @@
 from easydict import EasyDict
 from nervex.config import parallel_transform
 
-cpong_dqn_config = dict(
+fake_cpong_dqn_config = dict(
     env=dict(
         collector_env_num=16,
         collector_episode_num=2,
         evaluator_env_num=8,
         evaluator_episode_num=2,
         stop_value=20,
-        opponent_type="builtin",  # opponent_type is only used in evaluator
-        env_id='cPongDouble-v0',
     ),
     policy=dict(
         cuda=False,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=3,
-            encoder_hidden_size_list=[128, 128, 512],
+            encoder_hidden_size_list=[128, 128, 256],
         ),
         nstep=1,
         discount_factor=0.99,
@@ -32,10 +30,10 @@ cpong_dqn_config = dict(
             n_sample=16,
             collector=dict(
                 collector_num=2,
-                update_policy_second=3,
+                update_policy_second=5,
             ),
         ),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(evaluator=dict(eval_freq=5, )),
         other=dict(
             eps=dict(
                 type='exp',
@@ -44,7 +42,7 @@ cpong_dqn_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=100000,
+                replay_buffer_size=10000,
                 enable_track_used_data=False,
             ),
             commander=dict(
@@ -56,13 +54,13 @@ cpong_dqn_config = dict(
         ),
     )
 )
-cpong_dqn_config = EasyDict(cpong_dqn_config)
-main_config = cpong_dqn_config
+fake_cpong_dqn_config = EasyDict(fake_cpong_dqn_config)
+main_config = fake_cpong_dqn_config
 
-cpong_dqn_create_config = dict(
+fake_cpong_dqn_create_config = dict(
     env=dict(
-        import_names=['app_zoo.competitive_rl.envs.competitive_rl_env'],
-        type='competitive_rl',
+        import_names=['nervex.worker.collector.tests.test_one_vs_one_collector'],
+        type='fake_competitive_rl',
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
@@ -84,15 +82,15 @@ cpong_dqn_create_config = dict(
         import_names=['nervex.worker.collector.comm.flask_fs_collector'],
     ),
 )
-cpong_dqn_create_config = EasyDict(cpong_dqn_create_config)
-create_config = cpong_dqn_create_config
+fake_cpong_dqn_create_config = EasyDict(fake_cpong_dqn_create_config)
+create_config = fake_cpong_dqn_create_config
 
-cpong_dqn_system_config = dict(
+fake_cpong_dqn_system_config = dict(
     coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',
     learner_gpu_num=0,
 )
-cpong_dqn_system_config = EasyDict(cpong_dqn_system_config)
-system_config = cpong_dqn_system_config
+fake_cpong_dqn_system_config = EasyDict(fake_cpong_dqn_system_config)
+system_config = fake_cpong_dqn_system_config

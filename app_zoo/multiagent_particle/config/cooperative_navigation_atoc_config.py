@@ -50,9 +50,7 @@ cooperative_navigation_atoc_config = dict(
             unroll_len=1,
             noise_sigma=0.4,
         ),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=100000,
-        ), )
+        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), )
     ),
 )
 cooperative_navigation_atoc_config = EasyDict(cooperative_navigation_atoc_config)
