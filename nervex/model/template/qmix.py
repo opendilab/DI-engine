@@ -147,7 +147,7 @@ class QMix(nn.Module):
     Overview:
         QMIX network
     Interface:
-        __init__, forward
+        __init__, forward, _setup_global_encoder
     """
 
     def __init__(
@@ -424,7 +424,7 @@ class CollaQ(nn.Module):
     Overview:
         CollaQ network
     Interface:
-        __init__, forward
+        __init__, forward, _setup_global_encoder
     """
     def __init__(
             self,

@@ -107,6 +107,20 @@ class COMACriticNetwork(nn.Module):
         return {'q_value': q}
 
     def _preprocess_data(self, data: Dict) -> torch.Tensor:
+        """
+        Overview:
+            preprocess data to make it can be used by MLP net
+        Arguments:
+            - data (:obj:`dict`): input data dict with keys ['obs', 'prev_state', 'action']
+            - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
+            - global_state (:obj:`torch.Tensor`): global state(obs)
+            - action (:obj:`torch.Tensor`): the masked action
+        ArgumentsKeys:
+            - necessary: ``obs``{``agent_state``, ``global_state``}, ``action``, ``prev_state``
+        Return:
+            - x (:obj:`torch.Tensor`): the data can be used by MLP net, including \
+                ``global_state``, ``agent_state``, ``last_action``, ``action``, ``agent_id``
+        """        
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
         agent_state_ori, global_state = data['obs']['agent_state'], data['obs']['global_state']
 
