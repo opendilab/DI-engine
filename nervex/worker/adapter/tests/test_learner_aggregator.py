@@ -29,7 +29,7 @@ class LearnerSlave(Slave):
             return {'batch_size': self.batch_size}
         elif task_name == 'learner_learn_task':
             return {
-                'learner_step': self.learner_step, 
+                'learner_step': self.learner_step,
                 'buffer_id': self.buffer_id,
                 'task_id': self.task_id,
                 'learner_done': self.learner_done,
