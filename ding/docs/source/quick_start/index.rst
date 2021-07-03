@@ -5,8 +5,8 @@ Quick Start
 .. toctree::
    :maxdepth: 3
 
-Here we show how to easily deploy a Reinforcement Learning experiment on a simple `CartPole` 
-environment using ding.
+Here we show how to easily deploy a Reinforcement Learning experiment on a simple ``CartPole`` 
+environment using DI-engine.
 
 DI-engine provides config-wise and code-wise specifications to build RL experiments. 
 Both are commonly used by existing RL platforms. In this section we use the code-level
@@ -39,7 +39,7 @@ DI-engine recommends using a config `dict` defined in a python file as input.
         ),
     )
 
-A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in ding. 
+A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in DI-engine. 
 The module can be specialized defined by users or just use our pre-defined modules. Here is a example:
 
 .. code-block:: python
@@ -76,7 +76,7 @@ Set up Environments
 ---------------------
 
 DI-engine redefines RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
-For junior users, an environment wrapper (by default :class:`DI-engineEnvWrapper <ding.env.DI-engineEnvWrapper>`) is provided 
+For junior users, an environment wrapper (by default :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`) is provided 
 to simply wrap the gym env into DI-engine form env.
 For advanced users, it is suggested to check our `Environment <../key_concept/index.html#env>`_ doc for details
 

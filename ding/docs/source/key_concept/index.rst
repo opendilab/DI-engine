@@ -5,7 +5,7 @@ Key Concept
    :maxdepth: 3
 
 
-Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by ding.
+Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by DI-engine.
 One of the basic control flows(serial pipeline) can be described as:
 
 .. image::
@@ -565,9 +565,9 @@ DI-engine offers 3 training entries for different usage, users can choose any on
         .. code:: bash
 
             # usage 1(without config)
-            DI-engine -m serial --env cartpole --policy dqn --train_iter 100000 -s 0
+            ding -m serial --env cartpole --policy dqn --train_iter 100000 -s 0
             # usage 2(with config)
-            DI-engine -m serial -c cartpole_dqn_config.py -s 0
+            ding -m serial -c cartpole_dqn_config.py -s 0
 
         You can refer to `CLI Overview <../feature/cli_overview_en.html>`_ for more details.
         

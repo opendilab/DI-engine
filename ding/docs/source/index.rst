@@ -3,7 +3,7 @@ Welcome to DI-engine's documentation!
 
 Overview
 ------------
-DI-engine is a generalized Decision Intellegence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
+DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
 such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems.
 The whole supported algorithms introduction can be found in `Algorithm <./feature/algorithm_overview.html>`_.
 
@@ -30,11 +30,11 @@ Main Features
 ..
 
   * DI-zoo: High performance DRL algorithm zoo, algorithm support list (TODO(): link)
-  * Generalized decision intelligence algorithms: IRL family, MARL family, searching family (MCTS, xxx, etc.), .. TODO(niuyazhe)
+  * Generalized decision intelligence algorithms: DRL family, IRL family, MARL family, searching family(MCTS) and etc.
   * Customized DRL demand implementation, such as Inverse RL/RL hybrid training; Multi-buffer training; League self-play training
   * Large scale DRL training demonstration and application
-  * Various efficiency optimization module: HPC_RL, ObjStore, EnvManager, DataLoader
-  * k8s support, DI-engine-operator k8s lustre scheduler for dynamic collectors and other services
+  * Various efficiency optimization module: DI-hpc, DI-store, EnvManager, DataLoader
+  * k8s support, DI-orchestrator k8s cluster scheduler for dynamic collectors and other services
 
 .. image::
    images/system_layer.png
