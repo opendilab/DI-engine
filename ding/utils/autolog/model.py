@@ -35,7 +35,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
     Example:
         Define AvgList model like this
 
-        >>> from nervex.utils.autolog import LoggedValue, LoggedModel
+        >>> from ding.utils.autolog import LoggedValue, LoggedModel
         >>> class AvgList(LoggedModel):
         >>>     value = LoggedValue(float)
         >>>     __property_names = ['value']
@@ -63,7 +63,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
         Use it like this
 
-        >>> from nervex.utils.autolog import NaturalTime, TimeMode
+        >>> from ding.utils.autolog import NaturalTime, TimeMode
         >>>
         >>> if __name__ == "__main__":
         >>>     _time = NaturalTime()

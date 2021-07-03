@@ -5,8 +5,8 @@ import pytest
 from easydict import EasyDict
 import logging
 
-from nervex.utils.log_helper import build_logger, pretty_print
-from nervex.utils.file_helper import remove_file
+from ding.utils.log_helper import build_logger, pretty_print
+from ding.utils.file_helper import remove_file
 
 cfg = EasyDict(
     {

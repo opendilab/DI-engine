@@ -15,7 +15,7 @@ from tabulate import tabulate
 from tensorboardX import SummaryWriter
 from typing import Optional, Tuple, Union, Dict, List, Any
 
-from nervex.utils.autolog import TickTime
+from ding.utils.autolog import TickTime
 
 
 def build_logger(

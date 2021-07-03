@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from nervex.utils.autolog import TickTime, NaturalTime, TimeProxy
+from ding.utils.autolog import TickTime, NaturalTime, TimeProxy
 
 
 class TestNaturalTime:

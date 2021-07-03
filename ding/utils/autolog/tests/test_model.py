@@ -4,7 +4,7 @@ from typing import Union
 
 import pytest
 
-from nervex.utils.autolog import LoggedModel, LoggedValue, TickTime, NaturalTime, TimeMode
+from ding.utils.autolog import LoggedModel, LoggedValue, TickTime, NaturalTime, TimeMode
 
 
 # noinspection DuplicatedCode

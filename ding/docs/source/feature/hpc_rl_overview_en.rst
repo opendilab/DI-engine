@@ -5,7 +5,7 @@ HPC_RL Overview
 
 Overview
 ************
-The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in nervex ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
+The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as ``GAE``, ``n-step TD`` and ``LSTM``, etc., mainly for the operators in ding ``rl_utils``, ``torch_utils/network`` and ``torch_utils/loss``. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.
 
 How to use
 ************
@@ -17,7 +17,7 @@ How to use
             - CUDA: CUDA9.2
             - Python: py3.6
 
-        Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through ``pip install <whl_name>``. In the PROJECT_PATH/nervex/hpc_rl directory, there is a whl file that we have provided for installation.
+        Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through ``pip install <whl_name>``. In the PROJECT_PATH/ding/hpc_rl directory, there is a whl file that we have provided for installation.
 
         If you can successfully ``import hpc_rl`` in the python terminal, the installation is successful
 
@@ -32,7 +32,7 @@ How to use
 
     2. Verification
 
-        After the installation, users can verify the accuracy and efficiency through the unit tests under nervex/hpc_rl/tests. These tests will run the original version based on the pytorch api implementation and the HPC_RL optimized implementation. For example, run the ``test_gae.py`` in this directory, the results of running on ``Tesla V100 32G`` are as follows:
+        After the installation, users can verify the accuracy and efficiency through the unit tests under ding/hpc_rl/tests. These tests will run the original version based on the pytorch api implementation and the HPC_RL optimized implementation. For example, run the ``test_gae.py`` in this directory, the results of running on ``Tesla V100 32G`` are as follows:
 
         .. code:: bash
 
@@ -54,18 +54,18 @@ How to use
 
     3. Usage
 
-        The usage of HPC_RL is disabled by default in nervex (because only part of the operating environment is currently supported). After installation, you can add a line of code ``nervex.enable_hpc_rl = True`` at the beginning of the entry program, and HPC_RL related calculations will be automatically enabled. The demo is as follows:
+        The usage of HPC_RL is disabled by default in ding (because only part of the operating environment is currently supported). After installation, you can add a line of code ``ding.enable_hpc_rl = True`` at the beginning of the entry program, and HPC_RL related calculations will be automatically enabled. The demo is as follows:
 
         .. code:: python
 
-            import nervex
-            from nervex.entry import serial_pipeline
-            from nervex.utils import read_config
+            import ding
+            from ding.entry import serial_pipeline
+            from ding.utils import read_config
 
 
             if __name__ == "__main__":
                 config_path = 'cartpole_a2c_default_config.yaml'
-                nervex.enable_hpc_rl = True
+                ding.enable_hpc_rl = True
                 cfg = read_config(config_path)
                 cfg.policy.use_cuda= True
                 serial_pipeline(cfg, 0)
@@ -73,7 +73,7 @@ How to use
 
     4. Demo
 
-        We provide a demo on qbert using dqn algorithm. With setting ``nervex.enable_hpc_rl = True`` in ``main.py``, the training time will drop from 9.7ms to 8.8ms on 16GV100 with CUDA9.2.
+        We provide a demo on qbert using dqn algorithm. With setting ``ding.enable_hpc_rl = True`` in ``main.py``, the training time will drop from 9.7ms to 8.8ms on 16GV100 with CUDA9.2.
 
         Pytorch:
 
@@ -167,7 +167,7 @@ Performance comparison
 Others
 *********
 
-1. In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of nervex will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.
+1. In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of ding will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.
 
 2. For some operators, for example, when the mapping relationship overlaps, they are executed in parallel on the GPU, and the mapping result is uncertain, and there will be certain numerical accuracy fluctuations, but it basically does not affect conventional training.
 

@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 import uuid
 
-from nervex.torch_utils.checkpoint_helper import auto_checkpoint, build_checkpoint_helper, CountVar
-from nervex.utils import read_file, save_file
+from ding.torch_utils.checkpoint_helper import auto_checkpoint, build_checkpoint_helper, CountVar
+from ding.utils import read_file, save_file
 
 
 class DstModel(nn.Module):

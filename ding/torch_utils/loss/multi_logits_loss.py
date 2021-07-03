@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from nervex.torch_utils.network import one_hot
+from ding.torch_utils.network import one_hot
 
 
 def get_distance_matrix(lx, ly, mat, M: int) -> np.ndarray:

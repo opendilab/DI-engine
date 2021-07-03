@@ -6,13 +6,13 @@ import copy
 import numpy as np
 from namedlist import namedlist
 from collections import namedtuple
-from nervex.utils import import_module, ENV_REGISTRY
-from nervex.envs.common.env_element import EnvElement, EnvElementInfo
-from nervex.torch_utils import to_tensor, to_ndarray, to_list
+from ding.utils import import_module, ENV_REGISTRY
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 
 
-class NervexEnvWrapper(BaseEnv):
+class DingEnvWrapper(BaseEnv):
 
     def __init__(self, env: gym.Env, cfg: dict = None) -> None:
         self._cfg = cfg
@@ -89,7 +89,7 @@ class NervexEnvWrapper(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "nerveX Env({})".format(self._cfg.env_id)
+        return "ding Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

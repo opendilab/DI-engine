@@ -7,7 +7,7 @@ import numpy as np
 from easydict import EasyDict
 from namedlist import namedlist
 from collections import namedtuple
-from nervex.utils import import_module, ENV_REGISTRY
+from ding.utils import import_module, ENV_REGISTRY
 
 BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
 BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'use_wrappers'])

@@ -1,6 +1,6 @@
 import pytest
 
-from nervex.utils.autolog import TimeRangedData, NaturalTime, TickTime
+from ding.utils.autolog import TimeRangedData, NaturalTime, TickTime
 
 
 @pytest.mark.unittest

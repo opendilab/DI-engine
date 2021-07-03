@@ -29,7 +29,7 @@ class NaturalTime(BaseTime):
         Natural time object
 
     Example:
-        >>> from nervex.utils.autolog.time_ctl import NaturalTime
+        >>> from ding.utils.autolog.time_ctl import NaturalTime
         >>> time_ = NaturalTime()
     """
 
@@ -45,7 +45,7 @@ class NaturalTime(BaseTime):
             - time(:obj:`float`): unix timestamp
 
         Example:
-            >>> from nervex.utils.autolog.time_ctl import NaturalTime
+            >>> from ding.utils.autolog.time_ctl import NaturalTime
             >>> time_ = NaturalTime()
             >>> time_.time()
             1603896383.8811457
@@ -64,7 +64,7 @@ class TickTime(BaseTime):
         Tick time object
 
     Example:
-        >>> from nervex.utils.autolog.time_ctl import TickTime
+        >>> from ding.utils.autolog.time_ctl import TickTime
         >>> time_ = TickTime()
     """
 
@@ -90,7 +90,7 @@ class TickTime(BaseTime):
             int: new time after stepping
 
         Example:
-            >>> from nervex.utils.autolog.time_ctl import TickTime
+            >>> from ding.utils.autolog.time_ctl import TickTime
             >>> time_ = TickTime(0)
             >>> time_.step()
             1
@@ -114,7 +114,7 @@ class TickTime(BaseTime):
             int: current tick time
 
         Example:
-            >>> from nervex.utils.autolog.time_ctl import TickTime
+            >>> from ding.utils.autolog.time_ctl import TickTime
             >>> time_ = TickTime(0)
             >>> time_.step()
             >>> time_.time()
@@ -130,7 +130,7 @@ class TimeProxy(BaseTime):
         This object is thread-safe, and also freeze and unfreeze operation is strictly ordered.
 
     Example:
-        >>> from nervex.utils.autolog.time_ctl import TickTime, TimeProxy
+        >>> from ding.utils.autolog.time_ctl import TickTime, TimeProxy
         >>> tick_time_ = TickTime()
         >>> time_ = TimeProxy(tick_time_)
         >>> tick_time_.step()
