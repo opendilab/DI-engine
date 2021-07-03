@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. Base learner class for both serial and parallel training pipeline.
-"""
 import time
 import copy
 from typing import Any, Union, Callable, List, Dict, Optional, Tuple

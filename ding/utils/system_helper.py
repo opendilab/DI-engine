@@ -1,6 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-"""
 import os
 import socket
 import time

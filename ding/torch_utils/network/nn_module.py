@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. The neural network model, include methods such as init weight, build conv block or fully-connected block, etc.
-"""
 import math
 import torch
 import torch.nn as nn

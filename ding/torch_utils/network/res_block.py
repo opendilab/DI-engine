@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. build ResBlock: you can use this classes to build residual blocks
-"""
 import torch.nn as nn
 import torch
 

@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. SoftArgmax: a nn.Module that computes SoftArgmax
-"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

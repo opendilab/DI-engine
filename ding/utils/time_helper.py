@@ -1,6 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-"""
 import time
 from typing import Any, Callable
 

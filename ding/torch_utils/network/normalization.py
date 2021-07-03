@@ -1,9 +1,3 @@
-"""
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. build normalization: you can use classes in this file to build normalizations
-"""
 from typing import Any
 import torch
 import torch.nn as nn
