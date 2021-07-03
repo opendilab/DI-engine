@@ -87,6 +87,10 @@ class DQN(nn.Module):
 
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding``hidden_size``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
         Examples:
             >>> model = DQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -184,6 +188,11 @@ class C51DQN(nn.Module):
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
                     - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - distribution(:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+
         Examples:
             >>> model = C51DQN(128, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 128)
@@ -282,6 +291,11 @@ class QRDQN(nn.Module):
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
                     - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
                     - tau (:obj:`torch.Tensor`): tau tensor of size ``(B, N, 1)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - tau (:obj:`torch.Tensor`):  :math:`(B, N, 1)`
+
         Examples:
             >>> model = QRDQN(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -384,6 +398,10 @@ class IQN(nn.Module):
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
                     - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
                     - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(quantile_embedding_size, 1)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - quantiles (:obj:`torch.Tensor`):  :math:`(quantile_embedding_size, 1)`
         Examples:
             >>> model = IQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -492,6 +510,11 @@ class RainbowDQN(nn.Module):
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
                     - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+         Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - distribution(:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+
         Examples:
             >>> model = RainbowDQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -621,8 +644,14 @@ class DRQN(nn.Module):
                 Run ``MLP`` with ``DRQN`` setups and return the result prediction dictionary.
 
                 Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``obs``.
                     - next_state (:obj:`list`): Next state's tensor of size ``(B, N)``
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N=obs_space)`, where B is batch size.
+            - prev_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
+            - next_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
+
         Examples:
             >>> # Init input's Keys:
             >>> prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4

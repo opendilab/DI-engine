@@ -142,12 +142,16 @@ class VAC(nn.Module):
 
                 Forward with ``'compute_critic'``, Necessary Keys:
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding``hidden_size``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Actor Examples:
-            >>> model = VAC(64,64)
+            >>> model = VAC(64,128)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> assert actor_outputs['logit'].shape == torch.Size([4, 128])
 
         Critic Examples:
             >>> model = VAC(64,64)
@@ -183,6 +187,8 @@ class VAC(nn.Module):
 
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+        Shapes:
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
 
         Examples:
             >>> model = VAC(64,64)
@@ -214,6 +220,8 @@ class VAC(nn.Module):
 
                 Necessary Keys:
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Shapes:
+            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Examples:
             >>> model = VAC(64,64)
@@ -236,7 +244,7 @@ class VAC(nn.Module):
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
-            `
+
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head.
@@ -244,6 +252,9 @@ class VAC(nn.Module):
                 Necessary Keys:
                     - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Shapes:
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Examples:
             >>> model = VAC(64,64)

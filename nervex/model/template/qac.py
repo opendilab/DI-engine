@@ -134,6 +134,15 @@ class QAC(nn.Module):
 
                 Forward with ``'compute_critic'``, Necessary Keys:
                     - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Actor Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to``hidden_size``
+            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+
+        Critic Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
+            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
 
         Actor Examples:
             >>> # Regression mode
@@ -179,7 +188,11 @@ class QAC(nn.Module):
                     - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
                     - logit (:obj:`torch.Tensor`):
                         Logit tensor encoding ``mu`` and ``sigma`, both with same size as input ``x``.
-
+        Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to``hidden_size``
+            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, B is batch size and N3 is ``action_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
         Examples:
             >>> # Regression mode
             >>> model = QAC(64, 64, 'regression')
@@ -215,6 +228,10 @@ class QAC(nn.Module):
 
                 Necessary Keys:
                     - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
+            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Examples:
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
