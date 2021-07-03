@@ -72,6 +72,7 @@ class OneVsOneCollector(BaseCollector):
             self.policy = policy
             self._policy_is_active = [None for _ in range(2)]
             self._policy_iter = [None for _ in range(2)]
+            self._traj_buffer_length = self._traj_len if self._traj_len != INF else None
             self._traj_buffer = {
                 env_id: [TrajBuffer(self._traj_buffer_length) for _ in range(len(policy))]
                 for env_id in range(self._env_num)

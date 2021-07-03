@@ -51,7 +51,7 @@ class LearnerAggregatorSlave(Slave):
 class LearnerAggregator(object):
     """
     Overview:
-        Aggregate todo duojiduoka danjiduoka
+        Aggregate multiple learners.
     Interfaces:
         __init__, start, close, merge_info
     """
