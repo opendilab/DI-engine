@@ -67,6 +67,7 @@ def test_serial_pipeline_il_ppo():
 
     os.popen('rm -rf ' + expert_data_path)
 
+
 @POLICY_REGISTRY.register('dqn_il')
 class DQNILPolicy(ILPolicy):
 
@@ -85,7 +86,7 @@ class DQNILPolicy(ILPolicy):
         self._adder = Adder(self._cuda, self._unroll_len)
         self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._collect_model.reset()
-    
+
     def _forward_collect(self, data: dict):
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -98,7 +99,7 @@ class DQNILPolicy(ILPolicy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-    
+
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         ret = super()._process_transition(obs, model_output, timestep)
         ret['next_obs'] = timestep.obs

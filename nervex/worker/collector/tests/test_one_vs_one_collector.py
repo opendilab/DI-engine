@@ -11,6 +11,7 @@ from nervex.utils import ENV_REGISTRY
 from nervex.entry import parallel_pipeline
 from .fake_cpong_dqn_config import fake_cpong_dqn_config, fake_cpong_dqn_create_config, fake_cpong_dqn_system_config
 
+
 @ENV_REGISTRY.register('fake_competitive_rl')
 class FakeCompetitiveRlEnv(BaseEnv):
 
@@ -37,7 +38,7 @@ class FakeCompetitiveRlEnv(BaseEnv):
         if not self._is_evaluator:
             obs_shape = (2, ) + obs_shape
         obs = np.random.randint(0, 256, obs_shape).astype(np.float32)
-        rew = np.array([1.]) if self._is_evaluator else np.array([1. , -1.])
+        rew = np.array([1.]) if self._is_evaluator else np.array([1., -1.])
         done = False if self._step_times < 20 else True
         info = {}
         if done:

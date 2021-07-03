@@ -63,7 +63,7 @@ class TestCkptHelper:
         ckpt_helper.load(path, dst_model, strict=False)
         assert torch.abs(dst_model.fc1.weight - src_model.fc1.weight).max() < 1e-6
         assert torch.abs(dst_model.fc1.bias - src_model.fc1.bias).max() < 1e-6
-        
+
         dst_model = DstModel()
         src_model = SrcModel()
         assert torch.abs(dst_model.fc1.weight - src_model.fc1.weight).max() > 1e-6
@@ -138,21 +138,10 @@ class TestCkptHelper:
                 lr_schduler='lr_scheduler',
                 last_iter=dst_last_iter,
             )
-        
+
         with pytest.raises(KeyError):
-            ckpt_helper.save(
-                path,
-                src_model,
-                prefix_op='key_error',
-                prefix="f"
-            )
-            ckpt_helper.load(
-                path,
-                dst_model,
-                strict=False,
-                prefix_op='key_error',
-                prefix="f"
-            )
+            ckpt_helper.save(path, src_model, prefix_op='key_error', prefix="f")
+            ckpt_helper.load(path, dst_model, strict=False, prefix_op='key_error', prefix="f")
 
         os.popen('rm -rf ' + path + '*')
 
@@ -164,6 +153,7 @@ def test_count_var():
     assert var.val == 5
     var.update(3)
     assert var.val == 3
+
 
 @pytest.mark.unittest
 def test_auto_checkpoint():
@@ -181,7 +171,7 @@ def test_auto_checkpoint():
                 else:
                     raise Exception("There is an exception")
                     break
-        
+
         def save_checkpoint(self, ckpt_path):
             print('Checkpoint is saved successfully in {}!'.format(ckpt_path))
 
