@@ -639,7 +639,7 @@ class CollaQ(nn.Module):
             Used to encoder global observation.
         Arguments:
             - global_obs_shape (:obj:`int`): the dimension of global observation state
-            - embedding_size (:obj:`int`): the dimension of state emdedding     
+            - embedding_size (:obj:`int`): the dimension of state emdedding
         Return:
             - outputs (:obj:`torch.nn.Module`): Global observation encoding network
         """

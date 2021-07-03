@@ -10,13 +10,26 @@ from .q_learning import DRQN
 
 
 class COMAActorNetwork(nn.Module):
-
+    """
+    Overview:
+        Decentralized actor network in COMA
+    Interface:
+        __init__, forward
+    """
     def __init__(
         self,
         obs_shape: int,
         action_shape: int,
         hidden_size_list: SequenceType = [128, 128, 64],
     ):
+        """
+        Overview:
+            initialize COMA actor network
+        Arguments:
+            - obs_shape (:obj:`int`): the dimension of each agent's observation state
+            - action_shape (:obj:`int`): the dimension of action shape
+            - hidden_size_list (:obj:`list`): the list of hidden size, default to [128, 128, 64]
+        """
         super(COMAActorNetwork, self).__init__()
         self.main = DRQN(obs_shape, action_shape, hidden_size_list)
 
@@ -47,6 +60,12 @@ class COMAActorNetwork(nn.Module):
 
 
 class COMACriticNetwork(nn.Module):
+    """
+    Overview:
+        Centralized critic network in COMA
+    Interface:
+        __init__, forward
+    """
 
     def __init__(
         self,
@@ -54,6 +73,14 @@ class COMACriticNetwork(nn.Module):
         action_shape: int,
         hidden_size: int = 128,
     ):
+        """
+        Overview:
+            initialize COMA critic network
+        Arguments:
+            - input_size (:obj:`int`): the size of input global observation
+            - action_shape (:obj:`int`): the dimension of action shape
+            - hidden_size_list (:obj:`list`): the list of hidden size, default to 128
+        """    
         super(COMACriticNetwork, self).__init__()
         self.action_shape = action_shape
         self.act = nn.ReLU()
@@ -112,6 +139,16 @@ class COMA(nn.Module):
             self, agent_num: int, obs_shape: Dict, action_shape: Union[int, SequenceType],
             actor_hidden_size_list: SequenceType
     ) -> None:
+        """
+        Overview:
+            initialize COMA network
+        Arguments:
+            - agent_num (:obj:`int`): the number of agent
+            - obs_shape (:obj:`Dict`): the observation information, including agent_state and \
+                global_state
+            - action_shape (:obj:`Union[int, SequenceType]`): the dimension of action shape
+            - actor_hidden_size_list (:obj:`SequenceType`): the list of hidden size
+        """    
         super(COMA, self).__init__()
         action_shape = squeeze(action_shape)
         actor_input_size = squeeze(obs_shape['agent_state'])
