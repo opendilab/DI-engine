@@ -1,3 +1,5 @@
+.. TODO(niuyazhe): plagiarism checking
+
 Basic Concepts
 ^^^^^^^^^^^^^^^
 
@@ -187,7 +189,7 @@ Model-based policy optimisation: A classical approach is to first sample a large
 
 Q&A
 ----
-Q1: What are model based and model free，what are the differences？which one among MC、TD、DP is model free，which one is model based？
+Q1: What are model-based and model-free methods，what are the differences？Which category should MC、TD、DP, etc. belong to?
  - Answer：
    model based algorithm means that the algorithm learns the state transition process of the environment and models the environment, whereas a model free algorithm does not require the environment to be modelled.
    Monte Carlo and TD algorithms are model-free because they do not require the algorithm to model a specific environment.
