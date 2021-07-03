@@ -64,7 +64,7 @@ class LunarLanderEnv(BaseEnv):
                 {
                     'min': [float("-inf")] * 8,
                     'max': [float("inf")] * 8,
-                    'dtype': float,
+                    'dtype': np.float32,
                 },
             ),
             # [min, max)
@@ -81,7 +81,7 @@ class LunarLanderEnv(BaseEnv):
                 {
                     'min': -1000.0,
                     'max': 1000.0,
-                    'dtype': float,
+                    'dtype': np.float32,
                 },
             ),
             use_wrappers=None,

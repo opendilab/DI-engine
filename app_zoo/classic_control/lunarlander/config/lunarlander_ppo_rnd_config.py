@@ -1,12 +1,19 @@
 from easydict import EasyDict
-from nervex.entry import serial_pipeline
+from nervex.entry import serial_pipeline_reward_model
 
-lunarlander_ppo_config = dict(
+lunarlander_ppo_rnd_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=200,
+    ),
+    reward_model=dict(
+        intrinsic_reward_type='add',
+        learning_rate=0.001,
+        obs_shape=8,
+        batch_size=32,
+        update_per_collect=10,
     ),
     policy=dict(
         cuda=True,
@@ -33,9 +40,9 @@ lunarlander_ppo_config = dict(
         ),
     ),
 )
-lunarlander_ppo_config = EasyDict(lunarlander_ppo_config)
-main_config = lunarlander_ppo_config
-lunarlander_ppo_create_config = dict(
+lunarlander_ppo_rnd_config = EasyDict(lunarlander_ppo_rnd_config)
+main_config = lunarlander_ppo_rnd_config
+lunarlander_ppo_rnd_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
@@ -44,9 +51,9 @@ lunarlander_ppo_create_config = dict(
     policy=dict(type='ppo'),
     reward_model=dict(type='rnd')
 )
-lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
-create_config = lunarlander_ppo_create_config
+lunarlander_ppo_rnd_create_config = EasyDict(lunarlander_ppo_rnd_create_config)
+create_config = lunarlander_ppo_rnd_create_config
 
 
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline_reward_model([main_config, create_config], seed=0)

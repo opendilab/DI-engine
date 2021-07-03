@@ -40,6 +40,15 @@ class PwilRewardModel(BaseRewardModel):
     Properties:
         - reward_table (:obj: `Dict`): In this algorithm, reward model is a dictionary.
     """
+    config = dict(
+        type='pwil',
+        # expert_data_path='expert_data.pkl',
+        sample_size=1000,
+        alpha=5,
+        beta=5,
+        # s_size=4,
+        # a_size=2,
+    )
 
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
@@ -51,7 +60,7 @@ class PwilRewardModel(BaseRewardModel):
             - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(PwilRewardModel, self).__init__()
-        self.config: Dict = config
+        self.cfg: Dict = config
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.expert_data: List[tuple] = []
@@ -71,10 +80,10 @@ class PwilRewardModel(BaseRewardModel):
             in this algorithm, also the ``self.expert_s``, ``self.expert_a`` for states and actions are updated.
 
         """
-        with open(self.config['expert_data_path'], 'rb') as f:
+        with open(self.cfg.expert_data_path, 'rb') as f:
             self.expert_data = pickle.load(f)
             print("the data size is:", len(self.expert_data))
-        sample_size = min(self.config['sample_size'], len(self.expert_data))
+        sample_size = min(self.cfg.sample_size, len(self.expert_data))
         self.expert_data = random.sample(self.expert_data, sample_size)
         self.expert_data = [(item['obs'], item['action']) for item in self.expert_data]
         self.expert_s, self.expert_a = list(zip(*self.expert_data))
@@ -89,14 +98,14 @@ class PwilRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the data attribute in ``self``; \
                 in this algorithm, also the ``s_size``, ``a_size`` for states and actions are updated in the \
-                    attribute in ``self.config`` Dict; ``reward_factor`` also updated as ``collect_data`` called.
+                    attribute in ``self.cfg`` Dict; ``reward_factor`` also updated as ``collect_data`` called.
         """
         self.train_data.extend(collect_state_action_pairs(data))
         self.T = len(self.train_data)
 
-        s_size = self.config['s_size']
-        a_size = self.config['a_size']
-        beta = self.config['beta']
+        s_size = self.cfg.s_size
+        a_size = self.cfg.a_size
+        beta = self.cfg.beta
         self.reward_factor = -beta * self.T / math.sqrt(s_size + a_size)
 
     def train(self) -> None:
@@ -205,7 +214,7 @@ class PwilRewardModel(BaseRewardModel):
                     c = c + w_pi * nearest_distance
                     w_e_list[nearest_index] = w_e_list[nearest_index] - w_pi
                     w_pi = 0
-            reward = self.config['alpha'] * math.exp(self.reward_factor * c)
+            reward = self.cfg.alpha * math.exp(self.reward_factor * c)
             self.reward_table[(s, a)] = torch.FloatTensor([reward])
 
     def clear_data(self) -> None:
