@@ -463,7 +463,8 @@ class CommCoordinator(object):
     def _period_sync_with_server(self) -> None:
         start_time = time.time()
         while not self._end_flag:
-            # First: send failed list to notify DI-engine server which replicas are failed, then terminate such replicas.
+            # First: send failed list to notify DI-engine server which replicas are failed,
+            # then terminate such replicas.
             # self._logger.info("failed list:", list(self._failed_collector_conn), list(self._failed_learner_conn))
             if len(self._failed_learner_conn) > 0 or len(self._failed_collector_conn) > 0:
                 collector_conn = []
