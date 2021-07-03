@@ -202,7 +202,7 @@ def test_to_device_cuda(setup_data_dict):
     setup_data_dict['module'] = nn.Linear(3, 5)
     device = 'cuda'
     cuda_d = to_device(setup_data_dict, device, ignore_keys=['m'])
-    assert cuda_d['module'].device == 'cpu'
+    assert cuda_d['module'].weight.device == 'cpu'
     other = EasyTimer()
     with pytest.raises(TypeError):
         to_device(other)
@@ -213,7 +213,7 @@ def test_to_device_cpu(setup_data_dict):
     setup_data_dict['module'] = nn.Linear(3, 5)
     device = 'cpu'
     cuda_d = to_device(setup_data_dict, device, ignore_keys=['m'])
-    assert cuda_d['module'].device == 'cpu'
+    assert cuda_d['module'].weight.device == 'cpu'
     other = EasyTimer()
     with pytest.raises(TypeError):
         to_device(other)
