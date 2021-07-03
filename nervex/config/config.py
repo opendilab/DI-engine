@@ -302,16 +302,18 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                                 f.write("            {}='{}',\n".format(k3, v3))
                             else:
                                 f.write("            {}={},\n".format(k3, v3))
-                        f.write("        ),\n    ),\n)\n")
+                        f.write("        ),\n")
                     elif (k2 == 'other'):
                         f.write("        other=dict(\n")
                         for k3, v3 in v2.items():
                             if (k3 == 'replay_buffer'):
                                 f.write("            replay_buffer=dict(\n")
                                 for k4, v4 in v3.items():
-                                    if (k4 != 'monitor'):
+                                    if (k4 != 'monitor' and k4 != 'thruput_controller'):
                                         if (isinstance(v4, str)):
                                             f.write("                {}='{}',\n".format(k4, v4))
+                                        elif v4 == float('inf'):
+                                            f.write("                {}=float('{}'),\n".format(k4, v4))
                                         else:
                                             f.write("                {}={},\n".format(k4, v4))
                                     else:
@@ -332,8 +334,32 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                                                             f.write("                        {}={},\n".format(k6, v6))
                                                     f.write("                    ),\n")
                                             f.write("                ),\n")
+                                        if (k4 == 'thruput_controller'):
+                                            f.write("                thruput_controller=dict(\n")
+                                            for k5, v5 in v4.items():
+                                                if (isinstance(v5, dict)):
+                                                    f.write("                    {}=dict(\n".format(k5))
+                                                    for k6, v6 in v5.items():
+                                                        if (isinstance(v6, str)):
+                                                            f.write("                        {}='{}',\n".format(k6, v6))
+                                                        elif v6 == float('inf'):
+                                                            f.write(
+                                                                "                        {}=float('{}'),\n".format(
+                                                                    k6, v6
+                                                                )
+                                                            )
+                                                        else:
+                                                            f.write("                        {}={},\n".format(k6, v6))
+                                                    f.write("                    ),\n")
+                                                else:
+                                                    if (isinstance(v5, str)):
+                                                        f.write("                    {}='{}',\n".format(k5, v5))
+                                                    else:
+                                                        f.write("                    {}={},\n".format(k5, v5))
+                                            f.write("                ),\n")
                                 f.write("            ),\n")
                         f.write("        ),\n")
+                f.write("    ),\n)\n")
         f.write('main_config = EasyDict(main_config)\n')
         f.write('main_config = main_config\n')
         f.write('create_config = dict(\n')
@@ -351,13 +377,17 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                     if (k2 == 'manager'):
                         f.write('    env_manager=dict(\n')
                         for k3, v3 in v2.items():
-                            if (v3 == 'cfg_type' or v3 == 'type'):
+                            if (k3 == 'cfg_type' or k3 == 'type'):
                                 if (isinstance(v3, str)):
                                     f.write("        {}='{}',\n".format(k3, v3))
                                 else:
                                     f.write("        {}={},\n".format(k3, v3))
                 f.write("    ),\n")
-        f.write("    policy=dict(type='{}'),\n".format(config_.policy.type[0:len(config_.policy.type) - 8]))
+        policy_type = config_.policy.type
+        if '_command' in policy_type:
+            f.write("    policy=dict(type='{}'),\n".format(policy_type[0:len(policy_type) - 8]))
+        else:
+            f.write("    policy=dict(type='{}'),\n".format(policy_type))
         f.write(")\n")
         f.write('create_config = EasyDict(create_config)\n')
         f.write('create_config = create_config\n')
