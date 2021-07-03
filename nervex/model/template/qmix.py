@@ -70,8 +70,23 @@ class Mixer(nn.Module):
 
 
 class PMixer(nn.Module):
+    """
+    Overview:
+        pymarl mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value
+    Interface:
+        __init__, forward
+    """
 
     def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64):
+        """
+        Overview:
+            initialize pymarl mixer network
+        Arguments:
+            - agent_num (:obj:`int`): the number of agent
+            - state_dim(:obj:`int`): the dimension of global observation state
+            - mixing_embed_dim (:obj:`int`): the dimension of mixing state emdedding
+            - hypernet_embed (:obj:`int`): the dimension of hypernet emdedding, default to 64
+        """
         super(PMixer, self).__init__()
 
         self.n_agents = agent_num
@@ -92,6 +107,19 @@ class PMixer(nn.Module):
         self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim), nn.ReLU(), nn.Linear(self.embed_dim, 1))
 
     def forward(self, agent_qs, states):
+        """
+        Overview:
+            forward computation graph of pymarl mixer network
+        Arguments:
+            - agent_qs (:obj:`torch.FloatTensor`): the independent q_value of each agent
+            - states (:obj:`torch.FloatTensor`): the emdedding vector of global state
+        Returns:
+            - q_tot (:obj:`torch.FloatTensor`): the total mixed q_value
+        Shapes:
+            - agent_qs (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is agent_num
+            - states (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size
+            - q_tot (:obj:`torch.FloatTensor`): :math:`(B, )`
+        """
         bs = agent_qs.size(0)
         states = states.reshape(-1, self.state_dim)
         agent_qs = agent_qs.view(-1, 1, self.n_agents)
@@ -133,6 +161,20 @@ class QMix(nn.Module):
             use_gru: bool = False,
             use_pmixer: bool = False,
     ) -> None:
+        """
+        Overview:
+            initialize Qmix network
+        Arguments:
+            - agent_num (:obj:`int`): the number of agent
+            - obs_shape (:obj:`int`): the dimension of each agent's observation state
+            - global_obs_shape (:obj:`int`): the dimension of global observation state
+            - action_shape (:obj:`int`): the dimension of action shape
+            - hidden_size_list (:obj:`list`): the list of hidden size
+            - mixer (:obj:`bool`): use mixer net or not, default to True
+            - use_gru (:obj:`bool`): use lstm type or not, default to False
+            - use_pmixer (:obj:`bool`): use pymarl mixer net or not, default to False. \
+                When mixer is False, we can't use pymarl mixer net or normal mixer net
+        """
         super(QMix, self).__init__()
         self._act = nn.ReLU()
         lstm_type = 'gru' if use_gru else 'normal'
@@ -216,14 +258,39 @@ class QMix(nn.Module):
         }
 
     def _setup_global_encoder(self, global_obs_shape: int, embedding_size: int) -> torch.nn.Module:
+        """
+        Overview:
+            Used to encoder global observation.
+        Arguments:
+            - global_obs_shape (:obj:`int`): the dimension of global observation state
+            - embedding_size (:obj:`int`): the dimension of state emdedding     
+        Return:
+            - outputs (:obj:`torch.nn.Module`): Global observation encoding network
+        """
         return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)
 
 
 class CollaQMultiHeadAttention(nn.Module):
-
+    """
+    Overview:
+        The head of collaq attention module.
+    Interface:
+        __init__, forward
+    """
     def __init__(
         self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
     ):
+        """
+        Overview:
+            initialize the head of collaq attention module
+        Arguments:
+            - n_head (:obj:`int`): the num of head
+            - d_model_q (:obj:`int`): the size of input q
+            - d_model_v (:obj:`int`): the size of input v
+            - d_k (:obj:`int`): the size of k, used by Scaled Dot Product Attention
+            - d_v (:obj:`int`): the size of v, used by Scaled Dot Product Attention
+            - d_out (:obj:`int`): the size of output q
+        """      
         super(CollaQMultiHeadAttention, self).__init__()
 
         self.act = nn.ReLU()
@@ -245,6 +312,16 @@ class CollaQMultiHeadAttention(nn.Module):
         self.layer_norm_v = nn.LayerNorm(n_head * d_v, eps=1e-6)
 
     def forward(self, q, k, v, mask=None):
+        """
+        Overview:
+            forward computation graph of collaQ multi head attention net.
+        Arguments:
+            - q (:obj:`torch.nn.Sequential`): the transformer information q
+            - k (:obj:`torch.nn.Sequential`): the transformer information k
+            - v (:obj:`torch.nn.Sequential`): the transformer information v
+        Output:
+            - q (:obj:`torch.nn.Sequential`): the transformer output q
+        """
         d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
         batch_size, len_q, len_k, len_v = q.size(0), q.size(1), k.size(1), v.size(1)
 
@@ -272,22 +349,55 @@ class CollaQMultiHeadAttention(nn.Module):
 
 
 class CollaQSMACAttentionModule(nn.Module):
-
+    """
+    Overview:
+        Collaq attention module. Used to get agent's attention observation. It includes agent's observation\
+            and agent's part of the observation information of the agent's concerned allies
+    Interface:
+        __init__, _cut_obs, forward
+    """
     def __init__(
         self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
     ):
+        """
+        Overview:
+            initialize collaq attention module
+        Arguments:
+            - q_dim (:obj:`int`): the dimension of transformer output q
+            - v_dim (:obj:`int`): the dimension of transformer output v
+            - self_features (:obj:`torch.Tensor`): output self agent's attention observation
+            - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
+            - attention_size (:obj:`int`): the size of attention net layer
+        """      
         super(CollaQSMACAttentionModule, self).__init__()
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
         self.attention_layer = CollaQMultiHeadAttention(1, q_dim, v_dim, attention_size, attention_size, attention_size)
 
     def _cut_obs(self, obs: torch.Tensor):
+        """
+        Overview:
+            cut the observed information into self's observation and allay's observation
+        Arguments:
+            - obs (:obj:`torch.Tensor`): input each agent's observation
+        Return:
+            - self_features (:obj:`torch.Tensor`): output self agent's attention observation
+            - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
+        """        
         # obs shape = (T, B, A, obs_shape)
         self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
         ally_features = obs[:, :, :, self.ally_feature_range[0]:self.ally_feature_range[1]]
         return self_features, ally_features
 
     def forward(self, inputs: torch.Tensor):
+        """
+        Overview:
+            forward computation to get agent's attention observation information
+        Arguments:
+            - obs (:obj:`torch.Tensor`): input each agent's observation
+        Return:
+            - obs (:obj:`torch.Tensor`): output agent's attention observation
+        """
         # obs shape = (T, B ,A, obs_shape)
         obs = inputs
         self_features, ally_features = self._cut_obs(obs)
@@ -310,7 +420,12 @@ class CollaQSMACAttentionModule(nn.Module):
 
 @MODEL_REGISTRY.register('collaq')
 class CollaQ(nn.Module):
-
+    """
+    Overview:
+        CollaQ network
+    Interface:
+        __init__, forward
+    """
     def __init__(
             self,
             agent_num: int,
@@ -325,6 +440,23 @@ class CollaQ(nn.Module):
             attention_size: int = 32,
             mixer: bool = True
     ) -> None:
+        """
+        Overview:
+            initialize Collaq network
+        Arguments:
+            - agent_num (:obj:`int`): the number of agent
+            - obs_shape (:obj:`int`): the dimension of each agent's observation state
+            - alone_obs_shape (:obj:`int`): the dimension of each agent's observation state without\
+                other agents
+            - global_obs_shape (:obj:`int`): the dimension of global observation state
+            - action_shape (:obj:`int`): the dimension of action shape
+            - hidden_size_list (:obj:`list`): the list of hidden size
+            - attention (:obj:`bool`): use attention module or not, default to False
+            - self_feature_range (:obj:`Union[List[int], None]`): the agent's feature range
+            - ally_feature_range (:obj:`Union[List[int], None]`): the agent ally's feature range
+            - attention_size (:obj:`int`): the size of attention net layer
+            - mixer (:obj:`bool`): use mixer net or not, default to True
+        """
         super(CollaQ, self).__init__()
         self.attention = attention
         self.attention_size = attention_size
@@ -502,4 +634,13 @@ class CollaQ(nn.Module):
         }
 
     def _setup_global_encoder(self, global_obs_shape: int, embedding_size: int) -> torch.nn.Module:
+        """
+        Overview:
+            Used to encoder global observation.
+        Arguments:
+            - global_obs_shape (:obj:`int`): the dimension of global observation state
+            - embedding_size (:obj:`int`): the dimension of state emdedding     
+        Return:
+            - outputs (:obj:`torch.nn.Module`): Global observation encoding network
+        """
         return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)
