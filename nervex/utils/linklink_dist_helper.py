@@ -1,3 +1,4 @@
+from typing import Callable, Tuple, List, Any
 import os
 
 import numpy as np
@@ -12,7 +13,7 @@ link = try_import_link()
 is_fake_link = isinstance(link, FakeLink)
 
 
-def get_rank():
+def get_rank() -> int:
     r"""
     Overview:
         Get the rank of ``linklink`` model, return 0 if use ``FakeLink``.
@@ -25,7 +26,7 @@ def get_rank():
     return error_wrapper(link.get_rank, 0)()
 
 
-def get_world_size():
+def get_world_size() -> int:
     r"""
     Overview:
         Get the ``world_size`` of ``linklink model``, return 0 if use ``FakeLink``.
@@ -38,20 +39,20 @@ def get_world_size():
     return error_wrapper(link.get_world_size, 1)()
 
 
-def broadcast(value, rank_num):
+def broadcast(value: torch.Tensor, rank: int) -> None:
     r"""
     Overview:
         Use ``linklink.broadcast`` and raise error when using ``FakeLink``
     Arguments:
         - value (:obj:`obj`): the value to board cast
-        - rank_num (:obj:`int`): the rank to boardcast on
+        - rank (:obj:`int`): the rank to broadcast on
     """
     if is_fake_link:
         raise NotImplementedError
-    link.broadcast(value, rank_num)
+    link.broadcast(value, rank)
 
 
-def allreduce(data, op='sum'):
+def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
     r"""
     Overview:
         Call ``linklink.allreduce`` on the data
@@ -71,7 +72,7 @@ def allreduce(data, op='sum'):
         data.div_(get_world_size())
 
 
-def get_group(group_size):
+def get_group(group_size: int) -> List:
     r"""
     Overview:
         Get the group segmentation of ``group_size`` each group
@@ -86,7 +87,7 @@ def get_group(group_size):
     return simple_group_split(world_size, rank, world_size // group_size)
 
 
-def distributed_mode(func):
+def dist_mode(func: Callable) -> Callable:
     r"""
     Overview:
         Wrap the function so that in can init and finalize automatically before each call
@@ -100,7 +101,7 @@ def distributed_mode(func):
     return wrapper
 
 
-def dist_init(method='slurm', device_id=0):
+def dist_init(method: str = 'slurm', device_id: int = 0) -> Tuple[int, int]:
     r"""
     Overview:
         Init the distribution
@@ -124,7 +125,7 @@ def dist_init(method='slurm', device_id=0):
     return rank, world_size
 
 
-def dist_finalize():
+def dist_finalize() -> None:
     r"""
     Overview:
         Finalize ``linklink``, see ``linklink.finalize()``
@@ -132,7 +133,19 @@ def dist_finalize():
     link.finalize()
 
 
-def simple_group_split(world_size, rank, num_groups):
+class DistContext:
+
+    def __init__(self) -> None:
+        pass
+
+    def __enter__(self) -> None:
+        dist_init()
+
+    def __exit__(self, *args, **kwargs) -> Any:
+        dist_finalize()
+
+
+def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
     r"""
     Overview:
         Split the group according to ``worldsize``, ``rank`` and ``num_groups``

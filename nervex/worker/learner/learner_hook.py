@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import torch
 from easydict import EasyDict
 
+import nervex
 from nervex.utils import allreduce, read_file, save_file
 
 
@@ -275,16 +276,26 @@ class LogReduceHook(LearnerHook):
                 new_data = [aggregate(t) for t in data]
             elif isinstance(data, torch.Tensor):
                 new_data = data.clone().detach()
-                allreduce(new_data)  # get data from other processes
+                if nervex.enable_linklink:
+                    allreduce(new_data)
+                else:
+                    new_data = new_data.cuda()
+                    allreduce(new_data)
+                    new_data = new_data.cpu()
             elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
                 new_data = torch.scalar_tensor(data).reshape([1])
-                allreduce(new_data)
+                if nervex.enable_linklink:
+                    allreduce(new_data)
+                else:
+                    new_data = new_data.cuda()
+                    allreduce(new_data)
+                    new_data = new_data.cpu()
                 new_data = new_data.item()
             else:
                 raise TypeError("invalid type in reduce: {}".format(type(data)))
             return new_data
 
-        engine.log_buffer = aggregate(engine.buffer)
+        engine.log_buffer = aggregate(engine.log_buffer)
 
 
 hook_mapping = {
@@ -330,6 +341,7 @@ simplified_hook_mapping = {
     'save_ckpt_after_iter': lambda freq: hook_mapping['save_ckpt']
     ('save_ckpt_after_iter', 20, position='after_iter', ext_args=EasyDict({'freq': freq})),
     'save_ckpt_after_run': lambda _: hook_mapping['save_ckpt']('save_ckpt_after_run', 20, position='after_run'),
+    'log_reduce_after_iter': lambda _: hook_mapping['log_reduce']('log_reduce_after_iter', 10, position='after_iter'),
 }
 
 
@@ -363,18 +375,19 @@ def build_learner_hook_by_cfg(cfg: EasyDict) -> Dict[str, List[Hook]]:
     for key, value in cfg.items():
         if key in simplified_hook_mapping and not isinstance(value, dict):
             pos = key[find_char(key, '_', 2, reverse=True) + 1:]
-            hooks[pos].append(simplified_hook_mapping[key](value))
+            hook = simplified_hook_mapping[key](value)
+            priority = hook.priority
         else:
             priority = value.get('priority', 100)
             pos = value.position
-            idx = 0
-            for i in reversed(range(len(hooks[pos]))):
-                if priority >= hooks[pos][i].priority:
-                    idx = i + 1
-                    break
             ext_args = value.get('ext_args', {})
             hook = hook_mapping[value.type](value.name, priority, position=pos, ext_args=ext_args)
-            hooks[pos].insert(idx, hook)
+        idx = 0
+        for i in reversed(range(len(hooks[pos]))):
+            if priority >= hooks[pos][i].priority:
+                idx = i + 1
+                break
+        hooks[pos].insert(idx, hook)
     return hooks
 
 

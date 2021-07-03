@@ -1,6 +1,7 @@
 from copy import deepcopy
-from nervex.entry import serial_pipeline
 from easydict import EasyDict
+from nervex.entry import serial_pipeline
+from nervex.utils import DistContext
 
 pong_dqn_config = dict(
     env=dict(
@@ -23,6 +24,7 @@ pong_dqn_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(
+            multi_gpu=True,
             update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
@@ -55,4 +57,5 @@ pong_dqn_create_config = EasyDict(pong_dqn_create_config)
 create_config = pong_dqn_create_config
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    with DistContext():
+        serial_pipeline((main_config, create_config), seed=0)
