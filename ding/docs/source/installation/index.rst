@@ -47,7 +47,7 @@ Also, you can install DI-engine from the source codes in github(master branch re
 
 .. code-block:: bash
 
-    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/ding.git
+    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
     cd DI-engine
     pip install . --user
 
@@ -83,7 +83,7 @@ To contribute to DI-engine, with support for running tests and building the docu
 
     # source r0.3.2  # maybe you need activate virtual environment first
 
-    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/ding.git && cd DI-engine
+    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git && cd DI-engine
     pip install -e .[doc, test, common_env] --user
 
 Check install
@@ -93,7 +93,7 @@ After installation, you can open your python console and run the following codes
 
 .. code-block:: python
 
-    import DI-engine
+    import ding
     print(ding.__version__)
 
 If the console print the correct version tag, you have successfully installed DI-engine
@@ -102,6 +102,6 @@ Besides, DI-engine also prepare the CLI tool for users, you can type the followi
 
 .. code-block:: bash
 
-   DI-engine -v
+   ding -v
 
-If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``DI-engine -h`` for further usage
+If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``ding -h`` for further usage
