@@ -33,7 +33,7 @@ class IMPALAPolicy(Policy):
         5  | ``priority_``      bool     False          | Whether use Importance Sampling Weight |If True, priority
            | ``IS_weight``                                                                       | must be True
         6  ``unroll_len``       int      32             | trajectory length to calculate v-trace
-                                                        |target
+                                                        | target
         7  | ``learn.update``   int      4              | How many updates(iterations) to train  | this args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy

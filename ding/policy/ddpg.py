@@ -20,6 +20,7 @@ class DDPGPolicy(Policy):
         Policy class of DDPG algorithm.
     Property:
         learn_mode, collect_mode, eval_mode
+
     Config:
 
         == ====================  ========    =============  =================================   =======================

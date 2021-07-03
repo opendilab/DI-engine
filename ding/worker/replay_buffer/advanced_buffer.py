@@ -16,6 +16,7 @@ class AdvancedReplayBuffer(IBuffer):
     Overview:
         Prioritized replay buffer derived from ``NaiveReplayBuffer``.
         This replay buffer adds:
+
             1) Prioritized experience replay implemented by segment tree.
             2) Data quality monitor. Monitor use count and staleness of each data.
             3) Throughput monitor and control.

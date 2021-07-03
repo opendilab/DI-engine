@@ -185,9 +185,9 @@ def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: boo
     Overview:
         save configuration to python file or yaml file
     Arguments:
-        - config_ (:obj:`dict`): Config dict
+        - config (:obj:`dict`): Config dict
         - path (:obj:`str`): Path of target yaml or target python file
-        - type (:obj:`str`): If type is 'yaml', save configuration to yaml file. If type is 'py', save\
+        - type (:obj:`str`): If type is ``yaml`` , save configuration to yaml file. If type is ``py`` , save\
              configuration to python file.
         - save_formatted (:obj:`bool`): If save_formatted is true, save formatted config to path.\
             Formatted config can be read by serial_pipeline directly.
@@ -207,7 +207,7 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
     Overview:
         save formatted configuration to python file that can be read by serial_pipeline directly.
     Arguments:
-        - config_ (:obj:`dict`): Config dict
+        - config (:obj:`dict`): Config dict
         - path (:obj:`str`): Path of python file
     """
     with open(path, "w") as f:

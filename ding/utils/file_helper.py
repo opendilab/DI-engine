@@ -41,7 +41,8 @@ def read_from_ceph(path: str) -> object:
 
 def _ensure_redis(host='localhost', port=6379):
     """
-    Overview: Ensures redis usage
+    Overview:
+        Ensures redis usage
     Arguments:
         - host (:obj:`str`): Host string
         - port (:obj:`int`): Port number

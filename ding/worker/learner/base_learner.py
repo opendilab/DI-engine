@@ -256,7 +256,7 @@ class BaseLearner(object):
 
         .. note::
 
-            Only in parallel mode will we use attributes ``get_data`` and ``_dataloader` to fetch data from file system;
+            Only in parallel mode will we use attributes ``get_data`` and ``_dataloader`` to fetch data from file system;
             Instead, in serial version, we can fetch data from memory directly.
 
             In parallel mode, ``get_data`` is set by ``LearnerCommHelper``, and should be callable.
