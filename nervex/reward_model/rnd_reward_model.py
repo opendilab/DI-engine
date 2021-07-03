@@ -70,7 +70,7 @@ class RndRewardModel(BaseRewardModel):
         self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
-        assert self.intrinsic_reward_type in ['add', 'new']
+        assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_data = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
 
@@ -105,6 +105,8 @@ class RndRewardModel(BaseRewardModel):
                 item['reward'] += rew
             elif self.intrinsic_reward_type == 'new':
                 item['intrinsic_reward'] = rew
+            elif self.intrinsic_reward_type == 'assign':
+                item['reward'] = rew
 
     def collect_data(self, data: list) -> None:
         self.train_data.extend(collect_states(data))

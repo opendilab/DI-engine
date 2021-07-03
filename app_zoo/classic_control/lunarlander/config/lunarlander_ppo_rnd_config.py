@@ -9,7 +9,7 @@ lunarlander_ppo_rnd_config = dict(
         stop_value=200,
     ),
     reward_model=dict(
-        intrinsic_reward_type='add',
+        intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
         obs_shape=8,
         batch_size=32,
