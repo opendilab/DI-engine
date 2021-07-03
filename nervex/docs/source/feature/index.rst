@@ -17,7 +17,7 @@ Feature
     collector_overview_en
     env_manager_overview_en
     replay_buffer_overview_en
-    learner_overview
+    learner_overview_en
     wrapper_hook_overview_en
     league_overview_en
 
