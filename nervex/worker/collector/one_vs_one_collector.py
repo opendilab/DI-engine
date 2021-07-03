@@ -150,8 +150,10 @@ class OneVsOneCollector(BaseCollector):
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         env_ids = list(obs.keys())
         if len(self._policy) > 1:
+            assert not self._eval_flag
             obs = [{id: obs[id][i] for id in env_ids} for i in range(len(self._policy))]
         else:
+            assert self._eval_flag
             obs = [obs]
         self._obs_pool.update(obs)
         policy_outputs = []

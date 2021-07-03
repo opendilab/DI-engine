@@ -9,7 +9,6 @@ from nervex.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from nervex.envs.common.env_element import EnvElement, EnvElementInfo
 from nervex.utils import ENV_REGISTRY
 from nervex.entry import parallel_pipeline
-from nervex.utils import WatchDog
 from .fake_cpong_dqn_config import fake_cpong_dqn_config, fake_cpong_dqn_create_config, fake_cpong_dqn_system_config
 
 @ENV_REGISTRY.register('fake_competitive_rl')
@@ -22,9 +21,9 @@ class FakeCompetitiveRlEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         self._step_times = 0
         obs_shape = (4, 84, 84)
-        if self._is_evaluator:
+        if not self._is_evaluator:
             obs_shape = (2, ) + obs_shape
-        obs = np.random.randint(0, 256, obs_shape)
+        obs = np.random.randint(0, 256, obs_shape).astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -35,17 +34,14 @@ class FakeCompetitiveRlEnv(BaseEnv):
 
     def step(self, action: Union[torch.Tensor, np.ndarray, list]) -> BaseEnvTimestep:
         obs_shape = (4, 84, 84)
-        if self._is_evaluator:
+        if not self._is_evaluator:
             obs_shape = (2, ) + obs_shape
-        obs = np.random.randint(0, 256, obs_shape)
-        rew = np.array([1.])
+        obs = np.random.randint(0, 256, obs_shape).astype(np.float32)
+        rew = np.array([1.]) if self._is_evaluator else np.array([1. , -1.])
         done = False if self._step_times < 20 else True
         info = {}
         if done:
-            if self._is_evaluator:
-                info['final_eval_reward'] = np.array([21.])
-            else:
-                info['final_eval_reward'] = np.array([5., -5.])
+            info['final_eval_reward'] = np.array([21.]) if self._is_evaluator else np.array([5., -5.])
         self._step_times += 1
         return BaseEnvTimestep(obs, rew, done, info)
 
@@ -99,11 +95,5 @@ class FakeCompetitiveRlEnv(BaseEnv):
 
 @pytest.mark.unittest
 def test_1v1_collector():
-    # watch = WatchDog(150)
-    # watch.start()
-    # try:
-    #     parallel_pipeline([fake_cpong_dqn_config, fake_cpong_dqn_create_config, fake_cpong_dqn_system_config], 0)
-    # except TimeoutError:
-    #     pass
     parallel_pipeline([fake_cpong_dqn_config, fake_cpong_dqn_create_config, fake_cpong_dqn_system_config], 0)
-    os.popen("rm -rf data log policy ckpt* total_config")
+    os.popen("rm -rf data log policy ckpt* total_config.py")
