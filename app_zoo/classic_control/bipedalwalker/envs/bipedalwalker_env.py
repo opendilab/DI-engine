@@ -58,7 +58,7 @@ class BipedalWalkerEnv(BaseEnv):
         self._final_eval_reward += rew
         if self._rew_clip:
             rew = max(-10, rew)
-        rew = float(rew)
+        rew = np.float32(rew)
         
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -75,7 +75,7 @@ class BipedalWalkerEnv(BaseEnv):
                 {
                     'min': [float("-inf")] * 24,
                     'max': [float("inf")] * 24,
-                    'dtype': float,
+                    'dtype': np.float32,
                 },
             ),
             # [min, max)
@@ -84,15 +84,15 @@ class BipedalWalkerEnv(BaseEnv):
                 {
                     'min': -1.0,
                     'max': 1.0,
-                    'dtype': float,
+                    'dtype': np.float32,
                 },
             ),
             rew_space=T(
                 (1, ),
                 {
-                    'min': -1000.0,
-                    'max': 1000.0,
-                    'dtype': float,
+                    'min': -300,
+                    'max': 400,
+                    'dtype': np.float32,
                 },
             ),
             use_wrappers=None,
