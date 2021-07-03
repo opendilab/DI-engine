@@ -5,7 +5,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from nervex.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, tensor_to_list, same_shape, build_log_buffer, get_tensor_data
+from nervex.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, \
+    tensor_to_list, same_shape, build_log_buffer, get_tensor_data
 from nervex.utils import EasyTimer
 
 
