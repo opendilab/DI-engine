@@ -8,13 +8,13 @@ Env Manager
 概述：
     env manager 是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
     目前支持的类型有单进程串行和多进程并行两种模式。BaseEnvManager 通过循环串行（伪并行）来维护多个环境实例，Async(Sync)SubprocessEnvManager 通过子进程向量化的方式，即调用
-    multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。NerveX 的 env manager 需使用 nerveX 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
+    multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。DI-engine 的 env manager 需使用 DI-engine 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
     其初始化时需提供每个 env 的实例化接口，通过 config 设定具体的运行细节。
 
-    一般来说，:class:`BaseEnvManager <nervex.envs.BaseEnvManager>` 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用 
-    :class:`SyncSubProcessEnvManager <nervex.envs.SyncSubProcessEnvManager>` 和 :class:`AsyncSubProcessEnvManager <nervex.envs.AsyncSubProcessEnvManager>` 进行加速。
+    一般来说，:class:`BaseEnvManager <ding.envs.BaseEnvManager>` 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用 
+    :class:`SyncSubProcessEnvManager <ding.envs.SyncSubProcessEnvManager>` 和 :class:`AsyncSubProcessEnvManager <ding.envs.AsyncSubProcessEnvManager>` 进行加速。
 
-    如果对 env 模块还不够了解，建议先查阅 NerveX 的 `Env Overview <./env_overview.html>`_
+    如果对 env 模块还不够了解，建议先查阅 DI-engine 的 `Env Overview <./env_overview.html>`_
 
 用法：
     - init
@@ -32,14 +32,14 @@ Env Manager
             )
 
             # lambda function way
-            env_fn = lambda : NerveXEnv(*args, **kwargs)
+            env_fn = lambda : DI-engineEnv(*args, **kwargs)
             env_manager = BaseEnvManager(env_fn=[env_fn for _ in range(4)], cfg=config.env.manager)
 
             # partial function way
             from functools import partial
             
             def env_fn(*args, **kwargs):
-                return NerveXEnv(*args, **kwargs)
+                return DI-engineEnv(*args, **kwargs)
             env_manager = BaseEnvManager(env_fn=[partial(env_fn, *args, **kwargs) for _ in range(4)], cfg=config.env.manager)
 
     - launch/reset
@@ -104,12 +104,12 @@ Env Manager
 高级特性：
     - auto_reset
         
-        nerveX 的 env manager 默认会进行自动 reset，即当某个环境运行至 done 之后会自动 reset 以继续运行，reset 时的参数为上次手动 reset 时为该子环境设置的参数，
+        DI-engine 的 env manager 默认会进行自动 reset，即当某个环境运行至 done 之后会自动 reset 以继续运行，reset 时的参数为上次手动 reset 时为该子环境设置的参数，
         除非累计运行的 episode 数量达到 config 中指定的 episode_num。若要关闭该特性,可在 config 中指定 ``auto_reset=False``
 
     - env state
 
-        为方便管理各子环境的状态并便于 debug，nerveX 的 env manager 提供了环境状态的枚举类型来实时掌握所有子环境的运行状态，其具体含义如下：
+        为方便管理各子环境的状态并便于 debug，DI-engine 的 env manager 提供了环境状态的枚举类型来实时掌握所有子环境的运行状态，其具体含义如下：
 
         - VOID: 初始化了 env manager，尚未实例化子环境
         - INIT: 实例化了子环境，尚未进行 launch 或 reset
@@ -124,7 +124,7 @@ Env Manager
 
     - max_retry 和 timeout
   
-        为防止有些子环境因连接问题短暂地报错，或子进程卡死时程序不会正常退出，nerveX 的 env manager 添加了 retry 保护和 timeout 检测机制。用户可在 config 中指定最大 retry 次数，
+        为防止有些子环境因连接问题短暂地报错，或子进程卡死时程序不会正常退出，DI-engine 的 env manager 添加了 retry 保护和 timeout 检测机制。用户可在 config 中指定最大 retry 次数，
         和 reset、step、 子进程间通信的最大等待时间，当超过等待时间时会抛出异常，以便提前终止运行。config 中这些参数的设置和默认值如下：
 
         .. code-block:: python
@@ -146,7 +146,7 @@ Env Manager
     - get_attribute
 
 
-BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
+BaseEnvManager (ding/envs/env_manager/base_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 概述：
@@ -166,7 +166,7 @@ BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
     3. ready_obs: 返回所有未运行结束的环境 env_id 和最新返回的 observation
     4. done: 是否所有持有的环境已经运行结束
 
-SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
+SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 概述：

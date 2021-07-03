@@ -28,8 +28,8 @@ Buffer Manager
 代码结构：
     相关的类有两个：
 
-        1. BufferManager(nervex/data/buffer_manager.py): replay buffer主体。
-        2. SumSegmentTree(nervex/data/structure/segment_tree.py): 用于各个buffer的采样个数确认。
+        1. BufferManager(ding/data/buffer_manager.py): replay buffer主体。
+        2. SumSegmentTree(ding/data/structure/segment_tree.py): 用于各个buffer的采样个数确认。
 
 接口说明：
     Buffer Manager暴露给外界的主要接口分为：存储数据、采样数据、数据元信息更新。
@@ -71,10 +71,10 @@ Replay Buffer
 代码结构：
     相关的类有以下几个：
 
-        1. AdvancedReplayBuffer(nervex/data/structure/buffer.py): buffer主体。
-        2. RecordList(nervex/data/structure/buffer.py): 继承自list，用于记录buffer中由于更新而被移除的旧数据。
-        3. NaturalMonitor, InTickMonitor, OutTickMonitor(nervex/data/structure/buffer.py): 来自autolog，用于记录buffer统计数据。
-        4. SegmentTree, SumSegmentTree, MinSegmentTree(nervex/data/structure/segment_tree.py): 用于buffer中的prioritized sample。
+        1. AdvancedReplayBuffer(ding/data/structure/buffer.py): buffer主体。
+        2. RecordList(ding/data/structure/buffer.py): 继承自list，用于记录buffer中由于更新而被移除的旧数据。
+        3. NaturalMonitor, InTickMonitor, OutTickMonitor(ding/data/structure/buffer.py): 来自autolog，用于记录buffer统计数据。
+        4. SegmentTree, SumSegmentTree, MinSegmentTree(ding/data/structure/segment_tree.py): 用于buffer中的prioritized sample。
 
 接口说明：
     Replay Buffer暴露给Buffer Manager的主要接口分为：存储数据、采样数据、数据元信息更新。

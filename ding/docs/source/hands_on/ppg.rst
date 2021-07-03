@@ -60,10 +60,10 @@ Implementation
 ---------------
   The default config is defined as follows:
 
-  .. autoclass:: nervex.policy.ppg.PPGPolicy
+  .. autoclass:: ding.policy.ppg.PPGPolicy
 
   The network interface PPG used is defined as follows:
 
       * TODO
 
-  The Benchmark result of PPG implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+  The Benchmark result of PPG implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

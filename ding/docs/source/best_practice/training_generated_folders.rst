@@ -1,10 +1,10 @@
 How to understand training generated folders?
 ================================================================
 
-nerveX generates many folders during training: 
+DI-engine generates many folders during training: 
 
-    - In **serial** mode, nerveX generates log and checkpoint folders.
-    - In **parallel** mode, nerveX generates log, checkpoint, data and policy folders.
+    - In **serial** mode, DI-engine generates log and checkpoint folders.
+    - In **parallel** mode, DI-engine generates log, checkpoint, data and policy folders.
 
 We will introduce these two modes one by one.
 
@@ -56,7 +56,7 @@ In serial mode, generated file tree is as follows:
     In collector folder, there is a file named ``collector_logger.txt`` including some information about the interaction with the environment.
 
     - Set default n_sample mode. The collector's basic information: n_sample and env_num. n_sample means the number of data samples collected. For env_num, it means how many environments the collector will interact with.
-    This information is only appears in the first line.
+    
 
     - Special information when the collector interact with the environment,such as
 
@@ -174,7 +174,7 @@ In serial mode, generated file tree is as follows:
 
     Save the related information of buffer, collector, evaluator, learner, to a file named ``events.out.tfevents``, and it can be used by **tensorboard**.
     
-    nerveX saves all tensorboard files in serial folder as **one tensorboard file**, rather than respective folders. Because when running a lot of experiments, 4*n respective tensorboard files is not easy to discriminate. So in serial mode, all tensorboard files are in the serial folder. (However, in parallel mode, tensorboard files are in respective folder)
+    DI-engine saves all tensorboard files in serial folder as **one tensorboard file**, rather than respective folders. Because when running a lot of experiments, 4*n respective tensorboard files is not easy to discriminate. So in serial mode, all tensorboard files are in the serial folder. (However, in parallel mode, tensorboard files are in respective folder)
 
 - ckpt_baseLearner
 
@@ -231,7 +231,7 @@ In parallel mode, the log folder has five subfolders, including buffer, collecto
 
     The data in ``agent_buffer_logger.txt`` is the same as that in serial mode.
 
-    In agent_buffer_tb_logger folder, there is a ``events.out.tfevents``tensorboard file.
+    In agent_buffer_tb_logger folder, there is a ``events.out.tfevents`` tensorboard file.
 
 - log/collector
 

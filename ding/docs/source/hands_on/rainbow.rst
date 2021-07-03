@@ -17,7 +17,7 @@ Quick Facts
 
 5. Rainbow can be equipped with RNN.
 
-6. The nerveX implementation of Rainbow supports **multi-discrete** action space.
+6. The DI-engine implementation of Rainbow supports **multi-discrete** action space.
 
 Double Q-learning
 ------------------
@@ -88,11 +88,11 @@ Implementation
 ---------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.rainbow.RainbowDQNPolicy
+.. autoclass:: ding.policy.rainbow.RainbowDQNPolicy
    :noindex:
 
 The network interface of Rainbow used is defined as follows:
 
     * TODO
 
-The Benchmark result of Rainbow implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

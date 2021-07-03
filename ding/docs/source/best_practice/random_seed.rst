@@ -9,14 +9,14 @@ need to use the same random seed.
 
 Firstly, in the each entry function, we have a global
 random ``seed`` parameter. For example,
-in ``nervex/entry/serial_entry.py``,
+in ``ding/entry/serial_entry.py``,
 
 .. code:: python
 
     def serial_pipeline(..., seed: int = 0, ... ):
         ...
 
-In ``nervex/utils/default_helper.py``, we define
+In ``ding/utils/default_helper.py``, we define
 a ``set_pkg_seed`` function called in
 the entry function to set the seed of all used package.
 
@@ -31,7 +31,7 @@ the entry function to set the seed of all used package.
             torch.cuda.manual_seed(seed)
 
 For collector or evaluator envs, If only one seed is given,
-nervex will generate an increasing list of random seeds as the seeds for that set of envs.
+DI-engine will generate an increasing list of random seeds as the seeds for that set of envs.
 
 .. code:: python
 
@@ -51,8 +51,8 @@ nervex will generate an increasing list of random seeds as the seeds for that se
         self._env_seed = seed
         self._env_dynamic_seed = dynamic_seed
 
-To make env more diversity, nerveX also supports ``dynamic_seed`` for each concrete env running several episodes.
-As is shown in ``nervex/envs/env/nervex_env_wrapper.py``, first, nerveX sets env seed when it resets, and if ``dynamic_seed`` is True, nerveX would add a random integer number to the original seed to make each
+To make env more diversity, DI-engine also supports ``dynamic_seed`` for each concrete env running several episodes.
+As is shown in ``ding/envs/env/DI-engine_env_wrapper.py``, first, DI-engine sets env seed when it resets, and if ``dynamic_seed`` is True, DI-engine would add a random integer number to the original seed to make each
 episode different. And the reproducibility can be ensured by setting the seed of this random generator(usually numpy.random).
 
 By default, we enable dynamic_seed when collecting data while disable it in evaluation, in order to collect more diverse training data, which could improve final performance but slow down converge speed a bit and 

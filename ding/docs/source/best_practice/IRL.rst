@@ -7,7 +7,7 @@ each round:
    2. Then a reward model is updated with the collected data in this round and the pre-collected expert data. 
    3. Finally the RL policy is trained with the current reward model.
 
-In nerveX, IRL is implemented with fair concise modifications on the
+In DI-engine, IRL is implemented with fair concise modifications on the
 propcess of RL. Specifically:
 
    1. We push the collected data into the training set of the reward model at each return of collected data; 
@@ -27,7 +27,7 @@ First, create the reward model of GAIL.
 
 .. code:: 
 
-   from nervex.irl_utils import GailRewardModel
+   from ding.irl_utils import GailRewardModel
    irl_config = {
          'input_dims': 5,
          'hidden_dims': 64,

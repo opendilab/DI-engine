@@ -6,27 +6,27 @@ player
 
 Player
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.player.Player
+.. autoclass:: ding.league.player.Player
     :members: __init__
 
 HistoricalPlayer
 ~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.player.HistoricalPlayer
+.. autoclass:: ding.league.player.HistoricalPlayer
     :members: __init__
 
 ActivePlayer
 ~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.player.ActivePlayer
+.. autoclass:: ding.league.player.ActivePlayer
     :members: __init__, ncrement_eval_difficulty
 
 NaiveSpPlayer
 ~~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.player.NaiveSpPlayer
+.. autoclass:: ding.league.player.NaiveSpPlayer
     :members: is_trained_enough, snapshot, mutate, get_job, increment_eval_difficulty
 
 create_player
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.league.player.create_player
+.. automodule:: ding.league.player.create_player
 
 
 starcraft_player
@@ -34,15 +34,15 @@ starcraft_player
 
 MainPlayer
 ~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.starcraft_player.MainPlayer
+.. autoclass:: ding.league.starcraft_player.MainPlayer
     :members: is_trained_enough, snapshot, mutate, get_job
 
 MainExploiter
 ~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.starcraft_player.MainExploiter
+.. autoclass:: ding.league.starcraft_player.MainExploiter
     :members: is_trained_enough, snapshot, mutate, get_job
 
 LeagueExploiter
 ~~~~~~~~~~~~~~~
-.. autoclass:: nervex.league.starcraft_player.LeagueExploiter
+.. autoclass:: ding.league.starcraft_player.LeagueExploiter
     :members: is_trained_enough, snapshot, mutate, get_job

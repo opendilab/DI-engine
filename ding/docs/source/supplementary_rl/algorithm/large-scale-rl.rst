@@ -328,7 +328,7 @@ Learner接收数据，通过消耗数据来获得更好的策略，对agent持�
 Dataset and Adders
 """""""""""""""""""""""
 Dataset在actor和learner component之间。 Dataset可以有多种不同设置，包括on-policy和off-policy、experience replay是否带priority、数据进出的先后顺序等等。 
-比如我们在DQN中使用的 `buffer <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/data/structure/buffer.py>`_ 就是起到了dataset的作用。
+比如我们在DQN中使用的 `buffer <http://gitlab.bj.sensetime.com/open-XLab/cell/ding/blob/master/ding/data/structure/buffer.py>`_ 就是起到了dataset的作用。
 
 除了dataset接口之外，ACME框架还提供了在actor与dataset之间的 `adder <https://github.com/deepmind/acme/tree/master/acme/adders>`_ 接口：
 
@@ -336,7 +336,7 @@ Dataset在actor和learner component之间。 Dataset可以有多种不同设置�
    :scale: 50 %
    :align: center
 
-通过实现adder，我们可以在将数据从actor取出加入dataset之前进行一些预处理和聚合。我们所使用的 `collate <http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/nervex/data/collate_fn.py>`_ 从某种意义上就是在干adder的活。 ACME框架中Adder将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
+通过实现adder，我们可以在将数据从actor取出加入dataset之前进行一些预处理和聚合。我们所使用的 `collate <http://gitlab.bj.sensetime.com/open-XLab/cell/ding/blob/master/ding/data/collate_fn.py>`_ 从某种意义上就是在干adder的活。 ACME框架中Adder将数据聚合送入replay buffer中，并且对数据进行一定程度的reduction/transformation。
 
 Adder根据agent需要什么样的数据进行相应操作，可能的数据要求包括：
 

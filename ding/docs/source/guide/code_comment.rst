@@ -133,7 +133,7 @@ You can know about the specific format from the following code example.
             """
             Overview:
                 Add a new Learner class with its name to dict learner_mapping, any subclass derived from BaseLearner must
-                use this function to register in nervex system before instantiate.
+                use this function to register in DI-engine system before instantiate.
             Arguments:
                 - name (:obj:`str`): Name of the new Learner.
                 - learner (:obj:`type`): The new Learner class, should be subclass of ``BaseLearner``.

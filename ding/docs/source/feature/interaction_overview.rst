@@ -8,7 +8,7 @@ Interaction Overview
 概述
 ----
 
-Interaction为一个独立于任何具体业务的交互式服务框架，用于支持简单非阻塞单线程任务。在nerveX中为分布式环境下的多机多卡训练提供支持。
+Interaction为一个独立于任何具体业务的交互式服务框架，用于支持简单非阻塞单线程任务。在DI-engine中为分布式环境下的多机多卡训练提供支持。
 
 Interaction分为两个端，是Master端和Slave端，分别为任务下达端和任务执行端。
 

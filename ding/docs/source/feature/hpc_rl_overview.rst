@@ -5,7 +5,7 @@ HPC_RL Overview
 
 概述
 *****
-HPC_RL 组件是一个加速算子组件，全称是 High Performance Computation。针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对nervex rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
+HPC_RL 组件是一个加速算子组件，全称是 High Performance Computation。针对强化学习算法中较通用的算法模块，例如 ``GAE`` ，``n-step TD`` 以及 ``LSTM`` 等，主要是针对DI-engine rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。
 
 如何使用
 *********
@@ -17,7 +17,7 @@ HPC_RL 组件是一个加速算子组件，全称是 High Performance Computatio
           - CUDA：CUDA9.2
           - Python：py3.6
 
-        由于 HPC_RL 目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下 HPC_RL 组件打包好的 whl 文件，可通过 ``pip install <whl_name>`` 安装。在 PROJECT_PATH/nervex/hpc_rl 目录下有我们已经提供好的 whl 文件可供安装。
+        由于 HPC_RL 目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下 HPC_RL 组件打包好的 whl 文件，可通过 ``pip install <whl_name>`` 安装。在 PROJECT_PATH/ding/hpc_rl 目录下有我们已经提供好的 whl 文件可供安装。
 
         安装成功后，在python终端中如果可以成功 ``import hpc_rl`` ，则说明安装成功
 
@@ -31,7 +31,7 @@ HPC_RL 组件是一个加速算子组件，全称是 High Performance Computatio
                 rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
     2. 验证
 
-       当安装成功后，使用者可以通过nervex/hpc_rl/tests下的单元测试来验证精度和效率，这些测试会运行原始版本基于pytorch api的实现+ HPC_RL优化后的实现，例如运行该目录下的test_gae.py，在 ``Tesla V100 32G`` 上的运行结果如下：
+       当安装成功后，使用者可以通过DI-engine/hpc_rl/tests下的单元测试来验证精度和效率，这些测试会运行原始版本基于pytorch api的实现+ HPC_RL优化后的实现，例如运行该目录下的test_gae.py，在 ``Tesla V100 32G`` 上的运行结果如下：
 
        .. code:: bash
 
@@ -53,25 +53,25 @@ HPC_RL 组件是一个加速算子组件，全称是 High Performance Computatio
 
     3. 使用
 
-        nervex中默认关闭HPC_RL的使用（因为目前仅支持部分运行环境），若成功安装后，可在入口程序最开始处加上一行代码 ``nervex.enable_hpc_rl = True`` ，即会自动启用HPC_RL相关算子，demo如下：
+        DI-engine中默认关闭HPC_RL的使用（因为目前仅支持部分运行环境），若成功安装后，可在入口程序最开始处加上一行代码 ``ding.enable_hpc_rl = True`` ，即会自动启用HPC_RL相关算子，demo如下：
 
         .. code:: python
 
-            import nervex
-            from nervex.entry import serial_pipeline
-            from nervex.utils import read_config
+            import DI-engine
+            from ding.entry import serial_pipeline
+            from ding.utils import read_config
 
 
             if __name__ == "__main__":
                 config_path = 'cartpole_a2c_default_config.py'
-                nervex.enable_hpc_rl = True
+                ding.enable_hpc_rl = True
                 cfg = read_config(config_path)
                 cfg.policy.use_cuda= True
                 serial_pipeline(cfg, 0)
 
     4. demo
 
-        在qbert上使用dqn算法时，在 ``main.py`` 中设置 ``nervex.enable_hpc_rl = True``，可以看到训练时间从9.7ms降低到8.8ms。运行平台是16GV100，CUDA9.2。
+        在qbert上使用dqn算法时，在 ``main.py`` 中设置 ``ding.enable_hpc_rl = True``，可以看到训练时间从9.7ms降低到8.8ms。运行平台是16GV100，CUDA9.2。
 
         Pytorch:
 
@@ -163,7 +163,7 @@ HPC_RL 组件是一个加速算子组件，全称是 High Performance Computatio
 其他
 *********
 
-1. 为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，nervex的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。
+1. 为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，DI-engine的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。
 2. 对于部分算子，例如当映射关系有重叠时，GPU上并行执行，映射结果是不确定的，会存在一定的数值精度波动，但基本不影响常规训练。
 3. 对于部分算子，HPC_RL只支持其中某些常见的参数组合，具体如下：
 

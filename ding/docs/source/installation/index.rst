@@ -26,11 +26,11 @@ Prerequisites
 Stable Release Version
 **********************************************************
 
-You can simply install nerveX from PyPI with the following command:
+You can simply install DI-engine from PyPI with the following command:
 
 .. code-block:: bash
 
-     pip install nervex
+     pip install DI-engine
 
 .. tip::
 
@@ -41,33 +41,33 @@ And if you prefer to use Anaconda or Miniconda, the next command is suggested:
 
 .. code-block:: bash
 
-    conda -c conda-forge install nervex
+    conda -c conda-forge install DI-engine
 
-Also, you can install nerveX from the source codes in github(master branch recommended)
+Also, you can install DI-engine from the source codes in github(master branch recommended)
 
 .. code-block:: bash
 
-    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
-    cd nerveX
+    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/ding.git
+    cd DI-engine
     pip install . --user
 
-If you want to install the extra package required by some functions in nerveX(such as concrete env, unittest and doc), you can execute
+If you want to install the extra package required by some functions in DI-engine(such as concrete env, unittest and doc), you can execute
 
 .. code-block:: bash
 
-     pip install nervex[common_env]  # install atari-env and box-2d env
-     pip install nervex[test]  # install unittest(pytest) related package
+     pip install DI-engine[common_env]  # install atari-env and box-2d env
+     pip install DI-engine[test]  # install unittest(pytest) related package
 
 If you complete installation with the similar output in your terminal, the installation is over gracefully and you can check it with the next section.
 
 .. code-block:: bash
 
-    Installing collected packages: nerveX
-      Running setup.py develop for nerveX
-    Successfully installed nerveX
+    Installing collected packages: DI-engine
+      Running setup.py develop for DI-engine
+    Successfully installed DI-engine
 
 .. tip::
-    Some shells such as Zsh require quotation marks around package names, i.e. pip install 'nervex[test]' 
+    Some shells such as Zsh require quotation marks around package names, i.e. pip install 'DI-engine[test]' 
 
 
 .. note::
@@ -77,13 +77,13 @@ If you complete installation with the similar output in your terminal, the insta
 
 Development Version
 ********************
-To contribute to nerveX, with support for running tests and building the documentation, you need to find proper release tag or master branch.
+To contribute to DI-engine, with support for running tests and building the documentation, you need to find proper release tag or master branch.
 
 .. code-block:: bash
 
     # source r0.3.2  # maybe you need activate virtual environment first
 
-    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git && cd nerveX
+    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/ding.git && cd DI-engine
     pip install -e .[doc, test, common_env] --user
 
 Check install
@@ -93,15 +93,15 @@ After installation, you can open your python console and run the following codes
 
 .. code-block:: python
 
-    import nervex
-    print(nervex.__version__)
+    import DI-engine
+    print(ding.__version__)
 
-If the console print the correct version tag, you have successfully installed nerveX
+If the console print the correct version tag, you have successfully installed DI-engine
 
-Besides, nerveX also prepare the CLI tool for users, you can type the following command in your terminal
+Besides, DI-engine also prepare the CLI tool for users, you can type the following command in your terminal
 
 .. code-block:: bash
 
-   nervex -v
+   DI-engine -v
 
-If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``nervex -h`` for further usage
+If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``DI-engine -h`` for further usage

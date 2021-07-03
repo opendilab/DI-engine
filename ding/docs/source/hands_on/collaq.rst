@@ -45,13 +45,13 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-    .. autoclass:: nervex.policy.collaq.CollaQPolicy
+    .. autoclass:: ding.policy.collaq.CollaQPolicy
 
 The network interface CollaQ used is defined as follows:
 
     * TODO
 
-The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in nerveX is shown.
+The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
 References
 ----------------

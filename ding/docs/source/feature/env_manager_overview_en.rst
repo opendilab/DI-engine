@@ -10,14 +10,14 @@ Overview:
     obtain information in the environment at the same time, and provide an interface similar to env, which can greatly simplify the code and speed up the operation.
     The currently supported types are single-process serial and multi-process parallel modes. BaseEnvManager maintains multiple environment instances through cyclic serial (pseudo-parallel),
     and Async(Sync)SubprocessEnvManager uses subprocess vectorization, that is, call multiprocessing, by running env in a child process, manages and runs the environment by means of inter-process communication.
-    NerveX's env manager needs to use the env definition in nerveX format (or Gym env decorated by EnvWrapper),
+    DI-engine's env manager needs to use the env definition in DI-engine format (or Gym env decorated by EnvWrapper),
     It needs to provide the instantiation interface of each env when it is initialized, and set the specific operation details through config.
     
-    Generally speaking, :class:`BaseEnvManager <nervex.envs.BaseEnvManager>` is used to run in some simple environments or to debug, and it is recommended to run
-    :class:`SyncSubProcessEnvManager <nervex.envs.SyncSubProcessEnvManager>` and :class:`AsyncSubProcessEnvManager <nervex.envs.AsyncSubProcessEnvManager>`
+    Generally speaking, :class:`BaseEnvManager <ding.envs.BaseEnvManager>` is used to run in some simple environments or to debug, and it is recommended to run
+    :class:`SyncSubProcessEnvManager <ding.envs.SyncSubProcessEnvManager>` and :class:`AsyncSubProcessEnvManager <ding.envs.AsyncSubProcessEnvManager>`
     in complex environments or a large number of environments for acceleration.
 
-    If you don’t know enough about the env module yet, it is recommended to consult NerveX's `Env Overview <./env_overview.html>`_
+    If you don’t know enough about the env module yet, it is recommended to consult DI-engine's `Env Overview <./env_overview.html>`_
 
 Usage:
     - init
@@ -36,14 +36,14 @@ Usage:
             )
 
             # lambda function way
-            env_fn = lambda : NerveXEnv(*args, **kwargs)
+            env_fn = lambda : DI-engineEnv(*args, **kwargs)
             env_manager = BaseEnvManager(env_fn=[env_fn for _ in range(4)], cfg=config.env.manager)
 
             # partial function way
             from functools import partial
             
             def env_fn(*args, **kwargs):
-                return NerveXEnv(*args, **kwargs)
+                return DI-engineEnv(*args, **kwargs)
             env_manager = BaseEnvManager(env_fn=[partial(env_fn, *args, **kwargs) for _ in range(4)], cfg=config.env.manager)
 
     - launch/reset
@@ -112,12 +112,12 @@ Examples:
 
 Advanced features:
     - auto_reset
-        The env manager of nerveX will automatically reset by default, that is, when an environment runs to done, it will automatically reset to continue running.
+        The env manager of DI-engine will automatically reset by default, that is, when an environment runs to done, it will automatically reset to continue running.
         The parameters of reset are the parameters set for the sub-environment during the last manual reset, unless the number of episodes run is accumulated Reach the episode_num specified in config.
         To turn off this feature, you can specify ``auto_reset=False`` in config
     
     - env state
-        In order to facilitate the management of the status of each sub-environment and facilitate debugging, the env manager of nerveX provides an enumerated type of environment status to grasp the running status of all sub-environments in real time.
+        In order to facilitate the management of the status of each sub-environment and facilitate debugging, the env manager of DI-engine provides an enumerated type of environment status to grasp the running status of all sub-environments in real time.
         The specific meaning is as follows:
 
         - VOID: The env manager has been initialized, but the sub-environment has not yet been instantiated
@@ -132,7 +132,7 @@ Advanced features:
             .. image:: env_state.png
 
     - max_retry 和 timeout
-        In order to prevent some sub-environments from reporting errors temporarily due to connection problems, or the program will not exit normally when the sub-processes are stuck, the env manager of nerveX has added retry protection and timeout detection mechanisms.
+        In order to prevent some sub-environments from reporting errors temporarily due to connection problems, or the program will not exit normally when the sub-processes are stuck, the env manager of DI-engine has added retry protection and timeout detection mechanisms.
         The user can specify the maximum number of retry and the maximum waiting time for communication between reset, step and sub-processes in config. When the waiting time is exceeded, an exception will be thrown in order to terminate the operation early.
         The settings and default values of these parameters in config are as follows:
         
@@ -158,7 +158,7 @@ Advanced features:
         Pending
 
 
-BaseEnvManager (nervex/envs/env_manager/base_env_manager.py)
+BaseEnvManager (ding/envs/env_manager/base_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Overview:
@@ -178,7 +178,7 @@ Properties:
     3. ready_obs: Return all the env_id that are not running with the latest observation
     4. done: Whether all the environments have been completed
 
-SubprocessEnvManager (nervex/envs/env_manager/subprocess_env_manager.py)
+SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Overview:

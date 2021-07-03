@@ -52,7 +52,7 @@ Procedures
          loss = F.mse_loss(output, target)
          # use IS (recommended)
          loss = (F.mse_loss(output, target, reduction='none') * data['IS']).mean()
-         # nervex td error(data['weight'] = data['IS'], assigned in policy._forward_learn method)
+         # DI-engine td error(data['weight'] = data['IS'], assigned in policy._forward_learn method)
 
 3. Update priority in buffer
 
@@ -74,7 +74,7 @@ Others
 
 1. Calculate initial priority in collectors
 
-    Usually, priority is initialized when this data is inserted into replay buffer with default value or the maximum history priority value, nerveX also supports priority calculation and initialization in collector:
+    Usually, priority is initialized when this data is inserted into replay buffer with default value or the maximum history priority value, DI-engine also supports priority calculation and initialization in collector:
 
       - Method ``policy._forward_collect`` will calculate priority as well，and return the key-value pair.
       - Method ``policy._process_transition`` will put ``model_output['priority']`` into returned data, as its initial priority.
@@ -94,5 +94,5 @@ Others
 
 2. Different exploration strategies
    
-   In Ape-X, different collectors can use different exploration strategies(e.g.: different epsilon values for different collectors). Now nerveX also supports this mechanism. In serial pipeline, you need to implement your own main entry function to control when to change exploration strategies,
+   In Ape-X, different collectors can use different exploration strategies(e.g.: different epsilon values for different collectors). Now DI-engine also supports this mechanism. In serial pipeline, you need to implement your own main entry function to control when to change exploration strategies,
    and override ``policy._forward_colleect`` method to receive control arguments and execute the corresponding strategy. In parallel entry, you should set different parameters in commander for different collectors.

@@ -6,8 +6,8 @@ UPGO
 
 upgo_returns
 ~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.rl_utils.upgo.upgo_returns
+.. automodule:: ding.rl_utils.upgo.upgo_returns
 
 upgo_loss
 ~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.rl_utils.upgo.upgo_loss
+.. automodule:: ding.rl_utils.upgo.upgo_loss

@@ -8,4 +8,4 @@ gae
 gae
 ~~~~~~~~~~~~~~~~~~
 
-.. automodule:: nervex.rl_utils.gae.gae
+.. automodule:: ding.rl_utils.gae.gae

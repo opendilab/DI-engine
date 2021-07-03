@@ -47,7 +47,7 @@ policy registration, you can refer to
 
 **Use Demonstrations to IL**
 
-NerveX provides serial entry for IL implementation. By specify the
+DI-engine provides serial entry for IL implementation. By specify the
 prepared expert data ``expert_data_path``, you can deploy IL by the
 following codes:
 
@@ -57,8 +57,8 @@ following codes:
 
 **Use Expert Model to IL**
 
-NerveX provides data collector functions in
-``nervex/entry/application_entry.py``. You can give a policy configure
+DI-engine provides data collector functions in
+``ding/entry/application_entry.py``. You can give a policy configure
 to train an RL model from scratch(or load an existing model), then use
 the model to generate data for IL. This pipline can be describe as the
 following codes:
@@ -80,19 +80,19 @@ following codes:
 
 **Online IL through Seiral Pipline**
 
-NerveX's `serial_entry_il` provides a sub-implementation of serial pipline,
+DI-engine's `serial_entry_il` provides a sub-implementation of serial pipline,
 in which there is no collectors (or use collectors only to collect data at the beginning
 of training). However, many IL algorithms (Dagger, SQIL, etc.) need to collect demonstration
-as well as training IL model. In this case, nerveX can use `serial_entry` to perform this
+as well as training IL model. In this case, DI-engine can use `serial_entry` to perform this
 pipline. Users can define a new IL policy, the collect model of this policy is the expert
 policy, and the learn model can be any supervised learning model or other IL learn model.
-More details about the policy defination of nerveX can be found in 
+More details about the policy defination of DI-engine can be found in 
 `policy Overview <../feature/policy_overview.html>`__
-NerveX also provide a demo of this policy in `nervex/policy/il.py`. It provides a supervised 
+DI-engine also provide a demo of this policy in `ding/policy/il.py`. It provides a supervised 
 learning pipline to imitate from an expert model online on Google Research football environments.
 
 
-NerveX provide a full demo of using PPO as both the expert policy to
+DI-engine provide a full demo of using PPO as both the expert policy to
 generate data and the IL policy to implement behavioral cloning. You can
-refer to ``nervex/entry/tests/test_serial_entry_il.py`` for more
+refer to ``ding/entry/tests/test_serial_entry_il.py`` for more
 details.

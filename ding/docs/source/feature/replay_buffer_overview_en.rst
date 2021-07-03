@@ -3,7 +3,7 @@ Replay Buffer Overview
 
 IBuffer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/replay_buffer/base_buffer.py)
+(ding/worker/replay_buffer/base_buffer.py)
 
 Overview:
     ``IBuffer`` is an abstract interface. All types of replay buffers should implement all abstract methods of ``IBuffer``. 
@@ -23,7 +23,7 @@ Abstract class interface method: (All but ``default_config`` should be overroidd
 
 NaiveReplayBuffer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/replay_buffer/naive_buffer.py)
+(ding/worker/replay_buffer/naive_buffer.py)
 
 Overview:
     ``NaiveReplayBuffer`` is a naive implementation. It is a First-In-First-Out cicular queue with random sampling. And it does not have any monitor or logger either.
@@ -45,20 +45,20 @@ Class interface method: (All should be overroidden by subclasses)
 
 Full data & Meta data
 ------------------------
-In nerveX, we define **full data** and **meta data**.
+In DI-engine, we define **full data** and **meta data**.
 
 **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), full data can be too big to store in memory. Therefore, we divide full data into **file data** and **meta data**.
 
 **File data** is usually too big to store in memory, therefore is stored in file system. **meta data** includes ``'file_path'`` and some keys which can be used in sampling. **meta data** is usually small, so it can easily be stored in replay buffer(in memory). 
 
-Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory, but also remove corresponding file data in the file system as well. nerveX uses ``UsedDataRemover`` (nervex/worker/replay_buffer/utils.py) to track and remove used file data.
+Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory, but also remove corresponding file data in the file system as well. DI-engine uses ``UsedDataRemover`` (ding/worker/replay_buffer/utils.py) to track and remove used file data.
 
 This mechanism is adopted in **all buffers**.
 
 
 AdvancedReplayBuffer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/replay_buffer/advanced_buffer.py)
+(ding/worker/replay_buffer/advanced_buffer.py)
 
 Overview:
     ``AdvancedReplayBuffer`` is a buffer with more advanced features, e.g. Prioritized Sampling, Data Quality Monitor, Thruput Control, Logger. It is generally a First-In-First-Out cicular queue, but due to advanced features, its remove, sample, update are more complicated.
@@ -94,7 +94,7 @@ Use segment tree to
     - Sample according to priority
     - Support priority update 
 
-nerveX also uses **numba** to optimize profile.
+DI-engine also uses **numba** to optimize profile.
 
 Feature2: Data Quality Monitor
 --------------------------------
@@ -109,7 +109,7 @@ Feature3: Throughput Control
 --------------------------------
 In serial mode, we can modify ``n_sample`` or ``n_episode`` to control how many samples or episodes to collect in collector's turn; And modify ``batch_size`` and ``update_per_collect`` to control how many samples are used in learner's turn.
 
-However, in parallel mode, it is more complicated to balance the data speed in collector end and learner end. Therefore, we use ``ThruputController`` (nervex/worker/replay_buffer/utils.py) to limit the "push" / "sample" rate in a [min, max] range.
+However, in parallel mode, it is more complicated to balance the data speed in collector end and learner end. Therefore, we use ``ThruputController`` (ding/worker/replay_buffer/utils.py) to limit the "push" / "sample" rate in a [min, max] range.
 
 Also, user can set parameter ``sample_min_limit_ratio`` to control the min ratio of "valid count" / "batch_size". If there are not enough valid datas, buffer can refuse to sample. 
 
@@ -121,9 +121,9 @@ Create tensorboard logger and text logger, to record data quality attributes(Fea
 
 EpisodeReplayBuffer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/replay_buffer/episode_buffer.py)
+(ding/worker/replay_buffer/episode_buffer.py)
 
-In some scenarios, a whole episode is of bigger use than separated samples, such as chess, card games or some specific algorithms like `Hindsight Experience Replay <https://arxiv.org/abs/1707.01495>`_. Therefore, we need a buffer, where each element is no longer a training sample, but an episode. Currently, nerveX ``EpisodeReplayBuffer`` is derived from ``NaiveReplayBuffer``, because they two share so many common features. 
+In some scenarios, a whole episode is of bigger use than separated samples, such as chess, card games or some specific algorithms like `Hindsight Experience Replay <https://arxiv.org/abs/1707.01495>`_. Therefore, we need a buffer, where each element is no longer a training sample, but an episode. Currently, DI-engine ``EpisodeReplayBuffer`` is derived from ``NaiveReplayBuffer``, because they two share so many common features. 
 However, they two have two main differences.
 
 The **first** one is: Each element is a whole episode, rather than a sample.

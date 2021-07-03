@@ -5,14 +5,14 @@ Function of Model Wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Usually the output of a reinforcement learning model is value, Q or
-action logits. Nervex also requires customized model to output part 
+action logits. DI-engine also requires customized model to output part 
 or all of them. To improve the usability of model and support more 
-functions, nerveX provides model wrapper to sample action by specific 
+functions, DI-engine provides model wrapper to sample action by specific 
 strategy, adapt to RNN and other functions.
 
-NerveX provides the following model wrapper:
+DI-engine provides the following model wrapper:
 
-- BaseModelWrapper. Add reset method for model. In nerveX's policy implementations, 
+- BaseModelWrapper. Add reset method for model. In DI-engine's policy implementations, 
   many policy will call model's reset method in case of some method may use it 
   (e.g. HiddenStateWrapper). Wrap each model inherited from `nn.Module` using `model_wrap` 
   function will be wrapped by BaseModelWrapper automatically.
@@ -36,10 +36,10 @@ Example
 Users should follow the following steps to customize a model wrapper:
 
 1. Define your model wrapper class like other wrappers in
-   ``nervex/model/wrappers/model_wrappers.py``;
+   ``ding/model/wrappers/model_wrappers.py``;
 
-2. Add your wrapper's name into ``nervex/model/wrappers/model_wrappers.py: wrapper_name_map`` or use wrapper
-   register to make sure your wrapper can be retrieved by nervex. In the former
+2. Add your wrapper's name into ``ding/model/wrappers/model_wrappers.py: wrapper_name_map`` or use wrapper
+   register to make sure your wrapper can be retrieved by ding. In the former
    way you can directly use your model wrapper by name without extra registration
    or you may need to regist it. Usually the format is like this:
 
@@ -60,7 +60,7 @@ Users should follow the following steps to customize a model wrapper:
 .. note::
    All model wrappers **must** inherit from ``IModelWrapper``.
 
-We show the implementation of HiddenStateWrapper in nerveX to explain
+We show the implementation of HiddenStateWrapper in DI-engine to explain
 how to customize a model wrapper.
 
 If we want to use RNN in our model, we'll have to maintian hidden states
@@ -134,5 +134,5 @@ The dataflow of this process is as follows:
             :scale: 60%
 
 Other examples of model wrapper can be found in
-``nervex/model/wrappers/model_wrappers.py``, you can find more details
+``ding/model/wrappers/model_wrappers.py``, you can find more details
 there.

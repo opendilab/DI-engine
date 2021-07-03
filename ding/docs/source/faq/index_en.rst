@@ -9,9 +9,9 @@ Q1: Import packages warning
 
 :A1:
 
-Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running nervex, generally users can ignore it, and nervex will automatically search for corresponding alternative libraries or code implementations during import.
+Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.
 
-Q2: Cannot use nervex command line tool (CLI) after installation
+Q2: Cannot use DI-engine command line tool (CLI) after installation
 ****************************************************************************************
 
 :A2:

@@ -4,14 +4,14 @@ interaction.exception.master
 MasterErrorCode
 ~~~~~~~~~~~~~~~~~~~~
 
-.. autoenum:: nervex.interaction.exception.master.MasterErrorCode
+.. autoenum:: ding.interaction.exception.master.MasterErrorCode
     :members:
 
 
 MasterResponseException
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterResponseException
+.. autoclass:: ding.interaction.exception.master.MasterResponseException
     :members: __init__
 
 
@@ -19,7 +19,7 @@ MasterResponseException
 MasterSuccess
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSuccess
+.. autoclass:: ding.interaction.exception.master.MasterSuccess
     :members: __init__
 
 
@@ -27,7 +27,7 @@ MasterSuccess
 MasterSystemShuttingDown
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSystemShuttingDown
+.. autoclass:: ding.interaction.exception.master.MasterSystemShuttingDown
     :members: __init__
 
 
@@ -35,7 +35,7 @@ MasterSystemShuttingDown
 MasterChannelNotGiven
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterChannelNotGiven
+.. autoclass:: ding.interaction.exception.master.MasterChannelNotGiven
     :members: __init__
 
 
@@ -43,7 +43,7 @@ MasterChannelNotGiven
 MasterChannelInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterChannelInvalid
+.. autoclass:: ding.interaction.exception.master.MasterChannelInvalid
     :members: __init__
 
 
@@ -51,7 +51,7 @@ MasterChannelInvalid
 MasterMasterTokenNotGiven
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterMasterTokenNotGiven
+.. autoclass:: ding.interaction.exception.master.MasterMasterTokenNotGiven
     :members: __init__
 
 
@@ -59,7 +59,7 @@ MasterMasterTokenNotGiven
 MasterMasterTokenInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterMasterTokenInvalid
+.. autoclass:: ding.interaction.exception.master.MasterMasterTokenInvalid
     :members: __init__
 
 
@@ -67,7 +67,7 @@ MasterMasterTokenInvalid
 MasterSelfTokenNotGiven
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSelfTokenNotGiven
+.. autoclass:: ding.interaction.exception.master.MasterSelfTokenNotGiven
     :members: __init__
 
 
@@ -75,7 +75,7 @@ MasterSelfTokenNotGiven
 MasterSelfTokenInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSelfTokenInvalid
+.. autoclass:: ding.interaction.exception.master.MasterSelfTokenInvalid
     :members: __init__
 
 
@@ -83,7 +83,7 @@ MasterSelfTokenInvalid
 MasterSlaveTokenNotGiven
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSlaveTokenNotGiven
+.. autoclass:: ding.interaction.exception.master.MasterSlaveTokenNotGiven
     :members: __init__
 
 
@@ -91,7 +91,7 @@ MasterSlaveTokenNotGiven
 MasterSlaveTokenInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterSlaveTokenInvalid
+.. autoclass:: ding.interaction.exception.master.MasterSlaveTokenInvalid
     :members: __init__
 
 
@@ -99,16 +99,16 @@ MasterSlaveTokenInvalid
 MasterTaskDataInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.master.MasterTaskDataInvalid
+.. autoclass:: ding.interaction.exception.master.MasterTaskDataInvalid
     :members: __init__
 
 
 get_master_exception_class_by_error_code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: nervex.interaction.exception.master.get_master_exception_class_by_error_code
+.. autofunction:: ding.interaction.exception.master.get_master_exception_class_by_error_code
 
 get_master_exception_by_error
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: nervex.interaction.exception.master.get_master_exception_by_error
+.. autofunction:: ding.interaction.exception.master.get_master_exception_by_error

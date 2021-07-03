@@ -9,7 +9,7 @@ Utils
     compression_helper
     default_helper
     design_helper
-    dist_helper
+    pytorch_ddp_dist_helper
     file_helper
     import_helper
     k8s_helper

@@ -8,12 +8,12 @@ Tutorial-Developer
 代码结构概述
 ===============
 
-nervex (框架核心)
+DI-engine
 -----------------
 
     .. code:: bash
 
-        nervex
+        DI-engine
         ├── config (配置文件及其工具)
         │   ├── buffer_manager.py (buffer manager配置文件)
         │   ├── config.py (Config类)
@@ -142,8 +142,8 @@ nervex (框架核心)
             ├── coordinator (协作器)
             └── learner (训练学习器)
 
-app_zoo (基于nerveX的DRL应用)
------------------------------
+app_zoo (基于DI-engine的DRL应用)
+---------------------------------
 
     .. code:: bash
 
@@ -163,7 +163,7 @@ app_zoo (基于nerveX的DRL应用)
 数据流图
 ============================
 
-nerveX每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Collector(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
+DI-engine每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Collector(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
 
 .. image:: dataflow.png
 

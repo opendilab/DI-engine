@@ -48,7 +48,7 @@ setup(
         'requests~=2.24.0',
         'six',
         'gym>=0.15.3',  # pypy
-        'torch>=1.3.1,<=1.7',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        'torch>=1.3.1,<=1.7.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
         'pyyaml',
         'easydict==1.9',
         'tensorboardX>=2.1',

@@ -27,9 +27,9 @@ Accordingly, we have n-step TD return:
 
     :math:`G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + ... +\gamma^{n-1} R_{t+n} + \gamma^n V_{t+n-1}(S_{t+n})`
 
-**2. How to enable nstep-TD in nerveX**
+**2. How to enable nstep-TD in DI-engine**
 
-NerveX has provided n-step implementation and enable it in a lot of algorithms, like DQN, A2C, etc.
+DI-engine has provided n-step implementation and enable it in a lot of algorithms, like DQN, A2C, etc.
 Here, we will introduce how to enable nstep-td and modify the code. Takes DQN as an example, if we
 wanna enable nstep=3, we should set the config as follows:
 
@@ -45,7 +45,7 @@ wanna enable nstep=3, we should set the config as follows:
         nstep=3,
         ...,)
 
-**3. How does it work in nerveX**
+**3. How does it work in DI-engine**
 
 Takes DQN as an example again. We set the propoerty according to the config in ``_init_collect`` and
 ``_init_learn`` function in the corresponding policy. Here we show the code of DQN as follows,
@@ -93,4 +93,4 @@ The calculation is implemented in ``q_nstep_td_error`` function
 
 Please notice that the key ``nstep`` might be in different positions for different algorithm.
 
-We also provide some other n-sted td methods, please refer to ``nervex\rl_utils\td.py``.
+We also provide some other n-sted td methods, please refer to ``DI-engine\rl_utils\td.py``.

@@ -9,10 +9,10 @@ Q1: 关于使用时出现的warning
 
 :A1:
 
-对于运行nervex时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，nervex会在import时自动进行寻找相应的替代库或代码实现。
+对于运行DI-engine时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，DI-engine会在import时自动进行寻找相应的替代库或代码实现。
 
 
-Q2: 安装之后无法使用nervex命令行工具(CLI)
+Q2: 安装之后无法使用DI-engine命令行工具(CLI)
 ********************************************
 
 :A2:

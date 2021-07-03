@@ -311,7 +311,7 @@ Learner
 并行模式中的训练流程解析：
     相对于简单直接的串行模式，并行模式由于涉及到异步运行的learner collector之间的通信问题，更加晦涩难懂。故在这一部分以我们实现的 **FlaskFileSystemLearner(worker/learner/comm/flask_fs_learner.py)** ——这一使用flask及文件系统进行通信的comm learner——为例，来介绍并行模式中从并行pipeline入口部署coordinator, comm learner开始，到二者建立通信连接，再到coordinator启动comm learner并为其一次或多次分配任务，到最终二者关闭通信连接的流程。
 
-        .. image:: parallel_learner_sequence.jpg
+        .. image:: images/parallel_learner_sequence.jpg
 
         上图即展示了coordinator和comm learner从被并行pipeline部署，到建立连接，到实际任务分配与执行，再到最后断开连接的过程。至于实际任务的分配与执行，请继续阅读。
 
@@ -319,11 +319,11 @@ Learner
 
     BaseCommLearner, FlaskFileSystemLearner, BaseLearner, LearnerSlave这几个类之间的关系可见类图所示(本类图并不完整，仅包含为理解后述工作流程所必须的部分)：
 
-        .. image:: comm_learner_class.jpg
+        .. image:: images/comm_learner_class.jpg
 
     然后我们开始介绍并行模式下的FlaskFileSystemLearner这一comm learner的工作流程，即实际任务的分配与执行过程，也即第一张顺序图中被略去的部分。可以参考以下顺序图帮助理解。
 
-        .. image:: comm_learner_sequence.jpg
+        .. image:: images/comm_learner_sequence.jpg
 
 
     1. comm learner的创建

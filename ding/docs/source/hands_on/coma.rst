@@ -60,13 +60,13 @@ Implementations
 
 The default config is defined as follows:
 
-    .. autoclass:: nervex.policy.coma.COMAPolicy
+    .. autoclass:: ding.policy.coma.COMAPolicy
 
 The network interface COMA used is defined as follows:
 
    * TODO
 
-The Benchmark result of COMA in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in nerveX is shown.
+The Benchmark result of COMA in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
 References
 ----------

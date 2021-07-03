@@ -24,22 +24,22 @@ observations :math:`s_{t-1}, s_{t-2}, ...` to infer :math:`a_t`. This
 requires RNN agent to hold previous observations and maintain RNN hidden
 states.
 
-NerveX supports for RNN , and provides easy to use API to allow users to
+DI-engine supports for RNN , and provides easy to use API to allow users to
 implement variants of RNN.
 
-Related Components in NerveX
-----------------------------
+Related Components in DI-engine
+--------------------------------
 
-1. ``nervex/model/wrappers/model_wrappers.py: HiddenStateWrapper`` :
+1. ``ding/model/wrappers/model_wrappers.py: HiddenStateWrapper`` :
    Used to maintain hidden states
 
-2. ``nervex/torch_utils/network/rnn.py``: Used to build RNN model
+2. ``ding/torch_utils/network/rnn.py``: Used to build RNN model
 
-3. ``nervex/rl_utils/adder.py: Adder:``: Used to arrange origin data into
-   time sequence data(by calling ``nervex/utils/default_helper.py: list_split()`` function)
+3. ``ding/rl_utils/adder.py: Adder:``: Used to arrange origin data into
+   time sequence data(by calling ``ding/utils/default_helper.py: list_split()`` function)
 
-RNN example in NerveX
-----------------------
+RNN example in DI-engine
+--------------------------
 
 ======= ===========
 policy  RNN-support
@@ -64,7 +64,7 @@ sac     ×
 sqn     × 
 ======= ===========
 
-Use RNN in NerveX can be described as the following precedures.
+Use RNN in DI-engine can be described as the following precedures.
 
 -  Build your RNN model
 
@@ -79,10 +79,10 @@ Use RNN in NerveX can be described as the following precedures.
 Build a Model with RNN
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You can use either nerveX's built-in recurrent model or your own RNN
+You can use either DI-engine's built-in recurrent model or your own RNN
 model.
 
-1. Use nerveX's built-in model. NerveX's discrete network provide RNN
+1. Use DI-engine's built-in model. DI-engine's discrete network provide RNN
    support(default to LSTM) for discrete action space environments. You
    can easily specify model type in config or set model in policy to use
    it.
@@ -94,20 +94,20 @@ model.
        ...
        model=dict(
          model_type='fcr_discrete_net', # or 'convr_discrete_net' if use image as input
-         import_names=['nervex.model.discrete_net.discrete_net']),
+         import_names=['ding.model.discrete_net.discrete_net']),
          ...
        ),
        ...
 
    # set policy default model
      def default_model(self) -> Tuple[str, List[str]]:
-       return 'fcr_discrete_net', ['nervex.model.discrete_net.discrete_net']
+       return 'fcr_discrete_net', ['ding.model.discrete_net.discrete_net']
        # or 'convr_discrete_net' if use image as input
 
 2. Use customized model. To use customized model, you can refer to `Set
    up Policy and NN
-   model <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html#set-up-policy-and-nn-model>`__.
-   To adapt your model into nerveX's pipline with minimal code changes,
+   model <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/quick_start/index.html#set-up-policy-and-nn-model>`__.
+   To adapt your model into DI-engine's pipline with minimal code changes,
    the output dict of model should contain ``'next_state'`` key.
 
 .. code:: python
@@ -122,7 +122,7 @@ model.
            ...}
 
 .. note::
-   NerveX also provide RNN module. You can use ``get_lstm()`` function by ``from nervex.torch_utils import get_lstm``. This function allows users to build LSTM implemented by nerveX/pytorch/HPC.
+   DI-engine also provide RNN module. You can use ``get_lstm()`` function by ``from ding.torch_utils import get_lstm``. This function allows users to build LSTM implemented by ding/pytorch/HPC.
 
 
 .. _use-model-wrapper-to-wrap-your-rnn-model-in--policy:
@@ -130,7 +130,7 @@ model.
 Use model wrapper to wrap your RNN model in policy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As RNN model need to maintain hidden state of data, nerveX provide
+As RNN model need to maintain hidden state of data, DI-engine provide
 ``HiddenStateWrapper`` for it. Users only need to add a wrapper in
 policy's learn/collect/eval initialization to wrap model. The wrapper
 will help agent to keep hidden states after model forward and send
@@ -170,7 +170,7 @@ Data Arrangement
 ~~~~~~~~~~~~~~~~
 
 The mini-batch data used for RNN is different from usual RL data, it
-should be arranged in time series. For nerveX, this process happens in
+should be arranged in time series. For DI-engine, this process happens in
 ``collector``. Users need to specify ``unroll_len`` in config to make
 sure the length of sequence data matches your algorithm. For most cases,
 ``unroll_len`` should be equal to RNN's historical length. For example,
@@ -183,13 +183,13 @@ arranged as :math:`[[x_1,x_2,x_3],[x_4,x_5,x_6]]`.
 If the ``unroll_len`` is not divided by ``n_sample`` of collector, the
 residual data will be filled by last sample, i.e. if ``n_sample=6`` and
 ``unroll_len=4``, the data will be arranged as
-:math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_6,x_6]]` by default. NerveX's
+:math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_6,x_6]]` by default. DI-engine's
 ``Adder`` have ``drop`` and ``null_padding`` method for this case, to
 use it, you need to specify adder in policy's collect model.
 
 For ``drop``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4]]`,
 For ``null_padding``, it means data'll be arranged as :math:`[[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]`,
-:math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``. More details can be found in `Adder <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/api_doc/rl_utils/adder.html?highlight=adder#nervex.rl_utils.adder.Adder>`__.
+:math:`x_{null}` is similar to :math:`x_6` but its ``done=True`` and ``reward=0``. More details can be found in `Adder <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/ding/api_doc/rl_utils/adder.html?highlight=adder#ding.rl_utils.adder.Adder>`__.
 
 .. code:: python
 
@@ -240,7 +240,7 @@ latter is hard to implement.
 Burn-in allow the network a
 ``burn-in period`` by using a portion of the replay sequenceonly for
 unrolling the network and producing a start state, and update the
-network only onthe remaining part of the sequence. In nerveX, to
+network only onthe remaining part of the sequence. In DI-engine, to
 implement ``burn-in``, ``unroll_len`` should be set to
 ``burnin_step+1``\ (if use n-step return, it should be
 ``burnin_step+2*n_steps``). In this setting, the unrolled data is split
@@ -257,4 +257,4 @@ data process can be implemented by the following code:
 .. note::
    Burn-in is not conflict with RNN reset. Use burn-in also needs RNN to reset by last timestep's hidden state. Burn-in only make a specific number of forward steps before usual forward.
 
-For more details of RNN and burn-in, you can refer to `nervex/policy/r2d2.py`.
+For more details of RNN and burn-in, you can refer to `ding/policy/r2d2.py`.

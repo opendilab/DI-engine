@@ -9,7 +9,7 @@ Overview:
     Wrapper, the decorator. Generally speaking, if we want to perform some custom operations when a certain function is executed, Wrapper can come in handy. Use Wrapper to wrap the function, you can conveniently operate the input and output of the function, or calculate some state related to the function. For model operations, such as ``.cuda()`` or train/eval mode switching and whether to share the model itself in different modes, it is left to the user to directly adjust the model in the policy.
 
 Usage:
-    There are three places where wrapper is used in nervex: env, model, and learner.
+    There are three places where wrapper is used in DI-engine: env, model, and learner.
 
     - env
 
@@ -33,7 +33,7 @@ Usage:
 
         - Usage:
 
-            The defined wrappers are placed under ``nervex.model.model_wrappers.py`` for easy viewing. For the usage of wrapper, a new model can be obtained according to the following rules:
+            The defined wrappers are placed under ``ding.model.model_wrappers.py`` for easy viewing. For the usage of wrapper, a new model can be obtained according to the following rules:
             
             .. code:: python
 
@@ -49,7 +49,7 @@ Usage:
 
             For user-defined ``MyWrapper``, the following steps need to be completed:
             
-            1. Inherit from ``nervex.model.model_wrappers.IModelWrapper``, which is the base class of the wrapper used by the model.
+            1. Inherit from ``ding.model.model_wrappers.IModelWrapper``, which is the base class of the wrapper used by the model.
             
             2. In ``MyWrapper``, implement the required forward and other functions according to requirements.
             
@@ -63,7 +63,7 @@ Usage:
 
         - Currently supported wrappers:
 
-            .. csv-table:: Accessible Model Wrapper in nerveX
+            .. csv-table:: Accessible Model Wrapper in DI-engine
                 :header: "Wrapper Name", "Wrapper Class Name", "Wrapper Usage"
                 :widths: 50, 50, 60
 
@@ -102,11 +102,11 @@ Overview:
 
 Usage:
     
-    The hook used in nervex is mainly in learner.
+    The hook used in DI-engine is mainly in learner.
 
     - learner
 
-        In nervex, the training part of the learner can be simplified as follows:
+        In DI-engine, the training part of the learner can be simplified as follows:
 
         .. code:: python
 
@@ -128,7 +128,7 @@ Usage:
 
         - Usage:
 
-            Nervex has implemented many commonly used hooks and provides simple calling methods. The hook can be called through cfg. The configuration and use of cfg are as follows:
+            DI-engine has implemented many commonly used hooks and provides simple calling methods. The hook can be called through cfg. The configuration and use of cfg are as follows:
 
             .. code:: python
 
@@ -159,11 +159,11 @@ Usage:
                 #         type: save_ckpt
                 hooks = build_learner_hook_by_cfg(cfg)
 
-            So far, nervex will automatically register hooks according to the content of cfg when initializing learner to ensure that related functions can be performed normally.
+            So far, DI-engine will automatically register hooks according to the content of cfg when initializing learner to ensure that related functions can be performed normally.
 
          - Define your own hook: For custom ``MyHook``, you need to complete the following steps:
 
-            1. Inherit ``nervex.worker.learner.learner_hook.LearnerHook``. This class is the base class of all hooks used in learner.
+            1. Inherit ``ding.worker.learner.learner_hook.LearnerHook``. This class is the base class of all hooks used in learner.
             2. Implement the ``__call__`` method in ``MyHook``. The input of the ``__call__`` method is an instance of learner. Through this instance, hook can operate on any variable in learner.
             3. Call ``register_learner_hook()`` to register the custom ``MyHook``, you need to provide the hook name.
             4. Now you can use the customized ``MyHook`` in cfg.
@@ -174,7 +174,7 @@ Usage:
 
         - Currently supported hooks:
 
-            .. csv-table:: Accessible Hook in nerveX
+            .. csv-table:: Accessible Hook in DI-engine
                 :header: "Hook Name", "Hook Class Name", "Hook Usage"
                 :widths: 50, 50, 60
 
@@ -185,9 +185,9 @@ Usage:
 
         - Simplified calling hook:
         
-            Due to the complex parameters of the hook mentioned earlier, which is not conducive for beginners to get started, nervex provides a simpler calling method:
+            Due to the complex parameters of the hook mentioned earlier, which is not conducive for beginners to get started, DI-engine provides a simpler calling method:
 
-            .. csv-table:: Simplified Hook in nerveX
+            .. csv-table:: Simplified Hook in DI-engine
                 :header: "Hook Name", "Params", "Hook Usage"
                 :widths: 50, 50, 60
 
@@ -208,12 +208,12 @@ Usage:
 
         - View status of the calling of hooks:
             
-            NerveX provides the ``show_hooks()`` method in order to view the status of the calling of hooks at various locations, as follows:
+            DI-engine provides the ``show_hooks()`` method in order to view the status of the calling of hooks at various locations, as follows:
 
             .. code:: python  
 
-                from nervex.worker.learner.learner_hook import show_hooks
-                from nervex.worker.learner import build_learner_hook_by_cfg
+                from ding.worker.learner.learner_hook import show_hooks
+                from ding.worker.learner import build_learner_hook_by_cfg
                 cfg = dict(save_ckpt_after_iter=20, save_ckpt_after_run=True)
                 hooks = build_learner_hook_by_cfg(cfg)
                 show_hooks(hooks)

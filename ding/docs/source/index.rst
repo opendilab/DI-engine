@@ -1,15 +1,13 @@
-Welcome to nerveX's documentation!
+Welcome to DI-engine's documentation!
 =====================================
-
-.. TODO(niuyazhe): nerveX -> OpenDI
 
 Overview
 ------------
-OpenDI is a generalized Decision Intellegence platform. It supports most basic deep reinforcement learning (DRL) algorithms,
+DI-engine is a generalized Decision Intellegence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
 such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems.
 The whole supported algorithms introduction can be found in `Algorithm <./feature/algorithm_overview.html>`_.
 
-For scalability, nerveX supports three different training pipeline:
+For scalability, DI-engine supports three different training pipeline:
 
   - ``serial``
 
@@ -36,16 +34,15 @@ Main Features
   * Customized DRL demand implementation, such as Inverse RL/RL hybrid training; Multi-buffer training; League self-play training
   * Large scale DRL training demonstration and application
   * Various efficiency optimization module: HPC_RL, ObjStore, EnvManager, DataLoader
-  * k8s support, nerveX-operator k8s lustre scheduler for dynamic collectors and other services
+  * k8s support, DI-engine-operator k8s lustre scheduler for dynamic collectors and other services
 
 .. image::
-.. TODO(niuyazhe): refine image
    images/system_layer.png
    
 
 To get started, take a look over the `quick start <./quick_start/index.html>`_ and `API documentation <./api_doc/index.html>`_.
-For RL beginners, nerveX advises you to refer to `hands-on RL <hands_on/index.html>`_ for more discussion.
-If you want to deeply customize your algorithm and application with nerveX, also checkout `key concept <./key_concept/index.html>`_ and `Feature <./feature/index.html>`_. 
+For RL beginners, DI-engine advises you to refer to `hands-on RL <hands_on/index.html>`_ for more discussion.
+If you want to deeply customize your algorithm and application with DI-engine, also checkout `key concept <./key_concept/index.html>`_ and `Feature <./feature/index.html>`_. 
 
 .. toctree::
    :maxdepth: 2

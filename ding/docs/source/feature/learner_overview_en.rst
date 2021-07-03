@@ -9,7 +9,7 @@ Learner code can be mainly divided into three parts：
 
 Base Learner 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/learner/base_learner.py)
+(ding/worker/learner/base_learner.py)
 
 Overview:
     Base learner is the actual part for policy optimization given training data. It provides different interfaces for serial and parallel mode.
@@ -36,7 +36,7 @@ Class interface method:
 
 LearnerHook
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/learner/learner_hook.py)
+(ding/worker/learner/learner_hook.py)
 
 Overview:
     Hook is a module do some specific jobs. Learner hook is a derived abstract class, which adds the concept of "Position". So learner can call hook at different timings.
@@ -50,10 +50,10 @@ Abstract class interface method for base hook class:
 
 BaseCommLearner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/worker/learner/base_comm_learner.py)
+(ding/worker/learner/base_comm_learner.py)
 
 Overview:
-    The base learner can independently complete the training work in serial pipeline; But for parallel pipeline, although the training interface is provided, there are still some problems remaining. For example, how to obtain data, how to communicate with the outside(coordinator, in nerveX case), etc. Comm learner is the module which is responsible for solving these problems in parallel mode.
+    The base learner can independently complete the training work in serial pipeline; But for parallel pipeline, although the training interface is provided, there are still some problems remaining. For example, how to obtain data, how to communicate with the outside(coordinator, in DI-engine case), etc. Comm learner is the module which is responsible for solving these problems in parallel mode.
 
     The comm learner does not actually perform training. It holds a base learner and solves communication-related problems for it. And actual training is still done by base learner.
 
@@ -81,7 +81,7 @@ Abstract class interface method that should be overriden by derived class:
 Analysis of Training Process in Parallel Mode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compared with the simple and easily understood serial mode, the parallel mode is more obscure due to the communication problems between the asynchronously running learner and collectors. Therefore, in this part, we will use the ``FlaskFileSystemLearner`` (``nervex/worker/learner/comm/flask_fs_learner.py``), a derived comm learner that uses **flask and file system to communicate**, as an example to introduce the parallel mode. The mode analysis includes those procedures:
+Compared with the simple and easily understood serial mode, the parallel mode is more obscure due to the communication problems between the asynchronously running learner and collectors. Therefore, in this part, we will use the ``FlaskFileSystemLearner`` (``ding/worker/learner/comm/flask_fs_learner.py``), a derived comm learner that uses **flask and file system to communicate**, as an example to introduce the parallel mode. The mode analysis includes those procedures:
     
     - parallel pipeline entry deploying the coordinator
     - comm learner starting

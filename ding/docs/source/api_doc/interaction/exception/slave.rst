@@ -4,21 +4,21 @@ interaction.exception.slave
 SlaveErrorCode
 ~~~~~~~~~~~~~~~~~~~~
 
-.. autoenum:: nervex.interaction.exception.slave.SlaveErrorCode
+.. autoenum:: ding.interaction.exception.slave.SlaveErrorCode
     :members:
 
 
 SlaveResponseException
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveResponseException
+.. autoclass:: ding.interaction.exception.slave.SlaveResponseException
     :members: __init__
 
 
 SlaveSuccess
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSuccess
+.. autoclass:: ding.interaction.exception.slave.SlaveSuccess
     :members: __init__
 
 
@@ -26,7 +26,7 @@ SlaveSuccess
 SlaveSystemShuttingDown
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSystemShuttingDown
+.. autoclass:: ding.interaction.exception.slave.SlaveSystemShuttingDown
     :members: __init__
 
 
@@ -34,7 +34,7 @@ SlaveSystemShuttingDown
 SlaveChannelNotFound
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveChannelNotFound
+.. autoclass:: ding.interaction.exception.slave.SlaveChannelNotFound
     :members: __init__
 
 
@@ -42,7 +42,7 @@ SlaveChannelNotFound
 SlaveChannelInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveChannelInvalid
+.. autoclass:: ding.interaction.exception.slave.SlaveChannelInvalid
     :members: __init__
 
 
@@ -50,7 +50,7 @@ SlaveChannelInvalid
 SlaveMasterTokenNotFound
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveMasterTokenNotFound
+.. autoclass:: ding.interaction.exception.slave.SlaveMasterTokenNotFound
     :members: __init__
 
 
@@ -58,7 +58,7 @@ SlaveMasterTokenNotFound
 SlaveMasterTokenInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveMasterTokenInvalid
+.. autoclass:: ding.interaction.exception.slave.SlaveMasterTokenInvalid
     :members: __init__
 
 
@@ -66,7 +66,7 @@ SlaveMasterTokenInvalid
 SlaveSelfTokenNotFound
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSelfTokenNotFound
+.. autoclass:: ding.interaction.exception.slave.SlaveSelfTokenNotFound
     :members: __init__
 
 
@@ -74,7 +74,7 @@ SlaveSelfTokenNotFound
 SlaveSelfTokenInvalid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSelfTokenInvalid
+.. autoclass:: ding.interaction.exception.slave.SlaveSelfTokenInvalid
     :members: __init__
 
 
@@ -82,7 +82,7 @@ SlaveSelfTokenInvalid
 SlaveSlaveAlreadyConnected
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSlaveAlreadyConnected
+.. autoclass:: ding.interaction.exception.slave.SlaveSlaveAlreadyConnected
     :members: __init__
 
 
@@ -90,7 +90,7 @@ SlaveSlaveAlreadyConnected
 SlaveSlaveNotConnected
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSlaveNotConnected
+.. autoclass:: ding.interaction.exception.slave.SlaveSlaveNotConnected
     :members: __init__
 
 
@@ -98,7 +98,7 @@ SlaveSlaveNotConnected
 SlaveSlaveConnectionRefused
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSlaveConnectionRefused
+.. autoclass:: ding.interaction.exception.slave.SlaveSlaveConnectionRefused
     :members: __init__
 
 
@@ -106,7 +106,7 @@ SlaveSlaveConnectionRefused
 SlaveSlaveDisconnectionRefused
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveSlaveDisconnectionRefused
+.. autoclass:: ding.interaction.exception.slave.SlaveSlaveDisconnectionRefused
     :members: __init__
 
 
@@ -114,7 +114,7 @@ SlaveSlaveDisconnectionRefused
 SlaveTaskAlreadyExist
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveTaskAlreadyExist
+.. autoclass:: ding.interaction.exception.slave.SlaveTaskAlreadyExist
     :members: __init__
 
 
@@ -122,17 +122,17 @@ SlaveTaskAlreadyExist
 SlaveTaskRefused
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.interaction.exception.slave.SlaveTaskRefused
+.. autoclass:: ding.interaction.exception.slave.SlaveTaskRefused
     :members: __init__
 
 
 get_slave_exception_class_by_error_code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: nervex.interaction.exception.slave.get_slave_exception_class_by_error_code
+.. autofunction:: ding.interaction.exception.slave.get_slave_exception_class_by_error_code
 
 get_slave_exception_by_error
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: nervex.interaction.exception.slave.get_slave_exception_by_error
+.. autofunction:: ding.interaction.exception.slave.get_slave_exception_by_error
 

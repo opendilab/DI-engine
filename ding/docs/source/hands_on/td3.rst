@@ -132,13 +132,13 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.td3.TD3Policy
+.. autoclass:: ding.policy.td3.TD3Policy
 
 Model
 ~~~~~~~~~~~~~~~~~
 Here we provide examples of `td3` model as default model for `TD3`.
 
-.. autoclass:: nervex.model.template.qac.QAC
+.. autoclass:: ding.model.template.qac.QAC
     :members: __init__, forward, compute_actor, compute_critic
     :noindex:
 
@@ -272,7 +272,7 @@ We configure ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range`` t
 
 
 
-The Benchmark result of TD3 implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of TD3 implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 Other Public Implementations
 ----------------------------

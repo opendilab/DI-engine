@@ -102,4 +102,4 @@ The network interface VPN used is defined as follows:
 
     * TODO
 
-The Benchmark result of VPN implemented in nerveX is still in progress.
+The Benchmark result of VPN implemented in DI-engine is still in progress.

@@ -7,12 +7,12 @@ Guideline
 
 In some algorithms, it is required to use multiple buffers. For example, in `R2D3 <https://arxiv.org/pdf/1909.01387.pdf>`_, there is a demonstration buffer full of expert data and an agent buffer collected during training; In `Phasic Policy Gradient <https://arxiv.org/pdf/2009.04416.pdf>`_, there is a value buffer and a policy buffer respectively designed for critic optimization and actor optimization.
 
-However, nerveX `serial_pipeline` only supports single buffer. So in this section, we will teach you how to write the configuration file and your own multi-buffer pipeline. We will take `PPG` algorithm as an example.
+However, DI-engine `serial_pipeline` only supports single buffer. So in this section, we will teach you how to write the configuration file and your own multi-buffer pipeline. We will take `PPG` algorithm as an example.
 
 1. Config
 ^^^^^^^^^^^^^^
     
-    We show core part of `nerveX/app_zoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
+    We show core part of `ding/app_zoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
 
     .. code:: python
         
@@ -25,8 +25,8 @@ However, nerveX `serial_pipeline` only supports single buffer. So in this sectio
                         multi_buffer=True,
                         policy=dict(
                             replay_buffer_size=100,
-                            # nerveX implemented PPG is not the same as original paper version.
-                            # In nerveX, we utilize `max_use` to control how many times data is used to optimize
+                            # DI-engine implemented PPG is not the same as original paper version.
+                            # In DI-engine, we utilize `max_use` to control how many times data is used to optimize
                             # actor and critic network.
                             max_use=10,
                         ),

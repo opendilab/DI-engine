@@ -6,4 +6,4 @@ vtrace
 
 vtrace_error
 ~~~~~~~~~~~~~~~~~~
-.. automodule:: nervex.rl_utils.vtrace.vtrace_error
+.. automodule:: ding.rl_utils.vtrace.vtrace_error

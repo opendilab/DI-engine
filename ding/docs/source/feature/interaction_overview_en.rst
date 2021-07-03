@@ -8,7 +8,7 @@ Interaction Overview
 Overview
 ---------
 
-Interaction module is an interactive service framework independent of any specific business, which used to support simple non-blocking single-thread tasks. It provides support for training(multi-machine multi-card) in a distributed environment based on nerveX.
+Interaction module is an interactive service framework independent of any specific business, which used to support simple non-blocking single-thread tasks. It provides support for training(multi-machine multi-card) in a distributed environment based on ding.
 
 Interaction module is divided into two ends, the ``Master`` and the ``Slave``, which are the task release end and the task execution end respectively.
 

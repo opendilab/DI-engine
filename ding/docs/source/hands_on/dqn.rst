@@ -17,7 +17,7 @@ Quick Facts
 
 5. DQN + RNN = DRQN.
 
-6. The nerveX implementation of DQN supports **multi-discrete** action space.
+6. The DI-engine implementation of DQN supports **multi-discrete** action space.
 
 Key Equations or Key Graphs
 ---------------------------
@@ -79,10 +79,10 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.dqn.DQNPolicy
+.. autoclass:: ding.policy.dqn.DQNPolicy
 
 The network interface DQN used is defined as follows:
 
     * TODO
 
-The Benchmark result of DQN implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of DQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

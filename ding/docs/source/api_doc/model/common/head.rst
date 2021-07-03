@@ -1,7 +1,7 @@
 common.head
 -------------------------------------------------------
 
-Please Reference nerveX/nervex/docs/source/api_doc/model/common/head.py for usage
+Please Reference ding/ding/docs/source/api_doc/model/common/head.py for usage
 
 
 
@@ -29,57 +29,57 @@ Please Reference nerveX/nervex/docs/source/api_doc/model/common/head.py for usag
 DiscreteHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.DiscreteHead
+.. autoclass:: ding.model.common.head.DiscreteHead
     :members: __init__, forward
 
 
 DistributionHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.DistributionHead
+.. autoclass:: ding.model.common.head.DistributionHead
     :members: __init__, forward
 
 
 RainbowHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.RainbowHead
+.. autoclass:: ding.model.common.head.RainbowHead
     :members: __init__, forward
 
 
 QRDQNHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.QRDQNHead
+.. autoclass:: ding.model.common.head.QRDQNHead
     :members: __init__, forward
 
 QuantileHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.QuantileHead
+.. autoclass:: ding.model.common.head.QuantileHead
     :members: __init__, quantile_net, forward
 
 DuelingHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.DuelingHead
+.. autoclass:: ding.model.common.head.DuelingHead
     :members: __init__, forward
 
 RegressionHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.RegressionHead
+.. autoclass:: ding.model.common.head.RegressionHead
     :members: __init__, forward
 
 ReparameterizationHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.ReparameterizationHead
+.. autoclass:: ding.model.common.head.ReparameterizationHead
     :members: __init__, forward
 
 MultiHead
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.model.common.head.MultiHead
+.. autoclass:: ding.model.common.head.MultiHead
     :members: __init__, forward
 

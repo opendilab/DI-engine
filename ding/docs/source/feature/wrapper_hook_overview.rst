@@ -8,7 +8,7 @@ Wrapper
     Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper 就可以被派上用场。用 Wrapper 对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于 model 方面的操作，例如 ``.cuda()`` 或者 train/eval 模式切换以及不同 mode 下是否共享模型本身，交给用户在 policy 中直接对 model 进行操作。
 
 用处：
-    nervex 中用到 wrapper 的地方有三个，分别是 env，model，以及 learner
+    DI-engine 中用到 wrapper 的地方有三个，分别是 env，model，以及 learner
 
     - env
 
@@ -31,7 +31,7 @@ Wrapper
 
         - 使用：
 
-            已经定义好的 wrapper 统一放在 ``nervex.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
+            已经定义好的 wrapper 统一放在 ``ding.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
             
             .. code:: python
 
@@ -47,7 +47,7 @@ Wrapper
 
             对于用户自定义的 ``MyWrapper``，需要完成以下几步：
 
-            1. 继承 ``nervex.model.model_wrappers.IModelWrapper``，该类是 model 所使用的 wrapper 的基类。
+            1. 继承 ``ding.model.model_wrappers.IModelWrapper``，该类是 model 所使用的 wrapper 的基类。
             
             2. 在 ``MyWrapper`` 中，依据需求实现所需要的 forward 等函数。
             
@@ -96,11 +96,11 @@ Hook
 概述：
     Hook，钩子，可以通过在钩子内使得外部函数在被调用的时候，自动调用钩子内定义好的函数。在程序中，对于一段封装得较好的代码，如果需要修改的话，也许要花费相当的精力。Hook 函数就是由此被创造出来的。代码作者可以在一段代码中的任意位置暴露出钩子，而用户可以在钩子中实现自己所需要的功能，这样当代码运行到指定位置的时候，钩子会被触发，钩子中定义好的函数会被自动调用，从而实现快速修改代码的功能。
 用处：
-    nervex 中使用 hook 主要是在 learner 中。
+    DI-engine 中使用 hook 主要是在 learner 中。
 
     - learner
 
-        在nervex中，learner 的训练部分可以简化如下：
+        在DI-engine中，learner 的训练部分可以简化如下：
 
         .. code:: python
 
@@ -122,7 +122,7 @@ Hook
 
         - 使用：
 
-            nervex 已经实现了许多常用的 hook，并提供了简单的调用方法。可以通过 cfg 去调用 hook，cfg 配置与使用如下：
+            DI-engine 已经实现了许多常用的 hook，并提供了简单的调用方法。可以通过 cfg 去调用 hook，cfg 配置与使用如下：
             
             .. code:: python
 
@@ -153,11 +153,11 @@ Hook
                 #         type: save_ckpt
                 hooks = build_learner_hook_by_cfg(cfg)
 
-            至此，nervex 在初始化 learner 的时候会自动根据 cfg 的内容进行 hook 注册，以保证相关功能能够正常进行。
+            至此，DI-engine 在初始化 learner 的时候会自动根据 cfg 的内容进行 hook 注册，以保证相关功能能够正常进行。
 
         - 定义自己的 hook, 对于用户自定义的 ``MyHook``，需要完成以下几步：
 
-            1. 继承 ``nervex.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
+            1. 继承 ``ding.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
             2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对 learner 中的任意变量进行操作。
             3. 调用 ``register_learner_hook()`` 对自定义的 ``MyHook`` 进行注册，需要提供 hook 名称。
             4. 现在已经可以在 cfg 中使用自定义的 ``MyHook`` 了。
@@ -179,9 +179,9 @@ Hook
 
         - 简化调用的 hook：
 
-            由于前面提到的 hook 存在参数复杂，不利于初学者上手等原因，nervex 提供了更为简单的调用方法：
+            由于前面提到的 hook 存在参数复杂，不利于初学者上手等原因，DI-engine 提供了更为简单的调用方法：
 
-            .. csv-table:: Simplified Hook in nerveX
+            .. csv-table:: Simplified Hook in DI-engine
                 :header: "Hook Name", "Params", "Hook Usage"
                 :widths: 50, 50, 60
 
@@ -202,12 +202,12 @@ Hook
 
         - 查看 hook 调用情况：
 
-            nerveX 提供了 ``show_hooks()`` 方法以便查看各个位置的 hook 调用情况，具体如下：
+            DI-engine 提供了 ``show_hooks()`` 方法以便查看各个位置的 hook 调用情况，具体如下：
             
             .. code:: python  
 
-                from nervex.worker.learner.learner_hook import show_hooks
-                from nervex.worker.learner import build_learner_hook_by_cfg
+                from ding.worker.learner.learner_hook import show_hooks
+                from ding.worker.learner import build_learner_hook_by_cfg
                 cfg = dict(save_ckpt_after_iter=20, save_ckpt_after_run=True)
                 hooks = build_learner_hook_by_cfg(cfg)
                 show_hooks(hooks)

@@ -5,7 +5,7 @@ Abstract:
     The concept of League training is from `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_. 
     League training is a multi-agent reinforcement learning algorithm that is designed both to address the cycles commonly 
     encountered during self-play training and to integrate a diverse range of strategies. In the league of AlphaStar, there exists
-    different types of agent as league members that differ only in the distribution of opponent they train against. In nerveX, 
+    different types of agent as league members that differ only in the distribution of opponent they train against. In DI-engine, 
     we call these members player. Each player holds a strategy, i.e. neural networks or rules. 
     
     In 1v1 RTS games like StarCraft2, the league is responsible for assigning opponents to players. 
@@ -13,7 +13,7 @@ Abstract:
     components to make AlphaStar successfully.
 
     In the following paragraphs, We'll first introduce the training pipline of League, then there will be a brief summary of the implementation
-    of ``league`` module in nerveX. 
+    of ``league`` module in ding. 
 
 
 League Intro
@@ -36,16 +36,16 @@ To alleviate these problems, the training pipline of self-play is usually implem
     4. According to certain rules, league chooses one player from the pool as the opponent, then both the first and the second approach can be used.
     5. When the updatable strategy is good enough, the training process ends.
 
-The nerveX's demo of league ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
+The DI-engine's demo of league ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
 
 AlphaStar uses a more complicated league training algorithm than self-play, and designs more types of players differ in the distribution of opponent 
 they train against. The "Rock-paper-scissors" problem can be alleviated in this way, also the strategy will be more diverse. More details can be found 
 in the AlphaStar paper's "Methods - MultiAgent Learning" part.
 
-nerveX Implementation
+DI-engine Implementation
 ------------------------
 
-NerveX's implementation of league consists of three parts:
+DI-engine's implementation of league consists of three parts:
 
     - ``Player``：Player is the participant of game, consists of active (i.e. updatable) and historical (i.e. unupdatable) player.
     - ``Payoff``：Payoff is used to record the results of game play in league. This module is shared by all players, can be the references of to choose opponents.
@@ -75,20 +75,20 @@ Code Structure:
         7. ``LeagueExploiter``: A special implementation of active player, used in AlphaStar. More details can be found in AlphaStar paper.
 
 Base Class Definition：
-    1. Player (nervex/league/player.py)
+    1. Player (ding/league/player.py)
 
         - Abstract:
 
             Base class player defines properties needed by both active player and historical player, including catagory, payoff, checkpoint path, id, 
             training iteration, etc. Player is an abstract base class and cannot be instantiated.
 
-    2. HistoricalPlayer (nervex/league/player.py)
+    2. HistoricalPlayer (ding/league/player.py)
 
         - Abstract:
 
             HistoricalPlayer defines parent id additionally comparing to player class.
 
-    3. ActivePlayer (nervex/league/player.py)
+    3. ActivePlayer (ding/league/player.py)
 
         - Abstract:
 
@@ -107,14 +107,14 @@ Base Class Definition：
         - Methods need to override by users：
 
             ``ActivePlayer`` don't implement specific methods to select opponent. The example of selecting opponent can be like ``NaiveSpPlayer``: 50% to naive self play, 
-            50% to select historical players randomly. To archive this, nerveX needs to modify player class and config:
+            50% to select historical players randomly. To archive this, DI-engine needs to modify player class and config:
 
             
             1. config
 
                 .. code:: python
 
-                    # in nervex/config/league.py
+                    # in ding/config/league.py
                     naive_sp_player=dict(
                         # ...
                         branch_probs=dict(
@@ -167,7 +167,7 @@ Abstract:
     to collect task for two players to play a round of game.
 
 Base Class Definition：
-    1. BaseLeague (nervex/league/base_league.py)
+    1. BaseLeague (ding/league/base_league.py)
 
         - Abstract:
 
@@ -184,4 +184,4 @@ Base Class Definition：
 
             - ``_get_job_info``: called by ``_launch_job`` 
             - ``_mutate_player``: called by ``_snapshot``
-            - ``_update_player``: called by ``update_active_player``. All three methods above are abstract method, refer to  ``nervex/league/one_vs_one_league.py`` ``OneVsOneLeague`` for more implementation details.
+            - ``_update_player``: called by ``update_active_player``. All three methods above are abstract method, refer to  ``ding/league/one_vs_one_league.py`` ``OneVsOneLeague`` for more implementation details.

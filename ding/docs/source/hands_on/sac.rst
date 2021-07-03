@@ -108,7 +108,7 @@ Implementation
 ---------------------------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.sac.SACPolicy
+.. autoclass:: ding.policy.sac.SACPolicy
 
 We take the second version implementation(only predict soft Q function) as an example to introduce SAC algorithm:
 
@@ -268,7 +268,7 @@ Auto alpha strategy
             self._alpha_optim.step()
             self._alpha = self._log_alpha.detach().exp()
 
-The Benchmark result of SAC implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of SAC implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 Other Public Implementations
 ----------------------------

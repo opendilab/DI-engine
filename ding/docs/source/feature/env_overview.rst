@@ -4,13 +4,13 @@ Env Overview
 
 BaseEnv
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/env/base_env.py)
+(ding/envs/env/base_env.py)
 
 概述：
-    环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 `atari <https://gym.openai.com/envs/#atari>`_ 相关任务，`mujoco <https://gym.openai.com/envs/#mujoco>`_ 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 ``observation space`` 与 ``action space``。OpenAI 所出品的 `gym` 模块已经帮我们定义了绝大多数常用的学术环境。`nerveX` 也遵循 `gym.Env` 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。
+    环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 `atari <https://gym.openai.com/envs/#atari>`_ 相关任务，`mujoco <https://gym.openai.com/envs/#mujoco>`_ 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 ``observation space`` 与 ``action space``。OpenAI 所出品的 `gym` 模块已经帮我们定义了绝大多数常用的学术环境。`DI-engine` 也遵循 `gym.Env` 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。
 
 具体实现：
-    我们可以很方便的查阅到，`gym.Env` 的 `定义 <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ 中，最为关键的部分在于 ``step`` 和 ``reset`` 方法。通过给定的 ``observation``, ``step()`` 方法依据输入的 ``action`` 并与环境产生交互，从而得到相应的 ``reward``。``reset()`` 方法则是对环境进行重置。`nervex.envs.BaseEnv` 继承了 `gym.Env`，并实现了：
+    我们可以很方便的查阅到，`gym.Env` 的 `定义 <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ 中，最为关键的部分在于 ``step`` 和 ``reset`` 方法。通过给定的 ``observation``, ``step()`` 方法依据输入的 ``action`` 并与环境产生交互，从而得到相应的 ``reward``。``reset()`` 方法则是对环境进行重置。`ding.envs.BaseEnv` 继承了 `gym.Env`，并实现了：
 
     1. ``BaseEnvTimestep(namedtuple)``：定义了环境每运行一步返回的内容，一般包括 ``obs``，``act``，``reward``，``done``，``info`` 五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。
 
@@ -32,7 +32,7 @@ BaseEnv
 
     6. ``enable_save_replay()``：使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的 render 方法。（该方法可选实现）
 
-    此外，`nervex.envs.BaseEnv` 还针对细节做了一些改动，例如
+    此外，`ding.envs.BaseEnv` 还针对细节做了一些改动，例如
 
     1. ``seed()``: 对于环境内各种处理函数和 wrapper 的种子控制，外界设定的是种子的种子
 
@@ -46,11 +46,11 @@ BaseEnv
 
     .. note::
 
-        关于 ``BaseEnvInfo`` 和 ``BaseEnvTimestep``，如无特殊需求可以直接调用 `nervex` 提供的默认定义，即：
+        关于 ``BaseEnvInfo`` 和 ``BaseEnvTimestep``，如无特殊需求可以直接调用 `DI-engine` 提供的默认定义，即：
 
         .. code:: python
 
-            from nervex.envs import BaseEnvTimestep, BaseEnvInfo
+            from ding.envs import BaseEnvTimestep, BaseEnvInfo
 
         如果需要自定义，按照上文的要求使用 ``namedtuple(BaseEnvTimestep)`` / ``namedlist(BaseEnvInfo)`` 实现即可。
 
@@ -60,11 +60,11 @@ BaseEnv
 
     .. warning::
 
-        `nervex` 对于环境返回的 ``info`` 字段有一些依赖关系, ``info`` 是一个 dict，其中某些键值对会有相关依赖要求：
+        `DI-engine` 对于环境返回的 ``info`` 字段有一些依赖关系, ``info`` 是一个 dict，其中某些键值对会有相关依赖要求：
         
         1. ``final_eval_reward``: 环境一个 episode 结束时（done=True）必须包含该键值，值为 float 类型，表示环境跑完一个 episode 性能的度量
         
-        2. ``abnormal``: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为 bool 类型，表示环境运行该步是是否发生了错误，如果为真 `nervex` 的相关模块会进行相应处理（比如将相关数据移除）。
+        2. ``abnormal``: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为 bool 类型，表示环境运行该步是是否发生了错误，如果为真 `DI-engine` 的相关模块会进行相应处理（比如将相关数据移除）。
 
 
     类继承关系如下图所示：
@@ -75,7 +75,7 @@ BaseEnv
 
 EnvElement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/common/env_element.py)
+(ding/envs/common/env_element.py)
 
 概述：
     环境元素基类，``observation``，``action``，``reward`` 等可以视为环境元素，该类及其子类负责某一具体环境元素的基本信息和处理函数定义。该类及其子类是 stateless 的，维护静态的属性和方法。
@@ -98,7 +98,7 @@ EnvElement
 
 EnvElementRunner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/common/env_element_runner.py)
+(ding/envs/common/env_element_runner.py)
 
 概述：
     环境元素运行时基类，使用装饰模式实现，负责运行时相关的状态管理（比如维护一些状态记录变量）和提供可能的多态机制（对静态处理函数返回的结果进行再加工）。

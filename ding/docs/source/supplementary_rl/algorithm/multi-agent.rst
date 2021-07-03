@@ -194,7 +194,7 @@ MADDPG由OpenAI和UC Berkeley在2017年的NIPS会议上的论文
 就很容易导致无法适应其他agent策略的情况，因此文章提出通过让每个agent维持并随机使用多个策略，达到降低overfitting情况的效果，
 即 **Policu Ensembles** 。
 
-该论文所使用的环境也由OpenAI开源，并且被很多MARL的论文所使用。nerveX也会迁移配置这些环境进行，方便进行实验。
+该论文所使用的环境也由OpenAI开源，并且被很多MARL的论文所使用。DI-engine也会迁移配置这些环境进行，方便进行实验。
 
 传统RL存在的问题
 ''''''''''''''''''''''''''''
@@ -271,7 +271,7 @@ MADDPG的模型示意图如下：
 
 各个算法的实验结果可以见 `视频 <https://sites.google.com/site/multiagentac/>`_ 。
 
-OpenAI也将其实验环境 `Multi-Agent_Particle_Environment <https://github.com/openai/multiagent-particle-envs>`_ 开源放出，我们也会将其整合到我们的nerveX框架中。
+OpenAI也将其实验环境 `Multi-Agent_Particle_Environment <https://github.com/openai/multiagent-particle-envs>`_ 开源放出，我们也会将其整合到我们的DI-engine框架中。
 
 
 COMA

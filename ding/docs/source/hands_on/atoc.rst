@@ -79,7 +79,7 @@ The network interface ATOC used is defined as follows:
 
     * TODO
 
-The Benchmark result of ATOC in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in nerveX is shown.
+The Benchmark result of ATOC in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
 References
 ----------------

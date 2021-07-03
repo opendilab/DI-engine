@@ -9,7 +9,7 @@ from ding.envs.env.ding_env_wrapper import DingEnvWrapper
 
 
 @pytest.mark.unittest
-class DingEnvWrapper:
+class TestDingEnvWrapper:
 
     def test_naive(self):
         env = gym.make('PongNoFrameskip-v4')

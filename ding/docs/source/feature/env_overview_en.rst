@@ -4,19 +4,19 @@ Env Overview
 
 BaseEnv
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/env/base_env.py)
+(ding/envs/env/base_env.py)
 
 Overview:
-    The Environment module is one of the important modules in reinforcement learning (RL). In some common RL tasks, such as `atari <https://gym.openai.com/envs/#atari>`_ tasks and `mujoco <https://gym.openai.com/envs/#mujoco>`_ tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The `gym` module produced by OpenAI has helped us define most of the commonly used academic environments. `NerveX` also follows the definition of `gym.Env`, and adds a series of more convenient functions to it, making the call of the environment easier to understand.
+    The Environment module is one of the important modules in reinforcement learning (RL). In some common RL tasks, such as `atari <https://gym.openai.com/envs/#atari>`_ tasks and `mujoco <https://gym.openai.com/envs/#mujoco>`_ tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The `gym` module produced by OpenAI has helped us define most of the commonly used academic environments. `DI-engine` also follows the definition of `gym.Env`, and adds a series of more convenient functions to it, making the call of the environment easier to understand.
 
 Implementation:
-    The key concepts of the defination of `gym.Env <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ are methods including ``step()`` and ``reset()``. According to the given ``observation``, ``step()`` interacts with the environment based on the input ``action``, and return related ``reward``. The environment is reset when we call ``reset()``. Inherited from `gym.Env`，`nervex.envs.BaseEnv` also implements:
+    The key concepts of the defination of `gym.Env <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ are methods including ``step()`` and ``reset()``. According to the given ``observation``, ``step()`` interacts with the environment based on the input ``action``, and return related ``reward``. The environment is reset when we call ``reset()``. Inherited from `gym.Env`，`ding.envs.BaseEnv` also implements:
 
     1. ``BaseEnvTimestep(namedtuple)``:
     It defines what environment returns when ``step()`` is called, usually including ``obs``, ``act``,  ``reward``,  ``done`` and ``info``. You can inherit from ``BaseEnvTimestep`` and define your owned variables.
 
     2. ``BaseEnvInfo(namedlist)``:
-    It defines the basic information of the environment, usually including the number of agents, the dimension of the observation space. NerveX now implements it with ``agent_num``, ``obs_space``, ``act_space`` and ``rew_space``, and ``xxx_space`` must be inherited from ``EnvElementInfo`` in ``envs/common/env_element.py``. You can add new variables in your ``BaseEnvInfo``.
+    It defines the basic information of the environment, usually including the number of agents, the dimension of the observation space. DI-engine now implements it with ``agent_num``, ``obs_space``, ``act_space`` and ``rew_space``, and ``xxx_space`` must be inherited from ``EnvElementInfo`` in ``envs/common/env_element.py``. You can add new variables in your ``BaseEnvInfo``.
 
     .. note::
 
@@ -38,7 +38,7 @@ Implementation:
     6. ``enable_save_replay()``:
     The environment can save the running process as a video file, which is convenient for debugging and visualization. It is generally called before the actual running of the environment, and functionally replaces the render method in the common environment. (This method is optional to implement).
 
-    Besides, some changes have also been made to the details in `nervex.envs.BaseEnv`, such as:
+    Besides, some changes have also been made to the details in `ding.envs.BaseEnv`, such as:
 
     1. seed(): For the seed control of various processing functions and wrappers in the environment, the external setting is the seed of the seed
     2. Lazy init is used by default, which means, init only sets the parameters, and the environment sets seed at the first reset.
@@ -50,11 +50,11 @@ Implementation:
 
      .. note::
 
-        Regarding BaseEnvInfo and BaseEnvTimestep, if there is no special requirement, you can directly call the default definition provided by nervex, namely:
+        Regarding BaseEnvInfo and BaseEnvTimestep, if there is no special requirement, you can directly call the default definition provided by DI-engine, namely:
 
         .. code:: python
 
-            from nervex.envs import BaseEnvTimestep, BaseEnvInfo
+            from ding.envs import BaseEnvTimestep, BaseEnvInfo
 
         If you need to customize it, use ``namedtuple(BaseEnvTimestep)`` / ``namedlist(BaseEnvInfo)`` to achieve it in accordance with the above requirements.
 
@@ -64,7 +64,7 @@ Implementation:
 
      .. warning::
 
-        NerveX has some dependencies on the ``info()`` field returned by the environment. ``info()`` returns a dict, and some key-value pairs have related dependencies:
+        DI-engine has some dependencies on the ``info()`` field returned by the environment. ``info()`` returns a dict, and some key-value pairs have related dependencies:
         
         1. ``final_eval_reward``: The key value must be included at the end of an episode of the environment (done=True), and the value is of type float, which means that the environment runs an episode performance measurement
 
@@ -77,7 +77,7 @@ Implementation:
 
 EnvElement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/common/env_element.py)
+(ding/envs/common/env_element.py)
 
 Overview:
     EnvElement is the base class of environment elements. ``Observation``, ``action``, ``reward``, etc. can be regarded as environmental elements. This class and its subclasses are responsible for the basic information and processing function definitions of a specific environmental element. This class and its subclasses are stateless and maintain static properties and methods.
@@ -100,7 +100,7 @@ The override methods need to be inherited in subclasses:
 
 EnvElementRunner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-(nervex/envs/common/env_element_runner.py)
+(ding/envs/common/env_element_runner.py)
 
 Overview:
     The runtime base class of environment elements is implemented using decoration patterns, responsible for runtime-related state management (such as maintaining some state record variables) and providing possible polymorphic mechanisms (reprocessing the results returned by static processing functions).

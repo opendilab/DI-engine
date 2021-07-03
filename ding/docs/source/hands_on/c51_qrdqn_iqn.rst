@@ -52,13 +52,13 @@ Implementation
 
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.c51.C51Policy
+.. autoclass:: ding.policy.c51.C51Policy
 
 The bellman updates of C51 is implemented as:
 
-The bellman updates of QRDQN is implemented in the function ``dist_nstep_td_error`` of ``nervex/rl_utils/td.py``.
+The bellman updates of QRDQN is implemented in the function ``dist_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of C51 implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of C51 implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 QRDQN
 ^^^^^^^
@@ -112,11 +112,11 @@ Implementation
 
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.qrdqn.QRDQNPolicy
+.. autoclass:: ding.policy.qrdqn.QRDQNPolicy
 
-The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``nervex/rl_utils/td.py``.
+The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of QRDQN implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of QRDQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 IQN
 ^^^^^^^
@@ -174,8 +174,8 @@ Implementation
 
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.iqn.IQNPolicy
+.. autoclass:: ding.policy.iqn.IQNPolicy
 
-The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``nervex/rl_utils/td.py``.
+The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of IQN implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of IQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

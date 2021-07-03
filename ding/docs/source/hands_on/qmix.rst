@@ -63,13 +63,13 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-    .. autoclass:: nervex.policy.qmix.QMIXPolicy
+    .. autoclass:: ding.policy.qmix.QMIXPolicy
 
 The network interface QMIX used is defined as follows:
 
     * TODO
 
-The Benchmark result of QMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in nerveX is shown.
+The Benchmark result of QMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
 References
 ----------------

@@ -113,7 +113,7 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-.. autoclass:: nervex.policy.impala.IMPALAPolicy
+.. autoclass:: ding.policy.impala.IMPALAPolicy
 
 Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
 need all training sample (sequences of training data) have the same length. This is done in ``policy._get_train_sample``.
@@ -313,7 +313,7 @@ The network interface IMPALA used is defined as follows:
 
     * TODO(similar to that in A2C,PPO)
 
-The Benchmark result of IMPALA implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of IMPALA implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 
 

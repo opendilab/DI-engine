@@ -56,9 +56,9 @@ How to write config and env info. (User View)
             )
 
 
-How nerveX randomly collect? (Developer View)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    We will take nerveX ``serial_pipeline`` as an example, to demonstrate how to use random_policy(``nerveX/nervex/policy/policy_factory.py``) to collect random data if ``random_collect_size`` is set in config.
+How DI-engine randomly collect? (Developer View)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    We will take DI-engine ``serial_pipeline`` as an example, to demonstrate how to use random_policy(``ding/ding/policy/policy_factory.py``) to collect random data if ``random_collect_size`` is set in config.
 
     .. code:: python
 
@@ -76,6 +76,6 @@ How nerveX randomly collect? (Developer View)
             # Switch collector's policy back to the collect_mode policy
             collector.reset_policy(policy.collect_mode)
     
-    nerveX use different methods to generate different types of actions (discrete and continuous, whether has upper or lower bound, etc.).
-     of ``PolicyFactory``.
-    You can refer to ``nerveX/nervex/policy/policy_factory.py``, see ``PolicyFactory``'s ``get_random_policy``'s ``forward`` for more details.
+    DI-engine use different methods to generate different types of actions (discrete and continuous, whether has upper or lower bound, etc.).
+
+    You can refer to ``ding/ding/policy/policy_factory.py``, see ``PolicyFactory``'s ``get_random_policy``'s ``forward`` for more details.

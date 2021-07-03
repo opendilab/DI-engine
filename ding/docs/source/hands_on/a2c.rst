@@ -69,7 +69,7 @@ Implementation
 ------------------
 The default config is defined as follows:
 
-    .. autoclass:: nervex.policy.a2c.A2CPolicy
+    .. autoclass:: ding.policy.a2c.A2CPolicy
 
 The policy gradient and value update of A2C is implemented as follows:
 
@@ -86,4 +86,4 @@ The policy gradient and value update of A2C is implemented as follows:
         value_loss = (F.mse_loss(return_, value, reduction='none') * weight).mean()
         return a2c_loss(policy_loss, value_loss, entropy_loss)
 
-The Benchmark result of A2C implemented in nerveX is shown in `Benchmark <../feature/algorithm_overview.html>`_
+The Benchmark result of A2C implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

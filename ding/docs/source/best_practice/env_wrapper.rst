@@ -7,13 +7,13 @@ to explore and learn in these environments.
 
 Usually, defining an environment needs to start from the input and the output of the environment, and fully
 consider possible obervation spaces and action spaces. The module Gym open-sourced by OpenAI has helped us define 
-most common environments for the use in both academia and industry. NerveX also follows the definition of Gym.env, and 
+most common environments for the use in both academia and industry. DI-engine also follows the definition of Gym.env, and 
 further adds some convenient functions for a better use experience.  
 
 Gym.env.wrapper, as a subclass of Gym.wrapper, enables users to facilitate the manipulation or adaptation of the input and output of the environment class.  
 Wrapper is a very convient and effective tool. Env wrapper only wraps some of the commonly used gym wrappers.
 
-NerveX provides the following env wrappers (Many of which are borrowed from openai baselines):
+DI-engine provides the following env wrappers (Many of which are borrowed from openai baselines):
 
 
 - NoopResetEnv. Add reset method for the env. Reset the env after some no-operations.
@@ -57,7 +57,7 @@ so that repeated developments are avoided and we only need to make a change here
 The reason that we use running mean and std instead of fixed mean and std is due to the fact that the distribution of samples will be different if different policies are applied, i.e., the \
 distribution of sampled data are highly correlated with a policy.\
 
-We show an implementation of ObsNormEnv below in nerveX to explain\
+We show an implementation of ObsNormEnv below in DI-engine to explain\
 how to customize an env wrapper.\
 
 
@@ -99,12 +99,11 @@ The structure of ObsNormEnv are as follows:
 
 - ``__init__``: Initialize ``episode count``, ``clip_range``, and ``running mean/std``
 
-- ``step``: Step the environment with the given action. Repeat action, sum reward,  \
-and update ``count of episodes``, and also update the ``running mean and std`` property  \
-once after integrating with the input ``action``.
+- ``step``: Step the environment with the given action. Repeat action, sum reward,  
+  and update ``count of episodes``, and also update the ``running mean and std`` property  
+  once after integrating with the input ``action``.
 
-- ``observation``: Get obeservations. Return the original one or the normalized one if the ``count of episodes``\
-exceeds 30 (default)
+- ``observation``: Get obeservations. Return the original one or the normalized one if the ``count of episodes`` exceeds 30 (default)
 
 - ``reset``: Resets the state of the environment and reset ``count of episodes``, ``running mean/std``.\
 
@@ -117,7 +116,7 @@ To customize an general env wrapper
 Users should follow the following steps to customize a model wrapper:
 
 1. Define your env wrapper class like other wrappers in
-   ``nervex/envs/env_wrappers/env_wrappers.py``;
+   ``ding/envs/env_wrappers/env_wrappers.py``;
 
 
 2. Wrap your env with `env_wrap` function.
@@ -135,4 +134,4 @@ env.NoopResetEnv(env, noop_max = 30) \
 env = MaxAndSkipEnv(env, skip = 4) \
 
 More details of env wrappers can be found in
-``nervex/envs/env_wrappers/env_wrappers.py``
+``ding/envs/env_wrappers/env_wrappers.py``

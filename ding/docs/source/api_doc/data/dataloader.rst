@@ -7,6 +7,6 @@ async dataloader
 AsyncDataLoader
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nervex.data.dataloader.AsyncDataLoader
+.. autoclass:: ding.data.dataloader.AsyncDataLoader
     :members: __init__, __iter__, __next__, close
 
