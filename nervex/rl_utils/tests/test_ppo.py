@@ -16,8 +16,8 @@ args = [item for item in product(*[use_value_clip_args, dual_clip_args, weight_a
 @pytest.mark.unittest
 def test_shape_fn_ppo():
     data = ppo_data(torch.randn(3, 5, 8), None, None, None, None, None, None, None)
-    shape1 = shape_fn_ppo(data)
-    shape2 = shape_fn_ppo({'data': data})
+    shape1 = shape_fn_ppo([data], {})
+    shape2 = shape_fn_ppo([], {'data': data})
     assert shape1 == shape2 == (3, 5, 8)
 
 
