@@ -7,7 +7,10 @@ For now, ``Registry`` supports these modules:
 
    - policy
    - env
+   - model
+   - reward_model
    - learner
+   - buffer
    - serial_collector
    - parallel_collector
    - comm_learner
@@ -26,7 +29,7 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
 
       @POLICY_REGISTRY.register('dqn')
       class DQNPolicy(Policy):
-         pass
+          pass
 
 2.  In config file, list the name and file path of the new policy
 
@@ -41,18 +44,20 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
    
    .. code:: python
 
-      policy=dict(
-         type='dqn',
-         import_names=['app_zoo.sumo.policy.sumo_dqn'],
-         # ...
-      )
+        create_config = dict(
+            policy=dict(
+                type='multi_head_dqn',
+                import_names=['app_zoo.common.policy.multi_head_dqn'],
+            # ...
+            )
+        )
 
    If you carefully read the source code, you will find out that for polices implemented in DI-engine core code(in path `ding/ding/`), the ``import_names`` is not listed in config file. However, if you implement a new policy, it is a **must** to list ``import_names``.
 
 
 3. Create the module through system functions
 
-   If you want to start the training task through DI-engine ``serial_pipeline``, for example, use CLI ``DI-engine -m XXX -c XXXX_config.py -s XX``, or call ``serial_pipeline`` function. Step 3 can be ignored, because ``serial_pipeline`` has already been done in ``serial_pipeline`` function.
+   If you want to start the training task through DI-engine ``serial_pipeline``, for example, use CLI ``ding -m XXX -c XXXX_config.py -s XX``, or call ``serial_pipeline`` function. Step 3 can be ignored, because ``serial_pipeline`` has already been done in ``serial_pipeline`` function.
    However, if you want to write your own pipeline, you can call ``create_policy`` function to create your policy.
 
    .. code:: python
@@ -64,4 +69,4 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
 
 Besides, you can use CLI ``ding -q <registry name>`` to look up the modules that are already registered in DI-engine core code. For example：
 
-.. image:: ding_cli_registry_query.png
+.. image:: images/ding_cli_registry_query.png

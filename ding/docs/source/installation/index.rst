@@ -51,6 +51,11 @@ Also, you can install DI-engine from the source codes in github(master branch re
     cd DI-engine
     pip install . --user
 
+.. tip::
+
+   If you use ``--user`` option in installation, some executable command will be installed in user path(e.g. ``~/.local/bin``), and you should ensure this path has already been added into environment variable(e.g. 
+   $PATH in Linux).
+
 If you want to install the extra package required by some functions in DI-engine(such as concrete env, unittest and doc), you can execute
 
 .. code-block:: bash
