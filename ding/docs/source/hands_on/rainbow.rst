@@ -91,8 +91,10 @@ The default config is defined as follows:
 .. autoclass:: ding.policy.rainbow.RainbowDQNPolicy
    :noindex:
 
-The network interface of Rainbow used is defined as follows:
+The network interface Rainbow used is defined as follows:
 
-    * TODO
+.. autoclass:: ding.model.template.q_learning.RainbowDQN
+   :members: __init__, forward
+   :noindex:
 
 The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
