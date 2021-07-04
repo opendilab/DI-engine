@@ -57,9 +57,9 @@ Usage:
 
          - Calling process:
 
-            .. image:: wrapper_structure.jpg
+            .. image:: images/wrapper_structure.jpg
 
-            .. image:: wrapper_call.jpg
+            .. image:: images/wrapper_call.jpg
 
         - Currently supported wrappers:
 
@@ -170,7 +170,7 @@ Usage:
 
         - Calling process:
 
-            .. image:: hook_call.jpg
+            .. image:: images/hook_call.jpg
 
         - Currently supported hooks:
 
@@ -229,4 +229,4 @@ Usage:
     * Wrapper is an encapsulation of the original method and supports layer-by-layer reuse. If the corresponding method is not found in the current layer, it will be searched on a higher layer.
     * Hook is to insert a new method in a certain position on the basis of the original method.
     
-    .. image:: wrapper_hook_call.jpg
+    .. image:: images/wrapper_hook_call.jpg

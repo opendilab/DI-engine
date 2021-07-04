@@ -2,18 +2,19 @@ League Overview
 ========================
 
 Abstract:
-    The concept of League training is from `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_. 
-    League training is a multi-agent reinforcement learning algorithm that is designed both to address the cycles commonly 
-    encountered during self-play training and to integrate a diverse range of strategies. In the league of AlphaStar, there exists
-    different types of agent as league members that differ only in the distribution of opponent they train against. In DI-engine, 
-    we call these members player. Each player holds a strategy, i.e. neural networks or rules. 
-    
-    In 1v1 RTS games like StarCraft2, the league is responsible for assigning opponents to players. 
-    Different players can fight each other and generate very rich game data to update their own strategies. This is one of the most important
-    components to make AlphaStar successfully.
 
-    In the following paragraphs, We'll first introduce the training pipline of League, then there will be a brief summary of the implementation
-    of ``league`` module in ding. 
+The concept of League training is from `AlphaStar <../rl_warmup/algorithm/large-scale-rl.html#alphastar>`_. 
+League training is a multi-agent reinforcement learning algorithm that is designed both to address the cycles commonly 
+encountered during self-play training and to integrate a diverse range of strategies. In the league of AlphaStar, there exists
+different types of agent as league members that differ only in the distribution of opponent they train against. In DI-engine, 
+we call these members player. Each player holds a strategy, i.e. neural networks or rules. 
+
+In 1v1 RTS games like StarCraft2, the league is responsible for assigning opponents to players. 
+Different players can fight each other and generate very rich game data to update their own strategies. This is one of the most important
+components to make AlphaStar successfully.
+
+In the following paragraphs, We'll first introduce the training pipline of League, then there will be a brief summary of the implementation
+of ``league`` module in ding. 
 
 
 League Intro
@@ -43,7 +44,7 @@ they train against. The "Rock-paper-scissors" problem can be alleviated in this 
 in the AlphaStar paper's "Methods - MultiAgent Learning" part.
 
 DI-engine Implementation
-------------------------
+----------------------------
 
 DI-engine's implementation of league consists of three parts:
 
@@ -63,7 +64,6 @@ Abstract:
         - Historical means player's model is frozen from the past active player, used as the opponent of active player, to enrich the diversity of data.
 
 Code Structure:
-
     The main classes are as follows:
 
         1. ``Player``: Base class of player, holds most properties.

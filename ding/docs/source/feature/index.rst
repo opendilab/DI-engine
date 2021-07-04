@@ -9,7 +9,7 @@ Feature
 .. toctree::
     :maxdepth: 3
 
-    algorithm_overview
+    algorithm_overview_en
     policy_overview_en
     model_overview_en
     env_overview_en
@@ -22,7 +22,5 @@ Feature
     league_overview_en
 
     hpc_rl_overview_en
-    dataloader_overview
-    autolog_overview
     interaction_overview_en
     loader_overview_en

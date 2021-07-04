@@ -55,9 +55,9 @@ Wrapper
         
         - 调用流程：
 
-            .. image:: wrapper_structure.jpg
+            .. image:: images/wrapper_structure.jpg
 
-            .. image:: wrapper_call.jpg
+            .. image:: images/wrapper_call.jpg
 
         - 目前已经支持的 wrapper：
 
@@ -164,7 +164,7 @@ Hook
 
         - 调用流程：
 
-            .. image:: hook_call.jpg
+            .. image:: images/hook_call.jpg
 
         - 目前已经支持的 hook：
 
@@ -222,6 +222,6 @@ Hook
     * Wrapper 是对原始函数的封装，支持一层一层的复用，如果在当前层没有找到对应的函数方法，会在更上一层去寻找。
     * Hook 是在原始方法的基础上，在某个位置插入一个新的方法。
     
-    .. image:: wrapper_hook_call.jpg
+    .. image:: images/wrapper_hook_call.jpg
 
 
