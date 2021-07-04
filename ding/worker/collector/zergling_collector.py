@@ -221,8 +221,8 @@ class ZerglingCollector(BaseCollector):
             'avg_time_per_train_sample': duration / max(1, self._total_sample),
             'avg_step_per_episode': self._total_step / max(1, self._total_episode),
             'avg_sample_per_episode': self._total_sample / max(1, self._total_episode),
-            'reward_mean': np.mean(episode_result),
-            'reward_std': np.std(episode_result),
+            'reward_mean': np.mean(episode_result) if len(episode_result) > 0 else 0,
+            'reward_std': np.std(episode_result) if len(episode_result) > 0 else 0,
             'reward_raw': episode_result,
             'finish_time': time.time()
         }

@@ -9,7 +9,7 @@ import io
 import time
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
-from .lock_helper import get_rw_lock
+from .lock_helper import get_file_lock
 
 global r, rc, mclient
 mclient = None
@@ -270,7 +270,7 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
         data = read_from_path(path)
     elif fs_type == 'normal':
         if use_lock:
-            with get_rw_lock(path, 'read'):
+            with get_file_lock(path, 'read'):
                 data = torch.load(path, map_location='cpu')
         else:
             data = torch.load(path, map_location='cpu')
@@ -301,7 +301,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
         save_file_ceph(path, data)
     elif fs_type == 'normal':
         if use_lock:
-            with get_rw_lock(path, 'write'):
+            with get_file_lock(path, 'write'):
                 torch.save(data, path)
         else:
             torch.save(data, path)

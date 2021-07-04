@@ -8,7 +8,7 @@ from .design_helper import SingletonMetaclass
 from .file_helper import read_file, save_file, remove_file
 from .import_helper import try_import_ceph, try_import_mc, try_import_link, import_module, try_import_redis,\
      try_import_rediscluster
-from .lock_helper import LockContext, LockContextType
+from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_file_lock
 from .log_helper import build_logger, DistributionTimeImage, pretty_print, TextLogger
 from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, find_free_port
 from .time_helper import build_time_helper, EasyTimer, WatchDog

@@ -19,9 +19,16 @@ def test_normal_file():
     assert (data4 == data1)
     save_file_ceph("./f2", data1)
     assert (data1 == read_from_file("./f2"))
+    # test lock
+    save_file('./f3', data1, use_lock=True)
+    data_read = read_file('./f3', use_lock=True)
+    assert isinstance(data_read, dict)
+
     remove_file("./f")
     remove_file("./f1")
     remove_file("./f2")
+    remove_file("./f3")
     remove_file('./f.lock')
     remove_file('./f2.lock')
+    remove_file('./f3.lock')
     remove_file('./name.txt')

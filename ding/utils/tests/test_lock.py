@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from collections import deque
 
-from ding.utils import LockContext, LockContextType
+from ding.utils import LockContext, LockContextType, get_rw_file_lock
 
 
 @pytest.mark.unittest
@@ -22,3 +22,16 @@ def test_usage():
     output = queue.popleft()
     lock.release()
     assert (output == data).all()
+
+
+@pytest.mark.unittest
+def test_get_rw_file_lock():
+    path = 'tmp.npy'
+    # TODO real read-write case
+    read_lock = get_rw_file_lock(path, 'read')
+    write_lock = get_rw_file_lock(path, 'write')
+    with write_lock:
+        np.save(path, np.random.randint(0, 1, size=(3, 4)))
+    with read_lock:
+        data = np.load(path)
+    assert data.shape == (3, 4)
