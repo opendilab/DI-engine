@@ -22,7 +22,7 @@ class DQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
             Init the DQN Model according to arguments.
         Arguments:
@@ -32,11 +32,10 @@ class DQN(nn.Module):
             - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
             - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in networks \
                 if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``nervex.torch_utils.fc_block`` \
+                for more details.
         """
         super(DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -76,26 +75,21 @@ class DQN(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
-            Use encoded embedding tensor to predict output.
-            Parameter updates with DQN's MLPs forward setup.
+            Use observation tensor to predict q_value.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor.
+            - x (:obj:`torch.Tensor`): Observation inputs
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head.
-
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-
+            - outputs (:obj:`Dict`): DQN forward outputs.
+        ReturnsKeys:
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output.
         Shapes:
-            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding``hidden_size``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Examples:
-            >>> model = DQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
-            >>> inputs = torch.randn(4, 64)
+            >>> model = DQN(64, 32) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
-            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 64])
+            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 32])
         """
         x = self.encoder(x)
         x = self.head(x)

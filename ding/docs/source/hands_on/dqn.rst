@@ -73,16 +73,19 @@ DQN can be combined with:
            :align: center
            :height: 300
 
-    - RNN
+    - RNN(DRQN, R2D2)
 
 Implementations
 ----------------
-The default config is defined as follows:
+The default config of DQNPolicy is defined as follows:
 
 .. autoclass:: ding.policy.dqn.DQNPolicy
+   :noindex:
 
 The network interface DQN used is defined as follows:
 
-    * TODO
+.. autoclass:: ding.model.template.q_learning.DQN
+   :members: __init__, forward
+   :noindex:
 
 The Benchmark result of DQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

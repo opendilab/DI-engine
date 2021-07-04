@@ -24,21 +24,36 @@ class DQNPolicy(Policy):
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      dqn            | RL policy register name, refer to      | this arg is optional,
+        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
                                                                                                  | erent from modes
         3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
                                                         | or off-policy
-        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,
                                                                                                  | update priority
-        5  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | may be 1 when sparse
+        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
+           | ``_weight``                                | to correct biased update. If True,
+                                                        | priority must be True.
+        6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        6  ``nstep``            int      1,             | N-step reward discount sum for target
+        7  ``nstep``            int      1,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
-        7  | ``learn.update``   int      3              | How many updates(iterations) to train  | this args can be vary
+        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
+        9  | ``learn.batch_``   int      64             | The number of samples of an iteration
+           | ``size``
+        10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+           | ``_rate``
+        11 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+           | ``update_freq``
+        12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
+           | ``done``                                   | calculation.                           | fake termination env
+        13 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+                                                        | call of collector.                     | different envs
+        14 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+           | ``_len``
         == ==================== ======== ============== ======================================== =======================
     """
 
@@ -201,6 +216,7 @@ class DQNPolicy(Policy):
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
@@ -261,6 +277,7 @@ class DQNPolicy(Policy):
                 format as the return value of ``self._process_transition`` method.
         Returns:
             - samples (:obj:`dict`): The list of training samples.
+
         .. note::
             We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
             And the user can customize the this data processing procecure by overriding this two methods and collector \
@@ -273,7 +290,7 @@ class DQNPolicy(Policy):
     def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
         """
         Overview:
-            Generate a transition(e.g.: <s, a, s_, r, d) for this algorithm training.
+            Generate a transition(e.g.: <s, a, s', r, d>) for this algorithm training.
         Arguments:
             - obs (:obj:`Any`): Env observation.
             - policy_output (:obj:`Dict[str, Any]`): The output of policy collect mode(``self._forward_collect``),\
@@ -333,6 +350,7 @@ class DQNPolicy(Policy):
             Return this algorithm default model setting for demostration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
