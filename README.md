@@ -1,8 +1,46 @@
-# nerveX
-[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/blob/master/LICENSE)
-[![pipeline status](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/badges/master/pipeline.svg)](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/commits/master)
-[![coverage report](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/badges/master/coverage.svg)](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/commits/master)
+<div align="center">
+    <a href="http://di-engine.github.io"><img width="300px" height="auto" src="docs/source/images/ding_logo.png"></a>
+</div>
 
-Updated on 2021.06.16
+---
 
-Documents: http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX
+Updated on 2021.07.08
+
+## badge
+
+## Introduction
+Decision AI Engine
+
+## Installation
+
+```bash
+pip install DI-engine
+```
+
+## Documentation
+The detailed documentation are hosted on []().
+
+## Quick Start
+
+```bash
+ding -m serial --env cartpole --algo dqn -s 0
+```
+
+## Roadmap
+
+## Contributing
+We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guideline.
+
+## Citation
+```latex
+@misc{ding,
+    title={{DI-engine: OpenDILab} Decision Intelligence Engine},
+    author={DI-engine Contributors},
+    publisher = {GitHub},
+    howpublished = {\url{https://github.com/opendilab/DI-engine}},
+    year={2021},
+}
+```
+
+## License
+DI-engine released under the Apache 2.0 license.
