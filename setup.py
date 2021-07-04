@@ -32,7 +32,7 @@ setup(
     description=meta['__DESCRIPTION__'],
     author=meta['__AUTHOR__'],
     license='Apache License, Version 2.0',
-    keywords='DRL Framework',
+    keywords='Decision AI Engine',
     packages=[
         # framework
         *find_packages(include=('ding', "ding.*")),
@@ -47,12 +47,12 @@ setup(
         'numpy>=1.10',
         'requests~=2.24.0',
         'six',
-        'gym>=0.15.3',  # pypy
-        'torch>=1.3.1,<=1.7.1',  # 1.3.1+cuda90_cudnn7.6.3_lms
+        'gym>=0.15.3',  # pypy incompatible
+        'torch>=1.3.1,<=1.7.1',
         'pyyaml',
         'easydict==1.9',
-        'tensorboardX>=2.1',
-        'matplotlib',  # pypy
+        'tensorboardX>=2.1,<=2.2',
+        'matplotlib',  # pypy incompatible
         'yapf==0.29.0',
         'responses~=0.12.1',
         'flask~=1.1.2',
@@ -66,7 +66,7 @@ setup(
         'urllib3==1.25.10',
         'readerwriterlock',
         'namedlist',
-        'opencv-python',
+        'opencv-python',  # pypy incompatible
         'enum_tools'
     ],
     extras_require={
@@ -99,7 +99,7 @@ setup(
             'atari_py',
             'box2d-py',
             'cmake>=3.18.4',
-            'opencv-python',  # pypy
+            'opencv-python',  # pypy incompatible
         ],
         'sumo_env': [
             'sumolib',
@@ -121,7 +121,7 @@ setup(
             'portpicker>=1.2.0',
             'websocket-client',
             'protobuf>=2.6',
-            'sk-video',  # pypy
+            'sk-video',  # pypy incompatible
             'whichcraft',
             'joblib',
         ],
