@@ -129,7 +129,7 @@ The structure of HiddenStateWrapper are as follows:
 
 The dataflow of this process is as follows:
 
-        .. image:: model_hiddenwrapper_img.png
+        .. image:: images/model_hiddenwrapper_img.png
             :align: center
             :scale: 60%
 

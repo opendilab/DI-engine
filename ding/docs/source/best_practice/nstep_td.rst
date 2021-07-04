@@ -93,4 +93,4 @@ The calculation is implemented in ``q_nstep_td_error`` function
 
 Please notice that the key ``nstep`` might be in different positions for different algorithm.
 
-We also provide some other n-sted td methods, please refer to ``DI-engine\rl_utils\td.py``.
+We also provide some other n-sted td methods, please refer to ``ding\rl_utils\td.py``.

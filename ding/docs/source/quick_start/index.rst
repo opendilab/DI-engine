@@ -200,7 +200,7 @@ Epsilon Greedy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An easy way of deploying epsilon greedy exploration when sampling data has already been shown above. It is
-called by the `epsilon_greedy` function each step. And you can select your own decay strategy, such as envstep and train_iter.
+called by the ``epsilon_greedy`` function each step. And you can select your own decay strategy, such as envstep and train_iter.
 
 .. code-block:: python
 
@@ -226,6 +226,10 @@ After training, the users need to indicate ``env.replay_path`` in config and add
     evaluator_env.enable_save_replay(cfg.env.replay_path)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+
+.. tip::
+
+    If users encounter some errors in recording videos by gym wrapper, you should install ``ffmpeg`` first.
 
 A simple demo for replaying CartPole Env evaluation is shown follow.
 

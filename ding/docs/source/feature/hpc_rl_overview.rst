@@ -57,9 +57,9 @@ HPC_RL 组件是一个加速算子组件，全称是 High Performance Computatio
 
         .. code:: python
 
-            import DI-engine
+            import ding
             from ding.entry import serial_pipeline
-            from ding.utils import read_config
+            from ding.config import read_config
 
 
             if __name__ == "__main__":

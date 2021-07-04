@@ -6,17 +6,19 @@ Best Practice
 
     nstep_td
     priority
-    learner_log
     IL
     IRL
     rnn
     random_seed
     multi_discrete
+    random_collect_size
+    
+    training_generated_folders
+    learner_log
+    
     model_wrapper
     env_wrapper
-    registry
-    customization1_dynamic_update_step
-    training_generated_folders
     multi_buffer
-    random_collect_size
-
+    registry
+    
+    customization1_dynamic_update_step

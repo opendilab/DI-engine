@@ -101,8 +101,7 @@ model.
 
    # set policy default model
      def default_model(self) -> Tuple[str, List[str]]:
-       return 'fcr_discrete_net', ['ding.model.discrete_net.discrete_net']
-       # or 'convr_discrete_net' if use image as input
+         return 'drqn', ['ding.model.template.q_learning']
 
 2. Use customized model. To use customized model, you can refer to `Set
    up Policy and NN
@@ -117,9 +116,11 @@ model.
      def forward(x):
          # the input data `x` must be a dict, contains the key 'prev_state', the hidden state of last timestep
          ...
-         return {'logit': logit,
-           'next_state': hidden_state,
-           ...}
+         return {
+             'logit': logit,
+             'next_state': hidden_state,
+             ...
+         }
 
 .. note::
    DI-engine also provide RNN module. You can use ``get_lstm()`` function by ``from ding.torch_utils import get_lstm``. This function allows users to build LSTM implemented by ding/pytorch/HPC.
@@ -162,7 +163,7 @@ More details of ``HiddenStateWrapper`` can be found in `model
 wrapper <./model_wrapper.rst>`__, the work flow of it can be shown as
 the following figure:
 
-        .. image:: model_hiddenwrapper_img.png
+        .. image:: images/model_hiddenwrapper_img.png
             :align: center
             :scale: 60%
 
