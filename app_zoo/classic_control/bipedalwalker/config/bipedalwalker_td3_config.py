@@ -9,6 +9,7 @@ bipedalwalker_td3_config = dict(
         n_evaluator_episode=5,
         stop_value=300,
         rew_clip=True,
+        replay_path=None,
     ),
     policy=dict(
         cuda=True,
@@ -32,6 +33,7 @@ bipedalwalker_td3_config = dict(
             ignore_done=False,
             actor_update_freq=2,
             noise=True,
+
             noise_sigma=0.2,
             noise_range=dict(
                 min=-0.5,

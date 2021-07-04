@@ -17,6 +17,7 @@ class BipedalWalkerEnv(BaseEnv):
         self._init_flag = False
         self._act_scale = cfg.act_scale
         self._rew_clip = cfg.rew_clip
+        self._replay_path = cfg.replay_path
         
 
     def reset(self) -> np.ndarray:
@@ -28,6 +29,10 @@ class BipedalWalkerEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        if self._replay_path is not None:
+            self._env = gym.wrappers.Monitor(
+                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                )
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
