@@ -277,6 +277,7 @@ class CollaQMultiHeadAttention(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(
         self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
     ):
@@ -290,7 +291,7 @@ class CollaQMultiHeadAttention(nn.Module):
             - d_k (:obj:`int`): the size of k, used by Scaled Dot Product Attention
             - d_v (:obj:`int`): the size of v, used by Scaled Dot Product Attention
             - d_out (:obj:`int`): the size of output q
-        """      
+        """
         super(CollaQMultiHeadAttention, self).__init__()
 
         self.act = nn.ReLU()
@@ -356,6 +357,7 @@ class CollaQSMACAttentionModule(nn.Module):
     Interface:
         __init__, _cut_obs, forward
     """
+
     def __init__(
         self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
     ):
@@ -368,7 +370,7 @@ class CollaQSMACAttentionModule(nn.Module):
             - self_features (:obj:`torch.Tensor`): output self agent's attention observation
             - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
             - attention_size (:obj:`int`): the size of attention net layer
-        """      
+        """
         super(CollaQSMACAttentionModule, self).__init__()
         self.self_feature_range = self_feature_range
         self.ally_feature_range = ally_feature_range
@@ -383,7 +385,7 @@ class CollaQSMACAttentionModule(nn.Module):
         Return:
             - self_features (:obj:`torch.Tensor`): output self agent's attention observation
             - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
-        """        
+        """
         # obs shape = (T, B, A, obs_shape)
         self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
         ally_features = obs[:, :, :, self.ally_feature_range[0]:self.ally_feature_range[1]]
@@ -426,6 +428,7 @@ class CollaQ(nn.Module):
     Interface:
         __init__, forward, _setup_global_encoder
     """
+
     def __init__(
             self,
             agent_num: int,

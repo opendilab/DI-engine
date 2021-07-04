@@ -16,6 +16,7 @@ class COMAActorNetwork(nn.Module):
     Interface:
         __init__, forward
     """
+
     def __init__(
         self,
         obs_shape: int,
@@ -80,7 +81,7 @@ class COMACriticNetwork(nn.Module):
             - input_size (:obj:`int`): the size of input global observation
             - action_shape (:obj:`int`): the dimension of action shape
             - hidden_size_list (:obj:`list`): the list of hidden size, default to 128
-        """    
+        """
         super(COMACriticNetwork, self).__init__()
         self.action_shape = action_shape
         self.act = nn.ReLU()
@@ -120,7 +121,7 @@ class COMACriticNetwork(nn.Module):
         Return:
             - x (:obj:`torch.Tensor`): the data can be used by MLP net, including \
                 ``global_state``, ``agent_state``, ``last_action``, ``action``, ``agent_id``
-        """        
+        """
         t_size, batch_size, agent_num = data['obs']['agent_state'].shape[:3]
         agent_state_ori, global_state = data['obs']['agent_state'], data['obs']['global_state']
 
@@ -162,7 +163,7 @@ class COMA(nn.Module):
                 global_state
             - action_shape (:obj:`Union[int, SequenceType]`): the dimension of action shape
             - actor_hidden_size_list (:obj:`SequenceType`): the list of hidden size
-        """    
+        """
         super(COMA, self).__init__()
         action_shape = squeeze(action_shape)
         actor_input_size = squeeze(obs_shape['agent_state'])
