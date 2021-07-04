@@ -120,7 +120,7 @@ Env Manager
         
         各状态间的转换关系如图示：
 
-            .. image:: env_state.png
+            .. image:: images/env_state.png
 
     - max_retry 和 timeout
   

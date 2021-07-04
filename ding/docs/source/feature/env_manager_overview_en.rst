@@ -129,7 +129,7 @@ Advanced features:
         
         The conversion between each state is as shown in the figure:
 
-            .. image:: env_state.png
+            .. image:: images/env_state.png
 
     - max_retry 和 timeout
         In order to prevent some sub-environments from reporting errors temporarily due to connection problems, or the program will not exit normally when the sub-processes are stuck, the env manager of DI-engine has added retry protection and timeout detection mechanisms.

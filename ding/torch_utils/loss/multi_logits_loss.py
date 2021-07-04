@@ -1,10 +1,3 @@
-'''
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. implementation of MultiLogitsLoss and its test
-'''
-
 import numpy as np
 import torch
 import torch.nn as nn
