@@ -101,6 +101,8 @@ class FlaskFileSystemLearner(BaseCommLearner):
         host, port = cfg.host, cfg.port
         if isinstance(port, list):
             port = port[self._rank]
+        elif isinstance(port, int) and self._world_size > 1:
+            port = port + self._rank
         self._slave = LearnerSlave(host, port, callback_fn=self._callback_fn)
 
         self._path_data = cfg.path_data  # path to read data from
