@@ -2,9 +2,9 @@ import os
 import socket
 import time
 import uuid
-from typing import Optional, Any
-from threading import Thread
 from contextlib import closing
+from threading import Thread
+from typing import Any
 
 
 def get_ip() -> str:

@@ -1,11 +1,7 @@
 import click
 from click.core import Context, Option
+
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
-from .serial_entry import serial_pipeline
-from .parallel_entry import parallel_pipeline
-from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, dist_prepare_config, \
-    dist_launch_learner_aggregator
-from .application_entry import eval
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
@@ -101,10 +97,15 @@ def cli(
     module_name: str,
 ):
     if mode == 'serial':
+        from .serial_entry import serial_pipeline
         serial_pipeline(config, seed)
     elif mode == 'parallel':
+        from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
     elif mode == 'dist':
+        from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, \
+            dist_prepare_config, \
+            dist_launch_learner_aggregator
         if module == 'config':
             dist_prepare_config(
                 config, seed, platform, coordinator_host, learner_host, collector_host, coordinator_port, learner_port,
@@ -121,4 +122,5 @@ def cli(
         else:
             raise Exception
     elif mode == 'eval':
+        from .application_entry import eval
         eval(config, seed)
