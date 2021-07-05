@@ -10,7 +10,7 @@ from easydict import EasyDict
 import numpy as np
 from nervex.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
 from nervex.config import read_config, compile_config_parallel
-from nervex.utils import set_pkg_seed
+from nervex.utils import set_pkg_seed, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT
 
 
 def dist_prepare_config(
@@ -156,7 +156,7 @@ def dist_launch_learner_aggregator(
             config = pickle.load(f).system[name]
     else:
         # start without config (create a fake one)
-        host, port = aggregator_host, 22272
+        host, port = aggregator_host, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT
         if aggregator_port is not None:
             port = aggregator_port
         elif os.environ.get('AGGREGATOR_PORT', None):
