@@ -50,13 +50,18 @@ Implementation
       Our benchmark result of C51 uses the same hyper-parameters as DQN except the exclusive `n_atom` of C51, which is empirically set as 51.
 
 
-The default config is defined as follows:
+The default config of C51 is defined as follows:
 
 .. autoclass:: ding.policy.c51.C51Policy
+   :noindex:
+
+The network interface C51 used is defined as follows:
+
+.. autoclass:: ding.model.template.q_learning.C51DQN
+   :members: __init__, forward
+   :noindex:
 
 The bellman updates of C51 is implemented as:
-
-The bellman updates of QRDQN is implemented in the function ``dist_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
 The Benchmark result of C51 implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
@@ -110,9 +115,16 @@ Implementation
 .. tip::
       Our benchmark result of QRDQN uses the same hyper-parameters as DQN except the QRDQN's exclusive hyper-parameter, `the number of quantiles`, which is empirically set as 32.
 
-The default config is defined as follows:
+The default config of QRDQN is defined as follows:
 
 .. autoclass:: ding.policy.qrdqn.QRDQNPolicy
+   :noindex:
+
+The network interface QRDQN used is defined as follows:
+
+.. autoclass:: ding.model.template.q_learning.QRDQN
+   :members: __init__, forward
+   :noindex:
 
 The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
@@ -172,9 +184,16 @@ Implementation
 .. tip::
       Our benchmark result of IQN uses the same hyper-parameters as DQN except the IQN's exclusive hyper-parameter, `the number of quantiles`, which is empirically set as 32. The number of quantiles are not recommended to set larger than 64, which brings marginal gain and much more forward latency.
 
-The default config is defined as follows:
+The default config of IQN is defined as follows:
 
 .. autoclass:: ding.policy.iqn.IQNPolicy
+   :noindex:
+
+The network interface IQN used is defined as follows:
+
+.. autoclass:: ding.model.template.q_learning.IQN
+   :members: __init__, forward
+   :noindex:
 
 The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 

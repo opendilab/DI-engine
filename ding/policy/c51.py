@@ -19,6 +19,37 @@ class C51Policy(DQNPolicy):
     r"""
     Overview:
         Policy class of C51 algorithm.
+
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      c51            | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4  ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        5  ``model.v_min``      float    -10            | Value of the smallest atom
+                                                        | in the support set.
+        6  ``model.v_max``      float    10             | Value of the largest atom
+                                                        | in the support set.
+        7  ``model.n_atom``     int      51             | Number of atoms in the support set
+                                                        | of the value distribution.
+        8  | ``other.eps``      float    0.95           | Start value for epsilon decay.
+           | ``.start``                                 |
+        9  | ``other.eps``      float    0.1            | End value for epsilon decay.
+           | ``.end``
+        10 | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
+        11 ``nstep``            int      1,             | N-step reward discount sum for target
+                                                        | q_value estimation
+        12 | ``learn.update``   int      3              | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        == ==================== ======== ============== ======================================== =======================
     """
 
     config = dict(
@@ -34,6 +65,11 @@ class C51Policy(DQNPolicy):
         discount_factor=0.97,
         # (int) N-step reward for target q_value estimation
         nstep=1,
+        model=dict(
+            v_min=-10,
+            v_max=10,
+            n_atom=51,
+        ),
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
