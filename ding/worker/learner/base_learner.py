@@ -99,6 +99,7 @@ class BaseLearner(object):
         else:
             self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
             self._tb_logger = None
+        self.info(self._policy.info())
         self._log_buffer = {
             'scalar': build_log_buffer(),
             'scalars': build_log_buffer(),

@@ -94,6 +94,7 @@ class Policy(ABC):
         for field in self._enable_field:
             getattr(self, '_init_' + field)()
 
+
     def _init_multi_gpu_setting(self, model: torch.nn.Module) -> None:
         for name, param in model.state_dict().items():
             assert isinstance(param.data, torch.Tensor), type(param.data)
@@ -104,9 +105,9 @@ class Policy(ABC):
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         if model is None:
             model_cfg = cfg.model
-            if 'model_type' not in model_cfg:
-                model_type, import_names = self.default_model()
-                model_cfg.model_type = model_type
+            if 'type' not in model_cfg:
+                m_type, import_names = self.default_model()
+                model_cfg.type = m_type
                 model_cfg.import_names = import_names
             return create_model(model_cfg)
         else:

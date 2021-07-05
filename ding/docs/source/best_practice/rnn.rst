@@ -82,7 +82,7 @@ Build a Model with RNN
 You can use either DI-engine's built-in recurrent model or your own RNN
 model.
 
-1. Use DI-engine's built-in model. DI-engine's discrete network provide RNN
+1. Use DI-engine's built-in model. DI-engine's DRQN provide RNN
    support(default to LSTM) for discrete action space environments. You
    can easily specify model type in config or set model in policy to use
    it.
@@ -93,13 +93,14 @@ model.
    policy=dict(
        ...
        model=dict(
-         model_type='fcr_discrete_net', # or 'convr_discrete_net' if use image as input
-         import_names=['ding.model.discrete_net.discrete_net']),
-         ...
+         type='drqn',
+         import_names=['ding.model.template.q_learning']
        ),
        ...
+   ),
+   ...
 
-   # set policy default model
+   # or set policy default model
      def default_model(self) -> Tuple[str, List[str]]:
          return 'drqn', ['ding.model.template.q_learning']
 

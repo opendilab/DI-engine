@@ -45,7 +45,7 @@ The module can be specialized defined by users or just use our pre-defined modul
 .. code-block:: python
 
     from ding.config import compile_config
-    from ding.envs import BaseEnvManager, DI-engineEnvWrapper
+    from ding.envs import BaseEnvManager, DingEnvWrapper
     from ding.model import DQN, VAC
     from ding.policy import DQNPolicy, PPOPolicy
     from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
@@ -89,7 +89,7 @@ of using :class:`BaseEnvManager <ding.envs.BaseEnvManager>` to build environment
     import gym
 
     def wrapped_cartpole_env():
-        return DI-engineEnvWrapper(gym.make('CartPole-v0'))
+        return DingEnvWrapper(gym.make('CartPole-v0'))
 
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)

@@ -5,7 +5,16 @@ from typing import Callable, Optional, Union, Any
 import ding
 try:
     if ding.enable_numba:
+        import numba
         from numba import njit
+        version = numba.__version__
+        middle_version = version.split(".")[1]
+        if int(middle_version) < 53:
+            njit = partial  # noqa
+            logging.warning(
+                "Due to your numba version <= 0.53.0, DI-engine disables it. And you can install \
+                numba==0.53.0 if you want to speed up something"
+            )
     else:
         njit = partial
 except ImportError:

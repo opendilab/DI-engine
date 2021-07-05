@@ -91,7 +91,7 @@ setup(
         ],
         'fast': [
             'numpy-stl',
-            'numba',
+            'numba>=0.53.0',
             'redis==3.5.3',
             'redis-py-cluster==2.1.0',
         ],
