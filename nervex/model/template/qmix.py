@@ -12,67 +12,9 @@ from .q_learning import DRQN
 
 
 class Mixer(nn.Module):
-    """
-    Overview:
-        mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value
-    Interface:
-        __init__, forward
-    """
-
-    def __init__(self, agent_num: int, embedding_size: int, w_layers: int = 2) -> None:
-        """
-        Overview:
-            initialize mixer network
-        Arguments:
-            - agent_num (:obj:`int`): the number of agent
-            - embedding_size (:obj:`int`): the dimension of state emdedding
-            - w_layers (:obj:`int`): the number of fully-connected layers of mixer weight
-        """
-        super(Mixer, self).__init__()
-        self._agent_num = agent_num
-        self._embedding_size = embedding_size
-        self._act = nn.ReLU()
-        self._w1 = nn.Sequential(
-            MLP(embedding_size, embedding_size, embedding_size, w_layers - 1, activation=self._act),
-            nn.Linear(embedding_size, embedding_size * agent_num)
-        )
-        self._w2 = nn.Sequential(
-            MLP(embedding_size, embedding_size, embedding_size, w_layers - 1, activation=self._act),
-            nn.Linear(embedding_size, embedding_size)
-        )
-        self._b1 = nn.Linear(embedding_size, embedding_size)
-        self._b2 = nn.Sequential(nn.Linear(embedding_size, embedding_size), self._act, nn.Linear(embedding_size, 1))
-
-    def forward(self, agent_q: torch.Tensor, state_embedding: torch.Tensor) -> torch.Tensor:
-        """
-        Overview:
-            forward computation graph of mixer network
-        Arguments:
-            - agent_q (:obj:`torch.FloatTensor`): the independent q_value of each agent
-            - state_embedding (:obj:`torch.FloatTensor`): the emdedding vector of global state
-        Returns:
-            - total_q (:obj:`torch.FloatTensor`): the total mixed q_value
-        Shapes:
-            - agent_q (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is agent_num
-            - state_embedding (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size
-            - total_q (:obj:`torch.FloatTensor`): :math:`(B, )`
-        """
-        agent_q = agent_q.reshape(-1, 1, self._agent_num)
-        # first layer
-        w1 = torch.abs(self._w1(state_embedding)).reshape(-1, self._agent_num, self._embedding_size)
-        b1 = self._b1(state_embedding).reshape(-1, 1, self._embedding_size)
-        hidden = F.elu(torch.bmm(agent_q, w1) + b1)  # bs, 1, embedding_size
-        # second layer
-        w2 = torch.abs(self._w2(state_embedding)).reshape(-1, self._embedding_size, 1)
-        b2 = self._b2(state_embedding).reshape(-1, 1, 1)
-        hidden = torch.bmm(hidden, w2) + b2
-        return hidden.squeeze(-1).squeeze(-1)
-
-
-class PMixer(nn.Module):
 
     def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64):
-        super(PMixer, self).__init__()
+        super(Mixer, self).__init__()
 
         self.n_agents = agent_num
         self.state_dim = state_dim
@@ -130,24 +72,17 @@ class QMix(nn.Module):
             action_shape: int,
             hidden_size_list: list,
             mixer: bool = True,
-            use_gru: bool = False,
-            use_pmixer: bool = False,
+            lstm_type = 'gru',
+            dueling = False
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
-        lstm_type = 'gru' if use_gru else 'normal'
-        self._q_network = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type)
+        self._q_network = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type, dueling=dueling)
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
-            # use pymarl mixer
-            if use_pmixer:
-                self._mixer = PMixer(agent_num, global_obs_shape, embedding_size)
-                self._global_state_encoder = nn.Sequential()
-            else:
-                self._mixer = Mixer(agent_num, embedding_size)
-                global_obs_shape = squeeze(global_obs_shape)
-                self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
+            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
+            self._global_state_encoder = nn.Sequential()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -222,7 +157,7 @@ class QMix(nn.Module):
 class CollaQMultiHeadAttention(nn.Module):
 
     def __init__(
-        self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
+            self, n_head: int, d_model_q: int, d_model_v: int, d_k: int, d_v: int, d_out: int, dropout: float = 0.
     ):
         super(CollaQMultiHeadAttention, self).__init__()
 
@@ -274,7 +209,8 @@ class CollaQMultiHeadAttention(nn.Module):
 class CollaQSMACAttentionModule(nn.Module):
 
     def __init__(
-        self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int], attention_size: int
+            self, q_dim: int, v_dim: int, self_feature_range: List[int], ally_feature_range: List[int],
+            attention_size: int
     ):
         super(CollaQSMACAttentionModule, self).__init__()
         self.self_feature_range = self_feature_range
@@ -323,7 +259,10 @@ class CollaQ(nn.Module):
             self_feature_range: Union[List[int], None] = None,
             ally_feature_range: Union[List[int], None] = None,
             attention_size: int = 32,
-            mixer: bool = True
+            mixer: bool = True,
+            lstm_type='gru',
+            dueling=False,
+            use_pmixer: bool = False,
     ) -> None:
         super(CollaQ, self).__init__()
         self.attention = attention
@@ -331,7 +270,7 @@ class CollaQ(nn.Module):
         self._act = nn.ReLU()
         self.mixer = mixer
         if not self.attention:
-            self._q_network = DRQN(obs_shape, action_shape, hidden_size_list)
+            self._q_network = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type, dueling=dueling)
         else:
             # TODO set the attention layer here beautifully
             self._self_attention = CollaQSMACAttentionModule(
@@ -347,13 +286,14 @@ class CollaQ(nn.Module):
                 # )
                 torch.randn(1, 1, agent_num, obs_shape)
             ).shape[-1]
-            self._q_network = DRQN(obs_shape_after_attention, action_shape, hidden_size_list)
-        self._q_alone_network = DRQN(alone_obs_shape, action_shape, hidden_size_list)
+            self._q_network = DRQN(obs_shape_after_attention, action_shape, hidden_size_list, lstm_type=lstm_type,
+                                   dueling=dueling)
+        self._q_alone_network = DRQN(alone_obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type,
+                                     dueling=dueling)
         embedding_size = hidden_size_list[-1]
         if self.mixer:
-            self._mixer = Mixer(agent_num, embedding_size)
-            global_obs_shape = squeeze(global_obs_shape)
-            self._global_state_encoder = self._setup_global_encoder(global_obs_shape, embedding_size)
+            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
+            self._global_state_encoder = nn.Sequential()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """

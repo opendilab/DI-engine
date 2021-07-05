@@ -4,7 +4,7 @@ import torch
 import copy
 from easydict import EasyDict
 
-from nervex.torch_utils import Adam, to_device
+from nervex.torch_utils import Adam, to_device, RMSprop
 from nervex.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
 from nervex.model import model_wrap
 from nervex.data import timestep_collate, default_collate, default_decollate
@@ -123,7 +123,7 @@ class CollaQPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = RMSprop(params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)
         self._gamma = self._cfg.learn.discount_factor
         self._alpha = self._cfg.learn.collaq_loss_weight
 
@@ -199,7 +199,6 @@ class CollaQPolicy(Policy):
         ret = self._learn_model.forward(inputs, single_step=False)
         total_q = ret['total_q']
         agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
-        total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
         next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
@@ -216,6 +215,7 @@ class CollaQPolicy(Policy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
         self._optimizer.step()
         # =============
         # after update
@@ -224,6 +224,9 @@ class CollaQPolicy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'colla_loss': colla_loss.item(),
+            'td_loss': td_loss.item(),
+            'grad_norm': grad_norm,
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -407,3 +410,16 @@ class CollaQPolicy(Policy):
             by import_names path. For collaq, ``nervex.model.qmix.qmix``
         """
         return 'collaq', ['nervex.model.template.qmix']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        ret = [
+            'cur_lr', 'total_loss', 'colla_loss', 'td_loss', 'grad_norm'
+        ]
+        return ret
+
