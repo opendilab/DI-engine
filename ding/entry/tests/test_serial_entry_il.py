@@ -10,13 +10,13 @@ from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpol
     cartpole_dqn_config, cartpole_dqn_create_config
 from ding.torch_utils import Adam, to_device
 from ding.config import compile_config
-from ding.data import default_collate, default_decollate
 from ding.rl_utils import Adder
 from ding.model import model_wrap
 from ding.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
 from ding.policy import PPOPolicy, ILPolicy
 from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import default_collate, default_decollate
 
 
 @POLICY_REGISTRY.register('ppo_il')

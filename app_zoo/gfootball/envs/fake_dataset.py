@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 from app_zoo.gfootball.envs.obs.gfootball_obs import PlayerObs, MatchObs
-from ding.data import default_collate
+from ding.utils.data import default_collate
 
 
 def generate_data(player_obs: dict) -> np.array:

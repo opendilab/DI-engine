@@ -6,10 +6,10 @@ import logging
 from easydict import EasyDict
 
 from ding.torch_utils import Adam, to_device
-from ding.data import default_collate, default_decollate
 from ding.rl_utils import dist_nstep_td_data, dist_nstep_td_error, Adder
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import default_collate, default_decollate
 from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
 

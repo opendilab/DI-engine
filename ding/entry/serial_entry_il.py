@@ -10,8 +10,8 @@ from ding.worker import BaseLearner, BaseSerialEvaluator
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.data import NaiveRLDataset
 from ding.utils import set_pkg_seed
+from ding.utils.data import NaiveRLDataset
 
 
 def serial_pipeline_il(

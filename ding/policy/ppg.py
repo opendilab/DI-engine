@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
 from ding.utils import POLICY_REGISTRY, squeeze
-from ding.data import default_collate, default_decollate
+from ding.utils.data import default_collate, default_decollate
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import \
     ppo_policy_data, ppo_policy_error, Adder, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error

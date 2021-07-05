@@ -3,11 +3,11 @@ from typing import List, Dict, Any, Tuple
 
 import torch
 
-from ding.data import default_collate, default_decollate
 from ding.model import model_wrap
 from ding.rl_utils import Adder, vtrace_data, vtrace_error
 from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
 
 

@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 import torch
 
-from ding.data.structure import SequenceContainer, SpecialContainer, TensorContainer, NumpyContainer
 from ding.torch_utils import to_dtype
+from ding.utils.data.structure import SequenceContainer, SpecialContainer, TensorContainer, NumpyContainer
 
 data_generation_func = {'obs': lambda: torch.randn(1, 6), 'reward': lambda: [np.random.randint(0, 2)]}
 

@@ -1,4 +1,4 @@
-segment tree
+utils.segment_tree
 -------------------
 
 SegmentTree

@@ -6,9 +6,9 @@ import copy
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, Adder,\
      v_nstep_td_data, v_nstep_td_error
-from ding.data import default_collate, default_decollate
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 

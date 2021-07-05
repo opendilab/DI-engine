@@ -7,8 +7,8 @@ from easydict import EasyDict
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, Adder
 from ding.model import model_wrap
-from ding.data import timestep_collate, default_collate, default_decollate
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 

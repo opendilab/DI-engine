@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from ding.data import default_collate
+from ding.utils.data import default_collate
 
 
 def default_preprocess_learn(

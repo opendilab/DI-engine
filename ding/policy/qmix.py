@@ -8,8 +8,8 @@ from ding.torch_utils import Adam, RMSprop, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder, \
     v_1step_td_data_with_mask, v_1step_td_error_with_mask
 from ding.model import model_wrap
-from ding.data import timestep_collate, default_collate, default_decollate
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 

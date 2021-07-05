@@ -5,11 +5,10 @@ import copy
 from easydict import EasyDict
 
 from ding.torch_utils import Adam, to_device
-from ding.data import default_collate, default_decollate
 from ding.rl_utils import coma_data, coma_error, get_epsilon_greedy_fn, Adder
 from ding.model import model_wrap
-from ding.data import timestep_collate
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import default_collate, default_decollate, timestep_collate
 from .base_policy import Policy
 
 
