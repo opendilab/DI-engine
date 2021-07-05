@@ -226,7 +226,7 @@ class LimitedSpaceContainer:
         """
         self.min_val = min_val
         self.max_val = max_val
-        assert (max_val > min_val)
+        assert (max_val >= min_val)
         self.cur = self.min_val
 
     def get_residual_space(self) -> int:
