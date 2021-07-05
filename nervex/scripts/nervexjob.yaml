@@ -11,18 +11,15 @@ spec:
     emptyDir:
       medium: Memory
       sizeLimit: 128Mi
-  - name: data-dir
+  - name: work-dir
     hostPath:
       path: /data/nfs/nervex/cartpole
-  - name: code-dir
-    hostPath: 
-      path: /data/nfs/nervex/nerveX  
   coordinator:
     template:
       spec:
         containers:
         - name: coordinator
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -47,16 +44,14 @@ spec:
           - name: coordinator
             containerPort: 22270
           volumeMounts:
-          - name: data-dir
-            mountPath: /nervex/cartpole
-          - name: code-dir
+          - name: work-dir
             mountPath: /nervex
   collector:
     template:
       spec:
         containers:
         - name: collector
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -75,22 +70,19 @@ spec:
           command: ["/bin/bash", "-c",]
           args:
           - |
-            nervex -m dist --module config -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py -s 0;
             nervex -m dist --module collector -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT
           ports:
           - name: collector
             containerPort: 22270
           volumeMounts:
-          - name: data-dir
-            mountPath: /nervex/cartpole
-          - name: code-dir
+          - name: work-dir
             mountPath: /nervex
   learner:
     template:
       spec:
         containers:
         - name: learner
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.2-torch1.4-cuda10.1-cudnn7-devel
+          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -109,15 +101,12 @@ spec:
           command: ["/bin/bash", "-c",]
           args:
           - |
-            nervex -m dist --module config -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py -s 0;
-            nervex -m dist --module learner -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT
+            nervex -m dist --module spawn_learner -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT
           ports:
           - name: learner
             containerPort: 22270
           volumeMounts:
           - name: cache-volume
             mountPath: /dev/shm
-          - name: data-dir
-            mountPath: /nervex/cartpole
-          - name: code-dir
+          - name: work-dir
             mountPath: /nervex
