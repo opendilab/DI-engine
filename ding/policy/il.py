@@ -8,8 +8,8 @@ import numpy as np
 
 from ding.torch_utils import Adam, to_device, one_hot
 from ding.model import model_wrap
-from ding.data import default_collate, default_decollate
 from ding.utils import POLICY_REGISTRY
+from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 try:
     from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel

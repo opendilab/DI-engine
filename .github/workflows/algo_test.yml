@@ -32,7 +32,6 @@ jobs:
       - name: do_algotest
         env:
           WORKERS: 4
-        env:
           DURATIONS: 600
         run: |
           python -m pip install .

@@ -126,8 +126,8 @@ than restricting some fixed pipelines. The following table shows some existing p
 ====================== ========================================== ==============================
 Function Name          Description                                Path
 ====================== ========================================== ==============================
-default_collate        Stack samples(dict/list/tensor) into batch ding.data.collate_fn
-default_decollate      Split batch into samples                   ding.data.collate_fn
+default_collate        Stack samples(dict/list/tensor) into batch ding.utils.data.collate_fn
+default_decollate      Split batch into samples                   ding.utils.data.collate_fn
 get_nstep_return_data  Get nstep data(reward, next_obs, done)     ding.rl_utils.adder
 get_gae                Get GAE advantage                          ding.rl_utils.adder
 to_tensor              Transform data to torch.Tensor             ding.torch_utils.data_helper

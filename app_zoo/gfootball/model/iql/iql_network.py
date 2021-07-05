@@ -7,9 +7,9 @@ import torch.nn as nn
 from ding.model import DuelingHead
 from ding.config import read_config
 from ding.utils import deep_merge_dicts, MODEL_REGISTRY
+from ding.utils.data import default_collate
 from ding.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
-from ding.data import default_collate
 
 iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
 

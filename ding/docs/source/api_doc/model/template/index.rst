@@ -7,3 +7,6 @@ Template
     q_learning
     QAC
     VAC
+
+    qmix
+    coma

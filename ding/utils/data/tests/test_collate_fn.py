@@ -3,7 +3,7 @@ from collections import namedtuple
 import random
 import numpy as np
 import torch
-from ding.data import timestep_collate, default_collate, default_decollate, diff_shape_collate
+from ding.utils.data import timestep_collate, default_collate, default_decollate, diff_shape_collate
 
 B, T = 4, 3
 
@@ -71,7 +71,7 @@ class TestDefaultCollate:
         data = default_collate(data)
         assert data.shape == (5, 4, 3)
         assert data.dtype == torch.float64
-        data = [np.random.randn(1)[0] for _ in range(6)]
+        data = [float(np.random.randn(1)[0]) for _ in range(6)]
         data = default_collate(data)
         assert data.shape == (6, )
         assert data.dtype == torch.float32

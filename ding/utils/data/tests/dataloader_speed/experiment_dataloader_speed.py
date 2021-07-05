@@ -8,8 +8,8 @@ import os.path as osp
 import os
 import random
 
-from ding.data import AsyncDataLoader
 from ding.utils import EasyTimer, read_file
+from ding.utils.data import AsyncDataLoader
 
 exp_times = 10
 max_iter = 50
