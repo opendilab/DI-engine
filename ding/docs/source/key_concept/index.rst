@@ -144,42 +144,24 @@ Config
 key concept
 ^^^^^^^^^^^^
 
-The Config module is one of the most commonly used modules by users. It
-is a configuration system that contains all the common parameters that
-need to be configured. Its function is very powerful, as small as
-configuring a common hyperparameter, as large as configuring the
-required algorithm type, it can do it all. To reduce the cost
-for users to write config, we designed a Config module based on the
-idea of bubble fish. The overall design diagram is as follows
+Config module is a component for users to determine what kind of parameters they want to use.
+The overall design is as follows:
 
 .. image:: images/config.png
    :alt: 
 
-Config is mainly composed of two types of config, namely *Policy* and
-*Env* config. We compare the construction process of config to the
-process of building a tree.
+As you can see from above diagram, the entire config is mainly from two parts. One is called Default Config,
+which is our recommended setting for policy and env, and may not change a lot. The other is called User Config,
+which users may want to specify case by case.
 
-From bottom to top we are building the entire tree, which is the
-*compile* process. In the *compile* process, we will first get the
-default config of each module such as Learner, Collector, etc. After
-having the default config of each sub-module, we will build the policy
-config and env config, and then merge with the user configs, Get the
-final config. From top to bottom, we are instantiating the entire tree,
-instantiating the various modules we use, that is, the *initialization*
-process, starting with policy and env, and then to each submodule. When
-the tree is constructed, we have completed our preparations and can
-start the entire RL process.
+In order to get the entire config, we have **compile** phase, a bottom-up process. First we get the default setting
+for each submodule like Learner, Collector, etc. Then we put them together and get Default Config
+for policy and env. Finally, we merge Default config with User Config and get the entire config.
 
-To reduce the trouble for users to write config and reuse the
-previous parameter settings as much as possible, we divide config into
-two parts, one part is *default config*, which is the default config
-recommended by DI-engine, which sets default values for common keys; The
-other part is *user config*, which is a user-defined config. So users
-only need to pay attention to the part of config they want to modify,
-and other configs can reuse previous experience values.
+On the other hand, **initialization** phase, the process to create modules according to config, is from top to bottom. We will start from
+policy and env, and then pass configs to each execution modules.
 
-DI-engine recommends using a config ``dict`` defined in a python file as
-input.
+In DI-engine, we write config as a python ``dict``. Below is an outline for Default Config.
 
 .. code:: python
 
@@ -204,27 +186,26 @@ input.
 config overview
 ^^^^^^^^^^^^^^^^
 
-The specific meanings and default values of some common keys are shown
-in the table below. For policy-related keys, please refer to the
-document `Hands On
-RL <../hands_on/index.html>`__
-section.
+In the following table, we list some commonly-used keys as well as their meanings.
+For policy-related keys, please refer to the document `Hands On
+RL <../hands_on/index.html>`__ section.
 
 +-------------------------------+-------------------------------------+
 | Key                           | Meaning                             |
 +===============================+=====================================+
-| policy.batch_size             | (int) the number of data for a      |
-|                               | train iteration                     |
+| policy.batch_size             | (int) number of data for a training |
+|                               | iteration                           |
 +-------------------------------+-------------------------------------+
-| policy.update_per_collect     | (int) collect n_sample data,        |
-|                               | train model update_per_collect      |
-|                               | times                               |
+| policy.update_per_collect     | (int) after getting training data,  |
+|                               | leaner will update model for        |
+|                               | update_per_collect times            |
 +-------------------------------+-------------------------------------+
-| policy.n_sample               | (int) collect n_sample data,        |
-|                               | train model update_per_collect times|
+| policy.n_sample               | (int) number of samples that will   |
+|                               | be sent to replay_buffer from       |
+|                               | collector                           |
 +-------------------------------+-------------------------------------+
-| policy.nstep                  | (int) how many steps are used when  |
-|                               | calculating TD-error.               |
+| policy.nstep                  | (int) number of steps that will be  |
+|                               | used when calculating TD-error.     |
 +-------------------------------+-------------------------------------+
 | policy.cuda                   | (bool) whether to use cuda when     |
 |                               | training                            |
@@ -236,44 +217,43 @@ section.
 |                               | training                            |
 +-------------------------------+-------------------------------------+
 | env.stop_value                | (int) when reward exceeds           |
-|                               | env.stop_value, the training will   |
-|                               | exits                               |
+|                               | env.stop_value, stop training       |
 +-------------------------------+-------------------------------------+
-| env.collector_env_num         | (int) number of env to collect data |
-|                               | when training                       |
+| env.collector_env_num         | (int) number of environments to     |
+|                               | collect data when training          |
 +-------------------------------+-------------------------------------+
-| env.evaluator_env_num         | (int) number of env to collect data |
-|                               | when evaluating                     |
+| env.evaluator_env_num         | (int) number of environments to     |
+|                               | collect data when evaluating        |
 +-------------------------------+-------------------------------------+
 
 Rules when merging user-specific config and predefined config:
 
--  User-specific config is the highest priority, which means user's
-   specific fiction will cover the default config when conflict occurs.
+-  User-specific config is of highest priority, which means that it will cover
+   the predefined one when conflict occurs.
 
--  Some important keys must be specified, ``env.stop_value``,
-   ``policy.on_policy``, and ``policy.unroll_len``, for example.
+-  Some important keys, such as ``env.stop_value``, ``env.n_evaluator_episode``, ``policy.on_policy``,
+   ``policy.collect.n_sample`` or ``policy.collect.n_episode``  must be specific.
 
--  The merged config will be saved to ``formatted_total_config.py`` be
-   default.
+-  The merged entire config will be saved to ``total_config.py`` and ``formatted_total_config.py``  by default.
 
 .. _header-n125:
 
 How to customize?
 ^^^^^^^^^^^^^^^^^^
 
-Imagine the following scenario: We want to set ``nstep`` mentioned above
-to 3, how do we do it? This problem can be solved with the *user config*
-mentioned above.
+Suppose we need to set key ``nstep`` mentioned above to 3, how to do it?
 
-User config is written in ``.py`` file by default, and a whole config
-is a dictionary, that is, ``dict`` in python. So to set
-``nstep``, suppose the file name of user config is
-``dqn_user_config.py``, add the following code inside.
+If the file name of user config is ``dqn_user_config.py``, just add the following code into User config.
 
 .. code:: python
 
-   policy=dict(learn=dict(nstep=3))
+   policy=dict(
+       ...,
+       learn=dict(
+           ...,
+           nstep=3,
+       )
+   )
 
 After writing the user config, we can run our DQN experiment according
 to `Quick Start <../quick_start/index.html>`_.

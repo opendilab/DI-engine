@@ -5,13 +5,13 @@ LabelSmoothCELoss
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss
-    :members: sample
+    :members: forward
 
 SoftFocalLoss
 ~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss
-    :members: sample
+    :members: forward
 
 build_ce_criterion
 ~~~~~~~~~~~~~~~~~~~~~
@@ -26,4 +26,4 @@ MultiLogitsLoss
 ~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss
-    :members: sample
+    :members: forward
