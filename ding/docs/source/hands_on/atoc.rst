@@ -40,29 +40,33 @@ The overall training of ATOC is an extension of DDPG, including parameter update
 
 Select experiences where the action is determined by an agent independently (i.e., without communication) and experiences with communication, respectively, to update the action-value function :math:`Q^{\mu}`:
 
-.. image:: images/marl/atoc_loss_q.png
-   :align: center
-   :scale: 50%
+.. math::
+   \mathcal{L}(\theta^{Q}) = 
+   \mathbb{E}_{o,a,r,o^{'}}[(Q^{\mu}(o,a) - 
+   y)^{2}], y = r + \gamma Q^{\mu{'}} 
+   (o^{'},a^{'})|_{a^{'}=\mu^{'}(o^{'})} 
 
 The gradients are backpropagated to the policy network and communication channel to update the
 parameters. 
 
-.. image:: images/marl/atoc_gradient_mu.png
-   :align: center
-   :scale: 50%
+.. math::
+   \nabla_{\theta^{\mu}}\mathcal{J}(\theta^{\mu}) = \mathbb{E}_{o,a\sim \mathcal{R}}[\nabla_{\theta^{\mu}}\mu(a|o)\nabla_{a}Q^{\mu}(o,a)|_{a=\mu (o)}]
+
 
 The gradient of integrated thought in the communication channel:
 
-.. image:: images/marl/atoc_gradient_g.png
-   :align: center
-   :scale: 50%
+.. math::
+   \nabla_{\theta^{g}}\mathcal{J}(\theta^{g}) = 
+   \mathbb{E}_{o,a\sim \mathcal{R}} 
+   [\nabla_{\theta^{g}}g(\tilde{h}|H)\nabla_{\tilde{h}}\mu(a|\hat{h})\nabla_{\hat{a}}Q^{\mu}(o,a)|_{a=\mu (o)}]
 
 The attention unit is trained as a binary classifier for communication. The log loss to update attention unit of ATOC:
 
-.. image:: images/marl/atoc_loss_p.png
-   :align: center
-   :scale: 50%
-
+.. math::
+   \mathcal{L}(\theta^{p}) = -\nabla \hat{Q}_{i} 
+   \log(p(h^{i}|\theta^{p}))- (1-\Delta 
+   \hat{Q}_{i}) \log(1 - p(h^{i}|\theta^{p}))
+   
 Extensions
 -----------
 - Different from ATOC, TarMAC (Das et al. 2019) uses attention in communication to decide who to communicate with. TarMAC is interpretable through predicted attention probabilities that allow for inspection of which agent is communicating what message and to whom. Additionally, TarMAC proposes multi-round communication where agents coordinate via multiple rounds of communication before taking actions in the environment. 
@@ -73,7 +77,7 @@ Implementations
 ----------------
 The default config is defined as follows:
 
-    * TODO
+    .. autoclass:: ding.policy.atoc.ATOCPolicy
 
 The network interface ATOC used is defined as follows:
 

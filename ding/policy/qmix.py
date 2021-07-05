@@ -18,7 +18,7 @@ class QMIXPolicy(Policy):
     r"""
     Overview:
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
-            you can view the paper in the following link <https://arxiv.org/abs/1803.11485>_
+            you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Interface:
         _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
             _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\

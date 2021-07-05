@@ -31,13 +31,11 @@ The overall QMIX architecture including individual agent networks and the mixing
 
 QMIX trains the mixing network via minimizing the following loss:
 
-.. image:: images/marl/qmix_y.png
-   :align: center
-   :scale: 50%
+.. math::
+   y^{tot} = r + \gamma \max_{\textbf{u}^{’}}Q_{tot}(\tau^{'}, \textbf{u}^{'}, s^{'}; \theta^{-})
 
-.. image:: images/marl/qmix_loss.png
-   :align: center
-   :scale: 50%
+.. math::
+   \mathcal{L}(\theta) = \sum_{i=1}^{b} [(y_{i}^{tot} - Q_{tot}(\tau, \textbf{u}, s; \theta)^{2}]
 
 - Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More implemented details can be found in the origin paper.
 
@@ -47,16 +45,25 @@ Extensions
 
 - VDN factorizes the joint action-value function into a sum of individual action-value functions. For consistency it need to ensure that a global :math:`argmax` performed on :math:`Q_{tot}` yields the same result as a set of individual :math:`argmax` operations performed on each :math:`Q_a`:
 
-.. image:: images/marl/qmix_vdn.png
-   :align: center
-   :scale: 50%
+.. math::
+  :label: narray
+
+  \mathop{\arg\max}_{\textbf{u}}Q_{tot} 
+  (\tau, 
+  \textbf{u}) = \begin{pmatrix}
+  \mathop{\arg\max}_{u^{1}}Q_{1}(\tau^{1},u^{1}) 
+  \\
+  \vdots\\
+  \mathop{\arg\max}_{u^{n}}Q_{1}(\tau^{n},u^{n}) 
+  \end{pmatrix}
+
 
 - QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values :math:`Q_{tot}` and individual action values :math:`Q_a`. 
 
-.. image:: images/marl/qmix_mono.png
-   :align: center
-   :scale: 50%
+.. math::
+   \frac{\partial Q_{tot}}{\partial Q_{a}} \geq 0， \forall a \in A
 
+   
 - QTRAN (Son et al. 2019), as an extension of QMIX, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one. QTRAN guarantees more general factorization than VDN or QMIX.
 
 Implementations
@@ -64,10 +71,12 @@ Implementations
 The default config is defined as follows:
 
     .. autoclass:: ding.policy.qmix.QMIXPolicy
+        :noindex:
 
 The network interface QMIX used is defined as follows:
-
-    * TODO
+    .. autoclass:: ding.model.template.QMix
+        :members: __init__, forward
+        :noindex:
 
 The Benchmark result of QMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 

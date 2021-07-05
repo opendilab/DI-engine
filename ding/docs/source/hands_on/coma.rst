@@ -31,17 +31,18 @@ The overall information flow between the decentralized actors, the environment a
 
 COMA computes an advantage function that compares the Q-value for the current action $u^a$ to a counterfactual baseline that marginalises out :math:`u^a`, while keeping the other agents’ actions :math:`u^{-a}` fixed.
 
-.. image:: images/marl/coma_adv.png
-   :align: center
-   :scale: 50%
+.. math::
+   A^{a}(s, \textbf{u}) = Q(s, \textbf{u}) - 
+   \sum_{u^{'a}}\pi^{a}(u^{'a}|\tau^{a})Q(s, 
+   (\textbf{u}^{-a}, u^{'a}))
 
 The advantage :math:`A^{a}(s, u)` computes a separate baseline that uses the centralized critic to find counterfactuals when only :math:`a`'s action changes, learned directly from agents' experiences.
 
 Compared to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:
 
-.. image:: images/marl/coma_gradient.png
-   :align: center
-   :scale: 50%
+.. math::
+   g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]
+
 
 Extensions
 -----------
@@ -51,9 +52,8 @@ Extensions
 
 -  COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than minibatches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires :math:`n` inputs, one for each agent, and the COMA-CC critic requires :math:`nm` inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations :math:`(z^1_t, ..., z^n_t)` is compressed via an encoding network before used as inputs to the critic.
 
-.. image:: images/marl/coma-cc.png
-   :align: center
-   :scale: 50%
+.. math::
+   Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})
 
 Implementations
 ----------------
@@ -64,7 +64,8 @@ The default config is defined as follows:
 
 The network interface COMA used is defined as follows:
 
-   * TODO
+    .. autoclass:: ding.model.template.coma.COMA
+        :members: __init__, forward
 
 The Benchmark result of COMA in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
