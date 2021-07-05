@@ -2,9 +2,9 @@ import os
 
 __TITLE__ = 'DI-engine'
 __VERSION__ = 'v0.2.0-b2'
-__DESCRIPTION__ = 'X-Lab DRL Framework'
-__AUTHOR__ = "X-Lab"
-__AUTHOR_EMAIL__ = "niuyazhe@sensetime.com"
+__DESCRIPTION__ = 'Decision AI Engine'
+__AUTHOR__ = "OpenDILab Contributors"
+__AUTHOR_EMAIL__ = "opendilab@gmail.com"
 __version__ = __VERSION__
 
 enable_hpc_rl = False
