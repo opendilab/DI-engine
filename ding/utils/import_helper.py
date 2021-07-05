@@ -1,6 +1,7 @@
 import importlib
 import logging
 from typing import List
+
 import ding
 
 global ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag

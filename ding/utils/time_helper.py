@@ -1,9 +1,9 @@
+import signal
 import time
 from typing import Any, Callable
 
 import torch
 from easydict import EasyDict
-import signal
 
 
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:

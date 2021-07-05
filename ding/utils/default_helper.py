@@ -1,7 +1,8 @@
-from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 import copy
 import logging
 import random
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
+
 import numpy as np
 import torch
 

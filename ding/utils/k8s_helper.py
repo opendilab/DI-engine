@@ -1,5 +1,7 @@
 import os
+
 from easydict import EasyDict
+
 from ding.interaction.base import split_http_address
 
 DEFAULT_NAMESPACE = 'default'
