@@ -72,8 +72,8 @@ class QMix(nn.Module):
             action_shape: int,
             hidden_size_list: list,
             mixer: bool = True,
-            lstm_type = 'gru',
-            dueling = False
+            lstm_type: str = 'gru',
+            dueling: bool = False
     ) -> None:
         super(QMix, self).__init__()
         self._act = nn.ReLU()
@@ -260,8 +260,8 @@ class CollaQ(nn.Module):
             ally_feature_range: Union[List[int], None] = None,
             attention_size: int = 32,
             mixer: bool = True,
-            lstm_type='gru',
-            dueling=False,
+            lstm_type: str = 'gru',
+            dueling: bool = False,
             use_pmixer: bool = False,
     ) -> None:
         super(CollaQ, self).__init__()
