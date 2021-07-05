@@ -19,10 +19,15 @@ class OperatorServer:
         self.__api_version = api_version
         self.__namespace = namespace
         self.__my_name = name
+        self.__worker_type = None
 
     @property
     def api_version(self):
         return self.__api_version
+
+    def set_worker_type(self, type):
+        assert type in ['coordinator', 'aggregator'], "invalid worker_type: {}".format(type)
+        self.__worker_type = type
 
     def __prefix_with_api_version(self, path):
         return self.__api_version + path
@@ -30,7 +35,8 @@ class OperatorServer:
     def get_replicas(self, name: str = None):
         try:
             if name is None:
-                params = {"namespace": self.__namespace, "coordinator": self.__my_name}
+                assert self.__worker_type, "set worker type first"
+                params = {"namespace": self.__namespace, self.__worker_type: self.__my_name}
             else:
                 params = {"namespace": self.__namespace, "name": name}
             response = self.__http_engine.request('GET', self.__prefix_with_api_version('/replicas'), params=params)

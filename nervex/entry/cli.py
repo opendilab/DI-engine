@@ -84,6 +84,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-lp', '--learner_port', type=int, help='learner port')
 @click.option('-clh', '--collector_host', type=str, help='collector host', default='0.0.0.0')
 @click.option('-clp', '--collector_port', type=int, help='collector port')
+@click.option('-agh', '--aggregator_host', type=str, help='aggregator slave host', default='0.0.0.0')
+@click.option('-agp', '--aggregator_port', type=int, help='aggregator slave port')
 def cli(
     mode: str,
     config: str,
@@ -95,6 +97,8 @@ def cli(
     learner_port: int,
     collector_host: str,
     collector_port: int,
+    aggregator_host: str,
+    aggregator_port: int,
     enable_total_log: bool,
     disable_flask_log: bool,
     module: str,
@@ -113,7 +117,10 @@ def cli(
         elif module == 'coordinator':
             dist_launch_coordinator(config, seed, coordinator_port, disable_flask_log)
         elif module == 'learner_aggregator':
-            dist_launch_learner_aggregator(config, seed, module_name, disable_flask_log)
+            dist_launch_learner_aggregator(
+                config, seed, aggregator_host, aggregator_port, module_name, disable_flask_log
+            )
+
         elif module == 'collector':
             dist_launch_collector(config, seed, collector_port, module_name, disable_flask_log)
         elif module == 'learner':

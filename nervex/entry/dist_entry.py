@@ -6,6 +6,7 @@ import pickle
 import logging
 import time
 from threading import Thread
+from easydict import EasyDict
 import numpy as np
 from nervex.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
 from nervex.config import read_config, compile_config_parallel
@@ -136,15 +137,38 @@ def dist_launch_collector(
     collector.start()
 
 
-def dist_launch_learner_aggregator(filename: str, seed: int, name: str = None, disable_flask_log: bool = True) -> None:
+def dist_launch_learner_aggregator(
+        filename: str,
+        seed: int,
+        aggregator_host: str,
+        aggregator_port: int,
+        name: str = None,
+        disable_flask_log: bool = True
+) -> None:
     set_pkg_seed(seed)
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True
-    if name is None:
-        name = 'learner_aggregator'
-    with open(filename, 'rb') as f:
-        config = pickle.load(f).system[name]
+    if filename is not None:
+        if name is None:
+            name = 'learner_aggregator'
+        with open(filename, 'rb') as f:
+            config = pickle.load(f).system[name]
+    else:
+        # start without config (create a fake one)
+        host, port = aggregator_host, 22272
+        if aggregator_port is not None:
+            port = aggregator_port
+        elif os.environ.get('AGGREGATOR_PORT', None):
+            _port = os.environ['AGGREGATOR_PORT']
+            if _port.isdigit():
+                port = int(_port)
+        config = dict(
+            master=dict(host=host, port=port + 1),
+            slave=dict(host=host, port=port + 0),
+            learner={},
+        )
+        config = EasyDict(config)
     learner_aggregator = LearnerAggregator(config)
     learner_aggregator.start()
 
