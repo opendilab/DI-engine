@@ -27,15 +27,14 @@ The overall architecture of the Q-function with attention-based model in CollaQ:
 
 The Q-function for agent i:
 
-.. image:: images/marl/collaq_q.png
-   :align: center
-   :scale: 50%
+.. math::
+   Q_{i}(s_{i},a_{i};\hat{\textbf{r}}_{i}) = \underbrace{Q_{1}(s{i}, a_{i},\hat{\textbf{r}_{0i}})}_{Q^{alone}(s_{i},a_{i})}  + \underbrace{\nabla_{\textbf{r}}Q_{i}(s_{i},a_{i};\textbf{r}_{0i})\cdot(\hat{\textbf{r}_{i}} - \textbf{r}_{0i}) + \mathcal{O}(||\hat{\textbf{r}_{i}} - \textbf{r}_{0i}||^{2})}_{Q^{collab}(s^{local}_{i}, a_{i})}
 
 The overall training objective of standard DQN training with MARA loss:
 
-.. image:: images/marl/collaq_loss.png
-   :align: center
-   :scale: 50%
+.. math::
+   L = \mathbb{E}_{s_{i},a{i}\sim\rho(\cdot)}[\underbrace{(y-Q_{i}(o_{i},a_{i}))^{2}}_{\text{DQN Object}} +\underbrace{\alpha(Q_{i}^{collab}(o_{i}^{alone}, a_{i}))^{2}}_{\text{MARA Object}}]
+
  
 Extensions
 -----------
@@ -46,10 +45,13 @@ Implementations
 The default config is defined as follows:
 
     .. autoclass:: ding.policy.collaq.CollaQPolicy
+        :noindex:
 
 The network interface CollaQ used is defined as follows:
 
-    * TODO
+    .. autoclass:: ding.model.template.qmix.CollaQ
+        :members: __init__, forward
+        :noindex:
 
 The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
