@@ -10,6 +10,7 @@ RANGE_DIR  ?=
 TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests)
 
 docs:
 	$(MAKE) -C ./ding/docs html
@@ -29,6 +30,10 @@ algotest:
 cudatest:
 	pytest ${TEST_DIR} \
 		-sv -m cudatest
+
+platformtest:
+	pytest ${PLATFORM_TEST_DIR} \
+		-sv -m unittest
 
 benchmark:
 	pytest ${TEST_DIR} \
