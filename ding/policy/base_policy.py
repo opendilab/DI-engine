@@ -94,7 +94,6 @@ class Policy(ABC):
         for field in self._enable_field:
             getattr(self, '_init_' + field)()
 
-
     def _init_multi_gpu_setting(self, model: torch.nn.Module) -> None:
         for name, param in model.state_dict().items():
             assert isinstance(param.data, torch.Tensor), type(param.data)
