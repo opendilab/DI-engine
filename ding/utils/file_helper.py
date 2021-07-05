@@ -32,7 +32,7 @@ def get_rediscluster_package():
 
 
 @lru_cache()
-def get_mc():
+def get_mc_package():
     return try_import_mc()
 
 
@@ -63,7 +63,7 @@ def _get_redis(host='localhost', port=6379):
     Returns:
         - (:obj:`Redis(object)`): Redis object with given ``host``, ``port``, and ``db=0``
     """
-    return redis.StrictRedis(host=host, port=port, db=0)
+    return get_redis_package().StrictRedis(host=host, port=port, db=0)
 
 
 def read_from_redis(path: str) -> object:
@@ -139,7 +139,7 @@ def _ensure_memcached():
     if _memcached is None:
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
         client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
-        _memcached = mc.MemcachedClient.GetInstance(server_list_config_file, client_config_file)
+        _memcached = get_mc_package().MemcachedClient.GetInstance(server_list_config_file, client_config_file)
     return
 
 
@@ -156,13 +156,13 @@ def read_from_mc(path: str, flush=False) -> object:
     _ensure_memcached()
     while True:
         try:
-            value = mc.pyvector()
+            value = get_mc_package().pyvector()
             if flush:
-                _memcached.Get(path, value, mc.MC_READ_THROUGH)
+                _memcached.Get(path, value, get_mc_package().MC_READ_THROUGH)
                 return
             else:
                 _memcached.Get(path, value)
-            value_buf = mc.ConvertBuffer(value)
+            value_buf = get_mc_package().ConvertBuffer(value)
             value_str = io.BytesIO(value_buf)
             value_str = torch.load(value_str, map_location='cpu')
             return value_str
@@ -265,7 +265,7 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
     if fs_type is None:
         if path.lower().startswith('s3'):
             fs_type = 'ceph'
-        elif get_mc() is not None:
+        elif get_mc_package() is not None:
             fs_type = 'mc'
         else:
             fs_type = 'normal'
@@ -296,7 +296,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
     if fs_type is None:
         if path.lower().startswith('s3'):
             fs_type = 'ceph'
-        elif get_mc() is not None:
+        elif get_mc_package() is not None:
             fs_type = 'mc'
         else:
             fs_type = 'normal'

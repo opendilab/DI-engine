@@ -29,7 +29,7 @@ def get_rank() -> int:
     """
     if is_fake_link():
         return 0
-    return error_wrapper(get_link().get_rank, 0)()
+    return error_wrapper(get_link().get_rank, 0, "[WARNING]: call linklink error, return default_ret.")()
 
 
 def get_world_size() -> int:
@@ -42,7 +42,7 @@ def get_world_size() -> int:
     """
     if is_fake_link():
         return 1
-    return error_wrapper(get_link().get_world_size, 1)()
+    return error_wrapper(get_link().get_world_size, 1, "[WARNING]: call linklink error, return default_ret.")()
 
 
 def broadcast(value: torch.Tensor, rank: int) -> None:
