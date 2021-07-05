@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="http://di-engine.github.io"><img width="300px" height="auto" src="docs/source/images/ding_logo.png"></a>
+    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="ding/docs/source/images/di_engine_logo.svg"></a>
 </div>
 
 ---

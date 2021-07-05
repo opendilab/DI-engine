@@ -33,7 +33,7 @@ RainbowDQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.RainbowDQN
-    :members: __init__, forward, parallel_wrapper
+    :members: __init__, forward
 
 
 DRQN

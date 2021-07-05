@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: at the root dir >> bash scripts/format.sh
+# Usage: at the root dir >> bash scripts/format.sh .
 
 # Check yapf version. (20200318 latest is 0.29.0. Format might be changed in future version.)
 ver=$(yapf --version)

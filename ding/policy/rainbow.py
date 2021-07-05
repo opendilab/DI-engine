@@ -36,7 +36,7 @@ class RainbowDQNPolicy(DQNPolicy):
                                                                                                  | erent from modes
         3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
                                                         | or off-policy
-        4  ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
+        4  ``priority``         bool     True           | Whether use priority(PER)              | priority sample,
                                                                                                  | update priority
         5  ``model.v_min``      float    -10            | Value of the smallest atom
                                                         | in the support set.
@@ -118,8 +118,8 @@ class RainbowDQNPolicy(DQNPolicy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
-                # (float) End value for epsilon decay, in [0, 1].
-                start=0.95,
+                # (float) End value for epsilon decay, in [0, 1]. It's equals to `end` because rainbow uses noisy net.
+                start=0.05,
                 # (float) End value for epsilon decay, in [0, 1].
                 end=0.05,
                 # (int) Env steps of epsilon decay.

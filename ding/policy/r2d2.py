@@ -17,9 +17,49 @@ class R2D2Policy(Policy):
     r"""
     Overview:
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
+        R2D2 proposes that several tricks should be used to improve upon DRQN,
+        namely some recurrent experience replay tricks such as burn-in.
 
-        R2D2 proposed that several tricks should be used to improve upon DRQN,
-        namely some recurrent experience replay trick such as burn-in.
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,
+                                                                                                 | update priority
+        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
+           | ``_weight``                                | to correct biased update. If True,
+                                                        | priority must be True.
+        6  | ``discount_``      float    0.997,         | Reward's future discount factor, aka.  | May be 1 when sparse
+           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
+        7  ``nstep``            int      3,             | N-step reward discount sum for target
+                                         [3, 5]         | q_value estimation
+        8  ``burnin_step``      int      2              | The timestep of burnin operation,
+                                                        | which is designed to RNN hidden state
+                                                        | difference caused by off-policy
+        9  | ``learn.update``   int      1              | How many updates(iterations) to train  | This args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        10 | ``learn.batch_``   int      64             | The number of samples of an iteration
+           | ``size``
+        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+           | ``_rate``
+        12 | ``learn.value_``   bool     True           | Whether use value_rescale function for
+           | ``rescale``                                | predicted value
+        13 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+           | ``update_freq``
+        14 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
+           | ``done``                                   | calculation.                           | fake termination env
+        15 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+                                                        | call of collector.                     | different envs
+        16 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+           | ``_len``
+        == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").

@@ -432,7 +432,7 @@ class RainbowDQN(nn.Module):
         v_max: Optional[float] = 10,
         n_atom: Optional[int] = 51,
     ) -> None:
-        r"""
+        """
         Overview:
             Init the Rainbow Model according to arguments.
         Arguments:
@@ -441,11 +441,10 @@ class RainbowDQN(nn.Module):
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
             - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``nervex.torch_utils.fc_block`` \
+                for more details`
             - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
         """
         super(RainbowDQN, self).__init__()
