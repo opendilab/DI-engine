@@ -10,18 +10,19 @@ Feature
     :maxdepth: 3
 
     algorithm_overview
-    policy_overview
+    policy_overview_en
+    model_overview_en
     env_overview_en
 
     collector_overview_en
     env_manager_overview_en
     replay_buffer_overview_en
-    learner_overview
+    learner_overview_en
     wrapper_hook_overview_en
-    league_overview
+    league_overview_en
 
     hpc_rl_overview_en
     dataloader_overview
     autolog_overview
-    interaction_overview
+    interaction_overview_en
     loader_overview_en

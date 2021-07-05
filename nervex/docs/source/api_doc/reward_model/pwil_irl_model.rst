@@ -12,5 +12,5 @@ PwilRewardModel
 
     
 collect_state_action_pairs
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: nervex.reward_model.pwil_irl_model.collect_state_action_pairs

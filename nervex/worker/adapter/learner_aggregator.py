@@ -6,6 +6,7 @@ import time
 from functools import reduce
 from threading import Thread
 from easydict import EasyDict
+
 from nervex.interaction import Master, Slave, TaskFail
 from nervex.interaction.master.task import TaskStatus
 from nervex.utils import build_logger, get_operator_server_kwargs, exist_operator_server
@@ -54,7 +55,7 @@ class LearnerAggregatorSlave(Slave):
 class LearnerAggregator(object):
     """
     Overview:
-        Aggregate todo duojiduoka danjiduoka
+        Aggregate multiple learners.
     Interfaces:
         __init__, start, close, merge_info
     """

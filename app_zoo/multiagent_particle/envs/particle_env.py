@@ -226,7 +226,11 @@ class CooperativeNavigation(BaseEnv):
                 ),
                 act_space=T(
                     (self._n_agent, self.action_dim),
-                    {'min': 0, 'max': self.action_dim, 'dtype': int},
+                    {
+                        'min': 0,
+                        'max': self.action_dim,
+                        'dtype': int
+                    },
                 ),
                 rew_space=T(
                     (1, ),
@@ -247,7 +251,11 @@ class CooperativeNavigation(BaseEnv):
             ),
             act_space=T(
                 (self._n_agent, self.action_dim),
-                {'min': 0, 'max': self.action_dim, 'dtype': int},
+                {
+                    'min': 0,
+                    'max': self.action_dim,
+                    'dtype': int
+                },
             ),
             rew_space=T(
                 (1, ),

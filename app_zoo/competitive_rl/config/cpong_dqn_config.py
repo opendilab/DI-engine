@@ -16,8 +16,7 @@ cpong_dqn_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=3,
-            embedding_dim=64,
-            encoder_kwargs=dict(encoder_type='conv2d'),
+            encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=1,
         discount_factor=0.99,
@@ -89,10 +88,11 @@ cpong_dqn_create_config = EasyDict(cpong_dqn_create_config)
 create_config = cpong_dqn_create_config
 
 cpong_dqn_system_config = dict(
+    coordinator=dict(),
     path_data='./data',
     path_policy='./policy',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=0,
 )
 cpong_dqn_system_config = EasyDict(cpong_dqn_system_config)
 system_config = cpong_dqn_system_config

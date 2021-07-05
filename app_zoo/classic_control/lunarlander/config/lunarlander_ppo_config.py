@@ -1,4 +1,5 @@
 from easydict import EasyDict
+from nervex.entry import serial_pipeline
 
 lunarlander_ppo_config = dict(
     env=dict(
@@ -8,11 +9,10 @@ lunarlander_ppo_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
-            embedding_size=64,
         ),
         learn=dict(
             update_per_collect=4,
@@ -23,12 +23,13 @@ lunarlander_ppo_config = dict(
             clip_ratio=0.2,
             nstep=1,
             nstep_return=False,
+            adv_norm=True,
         ),
         collect=dict(
             n_sample=128,
             unroll_len=1,
             discount_factor=0.99,
-            gae_lambda=0.9,
+            gae_lambda=0.95,
         ),
     ),
 )
@@ -39,8 +40,13 @@ lunarlander_ppo_create_config = dict(
         type='lunarlander',
         import_names=['app_zoo.classic_control.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
+    reward_model=dict(type='rnd')
 )
 lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
+
+
+if __name__ == "__main__":
+    serial_pipeline([main_config, create_config], seed=0)

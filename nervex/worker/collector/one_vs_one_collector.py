@@ -72,6 +72,7 @@ class OneVsOneCollector(BaseCollector):
             self.policy = policy
             self._policy_is_active = [None for _ in range(2)]
             self._policy_iter = [None for _ in range(2)]
+            self._traj_buffer_length = self._traj_len if self._traj_len != INF else None
             self._traj_buffer = {
                 env_id: [TrajBuffer(self._traj_buffer_length) for _ in range(len(policy))]
                 for env_id in range(self._env_num)
@@ -149,8 +150,10 @@ class OneVsOneCollector(BaseCollector):
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
         env_ids = list(obs.keys())
         if len(self._policy) > 1:
+            assert not self._eval_flag
             obs = [{id: obs[id][i] for id in env_ids} for i in range(len(self._policy))]
         else:
+            assert self._eval_flag
             obs = [obs]
         self._obs_pool.update(obs)
         policy_outputs = []

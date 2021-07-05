@@ -233,6 +233,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.method_name_list,
                 self._reset_timeout,
                 self._step_timeout,
+                self._max_retry,
             ),
             daemon=True,
             name='subprocess_env_manager{}_{}'.format(env_id, time.time())
@@ -347,8 +348,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if hasattr(self, '_env_seed'):
             for i in range(self.env_num):
                 self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
-            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-            self._check_data(ret)
+            try:
+                ret = {i: p.recv() for i, p in self._pipe_parents.items()}
+                self._check_data(ret)
+            except Exception as e:
+                logging.warning("subprocess reset set seed failed, ignore and continue...")
 
         # reset env
         reset_thread_list = []
@@ -414,7 +418,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+
         .. note:
+
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
             - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
             - Async subprocess env manager use ``connection.wait`` to poll.
@@ -544,7 +550,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     @staticmethod
     def worker_fn_robust(
-            parent, child, env_fn_wrapper, obs_buffer, method_name_list, reset_timeout=60, step_timeout=60
+            parent,
+            child,
+            env_fn_wrapper,
+            obs_buffer,
+            method_name_list,
+            reset_timeout=60,
+            step_timeout=60,
+            max_retry=1
     ) -> None:
         """
         Overview:
@@ -555,6 +568,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         env = env_fn()
         parent.close()
 
+        @retry_wrapper(max_retry=max_retry)
         @timeout_wrapper(timeout=step_timeout)
         def step_fn(*args, **kwargs):
             timestep = env.step(*args, **kwargs)
@@ -567,6 +581,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 ret = timestep
             return ret
 
+        # self._reset method has add retry_wrapper decorator
         @timeout_wrapper(timeout=reset_timeout)
         def reset_fn(*args, **kwargs):
             try:
@@ -724,14 +739,16 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         Returns:
             - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \
                 ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.
-        Note:
-            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         Example:
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
             >>>     timesteps = env_manager.step(actions_dict):
             >>>     for env_id, timestep in timesteps.items():
             >>>         pass
+
+        .. note::
+
+            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
+            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
         """
         self._check_closed()
         env_ids = list(actions.keys())

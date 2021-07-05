@@ -1,10 +1,12 @@
-from copy import deepcopy
 import pytest
 import os
 import logging
+from easydict import EasyDict
+from copy import deepcopy
 
 from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from app_zoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from nervex.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model
 
 cfg = [
@@ -15,36 +17,31 @@ cfg = [
     },
     {
         'type': 'gail',
-        'input_dims': 5,
-        'hidden_dims': 64,
+        'input_size': 5,
+        'hidden_size': 64,
         'batch_size': 64,
-        'target_new_data_count': 64,
-        'update_per_collect': 100
     },
     {
         'type': 'pwil',
         's_size': 4,
         'a_size': 2,
         'sample_size': 500,
-        'alpha': 5,
-        'beta': 5
     },
     {
         'type': 'red',
         'sample_size': 5000,
-        'input_dims': 5,
-        'hidden_dims': 64,
-        'output_dims': 1,
+        'input_size': 5,
+        'hidden_size': 64,
         'update_per_collect': 200,
         'batch_size': 128,
-        'sigma': 0.5,
     },
 ]
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('irl_config', cfg)
-def test_irl(irl_config):
+@pytest.mark.parametrize('reward_model_config', cfg)
+def test_irl(reward_model_config):
+    reward_model_config = EasyDict(reward_model_config)
     config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
     expert_policy = serial_pipeline(config, seed=0)
     # collect expert demo data
@@ -58,9 +55,18 @@ def test_irl(irl_config):
     # irl + rl training
     cp_cartpole_dqn_config = deepcopy(cartpole_dqn_config)
     cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
-    cp_cartpole_dqn_config.policy.learn.init_data_count = 10000
-    irl_config['expert_data_path'] = expert_data_path
-    cp_cartpole_dqn_config.reward_model = irl_config
+    cp_cartpole_dqn_create_config.reward_model = dict(type=reward_model_config.type)
+    reward_model_config['expert_data_path'] = expert_data_path
+    cp_cartpole_dqn_config.reward_model = reward_model_config
     serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")
+
+
+@pytest.mark.unittest
+def test_rnd():
+    config = [deepcopy(cartpole_ppo_rnd_config), deepcopy(cartpole_ppo_rnd_create_config)]
+    try:
+        serial_pipeline_reward_model(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"

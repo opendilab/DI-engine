@@ -89,7 +89,7 @@ class ILPolicy(Policy):
         """
         data = default_collate(data, cat_1dim=False)
         data['done'] = None
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         loss_dict = {}
         # ====================
@@ -98,6 +98,7 @@ class ILPolicy(Policy):
         obs = data.get('obs')
         action = data.get('action')
         logit = data.get('logit')
+        assert isinstance(obs['processed_obs'], torch.Tensor), obs['processed_obs']
         model_action_logit = self._learn_model.forward(obs['processed_obs'])['logit']
         supervised_loss = nn.MSELoss(reduction='none')(model_action_logit, logit).mean()
         self._optimizer.zero_grad()
@@ -141,11 +142,11 @@ class ILPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         with torch.no_grad():
             output = self._collect_model.forward(default_decollate(data['obs']['raw_obs']))
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
@@ -180,7 +181,7 @@ class ILPolicy(Policy):
             data['action'] = origin_data[i]['action']
             cur_rew = origin_data[i]['reward']
             pre_rew = cur_rew + (pre_rew * self._gamma)
-            # sampel uniformly
+            # sample uniformly
             data['priority'] = 1
             data['logit'] = origin_data[i]['logit']
             datas.append(data)
@@ -193,7 +194,6 @@ class ILPolicy(Policy):
             Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._eval_model.train()
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -207,11 +207,11 @@ class ILPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self._use_cuda:
+        if self._cuda:
             data = to_device(data, self._device)
         with torch.no_grad():
             output = self._eval_model.forward(data['obs']['processed_obs'])
-        if self._use_cuda:
+        if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

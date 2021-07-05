@@ -20,6 +20,12 @@ class PdeilRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``, ``_batch_mn_pdf``
     """
+    config = dict(
+        type='pdeil',
+        # expert_data_path='expert_data.pkl',
+        discrete_action=False,
+        alpha=0.5,
+    )
 
     def __init__(self, cfg: dict, device, tb_logger: 'SummaryWriter') -> None:  # noqa
         """
@@ -37,10 +43,10 @@ class PdeilRewardModel(BaseRewardModel):
             - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(PdeilRewardModel, self).__init__()
-        self.config: dict = cfg
+        self.cfg: dict = cfg
         self.e_u_s = None
         self.e_sigma_s = None
-        if cfg['discrete_action']:
+        if cfg.discrete_action:
             self.svm = None
         else:
             self.e_u_s_a = None
@@ -63,10 +69,10 @@ class PdeilRewardModel(BaseRewardModel):
         actions: torch.Tensor = torch.stack(actions, dim=0)
         self.e_u_s: torch.Tensor = torch.mean(states, axis=0)
         self.e_sigma_s: torch.Tensor = cov(states, rowvar=False)
-        if self.config["discrete_action"] and SVC is None:
+        if self.cfg.discrete_action and SVC is None:
             import logging
             logging.warning("You are using discrete action while the SVC is not installed!")
-        if self.config['discrete_action'] and SVC is not None:
+        if self.cfg.discrete_action and SVC is not None:
             self.svm: SVC = SVC(probability=True)
             self.svm.fit(states.cpu().numpy(), actions.cpu().numpy())
         else:
@@ -82,7 +88,7 @@ class PdeilRewardModel(BaseRewardModel):
         Effects:
             This is a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
         """
-        expert_data_path: str = self.config["expert_data_path"]
+        expert_data_path: str = self.cfg.expert_data_path
         with open(expert_data_path, 'rb') as f:
             self.expert_data: list = pickle.load(f)
 
@@ -135,7 +141,7 @@ class PdeilRewardModel(BaseRewardModel):
             rho_1 = torch.from_numpy(rho_1)
             rho_2 = self._batch_mn_pdf(s.cpu().numpy(), self.p_u_s.cpu().numpy(), self.p_sigma_s.cpu().numpy())
             rho_2 = torch.from_numpy(rho_2)
-            if self.config['discrete_action']:
+            if self.cfg.discrete_action:
                 rho_3 = self.svm.predict_proba(s.cpu().numpy())[a.cpu().numpy()]
                 rho_3 = torch.from_numpy(rho_3)
             else:
@@ -147,7 +153,7 @@ class PdeilRewardModel(BaseRewardModel):
                 )
                 rho_3 = torch.from_numpy(rho_3)
                 rho_3 = rho_3 / rho_1
-            alpha = self.config['alpha']
+            alpha = self.cfg.alpha
             beta = 1 - alpha
             den = rho_1 * rho_3
             frac = alpha * rho_1 + beta * rho_2

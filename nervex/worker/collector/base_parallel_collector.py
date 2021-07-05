@@ -16,40 +16,6 @@ from nervex.utils import build_logger, EasyTimer, get_task_uid, import_module, p
 from nervex.torch_utils import build_log_buffer, to_tensor, to_ndarray
 
 
-class TickMonitor(LoggedModel):
-    """
-    Overview:
-        TickMonitor is to monitor related info of one interation with env.
-        Info include: policy_time, env_time, norm_env_time, timestep_size...
-        These info variables would first be recorded in ``log_buffer``, then in ``self._iter_after_hook`` will vars in
-        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
-    Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
-    Property:
-        time, expire
-    """
-    policy_time = LoggedValue(float)
-    env_time = LoggedValue(float)
-    timestep_size = LoggedValue(float)
-    norm_env_time = LoggedValue(float)
-
-    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
-        LoggedModel.__init__(self, time_, expire)
-        self.__register()
-
-    def __register(self):
-
-        def __avg_func(prop_name: str) -> float:
-            records = self.range_values[prop_name]()
-            _list = [_value for (_begin_time, _end_time), _value in records]
-            return sum(_list) / len(_list) if len(_list) != 0 else 0
-
-        self.register_attribute_value('avg', 'policy_time', partial(__avg_func, prop_name='policy_time'))
-        self.register_attribute_value('avg', 'env_time', partial(__avg_func, prop_name='env_time'))
-        self.register_attribute_value('avg', 'timestep_size', partial(__avg_func, prop_name='timestep_size'))
-        self.register_attribute_value('avg', 'norm_env_time', partial(__avg_func, prop_name='norm_env_time'))
-
-
 class BaseCollector(ABC):
     """
     Overview:
@@ -131,7 +97,7 @@ class BaseCollector(ABC):
         self._policy_inference = policy_wrapper(self._policy_inference)
         self._env_step = env_wrapper(self._env_step)
 
-    def _setup_logger(self) -> Tuple:
+    def _setup_logger(self) -> Tuple['TextLogger', 'TickMonitor', 'LogDict']:  # noqa
         """
         Overview:
             Setup logger for base_collector. Logger includes logger, monitor and log buffer dict.
@@ -242,3 +208,37 @@ def create_parallel_collector(cfg: EasyDict) -> BaseCollector:
 def get_parallel_collector_cls(cfg: EasyDict) -> type:
     import_module(cfg.get('import_names', []))
     return PARALLEL_COLLECTOR_REGISTRY.get(cfg.type)
+
+
+class TickMonitor(LoggedModel):
+    """
+    Overview:
+        TickMonitor is to monitor related info of one interation with env.
+        Info include: policy_time, env_time, norm_env_time, timestep_size...
+        These info variables would first be recorded in ``log_buffer``, then in ``self._iter_after_hook`` will vars in
+        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
+    Interface:
+        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+    Property:
+        time, expire
+    """
+    policy_time = LoggedValue(float)
+    env_time = LoggedValue(float)
+    timestep_size = LoggedValue(float)
+    norm_env_time = LoggedValue(float)
+
+    def __init__(self, time_: 'BaseTime', expire: Union[int, float]):  # noqa
+        LoggedModel.__init__(self, time_, expire)
+        self.__register()
+
+    def __register(self):
+
+        def __avg_func(prop_name: str) -> float:
+            records = self.range_values[prop_name]()
+            _list = [_value for (_begin_time, _end_time), _value in records]
+            return sum(_list) / len(_list) if len(_list) != 0 else 0
+
+        self.register_attribute_value('avg', 'policy_time', partial(__avg_func, prop_name='policy_time'))
+        self.register_attribute_value('avg', 'env_time', partial(__avg_func, prop_name='env_time'))
+        self.register_attribute_value('avg', 'timestep_size', partial(__avg_func, prop_name='timestep_size'))
+        self.register_attribute_value('avg', 'norm_env_time', partial(__avg_func, prop_name='norm_env_time'))

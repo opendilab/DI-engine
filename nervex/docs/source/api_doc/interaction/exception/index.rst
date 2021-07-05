@@ -1,5 +1,5 @@
 interaction.exception
-==========
+=====================
 
 .. toctree::
     :maxdepth: 3

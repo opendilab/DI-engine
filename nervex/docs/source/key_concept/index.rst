@@ -5,13 +5,15 @@ Key Concept
    :maxdepth: 3
 
 
-Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX. One of basic control flow(serial pipeline) can be described as:
+Here we show some key concepts about reinforcement learning training and evaluation pipeline designed by nerveX.
+One of the basic control flows(serial pipeline) can be described as:
 
 .. image::
-   images/serial_pipeline.png
+   images/serial_pipeline.svg
    :align: center
 
-In the following sections, nerveX first introduces the key concepts/components separately, then combines them like building a special "Evolution Graph" to offer different computation patterns(serial, parallel, dist).
+In the following sections, nerveX first introduces key concepts/components separately, then combines them like building
+a special "Evolution Graph" to offer different computation patterns(serial, parallel, dist).
 
 Concept
 ----------
@@ -28,7 +30,7 @@ Last but not least, ``config`` is the recommended tool to control and record the
 
 Environment
 ~~~~~~~~~~~~~
-nerveX environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Link <../feature/env_overview.html>`_
+nerveX environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Overview <../feature/env_overview_en.html>`_
 
 ``EnvManager``, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows the collector to interact with N homogeneous environments per step, which means that ``action`` passed to ``env.step`` is a vector with a length of N, and the return value of ``env.step`` (obs, reward, done) is the same as it.
 
@@ -55,7 +57,7 @@ There are three types EnvManager in nerveX now:
   - SyncSubprocessEnvManager——parallel simulation for **low fluctuation environment**
   - AsyncSubprocessEnvManager——parallel simulation for **high fluctuation environment**
 
-The following demo graphs shows the detailed runtime logics between ``BaseEnvManager`` and ``SyncSubprocessEnvManager``:
+The following demo image shows the detailed runtime logics between ``BaseEnvManager`` and ``SyncSubprocessEnvManager``:
 
 .. image::
    images/env_manager_base_sync.png
@@ -70,7 +72,7 @@ For the subprocess-type env manager, nerveX uses shared memory among different w
 
 Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, nerveX also provides a series of **Error Tolerance** tools, e.g.: watchdog and auto-retry.
 
-For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview.html>`_ for more details.
+For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview_en.html>`_ for more details.
 
 Policy
 ~~~~~~~
@@ -81,14 +83,14 @@ The Multi-Mode of Policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 In most cases, RL policy needs to execute different algorithm procedures for different usages, e.g.: for DQN, the model forward and calculating TD error in training,
 the model forward without gradient computation and use epsilon-greedy to select actions for exploration in collecting. Therefore, nerveX policy unifies all the algorithm content in only one python file,
-prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next graph:
+prepares some simple interface methods, and combines them into 3 common modes——**learn_mode, collect_mode, eval_mode**, as is shown in the next image:
 
 .. image::
-   images/policy_mode.png
+   images/policy_mode.svg
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
 own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
-the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
+the users can refer to `Policy Overview <../feature/policy_overview_en.html>`_.
 
 .. note::
    ``policy.learn_mode`` is not the instance of :class:`Policy <nervex.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their policy class just ensuring the same method names and input/output arguments as the corresponding modes.
@@ -99,15 +101,17 @@ Neural network, often called model, is the one of most important components in t
 
 .. code:: python
 
-    from nervex.model import model_wrap, DiscreteNet
+    from nervex.model import model_wrap, DQN
 
-    model = DiscreteNet(obs_shape=(4, 84, 84), action_shape=6, encoder_type='conv2d')
+    model = DQN(obs_shape=(4, 84, 84), action_shape=6)
     # only wrapper, no model copy
     learn_model = model_wrap(model_wrap, wrapper_name='base')
     collector_model = model_wrap(model, wrapper_name='multinomial_sample')
     eval_model = model_wrap(model, wrapper_name='argmax_sample')
 
-If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview.html>`_ can help you a lot.
+If you want to know more about pre-defined models for each algorithms and customize you model, please refer to `Model Overview <../feature/model_overview_en.html>`_.
+
+If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview_en.html>`_ can help you a lot.
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -202,7 +206,7 @@ config overview
 
 The specific meanings and default values of some common keys are shown
 in the table below. For policy-related keys, please refer to the
-document `Hans On
+document `Hands On
 RL <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/hands_on/index.html>`__
 section.
 
@@ -272,8 +276,7 @@ is a dictionary, that is, ``dict`` in python. So to set
    policy=dict(learn=dict(nstep=3))
 
 After writing the user config, we can run our DQN experiment according
-to `Quick
-Start <http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX/quick_start/index.html>`__.
+to `Quick Start <../quick_start/index.html>`_.
 
 Worker-Collector
 ~~~~~~~~~~~~~~~~~~
@@ -330,7 +333,7 @@ The core usage of collector is quite simple, the users just need to create a cor
     For all cases, the number of collect data, n_sample/n_episode, is fixed in the total training procedure, so our example codes set this field in configs, such as ``config.policy.collect.n_sample``.
 
 
-The structure and main loop of collector can be summarized as the next graph, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
+The structure and main loop of collector can be summarized as the next image, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
 ``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing, 
 ``policy.get_train_sample`` is disabled and the users can do anything after receiving the collected data.
 
@@ -351,7 +354,7 @@ expert policy. And all the demands can be implemented by ``reset_policy``, ``res
     collector = SampleCollector(...)
     replay_buffer = NaiveBuffer(...)
 
-    # train begining(random_policy)
+    # train beginning(random_policy)
     collector.reset_policy(random_policy.collect_mode)
     random_data = collector.collect(n_sample=10000)
     replay_buffer.push(random_data)
@@ -369,7 +372,7 @@ expert policy. And all the demands can be implemented by ``reset_policy``, ``res
 Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the 
 users just need to ensure the correct value of ``config.policy.on_policy``.
 
-Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview.html>`_.
+Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview_en.html>`_.
 
 Parallel Collector
 ^^^^^^^^^^^^^^^^^^^
@@ -424,24 +427,33 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
 
 In nerveX, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.
 
-If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview.html>`_
+If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview_en.html>`_
 
 Worker-Evaluator
 ~~~~~~~~~~~~~~~~
 
-Evaluator is also the basic execution component of nerveX. It is used to determine whether a policy meets the convergence standard. And we explicitly construct this module to make the evaluation more clear, 
-instead of some implicit functions in other frameworks. After every fixed training iterations, we use the evaluator to interact with the environment to judge whether the reward reaches the convergence standard.
+Evaluator, another key execution component of nerveX, is used to determine whether the training model is convergent
+or not. Similar to collector, evaluator consists of three key components ——env manager, policy(eval_mode), evaluator
+controller.
 
-Like collector, there are 3 core parts for an evaluator——env manager, policy(eval_mode), evaluator controller, and these parts can be implemented in a single process or located in several machines. Usually, nerveX
-uses a multi-process env_manager and another main loop controller process with policy to construct an evaluator, which may be extended in the future.
+Env manager allow us to run multiple environments one by one(``base_env_manager`) or in parallel
+(``subprocess_env_manager``). For example, if we use subprocess env manager, we will run different environments
+in different subprocesses, which will greatly increase the efficiency of collecting episodes.
+
+Policy(eval_mode) is the rl model which we need to check.
+
+Evaluator controller is a component to determine if we should stop evaluating or not. For example, in ``Serial
+Evaluator``, ``n_evaluator_episode`` is an argument to determine how many episodes we want to collect and evaluate. Once
+we collect these number of episodes, evaluator will stop collecting and start to compute the average reward. If the average
+is larger than ``stop_value``, ``stop_flag`` will be True, and we will know our model is already convergent.
 
 Serial Evaluator
 ^^^^^^^^^^^^^^^^^^^
 
-Serial evaluator uses ``n_episode`` argument to interact with environment. It means that we need to collect n episodes results to judge whether the model reaches the convergence condition.
+Serial evaluator is used in serial pipeline. Key concepts are ``n_evaluator_episode`` and ``stop_value``, which has been
+explained above.
 
-The core usage of evaluator is quite simple. 
-And in practice, the users just need to create a evaluator and indicate n_episode as the argument of eval method. Here is a naive example:
+The following is an example of how to use serial evaluator:
 
 .. code:: python
 
@@ -467,12 +479,12 @@ And in practice, the users just need to create a evaluator and indicate n_episod
        break
 
 .. note::
-   For evaluation criterion, ``stop_value`` and ``n_evaluator_episode`` are two essential arguments, such as ``stop_value=195`` and ``n_evaluator_episode=100`` in cartpole environment. And the users should
-   indicate these two arguments in the ``env`` field of config(i.e. ``env.stop_value``, ``env.n_evaluator_episode``). And they will be passed to evaluator so that we don't need to set them in eval method except
-   some special cases.
+   Different environments may have different  ``stop_value`` and ``n_evaluator_episode``. For example, in cartpole,
+   we have``stop_value=195`` and ``n_evaluator_episode=100``. Users should indicate these two arguments in ``env``
+   config(i.e. ``env.stop_value``, ``env.n_evaluator_episode``), and then they will be passed to evaluator.
 
 
-Combined with the evaluation condition(i.e. ``should_eval`` method), We can add the evalulator into the training pipeline as follows:
+Combined with the evaluation condition(i.e. ``should_eval`` method), We can add the evaluator into the serial pipeline as follows:
 
 .. code:: python
 
@@ -492,29 +504,98 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 .. tip::
    **How to judge whether the model converges or not?**
 
-   We judge whether the model converges or not by the average value of several episode rewards. There are three types of average reward: winning probability, total cumulative reward and average unit step reward.
-   Winning probability: In some games, we don't pay attention to the rewards in the game process, but we focus on whether the final result is successful. In these environments, we use winning probability as the
-   convergence condition. Such as ``SMAC`` environment, we can use the winning probability (like 1.0 in 3s5z) as the convergence condition.
-   Total cumulative reward: In some games, we need to make the total score as large as possible. In these environments, we use total cumulative reward as the convergence condition. Such as ``cartpole``， ``lunarlander`` environment, we can use the total cumulative reward (like 200) as the convergence condition.
-   Average unit step reward: In some games, we need to make the total reward as large as possible and reduce the number of unnecessary exploration steps. In these environments, we use average unit step reward as the convergence condition.
-   Besides, a reliable RL experiment should be repeated 3~5 times with different random seeds, and some statistics such as the median value and the mean/std value can be more convincing.
+   We judge whether the model converges or not based on average reward. In Nervex, there are three types of average
+   reward: winning probability, total cumulative reward and average unit step reward.
+
+   Winning probability: In games like ``SMAC``, we focus on the final result and don't care too much about the
+   game process. For such environments, we use winning probability(for ``SMAC`` 1.0 in 3s5z) as the convergence condition.
+
+   Total cumulative reward: In games like ``cartpole`` and ``lunarlander``, we need to make the total score as large as
+   possible. So we use total cumulative reward as the convergence condition.
+
+   Average unit step reward: In some games, we need to make the total reward as large as possible and reduce the number
+   of unnecessary exploration steps in the meantime. For such environments, we use average unit step reward as the
+   convergence condition.
+
+   Besides, a reliable RL experiment should be repeated 3~5 times with different random seeds, and some statistics
+   such as the median value and the mean/std value can be more convincing.
 
 
 .. tip::
 
-   **How to solve the problem that the environment in each evaluator has the different length?**
+   **How to solve the problem that different environment in evaluator may collect different length episode?**
    
-   In nerveX, You may have registered n evaluator episodes but you only have m environments (n is more than m). In these case, the environment in each evaluator has the different length.
-   We use ``VectorEvalMonitor`` to solve these problems. For example, we have five environments and we need eight evaluator episdodes. In this case, we register two episodes for each of the first three environments and register one episode for each of the last two environments.
-   We use ``get_episode_reward`` to get the sum of the rewards of k episodes in each environment. And we use ``get_current_episode`` to get the episode num k in each environment. 
+   In some cases, this is really a big problem. For example, suppose we want to collect 12 episodes in evaluator
+   but only have 5 environments, if we didn't do any thing, it is likely that we will get more short episodes than long
+   episodes. As a result, our average reward will have a bias and may not be accurate. This is obvious since short
+   episodes need less time.
+
+   In order to solve such problem, we use ``VectorEvalMonitor``, a component to balance how many episodes to collect
+   per environment. Let's go back to the above example, we will collect three episodes for either of the first two
+   environments but only two for each of the remaining environments.
+
+   Besides, we use ``get_episode_reward`` to get the sum of the rewards of k episodes in each environment, and
+   ``get_current_episode`` to get the episode num k in each environment.
 
 
 Worker-Learner
 ~~~~~~~~~~~~~~~~~~
+Learner is one of the most important components among all the workers, who is reponsible for optimizing the policy by training data. Unlike another important component ``Collector``, learner is not divided into serial and parralel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.
 
+**Serial pipeline** would call learner's ``train`` method for training. ``train`` method receives a batch of data, and call learn_mode policy's ``_forward_learn`` to train for one iteraton.
 
-Entry(optional)
+**Parallel pipeline** would call learner's ``start`` method for a complete process of training. ``start`` method has a loop, which includes fetching data from source(Often file system), and calling ``train`` for one-iteration training. ``start`` will train for a specific number of iterations, which is set by use config.
+
+Besides ``train`` and ``start``, learner also provides a useful interface called ``save_checkpoint``, which can save current state_dict as a checkpoint during training.
+
+In learner, there is a special concept called ``Hook``. Hook is responsible for doing some fixed jobs at specific timings, including "before_run"(at the beginning of ``start`` ), "after_run"(at the ending of ``start`` ), "before_iter"(at the beginning of ``train`` ), "after_iter"(at the ending of ``train`` ).
+
+Hook has many different types. nerveX now has hooks to save checkpoint( ``save_checkpoint`` also uses this hook), load checkpoint, print log(text & tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to `Wrapper & Hook Overview <../feature/wrapper_hook_overview_en.html>`_.
+
+For more details about learner, please refer to `Learner Overview <../feature/learner_overview_en.html>`_.
+
+Entry
 ~~~~~~~~~~~~~~~~~
+nerveX offers 3 training entries for different usage, users can choose any one they like:
+
+    1. CLI
+        
+        **Simply run a training program, validate correctness, acquire RL model or expert data.**
+
+        .. code:: bash
+
+            # usage 1(without config)
+            nervex -m serial --env cartpole --policy dqn --train_iter 100000 -s 0
+            # usage 2(with config)
+            nervex -m serial -c cartpole_dqn_config.py -s 0
+
+        You can refer to `CLI Overview <../feature/cli_overview_en.html>`_ for more details.
+        
+    2. Customized Main Function
+
+        **Customize you RL training pipeline, design algorithm or apply it in your environment.**
+
+        refer to some example main function python file in ``app_zoo/envname/entry/envname_policyname_main.py`` , such as:
+
+            - app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py
+            - app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py
+            - app_zoo/classic_control/pendulum/entry/pendulum_td3_main.py
+
+        .. code:: bash
+
+            python3 -u cartpole_dqn_main.py  # users can also add arguments list in your own entry file
+
+    3. Unified Entry Function
+
+        **Config-mode entry, just adjust hyper-parameters and do comparsion experiements in the existing algorithms and pipelines.** 
+
+        .. code:: python
+
+            from nervex.entry import serial_pipeline
+            from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+            serial_pipeline([main_config, create_config], seed=0)
+
+        You can refer to ``nervex/entry`` directory and read related entry functions and tests.
 
 .. tip::
   If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of `Feature <../feature/index.html>`_, 
@@ -524,6 +605,7 @@ Computation Pattern
 
 Serial Pipeline
 ~~~~~~~~~~~~~~~~~
+TBD
 
 Parallel/Dist Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~

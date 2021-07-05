@@ -14,7 +14,13 @@ Prerequisites
      - macOS
      - Windows10
 
-   Python version: 3.6, 3.7, 3.8     
+   Python version: 3.6, 3.7, 3.8 (You can refer to `Python Installation Guide <https://pytorch.org/get-started/locally/#linux-python>`_ in PyTorch doc. Please pay attention to the correct Python version.) 
+
+   PyTorch version: >=1.3.1, <=1.7.1 (You can use any proper version in this range, see `PyTorch Installation <https://pytorch.org/get-started/locally/>`_)
+
+   .. note::
+
+        If there is a GPU in your setting, PyTorch with CUDA runtime is recommended. Otherwise, you just need to install cpu version PyTorch.
 
 
 Stable Release Version
@@ -26,6 +32,25 @@ You can simply install nerveX from PyPI with the following command:
 
      pip install nervex
 
+.. tip::
+
+    If you encounter timeout in downloading packages, you can try to indicate the corresponding pip source according to your area.
+    
+
+And if you prefer to use Anaconda or Miniconda, the next command is suggested:
+
+.. code-block:: bash
+
+    conda -c conda-forge install nervex
+
+Also, you can install nerveX from the source codes in github(master branch recommended)
+
+.. code-block:: bash
+
+    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
+    cd nerveX
+    pip install . --user
+
 If you want to install the extra package required by some functions in nerveX(such as concrete env, unittest and doc), you can execute
 
 .. code-block:: bash
@@ -33,9 +58,22 @@ If you want to install the extra package required by some functions in nerveX(su
      pip install nervex[common_env]  # install atari-env and box-2d env
      pip install nervex[test]  # install unittest(pytest) related package
 
+If you complete installation with the similar output in your terminal, the installation is over gracefully and you can check it with the next section.
+
+.. code-block:: bash
+
+    Installing collected packages: nerveX
+      Running setup.py develop for nerveX
+    Successfully installed nerveX
+
 .. tip::
     Some shells such as Zsh require quotation marks around package names, i.e. pip install 'nervex[test]' 
 
+
+.. note::
+    
+   The whole installation procedure often lasts about 30 seconds(depends on the download speed of packages), if there are some failed packages, you can also refer to ``setup.py`` and install the specific
+   package manually.
 
 Development Version
 ********************

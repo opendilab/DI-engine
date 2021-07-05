@@ -6,7 +6,7 @@ Best Practice
 
     nstep_td
     priority
-    log
+    learner_log
     IL
     IRL
     rnn
@@ -19,5 +19,4 @@ Best Practice
     training_generated_folders
     multi_buffer
     random_collect_size
-    irregular_learner_log
 

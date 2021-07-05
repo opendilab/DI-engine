@@ -153,7 +153,7 @@ class OneVsOneCommander(BaseCommander):
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': self._cfg.policy.other.replay_buffer,
                 'policy': copy.deepcopy(self._cfg.policy),
-                # 'league_save_checkpoint_path': self._active_player.checkpoint_path,
+                'league_save_checkpoint_path': 'policy/' + self._active_player.checkpoint_path,
             }
             # self._logger.info(
             #     "[LEARNER] Task starts:\n{}".format(
@@ -201,7 +201,7 @@ class OneVsOneCommander(BaseCommander):
             difficulty_inc = self._league.update_active_player(player_update_info)
             is_hardest = eval_win and not difficulty_inc
             # Print log
-            train_iter = finished_task['train_iter']
+            train_iter = self._learner_info[-1]['learner_step']
             info = {
                 'train_iter': train_iter,
                 'episode_count': finished_task['real_episode_count'],
@@ -245,7 +245,7 @@ class OneVsOneCommander(BaseCommander):
             }
             self._league.finish_job(payoff_update_dict)
             # Print log
-            train_iter = finished_task['train_iter']
+            train_iter = self._learner_info[-1]['learner_step']
             info = {
                 'train_iter': train_iter,
                 'episode_count': finished_task['real_episode_count'],
@@ -320,7 +320,7 @@ class OneVsOneCommander(BaseCommander):
         }
         self._league.update_active_player(player_update_info)
         self._logger.info("[LEARNER] Update info at step {}".format(player_update_info['train_iteration']))
-        snapshot = self._league.judge_snapshot(self._active_player.player_id)  # todo sequence of ckpt and snapshot
+        snapshot = self._league.judge_snapshot(self._active_player.player_id)
         if snapshot:
             self._logger.info(
                 "[LEAGUE] Player {} snapshot at step {}".format(
