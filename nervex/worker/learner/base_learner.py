@@ -290,8 +290,9 @@ class BaseLearner(object):
         self._end_flag = True
         if hasattr(self, '_dataloader'):
             self._dataloader.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._tb_logger:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self) -> None:
         self.close()
