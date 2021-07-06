@@ -1,7 +1,7 @@
-apiVersion: nervex.sensetime.com/v1alpha1
-kind: NerveXJob
+apiVersion: diengine.opendilab.org/v1alpha1
+kind: DIJob
 metadata:
-  name: nervexjob-example
+  name: dijob-example
 spec:
   group: xxx
   priorityClassName: ""
@@ -13,13 +13,13 @@ spec:
       sizeLimit: 128Mi
   - name: work-dir
     hostPath:
-      path: /data/nfs/nervex/cartpole
+      path: /data/nfs/ding/cartpole
   coordinator:
     template:
       spec:
         containers:
         - name: coordinator
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.2.0-b2-87d19a93
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -38,20 +38,20 @@ spec:
           command: ["/bin/bash", "-c",]
           args:
           - |
-            nervex -m dist --module config -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py -s 0;
-            nervex -m dist --module coordinator -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
+            ding -m dist --module config -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py -s 0;
+            ding -m dist --module coordinator -p k8s -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
           ports:
           - name: coordinator
             containerPort: 22270
           volumeMounts:
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding
   collector:
     template:
       spec:
         containers:
         - name: collector
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.2.0-b2-87d19a93
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -62,27 +62,27 @@ spec:
             value: "1"
           resources:
             requests:
-              cpu: 3
+              cpu: 8
               memory: "10Gi"
             limits:
-              cpu: 3
+              cpu: 8
               memory: "10Gi"
           command: ["/bin/bash", "-c",]
           args:
           - |
-            nervex -m dist --module collector -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT
+            ding -m dist --module collector -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT
           ports:
           - name: collector
             containerPort: 22270
           volumeMounts:
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding
   learner:
     template:
       spec:
         containers:
         - name: learner
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.2.0-b2-87d19a93
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -93,15 +93,15 @@ spec:
             value: "1"
           resources:
             requests:
-              cpu: 3
+              cpu: 8
               memory: "20Gi"
             limits:
-              cpu: 3
+              cpu: 8
               memory: "20Gi"
           command: ["/bin/bash", "-c",]
           args:
           - |
-            nervex -m dist --module spawn_learner -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT
+            ding -m dist --module learner -c app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT
           ports:
           - name: learner
             containerPort: 22270
@@ -109,4 +109,4 @@ spec:
           - name: cache-volume
             mountPath: /dev/shm
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding

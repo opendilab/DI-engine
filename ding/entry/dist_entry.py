@@ -185,8 +185,8 @@ def dist_launch_spawn_learner(
         current_env["RANK"] = str(dist_rank)
         current_env["LOCAL_RANK"] = str(local_rank)
 
-        executable = subprocess.getoutput('which nervex')
-        assert len(executable) > 0, "cannot find executable \"nervex\""
+        executable = subprocess.getoutput('which ding')
+        assert len(executable) > 0, "cannot find executable \"ding\""
 
         cmd = [executable, '-m', 'dist', '--module', 'learner']
         if filename is not None:
