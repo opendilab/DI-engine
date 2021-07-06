@@ -9,13 +9,6 @@ Mixer
 .. autoclass:: ding.model.template.qmix.Mixer
     :members: __init__, forward
 
-PMixer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: ding.model.template.qmix.PMixer
-    :members: __init__, forward
-
-
 QMix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -37,7 +37,7 @@ ScaledFloatFrame
 
 ClipRewardEnv
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.ScaledFloatFrame
+.. autoclass:: ding.envs.env_wrappers.ClipRewardEnv
     :members: __init__, reward,new_shape
 
 

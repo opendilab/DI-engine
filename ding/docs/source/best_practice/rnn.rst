@@ -30,7 +30,7 @@ implement variants of RNN.
 Related Components in DI-engine
 --------------------------------
 
-1. ``ding/model/wrappers/model_wrappers.py: HiddenStateWrapper`` :
+1. ``ding/model/wrapper/model_wrappers.py: HiddenStateWrapper`` :
    Used to maintain hidden states
 
 2. ``ding/torch_utils/network/rnn.py``: Used to build RNN model

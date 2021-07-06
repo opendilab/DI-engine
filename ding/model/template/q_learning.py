@@ -500,10 +500,10 @@ class RainbowDQN(nn.Module):
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
-         Shapes:
+        Necessary Keys:
+            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+            - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+        Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N=head_hidden_size)`, where B is batch size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
             - distribution(:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`

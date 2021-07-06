@@ -10,11 +10,6 @@ read_from_ceph
 
 .. automodule:: ding.utils.file_helper.read_from_ceph
 
-_ensure_redis
-~~~~~~~~~~~~~~~~~~
-
-.. automodule:: ding.utils.file_helper._ensure_redis
-
 read_from_redis
 ~~~~~~~~~~~~~~~~~~
 

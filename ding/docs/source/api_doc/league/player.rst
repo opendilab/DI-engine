@@ -17,7 +17,7 @@ HistoricalPlayer
 ActivePlayer
 ~~~~~~~~~~~~~~~~
 .. autoclass:: ding.league.player.ActivePlayer
-    :members: __init__, ncrement_eval_difficulty
+    :members: __init__, increment_eval_difficulty
 
 NaiveSpPlayer
 ~~~~~~~~~~~~~~~~
@@ -27,10 +27,6 @@ NaiveSpPlayer
 create_player
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: ding.league.player.create_player
-
-
-starcraft_player
-------------------
 
 MainPlayer
 ~~~~~~~~~~~~~~~
