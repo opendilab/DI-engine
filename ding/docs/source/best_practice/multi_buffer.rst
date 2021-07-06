@@ -67,7 +67,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
         while True:
             # ...
             new_data = collector.collect(train_iter=learner.train_iter)
-            # Push data into two buffers repectively. If you may change data in buffer, you can deepcopy it.
+            # Push data into two buffers respectively. If you may change data in buffer, you can deepcopy it.
             policy_buffer.push(new_data, cur_collector_envstep=collector.envstep)
             value_buffer.push(new_data, cur_collector_envstep=collector.envstep)
             for i in range(cfg.policy.learn.update_per_collect):

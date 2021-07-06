@@ -64,7 +64,7 @@ We show the implementation of HiddenStateWrapper in DI-engine to explain
 how to customize a model wrapper.
 
 If we want to use RNN in our model, we'll have to maintian hidden states
-during the training process. With HiddenStateWrapper we can achive this 
+during the training process. With HiddenStateWrapper we can achieve this 
 goal without changing code of policy.
 
 The structure of HiddenStateWrapper are as follows:
@@ -82,7 +82,7 @@ The structure of HiddenStateWrapper are as follows:
        Overview:
     
          Maintain the hidden state for RNN-base model. Each sample in a batch has its own state. 
-         Init the maintain state and state function; Then wrap the ``model.foward`` method with auto 
+         Init the maintain state and state function; Then wrap the ``model.forward`` method with auto 
          saved data ['prev_state'] input, and create the ``model.reset`` method.
   
        Arguments:

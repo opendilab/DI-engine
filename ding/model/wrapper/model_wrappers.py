@@ -78,7 +78,7 @@ class HiddenStateWrapper(IModelWrapper):
         """
         Overview:
             Maintain the hidden state for RNN-base model. Each sample in a batch has its own state. \
-            Init the maintain state and state function; Then wrap the ``model.foward`` method with auto \
+            Init the maintain state and state function; Then wrap the ``model.forward`` method with auto \
             saved data ['prev_state'] input, and create the ``model.reset`` method.
         Arguments:
             - model(:obj:`Any`): Wrapped model class, should contain forward method.

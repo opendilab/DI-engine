@@ -18,7 +18,7 @@ from ding.worker.collector.tests.speed_test.test_config import test_config
 #   - Repeat 3 times; Collect 300 iterations;
 #   - Test on small + middle + big env
 #   - Test on base + asynnc_subprocess + sync_subprocess env manager
-#   - Test wih reset_ratio = 1 and 5.
+#   - Test with reset_ratio = 1 and 5.
 # FAST MODE:
 #   - Only once (No repeat); Collect 50 iterations;
 #   - Test on small env

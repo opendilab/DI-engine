@@ -89,8 +89,8 @@ end
 
 autonumber
 group close
-Coordinator->Learner: destory connection
-Coordinator->Collector: destory connection
+Coordinator->Learner: destroy connection
+Coordinator->Collector: destroy connection
 Coordinator->Operator: disconnect operator
 Coordinator->Coordinator: close
 end group

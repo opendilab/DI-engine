@@ -73,7 +73,7 @@ def collect_demo_data(
 ) -> None:
     r"""
     Overview:
-        Collect demostration data by the trained policy.
+        Collect demonstration data by the trained policy.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \

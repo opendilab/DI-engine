@@ -276,7 +276,7 @@ class AdvancedReplayBuffer(IBuffer):
     def _sample_check(self, size: int, cur_learner_iter: int) -> Tuple[bool, str]:
         r"""
         Overview:
-            Do preparations for sampling and check whther data is enough for sampling
+            Do preparations for sampling and check whether data is enough for sampling
             Preparation includes removing stale datas in ``self._data``.
             Check includes judging whether this buffer has more than ``size`` datas to sample.
         Arguments:

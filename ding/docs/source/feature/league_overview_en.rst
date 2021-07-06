@@ -56,7 +56,7 @@ Player
 ~~~~~~~~~~~~
 
 Abstract:
-    Player is the memeber of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.
+    Player is the member of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.
 
     Player consists of active player and historical player:
 
@@ -79,7 +79,7 @@ Base Class Definition：
 
         - Abstract:
 
-            Base class player defines properties needed by both active player and historical player, including catagory, payoff, checkpoint path, id, 
+            Base class player defines properties needed by both active player and historical player, including category, payoff, checkpoint path, id, 
             training iteration, etc. Player is an abstract base class and cannot be instantiated.
 
     2. HistoricalPlayer (ding/league/player.py)

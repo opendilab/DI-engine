@@ -322,7 +322,7 @@ class AsyncDataLoader(IDataLoader):
                 else:
                     return self.async_train_queue.get()
         # If ``self.end_flag``` is True, clear and close either 1) or 2):
-        # 1) cuda_queue. Beacuse user get data from cuda_queue, and async_train_queue is closed by cuda_loop.
+        # 1) cuda_queue. Because user get data from cuda_queue, and async_train_queue is closed by cuda_loop.
         # 2) async_train_queue. Because user get data from async_train_queue.
         if self.use_cuda:
             while not self.cuda_queue.empty():

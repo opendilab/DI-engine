@@ -176,7 +176,7 @@ def deconv2d_block(
         - stride (:obj:`int`): Stride of the convolution
         - padding (:obj:`int`): Zero-padding added to both sides of the input
         - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
-        - activation (:obj:`nn.Moduel`): the optional activation function
+        - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \
@@ -431,7 +431,7 @@ def binary_encode(y: torch.Tensor, max_val: torch.Tensor) -> torch.Tensor:
     Overview:
         Convert elements in a tensor to its binary representation
     Arguments:
-        - y (:obj:`torch.Tensor`): the tensor to be transfered into its binary representation
+        - y (:obj:`torch.Tensor`): the tensor to be transferred into its binary representation
         - max_val (:obj:`torch.Tensor`): the max value of the elements in tensor
     Returns:
         - binary (:obj:`torch.Tensor`): the input tensor in its binary representation

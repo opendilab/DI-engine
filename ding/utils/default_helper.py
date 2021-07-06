@@ -184,7 +184,7 @@ def error_wrapper(fn, default_ret, warning_msg=""):
         wrap the function, so that any Exception in the function will be catched and return the default_ret
     Arguments:
         - fn (:obj:`Callable`): the function to be wraped
-        - default_ret (:obj:`obj`): the default return when an Exception occured in the function
+        - default_ret (:obj:`obj`): the default return when an Exception occurred in the function
     Returns:
         - wrapper (:obj:`Callable`): the wrapped function
     Examples:

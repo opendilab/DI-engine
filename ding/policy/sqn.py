@@ -166,7 +166,7 @@ class SQNPolicy(Policy):
         q_value = self._learn_model.forward(obs)['q_value']
         target_q_value = self._target_model.forward(next_obs)['q_value']
 
-        num_s_env = 1 if isinstance(self._action_shape, int) else len(self._action_shape)  # num of seperate env
+        num_s_env = 1 if isinstance(self._action_shape, int) else len(self._action_shape)  # num of separate env
 
         for s_env_id in range(num_s_env):
             if isinstance(self._action_shape, int):
