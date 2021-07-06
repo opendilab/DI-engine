@@ -5,7 +5,7 @@ Guideline
 ^^^^^^^^^^^^^^
 In some algorithms or envs, collecting and storing a whole episode is more useful than separated samples. For example: In chess, go or card games, players get reward only when the game is over; Some algorithms, for example, `Hindsight Experience Replay(HER) <https://arxiv.org/abs/1707.01495>`_, must sample out a whole episode and operate on it. Therefore, DI-engine implements ``EpisodeReplayBuffer`` (``ding/worker/buffer/episode_buffer.py``), where each element is no longer a training sample, but an episode.
 
-In this section, we will introduce how to use such episode buffer in a training pipeline. We will take algorithm `HER` as an example. The source code is at ``app_zoo/classic_control/bitflip/entry/bitflip_dqn_main.py``
+In this section, we will introduce how to use such episode buffer in a training pipeline. We will take algorithm `HER` as an example. The source code is at ``dizoo/classic_control/bitflip/entry/bitflip_dqn_main.py``
 
 
 .. code:: python

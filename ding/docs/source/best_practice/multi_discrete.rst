@@ -90,4 +90,4 @@ Then we provide a multi-discrete version of DQN implementation. The multi-discre
                 loss = sum(loss) / (len(loss) + 1e-8)
                 td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
 
-For the complete code, you can refer to ``app_zoo/common/policy/md_dqn.py``
+For the complete code, you can refer to ``dizoo/common/policy/md_dqn.py``

@@ -4,8 +4,8 @@ import sys
 import importlib
 
 env_dict = {
-    'cartpole': 'app_zoo.classic_control.cartpole.config',
-    'pendulum': 'app_zoo.classic_control.pendulum.config',
+    'cartpole': 'dizoo.classic_control.cartpole.config',
+    'pendulum': 'dizoo.classic_control.pendulum.config',
 }
 policy_dict = {
     'dqn': 'ding.policy.dqn',

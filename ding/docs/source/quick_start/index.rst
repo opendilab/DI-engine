@@ -27,7 +27,7 @@ DI-engine recommends using a config ``dict`` defined in a python file as input. 
 `Config <../key_concept/index.html#config>`_.
 
 .. note::
-   For the specific config example, you can refer to ``app_zoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+   For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
 
 And in this example, users can apply the following codes for preparing config.
 
@@ -38,7 +38,7 @@ And in this example, users can apply the following codes for preparing config.
     from ding.model import DQN
     from ding.policy import DQNPolicy
     from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-    from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
+    from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
 
     # compile config
     cfg = compile_config(
@@ -124,7 +124,7 @@ Train and evaluate the policy
 The training loop in DI-engine can be customized arbitrarily. Usually the training process may consist of
 collecting data, updating policy, updating related modules and evaluation.
 
-Here we provide examples of off-policy training (``DQN``) for a ``CartPole`` environment. For more algorithms, you can refer to app_zoo.
+Here we provide examples of off-policy training (``DQN``) for a ``CartPole`` environment. For more algorithms, you can refer to dizoo.
 
 .. code-block:: python
 
@@ -148,7 +148,7 @@ Here we provide examples of off-policy training (``DQN``) for a ``CartPole`` env
                 learner.train(train_data, collector.envstep)
 
 .. note::
-   The users can refer to the complete demo in ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py`` .
+   The users can refer to the complete demo in ``dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_main.py`` .
 
 Other Functions
 ------------------

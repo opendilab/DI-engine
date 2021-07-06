@@ -35,8 +35,8 @@ setup(
         # framework
         *find_packages(include=('ding', "ding.*")),
         # application
-        *find_packages(include=('app_zoo'
-                                'app_zoo.*')),
+        *find_packages(include=('dizoo'
+                                'dizoo.*')),
     ],
     package_data={package_name: ['*.yaml', '*.xml', '*cfg']
                   for package_name in find_packages(include=('ding.*'))},

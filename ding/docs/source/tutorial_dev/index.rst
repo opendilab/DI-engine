@@ -142,12 +142,12 @@ DI-engine
             ├── coordinator (协作器)
             └── learner (训练学习器)
 
-app_zoo (基于DI-engine的DRL应用)
+dizoo (基于DI-engine的DRL应用)
 ---------------------------------
 
     .. code:: bash
 
-        app_zoo
+        dizoo
         ├── atari
         ├── classic_control
         │   ├── bitflip

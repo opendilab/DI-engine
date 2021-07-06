@@ -8,7 +8,7 @@ from easydict import EasyDict
 
 from ding.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print, \
     DEFAULT_K8S_COLLECTOR_PORT, DEFAULT_K8S_LEARNER_PORT, DEFAULT_K8S_COORDINATOR_PORT
-from app_zoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
+from dizoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
 
 default_host = '0.0.0.0'
 default_port = 22270
@@ -248,7 +248,7 @@ parallel_test_main_config = cartpole_dqn_config
 parallel_test_create_config = dict(
     env=dict(
         type='cartpole',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+        import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn_command'),

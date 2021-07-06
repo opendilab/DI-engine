@@ -8,7 +8,7 @@ RUN apt update && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxr
     && rm -rf /var/cache/apt/*
 
 ADD setup.py setup.py
-ADD app_zoo app_zoo
+ADD dizoo dizoo
 ADD ding ding
 
 ARG http_proxy=http://172.16.1.135:3128

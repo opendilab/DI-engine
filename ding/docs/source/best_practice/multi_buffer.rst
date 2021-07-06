@@ -12,7 +12,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
 1. Config
 ^^^^^^^^^^^^^^
     
-    We show core part of `ding/app_zoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
+    We show core part of `ding/dizoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
 
     .. code:: python
         
@@ -56,7 +56,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
 2. Pipeline
 ^^^^^^^^^^^^^^
 
-    After finishing the config file, you can write your own pipeline. Here is an example from `app_zoo/classic_control/cartpole/entry/cartpole_ppg_main.py`.
+    After finishing the config file, you can write your own pipeline. Here is an example from `dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py`.
 
     .. code:: python
 

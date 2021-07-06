@@ -38,7 +38,7 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
    In key ``import_names``，write the file path. ``import_names`` is asked to be a ``list``, and each of its element is a python import abstract path(i.e. We can run ``import name1.name2`` in Python Idle), such as:
 
       - ``ding.policy.dqn``
-      - ``app_zoo.atari.envs.atari_env``
+      - ``dizoo.atari.envs.atari_env``
 
    The config file example is as follows:
    
@@ -47,7 +47,7 @@ Then we will take ``Policy`` to exemplify how to use ``Registry`` when you imple
         create_config = dict(
             policy=dict(
                 type='multi_head_dqn',
-                import_names=['app_zoo.common.policy.multi_head_dqn'],
+                import_names=['dizoo.common.policy.multi_head_dqn'],
             # ...
             )
         )

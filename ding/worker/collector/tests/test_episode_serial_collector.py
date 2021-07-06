@@ -3,7 +3,7 @@ from ding.worker import EpisodeCollector
 from ding.envs import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from ding.policy import DQNPolicy
 from ding.model import DQN
-from app_zoo.classic_control.cartpole.envs import CartPoleEnv
+from dizoo.classic_control.cartpole.envs import CartPoleEnv
 
 
 @pytest.mark.unittest

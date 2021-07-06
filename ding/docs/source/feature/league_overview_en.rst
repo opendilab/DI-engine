@@ -37,7 +37,7 @@ To alleviate these problems, the training pipline of self-play is usually implem
     4. According to certain rules, league chooses one player from the pool as the opponent, then both the first and the second approach can be used.
     5. When the updatable strategy is good enough, the training process ends.
 
-The DI-engine's demo of league ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
+The DI-engine's demo of league ``dizoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
 
 AlphaStar uses a more complicated league training algorithm than self-play, and designs more types of players differ in the distribution of opponent 
 they train against. The "Rock-paper-scissors" problem can be alleviated in this way, also the strategy will be more diverse. More details can be found 

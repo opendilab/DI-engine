@@ -559,11 +559,11 @@ Serial Pipeline
 
         **Customize you RL training pipeline, design algorithm or apply it in your environment.**
 
-        refer to some example main function python file in ``app_zoo/envname/entry/envname_policyname_main.py`` , such as:
+        refer to some example main function python file in ``dizoo/envname/entry/envname_policyname_main.py`` , such as:
 
-            - app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py
-            - app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py
-            - app_zoo/classic_control/pendulum/entry/pendulum_td3_main.py
+            - dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py
+            - dizoo/classic_control/cartpole/entry/cartpole_ppo_main.py
+            - dizoo/classic_control/pendulum/entry/pendulum_td3_main.py
 
         .. code:: bash
 
@@ -576,7 +576,7 @@ Serial Pipeline
         .. code:: python
 
             from ding.entry import serial_pipeline
-            from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+            from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
             serial_pipeline([main_config, create_config], seed=0)
 
         You can refer to ``ding/entry`` directory and read related entry functions and tests.
@@ -588,7 +588,7 @@ Parallel Pipeline
 
     .. code:: bash
         
-        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        # config path: dizoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
         ding -m parallel -c cartpole_dqn_config.py -s 0
 
     2. Unified Entry Function
@@ -596,7 +596,7 @@ Parallel Pipeline
     .. code:: python
 
         from ding.entry import parallel_pipeline
-        from app_zoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import main_config, create_config, system_config
+        from dizoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import main_config, create_config, system_config
         parallel_pipeline([main_config, create_config, system_config], seed=0)
 
 Dist Pipeline
@@ -606,7 +606,7 @@ Dist Pipeline
 
     .. code:: bash
 
-        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        # config path: dizoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
         export PYTHONUNBUFFERED=1
         ding -m dist --module config -p local -c cartpole_dqn_config.py -s 0
         ding -m dist --module learner --module-name learner0 -c cartpole_dqn_config.py.pkl -s 0 &
@@ -618,7 +618,7 @@ Dist Pipeline
 
     .. code:: bash
 
-        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        # config path: dizoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
         export PYTHONUNBUFFERED=1
         learner_host=10-10-10-10
         collector_host=10-10-10-[11-12]
