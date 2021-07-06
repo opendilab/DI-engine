@@ -237,7 +237,6 @@ class EpisodeCollector(ISerialCollector):
             }
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
-            # self._logger.print_vars_hor(info)
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue

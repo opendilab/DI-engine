@@ -20,14 +20,14 @@ class CommCoordinator(object):
         __init__ , start, close, __del__, send_collector_task, send_learner_task
     """
 
-    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'TextLogger') -> None:  # noqa
+    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'logging.Logger') -> None:  # noqa
         r"""
         Overview:
             init the interactor of coordinator
         Arguments:
-            - cfg (:obj:`dict`): the config file of coordinator interactor
-            - callback_fn (:obj:`Dict[str, Callable]`): the callback functions given by coordinator
-            - logger (:obj:`TextLogger`): the logger
+            - cfg (:obj:`dict`): The config file of communication coordinator
+            - callback_fn (:obj:`Dict[str, Callable]`): The callback functions given by coordinator
+            - logger (:obj:`logging.Logger`): The text logger.
         """
         self._cfg = cfg
         self._callback_fn = callback_fn

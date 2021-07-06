@@ -175,8 +175,8 @@ class BaseSerialEvaluator(object):
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             info.update(episode_info)
-        self._logger.print_vars_hor(info)
-        # self._logger.print_vars(info)
+        self._logger.info(self._logger.get_tabulate_vars_hor(info))
+        # self._logger.info(self._logger.get_tabulate_vars(info))
         for k, v in info.items():
             if k in ['train_iter', 'ckpt_name', 'each_reward']:
                 continue

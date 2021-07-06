@@ -374,7 +374,7 @@ class BaseLearner(object):
         self._log_buffer = _log_buffer
 
     @property
-    def logger(self) -> 'TextLogger':  # noqa
+    def logger(self) -> logging.Logger:
         return self._logger
 
     @property
@@ -449,7 +449,7 @@ class TickMonitor(LoggedModel):
         TickMonitor is to monitor related info during training.
         Info includes: cur_lr, time(data, train, forward, backward), loss(total,...)
         These info variables are firstly recorded in ``log_buffer``, then in ``LearnerHook`` will vars in
-        in this monitor be updated by``log_buffer``, finally printed to ``TextLogger`` and ``TensorBoradLogger``.
+        in this monitor be updated by``log_buffer``, finally printed to text logger and tensorboard logger.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
     Property:

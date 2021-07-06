@@ -19,59 +19,37 @@ from ding.utils.autolog import TickTime
 
 
 def build_logger(
-        path: str,
-        name: Optional[str] = None,
-        need_tb: bool = True,
-        need_text: bool = True,
-        text_level: Union[int, str] = logging.INFO
-) -> Tuple[Optional['TextLogger'], Optional['SummaryWriter']]:  # noqa
+    path: str,
+    name: Optional[str] = None,
+    need_tb: bool = True,
+    need_text: bool = True,
+    text_level: Union[int, str] = logging.INFO
+) -> Tuple[Optional[logging.Logger], Optional['SummaryWriter']]:  # noqa
     r'''
     Overview:
-        Build ``TextLogger`` and ``SummaryWriter``.
+        Build text logger and tensorboard logger.
     Arguments:
         - path (:obj:`str`): Logger(``Textlogger`` & ``SummaryWriter``)'s saved dir
         - name (:obj:`str`): The logger file name
         - need_tb (:obj:`bool`): Whether ``SummaryWriter`` instance would be created and returned
-        - need_text (:obj:`bool`): Whether ``TextLogger`` instance would be created and returned
-        - text_level (:obj:`int`` or :obj:`str`): Logging level of ``TextLogger``, default set to ``logging.INFO``
+        - need_text (:obj:`bool`): Whether ``loggingLogger`` instance would be created and returned
+        - text_level (:obj:`int`` or :obj:`str`): Logging level of ``logging.Logger``, default set to ``logging.INFO``
     Returns:
-        - logger (:obj:`Optional['TextLogger']`): Logger that displays terminal output
+        - logger (:obj:`Optional[logging.Logger]`): Logger that displays terminal output
         - tb_logger (:obj:`Optional['SummaryWriter']`): Saves output to tfboard, only return when ``need_tb``.
     '''
     if name is None:
         name = 'default'
-    logger = TextLogger(path, name=name) if need_text else None
+    logger = LoggerFactory.create_logger(path, name=name) if need_text else None
     tb_name = name + '_tb_logger'
     tb_logger = SummaryWriter(os.path.join(path, tb_name)) if need_tb else None
     return logger, tb_logger
 
 
-class TextLogger(object):
-    r"""
-    Overview:
-        Logger that saves terminal output to file
-    Interface:
-        ``__init__``, ``info``, ``print_vars``, ``print_vars_hor``, ``debug``, ``error``, ``level``
-    """
+class LoggerFactory(object):
 
-    def __init__(self, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> None:
-        r"""
-        Overview:
-            Initialization method, create logger.
-        Arguments:
-            - path (:obj:`str`): Logger's save dir
-            - name (:obj:`str`): Logger's name, default set to 'default'
-            - level (:obj:`int` or :obj:`str`): Set the logging level of logger. Reference: ``Logger.setLevel`` method.
-        """
-        name += '_logger'
-        # ensure the path exists
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-        self.logger = self._create_logger(name, os.path.join(path, name + '.txt'), level=level)
-
-    def _create_logger(self, name: str, path: str, level: Union[int, str] = logging.INFO) -> logging.Logger:
+    @classmethod
+    def create_logger(cls, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> logging.Logger:
         r"""
         Overview:
             Create logger using logging
@@ -82,43 +60,48 @@ class TextLogger(object):
         Returns:
             - (:obj:`logging.Logger`): new logging logger
         """
+        name += '_logger'
+        # ensure the path exists
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
         logger = logging.getLogger(name)
+        logger_file_path = os.path.join(path, name + '.txt')
         if not logger.handlers:
             formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-            fh = logging.FileHandler(path, 'a')
+            fh = logging.FileHandler(logger_file_path, 'a')
             fh.setFormatter(formatter)
             logger.setLevel(level)
             logger.addHandler(fh)
+        logger.get_tabulate_vars = LoggerFactory.get_tabulate_vars
+        logger.get_tabulate_vars_hor = LoggerFactory.get_tabulate_vars_hor
         return logger
 
-    def print_vars(self, vars: Dict[str, Any], level: int = logging.INFO) -> None:
+    @staticmethod
+    def get_tabulate_vars(variables: Dict[str, Any]) -> str:
         r"""
         Overview:
             Get the text description in tabular form of all vars
         Arguments:
-            - names (:obj:`List[str]`):
-                Names of the vars to query.
-                If you want to query all vars, you can omit this
-                argument and thus ``need_print`` will be set to True all the time by default.
-            - var_type (:obj:`str`): Default set to scalar, support ['scalar']
-            - level (:obj:`int`): Log level
+            - variables (:obj:`List[str]`): Names of the vars to query.
         Returns:
-            - ret (:obj:`str list`): Text description in tabular form of all vars
+            - string (:obj:`str`): Text description in tabular form of all vars
         """
         headers = ["Name", "Value"]
         data = []
-        for k, v in vars.items():
+        for k, v in variables.items():
             data.append([k, "{:.6f}".format(v)])
         s = "\n" + tabulate(data, headers=headers, tablefmt='grid')
-        if level >= logging.INFO:
-            self.info(s)
+        return s
 
-    def print_vars_hor(self, vars: Dict[str, Any], level: int = logging.INFO) -> None:
+    @staticmethod
+    def get_tabulate_vars_hor(variables: Dict[str, Any]) -> str:
         datak = []
         datav = []
         datak.append("Name")
         datav.append("Value")
-        for k, v in vars.items():
+        for k, v in variables.items():
             datak.append(k)
             if not isinstance(v, str) and np.isscalar(v):
                 datav.append("{:.6f}".format(v))
@@ -126,48 +109,7 @@ class TextLogger(object):
                 datav.append(v)
         data = [datak, datav]
         s = "\n" + tabulate(data, tablefmt='grid')
-        if level >= logging.INFO:
-            self.info(s)
-
-    def info(self, s: str) -> None:
-        r"""
-        Overview:
-            Add message to logger
-        Arguments:
-            - s (:obj:`str`): Message to add to logger
-
-        .. note::
-           Reference: Logger class in the python3 ``/logging/__init__.py``
-        """
-        self.logger.info(s)
-
-    def debug(self, s: str) -> None:
-        r"""
-        Overview:
-            Call ``logger.debug``
-        Arguments:
-            - s (:obj:`str`): Message to add to logger
-
-        .. note::
-            Reference: Logger class in the python3 ``/logging/__init__.py``
-        """
-        self.logger.debug(s)
-
-    def error(self, s: str) -> None:
-        r"""
-        Overview:
-            Call ``logger.error``
-        Arguments:
-            - s (:obj:`str`): Message to add to logger
-
-        .. note::
-            Reference: Logger class in the python3 ``/logging/__init__.py``
-        """
-        self.logger.error(s)
-
-    @property
-    def level(self) -> int:
-        return self.logger.level
+        return s
 
 
 class DistributionTimeImage:

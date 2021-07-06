@@ -47,7 +47,7 @@ class TestLogger:
         logger.info("I'm an info")
         logger.debug("I'm a bug")
         logger.error("I'm an error")
-        logger.print_vars(vars)
+        logger.info(logger.get_tabulate_vars(vars))
         # tensorboard logger
         for i in range(10):
             new_vars = {k: v * (i + random.random()) for k, v in vars.items()}

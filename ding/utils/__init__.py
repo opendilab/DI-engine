@@ -10,7 +10,7 @@ from .import_helper import try_import_ceph, try_import_mc, try_import_link, impo
 from .k8s_helper import get_operator_server_kwargs, exist_operator_server, DEFAULT_K8S_COLLECTOR_PORT, \
     DEFAULT_K8S_LEARNER_PORT, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT, DEFAULT_K8S_COORDINATOR_PORT
 from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_file_lock
-from .log_helper import build_logger, DistributionTimeImage, pretty_print, TextLogger
+from .log_helper import build_logger, DistributionTimeImage, pretty_print, LoggerFactory
 from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER_REGISTRY, COMM_LEARNER_REGISTRY, \
     SERIAL_COLLECTOR_REGISTRY, PARALLEL_COLLECTOR_REGISTRY, COMM_COLLECTOR_REGISTRY, \
     COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY, \

@@ -97,12 +97,12 @@ class BaseCollector(ABC):
         self._policy_inference = policy_wrapper(self._policy_inference)
         self._env_step = env_wrapper(self._env_step)
 
-    def _setup_logger(self) -> Tuple['TextLogger', 'TickMonitor', 'LogDict']:  # noqa
+    def _setup_logger(self) -> Tuple[logging.Logger, 'TickMonitor', 'LogDict']:  # noqa
         """
         Overview:
             Setup logger for base_collector. Logger includes logger, monitor and log buffer dict.
         Returns:
-            - logger (:obj:`TextLogger`): logger that displays terminal output
+            - logger (:obj:`logging.Logger`): logger that displays terminal output
             - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
             - log_buffer (:obj:`LogDict`): log buffer dict
         """
@@ -149,7 +149,7 @@ class BaseCollector(ABC):
                 for attr in self._monitor.get_property_attribute(k):
                     k_attr = k + '_' + attr
                     var_dict[k_attr] = getattr(self._monitor, attr)[k]()
-            self._logger.print_vars(var_dict, level=logging.DEBUG)
+            self._logger.debug(self._logger.get_tabulate_vars_hor(var_dict))
         self._log_buffer.clear()
         self._iter_count += 1
 
@@ -216,7 +216,7 @@ class TickMonitor(LoggedModel):
         TickMonitor is to monitor related info of one interation with env.
         Info include: policy_time, env_time, norm_env_time, timestep_size...
         These info variables would first be recorded in ``log_buffer``, then in ``self._iter_after_hook`` will vars in
-        in this monitor be updated by``log_buffer``, then printed to ``TextLogger`` and ``TensorBoradLogger``.
+        in this monitor be updated by``log_buffer``, then printed to text logger and tensorboard logger.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
     Property:
