@@ -1,6 +1,6 @@
 Quick Start
 ===============================
-(Based on commit 0c3529)
+(Based on commit 781ffd2611325f51bee3b5fbcf34b05505383329)
 
 .. toctree::
    :maxdepth: 3
@@ -10,7 +10,7 @@ Here we show how to easily deploy a Reinforcement Learning experiment on a simpl
 A simple demo for CartPole Env evaluation is shown follow.
 
 .. image:: 
-   images/cartpole_converge.gif
+   images/cartpole_cmp.gif
    :align: center
 
 DI-engine provides config-wise and code-wise specifications to build RL experiments. 
