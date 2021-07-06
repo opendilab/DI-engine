@@ -5,7 +5,7 @@ from typing import Optional, Iterable, Callable
 
 _innest_error = True
 
-_DI_ENGINE_REG_TRACE_IS_ON = os.environ.get('DIENGINEREGTRACE', 'ON').upper() == 'ON'
+_DI_ENGINE_REG_TRACE_IS_ON = os.environ.get('DIENGINEREGTRACE', 'OFF').upper() == 'ON'
 
 
 class Registry(dict):
