@@ -422,7 +422,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         .. note:
 
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+            - Each environment is run by a subprocess separately. Once an environment is done, it is reset immediately.
             - Async subprocess env manager use ``connection.wait`` to poll.
         """
         self._check_closed()
@@ -748,7 +748,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         .. note::
 
             - The env_id that appears in ``actions`` will also be returned in ``timesteps``.
-            - Each environment is run by a subprocess seperately. Once an environment is done, it is reset immediately.
+            - Each environment is run by a subprocess separately. Once an environment is done, it is reset immediately.
         """
         self._check_closed()
         env_ids = list(actions.keys())

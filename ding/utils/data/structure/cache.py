@@ -31,7 +31,7 @@ class Cache:
         self.timeout = timeout
         self.monitor_interval = monitor_interval
         self.debug = _debug
-        # two seperate receive and send queue for reducing interaction frequency and interference
+        # two separate receive and send queue for reducing interaction frequency and interference
         self.receive_queue = Queue(maxlen)
         self.send_queue = Queue(maxlen)
         self.receive_lock = LockContext(type_=LockContextType.THREAD_LOCK)

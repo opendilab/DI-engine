@@ -107,7 +107,7 @@ class LSTMForwardWrapper(object):
             - next_state (:obj:`List[Tuple[torch.Tensor]]`): List of tuple which contains the next (h, c)
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - next_state(:obj:`Union[torch.Tensor, list]`): the formated next_state
+            - next_state(:obj:`Union[torch.Tensor, list]`): the formatted next_state
         """
         if list_next_state:
             h, c = [torch.stack(t, dim=0) for t in zip(*next_state)]

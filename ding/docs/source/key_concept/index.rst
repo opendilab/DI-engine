@@ -520,7 +520,7 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 
 Worker-Learner
 ~~~~~~~~~~~~~~~~~~
-Learner is one of the most important components among all the workers, who is reponsible for optimizing the policy by training data. Unlike another important component ``Collector``, learner is not divided into serial and parralel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.
+Learner is one of the most important components among all the workers, who is responsible for optimizing the policy by training data. Unlike another important component ``Collector``, learner is not divided into serial and parallel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.
 
 **Serial pipeline** would call learner's ``train`` method for training. ``train`` method receives a batch of data, and call learn_mode policy's ``_forward_learn`` to train for one iteraton.
 

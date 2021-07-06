@@ -283,7 +283,7 @@ In parallel mode, the log folder has five subfolders, including buffer, collecto
 
 - data
 
-    In this folder, there are a lot of data files. In serial mode, all datas are stored in memory; While in parallel mode, data is seperated into meta data and file data: meta data is still stored in memory, but file data is stored in file system.
+    In this folder, there are a lot of data files. In serial mode, all datas are stored in memory; While in parallel mode, data is separated into meta data and file data: meta data is still stored in memory, but file data is stored in file system.
 
 - policy
 

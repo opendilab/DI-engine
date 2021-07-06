@@ -49,7 +49,7 @@ Common methods for solving MDP problems:
 
 2. **Monte Carlo methods (MC)**  are based directly on the definition of the optimal value function and provide an unbiased estimate of the optimal value function by sampling. MC replaces the actual expected return with the sample return and solves the optimal strategy empirically only.
    
-   MC do not need an environmental model. Data simulation and sampling models can be applied to MC and MC can only evaluate a certain state of interest. In comparision with DP, MC performs better when the Markov property does not hold.
+   MC do not need an environmental model. Data simulation and sampling models can be applied to MC and MC can only evaluate a certain state of interest. In comparison with DP, MC performs better when the Markov property does not hold.
  
 
 3. **Temperal-Differnece learning (TD)**, TD error: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
@@ -144,7 +144,7 @@ Value based reinforcement learning approach includes two steps：policy evalutio
 
 For systems where the model is known, the value function can be obtained using DPs; For systems where the model is unknown, it can be obtained using MC or TD.
 
-For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of funtion approximation to approximate the value function.
+For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of function approximation to approximate the value function.
 
 
 Policy Gradients

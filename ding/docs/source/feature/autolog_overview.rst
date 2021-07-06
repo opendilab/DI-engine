@@ -81,7 +81,7 @@ LoggedModel
             # Such as
             #
             # l.value = 11
-            # time.sleep(1.0)  # please add "import time" if you wanna use this line
+            # time.sleep(1.0)  # please add "import time" if you want to use this line
             # l.value = 22
             # time.sleep(1.2)
             # l.value = 33
