@@ -642,8 +642,35 @@ Computation Pattern
 
 Serial Pipeline
 ~~~~~~~~~~~~~~~~~
+
+Off-Policy DRL: DQN, IMPALA, SAC
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. image::
    images/serial_pipeline.svg
+   :align: center
+
+Users can easily implement various DRL algorithms by combining and utilizing different description and execution modules in DI-engine, here are some demostration designs:
+
+On-Policy DRL: PPO
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image::
+   images/serial_pipeline_on_policy.svg
+   :align: center
+
+**DRL + RewardModel: GAIL, HER, RND**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image::
+   images/serial_pipeline_reward_model.svg
+   :align: center
+
+**DRL + Demostration Data/Policy: R2D3, SQIL, RBC**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image::
+   images/serial_pipeline_r2d3.svg
    :align: center
 
 Parallel/Dist Pipeline
