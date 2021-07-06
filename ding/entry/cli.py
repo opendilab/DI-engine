@@ -2,6 +2,7 @@ import click
 from click.core import Context, Option
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
+from .predefined_config import get_predefined_config
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
@@ -41,7 +42,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option(
     '-q',
-    '--query_registry',
+    '--query-registry',
     type=str,
     callback=print_registry,
     expose_value=False,
@@ -62,30 +63,43 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     default=0,
     help='random generator seed(for all the possible package: random, numpy, torch and user env)'
 )
-@click.option('--enable_total_log', type=bool, help='whether enable the total DI-engine system log', default=False)
-@click.option('--disable_flask_log', type=bool, help='whether disable flask log', default=True)
+@click.option('-e', '--env', type=str, help='RL env name')
+@click.option('-p', '--policy', type=str, help='DRL policy name')
+@click.option('--train-iter', type=int, default=int(1e8), help='Policy training iterations')
+@click.option('--load-path', type=str, default=None, help='Path to load ckpt')
+@click.option('--replay-path', type=str, default=None, help='Path to save replay')
 # the following arguments are only applied to dist mode
+@click.option('--enable-total-log', type=bool, help='whether enable the total DI-engine system log', default=False)
+@click.option('--disable-flask-log', type=bool, help='whether disable flask log', default=True)
 @click.option(
-    '-p', '--platform', type=click.Choice(['local', 'slurm', 'k8s']), help='local or slurm or k8s', default='local'
+    '-P', '--platform', type=click.Choice(['local', 'slurm', 'k8s']), help='local or slurm or k8s', default='local'
 )
 @click.option(
+    '-M',
     '--module',
     type=click.Choice(['config', 'collector', 'learner', 'coordinator', 'learner_aggregator', 'spawn_learner']),
     help='dist module type'
 )
 @click.option('--module-name', type=str, help='dist module name')
-@click.option('-cdh', '--coordinator_host', type=str, help='coordinator host', default='0.0.0.0')
-@click.option('-cdp', '--coordinator_port', type=int, help='coordinator port')
-@click.option('-lh', '--learner_host', type=str, help='learner host', default='0.0.0.0')
-@click.option('-lp', '--learner_port', type=int, help='learner port')
-@click.option('-clh', '--collector_host', type=str, help='collector host', default='0.0.0.0')
-@click.option('-clp', '--collector_port', type=int, help='collector port')
-@click.option('-agh', '--aggregator_host', type=str, help='aggregator slave host', default='0.0.0.0')
-@click.option('-agp', '--aggregator_port', type=int, help='aggregator slave port')
+@click.option('-cdh', '--coordinator-host', type=str, help='coordinator host', default='0.0.0.0')
+@click.option('-cdp', '--coordinator-port', type=int, help='coordinator port')
+@click.option('-lh', '--learner-host', type=str, help='learner host', default='0.0.0.0')
+@click.option('-lp', '--learner-port', type=int, help='learner port')
+@click.option('-clh', '--collector-host', type=str, help='collector host', default='0.0.0.0')
+@click.option('-clp', '--collector-port', type=int, help='collector port')
+@click.option('-agh', '--aggregator-host', type=str, help='aggregator slave host', default='0.0.0.0')
+@click.option('-agp', '--aggregator-port', type=int, help='aggregator slave port')
 def cli(
+    # serial/eval
     mode: str,
     config: str,
     seed: int,
+    env: str,
+    policy: str,
+    train_iter: int,
+    load_path: str,
+    replay_path: str,
+    # parallel/dist
     platform: str,
     coordinator_host: str,
     coordinator_port: int,
@@ -102,7 +116,9 @@ def cli(
 ):
     if mode == 'serial':
         from .serial_entry import serial_pipeline
-        serial_pipeline(config, seed)
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline(config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
@@ -131,4 +147,6 @@ def cli(
             raise Exception
     elif mode == 'eval':
         from .application_entry import eval
-        eval(config, seed)
+        if config is None:
+            config = get_predefined_config(env, policy)
+        eval(config, seed, load_path=load_path, replay_path=replay_path)
