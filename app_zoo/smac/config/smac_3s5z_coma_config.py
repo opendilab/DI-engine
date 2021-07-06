@@ -1,6 +1,6 @@
 import sys
 from copy import deepcopy
-from nervex.entry import serial_pipeline
+from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 8

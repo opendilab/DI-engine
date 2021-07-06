@@ -34,7 +34,7 @@ class DQN(nn.Module):
             - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in networks \
                 if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``nervex.torch_utils.fc_block`` \
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
                 for more details.
         """
         super(DQN, self).__init__()
@@ -125,7 +125,7 @@ class C51DQN(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
             - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
         """
         super(C51DQN, self).__init__()
@@ -230,7 +230,7 @@ class QRDQN(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
         super(QRDQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -334,7 +334,7 @@ class IQN(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
         super(IQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -443,7 +443,7 @@ class RainbowDQN(nn.Module):
             - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
                 ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``nervex.torch_utils.fc_block`` \
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
                 for more details`
             - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
         """
@@ -581,7 +581,7 @@ class DRQN(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]

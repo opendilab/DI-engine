@@ -47,7 +47,7 @@ class QAC(nn.Module):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``nervex.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
