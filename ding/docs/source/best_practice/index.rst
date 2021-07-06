@@ -18,6 +18,7 @@ Best Practice
     
     model_wrapper
     env_wrapper
+    episode_buffer
     multi_buffer
     registry
     
