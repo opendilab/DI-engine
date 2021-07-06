@@ -1,6 +1,12 @@
 Welcome to DI-engine's documentation!
 =====================================
 
+.. image::
+   images/di_engine_logo.svg
+   :width: 300
+   :align: center
+
+
 Overview
 ------------
 DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
