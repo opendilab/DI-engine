@@ -1,8 +1,8 @@
 import time
 import torch
 import torch.nn.functional as F
-from hpc_rl.origin.ppo import ppo_error, ppo_data
-from hpc_rl.loss.ppo import HPCPPO
+from hpc_rll.origin.ppo import ppo_error, ppo_data
+from hpc_rll.rl_utils.ppo import PPO
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -33,7 +33,7 @@ def ppo_val():
     hpc_adv = ori_adv.clone().detach()
     hpc_return = ori_return.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_ppo = HPCPPO(B, N)
+    hpc_ppo = PPO(B, N)
 
     if use_cuda:
         ori_logits_new = ori_logits_new.cuda()
@@ -111,7 +111,7 @@ def ppo_perf():
     hpc_adv = ori_adv.clone().detach()
     hpc_return = ori_return.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_ppo = HPCPPO(B, N)
+    hpc_ppo = PPO(B, N)
 
     if use_cuda:
         ori_logits_new = ori_logits_new.cuda()

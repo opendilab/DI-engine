@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.td import q_nstep_td_error_with_rescale, q_nstep_td_data
-from hpc_rl.loss.td import HPCQNTDRescale
+from hpc_rll.origin.td import q_nstep_td_error_with_rescale, q_nstep_td_data
+from hpc_rll.rl_utils.td import QNStepTDRescale
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -29,7 +29,7 @@ def qntd_rescale_val():
     hpc_reward = ori_reward.clone().detach()
     hpc_done = ori_done.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_qntd_rescale = HPCQNTDRescale(T, B, N)
+    hpc_qntd_rescale = QNStepTDRescale(T, B, N)
 
     if use_cuda:
         ori_q = ori_q.cuda()
@@ -95,7 +95,7 @@ def qntd_rescale_perf():
     hpc_reward = ori_reward.clone().detach()
     hpc_done = ori_done.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_qntd_rescale = HPCQNTDRescale(T, B, N)
+    hpc_qntd_rescale = QNStepTDRescale(T, B, N)
 
     if use_cuda:
         ori_q = ori_q.cuda()

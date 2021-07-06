@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.td import td_lambda_error, td_lambda_data
-from hpc_rl.loss.td import HPCTDLambda
+from hpc_rll.origin.td import td_lambda_error, td_lambda_data
+from hpc_rll.rl_utils.td import TDLambda
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -19,7 +19,7 @@ def td_val():
     hpc_value = ori_value.clone().detach()
     hpc_reward = ori_reward.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_td = HPCTDLambda(T, B)
+    hpc_td = TDLambda(T, B)
 
     if use_cuda:
         ori_value = ori_value.cuda()
@@ -65,7 +65,7 @@ def td_perf():
     hpc_value = ori_value.clone().detach()
     hpc_reward = ori_reward.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_td = HPCTDLambda(T, B)
+    hpc_td = TDLambda(T, B)
 
     if use_cuda:
         ori_value = ori_value.cuda()

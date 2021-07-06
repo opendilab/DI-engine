@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.upgo import upgo_loss
-from hpc_rl.loss.upgo import HPCUPGO
+from hpc_rll.origin.upgo import upgo_loss
+from hpc_rll.rl_utils.upgo import UPGO
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -29,7 +29,7 @@ def upgo_val():
     hpc_action = ori_action.clone().detach()
     hpc_rewards = ori_rewards.clone().detach()
     hpc_bootstrap_values = ori_bootstrap_values.clone().detach()
-    hpc_upgo = HPCUPGO(T, B, N)
+    hpc_upgo = UPGO(T, B, N)
 
     if use_cuda:
         ori_target_output = ori_target_output.cuda()
@@ -88,7 +88,7 @@ def upgo_perf():
     hpc_action = ori_action.clone().detach()
     hpc_rewards = ori_rewards.clone().detach()
     hpc_bootstrap_values = ori_bootstrap_values.clone().detach()
-    hpc_upgo = HPCUPGO(T, B, N)
+    hpc_upgo = UPGO(T, B, N)
 
     if use_cuda:
         ori_target_output = ori_target_output.cuda()
