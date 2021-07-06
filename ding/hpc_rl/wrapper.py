@@ -60,16 +60,16 @@ per_fn_limit = 3
 
 def register_runtime_fn(fn_name, runtime_name, shape):
     fn_name_mapping = {
-        'gae': ['hpc_rl.loss.gae', 'HPCGAE'],
-        'dist_nstep_td_error': ['hpc_rl.loss.td', 'HPCDNTD'],
-        'LSTM': ['hpc_rl.network.rnn', 'HPCLSTM'],
-        'ppo_error': ['hpc_rl.loss.ppo', 'HPCPPO'],
-        'q_nstep_td_error': ['hpc_rl.loss.td', 'HPCQNTD'],
-        'q_nstep_td_error_with_rescale': ['hpc_rl.loss.td', 'HPCQNTDRescale'],
-        'ScatterConnection': ['hpc_rl.network.scatter_connection', 'HPCScatterConnection'],
-        'td_lambda_error': ['hpc_rl.loss.td', 'HPCTDLambda'],
-        'upgo_loss': ['hpc_rl.loss.upgo', 'HPCUPGO'],
-        'vtrace_error': ['hpc_rl.loss.vtrace', 'HPCVtrace'],
+        'gae': ['hpc_rll.rl_utils.gae', 'GAE'],
+        'dist_nstep_td_error': ['hpc_rll.rl_utils.td', 'DistNStepTD'],
+        'LSTM': ['hpc_rll.torch_utils.network.rnn', 'LSTM'],
+        'ppo_error': ['hpc_rll.rl_utils.ppo', 'PPO'],
+        'q_nstep_td_error': ['hpc_rll.rl_utils.td', 'QNStepTD'],
+        'q_nstep_td_error_with_rescale': ['hpc_rll.rl_utils.td', 'QNStepTDRescale'],
+        'ScatterConnection': ['hpc_rll.torch_utils.network.scatter_connection', 'ScatterConnection'],
+        'td_lambda_error': ['hpc_rll.rl_utils.td', 'TDLambda'],
+        'upgo_loss': ['hpc_rll.rl_utils.upgo', 'UPGO'],
+        'vtrace_error': ['hpc_rll.rl_utils.vtrace', 'VTrace'],
     }
     fn_str = fn_name_mapping[fn_name]
     cls = getattr(importlib.import_module(fn_str[0]), fn_str[1])

@@ -1,8 +1,8 @@
 import time
 import torch
 from typing import Tuple
-from hpc_rl.origin.scatter_connection import ScatterConnection
-from hpc_rl.network.scatter_connection import HPCScatterConnection
+from hpc_rll.origin.scatter_connection import ScatterConnection
+from hpc_rll.torch_utils.network.scatter_connection import ScatterConnection as HPCScatterConnection
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()

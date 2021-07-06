@@ -70,6 +70,7 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+
 def train_dqn(args):
     config = [main_config, create_config]
     serial_pipeline(config, seed=args.seed)

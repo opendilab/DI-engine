@@ -21,7 +21,6 @@ bipedalwalker_td3_config = dict(
             actor_head_hidden_size=400,
             critic_head_hidden_size=400,
             actor_head_type='regression',
-
         ),
         learn=dict(
             update_per_collect=4,
@@ -33,7 +32,6 @@ bipedalwalker_td3_config = dict(
             ignore_done=False,
             actor_update_freq=2,
             noise=True,
-
             noise_sigma=0.2,
             noise_range=dict(
                 min=-0.5,

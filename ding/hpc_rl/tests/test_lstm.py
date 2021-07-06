@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.rnn import get_lstm
-from hpc_rl.network.rnn import HPCLSTM
+from hpc_rll.origin.rnn import get_lstm
+from hpc_rll.torch_utils.network.rnn import LSTM
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -20,7 +20,7 @@ dropout = 0  # 0.1
 # Note: only used to case of num_layers = 3
 def lstm_val():
     ori_lstm = get_lstm('normal', input_size, hidden_size, num_layers, norm_type, dropout)
-    hpc_lstm = HPCLSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout)
+    hpc_lstm = LSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout)
 
     ori_x = torch.randn(seq_len, batch_size, input_size)
     ori_h0 = torch.randn(num_layers, batch_size, hidden_size)
@@ -102,7 +102,7 @@ def lstm_val():
 
 def lstm_perf():
     ori_lstm = get_lstm('normal', input_size, hidden_size, num_layers, norm_type, dropout)
-    hpc_lstm = HPCLSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout)
+    hpc_lstm = LSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout)
 
     lstms = {'normal': ori_lstm, 'hpc': hpc_lstm}
 

@@ -10,9 +10,7 @@ pong_ppo_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -44,13 +42,11 @@ pong_ppo_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=100000,
-                max_use=3,
-                min_sample_ratio=1,
-            ),
-        ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=100000,
+            max_use=3,
+            min_sample_ratio=1,
+        ), ),
     ),
 )
 main_config = EasyDict(pong_ppo_config)

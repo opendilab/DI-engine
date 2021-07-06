@@ -47,6 +47,5 @@ lunarlander_ppo_create_config = dict(
 lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
 
-
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
