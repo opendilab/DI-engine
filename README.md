@@ -11,6 +11,9 @@
 
 Updated on 2021.07.08
 
+## Agent demo
+![demo](https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX/-/wikis/uploads/09acc3035e8ef720a414e6ff1e2ac893/sw.gif)
+
 ## Documents
 
 http://open-xlab.pages.gitlab.bj.sensetime.com/cell/nerveX
