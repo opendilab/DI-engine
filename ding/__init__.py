@@ -1,10 +1,10 @@
 import os
 
 __TITLE__ = 'DI-engine'
-__VERSION__ = 'v0.2.0-b2'
+__VERSION__ = 'v0.1.0'
 __DESCRIPTION__ = 'Decision AI Engine'
 __AUTHOR__ = "OpenDILab Contributors"
-__AUTHOR_EMAIL__ = "opendilab@gmail.com"
+__AUTHOR_EMAIL__ = "opendilab.contact@gmail.com"
 __version__ = __VERSION__
 
 enable_hpc_rl = False

@@ -43,5 +43,4 @@ git规范
   - 在编辑 git repository 中的文件时，请特别留意 **换行符** 。默认情况下，Windows 系统使用 ``CRLF`` 换行，Unix 系统使用 ``LF`` 换行。我们强制要求所有签入 git repository 文件 **必须使用 LF 换行** ，以避免潜在的系统级 bug。Windows下可以使用 ``dos2unix`` `批量处理 <https://stackoverflow.com/questions/11929461/how-can-i-run-dos2unix-on-an-entire-directory>`_ 整个文件夹内的换行;
   - 开发完成后无用的分支请在远程仓库中删除。这样主要是为了防止公共代码库分支混乱、clone 耗时；
   - 注意编写合适的 ``.gitignore`` ，不要把任何与项目实现无关的文件签入 git，例如 macOS 下的 ``.DS_Store`` 文件夹，IDE 配置文件夹 ``.vscode`` 、 ``.idea`` ，运行日志文件等；
-  - 除非必要， **绝对不要把大容量二进制文件嵌入git repo中** ，例如训练的模型文件、二进制库文件等，这些文件可能会带来多种多样的问题。 如果要引入这些文件，可使用贵司 dev center 提供的 `git lfs <http://confluence.bj.sensetime.com/pages/viewpage.action?spaceKey=INFRAS&title=Large+File+Storage>`_
-
+  - 除非必要， **绝对不要把大容量二进制文件嵌入git repo中** ，例如训练的模型文件、二进制库文件等，这些文件可能会带来多种多样的问题。 如果要引入这些文件，可使用 ``gif lfs``

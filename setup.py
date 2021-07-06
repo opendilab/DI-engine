@@ -59,7 +59,6 @@ setup(
         'tabulate',
         'sortedcontainers',
         'click==7.1.2',
-        'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
         'readerwriterlock',

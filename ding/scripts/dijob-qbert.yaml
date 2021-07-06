@@ -17,8 +17,6 @@ spec:
   coordinator:
     template:
       spec:
-        # nodeSelector:
-        #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: coordinator
           image: registry.sensetime.com/cloudnative4ai/ding:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
@@ -107,7 +105,7 @@ spec:
             qbert_dqn_create_config = dict(
                 env=dict(
                     type='atari',
-                    import_names=['app_zoo.atari.envs.atari_env'],
+                    import_names=['dizoo.atari.envs.atari_env'],
                 ),
                 env_manager=dict(type='subprocess'),
                 policy=dict(type='dqn_command'),
@@ -164,7 +162,7 @@ spec:
             # pip install --no-cache-dir -e .[common_env]
 
             ding -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;
-            ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
+            ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0 --disable-flask-log 0 -cdp $COORDINATOR_PORT
           ports:
           - name: coordinator
             containerPort: 22273
@@ -201,7 +199,7 @@ spec:
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
 
-            ding -m dist --module collector -c qbert_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT --disable_flask_log 0
+            ding -m dist --module collector -c qbert_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT --disable-flask-log 0
           ports:
           - name: collector
             containerPort: 22270
@@ -238,7 +236,7 @@ spec:
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
 
-            ding -m dist --module spawn_learner -c qbert_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT --disable_flask_log 0
+            ding -m dist --module spawn_learner -c qbert_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT --disable-flask-log 0
           ports:
           - name: learner
             containerPort: 22271

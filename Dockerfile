@@ -27,5 +27,3 @@ RUN curl -sL https://www.rarlab.com/rar/rarlinux-x64-6.0.1.tar.gz | tar -zxvf - 
     && python -m atari_py.import_roms . \
     && cd .. && rm -rf roms \
     && rm /usr/local/bin/rar /usr/local/bin/unrar /etc/rarfiles.lst /usr/local/lib/default.sfx
-
-# docker build -t registry.sensetime.com/cloudnative4ai/nervex:v0.0.1-torch1.4-cuda10.1-cudnn7-devel .
