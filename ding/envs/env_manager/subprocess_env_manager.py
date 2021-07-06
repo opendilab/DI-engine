@@ -303,15 +303,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if reset_param is not None:
             assert len(reset_param) == len(self._env_fn)
         self._create_state()
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for i in range(self.env_num):
-                if self._env_dynamic_seed is not None:
-                    self._pipe_parents[i].send(['seed', [self._env_seed[i], self._env_dynamic_seed], {}])
-                else:
-                    self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
-            ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-            self._check_data(ret)
         self.reset(reset_param)
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
@@ -344,20 +335,21 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             time.sleep(0.001)
             sleep_count += 1
 
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for i in range(self.env_num):
-                self._pipe_parents[i].send(['seed', [self._env_seed[i]], {}])
-            try:
-                ret = {i: p.recv() for i, p in self._pipe_parents.items()}
-                self._check_data(ret)
-            except Exception as e:
-                logging.warning("subprocess reset set seed failed, ignore and continue...")
-
         # reset env
         reset_thread_list = []
         for env_id in reset_env_list:
             self._env_states[env_id] == EnvState.RESET
+            # set seed
+            if hasattr(self, '_env_seed'):
+                try:
+                    if self._env_dynamic_seed is not None:
+                        self._pipe_parents[env_id].send(['seed', [self._env_seed[env_id], self._env_dynamic_seed], {}])
+                    else:
+                        self._pipe_parents[env_id].send(['seed', [self._env_seed[env_id]], {}])
+                    ret = self._pipe_parents[env_id].recv()
+                    self._check_data({env_id: ret})
+                except Exception as e:
+                    logging.warning("subprocess reset set seed failed, ignore and continue...")
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
@@ -616,7 +608,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     raise KeyError("not support env cmd: {}".format(cmd))
                 child.send(ret)
             except Exception as e:
-                #print("Sub env '{}' error when executing {}".format(str(env), cmd))
+                # print("Sub env '{}' error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
                 child.send(
