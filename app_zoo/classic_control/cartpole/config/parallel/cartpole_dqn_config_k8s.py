@@ -46,7 +46,8 @@ cartpole_dqn_config = dict(
                 enable_track_used_data=False,
             ),
             commander=dict(
-                collector_task_space=2,
+                # increase collector task space when get rs from server
+                collector_task_space=0,
                 learner_task_space=1,
                 eval_interval=5,
             ),
@@ -87,7 +88,7 @@ create_config = cartpole_dqn_create_config
 cartpole_dqn_system_config = dict(
     coordinator=dict(
         operator_server=dict(
-            system_addr='http://nervex-server.nervex-system:8080',
+            system_addr='di-server.di-system:8080',
             api_version='/v1alpha1',
             init_replicas_request=dict(
                 collectors={
@@ -102,10 +103,10 @@ cartpole_dqn_system_config = dict(
             learner_target_num=1,
         ),
     ),
-    path_data='/nervex/cartpole/data',
-    path_policy='/nervex/cartpole/policy',
+    path_data='./data',
+    path_policy='./policy',
     communication_mode='auto',
-    learner_multi_gpu=False,
+    learner_gpu_num=1,
 )
 cartpole_dqn_system_config = EasyDict(cartpole_dqn_system_config)
 system_config = cartpole_dqn_system_config

@@ -1,5 +1,5 @@
-apiVersion: nervex.sensetime.com/v1alpha1
-kind: NerveXJob
+apiVersion: diengine.opendilab.org/v1alpha1
+kind: DIJob
 metadata:
   name: qbert-dqn
 spec:
@@ -13,7 +13,7 @@ spec:
       sizeLimit: 128Mi
   - name: work-dir
     hostPath:
-      path: /data/nfs/nervex/qbert
+      path: /data/nfs/ding/qbert
   coordinator:
     template:
       spec:
@@ -21,7 +21,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: coordinator
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -111,22 +111,22 @@ spec:
                 ),
                 env_manager=dict(type='subprocess'),
                 policy=dict(type='dqn_command'),
-                learner=dict(type='base', import_names=['nervex.worker.learner.base_learner']),
+                learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
                 collector=dict(
                     type='zergling',
-                    import_names=['nervex.worker.collector.zergling_collector'],
+                    import_names=['ding.worker.collector.zergling_collector'],
                 ),
                 commander=dict(
                     type='solo',
-                    import_names=['nervex.worker.coordinator.solo_parallel_commander'],
+                    import_names=['ding.worker.coordinator.solo_parallel_commander'],
                 ),
                 comm_learner=dict(
                     type='flask_fs',
-                    import_names=['nervex.worker.learner.comm.flask_fs_learner'],
+                    import_names=['ding.worker.learner.comm.flask_fs_learner'],
                 ),
                 comm_collector=dict(
                     type='flask_fs',
-                    import_names=['nervex.worker.collector.comm.flask_fs_collector'],
+                    import_names=['ding.worker.collector.comm.flask_fs_collector'],
                 ),
             )
             qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
@@ -135,7 +135,7 @@ spec:
             qbert_dqn_system_config = dict(
                 coordinator=dict(
                     operator_server=dict(
-                        system_addr='nervex-server.nervex-system:8080',
+                        system_addr='ding-server.ding-system:8080',
                         api_version='/v1alpha1',
                         init_replicas_request=dict(
                             collectors={
@@ -159,18 +159,18 @@ spec:
             system_config = qbert_dqn_system_config
             EOF
 
-            # if code has been changed in the mount path, we have to reinstall nervex cli
+            # if code has been changed in the mount path, we have to reinstall ding cli
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
 
-            nervex -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;
-            nervex -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
+            ding -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;
+            ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0 --disable_flask_log 0 -cdp $COORDINATOR_PORT
           ports:
           - name: coordinator
             containerPort: 22273
           volumeMounts:
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding
   collector:
     template:
       spec:
@@ -178,7 +178,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: collector
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -197,17 +197,17 @@ spec:
           command: ["/bin/bash", "-c",]
           args:
           - |
-            # if code has been changed in the mount path, we have to reinstall nervex cli
+            # if code has been changed in the mount path, we have to reinstall ding cli
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
 
-            nervex -m dist --module collector -c qbert_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT --disable_flask_log 0
+            ding -m dist --module collector -c qbert_dqn_config_k8s.py.pkl -s 0 -clp $COLLECTOR_PORT --disable_flask_log 0
           ports:
           - name: collector
             containerPort: 22270
           volumeMounts:
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding
   learner:
     template:
       spec:
@@ -215,7 +215,7 @@ spec:
         #   kubernetes.io/hostname: "liqingping-gpu.novalocal"
         containers:
         - name: learner
-          image: registry.sensetime.com/cloudnative4ai/nervex:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
+          image: registry.sensetime.com/cloudnative4ai/ding:v0.0.5-torch1.8.1-cuda11.1-cudnn8-runtime-24bd5271
           imagePullPolicy: Always
           env:
           - name: LC_ALL
@@ -234,11 +234,11 @@ spec:
           command: ["/bin/bash", "-c",]
           args:
           - |
-            # if code has been changed in the mount path, we have to reinstall nervex cli
+            # if code has been changed in the mount path, we have to reinstall ding cli
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
 
-            nervex -m dist --module spawn_learner -c qbert_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT --disable_flask_log 0
+            ding -m dist --module spawn_learner -c qbert_dqn_config_k8s.py.pkl -s 0 -lp $LEARNER_PORT --disable_flask_log 0
           ports:
           - name: learner
             containerPort: 22271
@@ -246,4 +246,4 @@ spec:
           - name: cache-volume
             mountPath: /dev/shm
           - name: work-dir
-            mountPath: /nervex
+            mountPath: /ding

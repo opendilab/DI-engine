@@ -285,7 +285,7 @@ class LearnerAggregator(object):
 
     def _period_sync_with_server(self) -> None:
         while not self._end_flag:
-            # First: send failed list to notify nerveX-server which replicas are failed, then terminate such replicas.
+            # First: send failed list to notify server which replicas are failed, then terminate such replicas.
             if len(self._failed_learner_conn) > 0:
                 learner_conn = []
                 for replica_conn in self._failed_learner_conn:

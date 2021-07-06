@@ -5,7 +5,7 @@ from easydict import EasyDict
 from ding.interaction.base import split_http_address
 
 DEFAULT_NAMESPACE = 'default'
-DEFAULT_POD_NAME = 'nervexjob-example-coordinator'
+DEFAULT_POD_NAME = 'dijob-example-coordinator'
 DEFAULT_API_VERSION = '/v1alpha1'
 
 DEFAULT_K8S_COLLECTOR_PORT = 22270
@@ -30,8 +30,8 @@ def get_operator_server_kwargs(cfg: EasyDict) -> dict:
     assert url, 'please set environment variable KUBERNETES_SERVER_URL in Kubenetes platform.'
     api_version = cfg.get('api_version', None) \
         or os.environ.get('KUBERNETES_SERVER_API_VERSION', DEFAULT_API_VERSION)
-    host, port, _, _ = split_http_address(url)
-    # host, port = url.split(":")[0], int(url.split(":")[1])
+    # host, port, _, _ = split_http_address(url)
+    host, port = url.split(":")[0], int(url.split(":")[1])
     return {
         'api_version': api_version,
         'namespace': namespace,
