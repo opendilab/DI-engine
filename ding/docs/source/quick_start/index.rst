@@ -5,52 +5,40 @@ Quick Start
 .. toctree::
    :maxdepth: 3
 
-Here we show how to easily deploy a Reinforcement Learning experiment on a simple ``CartPole`` 
-environment using DI-engine.
+Here we show how to easily deploy a Reinforcement Learning experiment on a simple ``CartPole`` environment using DI-engine.
+
+A simple demo for CartPole Env evaluation is shown follow.
+
+.. image:: 
+   images/cartpole_converge.gif
+   :align: center
 
 DI-engine provides config-wise and code-wise specifications to build RL experiments. 
 Both are commonly used by existing RL platforms. In this section we use the code-level
 entry to clarify the training procedure and defined modules, with the hyperparameters
-for training details and NN models pre-defined in a config file. 
+for training details and NN models pre-defined in a config file. And this example is the
+collector-learner serial pipeline, you can refer to `Entry <../key_concept/index.html#entry>`_ for more information about other pipeline types and entry types.
 
 
 Config and entry
 ------------------
 
-DI-engine recommends using a config `dict` defined in a python file as input.
+DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
+`Config <../key_concept/index.html#config>`_.
 
-.. code-block:: python
+.. note::
+   For the specific config example, you can refer to ``app_zoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
 
-    cartpole_dqn_default_config = dict(
-        env=dict(
-            manager=dict(...),
-            ...
-        ),
-        policy=dict(
-            model=dict(...),
-            collect=dict(...),
-            learn=dict(...),
-            eval=dict(...),
-            other=dict(
-                replay_buffer=dict(),
-                ...
-            ),
-            ...
-        ),
-    )
-
-A config file contains two main namespaces, ``env`` and ``policy``. Some sub-namespace belong to certain modules in DI-engine. 
-The module can be specialized defined by users or just use our pre-defined modules. Here is a example:
+And in this example, users can apply the following codes for preparing config.
 
 .. code-block:: python
 
     from ding.config import compile_config
     from ding.envs import BaseEnvManager, DingEnvWrapper
-    from ding.model import DQN, VAC
-    from ding.policy import DQNPolicy, PPOPolicy
+    from ding.model import DQN
+    from ding.policy import DQNPolicy
     from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
     from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config
-    # from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config  # ppo config
 
     # compile config
     cfg = compile_config(
@@ -64,13 +52,7 @@ The module can be specialized defined by users or just use our pre-defined modul
         save_cfg=True
     )
 
-
-.. note::
-   For the specific config example and how to construct config, you can refer to ``app_zoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py``
-
-For more design details, please refer to the `Config <../key_concept/index.html#config>`_.
-
-When you are ready with config, you can you construct your RL training/evaluation entry program referring to the following guides step by step.
+When you are ready with config, you can construct your RL training/evaluation entry program referring to the following guides step by step.
 
 Set up Environments
 ---------------------
@@ -102,30 +84,25 @@ DI-engine supports most of the common policies used in RL training. Each is defi
 class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks 
 are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy. 
 DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, it is required to set some
-properties (such as `Actor` and `Critic`) in your defined model.
+properties (such as ``Actor`` and ``Critic``) in your defined model.
 
-For example, a `DQN` policy and `PPO` policy for CartPole can be defined as follow.
+For example, a ``DQN`` policy for ``CartPole`` can be defined as follow.
 
 .. code-block:: python
 
     model = DQN(**cfg.policy.model)
     policy = DQNPolicy(cfg.policy, model=model)
 
-.. code-block:: python
-
-    model = VAC(**cfg.policy.model)
-    policy = PPOPolicy(cfg.policy, model=model)
-
 
 Set up execution modules
 --------------------------
 
 DI-engine needs to build some execution components to manage an RL training procedure. 
-A :class:`Collector <ding.worker.BaseSerialCollector>` is used to sample and provide data for training.
-A :class:`Learner <ding.worker.BaseLearner>` is used to receive training data and conduct 
+A :class:`Collector <ding.worker.collector.SampleCollector>` is used to sample and provide data for training.
+A :class:`Learner <ding.worker.learner.BaseLearner>` is used to receive training data and conduct 
 the training (including updating networks, strategy and experience pool, etc.).
-An :class:`Evaluator <ding.worker.BaseSerialEvaluator>` is build to perform the evaluation when needed.
-And other components like :class:`Replay Buffer <ding.worker.replay_buffer.IBuffer>` may be required for the
+An :class:`Evaluator <ding.worker.collector.BaseSerialEvaluator>` is build to perform the evaluation when needed.
+And other components like :class:`Replay Buffer <ding.worker.replay_buffer.AdvancedReplayBuffer>` may be required for the
 training process. All these module can be customized by config or rewritten by the user.
 
 An example of setting up all the above is showed as follow.
@@ -147,8 +124,7 @@ Train and evaluate the policy
 The training loop in DI-engine can be customized arbitrarily. Usually the training process may consist of
 collecting data, updating policy, updating related modules and evaluation.
 
-Here we provide examples of off-policy training (`DQN`) and on-policy training (`PPO`) for a `CartPole`
-environment.
+Here we provide examples of off-policy training (``DQN``) for a ``CartPole`` environment. For more algorithms, you can refer to app_zoo.
 
 .. code-block:: python
 
@@ -171,30 +147,13 @@ environment.
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
 
-.. code-block:: python
-
-    # PPO training loop
-    max_iterations = int(1e8)
-    for _ in range(max_iterations):
-        if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            if stop:
-                break
-        new_data = collector.collect(train_iter=learner.train_iter)
-        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        for i in range(cfg.policy.learn.update_per_collect):
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data is not None:
-                learner.train(train_data, collector.envstep)
-        replay_buffer.clear()
-
 .. note::
    The users can refer to the complete demo in ``app_zoo/classic_control/cartpole/entry/cartpole_dqn_main.py`` and ``app_zoo/classic_control/cartpole/entry/cartpole_ppo_main.py`` .
 
-Advanced features
+Other Functions
 ------------------
 
-Some advanced features in RL training which well supported by DI-engine are listed below.
+Some tool functions in RL training which well supported by DI-engine are listed below.
 
 Epsilon Greedy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -217,7 +176,8 @@ Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some environments have a renderd surface or visualization. DI-engine adds a switch to save these replays.
-After training, the users need to indicate ``env.replay_path`` in config and add the next two lines after creating environments.
+After training, the users need to indicate ``env.replay_path`` and ``policy.learn.learner.load_path`` in config,
+and add the next lines after training converge. If everything is working fine, you can find some videos with '.mp4' suffix in the replay_path(some GUI interfaces are normal).
 
 .. code-block:: python
 
@@ -231,10 +191,6 @@ After training, the users need to indicate ``env.replay_path`` in config and add
 
     If users encounter some errors in recording videos by gym wrapper, you should install ``ffmpeg`` first.
 
-A simple demo for replaying CartPole Env evaluation is shown follow.
-
-.. image:: ./images/openaigym.video.gif
-   :align: center
 
 Similar with other Deep Learning platforms, DI-engine uses tensorboard to record key parameters and results during
 training. In addition to the default logging parameters, users can add their own logging parameters as follow.
@@ -257,9 +213,6 @@ in the same way as PyTorch.
 
     ckpt_path = 'path/to/your/ckpt'
     state_dict = torch.load(ckpt_path, map_location='cpu')
-    if 'last_iter' in state_dict:
-        last_iter = state_dict.pop('last_iter')
-        learner.last_iter.update(last_iter)
     learner.policy.load_state_dict(state_dict)
     learner.info('{} load ckpt in {}'.format(learner.name, ckpt_path))
     
@@ -270,7 +223,6 @@ in the same way as PyTorch.
     ckpt_name = 'iteration_{}.pth.tar'.format(learner.last_iter.val)
     path = os.path.join(dirname, ckpt_name)
     state_dict = learner.policy.state_dict()
-    state_dict.update({'last_iter': learner.last_iter.val})
     torch.save(state_dict, path)
     learner.info('{} save ckpt in {}'.format(learner.name, path))
 

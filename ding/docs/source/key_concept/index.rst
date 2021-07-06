@@ -538,6 +538,10 @@ Entry
 ~~~~~~~~~~~~~~~~~
 DI-engine offers 3 training entries for different usage, users can choose any one they like:
 
+
+Serial Pipeline
+^^^^^^^^^^^^^^^^
+
     1. CLI
         
         **Simply run a training program, validate correctness, acquire RL model or expert data.**
@@ -545,7 +549,7 @@ DI-engine offers 3 training entries for different usage, users can choose any on
         .. code:: bash
 
             # usage 1(without config)
-            ding -m serial --env cartpole --policy dqn --train_iter 100000 -s 0
+            ding -m serial -e cartpole -p dqn --train-iter 100000 -s 0
             # usage 2(with config)
             ding -m serial -c cartpole_dqn_config.py -s 0
 
@@ -577,6 +581,59 @@ DI-engine offers 3 training entries for different usage, users can choose any on
 
         You can refer to ``ding/entry`` directory and read related entry functions and tests.
 
+Parallel Pipeline
+^^^^^^^^^^^^^^^^^^^
+
+    1. CLI
+
+    .. code:: bash
+        
+        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        ding -m parallel -c cartpole_dqn_config.py -s 0
+
+    2. Unified Entry Function
+
+    .. code:: python
+
+        from ding.entry import parallel_pipeline
+        from app_zoo.classic_control.cartpole.config.parallel.cartpole_dqn_config import main_config, create_config, system_config
+        parallel_pipeline([main_config, create_config, system_config], seed=0)
+
+Dist Pipeline
+^^^^^^^^^^^^^^^
+
+    1. CLI for local
+
+    .. code:: bash
+
+        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        export PYTHONUNBUFFERED=1
+        ding -m dist --module config -p local -c cartpole_dqn_config.py -s 0
+        ding -m dist --module learner --module-name learner0 -c cartpole_dqn_config.py.pkl -s 0 &
+        ding -m dist --module collector --module-name collector0 -c cartpole_dqn_config.py.pkl -s 0 &
+        ding -m dist --module collector --module-name collector1 -c cartpole_dqn_config.py.pkl -s 0 &
+        ding -m dist --module coordinator -p local -c cartpole_dqn_config.py.pkl -s 0
+
+    2. CLI for server(such as SLURM)
+
+    .. code:: bash
+
+        # config path: app_zoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
+        export PYTHONUNBUFFERED=1
+        learner_host=10-10-10-10
+        collector_host=10-10-10-[11-12]
+        partition=test
+
+        ding -m dist --module config -p slurm -c cartpole_dqn_config.py -s 0 -lh $learner_host -clh $collector_host
+        srun -p $partition -w $learner_host --gres=gpu:1 ding -m dist --module learner --module-name learner0 -c cartpole_dqn_config.py.pkl -s 0 &
+        srun -p $partition -w $collector_host ding -m dist --module collector --module-name collector0 -c cartpole_dqn_config.py.pkl -s 0 &
+        srun -p $partition -w $collector_host ding -m dist --module collector --module-name collector1 -c cartpole_dqn_config.py.pkl -s 0 &
+        ding -m dist --module coordinator -p slurm -c cartpole_dqn_config.py.pkl -s 0
+
+    3. CLI for k8s
+
+        TBD
+
 .. tip::
   If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of `Feature <../feature/index.html>`_, 
 
@@ -585,8 +642,12 @@ Computation Pattern
 
 Serial Pipeline
 ~~~~~~~~~~~~~~~~~
-TBD
+.. image::
+   images/serial_pipeline.svg
+   :align: center
 
 Parallel/Dist Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~
-TBD
+.. image::
+   images/parallel_pipeline.svg
+   :align: center
