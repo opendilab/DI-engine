@@ -47,7 +47,7 @@ Also, you can install DI-engine from the source codes in github(master branch re
 
 .. code-block:: bash
 
-    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
+    git clone https://github.com/opendilab/DI-engine.git
     cd DI-engine
     pip install . --user
 
@@ -88,7 +88,7 @@ To contribute to DI-engine, with support for running tests and building the docu
 
     # source r0.3.2  # maybe you need activate virtual environment first
 
-    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git && cd DI-engine
+    git clone https://github.com/opendilab/DI-engine.git
     pip install -e .[doc, test, common_env] --user
 
 Check install
