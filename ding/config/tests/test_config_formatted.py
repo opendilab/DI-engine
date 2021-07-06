@@ -2,16 +2,16 @@ import pytest
 import importlib
 from typing import Union, Optional, List, Any, Callable, Tuple
 from ding.config import read_config, compile_config
-import app_zoo.classic_control.cartpole.config.cartpole_ppo_config as cppo
-import app_zoo.classic_control.cartpole.config.cartpole_dqn_config as cdqn
-import app_zoo.classic_control.cartpole.config.cartpole_a2c_config as ca2c
-import app_zoo.classic_control.cartpole.config.cartpole_c51_config as cc51
+import dizoo.classic_control.cartpole.config.cartpole_ppo_config as cppo
+import dizoo.classic_control.cartpole.config.cartpole_dqn_config as cdqn
+import dizoo.classic_control.cartpole.config.cartpole_a2c_config as ca2c
+import dizoo.classic_control.cartpole.config.cartpole_c51_config as cc51
 
 args = [
-    ['app_zoo.classic_control.cartpole.config.cartpole_ppo_config', 'ppo'],
-    ['app_zoo.classic_control.cartpole.config.cartpole_a2c_config', 'a2c'],
-    ['app_zoo.classic_control.cartpole.config.cartpole_dqn_config', 'dqn'],
-    ['app_zoo.classic_control.cartpole.config.cartpole_c51_config', 'c51'],
+    ['dizoo.classic_control.cartpole.config.cartpole_ppo_config', 'ppo'],
+    ['dizoo.classic_control.cartpole.config.cartpole_a2c_config', 'a2c'],
+    ['dizoo.classic_control.cartpole.config.cartpole_dqn_config', 'dqn'],
+    ['dizoo.classic_control.cartpole.config.cartpole_c51_config', 'c51'],
 ]
 
 

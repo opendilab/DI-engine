@@ -1,8 +1,8 @@
 import time
 import torch
 import torch.nn.functional as F
-from hpc_rl.origin.vtrace import vtrace_error, vtrace_data
-from hpc_rl.loss.vtrace import HPCVtrace
+from hpc_rll.origin.vtrace import vtrace_error, vtrace_data
+from hpc_rll.rl_utils.vtrace import VTrace
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -30,7 +30,7 @@ def vtrace_val():
     hpc_action = ori_action.clone().detach()
     hpc_value = ori_value.clone().detach()
     hpc_reward = ori_reward.clone().detach()
-    hpc_vtrace = HPCVtrace(T, B, N)
+    hpc_vtrace = VTrace(T, B, N)
 
     if use_cuda:
         ori_target_output = ori_target_output.cuda()
@@ -94,7 +94,7 @@ def vtrace_perf():
     hpc_action = ori_action.clone().detach()
     hpc_value = ori_value.clone().detach()
     hpc_reward = ori_reward.clone().detach()
-    hpc_vtrace = HPCVtrace(T, B, N)
+    hpc_vtrace = VTrace(T, B, N)
 
     if use_cuda:
         ori_target_output = ori_target_output.cuda()

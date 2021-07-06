@@ -42,8 +42,7 @@ class NoopResetEnv(gym.Wrapper):
         Overview:
             Resets the state of the environment and returns an initial observation.
         Returns:
-            - observation (:obs:`Any`): the initial observation.
-
+            - observation (:obj:`Any`): the initial observation.
         """
         self.env.reset()
         noops = np.random.randint(1, self.noop_max + 1)
@@ -62,6 +61,7 @@ class NoopResetEnv(gym.Wrapper):
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         Returns:
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+
         .. note::
             Shapes space such as\
                 observation space shape, could be some nested strcutures, \
@@ -204,10 +204,6 @@ class ScaledFloatFrame(gym.ObservationWrapper):
        Normalize observations to 0~1.
     Interface:
         ``__init__``, ``observation``, ``new_shape``
-    Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - ``bias``, ``scale``, ``observation_space``
-
     """
 
     def __init__(self, env):

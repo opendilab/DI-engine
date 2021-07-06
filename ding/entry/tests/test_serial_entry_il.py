@@ -6,7 +6,7 @@ import torch
 from collections import namedtuple
 import os
 
-from app_zoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config, \
+from dizoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config, \
     cartpole_dqn_config, cartpole_dqn_create_config
 from ding.torch_utils import Adam, to_device
 from ding.config import compile_config

@@ -1,5 +1,5 @@
+from functools import lru_cache
 from typing import Callable, Tuple, List, Any
-import os
 
 import numpy as np
 import torch
@@ -8,9 +8,15 @@ from .default_helper import error_wrapper
 from .fake_linklink import FakeLink
 from .import_helper import try_import_link
 
-link = try_import_link()
 
-is_fake_link = isinstance(link, FakeLink)
+@lru_cache()
+def get_link():
+    return try_import_link()
+
+
+@lru_cache()
+def is_fake_link():
+    return isinstance(get_link(), FakeLink)
 
 
 def get_rank() -> int:
@@ -21,9 +27,9 @@ def get_rank() -> int:
     .. note::
         Reference ``import_helper.try_import_link`` and ``linklink.get_rank``.
     """
-    if is_fake_link:
+    if is_fake_link():
         return 0
-    return error_wrapper(link.get_rank, 0)()
+    return error_wrapper(get_link().get_rank, 0, "[WARNING]: call linklink error, return default_ret.")()
 
 
 def get_world_size() -> int:
@@ -34,9 +40,9 @@ def get_world_size() -> int:
     .. note::
         Reference ``import_helper.try_import_link`` and ``linklink.get_world_size``.
     """
-    if is_fake_link:
+    if is_fake_link():
         return 1
-    return error_wrapper(link.get_world_size, 1)()
+    return error_wrapper(get_link().get_world_size, 1, "[WARNING]: call linklink error, return default_ret.")()
 
 
 def broadcast(value: torch.Tensor, rank: int) -> None:
@@ -47,9 +53,9 @@ def broadcast(value: torch.Tensor, rank: int) -> None:
         - value (:obj:`obj`): the value to board cast
         - rank (:obj:`int`): the rank to broadcast on
     """
-    if is_fake_link:
+    if is_fake_link():
         raise NotImplementedError
-    link.broadcast(value, rank)
+    get_link().broadcast(value, rank)
 
 
 def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
@@ -60,14 +66,14 @@ def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
         - data (:obj:`obj`): the data to reduce
         - op (:obj:`str`): the operation to perform on data, support ``['sum', 'max']``
     """
-    link_op_map = {'sum': link.allreduceOp_t.Sum, 'max': link.allreduceOp_t.Max}
+    link_op_map = {'sum': get_link().allreduceOp_t.Sum, 'max': get_link().allreduceOp_t.Max}
     if op not in link_op_map.keys():
         raise KeyError("not support allreduce op type: {}".format(op))
     else:
         link_op = link_op_map[op]
-    if is_fake_link:
+    if is_fake_link():
         return data
-    link.allreduce(data, reduce_op=link_op)
+    get_link().allreduce(data, reduce_op=link_op)
     if op == 'sum':
         data.div_(get_world_size())
 
@@ -109,9 +115,9 @@ def dist_init(method: str = 'slurm', device_id: int = 0) -> Tuple[int, int]:
         - method (:obj:`str`): Support ``['slurm', 'single_node`]``
         - device_id (:obj:`int`): Default device when using ``single_node`` method
     """
-    link.initialize()
-    world_size = link.get_world_size()
-    rank = link.get_rank()
+    get_link().initialize()
+    world_size = get_link().get_world_size()
+    rank = get_link().get_rank()
 
     if method == 'slurm':
         # proc_id = int(os.environ['SLURM_PROCID'])
@@ -130,7 +136,7 @@ def dist_finalize() -> None:
     Overview:
         Finalize ``linklink``, see ``linklink.finalize()``
     """
-    link.finalize()
+    get_link().finalize()
 
 
 class DistContext:
@@ -157,6 +163,6 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
     rank_list = np.split(np.arange(world_size), num_groups)
     rank_list = [list(map(int, x)) for x in rank_list]
     for i in range(num_groups):
-        groups.append(link.new_group(rank_list[i]))
+        groups.append(get_link().new_group(rank_list[i]))
     group_size = world_size // num_groups
     return groups[rank // group_size]

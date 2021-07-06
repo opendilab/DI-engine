@@ -1,26 +1,39 @@
+import io
 import logging
 import os
 import pickle
+import time
+from functools import lru_cache
 from typing import NoReturn, Union
 
 import torch
-from pathlib import Path
-import io
-import time
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 from .lock_helper import get_file_lock
 
-global r, rc, mclient
-mclient = None
-r = None
-rc = None
+global _redis_cluster, _memcached
+_memcached = None
+_redis_cluster = None
 
-ceph = try_import_ceph()
-# mc = try_import_mc()
-mc = None
-redis = try_import_redis()
-rediscluster = try_import_rediscluster()
+
+@lru_cache()
+def get_ceph_package():
+    return try_import_ceph()
+
+
+@lru_cache()
+def get_redis_package():
+    return try_import_redis()
+
+
+@lru_cache()
+def get_rediscluster_package():
+    return try_import_rediscluster()
+
+
+@lru_cache()
+def get_mc_package():
+    return try_import_mc()
 
 
 def read_from_ceph(path: str) -> object:
@@ -32,14 +45,15 @@ def read_from_ceph(path: str) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    value = ceph.Get(path)
+    value = get_ceph_package().Get(path)
     if not value:
         raise FileNotFoundError("File({}) doesn't exist in ceph".format(path))
 
     return pickle.loads(value)
 
 
-def _ensure_redis(host='localhost', port=6379):
+@lru_cache()
+def _get_redis(host='localhost', port=6379):
     """
     Overview:
         Ensures redis usage
@@ -49,10 +63,7 @@ def _ensure_redis(host='localhost', port=6379):
     Returns:
         - (:obj:`Redis(object)`): Redis object with given ``host``, ``port``, and ``db=0``
     """
-    global r
-    if r is None:
-        r = redis.StrictRedis(host=host, port=port, db=0)
-    return
+    return get_redis_package().StrictRedis(host=host, port=port, db=0)
 
 
 def read_from_redis(path: str) -> object:
@@ -64,11 +75,7 @@ def read_from_redis(path: str) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global r
-    _ensure_redis()
-    value_bytes = r.get(path)
-    value = pickle.loads(value_bytes)
-    return value
+    return pickle.loads(_get_redis().get(path))
 
 
 def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
@@ -83,9 +90,9 @@ def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
         - (:obj:`RedisCluster(object)`): RedisCluster object with given ``host``, ``port``, \
             and ``False`` for ``decode_responses`` in default.
     """
-    global rc
-    if rc is None:
-        rc = rediscluster.RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
+    global _redis_cluster
+    if _redis_cluster is None:
+        _redis_cluster = get_rediscluster_package().RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
     return
 
 
@@ -98,9 +105,9 @@ def read_from_rediscluster(path: str) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global rc
+    global _redis_cluster
     _ensure_rediscluster()
-    value_bytes = rc.get(path)
+    value_bytes = _redis_cluster.get(path)
     value = pickle.loads(value_bytes)
     return value
 
@@ -128,11 +135,11 @@ def _ensure_memcached():
         - (:obj:`MemcachedClient instance`): MemcachedClient's class instance built with current \
             memcached_client's ``server_list.conf`` and ``client.conf`` files
     """
-    global mclient
-    if mclient is None:
+    global _memcached
+    if _memcached is None:
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
         client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
-        mclient = mc.MemcachedClient.GetInstance(server_list_config_file, client_config_file)
+        _memcached = get_mc_package().MemcachedClient.GetInstance(server_list_config_file, client_config_file)
     return
 
 
@@ -145,17 +152,17 @@ def read_from_mc(path: str, flush=False) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global mclient
+    global _memcached
     _ensure_memcached()
     while True:
         try:
-            value = mc.pyvector()
+            value = get_mc_package().pyvector()
             if flush:
-                mclient.Get(path, value, mc.MC_READ_THROUGH)
+                _memcached.Get(path, value, get_mc_package().MC_READ_THROUGH)
                 return
             else:
-                mclient.Get(path, value)
-            value_buf = mc.ConvertBuffer(value)
+                _memcached.Get(path, value)
+            value_buf = get_mc_package().ConvertBuffer(value)
             value_str = io.BytesIO(value_buf)
             value_str = torch.load(value_str, map_location='cpu')
             return value_str
@@ -173,7 +180,7 @@ def read_from_path(path: str):
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    if ceph is None:
+    if get_ceph_package() is None:
         logging.info(
             "You do not have ceph installed! Loading local file!"
             " If you are not testing locally, something is wrong!"
@@ -194,6 +201,7 @@ def save_file_ceph(path, data):
     data = pickle.dumps(data)
     save_path = os.path.dirname(path)
     file_name = os.path.basename(path)
+    ceph = get_ceph_package()
     if ceph is not None:
         if hasattr(ceph, 'save_from_string'):
             ceph.save_from_string(save_path, file_name, data)
@@ -227,11 +235,7 @@ def save_file_redis(path, data):
         - path (:obj:`str`): File path (could be a string key) in redis
         - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
-    global r
-    _ensure_redis()
-    data = pickle.dumps(data)
-    r.set(path, data)
-    return
+    _get_redis().set(path, pickle.dumps(data))
 
 
 def save_file_rediscluster(path, data):
@@ -242,10 +246,10 @@ def save_file_rediscluster(path, data):
         - path (:obj:`str`): File path (could be a string key) in redis
         - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
-    global rc
+    global _redis_cluster
     _ensure_rediscluster()
     data = pickle.dumps(data)
-    rc.set(path, data)
+    _redis_cluster.set(path, data)
     return
 
 
@@ -261,7 +265,7 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
     if fs_type is None:
         if path.lower().startswith('s3'):
             fs_type = 'ceph'
-        elif mc is not None:
+        elif get_mc_package() is not None:
             fs_type = 'mc'
         else:
             fs_type = 'normal'
@@ -292,7 +296,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
     if fs_type is None:
         if path.lower().startswith('s3'):
             fs_type = 'ceph'
-        elif mc is not None:
+        elif get_mc_package() is not None:
             fs_type = 'mc'
         else:
             fs_type = 'normal'

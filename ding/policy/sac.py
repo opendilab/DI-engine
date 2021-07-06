@@ -98,6 +98,7 @@ class SACPolicy(Policy):
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
             # value_network=False,
+            actor_head_type='reparameterization',
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -159,7 +160,7 @@ class SACPolicy(Policy):
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
-            # n_sample=1,
+            n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),

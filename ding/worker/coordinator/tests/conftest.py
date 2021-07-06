@@ -71,7 +71,7 @@ def setup_1v1commander():
             # However, because this env is hard to install, we use "cartpole" instead.
             # But commander does not need a real env, it is just preserved to use `compile_config_parallel`.
             type='cartpole',
-            import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+            import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
         ),
         env_manager=dict(type='base'),
         policy=dict(type='dqn_command'),

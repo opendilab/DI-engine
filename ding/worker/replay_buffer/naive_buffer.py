@@ -86,7 +86,7 @@ class NaiveReplayBuffer(IBuffer):
             - data (:obj:`Union[List[Any], Any]`): The data which will be pushed into buffer. Can be one \
                 (in `Any` type), or many(int `List[Any]` type).
             - cur_collector_envstep (:obj:`int`): Collector's current env step. \
-                Not used in naive buffer, but preserved for compatiblity.
+                Not used in naive buffer, but preserved for compatibility.
         """
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
@@ -100,7 +100,7 @@ class NaiveReplayBuffer(IBuffer):
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration. \
-                Not used in naive buffer, but preserved for compatiblity.
+                Not used in naive buffer, but preserved for compatibility.
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
@@ -120,7 +120,7 @@ class NaiveReplayBuffer(IBuffer):
             Append a data item into ``self._data``.
         Arguments:
             - ori_data (:obj:`Any`): The data which will be inserted.
-            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatiblity.
+            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatibility.
         """
         with self._lock:
             if self._deepcopy:
@@ -142,7 +142,7 @@ class NaiveReplayBuffer(IBuffer):
             Add two keys in each data item, you can refer to ``_append`` for details.
         Arguments:
             - ori_data (:obj:`List[Any]`): The data list.
-            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatiblity.
+            - cur_collector_envstep (:obj:`int`): Not used in this method, but preserved for compatibility.
         """
         with self._lock:
             if self._deepcopy:
@@ -203,11 +203,11 @@ class NaiveReplayBuffer(IBuffer):
     def update(self, info: dict) -> None:
         r"""
         Overview:
-            Naive Buffer does not need to update any info, but this method is preserved for compatiblity.
+            Naive Buffer does not need to update any info, but this method is preserved for compatibility.
         """
         print(
             '[BUFFER WARNING] Naive Buffer does not need to update any info, \
-                but `update` method is preserved for compatiblity.'
+                but `update` method is preserved for compatibility.'
         )
 
     def clear(self) -> None:
@@ -255,7 +255,7 @@ class NaiveReplayBuffer(IBuffer):
             Sample data with ``indices``.
         Arguments:
             - indices (:obj:`List[int]`): A list including all the sample indices.
-            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatiblity.
+            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatibility.
         Returns:
             - data (:obj:`list`) Sampled data.
         """

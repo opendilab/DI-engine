@@ -3,6 +3,7 @@ import multiprocessing
 import threading
 import platform
 from enum import Enum, unique
+
 from readerwriterlock import rwlock
 from pathlib import Path
 if platform.system().lower() != 'windows':

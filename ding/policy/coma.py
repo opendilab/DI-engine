@@ -90,20 +90,6 @@ class COMAPolicy(Policy):
             unroll_len=20,
         ),
         eval=dict(),
-        other=dict(
-            eps=dict(
-                type='exp',
-                start=0.5,
-                end=0.01,
-                decay=200000,
-            ),
-            replay_buffer=dict(
-                # (int) max size of replay buffer
-                replay_buffer_size=5000,
-                # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer
-                max_use=10,
-            ),
-        ),
     )
 
     def _init_learn(self) -> None:
@@ -371,7 +357,7 @@ class COMAPolicy(Policy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Return this algorithm default model setting for demostration.
+            Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::

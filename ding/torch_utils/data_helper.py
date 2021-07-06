@@ -14,7 +14,7 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     Overview:
         Transfer data to certain device
     Arguments:
-        - item (:obj:`Any`): the item to be transfered
+        - item (:obj:`Any`): the item to be transferred
         - device (:obj:`str`): the device wanted
         - ignore_keys (:obj:`list`): the keys to be ignored in transfer, defalut set to empty
     Returns:

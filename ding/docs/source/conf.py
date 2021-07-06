@@ -20,13 +20,13 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = 'DI-engine'
-copyright = '2021, X-Lab'
-author = 'X-Lab'
+copyright = '2021, OpenDILab Contributors'
+author = 'OpenDILab Contributors'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.2.0'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 

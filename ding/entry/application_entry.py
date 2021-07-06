@@ -17,6 +17,8 @@ def eval(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
+        load_path: Optional[str] = None,
+        replay_path: Optional[str] = None,
 ) -> float:
     r"""
     Overview:
@@ -30,6 +32,8 @@ def eval(
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+        - load_path (:obj:`Optional[str]`): Path to load ckpt.
+        - replay_path (:obj:`Optional[str]`): Path to save replay.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -47,12 +51,16 @@ def eval(
         env_fn, _, evaluator_env_cfg = env_setting
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     evaluator_env.seed(seed, dynamic_seed=False)
-    if cfg.env.get('replay_path', None):
-        evaluator_env.enable_save_replay(cfg.env.replay_path)
+    if replay_path is None:  # argument > config
+        replay_path = cfg.env.get('replay_path', None)
+    if replay_path:
+        evaluator_env.enable_save_replay(replay_path)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['eval'])
     if state_dict is None:
-        state_dict = torch.load(cfg.policy.learn.learner.load_path, map_location='cpu')
+        if load_path is None:
+            load_path = cfg.policy.learn.learner.load_path
+        state_dict = torch.load(load_path, map_location='cpu')
     policy.eval_mode.load_state_dict(state_dict)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode)
 
@@ -73,7 +81,7 @@ def collect_demo_data(
 ) -> None:
     r"""
     Overview:
-        Collect demostration data by the trained policy.
+        Collect demonstration data by the trained policy.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \

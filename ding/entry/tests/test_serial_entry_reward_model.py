@@ -4,9 +4,9 @@ import logging
 from easydict import EasyDict
 from copy import deepcopy
 
-from app_zoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
-from app_zoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from app_zoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model
 
 cfg = [

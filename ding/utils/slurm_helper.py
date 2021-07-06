@@ -1,6 +1,6 @@
-from typing import Optional, Dict, Tuple
-import subprocess
 import os
+import subprocess
+from typing import Optional, Dict, Tuple
 
 MANAGER_NODE_TABLE = {
     '10.198.8': '10.198.8.31',

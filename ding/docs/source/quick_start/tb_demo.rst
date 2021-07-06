@@ -4,7 +4,7 @@ Tensorboard and Logging demo
 .. toctree::
    :maxdepth: 3
 
-In this page, the default tensorboard and logging infomation is detailly described. A ``CartPole DQN`` experiment
+In this page, the default tensorboard and logging information is detailly described. A ``CartPole DQN`` experiment
 is used as example.
 
 Tensorboard info

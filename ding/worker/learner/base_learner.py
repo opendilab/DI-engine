@@ -1,5 +1,6 @@
 import time
 import copy
+import logging
 from typing import Any, Union, Callable, List, Dict, Optional, Tuple
 from functools import partial
 from easydict import EasyDict
@@ -11,6 +12,7 @@ from ding.utils import build_logger, EasyTimer, pretty_print, deep_merge_dicts, 
 from ding.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
 from ding.utils.data import AsyncDataLoader, default_collate
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
+logging.info('')  # necessary
 
 
 @LEARNER_REGISTRY.register('base')
@@ -84,10 +86,6 @@ class BaseLearner(object):
         if self._world_size > 1:
             self._cfg.hook.log_reduce_after_iter = True
 
-        # Setup policy
-        if policy is not None:
-            self.policy = policy
-
         # Logger (Monitor will be initialized in policy setter)
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         if self._rank == 0:
@@ -104,6 +102,10 @@ class BaseLearner(object):
             'scalars': build_log_buffer(),
             'histogram': build_log_buffer(),
         }
+
+        # Setup policy
+        if policy is not None:
+            self.policy = policy
 
         # Learner hooks. Used to do specific things at specific time point. Will be set in ``_setup_hook``
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
@@ -284,8 +286,9 @@ class BaseLearner(object):
         self._end_flag = True
         if hasattr(self, '_dataloader'):
             self._dataloader.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._tb_logger:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self) -> None:
         self.close()
@@ -371,7 +374,7 @@ class BaseLearner(object):
         self._log_buffer = _log_buffer
 
     @property
-    def logger(self) -> 'TextLogger':  # noqa
+    def logger(self) -> logging.Logger:
         return self._logger
 
     @property
@@ -403,6 +406,7 @@ class BaseLearner(object):
         self._policy = _policy
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        self.info(self._policy.info())
 
     @property
     def priority_info(self) -> dict:
@@ -445,7 +449,7 @@ class TickMonitor(LoggedModel):
         TickMonitor is to monitor related info during training.
         Info includes: cur_lr, time(data, train, forward, backward), loss(total,...)
         These info variables are firstly recorded in ``log_buffer``, then in ``LearnerHook`` will vars in
-        in this monitor be updated by``log_buffer``, finally printed to ``TextLogger`` and ``TensorBoradLogger``.
+        in this monitor be updated by``log_buffer``, finally printed to text logger and tensorboard logger.
     Interface:
         __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
     Property:

@@ -96,7 +96,7 @@ RL Exploration
 2. Measurements on Exploration and Integrating into Reward i.e. the "How to?"
 ********************************************************************************
 到这里我们已经知道使用探索增益的想要解决的两大问题是什么：如何有效定义{稀疏,复杂,有欺骗性的}奖励 + 摆脱局部最优的困境。接下来进入方法的探讨。
-    - Classic Approachs
+    - Classic Approaches
         - Statistical Approach:
             - Epsilon-greedy; UCB; Boltzmann exploration; Thompson sampling
     - More Perspectives and Corresponding Methods (WIP)

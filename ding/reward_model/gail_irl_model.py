@@ -165,7 +165,7 @@ class GailRewardModel(BaseRewardModel):
     def collect_data(self, data: list) -> None:
         """
         Overview:
-            Collecting training data formated by  ``fn:concat_state_action_pairs``.
+            Collecting training data formatted by  ``fn:concat_state_action_pairs``.
         Arguments:
             - data (:obj:`Any`): Raw training data (e.g. some form of states, actions, obs, etc)
         Effects:

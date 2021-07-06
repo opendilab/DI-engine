@@ -55,7 +55,7 @@ def parallel_pipeline(
 
 # Following functions are used to launch different components(learner, learner aggregator, collector, coordinator).
 # Argument ``config`` is the dict type config. If it is None, then ``filename`` and ``name`` must be passed,
-# for they can be used to read correponding config from file.
+# for they can be used to read corresponding config from file.
 def run_learner(config, seed, start_learner_event, close_learner_event):
     set_pkg_seed(seed)
     log = logging.getLogger('werkzeug')

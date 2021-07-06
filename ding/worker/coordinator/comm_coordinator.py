@@ -20,14 +20,14 @@ class CommCoordinator(object):
         __init__ , start, close, __del__, send_collector_task, send_learner_task
     """
 
-    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'TextLogger') -> None:  # noqa
+    def __init__(self, cfg: dict, callback_fn: Dict[str, Callable], logger: 'logging.Logger') -> None:  # noqa
         r"""
         Overview:
             init the interactor of coordinator
         Arguments:
-            - cfg (:obj:`dict`): the config file of coordinator interactor
-            - callback_fn (:obj:`Dict[str, Callable]`): the callback functions given by coordinator
-            - logger (:obj:`TextLogger`): the logger
+            - cfg (:obj:`dict`): The config file of communication coordinator
+            - callback_fn (:obj:`Dict[str, Callable]`): The callback functions given by coordinator
+            - logger (:obj:`logging.Logger`): The text logger.
         """
         self._cfg = cfg
         self._callback_fn = callback_fn
@@ -46,6 +46,7 @@ class CommCoordinator(object):
         if self._cfg.operator_server:
             server_kwargs = get_operator_server_kwargs(self._cfg.operator_server)
             self._operator_server = OperatorServer(**server_kwargs)
+            self._operator_server.set_worker_type('coordinator')
             self._collector_target_num = self._cfg.operator_server.collector_target_num
             self._learner_target_num = self._cfg.operator_server.learner_target_num
         else:
@@ -135,7 +136,13 @@ class CommCoordinator(object):
             self._logger.error("connection max retries failed")
             sys.exit(1)
 
-    def _new_connection_collector(self, collector_id: str, collector_host: str, collector_port: int) -> None:
+    def _new_connection_collector(
+            self,
+            collector_id: str,
+            collector_host: str,
+            collector_port: int,
+            increase_task_space: bool = False,
+    ) -> None:
         start_time = time.time()
         conn = None
         while time.time() - start_time <= self._max_retry_second and not self._end_flag:
@@ -152,7 +159,8 @@ class CommCoordinator(object):
                     with self._resource_lock:
                         self._resource_manager.update('collector', collector_id, resource_task.result)
                     self._connection_collector[collector_id] = conn
-                    self._callback_fn['deal_with_increase_collector']()
+                    if increase_task_space:
+                        self._callback_fn['deal_with_increase_collector']()
                     break
 
             except Exception as e:
@@ -513,7 +521,7 @@ class CommCoordinator(object):
         # connect to each new collector
         for collector_id in new_c:
             collector_host, collector_port = collector_id.split(':')
-            self._new_connection_collector(collector_id, collector_host, int(collector_port))
+            self._new_connection_collector(collector_id, collector_host, int(collector_port), True)
 
         for collector_id in del_c:
             if collector_id in conn_collectors:

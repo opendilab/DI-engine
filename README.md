@@ -23,7 +23,7 @@ The detailed documentation are hosted on []().
 ## Quick Start
 
 ```bash
-ding -m serial --env cartpole --algo dqn -s 0
+ding -m serial -e cartpole -p dqn -s 0
 ```
 
 ## Roadmap

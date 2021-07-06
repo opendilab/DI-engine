@@ -1,5 +1,3 @@
-# Copyright 2017 Google Inc. All Rights Reserved.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -37,8 +35,8 @@ setup(
         # framework
         *find_packages(include=('ding', "ding.*")),
         # application
-        *find_packages(include=('app_zoo'
-                                'app_zoo.*')),
+        *find_packages(include=('dizoo'
+                                'dizoo.*')),
     ],
     package_data={package_name: ['*.yaml', '*.xml', '*cfg']
                   for package_name in find_packages(include=('ding.*'))},
@@ -61,7 +59,6 @@ setup(
         'tabulate',
         'sortedcontainers',
         'click==7.1.2',
-        'enum34~=1.1.10',
         'URLObject~=2.4.3',
         'urllib3==1.25.10',
         'readerwriterlock',
@@ -91,7 +88,7 @@ setup(
         ],
         'fast': [
             'numpy-stl',
-            'numba',
+            'numba>=0.53.0',
             'redis==3.5.3',
             'redis-py-cluster==2.1.0',
         ],

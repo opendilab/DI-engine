@@ -1,16 +1,32 @@
-import numpy as np
 import logging
-from functools import partial
-from typing import Callable, Optional, Union, Any
+from functools import partial, lru_cache
+from typing import Callable, Optional
+
+import numpy as np
+
 import ding
-try:
-    if ding.enable_numba:
-        from numba import njit
-    else:
-        njit = partial
-except ImportError:
-    logging.warning("If you want to use numba to speed up segment tree, please install numba first")
-    njit = partial
+
+
+@lru_cache()
+def njit():
+    try:
+        if ding.enable_numba:
+            import numba
+            from numba import njit as _njit
+            version = numba.__version__
+            middle_version = version.split(".")[1]
+            if int(middle_version) < 53:
+                _njit = partial  # noqa
+                logging.warning(
+                    "Due to your numba version <= 0.53.0, DI-engine disables it. And you can install \
+                    numba==0.53.0 if you want to speed up something"
+                )
+        else:
+            _njit = partial
+    except ImportError:
+        logging.warning("If you want to use numba to speed up segment tree, please install numba first")
+        _njit = partial
+    return _njit
 
 
 class SegmentTree:
@@ -141,7 +157,7 @@ class MinSegmentTree(SegmentTree):
         super(MinSegmentTree, self).__init__(capacity, operation='min')
 
 
-@njit
+@njit()
 def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
     tree[idx] = val
     # Update from specified node to the root node
@@ -154,7 +170,7 @@ def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
             tree[idx] = min([left, right])
 
 
-@njit
+@njit()
 def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, operation: str) -> float:
     # Nodes in 【start, end) will be aggregated
     result = neutral_element
@@ -179,7 +195,7 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
     return result
 
 
-@njit
+@njit()
 def _find_prefixsum_idx(tree: np.ndarray, capacity: int, prefixsum: float, neutral_element: float) -> int:
     # The function is to find a non-leaf node's index which satisfies:
     # self.value[idx] > input prefixsum and self.value[idx + 1] <= input prefixsum

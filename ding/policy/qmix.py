@@ -5,8 +5,7 @@ import copy
 from easydict import EasyDict
 
 from ding.torch_utils import Adam, RMSprop, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder, \
-    v_1step_td_data_with_mask, v_1step_td_error_with_mask
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, Adder
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
@@ -18,7 +17,7 @@ class QMIXPolicy(Policy):
     r"""
     Overview:
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
-            you can view the paper in the following link <https://arxiv.org/abs/1803.11485>_
+            you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Interface:
         _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
             _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
@@ -64,21 +63,15 @@ class QMIXPolicy(Policy):
             batch_size=32,
             learning_rate=0.0005,
             clip_value=1.5,
-            # (str)
-            optimizer_type='rmsprop',
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
-            # (str)
-            target_update_type='momentum',
             # (float) Target network update momentum parameter.
             # in [0, 1].
             target_update_theta=0.008,
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
-            # (bool)
-            mask_td_error=False,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
@@ -127,29 +120,18 @@ class QMIXPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in QMIX"
-        if self._cfg.learn.optimizer_type == 'rmsprop':
-            self._optimizer = RMSprop(
-                params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
-            )
-        elif self._cfg.learn.optimizer_type == 'adam':
-            self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = RMSprop(
+            params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
+        )
         self._gamma = self._cfg.learn.discount_factor
 
         self._target_model = copy.deepcopy(self._model)
-        if self._cfg.learn.target_update_type == 'momentum':
-            self._target_model = model_wrap(
-                self._target_model,
-                wrapper_name='target',
-                update_type='momentum',
-                update_kwargs={'theta': self._cfg.learn.target_update_theta}
-            )
-        elif self._cfg.learn.target_update_type == 'assign':
-            self._target_model = model_wrap(
-                self._target_model,
-                wrapper_name='target',
-                update_type='assign',
-                update_kwargs={'freq': self._cfg.learn.target_update_freq}
-            )
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
+        )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
@@ -221,21 +203,8 @@ class QMIXPolicy(Policy):
             else:
                 target_v = self._gamma * target_total_q + data['reward']
 
-        if self._cfg.learn.mask_td_error:
-            mask = 1 - data['done']
-            T, B = mask.shape
-            for j in range(B):
-                for i in range(T):
-                    if mask[i, j] == 0:
-                        mask[i, j] = 1
-                        break
-            data = v_1step_td_data_with_mask(
-                total_q, target_total_q, data['reward'], data['done'], data['weight'], mask
-            )
-            loss, td_error_per_sample = v_1step_td_error_with_mask(data, self._gamma)
-        else:
-            data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-            loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
+        data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+        loss, td_error_per_sample = v_1step_td_error(data, self._gamma)
         # ====================
         # Q-mix update
         # ====================
@@ -429,7 +398,7 @@ class QMIXPolicy(Policy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Return this algorithm default model setting for demostration.
+            Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::

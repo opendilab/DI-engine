@@ -6,8 +6,9 @@ import os
 import yaml
 from easydict import EasyDict
 
-from ding.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print
-from app_zoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
+from ding.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print, \
+    DEFAULT_K8S_COLLECTOR_PORT, DEFAULT_K8S_LEARNER_PORT, DEFAULT_K8S_COORDINATOR_PORT
+from dizoo.classic_control.cartpole.config.parallel import cartpole_dqn_config
 
 default_host = '0.0.0.0'
 default_port = 22270
@@ -109,13 +110,13 @@ def set_host_port_slurm(cfg: EasyDict, coordinator_host: str, learner_node: list
 
 def set_host_port_k8s(cfg: EasyDict, coordinator_port: int, learner_port: int, collector_port: int) -> EasyDict:
     cfg.coordinator.host = default_host
-    cfg.coordinator.port = coordinator_port if coordinator_port is not None else default_port + 3
+    cfg.coordinator.port = coordinator_port if coordinator_port is not None else DEFAULT_K8S_COORDINATOR_PORT
     base_learner_cfg = None
     base_collector_cfg = None
     if learner_port is None:
-        learner_port = default_port + 1
+        learner_port = DEFAULT_K8S_LEARNER_PORT
     if collector_port is None:
-        collector_port = default_port + 0
+        collector_port = DEFAULT_K8S_COLLECTOR_PORT
     for k in cfg.keys():
         if k.startswith('learner'):
             # create the base learner config
@@ -247,7 +248,7 @@ parallel_test_main_config = cartpole_dqn_config
 parallel_test_create_config = dict(
     env=dict(
         type='cartpole',
-        import_names=['app_zoo.classic_control.cartpole.envs.cartpole_env'],
+        import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn_command'),

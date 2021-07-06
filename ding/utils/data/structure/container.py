@@ -88,7 +88,7 @@ class SequenceContainer:
     def cat(self, data: 'SequenceContainer') -> None:  # noqa
         """
         Overview:
-            Concatenate the same class container object, inplace, each value does cat operation seperately
+            Concatenate the same class container object, inplace, each value does cat operation separately
         Arguments:
             - data (:obj:`SequenceContainer`): the object need to be cat
         """

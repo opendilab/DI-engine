@@ -73,7 +73,7 @@ keep evaluation consistency.
     When using multiple processes, the random seed
     of the child process will not inherit the seed of the
     parent process and will remain the system default seed.
-    As is shown in ``app_zoo/atari/envs/atari_env.py#L156``,
+    As is shown in ``dizoo/atari/envs/atari_env.py#L156``,
     we solve this problem by resetting the related seeds in each env.
     Please care more about this.
 

@@ -167,7 +167,7 @@ class PeriodicThruputMonitor:
                     'removed': self._remove_data_count,
                     'current_have': self._valid_count,
                 }
-                self._logger.print_vars_hor(count_dict)
+                self._logger.info(self._logger.get_tabulate_vars_hor(count_dict))
                 for k, v in count_dict.items():
                     self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._thruput_print_times)
                 self._history_push_count = 0

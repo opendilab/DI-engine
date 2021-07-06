@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.td import dist_nstep_td_error, dist_nstep_td_data
-from hpc_rl.loss.td import HPCDNTD
+from hpc_rll.origin.td import dist_nstep_td_error, dist_nstep_td_data
+from hpc_rll.rl_utils.td import DistNStepTD
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -32,7 +32,7 @@ def dntd_val():
     hpc_reward = ori_reward.clone().detach()
     hpc_done = ori_done.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_dntd = HPCDNTD(T, B, N, n_atom)
+    hpc_dntd = DistNStepTD(T, B, N, n_atom)
 
     if use_cuda:
         ori_dist = ori_dist.cuda()
@@ -100,7 +100,7 @@ def dntd_perf():
     hpc_reward = ori_reward.clone().detach()
     hpc_done = ori_done.clone().detach()
     hpc_weight = ori_weight.clone().detach()
-    hpc_dntd = HPCDNTD(T, B, N, n_atom)
+    hpc_dntd = DistNStepTD(T, B, N, n_atom)
 
     if use_cuda:
         ori_dist = ori_dist.cuda()

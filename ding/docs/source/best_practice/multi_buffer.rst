@@ -12,7 +12,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
 1. Config
 ^^^^^^^^^^^^^^
     
-    We show core part of `ding/app_zoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
+    We show core part of `ding/dizoo/classic_control/cartpole/config/cartpole_ppg_config.py` as follows:
 
     .. code:: python
         
@@ -56,7 +56,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
 2. Pipeline
 ^^^^^^^^^^^^^^
 
-    After finishing the config file, you can write your own pipeline. Here is an example from `app_zoo/classic_control/cartpole/entry/cartpole_ppg_main.py`.
+    After finishing the config file, you can write your own pipeline. Here is an example from `dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py`.
 
     .. code:: python
 
@@ -67,7 +67,7 @@ However, DI-engine `serial_pipeline` only supports single buffer. So in this sec
         while True:
             # ...
             new_data = collector.collect(train_iter=learner.train_iter)
-            # Push data into two buffers repectively. If you may change data in buffer, you can deepcopy it.
+            # Push data into two buffers respectively. If you may change data in buffer, you can deepcopy it.
             policy_buffer.push(new_data, cur_collector_envstep=collector.envstep)
             value_buffer.push(new_data, cur_collector_envstep=collector.envstep)
             for i in range(cfg.policy.learn.update_per_collect):

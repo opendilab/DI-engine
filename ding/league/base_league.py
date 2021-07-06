@@ -98,7 +98,7 @@ class BaseLeague:
         Returns:
             - job_info (:obj:`dict`): Job info.
         ReturnsKeys:
-            - necessary: `launch_player`(the active player)
+            - necessary: ``launch_player`` (the active player)
         """
         if player_id is None:
             player_id = self.active_players_ids[0]

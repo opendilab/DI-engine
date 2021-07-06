@@ -1,7 +1,7 @@
 from abc import ABCMeta
 
 
-# ABCMeta is a subclass of type, extending ABCMeta makes this metaclass is compatiable with some classes
+# ABCMeta is a subclass of type, extending ABCMeta makes this metaclass is compatible with some classes
 # which extends ABC
 class SingletonMetaclass(ABCMeta):
     r"""

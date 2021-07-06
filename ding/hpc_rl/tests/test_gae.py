@@ -1,7 +1,7 @@
 import time
 import torch
-from hpc_rl.origin.gae import gae, gae_data
-from hpc_rl.loss.gae import HPCGAE
+from hpc_rll.origin.gae import gae, gae_data
+from hpc_rll.rl_utils.gae import GAE
 from testbase import mean_relative_error, times
 
 assert torch.cuda.is_available()
@@ -15,7 +15,7 @@ def gae_val():
     value = torch.randn(T + 1, B)
     reward = torch.randn(T, B)
 
-    hpc_gae = HPCGAE(T, B)
+    hpc_gae = GAE(T, B)
 
     if use_cuda:
         value = value.cuda()
@@ -37,7 +37,7 @@ def gae_perf():
     value = torch.randn(T + 1, B)
     reward = torch.randn(T, B)
 
-    hpc_gae = HPCGAE(T, B)
+    hpc_gae = GAE(T, B)
 
     if use_cuda:
         value = value.cuda()

@@ -12,7 +12,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 try:
-    from app_zoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
+    from dizoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
 except ImportError:
     FootballRuleBaseModel, FootballKaggle5thPlaceModel = None, None
 
@@ -218,7 +218,7 @@ class ILPolicy(Policy):
 
     # TODO different collect model and learn model
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'football_iql', ['app_zoo.gfootball.model.iql.iql_network']
+        return 'football_iql', ['dizoo.gfootball.model.iql.iql_network']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

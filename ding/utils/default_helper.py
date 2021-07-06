@@ -1,7 +1,8 @@
-from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 import copy
 import logging
 import random
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
+
 import numpy as np
 import torch
 
@@ -177,17 +178,17 @@ def list_split(data: list, step: int) -> List[list]:
     return ret, residual
 
 
-def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, return default_ret."):
+def error_wrapper(fn, default_ret, warning_msg=""):
     r"""
     Overview:
         wrap the function, so that any Exception in the function will be catched and return the default_ret
     Arguments:
         - fn (:obj:`Callable`): the function to be wraped
-        - default_ret (:obj:`obj`): the default return when an Exception occured in the function
+        - default_ret (:obj:`obj`): the default return when an Exception occurred in the function
     Returns:
         - wrapper (:obj:`Callable`): the wrapped function
     Examples:
-        >>> # Used to checkfor Fakelink (Refer to utils.dist_helper.py)
+        >>> # Used to checkfor Fakelink (Refer to utils.linklink_dist_helper.py)
         >>> def get_rank():  # Get the rank of linklink model, return 0 if use FakeLink.
         >>>    if is_fake_link:
         >>>        return 0
@@ -199,7 +200,8 @@ def error_wrapper(fn, default_ret, warning_msg="[WARNING]: call linklink error, 
             ret = fn(*args, **kwargs)
         except Exception as e:
             ret = default_ret
-            print(warning_msg, "\ndefault_ret = {}\terror = {}".format(default_ret, e))
+            if warning_msg != "":
+                logging.warning(warning_msg, "\ndefault_ret = {}\terror = {}".format(default_ret, e))
         return ret
 
     return wrapper
@@ -223,7 +225,7 @@ class LimitedSpaceContainer:
         """
         self.min_val = min_val
         self.max_val = max_val
-        assert (max_val > min_val)
+        assert (max_val >= min_val)
         self.cur = self.min_val
 
     def get_residual_space(self) -> int:

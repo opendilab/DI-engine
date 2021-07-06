@@ -276,7 +276,7 @@ class AdvancedReplayBuffer(IBuffer):
     def _sample_check(self, size: int, cur_learner_iter: int) -> Tuple[bool, str]:
         r"""
         Overview:
-            Do preparations for sampling and check whther data is enough for sampling
+            Do preparations for sampling and check whether data is enough for sampling
             Preparation includes removing stale datas in ``self._data``.
             Check includes judging whether this buffer has more than ``size`` datas to sample.
         Arguments:
@@ -644,7 +644,7 @@ class AdvancedReplayBuffer(IBuffer):
         }
         if self._sampled_data_attr_print_count % self._sampled_data_attr_print_freq == 0:
             self._logger.info("=== Sample data {} Times ===".format(self._sampled_data_attr_print_count))
-            self._logger.print_vars_hor(out_dict)
+            self._logger.info(self._logger.get_tabulate_vars_hor(out_dict))
             for k, v in out_dict.items():
                 iter_metric = self._cur_learner_iter if self._cur_learner_iter != -1 else None
                 step_metric = self._cur_collector_envstep if self._cur_collector_envstep != -1 else None

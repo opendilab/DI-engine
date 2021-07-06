@@ -66,7 +66,7 @@ To customize an env wrapper
 Take the ObsNormEnv wrapper as an example. In order to normalize observations, \
 we merely need to change the two functions in the original environment -- the step function and the reset function while keeping the rest functions \
 almost the same. Note that sometimes, info is also needed to be modified as the boundaries of observations have been changed. \
-Note also that the nature of ObsNormEnv wrapper is to add addtional features to the original environment and this is exactly what a wrapper means. \
+Note also that the nature of ObsNormEnv wrapper is to add additional features to the original environment and this is exactly what a wrapper means. \
 
 The structure of ObsNormEnv are as follows:
 

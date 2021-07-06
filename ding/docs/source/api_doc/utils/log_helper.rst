@@ -10,10 +10,10 @@ build_logger
 .. automodule:: ding.utils.log_helper.build_logger
 
 
-TextLogger
+LoggerFactory
 ~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: ding.utils.log_helper.TextLogger
-    :members: __init__, _create_logger, print_vars, print_vars_hor, info, debug, error, level
+.. automodule:: ding.utils.log_helper.LoggerFactory
+    :members: create_logger, get_tabulate_vars, get_tabulate_vars_hor,
 
 
 DistributionTimeImage

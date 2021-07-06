@@ -31,7 +31,7 @@ Accordingly, we have n-step TD return:
 
 DI-engine has provided n-step implementation and enable it in a lot of algorithms, like DQN, A2C, etc.
 Here, we will introduce how to enable nstep-td and modify the code. Takes DQN as an example, if we
-wanna enable nstep=3, we should set the config as follows:
+want to enable nstep=3, we should set the config as follows:
 
 .. code:: python
 

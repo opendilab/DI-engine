@@ -5,7 +5,7 @@ Tutorial-Developer
 .. toctree::
    :maxdepth: 2
 
-代码结构概述
+Code Structure
 ===============
 
 DI-engine
@@ -13,7 +13,7 @@ DI-engine
 
     .. code:: bash
 
-        DI-engine
+        ding
         ├── config (配置文件及其工具)
         │   ├── buffer_manager.py (buffer manager配置文件)
         │   ├── config.py (Config类)
@@ -142,12 +142,12 @@ DI-engine
             ├── coordinator (协作器)
             └── learner (训练学习器)
 
-app_zoo (基于DI-engine的DRL应用)
+DI-zoo
 ---------------------------------
 
     .. code:: bash
 
-        app_zoo
+        dizoo
         ├── atari
         ├── classic_control
         │   ├── bitflip
@@ -160,14 +160,14 @@ app_zoo (基于DI-engine的DRL应用)
         └── sumo (traffic light control)
 
 
-数据流图
+Data Flow
 ============================
 
-DI-engine每一个训练实例可以主要分为三部分，即Coordinator(协作器)，Learner(学习器)，Collector(数据生成器)，再加上用于数据通信的Middleware(中介组件)，这四个模块的详细组成及之间的数据关系如下图所示:
+Each training instance of DI-engine can mainly divides 3 parts——Coordinator, Learner, Collector, and some support Middleware, which is shown as follows: 
 
 .. image:: dataflow.png
 
 
-而上述几个核心模块之间的数据流序列关系可以参考下图:
+And the sequence relation of them can be described in the next graph:
 
 .. image:: flow_sequence.png

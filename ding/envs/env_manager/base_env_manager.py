@@ -209,13 +209,6 @@ class BaseEnvManager(object):
         if reset_param is not None:
             assert len(reset_param) == len(self._env_fn)
         self._create_state()
-        # set seed
-        if hasattr(self, '_env_seed'):
-            for env, s in zip(self._envs, self._env_seed):
-                if self._env_dynamic_seed is not None:
-                    env.seed(s, self._env_dynamic_seed)
-                else:
-                    env.seed(s)
         self.reset(reset_param)
 
     def _create_state(self) -> None:
@@ -244,11 +237,21 @@ class BaseEnvManager(object):
         if reset_param is None:
             for env_id in range(self.env_num):
                 self._env_states[env_id] = EnvState.RESET
+                if hasattr(self, '_env_seed'):
+                    if self._env_dynamic_seed is not None:
+                        self._envs[env_id].seed(self._env_seed[env_id], self._env_dynamic_seed)
+                    else:
+                        self._envs[env_id].seed(self._env_seed[env_id])
                 self._reset(env_id)
         else:
             for env_id in reset_param:
                 self._reset_param[env_id] = reset_param[env_id]
                 self._env_states[env_id] = EnvState.RESET
+                if hasattr(self, '_env_seed'):
+                    if self._env_dynamic_seed is not None:
+                        self._envs[env_id].seed(self._env_seed[env_id], self._env_dynamic_seed)
+                    else:
+                        self._envs[env_id].seed(self._env_seed[env_id])
                 self._reset(env_id)
 
     def _reset(self, env_id: int) -> None:
@@ -320,20 +323,27 @@ class BaseEnvManager(object):
             self._env_states[env_id] = EnvState.ERROR
             raise e
 
-    def seed(self, seed: Union[List[int], int], dynamic_seed: bool = None) -> None:
+    def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         """
         Overview:
             Set the seed for each environment.
         Arguments:
-            - seed (:obj:`Union[List[int], int]`): List of seeds for each environment; \
+            - seed (:obj:`Union[Dict[int, int], List[int], int]`): List of seeds for each environment; \
                 Or one seed for the first environment and other seeds are generated automatically.
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
+            self._env_seed = seed
         elif isinstance(seed, list):
             assert len(seed) == self._env_num, "len(seed) {:d} != env_num {:d}".format(len(seed), self._env_num)
-            seed = seed
-        self._env_seed = seed
+            self._env_seed = seed
+        elif isinstance(seed, dict):
+            if not hasattr(self, '_env_seed'):
+                raise RuntimeError("please indicate all the seed of each env in the beginning")
+            for env_id, s in seed.items():
+                self._env_seed[env_id] = s
+        else:
+            raise TypeError("invalid seed arguments type: {}".format(type(seed)))
         self._env_dynamic_seed = dynamic_seed
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:

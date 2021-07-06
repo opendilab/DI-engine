@@ -6,7 +6,7 @@ from typing import Optional, Union, List, Tuple
 import ding
 from ding.torch_utils.network.normalization import build_normalization
 if ding.enable_hpc_rl:
-    from hpc_rl.network.rnn import HPCLSTM
+    from hpc_rll.torch_utils.network.rnn import LSTM as HPCLSTM
 else:
     HPCLSTM = None
 
@@ -107,7 +107,7 @@ class LSTMForwardWrapper(object):
             - next_state (:obj:`List[Tuple[torch.Tensor]]`): List of tuple which contains the next (h, c)
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - next_state(:obj:`Union[torch.Tensor, list]`): the formated next_state
+            - next_state(:obj:`Union[torch.Tensor, list]`): the formatted next_state
         """
         if list_next_state:
             h, c = [torch.stack(t, dim=0) for t in zip(*next_state)]

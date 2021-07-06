@@ -6,7 +6,7 @@ import torch
 from easydict import EasyDict
 
 import ding
-from ding.utils import allreduce, read_file, save_file
+from ding.utils import allreduce, read_file, save_file, get_rank
 
 
 class Hook(ABC):
@@ -218,7 +218,7 @@ class LogShowHook(LearnerHook):
             for k in log_vars:
                 k_attr = k + '_' + attr
                 var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
-            engine.logger.print_vars_hor(var_dict)
+            engine.logger.info(engine.logger.get_tabulate_vars_hor(var_dict))
             for k, v in var_dict.items():
                 engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
                 engine.tb_logger.add_scalar('learner_step/' + k, v, engine._collector_envstep)
@@ -279,7 +279,7 @@ class LogReduceHook(LearnerHook):
                 if ding.enable_linklink:
                     allreduce(new_data)
                 else:
-                    new_data = new_data.cuda()
+                    new_data = new_data.to(get_rank())
                     allreduce(new_data)
                     new_data = new_data.cpu()
             elif isinstance(data, numbers.Integral) or isinstance(data, numbers.Real):
@@ -287,7 +287,7 @@ class LogReduceHook(LearnerHook):
                 if ding.enable_linklink:
                     allreduce(new_data)
                 else:
-                    new_data = new_data.cuda()
+                    new_data = new_data.to(get_rank())
                     allreduce(new_data)
                     new_data = new_data.cpu()
                 new_data = new_data.item()

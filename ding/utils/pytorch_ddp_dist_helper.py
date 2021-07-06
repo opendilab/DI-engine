@@ -1,12 +1,13 @@
-from typing import Callable, Tuple, List, Any
 import os
+from typing import Callable, Tuple, List, Any
 
 import numpy as np
 import torch
 import torch.distributed as dist
 
 from .default_helper import error_wrapper
-#from .slurm_helper import get_master_addr
+
+# from .slurm_helper import get_master_addr
 
 
 def get_rank() -> int:
@@ -71,25 +72,22 @@ def dist_init(backend: str = 'nccl',
         Init the distributed training setting
     """
     assert backend in ['nccl', 'gloo'], backend
-    if addr is None:
-        addr = "localhost"
-    if port is None:
-        port = "10314"  # hard-code
+    os.environ['MASTER_ADDR'] = addr or os.environ.get('MASTER_ADDR', "localhost")
+    os.environ['MASTER_PORT'] = port or os.environ.get('MASTER_PORT', "10314")  # hard-code
+
     if rank is None:
-        local_id = os.environ['SLURM_LOCALID']
+        local_id = os.environ.get('SLURM_LOCALID', os.environ.get('RANK', None))
         if local_id is None:
             raise RuntimeError("please indicate rank explicitly in dist_init method")
         else:
             rank = int(local_id)
     if world_size is None:
-        ntasks = os.environ['SLURM_NTASKS']
+        ntasks = os.environ.get('SLURM_NTASKS', os.environ.get('WORLD_SIZE', None))
         if ntasks is None:
             raise RuntimeError("please indicate world_size explicitly in dist_init method")
         else:
             world_size = int(ntasks)
 
-    os.environ['MASTER_ADDR'] = addr
-    os.environ['MASTER_PORT'] = port
     dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
 
     num_gpus = torch.cuda.device_count()

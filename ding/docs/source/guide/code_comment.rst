@@ -25,13 +25,13 @@ We have the following comment format:
       - Format: `# ISSUE(questioner name) issue statement`.
 
 .. note::
-    According to the formated class and function comment, we can automatically generate the corresponding doc,
+    According to the formatted class and function comment, we can automatically generate the corresponding doc,
     a example result is `link <../package_ref/model/alphastar.html>`_
 
 We recommend that you should use English in code line comment. And you should obey these rules:
 
     1. Capitalize the first letter in a sentence.
-    2. Use period "." to correctly end a sentence, which is widely adopted in English grammar. Do not always use comma "," to seperate different sentences, which is quite common in Chinese grammar.
+    2. Use period "." to correctly end a sentence, which is widely adopted in English grammar. Do not always use comma "," to separate different sentences, which is quite common in Chinese grammar.
 
 You can know about the specific format from the following code example.
 

@@ -37,7 +37,7 @@ To alleviate these problems, the training pipline of self-play is usually implem
     4. According to certain rules, league chooses one player from the pool as the opponent, then both the first and the second approach can be used.
     5. When the updatable strategy is good enough, the training process ends.
 
-The DI-engine's demo of league ``app_zoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
+The DI-engine's demo of league ``dizoo/competitive_rl/entry/cpong_dqn_default_config.py`` is implemented as the above process.
 
 AlphaStar uses a more complicated league training algorithm than self-play, and designs more types of players differ in the distribution of opponent 
 they train against. The "Rock-paper-scissors" problem can be alleviated in this way, also the strategy will be more diverse. More details can be found 
@@ -56,7 +56,7 @@ Player
 ~~~~~~~~~~~~
 
 Abstract:
-    Player is the memeber of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.
+    Player is the member of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.
 
     Player consists of active player and historical player:
 
@@ -79,7 +79,7 @@ Base Class Definition：
 
         - Abstract:
 
-            Base class player defines properties needed by both active player and historical player, including catagory, payoff, checkpoint path, id, 
+            Base class player defines properties needed by both active player and historical player, including category, payoff, checkpoint path, id, 
             training iteration, etc. Player is an abstract base class and cannot be instantiated.
 
     2. HistoricalPlayer (ding/league/player.py)
