@@ -5,31 +5,47 @@ Quick Start
 .. toctree::
    :maxdepth: 3
 
-Here we show how to easily deploy a Reinforcement Learning experiment on a simple ``CartPole`` environment using DI-engine.
-
-A simple demo for CartPole Env evaluation is shown follow.
 
 .. image:: 
    images/cartpole_cmp.gif
    :align: center
 
-DI-engine provides config-wise and code-wise specifications to build RL experiments. 
-Both are commonly used by existing RL platforms. In this section we use the code-level
-entry to clarify the training procedure and defined modules, with the hyperparameters
-for training details and NN models pre-defined in a config file. And this example is the
-collector-learner serial pipeline, you can refer to `Entry <../key_concept/index.html#entry>`_ for more information about other pipeline types and entry types.
+As kickoff, we will illustrate how to launch a Reinforcement Learning (RL) experiment on a simple ``CartPole`` environment (as shown in above figure) using DI-engine.
 
+..
+    DI-engine supports config-wise and code-wise specifications to build RL experiments, namely using
+    In this section, we use the code-level specification to demonstration the training procedure and the modules in DI-engine. with the hyperparameters for training details and NN models pre-defined in a config file.
+    And this example is the
+    collector-learner serial pipeline, you can refer to `Entry <../key_concept/index.html#entry>`_ for more information about other pipeline types and entry types.
+Concretely, we will define a training pipeline in a single python file that specifies the training hyper-parameters, sampling and evaluation environments, the neural networks for the RL agents, as well as the training workflow.
 
-Config and entry
+# TODO(pzh): move the discussion of specification and entries into the end.
+
+Configuration
 ------------------
 
-DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
-`Config <../key_concept/index.html#config>`_.
+The first step to build a training workflow is to specify the training configuration. DI-engine prefers a nested python dict object to represent all parameters and configurations of an RL experiment. Just like:
 
-.. note::
-   For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+.. code-block:: python
+    cartpole_dqn_config = dict(
+        env=dict(
+            collector_env_num=8,
+            evaluator_env_num=5,
+        ),
+        policy=dict(
+            model=dict(
+                encoder_hidden_size_list=[128, 128, 64],
+            ),
+            discount_factor=0.97,
+        )
+    )
 
-And in this example, users can apply the following codes for preparing config.
+.. DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
+.. `Config <../key_concept/index.html#config>`_.
+
+.. note :-: (remove the -)
+..    For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+
 
 .. code-block:: python
 
@@ -150,10 +166,11 @@ Here we provide examples of off-policy training (``DQN``) for a ``CartPole`` env
 .. note::
    The users can refer to the complete demo in ``dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_main.py`` .
 
-Other Functions
+Other Utilities
 ------------------
 
-Some tool functions in RL training which well supported by DI-engine are listed below.
+DI-engine supports various useful tools in common RL training, as shown in follows.
+.. Some tools  in RL training which well supported by DI-engine are listed below.
 
 Epsilon Greedy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
