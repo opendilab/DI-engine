@@ -1,6 +1,5 @@
 Quick Start
 ===============================
-(Based on commit 781ffd2611325f51bee3b5fbcf34b05505383329)
 
 .. toctree::
    :maxdepth: 3
@@ -12,19 +11,20 @@ Quick Start
 
 As kickoff, we will illustrate how to launch a Reinforcement Learning (RL) experiment on a simple ``CartPole`` environment (as shown in above figure) using DI-engine.
 
+Concretely, we will define a training pipeline in a single python file that specifies the training hyper-parameters, sampling and evaluation environments, the neural networks for the RL agents, as well as the training workflow.
+
 ..
     DI-engine supports config-wise and code-wise specifications to build RL experiments, namely using
     In this section, we use the code-level specification to demonstration the training procedure and the modules in DI-engine. with the hyperparameters for training details and NN models pre-defined in a config file.
     And this example is the
     collector-learner serial pipeline, you can refer to `Entry <../key_concept/index.html#entry>`_ for more information about other pipeline types and entry types.
-Concretely, we will define a training pipeline in a single python file that specifies the training hyper-parameters, sampling and evaluation environments, the neural networks for the RL agents, as well as the training workflow.
 
-# TODO(pzh): move the discussion of specification and entries into the end.
 
-Configuration
-------------------
+Instantiate the run-time config
+-------------------------------
 
-The first step to build a training workflow is to specify the training configuration. DI-engine prefers a nested python dict object to represent all parameters and configurations of an RL experiment. Just like:
+The first step to build a training workflow is to specify the training configuration. 
+DI-engine prefers a nested python dict object to represent all parameters and configurations of an RL experiment, for example:
 
 .. code-block:: python
     cartpole_dqn_config = dict(
@@ -37,14 +37,14 @@ The first step to build a training workflow is to specify the training configura
                 encoder_hidden_size_list=[128, 128, 64],
             ),
             discount_factor=0.97,
-        )
+        ),
+        ......
     )
 
-.. DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
-.. `Config <../key_concept/index.html#config>`_.
+.. note ::
+    For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
 
-.. note :-: (remove the -)
-..    For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+DI-engine provides default configs for all modules, and also a helper function ``compile_config`` to merge the default configs of these modules into a run-time config object (a ``EasyDict`` object that can be accessed by string key ``cfg["env"]`` or attribute ``cfg.env``):
 
 
 .. code-block:: python
@@ -68,15 +68,37 @@ The first step to build a training workflow is to specify the training configura
         save_cfg=True
     )
 
-When you are ready with config, you can construct your RL training/evaluation entry program referring to the following guides step by step.
+In this example, we only present the procedure to specify config in the entry file. In the following section, we construct the RL pipeline in the same entry file based on the specified config.
 
-Set up Environments
----------------------
+Please note that DI-engine also supports running a RL experiment directly according to a given config file, e.g. ``ding -s serial -c cartpole_dqn_config.py -s 0``. For more design details, please refer to the `Config <../key_concept/index.html#config>`_ section.
 
-DI-engine redefines RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
-For junior users, an environment wrapper (by default :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`) is provided 
-to simply wrap the gym env into DI-engine form env.
-For advanced users, it is suggested to check our `Environment <../key_concept/index.html#env>`_ doc for details
+
+
+
+
+
+.. DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
+.. `Config <../key_concept/index.html#config>`_.
+
+.. note :-: (remove the -)
+..    For the specific config example, you can refer to ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py`` and ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+
+
+.. DI-engine recommends using a config ``dict`` defined in a python file as input. Users can just directly use our pre-defined configs or specialize their own configs. For more design details, please refer to the 
+.. `Config <../key_concept/index.html#config>`_.
+
+
+
+
+
+
+Initialize the Environments
+---------------------------
+
+The RL agents interact with the environment to collect training data or test its performance.
+DI-engine provides enhanced RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
+You can simply wrap the gym environment into DI-engine environment by using the environment warpper :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`.
+You can also construct a more complex environment class following the guidelines in `Environment <../key_concept/index.html#env>`_ section.
 
 The :class:`Env Manager <ding.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
 or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env. Here we show a case
@@ -93,8 +115,8 @@ of using :class:`BaseEnvManager <ding.envs.BaseEnvManager>` to build environment
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
-Set up Policy and NN model
-----------------------------
+Set up the Policy and NN models
+-------------------------------
 
 DI-engine supports most of the common policies used in RL training. Each is defined as a :class:`Policy <ding.policy.CommonPolicy>`
 class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks 
@@ -110,8 +132,8 @@ For example, a ``DQN`` policy for ``CartPole`` can be defined as follow.
     policy = DQNPolicy(cfg.policy, model=model)
 
 
-Set up execution modules
---------------------------
+Define the Execution Modules
+----------------------------
 
 DI-engine needs to build some execution components to manage an RL training procedure. 
 A :class:`Collector <ding.worker.collector.SampleCollector>` is used to sample and provide data for training.
@@ -134,8 +156,8 @@ An example of setting up all the above is showed as follow.
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
 
-Train and evaluate the policy
----------------------------------
+Aggregate the Training and Evaluation Pipelines
+-----------------------------------------------
 
 The training loop in DI-engine can be customized arbitrarily. Usually the training process may consist of
 collecting data, updating policy, updating related modules and evaluation.
@@ -220,7 +242,7 @@ If you want to know more details about default information recorded in tensorboa
 `tensorboard and logging demo <./tb_demo.html>`_ for a
 DQN experiment.
 
-Loading & Saving checkpoints
+Save & Restore Checkpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is usually needed to save and resume an experiments with model checkpoints. DI-engine saves and loads checkpoints
@@ -258,4 +280,6 @@ in the end, users can simply add one line code before & after training as follow
     
     learner.call_hook('after_run')
 
-For more information, please take a look to `Wrapper & Hook Overview <../feature/wrapper_hook_overview.html>`_ doc.
+For more information, please refer to the `Wrapper & Hook Overview <../feature/wrapper_hook_overview.html>`_ section.
+
+(Note: This page is based on commit 781ffd2611325f51bee3b5fbcf34b05505383329)
