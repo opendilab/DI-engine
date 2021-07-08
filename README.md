@@ -4,6 +4,19 @@
 
 ---
 
+[![PyPI](https://img.shields.io/pypi/v/DI-engine)](https://pypi.org/project/DI-engine/)
+![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
+![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
+![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
+![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
+![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
+
+
+[![GitHub issues](https://img.shields.io/github/issues/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/issues)
+[![GitHub stars](https://img.shields.io/github/stars/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/network)
+[![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
+
 Updated on 2021.07.08 DI-engine-v0.1.0 (beta)
 
 
