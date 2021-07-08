@@ -1,0 +1,43 @@
+@startuml serial_collector
+header Serial Pipeline
+title Serial Collector
+
+|#99CCCC|serial_controller|
+|#99CCFF|env_manager|
+|#CCCCFF|policy|
+|#FFCCCC|collector|
+
+|#99CCCC|serial_controller|
+start
+:init collector, set its \nenv_manager and \ncollect_mode policy;
+|#99CCFF|env_manager|
+repeat
+  |#99CCFF|env_manager|
+  :return current obs;
+  |#CCCCFF|policy|
+  :<b>[network]</b> forward with obs;
+  |#99CCFF|env_manager|
+  :env step with action;
+  |#CCCCFF|policy|
+  :process transition;
+  |#FFCCCC|collector|
+  :save transition in cache;
+  if (for every env: \n env_i is done? <b>OR</b> cache is full?) then (yes)
+    if (is <b>sample_collector</b>?) then (yes)
+    note right: Only sample_collector will do so, \n episode_collector will not.
+      |#CCCCFF|policy|
+      :<b>[adder]</b> get train_sample from cache;
+    endif
+    |#FFCCCC|collector|
+    :save sample/episode for return;
+    if (env_i is done?) then (yes)
+      |#99CCFF|env_manager|
+      :env_i reset;
+    endif
+  endif
+|#FFCCCC|collector|
+repeat while (collected sample/episode is not enough?)
+:return sample/episode;
+stop
+
+@enduml

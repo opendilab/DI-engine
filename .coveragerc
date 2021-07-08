@@ -1,0 +1,12 @@
+[run]
+omit =
+  ding/utils/slurm_helper.py
+  ding/utils/file_helper.py
+  ding/utils/linklink_dist_helper.py
+  ding/utils/k8s_helper.py
+  ding/config/utils.py
+  ding/entry
+  ding/entry/tests/test_serial_entry_algo.py
+  ding/entry/dist_entry.py
+  ding/hpc_rl
+  ding/worker/collector/tests/speed_test

@@ -1,0 +1,97 @@
+@startuml
+skinparam NoteBackgroundColor PapayaWhip
+
+autonumber
+
+participant Coordinator
+participant Learner
+participant Collector
+participant Middleware
+participant Operator
+
+group start
+Coordinator->Coordinator: start communication module
+Coordinator->Coordinator: start commander
+Coordinator->Coordinator: start replay buffer
+Coordinator->Operator: connect operator
+Operator->Coordinator: send collector/learner info
+Coordinator->Learner: create connection
+Coordinator->Collector: create connection
+end
+
+loop
+autonumber
+group learn(async)
+Coordinator->Learner: request learner start task
+note right
+policy config
+learner config
+end note
+Learner->Coordinator: return learner start info
+group learner loop
+Coordinator->Learner: request data demand task
+Learner->Coordinator: return data demand
+Coordinator->Learner: request learn task and send data(metadata)
+note right
+data path
+data priority
+end note
+Middleware->Learner: load data(stepdata)
+Learner->Learner: learner a iteration
+Learner->Middleware: send policy info
+note left
+model state_dict
+model hyper-parameter
+end note
+Learner->Coordinator: return learn info
+note right
+policy meta
+train stat
+data priority
+end note
+end
+Coordinator->Learner: request learner close task
+Learner->Coordinator: return learner close info
+note right
+save final policy
+end note
+end
+
+autonumber
+group data collection/evaluation(async)
+Coordinator->Collector: request collector start task
+note right
+policy meta
+env config
+collector config
+end note
+Collector->Coordinator: return collector start info
+Middleware->Collector: load policy info for init
+group collector loop
+Coordinator->Collector: request get data task
+Collector->Collector: policy interact with env
+Collector->Middleware: send data(stepdata)
+Collector->Coordinator: return data(metadata)
+note right
+data path
+data length(rollout length)
+end note
+Middleware->Collector: load policy info for update
+end group
+Coordinator->Collector: request collector close task
+Collector->Coordinator: return collector close info
+note right
+episode result(cumulative reward)
+collector performance
+end note
+end group
+end
+
+autonumber
+group close
+Coordinator->Learner: destroy connection
+Coordinator->Collector: destroy connection
+Coordinator->Operator: disconnect operator
+Coordinator->Coordinator: close
+end group
+@enduml

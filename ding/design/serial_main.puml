@@ -1,0 +1,56 @@
+@startuml serial_main
+header Serial Pipeline
+title Serial Main
+
+participant controller
+participant env_manager
+participant policy
+participant learner
+participant replay_buffer
+participant collector
+participant evaluator
+participant commander
+autonumber
+
+controller -> env_manager: init collector and evaluator env_manager; set seed
+controller -> policy: init policy
+controller -> learner: init learner; set learn_mode policy
+controller -> collector: init collector; set collect_mode policy; set env_manager
+controller -> evaluator: init evaluator; set eval_mode policy; set env_manager
+controller -> commander: init commander; set command_mode policy
+controller -> replay_buffer: init replay_buffer
+alt random collect before training starts
+  collector -> collector: reset policy to random one; generate random data
+  collector -> replay_buffer: push_data
+  collector -> collector: reset policy back to the original one
+end
+learner -> learner: call before_run hook
+loop
+  commander -> commander: step
+  alt this iteration needs evaluation
+    evaluator -> evaluator: eval_performance
+    alt reach eval stop_value
+      learner -> learner: save checkpoint and exit
+    else eval_reward is new highest
+      learner -> learner: save checkpoint
+    end
+  end
+  collector -> collector: generate data (steps or episodes)
+  collector -> replay_buffer: push_data
+  loop learner_train_iteration times
+    replay_buffer -> learner: sample_data
+    learner -> learner: train
+    alt replay replay_buffer use prioritization
+      learner -> replay_buffer: update with priority_info
+    end
+  end
+  alt on_policy training
+    replay_buffer -> replay_buffer: clear
+  end
+end
+learner -> learner: call after_run hook
+controller -> replay_buffer: close replay_buffer
+controller -> learner: close learner
+controller -> collector: close collector
+controller -> evaluator: close evaluator
+@enduml

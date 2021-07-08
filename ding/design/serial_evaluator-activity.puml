@@ -1,0 +1,31 @@
+@startuml serial_evaluator
+header Serial Pipeline
+title Serial Evaluator
+
+|#99CCCC|serial_controller|
+|#99CCFF|env_manager|
+|#CCCCFF|policy|
+|#FFCCCC|evaluator|
+
+|#99CCCC|serial_controller|
+start
+:init evaluator, set its \nenv_manager and \neval_mode policy;
+|#99CCFF|env_manager|
+repeat
+  :return current obs;
+  |#CCCCFF|policy|
+  :<b>[network]</b> forward with obs;
+  |#99CCFF|env_manager|
+  :env step with action;
+  |#FFCCCC|evaluator|
+  if (for every env: env i is done?) then (yes)
+    |#99CCFF|env_manager|
+    :env i reset;
+    |#FFCCCC|evaluator|
+    :log eval_episode_info;
+  endif
+repeat while (evaluate episodes are not enough?)
+|#FFCCCC|evaluator|
+:return eval_episode_reward;
+stop
+@enduml

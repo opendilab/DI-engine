@@ -1,0 +1,21 @@
+@startuml
+
+start
+
+:Get the input value x.;
+
+if (Value x's type is int?) then (Yes.)
+    :**Return value x as result**.;
+    stop
+else (No.)
+    if (Value x's type is float?) then (Yes.)
+        :**Return value x as result**.;
+        stop
+    else (No.)
+        :The value x is invalid, \n**raise TypeError**.;
+        end
+    endif
+endif
+
+
+@enduml

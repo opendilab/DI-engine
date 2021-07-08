@@ -1,0 +1,20 @@
+@startuml
+
+start
+
+:Get the input value x.;
+
+if (Value x's type is int?) then (Yes.)
+    if (Value x's type is in [0, 10]?) then (Yes.)
+        :**Return value x as result**.;
+        stop
+    else (No.)
+        :The value x is not in range, \n**raise ValueError**.;
+        end
+    endif
+else (No.)
+    :The value x is invalid, \n**raise TypeError**.;
+    end
+endif
+
+@enduml

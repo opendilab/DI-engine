@@ -1,0 +1,1 @@
+from .gfootball_il_default_config import gfootball_il_default_config

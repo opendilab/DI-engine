@@ -1,0 +1,13 @@
+@startuml
+
+start
+
+:Get the input value x.;
+
+:Set x' as int(x).;
+
+:**Return value x' as result.**;
+
+stop
+
+@enduml

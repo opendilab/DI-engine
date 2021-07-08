@@ -1,0 +1,22 @@
+@startuml serial_learner
+header Serial Pipeline
+title Serial Learner
+
+|#99CCCC|serial_controller|
+|#CCCCFF|policy|
+|#99CCFF|learner|
+
+|#99CCCC|serial_controller|
+start
+:init learner, \nset its learn_mode policy;
+|#99CCFF|learner|
+:get data from buffer;
+|#CCCCFF|policy|
+:data forward;
+:loss backward;
+:optimizer step, gradient update;
+|#99CCFF|learner|
+:update train info(loss, value) and log;
+:update learn info(iteration, priority);
+stop
+@enduml

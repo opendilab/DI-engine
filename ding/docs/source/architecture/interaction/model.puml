@@ -1,0 +1,47 @@
+@startuml
+class Master {
+    - host
+    - port
+    - channel
+    - my_address
+    + ping()
+    + new_connection(name, host, port, https)
+    + start()
+    + shutdown()
+    + join()
+}
+
+Master --> Slave : Connect to slave, new connection created
+
+class Slave {
+    - host
+    - port
+    - channel
+    + ping()
+    + start()
+    + shutdown()
+    + join()
+}
+
+class Connection {
+    - token
+    - tasks
+    + connect()
+    + disconnect()
+    + new_task()
+}
+Master "1" o-- "0..*" Connection : Master clients have plenty of connections
+
+class Task {
+    - task_id
+    - data
+    - status
+    - result
+    + start()
+    + join()
+    + on_complete(callback)
+    + on_fail(callback)
+}
+Connection "1" o-- "0..*" Task : Connections have plenty of tasks
+@enduml
+

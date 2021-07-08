@@ -1,0 +1,31 @@
+@startuml
+
+:Get the input list L.;
+
+if (List L is iterable?) then (Yes.)
+else (No.)
+    :List L not iterable, **raise TypeError**.;
+    end
+endif
+
+repeat
+    :Get next value x in list L.;
+    :Set x1 as x + 1.;
+    :Set x2 as x1 * 2.;
+    if (Value x2's type is from 0 to 10) then (Yes.)
+        :Item calculation success, \n**record this result x2**.;
+    else (No.)
+        :The value x2 s not in range, \n**record this ValueError**.;
+    endif
+repeat while (List L has more data?)
+
+if (No error recorded?) then (Yes.)
+    :**Return recorded results as list.**;
+else (No.)
+    :**Raise CollectionError, including the recorded errors.**;
+    end
+endif
+
+stop
+
+@enduml

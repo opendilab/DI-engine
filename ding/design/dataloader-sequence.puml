@@ -1,0 +1,55 @@
+@startuml async_dataloader
+header Async Dataloader
+title Async Dataloader
+
+participant main_process
+participant async_process
+participant get_data_thread
+participant job_queue
+participant worker_process_0
+participant ...
+participant worker_process_n
+participant async_train_queue
+participant cuda_thread
+participant cuda_queue
+autonumber
+
+main_process -> async_process: Start async_process
+main_process -> get_data_thread: Start get_data_thread
+alt num_workers > 1
+    main_process -> job_queue: Init job_queue
+    main_process -> worker_process_0: Start worker_process_0
+    main_process -> ...: Start ...
+    main_process -> worker_process_n: Start worker_process_n
+end
+main_process -> async_train_queue: Init async_train_queue
+alt use_cuda
+    main_process -> cuda_thread: Start cuda_thread
+    main_process -> cuda_queue: Init cuda_queue
+end
+
+async_process -> get_data_thread: Send request "get_data"
+get_data_thread -> get_data_thread: Get data from "data_source"
+get_data_thread -> async_process: Send data (in CPU)
+
+alt num_workers <= 1
+    async_process -> async_process: Process data
+    async_process -> async_train_queue: Put data in queue
+else
+    async_process -> async_process: Chunk pre-process task into pieces
+    async_process -> job_queue: Put sub-tasks in queue
+    worker_process_0 -> job_queue: Get a sub-task from queue
+    worker_process_n -> job_queue: Get a sub-task from queue
+    worker_process_0 -> worker_process_0: Process data
+    worker_process_n -> worker_process_n: Process data
+    worker_process_0 -> async_train_queue: Put data in queue
+    worker_process_n -> async_train_queue: Put data in queue
+end
+
+alt use_cuda
+    cuda_thread -> async_train_queue: Get data (in  CPU)
+    cuda_thread -> cuda_thread: Move data from CPU to GPU
+    cuda_thread -> cuda_queue: Put data(in GPU) in queue
+end
+
+@enduml

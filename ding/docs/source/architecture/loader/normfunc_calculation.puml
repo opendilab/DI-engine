@@ -1,0 +1,22 @@
+@startuml
+
+:Get the input dict D.;
+
+:Get value a from dict D.;
+:Set a1 as -a.;
+
+:Get value b from dict D.;
+:Get value c from dict C.;
+
+if (Value a1 is no less than 0?) then (Yes.)
+    :Set r as a1 + b * c.;
+else (No.)
+    :a1 less than 0, **raise ValueError**.;
+    end
+endif
+
+:**Return r as result.**;
+
+stop
+
+@enduml
