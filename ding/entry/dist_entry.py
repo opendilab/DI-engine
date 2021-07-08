@@ -198,7 +198,7 @@ def dist_launch_spawn_learner(
         if name is not None:
             cmd += ['--module-name', f'{name}']
         if disable_flask_log is not None:
-            cmd += ['--disable_flask_log', f'{int(disable_flask_log)}']
+            cmd += ['--disable-flask-log', f'{int(disable_flask_log)}']
 
         sig_names = {2: "SIGINT", 15: "SIGTERM"}
         last_return_code = None
