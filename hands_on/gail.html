@@ -1,0 +1,337 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>GAIL &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="VPN" href="vpn.html" />
+    <link rel="prev" title="CollaQ" href="collaq.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Hands on RL</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#iqn">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">GAIL</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pseudo-code">Pseudo-Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html#alphagozero">AlphaGoZero</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Hands on RL</a> &raquo;</li>
+        
+      <li>GAIL</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/gail.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gail">
+<h1>GAIL<a class="headerlink" href="#gail" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>GAIL (Generative Adversarial Imitation Learning) was first proposed in
+<a class="reference external" href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation
+Learning</a>, which deduced the
+optimization objective of GAIL from the perspective of occupancy
+measure. Compared to other learning methods, GAIL neither suffers from
+the compounding error problem in imitation learning, nor needs to
+expensively learn the inter-mediate reward function as in inverse
+reinforcement learning. But similar to other methods, GAIL is also
+exposed to “the curse of dimensionality”, which makes the scalability
+much valuable in high-dimension-space problems.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>GAIL consists of a generator and a discriminator, trained in an
+adversarial manner.</p></li>
+<li><p>The generator is optimized for a surrogate reward, usually by
+policy-gradient reinforcement learning methods, like TRPO, for its
+sampling nature.</p></li>
+<li><p>The discriminator can be simply optimized by typical gradient descent
+methods, like Adam, to distinguish expert and generated data.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>The objective function in GAIL’s adversarial training is as below:</p>
+<div class="figure align-center">
+<img alt="../_images/gail_loss.png" src="../_images/gail_loss.png" />
+</div>
+<p>where pi is the generator policy, D is the discriminator policy,
+while <span class="math notranslate nohighlight">\(H(\pi)\)</span> is the causal entropy of policy pi. This is a
+min-max optimization process, and the objective is optimized in an
+iterative adversarial manner.</p>
+</div>
+<div class="section" id="pseudo-code">
+<h2>Pseudo-Code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-default">
+<img alt="" src="../_images/GAIL.png" />
+</div>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>MAGAIL (Multi-Agent Generative Adversarial Imitation Learning)</p>
+<p>Multi-agent systems tend to be much more complicated, due to the
+heterogeneity, stochasticity, and interaction among multi-agents.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/1807.09936">MAGAIL：Multi-Agent Generative Adversarial Imitation
+Learning</a> extended GAIL to
+multi-agent scenarios. The generator is redefined as a policy
+controlling all agents in a distributed manner, while the
+discriminator is distinguishing expert and generated behavior for
+each agent.</p>
+<p>The Pseudo-Code is as following:</p>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="../_images/MAGAIL.png"><img alt="" src="../_images/MAGAIL.png" style="width: 1036.1499999999999px; height: 852.55px;" /></a>
+</div>
+</li>
+<li><p>Other perspective to understand GAIL</p>
+<p>GAIL is closely related to other learning methods, and thus can be
+understood in different views.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/1611.03852">A Connection Between Generative Adversarial Networks, Inverse
+Reinforcement Learning, and Energy-Based
+Models</a> indicated GAIL’s
+implicit connection to GAN, IRL, and energy-based probability
+estimation.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Ho, Jonathan, and Stefano Ermon. “Generative adversarial imitation
+learning.” Advances in neural information processing systems 29
+(2016): 4565-4573.</p></li>
+<li><p>Song, Jiaming, et al. “Multi-agent generative adversarial imitation
+learning.” arXiv preprint arXiv:1807.09936 (2018).</p></li>
+<li><p>Finn, Chelsea, et al. “A connection between generative adversarial
+networks, inverse reinforcement learning, and energy-based models.”
+arXiv preprint arXiv:1611.03852 (2016).</p></li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="vpn.html" class="btn btn-neutral float-right" title="VPN" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="collaq.html" class="btn btn-neutral float-left" title="CollaQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

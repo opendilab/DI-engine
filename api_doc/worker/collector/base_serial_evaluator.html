@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>worker.collector.base_serial_evaluator &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="worker.collector.sample_serial_collector" href="sample_serial_collector.html" />
+    <link rel="prev" title="worker.collector.base_serial_collector" href="base_serial_collector.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../learner/index.html">Learner</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Collector</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="comm.html">worker.collector.comm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="base_serial_collector.html">worker.collector.base_serial_collector</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">worker.collector.base_serial_evaluator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#base-serial-evaluator">base_serial_evaluator</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sample_serial_collector.html">worker.collector.sample_serial_collector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="episode_serial_collector.html">worker.collector.episode_serial_collector</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../replay_buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../interaction/index.html">Interaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">API Doc</a> &raquo;</li>
+        
+          <li><a href="index.html">Collector</a> &raquo;</li>
+        
+      <li>worker.collector.base_serial_evaluator</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../../_sources/api_doc/worker/collector/base_serial_evaluator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="worker-collector-base-serial-evaluator">
+<h1>worker.collector.base_serial_evaluator<a class="headerlink" href="#worker-collector-base-serial-evaluator" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="base-serial-evaluator">
+<h2>base_serial_evaluator<a class="headerlink" href="#base-serial-evaluator" title="Permalink to this headline">¶</a></h2>
+<p>Please Reference ding/worker/collector/base_serial_evaluator.py for usage</p>
+<div class="section" id="baseserialevaluator">
+<h3>BaseSerialEvaluator<a class="headerlink" href="#baseserialevaluator" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator">
+<em class="property">class </em><code class="sig-prename descclassname">ding.worker.collector.base_serial_evaluator.</code><code class="sig-name descname">BaseSerialEvaluator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">env</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager">ding.envs.env_manager.base_env_manager.BaseEnvManager</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">policy</span><span class="p">:</span> <span class="n">collections.namedtuple</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tb_logger</span><span class="p">:</span> <span class="n">SummaryWriter</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base class for serial evaluator.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__, reset, reset_policy, reset_env, close, should_eval, eval</p>
+</dd>
+<dt>Property:</dt><dd><p>env, policy</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__del__">
+<code class="sig-name descname">__del__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.__del__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__del__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Execute the close command and close the evaluator. __del__ is automatically called                 to destroy the evaluator instance when the evaluator finishes its work</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">env</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager">ding.envs.env_manager.base_env_manager.BaseEnvManager</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">policy</span><span class="p">:</span> <span class="n">collections.namedtuple</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tb_logger</span><span class="p">:</span> <span class="n">SummaryWriter</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init method. Load config and use <code class="docutils literal notranslate"><span class="pre">self._cfg</span></code> setting to build common serial evaluator components,
+e.g. logger helper, timer.
+Policy is not initialized here, but set afterwards through policy setter.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.close" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Close the evaluator. If end_flag is False, close the environment, flush the tb_logger                and close the tb_logger.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.default_config">
+<em class="property">classmethod </em><code class="sig-name descname">default_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; easydict.EasyDict<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.default_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get evaluator’s default config. We merge evaluator’s default config with other default configs                and user’s config to get the final config.</p>
+</dd>
+<dt>Return:</dt><dd><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): evaluator’s default config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.eval">
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">save_ckpt_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">train_iter</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">envstep</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">n_episode</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>bool<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.eval" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Evaluate policy and store the best policy based on whether it reaches the highest historical reward.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>save_ckpt_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Saving ckpt function, which will be triggered by getting the best reward.</p></li>
+<li><p>train_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Current training iteration.</p></li>
+<li><p>envstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Current env interaction step.</p></li>
+<li><p>n_episode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of evaluation episodes.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>stop_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this training program can be ended.</p></li>
+<li><p>eval_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Current eval_reward.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_policy</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>collections.namedtuple<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">_env</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager">ding.envs.env_manager.base_env_manager.BaseEnvManager</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s policy and environment. Use new policy and environment to collect data.
+If _env is None, reset the old environment.
+If _env is not None, replace the old environment in the evaluator with the new passed in                 environment and launch.
+If _policy is None, reset the old policy.
+If _policy is not None, replace the old policy in the evaluator with the new passed in policy.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[namedtuple]</span></code>): the api namedtuple of eval_mode policy</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[BaseEnvManager]</span></code>): instance of the subclass of vectorized                 env_manager(BaseEnvManager)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_env">
+<code class="sig-name descname">reset_env</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_env</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager">ding.envs.env_manager.base_env_manager.BaseEnvManager</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset_env"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_env" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s environment. In some case, we need evaluator use the same policy in different                 environments. We can use reset_env to reset the environment.
+If _env is None, reset the old environment.
+If _env is not None, replace the old environment in the evaluator with the                 new passed in environment and launch.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[BaseEnvManager]</span></code>): instance of the subclass of vectorized                 env_manager(BaseEnvManager)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_policy">
+<code class="sig-name descname">reset_policy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_policy</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>collections.namedtuple<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_policy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s policy. In some case, we need evaluator work in this same environment but use                different policy. We can use reset_policy to reset the policy.
+If _policy is None, reset the old policy.
+If _policy is not None, replace the old policy in the evaluator with the new passed in policy.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[namedtuple]</span></code>): the api namedtuple of eval_mode policy</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.should_eval">
+<code class="sig-name descname">should_eval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train_iter</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.should_eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.should_eval" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Determine whether you need to start the evaluation mode, if the number of training has reached                the maximum number of times to start the evaluator, return True</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="vectorevalmonitor">
+<h3>VectorEvalMonitor<a class="headerlink" href="#vectorevalmonitor" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor">
+<em class="property">class </em><code class="sig-prename descclassname">ding.worker.collector.base_serial_evaluator.</code><code class="sig-name descname">VectorEvalMonitor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">n_episode</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>In some cases,  different environment in evaluator may collect different length episode. For example,             suppose we want to collect 12 episodes in evaluator but only have 5 environments, if we didn’t do             any thing, it is likely that we will get more short episodes than long episodes. As a result,             our average reward will have a bias and may not be accurate. we use VectorEvalMonitor to solve the problem.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__, is_finished, update_info, update_reward, get_episode_reward, get_latest_reward, get_current_episode,            get_episode_info</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_num</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">n_episode</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init method. According to the number of episodes and the number of environments, determine how many                 episodes need to be opened for each environment, and initialize the reward, info and other                 information</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of episodes need to be open</p></li>
+<li><p>n_episode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of environments</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode">
+<code class="sig-name descname">get_current_episode</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_current_episode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the current episode. We can know which episode our evaluator is executing now.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info">
+<code class="sig-name descname">get_episode_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get all episode information, such as total reward of one episode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward">
+<code class="sig-name descname">get_episode_reward</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the total reward of one episode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward">
+<code class="sig-name descname">get_latest_reward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_latest_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the latest reward of a certain environment.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env_id: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the id of the environment we need to get reward.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished">
+<code class="sig-name descname">is_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.is_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Determine whether the evaluator has completed the work.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>result: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether the evaluator has completed the work</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info">
+<code class="sig-name descname">update_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">info</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update the information of the environment indicated by env_id.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env_id: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the id of the environment we need to update information</p></li>
+<li><p>info: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the information we need to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward">
+<code class="sig-name descname">update_reward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">env_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">reward</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_reward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update the reward indicated by env_id.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env_id: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the id of the environment we need to update the reward</p></li>
+<li><p>reward: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the reward we need to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sample_serial_collector.html" class="btn btn-neutral float-right" title="worker.collector.sample_serial_collector" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="base_serial_collector.html" class="btn btn-neutral float-left" title="worker.collector.base_serial_collector" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

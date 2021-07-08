@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>A2C &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PPO" href="ppo.html" />
+    <link rel="prev" title="SQN" href="sqn.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Hands on RL</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51_qrdqn_iqn.html#iqn">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqn.html">SQN</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">A2C</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pseudo-code">Pseudo-code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html#alphagozero">AlphaGoZero</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Hands on RL</a> &raquo;</li>
+        
+      <li>A2C</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/a2c.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="a2c">
+<h1>A2C<a class="headerlink" href="#a2c" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>A2C(advantage actor critic) is a actor-critic RL algorithm, where the policy gradient is combined with advantage function to reduce the variance.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>A2C is a <strong>model-free</strong> and <strong>policy-based</strong> RL algorithm.</p></li>
+<li><p>A2C supports both <strong>discrete</strong> and <strong>continuous action spaces</strong>.</p></li>
+<li><p>A2C supports <strong>off-policy</strong> mode and <strong>on-policy</strong> mode.</p></li>
+<li><p>A2C can be equipped with RNN.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>A2C use advantage estimation in the policy gradient:</p>
+<div class="math notranslate nohighlight">
+\[\nabla_{\theta^{\prime}} \log \pi\left(a_{t} \mid {s}_{t} ; \theta^{\prime}\right) A\left(s_{t}, {a}_{t} ; \theta, \theta_{v}\right)\]</div>
+<p>where the n-step advantage function is defined:</p>
+<div class="math notranslate nohighlight">
+\[\sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} V\left(s_{t+k} ; \theta_{v}\right)-V\left(s_{t} ; \theta_{v}\right)\]</div>
+</div>
+<div class="section" id="pseudo-code">
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/A2C.png"><img alt="../_images/A2C.png" class="align-center" src="../_images/A2C.png" style="height: 150px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Different from Q-learning, A2C(and other actor critic methods) alternates between policy estimation and policy improvement.</p>
+</div>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>A2C can be combined with:</dt><dd><ul>
+<li><p>Multi-step learning</p></li>
+<li><p>RNN</p></li>
+<li><p>GAE
+GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/1506.02438">High-Dimensional Continuous Control Using Generalized Advantage Estimation</a>, it uses exponentially-weighted average of different steps of advantage estimators, to make trade-off between the variance and bias of the estimation of the advantage:</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{\mathrm{GAE}(\gamma, \lambda)}:=(1-\lambda)\left(\hat{A}_{t}^{(1)}+\lambda \hat{A}_{t}^{(2)}+\lambda^{2} \hat{A}_{t}^{(3)}+\ldots\right)\]</div>
+<p>where the k-steps advantage estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(k)}\)</span> is defined as :</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{(k)}:=\sum_{l=0}^{k-1} \gamma^{l} \delta_{t+l}^{V}=-V\left(s_{t}\right)+r_{t}+\gamma r_{t+1}+\cdots+\gamma^{k-1} r_{t+k-1}+\gamma^{k} V\left(s_{t+k}\right)\]</div>
+<p>When k=1, the estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(1)}\)</span> is the naive advantage estimator:</p>
+<div class="math notranslate nohighlight">
+\[\hat{A}_{t}^{(1)}:=\delta_{t}^{V} \quad=-V\left(s_{t}\right)+r_{t}+\gamma V\left(s_{t+1}\right)\]</div>
+<p>When GAE is used, the common value of <span class="math notranslate nohighlight">\(\lambda\)</span> is usually [0.8, 1.0].</p>
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>The default config is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt>
+<em class="property">class </em><code class="sig-prename descclassname">ding.policy.a2c.</code><code class="sig-name descname">A2CPolicy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">model</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>type<span class="p">, </span>torch.nn.modules.module.Module<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">enable_field</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>List<span class="p">[</span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/a2c.html#A2CPolicy"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Policy class of A2C algorithm.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+<p>The network interface A2C used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt>
+<em class="property">class </em><code class="sig-prename descclassname">ding.model.template.vac.</code><code class="sig-name descname">VAC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">share_encoder</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">continuous</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em>, <em class="sig-param"><span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The VAC model.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">action_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>SequenceType<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">share_encoder</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">continuous</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="default_value">[128, 128, 64]</span></em>, <em class="sig-param"><span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em>, <em class="sig-param"><span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">64</span></em>, <em class="sig-param"><span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">activation</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.nn.modules.module.Module<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">ReLU()</span></em>, <em class="sig-param"><span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.__init__"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the VAC Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>share_encoder (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether share encoder.</p></li>
+<li><p>continuous (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether collect continuously.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>actor_head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to actor-nn’s <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><dl class="simple">
+<dt>actor_head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>):</dt><dd><p>The num of layers used in the network to compute Q value output for actor’s nn.</p>
+</dd>
+</dl>
+</li>
+<li><p>critic_head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to critic-nn’s <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><dl class="simple">
+<dt>critic_head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>):</dt><dd><p>The num of layers used in the network to compute Q value output for critic’s nn.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">ding.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname">compute_actor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">hidden_size</span> <span class="pre">=</span> <span class="pre">actor_head_hidden_size</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname">compute_actor_critic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_actor_critic"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_actor_critic'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The encoded embedding tensor.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">compute_actor_critic</span></code> interface aims to save computation when shares encoder.
+Returning the combination dictionry.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname">compute_critic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.compute_critic"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">hidden_size</span> <span class="pre">=</span> <span class="pre">critic_head_hidden_size</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.Tensor<span class="p">, </span>Dict<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="../_modules/ding/model/template/vac.html#VAC.forward"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict output.
+Parameter updates with VAC’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code> or <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+Whether <code class="docutils literal notranslate"><span class="pre">actor_head_hidden_size</span></code> or <code class="docutils literal notranslate"><span class="pre">critic_head_hidden_size</span></code> depend on <code class="docutils literal notranslate"><span class="pre">mode</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">128</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+<dt>Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Actor-Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>The policy gradient and value update of A2C is implemented as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">a2c_error</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
+    <span class="n">logit</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">adv</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">categorical</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logit</span><span class="p">)</span>
+    <span class="n">logp</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="n">entropy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">policy_loss</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">logp</span> <span class="o">*</span> <span class="n">adv</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">value_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">return_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">a2c_loss</span><span class="p">(</span><span class="n">policy_loss</span><span class="p">,</span> <span class="n">value_loss</span><span class="p">,</span> <span class="n">entropy_loss</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The Benchmark result of A2C implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview_en.html">Benchmark</a>.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu: “Asynchronous Methods for Deep Reinforcement Learning”, 2016, ICML 2016; arXiv:1602.01783. https://arxiv.org/abs/1602.01783</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ppo.html" class="btn btn-neutral float-right" title="PPO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sqn.html" class="btn btn-neutral float-left" title="SQN" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

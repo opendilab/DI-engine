@@ -1,0 +1,9 @@
+R2D2
+-----------------
+
+
+R2D2Policy
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ding.policy.r2d2.R2D2Policy
+    :members: _init_learn, _forward_learn, _init_collect, _forward_collect, _process_transition, _init_eval, _forward_eval

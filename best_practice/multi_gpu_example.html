@@ -1,0 +1,280 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>How to Use Multi-GPU to Train Your Model &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to randomly collect some data sample at the beginning?" href="random_collect_size.html" />
+    <link rel="prev" title="Multi-Discrete Example" href="multi_discrete.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nstep_td.html">N-step TD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="priority.html">How to Use PER(Prioritized Experience Replay)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IL.html">Imitation Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IRL.html">Inverse RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnn.html">How to use RNN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="random_seed.html">Random seed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_discrete.html">Multi-Discrete Example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to Use Multi-GPU to Train Your Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#going-deeper-with-multi-gpu-training-in-di-engine">Going deeper with multi-gpu training in DI-engine</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="training_generated_folders.html">How to understand training generated folders?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_log.html">Learner log</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_wrapper.html">How to Customize Model Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_wrapper.html">How to Customize an Env Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="episode_buffer.html">How to use Episode Replay Buffer?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multi_buffer.html">How to use multiple buffers?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="registry.html">Registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Best Practice</a> &raquo;</li>
+        
+      <li>How to Use Multi-GPU to Train Your Model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/best_practice/multi_gpu_example.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="how-to-use-multi-gpu-to-train-your-model">
+<h1>How to Use Multi-GPU to Train Your Model<a class="headerlink" href="#how-to-use-multi-gpu-to-train-your-model" title="Permalink to this headline">¶</a></h1>
+<p>DI-engine supports data-parallel training with multiple GPUs.</p>
+<p>During data-parallel training, each device handles a portion of total input. Large training batch significantly accelerate the training process.</p>
+<p>To enable multi-gpu training, you can simply set <code class="docutils literal notranslate"><span class="pre">config.learn.multi_gpu</span></code> as <cite>True</cite> in the policy file under <code class="docutils literal notranslate"><span class="pre">ding/policy/</span></code>.</p>
+<div class="section" id="going-deeper-with-multi-gpu-training-in-di-engine">
+<h2>Going deeper with multi-gpu training in DI-engine<a class="headerlink" href="#going-deeper-with-multi-gpu-training-in-di-engine" title="Permalink to this headline">¶</a></h2>
+<p>We re-implement the data-parallel training module with APIs in <code class="docutils literal notranslate"><span class="pre">torch.distributed</span></code> for high scalability.</p>
+<ol class="arabic simple">
+<li><p>Parameters on Rank-0 GPU are broadcasted to all devices, so that models on different devices share the same initialization.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_init_multi_gpu_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">broadcast</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Gradients on different devices should be synchronized after the backward function.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+            <span class="n">allreduce</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Information including loss and reward should be aggregated among devices when applying data-parallel training. DI-engine achieves this with AllReduce operator in a hook, and only saves log files on process with rank 0.
+For more related functions, please refer to <code class="docutils literal notranslate"><span class="pre">ding/utils/pytorch_ddp_dist_helper.py</span></code></p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="random_collect_size.html" class="btn btn-neutral float-right" title="How to randomly collect some data sample at the beginning?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="multi_discrete.html" class="btn btn-neutral float-left" title="Multi-Discrete Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
