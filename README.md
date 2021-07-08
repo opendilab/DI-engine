@@ -4,10 +4,10 @@
 
 ---
 
-Updated on 2021.07.08
+Updated on 2021.07.08 DI-engine-v0.1.0 (beta)
 
 
-## Introduction
+## Introduction to DI-engine (beta)
 DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms, such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in 
 inverse RL, and RND in exploration problems. Various training pipelines and customized decision AI applications are also supported. Have fun with exploration and exploitation.
 

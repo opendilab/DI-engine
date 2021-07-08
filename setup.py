@@ -29,6 +29,8 @@ setup(
     version=meta['__VERSION__'],
     description=meta['__DESCRIPTION__'],
     author=meta['__AUTHOR__'],
+    author_email=meta['__AUTHOR_EMAIL__'],
+    url='https://github.com/opendilab/DI-engine',
     license='Apache License, Version 2.0',
     keywords='Decision AI Engine',
     packages=[
@@ -127,7 +129,7 @@ setup(
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Science/Research/Developers',
+        "Intended Audience :: Science/Research",
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
