@@ -1,4 +1,5 @@
 import pytest
+import time
 from itertools import product
 import numpy as np
 import torch
@@ -14,6 +15,7 @@ args = [item for item in product(*[use_value_clip_args, weight_args])]
 @pytest.mark.unittest(rerun=3)
 @pytest.mark.parametrize('use_value_clip, weight', args)
 def test_ppg(use_value_clip, weight):
+    torch.manual_seed(time.time())
     B, N = 4, 32
     logit_new = torch.randn(B, N).add_(0.1).clamp_(0.1, 0.99)
     logit_old = logit_new.add_(torch.rand_like(logit_new) * 0.1).clamp_(0.1, 0.99)
