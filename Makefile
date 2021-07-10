@@ -1,6 +1,6 @@
 CI := $(shell echo ${CI})
 
-WORKERS         ?=
+WORKERS         ?= 4
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 DURATIONS         ?= 10
