@@ -43,7 +43,7 @@ pip install DI-engine
 
 If you use Anaconda or Miniconda, you can install DI-engine from conda-forge through the following command:
 ```bash
-conda -c conda-forge install DI-engine
+conda install -c opendilab di-engine
 ```
 
 For more information about installation, you can refer to [installation](https://opendilab.github.io/DI-engine/installation/index.html).
