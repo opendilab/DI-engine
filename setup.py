@@ -69,13 +69,6 @@ setup(
         'enum_tools'
     ],
     extras_require={
-        'doc': [
-            'sphinx>=2.2.1',
-            'sphinx_rtd_theme~=0.4.3',
-            'enum_tools',
-            'sphinx-toolbox',
-            'plantumlcli>=0.0.2',
-        ],
         'test': [
             'pytest==5.1.1',
             'pytest-xdist==1.31.0',
