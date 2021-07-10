@@ -131,24 +131,50 @@ class PPOPolicy(Policy):
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
             return_ = data['value'] + adv
             # Calculate ppo error
-            ppodata = ppo_data(
-                output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
-                data['weight']
-            )
-            ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
-            wv, we = self._value_weight, self._entropy_weight
-            total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
-
+            if isinstance(output['logit'], torch.Tensor):
+                ppodata = ppo_data(
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
+                    data['weight']
+                )
+                ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+                wv, we = self._value_weight, self._entropy_weight
+                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+            else:
+                action_num = len(output['logit'])
+                ppo_losses , ppo_infos = [], []
+                for i in range(action_num):
+                    ppodata = ppo_data(
+                        output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv, return_,
+                        data['weight']
+                    )
+                    ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+                    ppo_losses.append(ppo_loss)
+                    ppo_infos.append(ppo_info)
+                ppo_loss = ppo_loss._replace(policy_loss = sum([p.policy_loss for p in ppo_losses]) / action_num)
+                ppo_loss = ppo_loss._replace(value_loss = sum([p.value_loss for p in ppo_losses]) / action_num)
+                ppo_loss = ppo_loss._replace(entropy_loss = sum([p.entropy_loss for p in ppo_losses]) / action_num)
+                wv, we = self._value_weight, self._entropy_weight
+                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
         else:
             output = self._learn_model.forward(data['obs'], mode='compute_actor')
             adv = data['adv']
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-
+            if isinstance(output['logit'], torch.Tensor):
             # Calculate ppo error
-            ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
-            ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
+                ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+            else:
+                action_num = len(output['logit'])
+                ppo_policy_losses , ppo_infos = [], []
+                for i in range(action_num):
+                    ppodata = ppo_policy_data(output['logit'][i], data['logit'][i], data['action'][i], adv, data['weight'])
+                    ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+                    ppo_policy_losses.append(ppo_policy_loss)
+                    ppo_infos.append(ppo_info)
+                ppo_policy_loss = ppo_policy_loss._repalce(policy_loss = sum([p.policy_loss for p in ppo_policy_losses]) / action_num)
+                ppo_policy_loss = ppo_policy_loss._repalce(entropy_loss = sum([p.entropy_loss for p in ppo_policy_losses]) / action_num)
             wv, we = self._value_weight, self._entropy_weight
             next_obs = data.get('next_obs')
             value_gamma = data.get('value_gamma')

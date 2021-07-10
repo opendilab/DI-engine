@@ -37,10 +37,11 @@ class ConvEncoder(nn.Module):
         self.obs_shape = obs_shape
         self.act = activation
         self.hidden_size_list = hidden_size_list
+        self.hidden_size_list = [4, 4, 4]
 
         layers = []
-        kernel_size = [8, 4, 3]
-        stride = [4, 2, 1]
+        kernel_size = [1, 1, 1]
+        stride = [1, 1, 1]
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
             layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
@@ -65,6 +66,8 @@ class ConvEncoder(nn.Module):
             - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature
         """
         test_data = torch.randn(1, *self.obs_shape)
+        print("test_data = ", test_data)
+        print("test data.shape = ", test_data.shape)
         with torch.no_grad():
             output = self.main(test_data)
         return output.shape[1]
@@ -78,7 +81,10 @@ class ConvEncoder(nn.Module):
         Returns:
             - outputs (:obj:`torch.Tensor`): Embedding tensor
         """
+        # print("x = ", x)
+        x = x.float()
         x = self.main(x)
+        # print("x = ", x)
         x = self.mid(x)
         return x
 

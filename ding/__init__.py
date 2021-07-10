@@ -8,5 +8,6 @@ __AUTHOR_EMAIL__ = "opendilab.contact@gmail.com"
 __version__ = __VERSION__
 
 enable_hpc_rl = False
-enable_linklink = os.environ.get('ENABLE_LINKLINK', 'false').lower() == 'true'
+# enable_linklink = os.environ.get('ENABLE_LINKLINK', 'false').lower() == 'true'
+enable_linklink = True
 enable_numba = True
