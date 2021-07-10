@@ -19,7 +19,6 @@ unittest:
 	pytest ${TEST_DIR} \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
-		${WORKERS_COMMAND} \
 		-sv -m unittest
 
 algotest:
