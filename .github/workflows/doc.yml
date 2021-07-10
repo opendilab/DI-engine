@@ -27,7 +27,7 @@ jobs:
           python -m pip install .
           git clone https://github.com/opendilab/DI-engine-docs.git
           cd DI-engine-docs
-          pip install requirements.txt
+          python -m pip install -r requirements.txt
           make html
           mv build public
           rm -rf build
