@@ -94,7 +94,7 @@ class FakeCompetitiveRlEnv(BaseEnv):
         return [evaluator_cfg for _ in range(evaluator_env_num)]
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_1v1_collector():
     parallel_pipeline([fake_cpong_dqn_config, fake_cpong_dqn_create_config, fake_cpong_dqn_system_config], 0)
     os.popen("rm -rf data log policy ckpt* total_config.py")
