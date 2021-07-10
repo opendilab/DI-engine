@@ -5,14 +5,13 @@ name: doc
 
 on:
   push:
-    branches: [main, github-dev, /^doc/.*$/]
+    branches: [main, /^doc/.*$/]
   pull_request:
-    branches: [main, github-dev, /^doc/.*$/]
+    branches: [main, /^doc/.*$/]
 
 jobs:
   doc:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, 'doc enable')"
     strategy:
       matrix:
         python-version: [3.7]
