@@ -5,9 +5,9 @@ name: doc
 
 on:
   push:
-    branches: [main, doc/separate-doc, /^doc/.*$/]
+    branches: [main, 'doc/*']
   pull_request:
-    branches: [main, /^doc/.*$/]
+    branches: [main, 'doc/*']
 
 jobs:
   doc:
@@ -29,7 +29,7 @@ jobs:
           cd DI-engine-docs
           python -m pip install -r requirements.txt
           make html
-          mv build ../public
+          mv build/html ../public
           rm -rf build
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@3.7.1
