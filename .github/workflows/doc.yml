@@ -5,7 +5,7 @@ name: doc
 
 on:
   push:
-    branches: [main, /^doc/.*$/]
+    branches: [main, doc/separate-doc, /^doc/.*$/]
   pull_request:
     branches: [main, /^doc/.*$/]
 
