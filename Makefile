@@ -1,17 +1,17 @@
 CI := $(shell echo ${CI})
 
-WORKERS         ?= 4
+WORKERS         ?= 2
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/interaction ./ding/utils ./ding/model ./ding/league ./ding/envs)
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/interaction ./ding/torch_utils ./ding/model ./ding/league ./ding/envs)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 # PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py ./ding/entry/tests/test_serial_entry_reward_model.py ./ding/entry/tests/test_serial_entry_il.py)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/ ./ding/rl_utils)
 
 docs:
 	$(MAKE) -C ./ding/docs html
@@ -22,7 +22,6 @@ unittest:
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
 		-sv -m unittest \
-	    --execution-timeout=600
 
 algotest:
 	pytest ${TEST_DIR} \
@@ -39,7 +38,6 @@ platformtest:
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
 		-sv -m unittest \
-	    --execution-timeout=900
 
 benchmark:
 	pytest ./ding \
