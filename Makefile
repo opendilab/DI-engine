@@ -7,7 +7,7 @@ DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/interaction ./ding/torch_utils ./ding/model ./ding/league ./ding/envs ./ding/entry/tests ./ding/worker ./ding/utils ./ding/config)
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/)
@@ -39,7 +39,7 @@ platformtest:
 		-sv -m unittest \
 
 benchmark:
-	pytest ./ding \
+	pytest ${TEST_DIR} \
 		--durations=0 \
 		-sv -m benchmark
 
