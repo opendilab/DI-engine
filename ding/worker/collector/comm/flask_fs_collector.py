@@ -1,6 +1,5 @@
 import os
 import time
-import traceback
 from typing import Union, Dict, Callable
 from queue import Queue
 from threading import Thread

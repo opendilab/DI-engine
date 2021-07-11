@@ -1,13 +1,11 @@
 from typing import Union, List
 import torch
-import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import reduce
-from ding.utils import list_split, squeeze, MODEL_REGISTRY
+from ding.utils import list_split, MODEL_REGISTRY
 from ding.torch_utils.network.nn_module import fc_block, MLP
 from ding.torch_utils.network.transformer import ScaledDotProductAttention
-from ding.torch_utils import to_tensor, tensor_to_list
 from .q_learning import DRQN
 
 

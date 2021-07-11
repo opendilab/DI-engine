@@ -1,14 +1,12 @@
-from ding.utils import remove_file
+from typing import Any
+import time
 from queue import Queue
 from typing import Union, Tuple
 from threading import Thread
-import time
 from functools import partial
-import threading
-from typing import Any
 
 from ding.utils.autolog import LoggedValue, LoggedModel
-from ding.utils import LockContext, LockContextType
+from ding.utils import LockContext, LockContextType, remove_file
 
 
 def generate_id(name, data_id: int) -> str:
@@ -150,7 +148,7 @@ class PeriodicThruputMonitor:
         self._history_sample_count = 0
         self._remove_data_count = 0
         self._valid_count = 0
-        self._thruput_log_thread = threading.Thread(
+        self._thruput_log_thread = Thread(
             target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
         )
         self._thruput_log_thread.daemon = True
@@ -233,7 +231,7 @@ class ThruputController:
         self._history_sample_count = 0
 
         self._end_flag = False
-        self._count_decay_thread = threading.Thread(target=self._count_decay, name='count_decay')
+        self._count_decay_thread = Thread(target=self._count_decay, name='count_decay')
         self._count_decay_thread.daemon = True
         self._count_decay_thread.start()
 

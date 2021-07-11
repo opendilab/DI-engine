@@ -180,7 +180,7 @@ def read_from_mc(path: str, flush=False) -> object:
             value_str = io.BytesIO(value_buf)
             value_str = torch.load(value_str, map_location='cpu')
             return value_str
-        except:
+        except Exception:
             print('read mc failed, retry...')
             time.sleep(0.01)
 
@@ -224,7 +224,6 @@ def save_file_ceph(path, data):
         else:
             raise RuntimeError('ceph can not save file, check your ceph installation')
     else:
-        import logging
         size = len(data)
         if save_path == 'do_not_save':
             logging.info(

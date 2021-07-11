@@ -1,7 +1,5 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
-import sys
-import os
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import copy
 import numpy as np
 import torch
@@ -495,7 +493,7 @@ class SACPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:

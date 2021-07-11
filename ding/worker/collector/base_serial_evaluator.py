@@ -1,15 +1,13 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import Any, Optional, Callable, Tuple
 from collections import namedtuple, deque
 from easydict import EasyDict
-from functools import reduce
 import copy
 import numpy as np
 import torch
 
-from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts
+from ding.utils import build_logger, EasyTimer, lists_to_dicts
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from .base_serial_collector import CachePool
 
 
 class BaseSerialEvaluator(object):

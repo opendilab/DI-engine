@@ -1,10 +1,10 @@
-from typing import Union, Optional, List, Any, Callable, Tuple
+from typing import Union, Optional, List, Any, Tuple
 import pickle
 import torch
 from functools import partial
 
 from ding.config import compile_config, read_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator
+from ding.worker import SampleCollector, BaseSerialEvaluator
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device

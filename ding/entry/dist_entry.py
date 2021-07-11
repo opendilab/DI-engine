@@ -57,7 +57,7 @@ def dist_launch_coordinator(
     # Disable some part of DI-engine log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
-        # coordinator_log.disabled = True
+        coordinator_log.disabled = True
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True

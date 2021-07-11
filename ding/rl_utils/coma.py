@@ -1,7 +1,6 @@
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
-from ding.torch_utils import one_hot
 from .td import generalized_lambda_returns
 
 coma_data = namedtuple('coma_data', ['logit', 'action', 'q_value', 'target_q_value', 'reward', 'weight'])

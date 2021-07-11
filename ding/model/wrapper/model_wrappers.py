@@ -1,11 +1,8 @@
-import copy
-from abc import ABC, abstractmethod, abstractclassmethod
-from collections import OrderedDict
-from typing import Any, Tuple, Callable, Union, Optional, Dict, List
+from typing import Any, Tuple, Callable, Optional, List
+from abc import ABC
 
 import numpy as np
 import torch
-import logging
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 

@@ -1,11 +1,8 @@
 import time
-
-import traceback
 import copy
-from typing import Dict, Callable, List, Optional
+from typing import List
 from queue import Queue
 from threading import Thread
-from collections import defaultdict
 from easydict import EasyDict
 
 from ding.utils import build_logger, LockContext, LockContextType, get_task_uid

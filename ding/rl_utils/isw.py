@@ -24,7 +24,6 @@ def compute_importance_weights(target_output, behaviour_output, action, requires
     """
     grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
     assert isinstance(action, torch.Tensor)
-    device = action.device
 
     with grad_context:
         dist_target = torch.distributions.Categorical(logits=target_output)

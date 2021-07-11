@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod, abstractclassmethod
-from collections import namedtuple, deque
+from abc import ABC, abstractmethod
+from collections import namedtuple
 from typing import Optional, List, Dict, Any, Tuple, Union
 
 import torch
@@ -7,7 +7,7 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
+from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -224,7 +224,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     # don't need to implement _reset_collect method by force

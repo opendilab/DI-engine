@@ -1,6 +1,6 @@
+from typing import Optional
 import time
 import copy
-from typing import Optional, Union
 
 from ding.policy import create_policy
 from ding.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
