@@ -7,10 +7,10 @@ DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/entry/tests ./ding/interaction ./ding/utils)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py ./ding/entry/tests/test_serial_entry_reward_model.py)
 
 docs:
 	$(MAKE) -C ./ding/docs html
