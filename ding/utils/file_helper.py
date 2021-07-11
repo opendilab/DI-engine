@@ -106,6 +106,7 @@ def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
         - (:obj:`RedisCluster(object)`): RedisCluster object with given ``host``, ``port``, \
             and ``False`` for ``decode_responses`` in default.
     """
+    global _redis_cluster
     if _redis_cluster is None:
         _redis_cluster = get_rediscluster_package().RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
     return
@@ -149,6 +150,7 @@ def _ensure_memcached():
         - (:obj:`MemcachedClient instance`): MemcachedClient's class instance built with current \
             memcached_client's ``server_list.conf`` and ``client.conf`` files
     """
+    global _memcached
     if _memcached is None:
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
         client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
