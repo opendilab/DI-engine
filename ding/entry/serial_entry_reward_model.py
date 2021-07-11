@@ -41,10 +41,9 @@ def serial_pipeline_reward_model(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    # TODO(nyz) when env_setting is not None
-    assert env_setting is None  # temporally
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
+    env_fn = None if env_setting is None else env_setting[0]
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
