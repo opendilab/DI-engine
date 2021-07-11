@@ -5,7 +5,6 @@ from typing import List
 import ding
 from .default_helper import one_time_warning
 
-global ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag
 ceph_flag, redis_flag, rediscluster_flag, linklink_flag, mc_flag = True, True, True, True, True
 
 
@@ -17,7 +16,6 @@ def try_import_ceph():
     Returns:
         - (:obj:`Module`): Imported module, or ``None`` when ceph not found
     """
-    global ceph_flag
     try:
         import ceph
         client = ceph.S3Client()
@@ -43,7 +41,6 @@ def try_import_mc():
     Returns:
         - (:obj:`Module`): Imported module, or ``None`` when mc not found
     """
-    global mc_flag
     try:
         import mc
     except ModuleNotFoundError as e:
@@ -62,7 +59,6 @@ def try_import_redis():
     Returns:
         - (:obj:`Module`): Imported module, or ``None`` when redis not found
     """
-    global redis_flag
     try:
         import redis
     except ModuleNotFoundError as e:
@@ -81,7 +77,6 @@ def try_import_rediscluster():
     Returns:
         - (:obj:`Module`): Imported module, or ``None`` when rediscluster not found
     """
-    global rediscluster_flag
     try:
         import rediscluster
     except ModuleNotFoundError as e:
@@ -93,7 +88,6 @@ def try_import_rediscluster():
 
 
 def try_import_link():
-    global linklink_flag
     """
     Overview:
         Try import linklink module, if failed, import ding.tests.fake_linklink instead

@@ -279,7 +279,6 @@ class SACPolicy(Policy):
         obs = data.get('obs')
         next_obs = data.get('next_obs')
         reward = data.get('reward')
-        action = data.get('action')
         done = data.get('done')
 
         # predict q value

@@ -216,7 +216,7 @@ class Policy(ABC):
     # *************************************** collect function ************************************
 
     @abstractmethod
-    def _forward_collect(self, data_id: List[int], data: dict, **kwargs) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -240,7 +240,7 @@ class Policy(ABC):
     # *************************************** eval function ************************************
 
     @abstractmethod
-    def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
+    def _forward_eval(self, data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
     # don't need to implement _reset_eval method by force
@@ -270,15 +270,15 @@ class CommandModePolicy(Policy):
 
     # *************************************** command function ************************************
     @abstractmethod
-    def _get_setting_learn(self) -> dict:
+    def _get_setting_learn(self, command_info: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_collect(self) -> dict:
+    def _get_setting_collect(self, command_info: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_eval(self) -> dict:
+    def _get_setting_eval(self, command_info: dict) -> dict:
         raise NotImplementedError
 
 

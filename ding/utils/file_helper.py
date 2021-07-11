@@ -11,7 +11,6 @@ import torch
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 from .lock_helper import get_file_lock
 
-global _redis_cluster, _memcached
 _memcached = None
 _redis_cluster = None
 
@@ -107,7 +106,6 @@ def _ensure_rediscluster(startup_nodes=[{"host": "127.0.0.1", "port": "7000"}]):
         - (:obj:`RedisCluster(object)`): RedisCluster object with given ``host``, ``port``, \
             and ``False`` for ``decode_responses`` in default.
     """
-    global _redis_cluster
     if _redis_cluster is None:
         _redis_cluster = get_rediscluster_package().RedisCluster(startup_nodes=startup_nodes, decode_responses=False)
     return
@@ -122,7 +120,6 @@ def read_from_rediscluster(path: str) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global _redis_cluster
     _ensure_rediscluster()
     value_bytes = _redis_cluster.get(path)
     value = pickle.loads(value_bytes)
@@ -152,7 +149,6 @@ def _ensure_memcached():
         - (:obj:`MemcachedClient instance`): MemcachedClient's class instance built with current \
             memcached_client's ``server_list.conf`` and ``client.conf`` files
     """
-    global _memcached
     if _memcached is None:
         server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
         client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
@@ -169,7 +165,6 @@ def read_from_mc(path: str, flush=False) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global _memcached
     _ensure_memcached()
     while True:
         try:
@@ -263,7 +258,6 @@ def save_file_rediscluster(path, data):
         - path (:obj:`str`): File path (could be a string key) in redis
         - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
-    global _redis_cluster
     _ensure_rediscluster()
     data = pickle.dumps(data)
     _redis_cluster.set(path, data)
@@ -343,7 +337,6 @@ def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
     if fs_type == 'ceph':
-        pass
         os.popen("aws s3 rm --recursive {}".format(path))
     elif fs_type == 'normal':
         os.popen("rm -rf {}".format(path))

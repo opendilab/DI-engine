@@ -50,7 +50,6 @@ class IModelWrapper(ABC):
                 return '{}'.format(self._model.info(attr_name))
             else:
                 return '{}'.format(self._model.__class__.__name__)
-        return ''
 
 
 class BaseModelWrapper(IModelWrapper):
