@@ -55,7 +55,7 @@ class TestAsyncDataLoader:
 
         return Model()
 
-    @pytest.mark.unittest
+    @pytest.mark.tmp
     @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
     def test_cpu(self, batch_size, num_workers, chunk_size):
         self.entry(batch_size, num_workers, chunk_size, use_cuda=False)

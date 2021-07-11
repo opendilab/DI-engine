@@ -7,11 +7,11 @@ DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/interaction ./ding/torch_utils ./ding/model ./ding/league ./ding/envs ./ding/entry/tests/test_serial_entry.py ./ding/worker)
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/rl_utils ./ding/interaction ./ding/torch_utils ./ding/model ./ding/league ./ding/envs ./ding/entry/tests/test_serial_entry.py ./ding/worker ./ding/utils)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 # PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py ./ding/entry/tests/test_serial_entry_reward_model.py ./ding/entry/tests/test_serial_entry_il.py)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/ ./ding/rl_utils)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/ ./ding/rl_utils ./ding/torch_utils ./ding/league ./ding/envs)
 
 docs:
 	$(MAKE) -C ./ding/docs html
