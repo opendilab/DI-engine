@@ -43,7 +43,7 @@ cfg = [
 def test_irl(reward_model_config):
     reward_model_config = EasyDict(reward_model_config)
     config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
-    expert_policy = serial_pipeline(config, seed=0)
+    expert_policy = serial_pipeline(config, seed=0, max_iterations=2)
     # collect expert demo data
     collect_count = 10000
     expert_data_path = 'expert_data.pkl'
@@ -58,7 +58,7 @@ def test_irl(reward_model_config):
     cp_cartpole_dqn_create_config.reward_model = dict(type=reward_model_config.type)
     reward_model_config['expert_data_path'] = expert_data_path
     cp_cartpole_dqn_config.reward_model = reward_model_config
-    serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0)
+    serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0, max_iterations=2)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")
 
@@ -67,6 +67,6 @@ def test_irl(reward_model_config):
 def test_rnd():
     config = [deepcopy(cartpole_ppo_rnd_config), deepcopy(cartpole_ppo_rnd_create_config)]
     try:
-        serial_pipeline_reward_model(config, seed=0)
+        serial_pipeline_reward_model(config, seed=0, max_iterations=2)
     except Exception:
         assert False, "pipeline fail"
