@@ -13,6 +13,7 @@ batch_size_args = [3, 6]
 num_workers_args = [0, 4]
 chunk_size_args = [1, 3]
 args = [item for item in product(*[batch_size_args, num_workers_args, chunk_size_args])]
+unittest_args = [item for item in product(*[[3], [2], [1]])]
 
 
 class Dataset(object):
@@ -55,8 +56,8 @@ class TestAsyncDataLoader:
 
         return Model()
 
-    @pytest.mark.tmp
-    @pytest.mark.parametrize('batch_size, num_workers, chunk_size', args)
+    @pytest.mark.unittest
+    @pytest.mark.parametrize('batch_size, num_workers, chunk_size', unittest_args)
     def test_cpu(self, batch_size, num_workers, chunk_size):
         self.entry(batch_size, num_workers, chunk_size, use_cuda=False)
 
