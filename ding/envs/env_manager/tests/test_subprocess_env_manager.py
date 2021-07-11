@@ -8,7 +8,7 @@ from ..base_env_manager import EnvState
 from ..subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 
 
-# @pytest.mark.unittest(rerun=5)
+@pytest.mark.unittest(rerun=5)
 class TestSubprocessEnvManager:
 
     def test_naive(self, setup_async_manager_cfg, setup_model_type):
