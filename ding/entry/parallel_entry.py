@@ -8,7 +8,7 @@ from threading import Thread
 from easydict import EasyDict
 
 from ding.worker import create_comm_learner, create_comm_collector, Coordinator, LearnerAggregator
-from ding.config import read_config, compile_config_parallel
+from ding.config import read_config_with_system, compile_config_parallel
 from ding.utils import set_pkg_seed
 
 
@@ -37,7 +37,7 @@ def parallel_pipeline(
         log.disabled = True
     # Parallel job launch.
     if isinstance(input_cfg, str):
-        main_cfg, create_cfg, system_cfg = read_config(input_cfg)
+        main_cfg, create_cfg, system_cfg = read_config_with_system(input_cfg)
     elif isinstance(input_cfg, tuple) or isinstance(input_cfg, list):
         main_cfg, create_cfg, system_cfg = input_cfg
     else:

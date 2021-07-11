@@ -25,6 +25,14 @@ read_config
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: ding.config.config.read_config
 
+read_config_directly
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autofunction:: ding.config.config.read_config_directly
+
+read_config_with_system
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autofunction:: ding.config.config.read_config_with_system
+
 save_config
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autofunction:: ding.config.config.save_config

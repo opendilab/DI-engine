@@ -154,28 +154,59 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
         f.write('exp_config=' + config_string)
 
 
-def read_config(cfg: str, direct: bool = False) -> Tuple[dict, dict]:
+def read_config_directly(path: str) -> dict:
     """
     Overview:
-        read configuration from python file
+        Read configuration from a file path(now only suport python file) and directly return results.
     Arguments:
-        - cfg (:obj:`str`): Path of python file
-        - direct (:obj:`bool`): Read config directly if direct is true or divide config into main_config,\
-            create_config and system_config if direct is false
+        - path (:obj:`str`): Path of configuration file
     Returns:
-        - cfg (:obj:`Tuple[dict, dict]`): Config dict, such as [main_config, create_config, system_config]\
-            or main_config, create_config, system_config
+        - cfg (:obj:`Tuple[dict, dict]`): Configuration dict.
     """
-    suffix = cfg.split('.')[-1]
+    suffix = path.split('.')[-1]
     if suffix == 'py':
-        cfg = Config.file_to_dict(cfg).cfg_dict
-        if direct:
-            return cfg
+        return Config.file_to_dict(path).cfg_dict
+    else:
+        raise KeyError("invalid config file suffix: {}".format(suffix))
+
+
+def read_config(path: str) -> Tuple[dict, dict]:
+    """
+    Overview:
+        Read configuration from a file path(now only suport python file). And select some proper parts.
+    Arguments:
+        - path (:obj:`str`): Path of configuration file
+    Returns:
+        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config` and \
+            `create_cfg` two parts.
+    """
+    suffix = path.split('.')[-1]
+    if suffix == 'py':
+        cfg = Config.file_to_dict(path).cfg_dict
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
-        if 'system_config' in cfg:
-            return cfg['main_config'], cfg['create_config'], cfg['system_config']
-        else:
-            return cfg['main_config'], cfg['create_config']
+        assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
+        return cfg['main_config'], cfg['create_config']
+    else:
+        raise KeyError("invalid config file suffix: {}".format(suffix))
+
+
+def read_config_with_system(path: str) -> Tuple[dict, dict, dict]:
+    """
+    Overview:
+        Read configuration from a file path(now only suport python file). And select some proper parts
+    Arguments:
+        - path (:obj:`str`): Path of configuration file
+    Returns:
+        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config`, \
+            `create_cfg` and `system_config` three parts.
+    """
+    suffix = path.split('.')[-1]
+    if suffix == 'py':
+        cfg = Config.file_to_dict(path).cfg_dict
+        assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
+        assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
+        assert "system_config" in cfg, "Please make sure a 'system_config' variable is declared in config python file!"
+        return cfg['main_config'], cfg['create_config'], cfg['system_config']
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
