@@ -17,8 +17,8 @@
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opendilab/DI-engine)
-![GitHub repo size](https://img.shields.io/github/repo-size/opendilab/DI-engine)
+[![codecov](https://img.shields.io/codecov/c/gh/opendilab/DI-engine)](https://codecov.io/gh/opendilab/DI-engine)
+
 
 
 ![GitHub Org's stars](https://img.shields.io/github/stars/opendilab)
@@ -46,6 +46,9 @@ inverse RL, and RND in exploration problems. Various training pipelines and cust
 - [DI-hpc](https://github.com/opendilab/DI-hpc)
 - [DI-store](https://github.com/opendilab/DI-store)
 
+### Other
+- [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+
 
 ## Installation
 
@@ -69,7 +72,9 @@ The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-en
 
 [3 Minutes Kickoff](https://opendilab.github.io/DI-engine/quick_start/index.html)
 
-Bonus: Train RL agent in one line code:
+[3 Minutes Kickoff(colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
+
+**Bonus: Train RL agent in one line code:**
 ```bash
 ding -m serial -e cartpole -p dqn -s 0
 ```
