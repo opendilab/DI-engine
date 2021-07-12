@@ -338,7 +338,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         # reset env
         reset_thread_list = []
         for i, env_id in enumerate(reset_env_list):
-            self._env_states[env_id] == EnvState.RESET
+            self._env_states[env_id] = EnvState.RESET
             # set seed
             if self._env_seed[env_id] is not None:
                 try:
