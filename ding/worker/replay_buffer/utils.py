@@ -148,9 +148,7 @@ class PeriodicThruputMonitor:
         self._history_sample_count = 0
         self._remove_data_count = 0
         self._valid_count = 0
-        self._thruput_log_thread = Thread(
-            target=self._thrput_print_periodically, args=(), name='periodic_thruput_log'
-        )
+        self._thruput_log_thread = Thread(target=self._thrput_print_periodically, args=(), name='periodic_thruput_log')
         self._thruput_log_thread.daemon = True
         self._thruput_log_thread.start()
 
