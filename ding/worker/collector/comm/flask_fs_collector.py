@@ -223,9 +223,11 @@ class FlaskFileSystemCollector(BaseCommCollector):
         """
         if self._end_flag:
             return
-        while self._collector is not None:
+        total_sleep_count = 0
+        while self._collector is not None and total_sleep_count < 10:
             self._collector.info("please first close collector")
             time.sleep(1)
+            total_sleep_count += 1
         self._slave.close()
         BaseCommCollector.close(self)
 

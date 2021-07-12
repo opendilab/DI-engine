@@ -317,14 +317,14 @@ def auto_checkpoint(func: Callable) -> Callable:
         def signal_handler(signal_num, frame):
             sig = signal.Signals(signal_num)
             logger.info("SIGNAL: {}({})".format(sig.name, sig.value))
-            handle.save_checkpoint()
+            handle.save_checkpoint('ckpt_interrupt.pth.tar')
             sys.exit(1)
 
         register_signal_handler(signal_handler)
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            handle.save_checkpoint('ckpt_interrupt.pth.tar')
+            handle.save_checkpoint('ckpt_exception.pth.tar')
             traceback.print_exc()
 
     return wrapper

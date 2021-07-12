@@ -30,6 +30,7 @@ def setup_collector(setup_config):
             collector[k] = create_comm_collector(v)
             collector[k].start()
     yield collector
+    time.sleep(1)  # avoid collector is not closed but comm collector receive close signal
     for a in collector.values():
         a.close()
 
@@ -42,6 +43,7 @@ def setup_learner(setup_config):
         learner[name] = NaiveLearner(host, port, prefix=DATA_PREFIX)
         learner[name].start()
     yield learner
+    time.sleep(1)
     for l in learner.values():
         l.close()
 

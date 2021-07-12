@@ -120,6 +120,7 @@ class TestLimitedSpaceContainer():
         assert container.max_val == 5
 
 
+@pytest.mark.unittest
 class TestDict:
 
     def test_deep_merge_dicts(self):
