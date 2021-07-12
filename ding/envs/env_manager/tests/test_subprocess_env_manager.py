@@ -119,7 +119,7 @@ class TestSubprocessEnvManager:
 
     def test_block(self, setup_async_manager_cfg, setup_watchdog, setup_model_type):
         env_fn = setup_async_manager_cfg.pop('env_fn')
-        env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
+        env_manager = SyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         watchdog = setup_watchdog(60)
         model = setup_model_type()
         # Test reset timeout

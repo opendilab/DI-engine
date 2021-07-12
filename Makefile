@@ -17,6 +17,7 @@ docs:
 
 unittest:
 	pytest ${TEST_DIR} \
+		--cov-report=xml \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \

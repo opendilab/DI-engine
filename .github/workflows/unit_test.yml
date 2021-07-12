@@ -24,6 +24,14 @@ jobs:
           python -m pip install .
           python -m pip install ".[test]"
           make unittest
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   test_benchmark:
     runs-on: ubuntu-latest
