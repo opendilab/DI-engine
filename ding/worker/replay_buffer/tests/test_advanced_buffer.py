@@ -241,7 +241,7 @@ class TestAdvancedBuffer:
                    0.01) < 1e-5, (cur_push_count, prioritized_buffer._thruput_controller.history_push_count)
 
 
-@pytest.mark.unittest
+@pytest.mark.unittest(rerun=5)
 class TestDemonstrationBuffer:
 
     def test_naive(self, setup_demo_buffer_factory):
