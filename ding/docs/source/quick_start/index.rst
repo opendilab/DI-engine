@@ -39,14 +39,15 @@ DI-engine prefers a nested python dict object to represent all parameters and co
 .. note ::
 
     For the specific example, you can refer to:
+
       - config:  ``dizoo/classic_control/cartpole/config/cartpole_dqn_config.py``
-      - main: ``dizoo/classic_control/cartpole/entry/cartpole_ppo_config.py``
+      - main: ``dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py``
 
     **and you just need to run this experiment following the next command:**
 
     .. code:: bash
 
-        python3 -u dizoo/classic_control/cartpole/config/cartpole_dqn_main.py
+        python3 -u dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py
 
 DI-engine provides default configs for all modules, and also a helper function ``compile_config`` to merge the default configs of these modules into a run-time config object (a ``EasyDict`` object that can be accessed by string key ``cfg["env"]`` or attribute ``cfg.env``):
 
@@ -78,6 +79,7 @@ Please note that DI-engine also supports running a RL experiment directly accord
 .. code:: bash
 
     ding -m serial -c cartpole_dqn_config.py -s 0
+
 For more design details, please refer to the `Config <../key_concept/index.html#config>`_ section and `Entry <../key_concept/index.html#entry>`_.
 
 
