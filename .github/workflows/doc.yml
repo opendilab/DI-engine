@@ -5,14 +5,13 @@ name: doc
 
 on:
   push:
-    branches: [main, github-dev, /^doc/.*$/]
+    branches: [main, 'doc/*']
   pull_request:
-    branches: [main, github-dev, /^doc/.*$/]
+    branches: [main, 'doc/*']
 
 jobs:
   doc:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'doc skip')"
     strategy:
       matrix:
         python-version: [3.7]
@@ -26,10 +25,12 @@ jobs:
       - name: Generate
         run: |
           python -m pip install .
-          python -m pip install ".[doc]"
-          make docs
-          mv ding/docs/build/html public
-          rm -rf ding/docs/build
+          git clone -b main https://github.com/opendilab/DI-engine-docs.git
+          cd DI-engine-docs
+          python -m pip install -r requirements.txt
+          make html
+          mv build/html ../public
+          rm -rf build
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
