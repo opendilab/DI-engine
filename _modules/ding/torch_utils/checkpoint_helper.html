@@ -480,14 +480,14 @@
         <span class="k">def</span> <span class="nf">signal_handler</span><span class="p">(</span><span class="n">signal_num</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
             <span class="n">sig</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">Signals</span><span class="p">(</span><span class="n">signal_num</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SIGNAL: </span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-            <span class="n">handle</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">()</span>
+            <span class="n">handle</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s1">&#39;ckpt_interrupt.pth.tar&#39;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">register_signal_handler</span><span class="p">(</span><span class="n">signal_handler</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">handle</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s1">&#39;ckpt_interrupt.pth.tar&#39;</span><span class="p">)</span>
+            <span class="n">handle</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s1">&#39;ckpt_exception.pth.tar&#39;</span><span class="p">)</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">wrapper</span>
