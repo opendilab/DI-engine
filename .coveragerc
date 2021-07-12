@@ -6,8 +6,8 @@ omit =
   ding/utils/pytorch_ddp_dist_helper.py
   ding/utils/k8s_helper.py
   ding/config/utils.py
-  ding/entry
   ding/entry/tests/test_serial_entry_algo.py
   ding/entry/dist_entry.py
-  ding/hpc_rl
-  ding/worker/collector/tests/speed_test
+  ding/hpc_rl/*
+  ding/worker/collector/tests/speed_test/*
+  ding/envs/env_wrappers/env_wrappers.py
