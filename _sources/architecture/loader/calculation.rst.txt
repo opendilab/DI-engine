@@ -110,7 +110,7 @@ So the result should be
     l(5)  # ValueError, because (5 + 1) * 2 = 12 > 10
 
 Turn common function to loader
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is easy to define your own calculation. You can just define a function and wrap it by `Loader`. For example,
 
