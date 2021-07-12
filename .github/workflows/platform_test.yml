@@ -11,8 +11,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
-        # os: [macos-latest, windows-latest]
-        os: [macos-latest]
+        os: [macos-latest, windows-latest]
         python-version: [3.6, 3.7, 3.8]
 
     steps:
@@ -21,10 +20,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: do_unittest
-        env:
-          WORKERS: 1
+      - name: do_platform_test
         run: |
           python -m pip install .
           python -m pip install ".[test]"
+          python -m pip uninstall pytest-timeouts -y
           make platformtest

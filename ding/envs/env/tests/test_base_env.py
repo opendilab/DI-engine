@@ -12,7 +12,7 @@ from ding.envs.env.ding_env_wrapper import DingEnvWrapper
 class TestDingEnvWrapper:
 
     def test_naive(self):
-        env = gym.make('PongNoFrameskip-v4')
+        env = gym.make('CartPole-v0')
         ding_env = DingEnvWrapper(env)
         info = ding_env.info()
         assert info is not None
