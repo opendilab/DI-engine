@@ -44,7 +44,9 @@ overcooked_ppo_create_config = dict(
         import_names=['dizoo.overcooked.envs.overcooked_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo'),
+    policy=dict(
+        type='ppo_multi',
+        import_names=['dizoo.overcooked.policy.ppo_multi'])
 )
 overcooked_ppo_create_config = EasyDict(overcooked_ppo_create_config)
 create_config = overcooked_ppo_create_config

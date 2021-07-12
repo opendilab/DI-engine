@@ -9,11 +9,13 @@ from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.utils.data import default_collate, default_decollate
-from .base_policy import Policy
-from .common_utils import default_preprocess_learn
+from ding.policy.base_policy import Policy
+from ding.policy.common_utils import default_preprocess_learn
+from ding.policy.command_mode_policy_instance import DummyCommandModePolicy
 
 
-@POLICY_REGISTRY.register('ppo')
+
+@POLICY_REGISTRY.register('ppo_multi')
 class PPOPolicy(Policy):
     r"""
     Overview:
@@ -131,24 +133,56 @@ class PPOPolicy(Policy):
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
             return_ = data['value'] + adv
             # Calculate ppo error
-            ppodata = ppo_data(
-                output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
-                data['weight']
-            )
-            ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
-            wv, we = self._value_weight, self._entropy_weight
-            total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
-
+            if isinstance(output['logit'], torch.Tensor):
+                ppodata = ppo_data(
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
+                    data['weight']
+                )
+                ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+                wv, we = self._value_weight, self._entropy_weight
+                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+            else:
+                action_num = len(output['logit'])
+                ppo_losses, ppo_infos = [], []
+                for i in range(action_num):
+                    ppodata = ppo_data(
+                        output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv,
+                        return_, data['weight']
+                    )
+                    ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+                    ppo_losses.append(ppo_loss)
+                    ppo_infos.append(ppo_info)
+                ppo_loss = ppo_loss._replace(policy_loss=sum([p.policy_loss for p in ppo_losses]) / action_num)
+                ppo_loss = ppo_loss._replace(value_loss=sum([p.value_loss for p in ppo_losses]) / action_num)
+                ppo_loss = ppo_loss._replace(entropy_loss=sum([p.entropy_loss for p in ppo_losses]) / action_num)
+                wv, we = self._value_weight, self._entropy_weight
+                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
         else:
             output = self._learn_model.forward(data['obs'], mode='compute_actor')
             adv = data['adv']
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-
-            # Calculate ppo error
-            ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
-            ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+            if isinstance(output['logit'], torch.Tensor):
+                # Calculate ppo error
+                ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
+                ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+            else:
+                action_num = len(output['logit'])
+                ppo_policy_losses, ppo_infos = [], []
+                for i in range(action_num):
+                    ppodata = ppo_policy_data(
+                        output['logit'][i], data['logit'][i], data['action'][i], adv, data['weight']
+                    )
+                    ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+                    ppo_policy_losses.append(ppo_policy_loss)
+                    ppo_infos.append(ppo_info)
+                ppo_policy_loss = ppo_policy_loss._repalce(
+                    policy_loss=sum([p.policy_loss for p in ppo_policy_losses]) / action_num
+                )
+                ppo_policy_loss = ppo_policy_loss._repalce(
+                    entropy_loss=sum([p.entropy_loss for p in ppo_policy_losses]) / action_num
+                )
             wv, we = self._value_weight, self._entropy_weight
             next_obs = data.get('next_obs')
             value_gamma = data.get('value_gamma')
@@ -316,9 +350,14 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
+        return 'vac_overcooked', ['dizoo.overcooked.models.overcooked_vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
+
+
+@POLICY_REGISTRY.register('ppo_multi_command')
+class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
+    pass
