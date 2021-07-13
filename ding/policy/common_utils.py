@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
+import torch
 from ding.utils.data import default_collate
 
 
@@ -12,7 +13,7 @@ def default_preprocess_learn(
     # data preprocess
     data = default_collate(data)
     if ignore_done:
-        data['done'] = None
+        data['done'] = torch.zeros_like(data['done']).float()
     else:
         data['done'] = data['done'].float()
     if use_priority_IS_weight:

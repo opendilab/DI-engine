@@ -37,7 +37,7 @@ class Adder(object):
         if cuda:
             value = value.cuda()
             reward = reward.cuda()
-        adv = gae(gae_data(value, reward), gamma, gae_lambda)
+        adv = gae(gae_data(value, reward, None), gamma, gae_lambda)
         if cuda:
             adv = adv.cpu()
         for i in range(len(data)):

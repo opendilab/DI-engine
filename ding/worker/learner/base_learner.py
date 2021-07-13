@@ -191,7 +191,12 @@ class BaseLearner(object):
         log_vars = self._policy.forward(data)
 
         # Update replay buffer's priority info
-        priority = log_vars.pop('priority', None)
+        if isinstance(log_vars, dict):
+            priority = log_vars.pop('priority', None)
+        elif isinstance(log_vars, list):
+            priority = log_vars[-1].pop('priority', None)
+        else:
+            raise TypeError("not support type for log_vars: {}".format(type(log_vars)))
         if priority is not None:
             replay_buffer_idx = [d.get('replay_buffer_idx', None) for d in data]
             replay_unique_id = [d.get('replay_unique_id', None) for d in data]
@@ -202,22 +207,25 @@ class BaseLearner(object):
             }
         # Discriminate vars in scalar, scalars and histogram type
         # Regard a var as scalar type by default. For scalars and histogram type, must annotate by prefix "[xxx]"
-        scalars_vars, histogram_vars = {}, {}
-        for k in list(log_vars.keys()):
-            if "[scalars]" in k:
-                new_k = k.split(']')[-1]
-                scalars_vars[new_k] = log_vars.pop(k)
-            elif "[histogram]" in k:
-                new_k = k.split(']')[-1]
-                histogram_vars[new_k] = log_vars.pop(k)
-        # Update log_buffer
-        self._log_buffer['scalar'].update(log_vars)
-        self._log_buffer['scalars'].update(scalars_vars)
-        self._log_buffer['histogram'].update(histogram_vars)
-
         self._collector_envstep = envstep
-        self.call_hook('after_iter')
-        self._last_iter.add(1)
+        if isinstance(log_vars, dict):
+            log_vars = [log_vars]
+        for elem in log_vars:
+            scalars_vars, histogram_vars = {}, {}
+            for k in list(elem.keys()):
+                if "[scalars]" in k:
+                    new_k = k.split(']')[-1]
+                    scalars_vars[new_k] = elem.pop(k)
+                elif "[histogram]" in k:
+                    new_k = k.split(']')[-1]
+                    histogram_vars[new_k] = elem.pop(k)
+            # Update log_buffer
+            self._log_buffer['scalar'].update(elem)
+            self._log_buffer['scalars'].update(scalars_vars)
+            self._log_buffer['histogram'].update(histogram_vars)
+
+            self.call_hook('after_iter')
+            self._last_iter.add(1)
 
     @auto_checkpoint
     def start(self) -> None:
