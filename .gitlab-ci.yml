@@ -1,0 +1,87 @@
+image: "registry.sensetime.com/xlab/sensestar-docker:centos7"
+
+variables:
+  CI: "true"
+
+stages:
+  - install
+  - style
+  - doc
+  - test
+
+install:
+  stage: install
+  script:
+    - pip install -e .
+
+style:
+  stage: style
+  script:
+    - pip install .[style]
+    - make format_test flake_check
+
+pages:
+  stage: doc
+  script:
+    - pip install -e .[doc]
+    - make docs
+    - mv ding/docs/build/html public
+    - rm -rf ding/docs/build
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+    - dev-0.2.0rc0
+    - /^doc/.*$/
+
+test_unittest:
+  stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
+  variables:
+    WORKERS: 8 # if you need to change to concurrency, just change here
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
+  script:
+    - pip install -e .[test]
+    - make unittest
+
+test_algotest:
+  stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
+  variables:
+    DURATIONS: 10 # the count of durations
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
+  script:
+    - pip install -e .[test]
+    - make algotest
+  only:
+    changes:
+      - ding/policy/*
+      - ding/model/*
+      - ding/rl_utils/*
+
+test_benchmark:
+  stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
+  variables:
+    WORKERS: 8 # if you need to change to concurrency, just change here
+  #    RANGE_DIR: ./ding/xxxx # if you need to test some of the dirs, just change here
+  script:
+    - pip install -e .[test]
+    - make benchmark
+
+test_cudatest:
+  stage: test
+  tags:
+    - nervex-gitlab-ci-runner-k8s
+  variables:
+    KUBERNETES_RESOURCES_LIMITS_NVIDIA.COM/GPU: "1"
+    KUBERNETES_RESOURCES_REQUESTS_NVIDIA.COM/GPU: "1"
+  image: "registry.sensetime.com/xlab/sensestar-docker:cuda9-centos7"
+  script:
+    - yum -y install gcc automake autoconf libtool libsm6 make
+    - pip install -e .[test]
+    - make cudatest
