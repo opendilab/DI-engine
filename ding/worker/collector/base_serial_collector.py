@@ -177,7 +177,7 @@ class TrajBuffer(list):
         Overview:
             Initialization trajBuffer.
         Arguments:
-            - maxlen (:obj:`int`): the max len of trajBuffer
+            - maxlen (:obj:`int`): The maximum length of trajectory buffer.
         """
         self._maxlen = maxlen
         super().__init__(*args, **kwargs)
