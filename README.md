@@ -12,12 +12,16 @@
 ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/opendilab/DI-engine)
 
 
+![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
+![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
+
+
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
 ![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
-[![codecov](https://img.shields.io/codecov/c/gh/opendilab/DI-engine)](https://codecov.io/gh/opendilab/DI-engine)
+[![codecov](https://codecov.io/gh/opendilab/DI-engine/branch/main/graph/badge.svg?token=B0Q15JI301)](https://codecov.io/gh/opendilab/DI-engine)
 
 
 
