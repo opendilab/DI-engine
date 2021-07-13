@@ -273,7 +273,10 @@ def MLP(
 
         you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
     """
-    assert layer_num > 0, layer_num
+    assert layer_num >= 0, layer_num
+    if layer_num == 0:
+        return sequential_pack([nn.Identity()])
+
     channels = [in_channels] + [hidden_channels] * (layer_num - 1) + [out_channels]
     if layer_fn is None:
         layer_fn = nn.Linear

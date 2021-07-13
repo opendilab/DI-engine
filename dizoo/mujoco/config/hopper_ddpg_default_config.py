@@ -12,7 +12,7 @@ hopper_ddpg_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        use_cuda=True,
+        cuda=True,
         on_policy=False,
         random_collect_size=25000,
         model=dict(
