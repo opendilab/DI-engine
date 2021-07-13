@@ -25,7 +25,7 @@ class VAC(nn.Module):
             continuous: bool = False,
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 2,
+            actor_head_layer_num: int = 1,
             critic_head_hidden_size: int = 64,
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
