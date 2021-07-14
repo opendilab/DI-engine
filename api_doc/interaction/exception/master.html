@@ -24,8 +24,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -203,7 +201,7 @@
 <h2>MasterErrorCode<a class="headerlink" href="#mastererrorcode" title="Permalink to this headline">¶</a></h2>
 <dl class="py enum">
 <dt id="ding.interaction.exception.master.MasterErrorCode">
-<em class="property">enum </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterErrorCode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterErrorCode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">enum</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterErrorCode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterErrorCode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Error codes for master end</p>
 </dd>
@@ -216,67 +214,67 @@
 <p>Valid values are as follows:</p>
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SUCCESS">
-<code class="sig-name descname">SUCCESS</code><em class="property"> = &lt;MasterErrorCode.SUCCESS: 0&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SUCCESS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SUCCESS</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SUCCESS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Master request success</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SYSTEM_SHUTTING_DOWN">
-<code class="sig-name descname">SYSTEM_SHUTTING_DOWN</code><em class="property"> = &lt;MasterErrorCode.SYSTEM_SHUTTING_DOWN: 101&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SYSTEM_SHUTTING_DOWN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SYSTEM_SHUTTING_DOWN</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SYSTEM_SHUTTING_DOWN" title="Permalink to this definition">¶</a></dt>
 <dd><p>Master end is shutting down</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.CHANNEL_NOT_GIVEN">
-<code class="sig-name descname">CHANNEL_NOT_GIVEN</code><em class="property"> = &lt;MasterErrorCode.CHANNEL_NOT_GIVEN: 201&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.CHANNEL_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">CHANNEL_NOT_GIVEN</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.CHANNEL_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
 <dd><p>No channel id given in request</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.CHANNEL_INVALID">
-<code class="sig-name descname">CHANNEL_INVALID</code><em class="property"> = &lt;MasterErrorCode.CHANNEL_INVALID: 202&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.CHANNEL_INVALID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">CHANNEL_INVALID</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.CHANNEL_INVALID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Channel id given not match with master end</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_NOT_GIVEN">
-<code class="sig-name descname">MASTER_TOKEN_NOT_GIVEN</code><em class="property"> = &lt;MasterErrorCode.MASTER_TOKEN_NOT_GIVEN: 301&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">MASTER_TOKEN_NOT_GIVEN</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
 <dd><p>No master token found in connection request from slave</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_INVALID">
-<code class="sig-name descname">MASTER_TOKEN_INVALID</code><em class="property"> = &lt;MasterErrorCode.MASTER_TOKEN_INVALID: 302&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">MASTER_TOKEN_INVALID</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.MASTER_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Master token auth failed in master end</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_NOT_GIVEN">
-<code class="sig-name descname">SELF_TOKEN_NOT_GIVEN</code><em class="property"> = &lt;MasterErrorCode.SELF_TOKEN_NOT_GIVEN: 401&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SELF_TOKEN_NOT_GIVEN</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
 <dd><p>No self token given in self request (such as ping, shutdown)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_INVALID">
-<code class="sig-name descname">SELF_TOKEN_INVALID</code><em class="property"> = &lt;MasterErrorCode.SELF_TOKEN_INVALID: 402&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SELF_TOKEN_INVALID</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SELF_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Self token auth failed in master end itself (such as ping, shutdown)</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_NOT_GIVEN">
-<code class="sig-name descname">SLAVE_TOKEN_NOT_GIVEN</code><em class="property"> = &lt;MasterErrorCode.SLAVE_TOKEN_NOT_GIVEN: 501&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SLAVE_TOKEN_NOT_GIVEN</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_NOT_GIVEN" title="Permalink to this definition">¶</a></dt>
 <dd><p>No slave token given in service request from slave</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_INVALID">
-<code class="sig-name descname">SLAVE_TOKEN_INVALID</code><em class="property"> = &lt;MasterErrorCode.SLAVE_TOKEN_INVALID: 502&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">SLAVE_TOKEN_INVALID</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.SLAVE_TOKEN_INVALID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Slave token not found in master end</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt id="ding.interaction.exception.master.MasterErrorCode.TASK_DATA_INVALID">
-<code class="sig-name descname">TASK_DATA_INVALID</code><em class="property"> = &lt;MasterErrorCode.TASK_DATA_INVALID: 601&gt;</em><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.TASK_DATA_INVALID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">TASK_DATA_INVALID</span></code><a class="headerlink" href="#ding.interaction.exception.master.MasterErrorCode.TASK_DATA_INVALID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Task data is invalid</p>
 </dd></dl>
 
@@ -287,14 +285,14 @@
 <h2>MasterResponseException<a class="headerlink" href="#masterresponseexception" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterResponseException">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterResponseException</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterResponseException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterResponseException" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterResponseException</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterResponseException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterResponseException" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Response exception for master client</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="ding.interaction.exception.master.MasterResponseException.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterResponseException.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterResponseException.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterResponseException.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterResponseException.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -312,10 +310,10 @@
 <h2>MasterSuccess<a class="headerlink" href="#mastersuccess" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSuccess">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSuccess</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSuccess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSuccess" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSuccess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSuccess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSuccess" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSuccess.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSuccess.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSuccess.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -333,10 +331,10 @@
 <h2>MasterSystemShuttingDown<a class="headerlink" href="#mastersystemshuttingdown" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSystemShuttingDown">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSystemShuttingDown</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSystemShuttingDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSystemShuttingDown" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSystemShuttingDown</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSystemShuttingDown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSystemShuttingDown" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSystemShuttingDown.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSystemShuttingDown.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSystemShuttingDown.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -354,10 +352,10 @@
 <h2>MasterChannelNotGiven<a class="headerlink" href="#masterchannelnotgiven" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterChannelNotGiven">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterChannelNotGiven</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterChannelNotGiven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelNotGiven" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterChannelNotGiven</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterChannelNotGiven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelNotGiven" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterChannelNotGiven.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -375,10 +373,10 @@
 <h2>MasterChannelInvalid<a class="headerlink" href="#masterchannelinvalid" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterChannelInvalid">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterChannelInvalid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterChannelInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelInvalid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterChannelInvalid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterChannelInvalid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelInvalid" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterChannelInvalid.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelInvalid.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterChannelInvalid.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -396,10 +394,10 @@
 <h2>MasterMasterTokenNotGiven<a class="headerlink" href="#mastermastertokennotgiven" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterMasterTokenNotGiven">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterMasterTokenNotGiven</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterMasterTokenNotGiven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenNotGiven" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterMasterTokenNotGiven</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterMasterTokenNotGiven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenNotGiven" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterMasterTokenNotGiven.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -417,10 +415,10 @@
 <h2>MasterMasterTokenInvalid<a class="headerlink" href="#mastermastertokeninvalid" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterMasterTokenInvalid">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterMasterTokenInvalid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterMasterTokenInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenInvalid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterMasterTokenInvalid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterMasterTokenInvalid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenInvalid" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterMasterTokenInvalid.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterMasterTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -438,10 +436,10 @@
 <h2>MasterSelfTokenNotGiven<a class="headerlink" href="#masterselftokennotgiven" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSelfTokenNotGiven">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSelfTokenNotGiven</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSelfTokenNotGiven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenNotGiven" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSelfTokenNotGiven</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSelfTokenNotGiven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenNotGiven" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSelfTokenNotGiven.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -459,10 +457,10 @@
 <h2>MasterSelfTokenInvalid<a class="headerlink" href="#masterselftokeninvalid" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSelfTokenInvalid">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSelfTokenInvalid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSelfTokenInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenInvalid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSelfTokenInvalid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSelfTokenInvalid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenInvalid" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSelfTokenInvalid.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSelfTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -480,10 +478,10 @@
 <h2>MasterSlaveTokenNotGiven<a class="headerlink" href="#masterslavetokennotgiven" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSlaveTokenNotGiven">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSlaveTokenNotGiven</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSlaveTokenNotGiven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenNotGiven" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSlaveTokenNotGiven</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSlaveTokenNotGiven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenNotGiven" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSlaveTokenNotGiven.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenNotGiven.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -501,10 +499,10 @@
 <h2>MasterSlaveTokenInvalid<a class="headerlink" href="#masterslavetokeninvalid" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterSlaveTokenInvalid">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterSlaveTokenInvalid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSlaveTokenInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenInvalid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterSlaveTokenInvalid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterSlaveTokenInvalid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenInvalid" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterSlaveTokenInvalid.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterSlaveTokenInvalid.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -522,10 +520,10 @@
 <h2>MasterTaskDataInvalid<a class="headerlink" href="#mastertaskdatainvalid" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.interaction.exception.master.MasterTaskDataInvalid">
-<em class="property">class </em><code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">MasterTaskDataInvalid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterTaskDataInvalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterTaskDataInvalid" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">MasterTaskDataInvalid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#MasterTaskDataInvalid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.MasterTaskDataInvalid" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt id="ding.interaction.exception.master.MasterTaskDataInvalid.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterTaskDataInvalid.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.interaction.exception.master.MasterTaskDataInvalid.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Constructor</p>
 </dd>
@@ -543,7 +541,7 @@
 <h2>get_master_exception_class_by_error_code<a class="headerlink" href="#get-master-exception-class-by-error-code" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="ding.interaction.exception.master.get_master_exception_class_by_error_code">
-<code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">get_master_exception_class_by_error_code</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error_code</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ding.interaction.exception.master.MasterErrorCode" title="ding.interaction.exception.master.MasterErrorCode">ding.interaction.exception.master.MasterErrorCode</a></span></em><span class="sig-paren">)</span> &#x2192; Type<span class="p">[</span><a class="reference internal" href="#ding.interaction.exception.master.MasterResponseException" title="ding.interaction.exception.master.MasterResponseException">ding.interaction.exception.master.MasterResponseException</a><span class="p">]</span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#get_master_exception_class_by_error_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.get_master_exception_class_by_error_code" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">get_master_exception_class_by_error_code</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_code</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ding.interaction.exception.master.MasterErrorCode" title="ding.interaction.exception.master.MasterErrorCode"><span class="pre">ding.interaction.exception.master.MasterErrorCode</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ding.interaction.exception.master.MasterResponseException" title="ding.interaction.exception.master.MasterResponseException"><span class="pre">ding.interaction.exception.master.MasterResponseException</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#get_master_exception_class_by_error_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.get_master_exception_class_by_error_code" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Transform from master error code to <cite>MasterResponseException</cite> class</p>
 </dd>
@@ -563,7 +561,7 @@
 <h2>get_master_exception_by_error<a class="headerlink" href="#get-master-exception-by-error" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="ding.interaction.exception.master.get_master_exception_by_error">
-<code class="sig-prename descclassname">ding.interaction.exception.master.</code><code class="sig-name descname">get_master_exception_by_error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span><span class="p">:</span> <span class="n">requests.exceptions.HTTPError</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ding.interaction.exception.master.MasterResponseException" title="ding.interaction.exception.master.MasterResponseException">ding.interaction.exception.master.MasterResponseException</a><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#get_master_exception_by_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.interaction.exception.master.get_master_exception_by_error" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">ding.interaction.exception.master.</span></code><code class="sig-name descname"><span class="pre">get_master_exception_by_error</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ding.interaction.exception.master.MasterResponseException" title="ding.interaction.exception.master.MasterResponseException"><span class="pre">ding.interaction.exception.master.MasterResponseException</span></a><a class="reference internal" href="../../../_modules/ding/interaction/exception/master.html#get_master_exception_by_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.master.get_master_exception_by_error" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Auto transform http error object to master response exception object.</p>
 </dd>

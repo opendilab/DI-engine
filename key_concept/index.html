@@ -24,7 +24,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -593,7 +592,7 @@ users just need to ensure the correct value of <code class="docutils literal not
 <li><p><strong>Logger</strong>. Sampled data attributes and throughput are shown in text logger and tensorboard logger.</p></li>
 </ul>
 </div></blockquote>
-<a class="reference internal image-reference" href="../_images/advanced_buffer1.png"><img alt="../_images/advanced_buffer1.png" class="align-center" src="../_images/advanced_buffer1.png" style="width: 767.0px; height: 441.35px;" /></a>
+<a class="reference internal image-reference" href="../_images/advanced_buffer.png"><img alt="../_images/advanced_buffer.png" class="align-center" src="../_images/advanced_buffer.png" style="width: 767.0px; height: 441.35px;" /></a>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>By default, most policies in DI-engine adopt <code class="docutils literal notranslate"><span class="pre">AdvancedReplayBuffer</span></code>, because we think monitor and logger are rather important in debugging and policy tuning. However, if you are sure that you do not need all the features above, you can feel free to switch to simpler and faster <code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code>.</p>

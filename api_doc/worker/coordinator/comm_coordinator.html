@@ -24,8 +24,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -199,7 +197,7 @@
 <h2>CommCoordinator<a class="headerlink" href="#commcoordinator" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator">
-<em class="property">class </em><code class="sig-prename descclassname">ding.worker.coordinator.comm_coordinator.</code><code class="sig-name descname">CommCoordinator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Callable<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">logging.Logger</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.comm_coordinator.</span></code><code class="sig-name descname"><span class="pre">CommCoordinator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">logging.Logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>the communication part of coordinator(coordinator intercollector)</p>
 </dd>
@@ -208,7 +206,7 @@
 </dl>
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.__del__">
-<code class="sig-name descname">__del__</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.__del__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.__del__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__del__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.__del__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.__del__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>__del__ method will close the coordinator interactor</p>
 </dd>
@@ -217,7 +215,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">callback_fn</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Callable<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">logger</span><span class="p">:</span> <span class="n">logging.Logger</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">logging.Logger</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>init the interactor of coordinator</p>
 </dd>
@@ -232,7 +230,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.close" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>close the coordinator interactor</p>
 </dd>
@@ -241,7 +239,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.send_collector_task">
-<code class="sig-name descname">send_collector_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">collector_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.send_collector_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_collector_task" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_collector_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collector_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.send_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>send the collector_task to collector_task threads and execute</p>
 </dd>
@@ -254,7 +252,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.send_learner_task">
-<code class="sig-name descname">send_learner_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">learner_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.send_learner_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_learner_task" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_learner_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learner_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.send_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.send_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>send the learner_task to learner_task threads and execute</p>
 </dd>
@@ -267,7 +265,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.comm_coordinator.CommCoordinator.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/comm_coordinator.html#CommCoordinator.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.comm_coordinator.CommCoordinator.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>start the coordinator interactor and manage resources and connections</p>
 </dd>

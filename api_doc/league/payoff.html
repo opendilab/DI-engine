@@ -24,8 +24,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -201,7 +199,7 @@
 <h3>BattleRecordDict<a class="headerlink" href="#battlerecorddict" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="ding.league.shared_payoff.BattleRecordDict">
-<em class="property">class </em><code class="sig-prename descclassname">ding.league.shared_payoff.</code><code class="sig-name descname">BattleRecordDict</code><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.league.shared_payoff.</span></code><code class="sig-name descname"><span class="pre">BattleRecordDict</span></code><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>A dict which is used to record battle game result.
 Initialized four fixed keys: <cite>wins</cite>, <cite>draws</cite>, <cite>losses</cite>, <cite>games</cite>; Each with value 0.</p>
@@ -211,7 +209,7 @@ Initialized four fixed keys: <cite>wins</cite>, <cite>draws</cite>, <cite>losses
 </dl>
 <dl class="py method">
 <dt id="ding.league.shared_payoff.BattleRecordDict.__mul__">
-<code class="sig-name descname">__mul__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">decay</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict.__mul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict.__mul__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__mul__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict.__mul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict.__mul__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Multiply each key’s value with the input multiplier <code class="docutils literal notranslate"><span class="pre">decay</span></code></p>
 </dd>
@@ -233,7 +231,7 @@ Initialized four fixed keys: <cite>wins</cite>, <cite>draws</cite>, <cite>losses
 <h3>BattleSharedPayoff<a class="headerlink" href="#battlesharedpayoff" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="ding.league.shared_payoff.BattleSharedPayoff">
-<em class="property">class </em><code class="sig-prename descclassname">ding.league.shared_payoff.</code><code class="sig-name descname">BattleSharedPayoff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.league.shared_payoff.</span></code><code class="sig-name descname"><span class="pre">BattleSharedPayoff</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Payoff data structure to record historical match result, this payoff is shared among all the players.
 Use LockContext to ensure thread safe, since all players from all threads can access and modify it.</p>
@@ -245,7 +243,7 @@ Use LockContext to ensure thread safe, since all players from all threads can ac
 </dl>
 <dl class="py method">
 <dt id="ding.league.shared_payoff.BattleSharedPayoff.__getitem__">
-<code class="sig-name descname">__getitem__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">players</span><span class="p">:</span> <span class="n">tuple</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.__getitem__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__getitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">players</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Get win rates between home players and away players one by one</p>
 </dd>
@@ -274,7 +272,7 @@ Use LockContext to ensure thread safe, since all players from all threads can ac
 
 <dl class="py method">
 <dt id="ding.league.shared_payoff.BattleSharedPayoff.add_player">
-<code class="sig-name descname">add_player</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">player</span><span class="p">:</span> <span class="n"><a class="reference internal" href="player.html#ding.league.player.Player" title="ding.league.player.Player">ding.league.player.Player</a></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.add_player"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.add_player" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">add_player</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="player.html#ding.league.player.Player" title="ding.league.player.Player"><span class="pre">ding.league.player.Player</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.add_player"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.add_player" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Add a player to the shared payoff.</p>
 </dd>
@@ -287,7 +285,7 @@ Use LockContext to ensure thread safe, since all players from all threads can ac
 
 <dl class="py method">
 <dt id="ding.league.shared_payoff.BattleSharedPayoff.get_key">
-<code class="sig-name descname">get_key</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">home</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">away</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>str<span class="p">, </span>bool<span class="p">]</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.get_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.get_key" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_key</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">home</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">away</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.get_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.get_key" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Join home player id and away player id in alphabetival order.</p>
 </dd>
@@ -306,7 +304,7 @@ Use LockContext to ensure thread safe, since all players from all threads can ac
 
 <dl class="py method">
 <dt id="ding.league.shared_payoff.BattleSharedPayoff.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">job_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.update" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update payoff with job_info when a job is to be finished.
 If update succeeds, return True; If raises an exception when updating, resolve it and return False.</p>

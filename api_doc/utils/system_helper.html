@@ -24,8 +24,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -237,7 +235,7 @@
 <h3>PropagatingThread<a class="headerlink" href="#propagatingthread" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="ding.utils.system_helper.PropagatingThread">
-<em class="property">class </em><code class="sig-prename descclassname">ding.utils.system_helper.</code><code class="sig-name descname">PropagatingThread</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">target</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">args</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">kwargs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">daemon</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.system_helper.</span></code><code class="sig-name descname"><span class="pre">PropagatingThread</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Subclass of Thread that propagates execution exception in the thread to the caller</p>
 </dd>
@@ -254,7 +252,7 @@
 </dl>
 <dl class="py method">
 <dt id="ding.utils.system_helper.PropagatingThread.join">
-<code class="sig-name descname">join</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.join" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">join</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wait until the thread terminates.</p>
 <p>This blocks the calling thread until the thread whose join() method is
 called terminates – either normally or through an unhandled exception
@@ -275,7 +273,7 @@ exception.</p>
 
 <dl class="py method">
 <dt id="ding.utils.system_helper.PropagatingThread.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method representing the thread’s activity.</p>
 <p>You may override this method in a subclass. The standard run() method
 invokes the callable object passed to the object’s constructor as the

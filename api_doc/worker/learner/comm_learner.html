@@ -24,8 +24,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -199,7 +197,7 @@
 <h3>BaseCommLearner<a class="headerlink" href="#basecommlearner" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner">
-<em class="property">class </em><code class="sig-prename descclassname">ding.worker.learner.comm.base_comm_learner.</code><code class="sig-name descname">BaseCommLearner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.learner.comm.base_comm_learner.</span></code><code class="sig-name descname"><span class="pre">BaseCommLearner</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract baseclass for CommLearner.</p>
 </dd>
@@ -210,7 +208,7 @@
 </dl>
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">easydict.EasyDict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialization method.</p>
 </dd>
@@ -223,7 +221,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.close" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Close comm learner.</p>
 </dd>
@@ -232,7 +230,7 @@
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.get_data">
-<em class="property">abstract </em><code class="sig-name descname">get_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.get_data" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get batched meta data from coordinator.
 Will be registered in base learner.</p>
@@ -250,7 +248,7 @@ Will be registered in base learner.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_learn_info">
-<em class="property">abstract </em><code class="sig-name descname">send_learn_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">learn_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.send_learn_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_learn_info" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">send_learn_info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learn_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.send_learn_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_learn_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Send learn info to coordinator.
 Will be registered in base learner.</p>
@@ -264,7 +262,7 @@ Will be registered in base learner.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_policy">
-<em class="property">abstract </em><code class="sig-name descname">send_policy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.send_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_policy" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">send_policy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.send_policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.send_policy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Save learner’s policy in corresponding path.
 Will be registered in base learner.</p>
@@ -278,7 +276,7 @@ Will be registered in base learner.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.base_comm_learner.BaseCommLearner.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/base_comm_learner.html#BaseCommLearner.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.base_comm_learner.BaseCommLearner.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start comm learner.</p>
 </dd>
@@ -292,7 +290,7 @@ Will be registered in base learner.</p>
 <h3>FlaskFileSystemLearner<a class="headerlink" href="#flaskfilesystemlearner" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner">
-<em class="property">class </em><code class="sig-prename descclassname">ding.worker.learner.comm.flask_fs_learner.</code><code class="sig-name descname">FlaskFileSystemLearner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.learner.comm.flask_fs_learner.</span></code><code class="sig-name descname"><span class="pre">FlaskFileSystemLearner</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>An implementation of CommLearner, using flask and the file system.</p>
 </dd>
@@ -303,7 +301,7 @@ Will be registered in base learner.</p>
 </dl>
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init method.</p>
 </dd>
@@ -316,7 +314,7 @@ Will be registered in base learner.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.close" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Join learner thread and close learner if still running.
 Then close learner slave and comm learner itself.</p>
@@ -326,7 +324,7 @@ Then close learner slave and comm learner itself.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.get_data">
-<code class="sig-name descname">get_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Callable<span class="p">]</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.get_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">get_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.get_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get a list of data loading function, which can be implemented by dataloader to read data from files.</p>
 </dd>
@@ -343,7 +341,7 @@ Then close learner slave and comm learner itself.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_learn_info">
-<code class="sig-name descname">send_learn_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">learn_info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.send_learn_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_learn_info" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_learn_info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learn_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.send_learn_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_learn_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Store learn info dict in queue, which will be retrieved by callback function “deal_with_learner_learn”
 in learner slave, then will be sent to coordinator.</p>
@@ -357,7 +355,7 @@ in learner slave, then will be sent to coordinator.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_policy">
-<code class="sig-name descname">send_policy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.send_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_policy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">send_policy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.send_policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.send_policy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Save learner’s policy in corresponding path, called by <code class="docutils literal notranslate"><span class="pre">SendPolicyHook</span></code>.</p>
 </dd>
@@ -370,7 +368,7 @@ in learner slave, then will be sent to coordinator.</p>
 
 <dl class="py method">
 <dt id="ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/learner/comm/flask_fs_learner.html#FlaskFileSystemLearner.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start comm learner itself and the learner slave.</p>
 </dd>

@@ -24,8 +24,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -200,7 +198,7 @@
 <h2>TaskState<a class="headerlink" href="#taskstate" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.worker.coordinator.coordinator.TaskState">
-<em class="property">class </em><code class="sig-prename descclassname">ding.worker.coordinator.coordinator.</code><code class="sig-name descname">TaskState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#TaskState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.TaskState" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.coordinator.</span></code><code class="sig-name descname"><span class="pre">TaskState</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#TaskState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.TaskState" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>State recorder of the task, including <code class="docutils literal notranslate"><span class="pre">task_id</span></code> and <code class="docutils literal notranslate"><span class="pre">start_time</span></code>.</p>
 </dd>
@@ -209,7 +207,7 @@
 </dl>
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.TaskState.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#TaskState.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.TaskState.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#TaskState.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.TaskState.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init the task tate according to task_id and the init time.</p>
 </dd>
@@ -223,7 +221,7 @@
 <h2>Coordinator<a class="headerlink" href="#coordinator" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="ding.worker.coordinator.coordinator.Coordinator">
-<em class="property">class </em><code class="sig-prename descclassname">ding.worker.coordinator.coordinator.</code><code class="sig-name descname">Coordinator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.coordinator.</span></code><code class="sig-name descname"><span class="pre">Coordinator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>the coordinator will manage parallel tasks and data</p>
 </dd>
@@ -236,7 +234,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 </dl>
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.__del__">
-<code class="sig-name descname">__del__</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.__del__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.__del__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__del__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.__del__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.__del__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>__del__ method will close the coordinator.</p>
 </dd>
@@ -245,7 +243,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cfg</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>init method of the coordinator</p>
 </dd>
@@ -258,7 +256,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.close">
-<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.close" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><dl class="simple">
 <dt>Close the coordinator, including closing the interaction thread, the collector learner threads and the </dt><dd><p>buffers.</p>
@@ -270,7 +268,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_finish_task">
-<code class="sig-name descname">deal_with_collector_finish_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_collector_finish_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_finish_task" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">deal_with_collector_finish_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_collector_finish_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_finish_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>finish the collector task</p>
 </dd>
@@ -284,7 +282,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_send_data">
-<code class="sig-name descname">deal_with_collector_send_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">buffer_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_collector_send_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_send_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">deal_with_collector_send_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_collector_send_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_collector_send_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>deal with the data send from collector</p>
 </dd>
@@ -300,7 +298,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_finish_task">
-<code class="sig-name descname">deal_with_learner_finish_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">finished_task</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_finish_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_finish_task" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">deal_with_learner_finish_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_finish_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_finish_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>finish the learner task, close the corresponding buffer</p>
 </dd>
@@ -314,7 +312,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_get_data">
-<code class="sig-name descname">deal_with_learner_get_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">buffer_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cur_learner_iter</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>dict<span class="p">]</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_get_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">deal_with_learner_get_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_get_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_get_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>learner get the data from buffer</p>
 </dd>
@@ -330,7 +328,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_send_info">
-<code class="sig-name descname">deal_with_learner_send_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">buffer_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">info</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_send_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_send_info" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">deal_with_learner_send_info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.deal_with_learner_send_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.deal_with_learner_send_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>the learner send the info and update the priority in buffer</p>
 </dd>
@@ -345,7 +343,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.error">
-<code class="sig-name descname">error</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.error" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">error</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.error" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return the error</p>
 </dd>
@@ -358,7 +356,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.info">
-<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.info" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return the info</p>
 </dd>
@@ -371,7 +369,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.load_state_dict">
-<code class="sig-name descname">load_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.load_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.load_state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Pass when load state_dict.</p>
 </dd>
@@ -380,7 +378,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.start">
-<code class="sig-name descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start the coordinator, including lunching the interaction thread and the collector learner threads.</p>
 </dd>
@@ -389,7 +387,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.state_dict">
-<code class="sig-name descname">state_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.state_dict" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/coordinator.html#Coordinator.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return empty state_dict.</p>
 </dd>
@@ -398,7 +396,7 @@ deal_with_learner_get_data, deal_with_learner_send_info, deal_with_learner_finis
 
 <dl class="py method">
 <dt id="ding.worker.coordinator.coordinator.Coordinator.system_shutdown_flag">
-<em class="property">property </em><code class="sig-name descname">system_shutdown_flag</code><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.system_shutdown_flag" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">system_shutdown_flag</span></code><a class="headerlink" href="#ding.worker.coordinator.coordinator.Coordinator.system_shutdown_flag" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return whether the system is shutdown</p>
 </dd>
