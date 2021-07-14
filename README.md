@@ -78,6 +78,8 @@ The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-en
 
 [3 Minutes Kickoff(colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
 
+[3分钟上手中文版(kaggle)](https://www.kaggle.com/shenzhenperson/di-engine)
+
 **Bonus: Train RL agent in one line code:**
 ```bash
 ding -m serial -e cartpole -p dqn -s 0
