@@ -70,7 +70,7 @@ For more information about installation, you can refer to [installation](https:/
 
 ## Documentation
 
-The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/).
+The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/)([中文文档](https://di-engine-docs.readthedocs.io/en/main-zh/)).
 
 ## Quick Start
 
