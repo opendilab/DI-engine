@@ -2,7 +2,7 @@ from collections import namedtuple
 import torch
 from ding.hpc_rl import hpc_wrapper
 
-gae_data = namedtuple('gae_data', ['value', 'reward', 'done'])
+gae_data = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done'])
 
 
 def shape_fn_gae(args, kwargs):
@@ -43,17 +43,16 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
         value_{T+1} should be 0 if this trajectory reached a terminal state(done=True), otherwise we use value
         function, this operation is implemented in collector for packing trajectory.
     """
-    value, reward, done = data
+    value, next_value, reward, done = data
     if done is None:
-        delta = reward + gamma * value[1:] - value[:-1]
-    else:
-        delta = reward + (1 - done) * gamma * value[1:] - value[:-1]
+        done = torch.zeros_like(reward, device=reward.device)
+
+    delta = reward + (1 - done) * gamma * next_value - value
     factor = gamma * lambda_
-    adv = torch.zeros_like(reward)
+    adv = torch.zeros_like(reward, device=reward.device)
     gae_item = 0.
-    denom = 0.
+
     for t in reversed(range(reward.shape[0])):
-        denom = 1 + lambda_ * denom
-        gae_item = denom * delta[t] + factor * gae_item
-        adv[t] += gae_item / denom
+        gae_item = delta[t] + factor * gae_item * (1 - done[t])
+        adv[t] += gae_item
     return adv

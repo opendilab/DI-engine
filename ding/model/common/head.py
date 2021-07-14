@@ -600,7 +600,7 @@ class RegressionHead(nn.Module):
 
 class ReparameterizationHead(nn.Module):
     default_sigma_type = ['fixed', 'independent', 'conditioned']
-    default_bound_type = ['tanh']
+    default_bound_type = ['tanh', None]
 
     def __init__(
             self,

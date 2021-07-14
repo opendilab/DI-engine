@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 pendulum_ppo_config = dict(
     env=dict(
-        collector_env_num=16,
+        collector_env_num=1,
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
@@ -12,7 +12,7 @@ pendulum_ppo_config = dict(
         cuda=False,
         on_policy=True,
         continuous=True,
-        recompute_adv=True,
+        recompute_adv=False,
         model=dict(
             obs_shape=3,
             action_shape=1,
@@ -20,25 +20,25 @@ pendulum_ppo_config = dict(
             continuous=True,
             actor_head_layer_num=0,
             critic_head_layer_num=0,
-            sigma_type='fixed',
+            sigma_type='conditioned',
             bound_type='tanh',
         ),
         learn=dict(
             epoch_per_collect=10,
-            batch_size=128,
-            learning_rate=1e-3,
+            batch_size=32,
+            learning_rate=3e-5,
             value_weight=0.5,
             entropy_weight=0.0,
             clip_ratio=0.2,
-            adv_norm=True,
+            adv_norm=False,
             value_norm=True,
-            ignore_done=True,
+            ignore_done=False,
         ),
         collect=dict(
-            n_sample=3200,
+            n_sample=200,
             unroll_len=1,
-            discount_factor=0.95,
-            gae_lambda=0.95,
+            discount_factor=0.9,
+            gae_lambda=1.,
         ),
         eval=dict(evaluator=dict(eval_freq=200, ))
     ),

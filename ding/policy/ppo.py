@@ -33,7 +33,7 @@ class PPOPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        recompute_adv=False,
+        recompute_adv=True,
         continuous=True,
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -90,10 +90,10 @@ class PPOPolicy(Policy):
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.orthogonal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
-            # self._model._actor[-1].weight.data.mul_(0.1)
             if self._continuous:
                 # init log sigma
-                # torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
+                if hasattr(self._model.actor_head, 'log_sigma_param'):
+                    torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
                 for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
                     if isinstance(m, torch.nn.Linear):
                         # orthogonal initialization
@@ -131,8 +131,6 @@ class PPOPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-        from torch.optim.lr_scheduler import LambdaLR
-        # self._lr_scheduler = LambdaLR(self._optimizer, lr_lambda=lambda epoch: 1 - epoch / 1500.0)
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         r"""
@@ -163,16 +161,17 @@ class PPOPolicy(Policy):
         for epoch in range(self._cfg.learn.epoch_per_collect):
             if self._recompute_adv:
                 with torch.no_grad():
-                    obs = torch.cat([data['obs'], data['next_obs'][-1:]])
-                    value = self._learn_model.forward(obs, mode='compute_critic')['value']
-
+                    # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
+                    value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
+                    next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
                     if self._value_norm:
                         value *= self._running_mean_std.std
+                        next_value *= self._running_mean_std.std
 
-                    gae_data_ = gae_data(value, data['reward'], data['done'])
+                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
                     # GAE need (T, B) shape input and return (T, B) output
                     data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                    value = value[:-1]
+                    # value = value[:-1]
                     unnormalized_returns = value + data['adv']
 
                     if self._value_norm:
@@ -186,10 +185,8 @@ class PPOPolicy(Policy):
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
-                # with torch.no_grad():
-                #     batch['return'] = batch['value'] + adv
                 if self._adv_norm:
-                    # Normalize advantage in a total train_batch
+                    # Normalize advantage in a train_batch
                     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
                 # Calculate ppo error
@@ -231,11 +228,9 @@ class PPOPolicy(Policy):
                         {
                             'mu_mean': output['logit'][0].mean().item(),
                             'sigma_mean': output['logit'][1].mean().item(),
-                            # 'sigma_grad': self._model.actor_head.log_sigma_param.grad.data.mean().item(),
                         }
                     )
                 return_infos.append(return_info)
-        # self._lr_scheduler.step()
         return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -284,7 +279,6 @@ class PPOPolicy(Policy):
             if self._continuous:
                 (mu, sigma), value = output['logit'], output['value']
                 dist = Independent(Normal(mu, sigma), 1)
-                # action = torch.clamp(dist.sample(), min=-1, max=1)
                 output['action'] = dist.sample()
         if self._cuda:
             output = to_device(output, 'cpu')
@@ -326,8 +320,7 @@ class PPOPolicy(Policy):
         data = to_device(data, self._device)
         # adder is defined in _init_collect
         if self._cfg.learn.ignore_done:
-            for i in range(len(data)):
-                data[i]['done'] = False
+            data[-1]['done'] = False
 
         if data[-1]['done']:
             last_value = torch.zeros(1)
@@ -346,7 +339,7 @@ class PPOPolicy(Policy):
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
-                # remove next_obs for save memory when not recompute adv
+        # remove next_obs for save memory when not recompute adv
         if not self._recompute_adv:
             for i in range(len(data)):
                 data[i].pop('next_obs')
@@ -383,8 +376,6 @@ class PPOPolicy(Policy):
             output = self._eval_model.forward(data, mode='compute_actor')
             if self._continuous:
                 (mu, sigma) = output['logit']
-                # dist = Independent(Normal(mu, sigma), 1)
-                # action = torch.clamp(dist.sample(), min=-1, max=1)
                 output.update({'action': mu})
         if self._cuda:
             output = to_device(output, 'cpu')
