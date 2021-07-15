@@ -56,4 +56,3 @@ class TestCache:
         # wait the cache internal thread close and the consumer_thread get 'STOP' signal
         time.sleep(1 + 0.5)
         assert (not consumer_thread.is_alive())
-        assert (len(threading.enumerate()) <= 1)

@@ -1,6 +1,6 @@
 CI := $(shell echo ${CI})
 
-WORKERS         ?=
+WORKERS         ?= 2
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 DURATIONS         ?= 10
@@ -10,17 +10,18 @@ RANGE_DIR  ?=
 TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/)
 
 docs:
 	$(MAKE) -C ./ding/docs html
 
 unittest:
 	pytest ${TEST_DIR} \
+		--cov-report=xml \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
-		-sv -m unittest
+		-sv -m unittest \
 
 algotest:
 	pytest ${TEST_DIR} \
@@ -33,7 +34,10 @@ cudatest:
 
 platformtest:
 	pytest ${PLATFORM_TEST_DIR} \
-		-sv -m unittest
+		--cov-report term-missing \
+		--cov=${COV_DIR} \
+		${WORKERS_COMMAND} \
+		-sv -m unittest \
 
 benchmark:
 	pytest ${TEST_DIR} \

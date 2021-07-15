@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="ding/docs/source/images/di_engine_logo.svg"></a>
+    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="https://github.com/opendilab/DI-engine-docs/blob/main/source/images/di_engine_logo.svg"></a>
 </div>
 
 ---
@@ -12,13 +12,17 @@
 ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/opendilab/DI-engine)
 
 
+![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
+![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
+
+
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
 ![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/opendilab/DI-engine)
-![GitHub repo size](https://img.shields.io/github/repo-size/opendilab/DI-engine)
+[![codecov](https://codecov.io/gh/opendilab/DI-engine/branch/main/graph/badge.svg?token=B0Q15JI301)](https://codecov.io/gh/opendilab/DI-engine)
+
 
 
 ![GitHub Org's stars](https://img.shields.io/github/stars/opendilab)
@@ -46,6 +50,9 @@ inverse RL, and RND in exploration problems. Various training pipelines and cust
 - [DI-hpc](https://github.com/opendilab/DI-hpc)
 - [DI-store](https://github.com/opendilab/DI-store)
 
+### Other
+- [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+
 
 ## Installation
 
@@ -63,13 +70,17 @@ For more information about installation, you can refer to [installation](https:/
 
 ## Documentation
 
-The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/).
+The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/)([中文文档](https://di-engine-docs.readthedocs.io/en/main-zh/)).
 
 ## Quick Start
 
 [3 Minutes Kickoff](https://opendilab.github.io/DI-engine/quick_start/index.html)
 
-Bonus: Train RL agent in one line code:
+[3 Minutes Kickoff(colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
+
+[3分钟上手中文版(kaggle)](https://www.kaggle.com/shenzhenperson/di-engine)
+
+**Bonus: Train RL agent in one line code:**
 ```bash
 ding -m serial -e cartpole -p dqn -s 0
 ```
