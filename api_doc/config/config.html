@@ -316,17 +316,16 @@
 <h3>read_config<a class="headerlink" href="#read-config" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
 <dt id="ding.config.config.read_config">
-<code class="sig-prename descclassname"><span class="pre">ding.config.config.</span></code><code class="sig-name descname"><span class="pre">read_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direct</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/config/config.html#read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.read_config" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">ding.config.config.</span></code><code class="sig-name descname"><span class="pre">read_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/config/config.html#read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.read_config" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>read configuration from python file</p>
+<dt>Overview:</dt><dd><p>Read configuration from a file path(now only suport python file). And select some proper parts.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of python file</p></li>
-<li><p>direct (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Read config directly if direct is true or divide config into main_config,            create_config and system_config if direct is false</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of configuration file</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[dict,</span> <span class="pre">dict]</span></code>): Config dict, such as [main_config, create_config, system_config]            or main_config, create_config, system_config</p></li>
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[dict,</span> <span class="pre">dict]</span></code>): A collection(tuple) of configuration dict, divided into <cite>main_config</cite> and             <cite>create_cfg</cite> two parts.</p></li>
 </ul>
 </dd>
 </dl>

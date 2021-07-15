@@ -90,8 +90,8 @@ DI-engine provides enhanced RL environment interfaces derived from the widely us
 You can simply wrap the gym environment into DI-engine environment by using the environment warpper :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`.
 You can also construct a more complex environment class following the guidelines in `Environment <../key_concept/index.html#env>`_ section.
 
-The :class:`Env Manager <ding.envs.BaseEnvManager>` is used to manage multiple environments, single-process serially 
-or multi-process parallelly. The interfaces of `env manager` are similar to those of a simple gym env. Here we show a case
+The :class:`Env Manager <ding.envs.BaseEnvManager>` is used to manage multiple vectorized environments, usually implemented by
+multi-processes parallelly. The interfaces of `env manager` are similar to those of a simple gym env. Here we show a case
 of using :class:`BaseEnvManager <ding.envs.BaseEnvManager>` to build environments for collection and evaluation.
 
 .. code-block:: python
@@ -105,14 +105,24 @@ of using :class:`BaseEnvManager <ding.envs.BaseEnvManager>` to build environment
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
+In order to ensure the reproducibility of experiement, we setup the seed of environments and common packages. 
+
+.. code-block:: python
+
+    from ding.utils import set_pkg_seed
+
+    collector_env.seed(seed=0)
+    evaluator_env.seed(seed=0, dynamic_seed=False)
+    set_pkg_seed(seed=0, use_cuda=cfg.policy.cuda)
+
 Set up the Policy and NN models
 -------------------------------
 
 DI-engine supports most of the common policies used in RL training. Each is defined as a :class:`Policy <ding.policy.CommonPolicy>`
-class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks 
+class. The details of optimiaztion algorithm, data pre-processing and post-processing, usage of neural networks
 are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy. 
-DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, it is required to set some
-properties (such as ``Actor`` and ``Critic``) in your defined model.
+
+DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize own networks.
 
 For example, a ``DQN`` policy for ``CartPole`` can be defined as follow.
 
@@ -128,12 +138,12 @@ Define the Execution Modules
 DI-engine needs to build some execution components to manage an RL training procedure. 
 A :class:`Collector <ding.worker.collector.SampleCollector>` is used to sample and provide data for training.
 A :class:`Learner <ding.worker.learner.BaseLearner>` is used to receive training data and conduct 
-the training (including updating networks, strategy and experience pool, etc.).
+the training (including updating networks, strategy and etc.).
 An :class:`Evaluator <ding.worker.collector.BaseSerialEvaluator>` is build to perform the evaluation when needed.
 And other components like :class:`Replay Buffer <ding.worker.replay_buffer.AdvancedReplayBuffer>` may be required for the
 training process. All these module can be customized by config or rewritten by the user.
 
-An example of setting up all the above is showed as follow.
+An example of setting all the above is showed as follow.
 
 .. code-block:: python
 
@@ -203,9 +213,9 @@ called by the ``epsilon_greedy`` function each step. And you can select your own
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some environments have a renderd surface or visualization. DI-engine adds a switch to save these replays.
-After training, the users need to indicate ``env.replay_path`` and ``policy.learn.learner.load_path`` in config,
-and add the next lines after training converge. If everything is working fine, you can find some videos with '.mp4' suffix in the replay_path(some GUI interfaces are normal).
+Some environments have a rendering surface or visualization. DI-engine adds a switch to save these replays.
+After training, users need to indicate ``env.replay_path`` and ``policy.learn.learner.load_path`` in config,
+and add the next lines after training converge. If everything is working fine, you can find some videos with ``.mp4`` suffix in the replay_path(some GUI interfaces are normal).
 
 .. code-block:: python
 

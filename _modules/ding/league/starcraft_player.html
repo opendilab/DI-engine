@@ -316,7 +316,7 @@
         <span class="p">)</span>
         <span class="n">win_rates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_payoff</span><span class="p">[</span><span class="bp">self</span><span class="p">,</span> <span class="n">historical</span><span class="p">]</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">pfsp</span><span class="p">(</span><span class="n">win_rates</span><span class="p">,</span> <span class="n">weighting</span><span class="o">=</span><span class="s1">&#39;variance&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opponent</span><span class="p">(</span><span class="n">historical</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_opponent</span><span class="p">(</span><span class="n">historical</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
 
     <span class="c1"># override</span>
 <div class="viewcode-block" id="MainExploiter.is_trained_enough"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.MainExploiter.is_trained_enough">[docs]</a>    <span class="k">def</span> <span class="nf">is_trained_enough</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -315,30 +315,61 @@
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;exp_config=&#39;</span> <span class="o">+</span> <span class="n">config_string</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.read_config">[docs]</a><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">direct</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">read_config_directly</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        read configuration from python file</span>
+<span class="sd">        Read configuration from a file path(now only suport python file) and directly return results.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg (:obj:`str`): Path of python file</span>
-<span class="sd">        - direct (:obj:`bool`): Read config directly if direct is true or divide config into main_config,\</span>
-<span class="sd">            create_config and system_config if direct is false</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): Config dict, such as [main_config, create_config, system_config]\</span>
-<span class="sd">            or main_config, create_config, system_config</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): Configuration dict.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">suffix</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
-        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
-        <span class="k">if</span> <span class="n">direct</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cfg</span>
+        <span class="k">return</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.read_config">[docs]</a><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config` and \</span>
+<span class="sd">            `create_cfg` two parts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
         <span class="k">assert</span> <span class="s2">&quot;main_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;main_config&#39; variable is declared in config python file!&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;system_config&#39;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;system_config&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="s2">&quot;create_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;create_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">read_config_with_system</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config`, \</span>
+<span class="sd">            `create_cfg` and `system_config` three parts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
+        <span class="k">assert</span> <span class="s2">&quot;main_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;main_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;create_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;create_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;system_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;system_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;system_config&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="save_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.save_config">[docs]</a><span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="n">save_formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>

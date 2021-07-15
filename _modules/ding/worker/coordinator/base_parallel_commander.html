@@ -165,7 +165,6 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">COMMANDER_REGISTRY</span><span class="p">,</span> <span class="n">LimitedSpaceContainer</span>
-<span class="kn">from</span> <span class="nn">ding.league</span> <span class="kn">import</span> <span class="n">create_league</span>
 
 
 <div class="viewcode-block" id="BaseCommander"><a class="viewcode-back" href="../../../../api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.BaseCommander">[docs]</a><span class="k">class</span> <span class="nc">BaseCommander</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -188,15 +187,12 @@
 
     <span class="k">def</span> <span class="nf">judge_collector_finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">collector_done</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;collector_done&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">cur_episode</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;cur_episode&#39;</span><span class="p">]</span>
-        <span class="n">cur_sample</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;cur_sample&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">collector_done</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">judge_learner_finish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="n">learner_done</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;learner_done&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="n">cur_step</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;learner_step&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">learner_done</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span></div>

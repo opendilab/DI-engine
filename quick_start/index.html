@@ -249,8 +249,8 @@ DI-engine prefers a nested python dict object to represent all parameters and co
 DI-engine provides enhanced RL environment interfaces derived from the widely used <a class="reference external" href="https://github.com/openai/gym">OpenAI Gym</a>.
 You can simply wrap the gym environment into DI-engine environment by using the environment warpper <code class="xref py py-class docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code>.
 You can also construct a more complex environment class following the guidelines in <a class="reference external" href="../key_concept/index.html#env">Environment</a> section.</p>
-<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Env</span> <span class="pre">Manager</span></code> is used to manage multiple environments, single-process serially
-or multi-process parallelly. The interfaces of <cite>env manager</cite> are similar to those of a simple gym env. Here we show a case
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Env</span> <span class="pre">Manager</span></code> is used to manage multiple vectorized environments, usually implemented by
+multi-processes parallelly. The interfaces of <cite>env manager</cite> are similar to those of a simple gym env. Here we show a case
 of using <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEnvManager</span></code> to build environments for collection and evaluation.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 
@@ -262,14 +262,21 @@ of using <code class="xref py py-class docutils literal notranslate"><span class
 <span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>In order to ensure the reproducibility of experiement, we setup the seed of environments and common packages.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
+
+<span class="n">collector_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">evaluator_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="set-up-the-policy-and-nn-models">
 <h2>Set up the Policy and NN models<a class="headerlink" href="#set-up-the-policy-and-nn-models" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine supports most of the common policies used in RL training. Each is defined as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code>
-class. The details of optimiaztion algorithm, data pre-processing and post-processing, control of multiple networks
-are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy.
-DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, it is required to set some
-properties (such as <code class="docutils literal notranslate"><span class="pre">Actor</span></code> and <code class="docutils literal notranslate"><span class="pre">Critic</span></code>) in your defined model.</p>
+class. The details of optimiaztion algorithm, data pre-processing and post-processing, usage of neural networks
+are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy.</p>
+<p>DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize own networks.</p>
 <p>For example, a <code class="docutils literal notranslate"><span class="pre">DQN</span></code> policy for <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> can be defined as follow.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
@@ -281,11 +288,11 @@ properties (such as <code class="docutils literal notranslate"><span class="pre"
 <p>DI-engine needs to build some execution components to manage an RL training procedure.
 A <code class="xref py py-class docutils literal notranslate"><span class="pre">Collector</span></code> is used to sample and provide data for training.
 A <code class="xref py py-class docutils literal notranslate"><span class="pre">Learner</span></code> is used to receive training data and conduct
-the training (including updating networks, strategy and experience pool, etc.).
+the training (including updating networks, strategy and etc.).
 An <code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code> is build to perform the evaluation when needed.
 And other components like <code class="xref py py-class docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">Buffer</span></code> may be required for the
 training process. All these module can be customized by config or rewritten by the user.</p>
-<p>An example of setting up all the above is showed as follow.</p>
+<p>An example of setting all the above is showed as follow.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
 
@@ -346,9 +353,9 @@ called by the <code class="docutils literal notranslate"><span class="pre">epsil
 </div>
 <div class="section" id="visualization-logging">
 <h3>Visualization &amp; Logging<a class="headerlink" href="#visualization-logging" title="Permalink to this headline">¶</a></h3>
-<p>Some environments have a renderd surface or visualization. DI-engine adds a switch to save these replays.
-After training, the users need to indicate <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.load_path</span></code> in config,
-and add the next lines after training converge. If everything is working fine, you can find some videos with ‘.mp4’ suffix in the replay_path(some GUI interfaces are normal).</p>
+<p>Some environments have a rendering surface or visualization. DI-engine adds a switch to save these replays.
+After training, users need to indicate <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.load_path</span></code> in config,
+and add the next lines after training converge. If everything is working fine, you can find some videos with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in the replay_path(some GUI interfaces are normal).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span> <span class="o">=</span> <span class="s1">&#39;./video&#39;</span>
 <span class="n">evaluator_env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span><span class="p">)</span>

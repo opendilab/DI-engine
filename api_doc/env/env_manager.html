@@ -260,7 +260,7 @@
 <dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">ready_obs</span></code><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Get the next observations(in <code class="docutils literal notranslate"><span class="pre">torch.Tensor</span></code> type) and corresponding env id.</p>
+<dt>Overview:</dt><dd><p>Get the next observations(in <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> type) and corresponding env id.</p>
 </dd>
 <dt>Return:</dt><dd><p>A dictionary with observations and their environment IDs.</p>
 </dd>
@@ -506,7 +506,7 @@
 </dd>
 <dt>Return:</dt><dd><p>A dictionary with observations and their environment IDs.</p>
 </dd>
-<dt>Note:</dt><dd><p>The observations are returned in torch.Tensor.</p>
+<dt>Note:</dt><dd><p>The observations are returned in np.ndarray.</p>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span>    <span class="n">obs_dict</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">ready_obs</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">actions_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())}</span>
@@ -644,7 +644,7 @@ Each Environment is run by a respective subprocess.</p>
 </dd>
 <dt>Return:</dt><dd><p>A dictionary with observations and their environment IDs.</p>
 </dd>
-<dt>Note:</dt><dd><p>The observations are returned in torch.Tensor.</p>
+<dt>Note:</dt><dd><p>The observations are returned in np.ndarray.</p>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span>    <span class="n">obs_dict</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">ready_obs</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">actions_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())}</span>
