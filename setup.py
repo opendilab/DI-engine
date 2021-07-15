@@ -18,11 +18,11 @@ from __future__ import print_function
 import os
 
 from setuptools import setup, find_packages
+from importlib import import_module
 
 here = os.path.abspath(os.path.dirname(__file__))
-meta = {}
-with open(os.path.join(here, 'ding', '__init__.py'), 'r') as f:
-    exec(f.read(), meta)
+meta_module = import_module('ding')
+meta = meta_module.__dict__
 
 setup(
     name=meta['__TITLE__'],
@@ -45,7 +45,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
-        'requests~=2.24.0',
+        'requests>=2.25.1',
         'six',
         'gym>=0.15.3',  # pypy incompatible
         'torch>=1.3.1,<=1.8.0',
@@ -62,20 +62,13 @@ setup(
         'sortedcontainers',
         'click==7.1.2',
         'URLObject~=2.4.3',
-        'urllib3==1.25.10',
+        'urllib3>=1.26.5',
         'readerwriterlock',
         'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools'
     ],
     extras_require={
-        'doc': [
-            'sphinx>=2.2.1',
-            'sphinx_rtd_theme~=0.4.3',
-            'enum_tools',
-            'sphinx-toolbox',
-            'plantumlcli>=0.0.2',
-        ],
         'test': [
             'pytest==5.1.1',
             'pytest-xdist==1.31.0',

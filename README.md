@@ -1,20 +1,33 @@
 <div align="center">
-    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="ding/docs/source/images/di_engine_logo.svg"></a>
+    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="https://github.com/opendilab/DI-engine-docs/blob/main/source/images/di_engine_logo.svg"></a>
 </div>
 
 ---
 
 [![PyPI](https://img.shields.io/pypi/v/DI-engine)](https://pypi.org/project/DI-engine/)
+![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
+![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/DI-engine)
+![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com%2FPaParaZz1%2F54c5c44eeb94734e276b2ed5770eba8d%2Fraw%2F01437f709b3f2f2fde4abf4d063dc7409066dd50%2Fbadges.json)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/opendilab/DI-engine)
+
+
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
 ![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
+[![codecov](https://img.shields.io/codecov/c/gh/opendilab/DI-engine)](https://codecov.io/gh/opendilab/DI-engine)
 
 
-[![GitHub issues](https://img.shields.io/github/issues/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/issues)
+
+![GitHub Org's stars](https://img.shields.io/github/stars/opendilab)
 [![GitHub stars](https://img.shields.io/github/stars/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/network)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/opendilab/DI-engine)
+[![GitHub issues](https://img.shields.io/github/issues/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/issues)
+[![GitHub pulls](https://img.shields.io/github/issues-pr/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/pulls)
+[![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
 Updated on 2021.07.08 DI-engine-v0.1.0 (beta)
@@ -33,6 +46,9 @@ inverse RL, and RND in exploration problems. Various training pipelines and cust
 - [DI-hpc](https://github.com/opendilab/DI-hpc)
 - [DI-store](https://github.com/opendilab/DI-store)
 
+### Other
+- [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+
 
 ## Installation
 
@@ -43,7 +59,7 @@ pip install DI-engine
 
 If you use Anaconda or Miniconda, you can install DI-engine from conda-forge through the following command:
 ```bash
-conda -c conda-forge install DI-engine
+conda install -c opendilab di-engine
 ```
 
 For more information about installation, you can refer to [installation](https://opendilab.github.io/DI-engine/installation/index.html).
@@ -56,7 +72,9 @@ The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-en
 
 [3 Minutes Kickoff](https://opendilab.github.io/DI-engine/quick_start/index.html)
 
-Bonus: Train RL agent in one line code:
+[3 Minutes Kickoff(colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
+
+**Bonus: Train RL agent in one line code:**
 ```bash
 ding -m serial -e cartpole -p dqn -s 0
 ```
