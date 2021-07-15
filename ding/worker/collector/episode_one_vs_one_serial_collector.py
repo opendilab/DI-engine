@@ -230,7 +230,7 @@ class Episode1v1Collector(ISerialCollector):
                 actions = to_ndarray(actions)
                 # temporally for viz
                 probs0 = torch.softmax(torch.stack([o['logit'] for o in policy_output[0].values()], 0), 1).mean(0)
-                probs1 = torch.softmax(torch.stack([o['logit'] for o in policy_output[1].values()], 0), 1).mean(1)
+                probs1 = torch.softmax(torch.stack([o['logit'] for o in policy_output[1].values()], 0), 1).mean(0)
                 timesteps = self._env.step(actions)
 
             # TODO(nyz) this duration may be inaccurate in async env
@@ -242,10 +242,12 @@ class Episode1v1Collector(ISerialCollector):
                 self._total_envstep_count += 1
                 with self._timer:
                     for policy_id, policy in enumerate(self._policy):
+                        if policy_id == 1:  # only use policy0 data for training
+                            continue
+                        policy_timestep = type(timestep)(*[d[policy_id] if not isinstance(d, bool) else d for d in timestep])
                         transition = self._policy[policy_id].process_transition(
-                            self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id], timestep
+                            self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id], policy_timestep
                         )
-                        # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                         transition['collect_iter'] = train_iter
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
@@ -269,8 +271,8 @@ class Episode1v1Collector(ISerialCollector):
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
                     }
-                    self._tb_logger.add_scalar('collect_iter/probs_select_action0', probs0[0].item(), train_iter)
-                    self._tb_logger.add_scalar('collect_iter/probs_select_action1', probs0[1].item(), train_iter)
+                    self._tb_logger.add_scalar('collector_iter/probs_select_action0', probs0[0].item(), train_iter)
+                    self._tb_logger.add_scalar('collector_iter/probs_select_action1', probs0[1].item(), train_iter)
                     collected_episode += 1
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):

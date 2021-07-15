@@ -3,8 +3,8 @@ from easydict import EasyDict
 league_demo_ppo_config = dict(
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=8,
-        n_evaluator_episode=8,
+        evaluator_env_num=10,
+        n_evaluator_episode=100,
         stop_value=0.95,
         manager=dict(shared_memory=False, ),
     ),
@@ -16,9 +16,10 @@ league_demo_ppo_config = dict(
             encoder_hidden_size_list=[32, 32],
             critic_head_hidden_size=32,
             actor_head_hidden_size=32,
+            share_encoder=False,
         ),
         learn=dict(
-            update_per_collect=3,
+            update_per_collect=2,
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,

@@ -17,9 +17,9 @@ class GameEnv(BaseEnv):
         if actions == [0, 0]:
             rewards = -10, -10
         elif actions == [0, 1]:
-            rewards = -1, +1
-        elif actions == [1, 0]:
             rewards = +1, -1
+        elif actions == [1, 0]:
+            rewards = -1, +1
         elif actions == [1, 1]:
             rewards = 0, 0
         else:

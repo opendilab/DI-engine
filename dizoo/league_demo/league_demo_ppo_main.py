@@ -68,11 +68,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     collector = Episode1v1Collector(
         cfg.policy.collect.collector, collector_env, [policy.collect_mode, policy.collect_mode], tb_logger
     )
+    # collect_mode ppo use multimonial sample for selecting action
     evaluator1 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env1, [policy.eval_mode, eval_policy1], tb_logger, name='fixed'
+        cfg.policy.eval.evaluator, evaluator_env1, [policy.collect_mode, eval_policy1], tb_logger, name='fixed'
     )
     evaluator2 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env2, [policy.eval_mode, eval_policy2], tb_logger, name='uniform'
+        cfg.policy.eval.evaluator, evaluator_env2, [policy.collect_mode, eval_policy2], tb_logger, name='uniform'
     )
 
     for _ in range(max_iterations):
@@ -85,6 +86,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         if stop_flag1 and stop_flag2:
             break
         train_data = collector.collect(train_iter=learner.train_iter)
+        for d in train_data:
+            d['adv'] = d['reward']
         for i in range(cfg.policy.learn.update_per_collect):
             learner.train(train_data, collector.envstep)
 
