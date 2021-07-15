@@ -228,6 +228,9 @@ class Episode1v1Collector(ISerialCollector):
                     for output in policy_output:
                         actions[env_id].append(output[env_id]['action'])
                 actions = to_ndarray(actions)
+                # temporally for viz
+                probs0 = torch.softmax(torch.stack([o['logit'] for o in policy_output[0].values()], 0), 1).mean(0)
+                probs1 = torch.softmax(torch.stack([o['logit'] for o in policy_output[1].values()], 0), 1).mean(1)
                 timesteps = self._env.step(actions)
 
             # TODO(nyz) this duration may be inaccurate in async env
@@ -266,6 +269,8 @@ class Episode1v1Collector(ISerialCollector):
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
                     }
+                    self._tb_logger.add_scalar('collect_iter/probs_select_action0', probs0[0].item(), train_iter)
+                    self._tb_logger.add_scalar('collect_iter/probs_select_action1', probs0[1].item(), train_iter)
                     collected_episode += 1
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):
