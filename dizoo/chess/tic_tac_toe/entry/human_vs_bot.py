@@ -1,6 +1,7 @@
 from dizoo.chess.tic_tac_toe.envs.tic_tac_toe import TicTacToeEnv
 
 env = TicTacToeEnv()
+env.reset()
 done = False
 while True:
     env.render()

@@ -19,7 +19,8 @@ class TicTacToeEnv(BaseGameEnv):
     def reset(self):
         self.board = np.zeros((3, 3), dtype="int32")
         self.player = 1
-        return self.get_observation()
+        obs = {'obs':self.get_observation(),'mask': self.legal_actions()}
+        return obs
 
     def step(self, action):
         row = action // 3
@@ -32,7 +33,8 @@ class TicTacToeEnv(BaseGameEnv):
 
         self.player *= -1
         info = {'next_player': self.player}
-        return BaseEnvTimestep(self.get_observation(), reward, done, info)
+        obs = {'obs':self.get_observation(),'mask': self.legal_actions()}
+        return BaseEnvTimestep(obs, reward, done, info)
 
     def get_observation(self):
         board_player1 = np.where(self.board == 1, 1, 0)
@@ -171,7 +173,7 @@ class TicTacToeEnv(BaseGameEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=2,
-            obs_space=T(
+            obs_space={'obs': T(
                 (3, 3, 3),
                 {
                     'min': -1,
@@ -179,6 +181,15 @@ class TicTacToeEnv(BaseGameEnv):
                     'dtype': np.float32,
                 },
             ),
+            'mask':T(
+                (1,),
+                {
+                    'min': 0,
+                    'max': 8,
+                    'dtype': int,
+                },
+            ),
+            },
             # [min, max)
             act_space=T(
                 (1,),
@@ -204,6 +215,7 @@ class TicTacToeEnv(BaseGameEnv):
 
 if __name__ == '__main__':
     env = TicTacToeEnv()
+    env.reset()
     done = False
     while True:
         env.render()
