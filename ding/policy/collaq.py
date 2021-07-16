@@ -1,11 +1,10 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from collections import namedtuple
 import torch
 import copy
-from easydict import EasyDict
 
-from ding.torch_utils import Adam, to_device, RMSprop
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, get_train_sample
+from ding.torch_utils import to_device, RMSprop
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
@@ -391,12 +390,12 @@ class CollaQPolicy(Policy):
         """
         self._eval_model.reset(data_id=data_id)
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the train sample from trajectory.
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

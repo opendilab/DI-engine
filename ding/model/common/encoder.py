@@ -2,7 +2,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from ding.torch_utils import fc_block, ResFCBlock, ResBlock
+from ding.torch_utils import ResFCBlock, ResBlock
 from ding.utils import SequenceType
 
 

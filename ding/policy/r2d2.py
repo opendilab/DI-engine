@@ -1,8 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from collections import namedtuple
 import torch
 import copy
-from easydict import EasyDict
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
@@ -340,13 +339,13 @@ class R2D2Policy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
 
         Returns:
             - samples (:obj:`dict`): The training samples generated

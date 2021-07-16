@@ -1,7 +1,6 @@
 from typing import Optional, Any, List
-from collections import namedtuple, deque
+from collections import namedtuple
 from easydict import EasyDict
-import logging
 import numpy as np
 import torch
 

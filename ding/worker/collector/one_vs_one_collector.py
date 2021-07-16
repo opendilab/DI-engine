@@ -1,19 +1,18 @@
+from typing import Dict, Any, List
 import copy
 import time
 import uuid
-from collections import namedtuple, deque
+from collections import namedtuple
 from threading import Thread
 from functools import partial
-from typing import Dict, Callable, Any, List
 import numpy as np
 import torch
 from easydict import EasyDict
 
 from ding.policy import create_policy, Policy
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.torch_utils import to_device, tensor_to_list
-from ding.utils import get_data_compressor, lists_to_dicts, pretty_print, PARALLEL_COLLECTOR_REGISTRY
-from ding.envs import BaseEnvTimestep, SyncSubprocessEnvManager, BaseEnvManager
+from ding.utils import get_data_compressor, pretty_print, PARALLEL_COLLECTOR_REGISTRY
+from ding.envs import BaseEnvTimestep, BaseEnvManager
 from .base_parallel_collector import BaseCollector
 from .base_serial_collector import CachePool, TrajBuffer
 

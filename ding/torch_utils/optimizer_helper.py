@@ -1,6 +1,5 @@
 import torch
 import math
-from functools import reduce
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable

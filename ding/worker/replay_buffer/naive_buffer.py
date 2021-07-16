@@ -4,7 +4,7 @@ import numpy as np
 
 from ding.worker.replay_buffer import IBuffer
 from ding.utils import LockContext, LockContextType, BUFFER_REGISTRY
-from .utils import UsedDataRemover, generate_id
+from .utils import UsedDataRemover
 
 
 @BUFFER_REGISTRY.register('naive')

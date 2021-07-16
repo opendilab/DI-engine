@@ -1,17 +1,16 @@
-import os
+from typing import Any, Union, Tuple
+from abc import ABC, abstractmethod
 import sys
 import logging
 import copy
-from abc import ABC, abstractmethod, abstractproperty
 from collections import namedtuple
-from typing import Any, Union, Tuple
 from functools import partial
 from easydict import EasyDict
 import torch
 
 from ding.policy import Policy
 from ding.envs import BaseEnvManager
-from ding.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
+from ding.utils.autolog import LoggedValue, LoggedModel, TickTime
 from ding.utils import build_logger, EasyTimer, get_task_uid, import_module, pretty_print, PARALLEL_COLLECTOR_REGISTRY
 from ding.torch_utils import build_log_buffer, to_tensor, to_ndarray
 

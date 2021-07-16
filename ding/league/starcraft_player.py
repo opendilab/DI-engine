@@ -155,7 +155,7 @@ class MainExploiter(ActivePlayer):
         )
         win_rates = self._payoff[self, historical]
         p = pfsp(win_rates, weighting='variance')
-        return self._get_opponent(historical)
+        return self._get_opponent(historical, p)
 
     # override
     def is_trained_enough(self):

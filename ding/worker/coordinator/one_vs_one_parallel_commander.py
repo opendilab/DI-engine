@@ -1,10 +1,8 @@
-from sys import path
-from ding.utils.default_helper import deep_merge_dicts
+from typing import Optional
 import time
-from typing import Optional, Union
 import copy
 
-from ding.utils import pretty_print
+from ding.utils import deep_merge_dicts
 from ding.policy import create_policy
 from ding.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from ding.league import create_league, OneVsOneLeague
