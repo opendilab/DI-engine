@@ -41,7 +41,7 @@ And if you prefer to use Anaconda or Miniconda, the next command is suggested:
 
 .. code-block:: bash
 
-    conda -c conda-forge install DI-engine
+    conda install -c opendilab di-engine
 
 Also, you can install DI-engine from the source codes in github(master branch recommended)
 
