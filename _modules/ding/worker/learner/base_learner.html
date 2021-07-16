@@ -179,12 +179,12 @@
 <span class="k">class</span> <span class="nc">BaseLearner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Base class for model learning.</span>
+<span class="sd">        Base class for policy learning.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        train, call_hook, register_hook, save_checkpoint, start, setup_dataloader, close</span>
 <span class="sd">    Property:</span>
-<span class="sd">        learn_info, priority_info, last_iter, name, rank, world_size, policy</span>
-<span class="sd">        monitor, log_buffer, logger, tb_logger</span>
+<span class="sd">        learn_info, priority_info, last_iter, train_iter, rank, world_size, policy</span>
+<span class="sd">        monitor, log_buffer, logger, tb_logger, ckpt_name, exp_name, instance_name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
@@ -213,15 +213,20 @@
             <span class="n">policy</span><span class="p">:</span> <span class="n">namedtuple</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">tb_logger</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;SummaryWriter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">dist_info</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">exp_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span><span class="p">,</span>
+            <span class="n">instance_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;learner&#39;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init method. Load config and use ``self._cfg`` to build common learner components,</span>
-<span class="sd">            e.g. logger, hooks.</span>
-<span class="sd">            Policy is not initialized here, but set afterwards through policy setter.</span>
+<span class="sd">            Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - cfg (:obj:`EasyDict`): Learner config, you can view `cfg &lt;../../../configuration/index.html&gt;`_ for ref.</span>
-<span class="sd">            - rank (:obj:`int`): Process number in multi-gpu training</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details.</span>
+<span class="sd">            - policy (:obj:`namedtuple`): A collection of policy function of learn mode. And policy can also be \</span>
+<span class="sd">                initialized when runtime.</span>
+<span class="sd">            - tb_logger (:obj:`SummaryWriter`): Tensorboard summary writer.</span>
+<span class="sd">            - dist_info (:obj:`Tuple[int, int]`): Multi-GPU distributed training information.</span>
+<span class="sd">            - exp_name (:obj:`str`): Experiment name, which is used to indicate output directory.</span>
+<span class="sd">            - instance_name (:obj:`str`): Instance name, which should be unique among different learners.</span>
 <span class="sd">        Notes:</span>
 <span class="sd">            If you want to debug in sync CUDA mode, please add the following code at the beginning of ``__init__``.</span>
 
@@ -230,7 +235,8 @@
 <span class="sd">                os.environ[&#39;CUDA_LAUNCH_BLOCKING&#39;] = &quot;1&quot;  # for debug async CUDA</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">time</span><span class="o">.</span><span class="n">ctime</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ckpt_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
 
@@ -250,12 +256,18 @@
         <span class="c1"># Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span><span class="s1">&#39;./log/learner&#39;</span><span class="p">,</span> <span class="s1">&#39;learner&#39;</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span><span class="s1">&#39;./log/learner&#39;</span><span class="p">,</span> <span class="s1">&#39;learner&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span><span class="s1">&#39;./log/learner&#39;</span><span class="p">,</span> <span class="s1">&#39;learner&#39;</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_buffer</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;scalar&#39;</span><span class="p">:</span> <span class="n">build_log_buffer</span><span class="p">(),</span>
@@ -542,7 +554,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">exp_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span>
 
     <span class="nd">@property</span>
