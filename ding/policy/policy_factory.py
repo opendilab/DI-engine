@@ -51,7 +51,7 @@ class PolicyFactory:
                     return np.random.uniform(low=min_val, high=max_val, size=shape)
 
             actions = {}
-            discrete = action_space.value['dtype'] == int
+            discrete = action_space.value['dtype'] == int or action_space.value['dtype'] == np.int64
             min, max, shape = action_space.value['min'], action_space.value['max'], action_space.shape
             for env_id in data:
                 # For continuous env, action is limited in [-1, 1] for model output.
