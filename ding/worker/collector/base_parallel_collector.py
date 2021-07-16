@@ -105,7 +105,7 @@ class BaseCollector(ABC):
             - monitor (:obj:`TickMonitor`): monitor that is related info of one interation with env
             - log_buffer (:obj:`LogDict`): log buffer dict
         """
-        path = './log/{}'.format(self._prefix.lower())
+        path = './{}/log/{}'.format(self._cfg.exp_name, self._prefix.lower())
         name = '{}'.format(self._collector_uid)
         logger, _ = build_logger(path, name, need_tb=False)
         monitor = TickMonitor(TickTime(), expire=self._cfg.print_freq * 2)

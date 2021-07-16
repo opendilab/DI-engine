@@ -23,7 +23,6 @@ class NaiveReplayBuffer(IBuffer):
 
     config = dict(
         type='naive',
-        name='default',
         replay_buffer_size=10000,
         deepcopy=False,
         # default `False` for serial pipeline
@@ -34,6 +33,8 @@ class NaiveReplayBuffer(IBuffer):
             self,
             cfg: 'EasyDict',  # noqa
             name: str = 'default',
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'buffer',
     ) -> None:
         """
         Overview:
@@ -42,7 +43,8 @@ class NaiveReplayBuffer(IBuffer):
             - cfg (:obj:`dict`): Config dict.
             - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
         """
-        self.name = name
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         self._cfg = cfg
         self._replay_buffer_size = self._cfg.replay_buffer_size
         self._deepcopy = self._cfg.deepcopy
