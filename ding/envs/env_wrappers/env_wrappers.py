@@ -1,13 +1,11 @@
 # Borrow a lot from openai baselines:
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
+from typing import Union
 import cv2
 import gym
-import os.path as osp
 import numpy as np
-from typing import Union, Optional
 from collections import deque
-from copy import deepcopy
 from torch import float32
 # import matplotlib.pyplot as plt
 
@@ -943,6 +941,6 @@ def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
         if wrapper_name:
             try:
                 obs_shape, act_shape, rew_shape = eval(wrapper_name).new_shape(obs_shape, act_shape, rew_shape)
-            except:
+            except Exception:
                 continue
     return obs_shape, act_shape, rew_shape

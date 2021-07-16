@@ -1,11 +1,8 @@
 import time
-
-import traceback
 import copy
-from typing import Dict, Callable, List, Optional
+from typing import List
 from queue import Queue
 from threading import Thread
-from collections import defaultdict
 from easydict import EasyDict
 
 from ding.utils import build_logger, LockContext, LockContextType, get_task_uid
@@ -154,7 +151,6 @@ class Coordinator(object):
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._collector_task_queue.put([collector_task, put_time])
-                        start_retry_time = time.time()
                         self.info("collector task({}) reput into queue".format(collector_task['task_id']))
                         break
                     time.sleep(3)
@@ -202,7 +198,6 @@ class Coordinator(object):
                     if time.time() - start_retry_time >= max_retry_time:
                         # reput into queue
                         self._learner_task_queue.put([learner_task, put_time])
-                        start_retry_time = time.time()
                         self.info("learner task({}) reput into queue".format(learner_task['task_id']))
                         break
                     time.sleep(3)

@@ -1,16 +1,15 @@
+from typing import Any, Union, Callable, List, Dict, Optional, Tuple
 import time
 import copy
 import logging
-from typing import Any, Union, Callable, List, Dict, Optional, Tuple
 from functools import partial
 from easydict import EasyDict
 from collections import namedtuple
 
-from ding.torch_utils import build_checkpoint_helper, CountVar, auto_checkpoint, build_log_buffer
-from ding.utils import build_logger, EasyTimer, pretty_print, deep_merge_dicts, import_module, LEARNER_REGISTRY, \
-    get_rank, get_world_size
-from ding.utils.autolog import LoggedValue, LoggedModel, NaturalTime, TickTime, TimeMode
-from ding.utils.data import AsyncDataLoader, default_collate
+from ding.torch_utils import CountVar, auto_checkpoint, build_log_buffer
+from ding.utils import build_logger, EasyTimer, import_module, LEARNER_REGISTRY, get_rank, get_world_size
+from ding.utils.autolog import LoggedValue, LoggedModel, TickTime
+from ding.utils.data import AsyncDataLoader
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
 logging.info('')  # necessary
 

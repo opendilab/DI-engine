@@ -1,10 +1,8 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
-import copy
 
-from ding.rl_utils import a2c_data, a2c_error, nstep_return_data, nstep_return, get_gae_with_default_last_value, \
-    get_nstep_return_data, get_train_sample
+from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
 from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
@@ -225,12 +223,12 @@ class A2CPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's buffer list
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

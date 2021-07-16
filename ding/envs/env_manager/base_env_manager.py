@@ -1,6 +1,5 @@
-from abc import ABC
 from types import MethodType
-from typing import Type, Union, Any, List, Callable, Iterable, Dict, Optional
+from typing import Union, Any, List, Callable, Dict, Optional
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
@@ -8,13 +7,10 @@ import platform
 from collections import namedtuple
 import numbers
 import logging
-import torch
 import enum
 import time
 import traceback
-import signal
-from ding.torch_utils import to_tensor, to_ndarray, to_list
-from ding.utils import ENV_MANAGER_REGISTRY, import_module, deep_merge_dicts, one_time_warning
+from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning
 from ding.envs.env.base_env import BaseEnvTimestep
 from ding.utils.time_helper import WatchDog
 
@@ -156,7 +152,7 @@ class BaseEnvManager(object):
     def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
-            Get the next observations(in ``torch.Tensor`` type) and corresponding env id.
+            Get the next observations(in ``np.ndarray`` type) and corresponding env id.
         Return:
             A dictionary with observations and their environment IDs.
         Example:

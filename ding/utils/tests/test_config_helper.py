@@ -3,7 +3,7 @@ import os
 import copy
 from easydict import EasyDict
 
-from ding.config import read_config, save_config
+from ding.config import read_config_directly, save_config
 from ding.utils.default_helper import deep_merge_dicts, flatten_dict, deep_update
 
 
@@ -42,7 +42,7 @@ class TestConfigHelper():
         cfg_path = tempfile.mktemp(suffix=".py")
         save_config(old_config, cfg_path)
         assert os.path.exists(cfg_path)
-        config = read_config(cfg_path, direct=True)["exp_config"]
+        config = read_config_directly(cfg_path)["exp_config"]
 
         def assert_equal(item1, iterm2):
             if isinstance(item1, list):

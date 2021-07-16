@@ -1,11 +1,10 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import copy
 import torch
-import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-from ding.utils import POLICY_REGISTRY, squeeze
+from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import get_gae_with_default_last_value, get_train_sample, \
@@ -385,12 +384,12 @@ class PPGPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

@@ -1,6 +1,6 @@
+from typing import Union, Dict, Any, List
 from abc import ABC, abstractmethod
 import copy
-from typing import Union, Optional, Dict, Any, List, Tuple
 from easydict import EasyDict
 
 from ding.utils import import_module, BUFFER_REGISTRY

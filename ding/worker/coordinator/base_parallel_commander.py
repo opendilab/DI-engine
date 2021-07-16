@@ -4,7 +4,6 @@ from easydict import EasyDict
 import copy
 
 from ding.utils import import_module, COMMANDER_REGISTRY, LimitedSpaceContainer
-from ding.league import create_league
 
 
 class BaseCommander(ABC):
@@ -27,15 +26,12 @@ class BaseCommander(ABC):
 
     def judge_collector_finish(self, task_id: str, info: dict) -> bool:
         collector_done = info.get('collector_done', False)
-        cur_episode = info['cur_episode']
-        cur_sample = info['cur_sample']
         if collector_done:
             return True
         return False
 
     def judge_learner_finish(self, task_id: str, info: dict) -> bool:
         learner_done = info.get('learner_done', False)
-        cur_step = info['learner_step']
         if learner_done:
             return True
         return False

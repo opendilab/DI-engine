@@ -1,10 +1,10 @@
-from typing import Union, Optional, List, Any, Callable, Tuple
+from typing import Union, Optional, List, Any, Tuple
 import pickle
 import torch
 from functools import partial
 
 from ding.config import compile_config, read_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator
+from ding.worker import SampleCollector, BaseSerialEvaluator
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
@@ -39,10 +39,11 @@ def eval(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    # TODO when env_setting is not None
-    assert env_setting is None  # temporally
     create_cfg.policy.type += '_command'
-    cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
+    env_fn = None if env_setting is None else env_setting[0]
+    cfg = compile_config(
+        cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, save_path='eval_config.py'
+    )
 
     # Create components: env, policy, evaluator
     if env_setting is None:
@@ -98,10 +99,17 @@ def collect_demo_data(
         cfg, create_cfg = read_config(input_cfg)
     else:
         cfg, create_cfg = input_cfg
-    # TODO when env_setting is not None
-    assert env_setting is None  # temporally
     create_cfg.policy.type += '_command'
-    cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
+    env_fn = None if env_setting is None else env_setting[0]
+    cfg = compile_config(
+        cfg,
+        seed=seed,
+        env=env_fn,
+        auto=True,
+        create_cfg=create_cfg,
+        save_cfg=True,
+        save_path='collect_demo_data_config.py'
+    )
 
     # Create components: env, policy, collector
     if env_setting is None:
