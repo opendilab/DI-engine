@@ -1,6 +1,6 @@
-from dizoo.chess.tic_tac_toe.envs.tic_tac_toe import TicTacToeEnv
+from dizoo.chess_games.gomoku.envs.gomoku_env import GomokuEnv
 
-env = TicTacToeEnv()
+env = GomokuEnv()
 env.reset()
 done = False
 while True:
@@ -19,7 +19,6 @@ while True:
     print('computer player ' + env.action_to_string(action))
     obs, reward, done, info = env.step(action)
     if done:
-        env.render()
         if reward > 0:
             print('computer player win')
         else:

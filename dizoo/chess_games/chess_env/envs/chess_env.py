@@ -3,7 +3,7 @@ import gym_chess
 import numpy as np
 import sys
 
-from dizoo.chess.base_game_env import BaseGameEnv
+from dizoo.chess_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
@@ -55,19 +55,32 @@ class ChessEnv(BaseGameEnv):
         """
         while True:
             try:
-                print(f"Current available actions are:{self.env.legal_moves}")
+                legal_actions = self.legal_actions()
+                print(f"Current available actions are:{self.legal_moves()}")
                 choice = int(
                     input(
                         f"Enter the index of next move for the player {self.to_play()}: "
                     )
                 )
-                if choice in self.env.legal_actions:
+                if choice in range(len(legal_actions)):
                     break
             except KeyboardInterrupt:
                 sys.exit(0)
             except Exception as e:
                 print("Wrong input, try again")
-        return choice
+        return legal_actions[choice]
+
+    def action_to_string(self, action_number):
+        """
+        Convert an action number to a string representing the action.
+
+        Args:
+            action_number: an integer from the action space.
+        Returns:
+            String representing the action.
+        """
+        idx = self.legal_actions().count([action_number])
+        return f"Play {self.legal_moves()[idx]}"
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
@@ -113,7 +126,7 @@ class ChessEnv(BaseGameEnv):
 
 
 if __name__ == '__main__':
-    from dizoo.chess.chess.envs.chess_env import ChessEnv
+    from dizoo.chess_games.chess_env.envs.chess_env import ChessEnv
 
     env = ChessEnv()
     env.reset()
