@@ -200,25 +200,30 @@
 <div class="section" id="serial-mode">
 <h2>Serial mode<a class="headerlink" href="#serial-mode" title="Permalink to this headline">¶</a></h2>
 <p>In serial mode, generated file tree is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
+├── ckpt
+│   ├── ckpt_best.pth.tar
+│   ├── iteration_0.pth.tar
+│   └── iteration_561.pth.tar
+├── formatted_total_config.py
 ├── log
-│   ├── buffer
-│   │   └── agent_buffer_logger.txt
-│   ├── collector
-│   │   └── collect_logger.txt
-│   ├── evaluator
-│   │   └──  evaluator_logger.txt
-│   ├── learner
-│   │   └── learner_logger.txt
-│   └── serial
-└── ckpt_baseLearner_ (ckpt_BaseLearner_Mon_May_24_12_08_43_2021)
-    └── ckpt_best.pth.tar
+│   ├── buffer
+│   │   └── buffer_logger.txt
+│   ├── collector
+│   │   └── collector_logger.txt
+│   ├── evaluator
+│   │   └── evaluator_logger.txt
+│   ├── learner
+│   │   └── learner_logger.txt
+│   └── serial
+│       └── events.out.tfevents.1626453528.CN0014009700M.local
+└── total_config.py
 </pre></div>
 </div>
 <ul>
 <li><p>log/buffer</p>
 <blockquote>
-<div><p>In buffer folder, there is a file named <code class="docutils literal notranslate"><span class="pre">agent_buffer_logger.txt</span></code> including some information about the data usage in the buffer.</p>
+<div><p>In buffer folder, there is a file named <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> including some information about the data usage in the buffer.</p>
 <p>After a certain number of sample times, sample information will be printed to display the attributes of the sampled data, which demonstrating data quality. The table is like this:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -334,50 +339,42 @@
 <li><p>log/learner</p>
 <blockquote>
 <div><p>In learner folder, there is a file named <code class="docutils literal notranslate"><span class="pre">learner_logger.txt</span></code> including some information about the learner.</p>
-<p>The following information is generated during PPO training</p>
+<p>The following information is generated during DQN training</p>
 <ul>
-<li><p>learner config and model:</p>
+<li><p>policy neural network architecture:</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="p">:</span>
-    <span class="n">cfg_type</span><span class="p">:</span> <span class="n">BaseLearnerDict</span>
-    <span class="n">dataloader</span><span class="p">:</span>
-    <span class="n">num_workers</span><span class="p">:</span> <span class="mi">0</span>
-    <span class="n">hook</span><span class="p">:</span>
-        <span class="n">load_ckpt_before_run</span><span class="p">:</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">log_show_after_iter</span><span class="p">:</span> <span class="mi">100</span>
-        <span class="n">save_ckpt_after_iter</span><span class="p">:</span> <span class="mi">10000</span>
-        <span class="n">save_ckpt_after_run</span><span class="p">:</span> <span class="n">true</span>
-    <span class="n">train_iterations</span><span class="p">:</span> <span class="mi">1000000000</span>
-<span class="n">FCValueAC</span><span class="p">(</span>
-<span class="p">(</span><span class="n">_act</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-<span class="p">(</span><span class="n">_encoder</span><span class="p">):</span> <span class="n">FCEncoder</span><span class="p">(</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span><span class="p">:</span><span class="n">learner_logger</span><span class="p">:[</span><span class="n">RANK0</span><span class="p">]:</span> <span class="n">DI</span><span class="o">-</span><span class="n">engine</span> <span class="n">DRL</span> <span class="n">Policy</span>
+<span class="n">DQN</span><span class="p">(</span>
+  <span class="p">(</span><span class="n">encoder</span><span class="p">):</span> <span class="n">FCEncoder</span><span class="p">(</span>
     <span class="p">(</span><span class="n">act</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="n">init</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">(</span><span class="n">main</span><span class="p">):</span> <span class="n">ResFCBlock</span><span class="p">(</span>
-    <span class="p">(</span><span class="n">act</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="n">fc1</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">init</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">main</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">(</span><span class="mi">2</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+    <span class="p">)</span>
+  <span class="p">)</span>
+  <span class="p">(</span><span class="n">head</span><span class="p">):</span> <span class="n">DuelingHead</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">A</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
         <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
     <span class="p">)</span>
-    <span class="p">(</span><span class="n">fc2</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">V</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
         <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
     <span class="p">)</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-<span class="p">(</span><span class="n">_actor</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
-    <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="mi">2</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="mi">4</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="p">)</span>
-<span class="p">(</span><span class="n">_critic</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
-    <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="mi">2</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
-    <span class="p">(</span><span class="mi">4</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="p">)</span>
+  <span class="p">)</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -386,79 +383,25 @@
 <li><p>learner information:</p>
 <blockquote>
 <div><p>Grid table:</p>
-<table class="docutils align-default">
+<blockquote>
+<div><table class="docutils align-default">
 <colgroup>
-<col style="width: 5%" />
-<col style="width: 9%" />
-<col style="width: 12%" />
-<col style="width: 13%" />
-<col style="width: 12%" />
-<col style="width: 14%" />
-<col style="width: 13%" />
-<col style="width: 11%" />
-<col style="width: 11%" />
+<col style="width: 20%" />
+<col style="width: 34%" />
+<col style="width: 46%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p>Name</p></td>
-<td><p>cur_lr_val</p></td>
-<td><p>total_loss_val</p></td>
-<td><p>policy_loss_val</p></td>
-<td><p>value_loss_val</p></td>
-<td><p>entropy_loss_val</p></td>
-<td><p>adv_abs_max_val</p></td>
-<td><p>approx_kl_val</p></td>
-<td><p>clipfrac_val</p></td>
+<td><p>cur_lr_avg</p></td>
+<td><p>total_loss_avg</p></td>
 </tr>
 <tr class="row-even"><td><p>Value</p></td>
 <td><p>0.001000</p></td>
-<td><p>-0.421546</p></td>
-<td><p>-4.209646</p></td>
-<td><p>10.286912</p></td>
-<td><p>0.691280</p></td>
-<td><p>6.281444</p></td>
-<td><p>0.000000</p></td>
-<td><p>0.000000</p></td>
+<td><p>0.098996</p></td>
 </tr>
 </tbody>
 </table>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 5%" />
-<col style="width: 11%" />
-<col style="width: 8%" />
-<col style="width: 11%" />
-<col style="width: 11%" />
-<col style="width: 11%" />
-<col style="width: 12%" />
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 9%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p>Name</p></td>
-<td><p>train_time_val</p></td>
-<td><p>cur_lr_val</p></td>
-<td><p>total_loss_val</p></td>
-<td><p>policy_loss_val</p></td>
-<td><p>value_loss_val</p></td>
-<td><p>entropy_loss_val</p></td>
-<td><p>adv_abs_max_val</p></td>
-<td><p>approx_kl_val</p></td>
-<td><p>clipfrac_val</p></td>
-</tr>
-<tr class="row-even"><td><p>Value</p></td>
-<td><p>0.004722</p></td>
-<td><p>0.001000</p></td>
-<td><p>-0.888706</p></td>
-<td><p>-4.184078</p></td>
-<td><p>9.948707</p></td>
-<td><p>0.686777</p></td>
-<td><p>7.128615</p></td>
-<td><p>0.005156</p></td>
-<td><p>0.000000</p></td>
-</tr>
-</tbody>
-</table>
+</div></blockquote>
 </div></blockquote>
 </li>
 </ul>
@@ -472,8 +415,7 @@
 </li>
 <li><p>ckpt_baseLearner</p>
 <blockquote>
-<div><p>The folder is named in the way of “ckpt_baseLearner” + creation time (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Mon_May_24_12_08_43_2021&quot;</span></code>).</p>
-<dl class="simple">
+<div><dl class="simple">
 <dt>In this folder, there are model parameter checkpoints:</dt><dd><ul class="simple">
 <li><p>ckpt_best.pth.tar. Best model which reached highest evaluation score.</p></li>
 <li><p>“iteration” + iter number. Periodic model save.</p></li>
@@ -487,44 +429,45 @@
 </div>
 <div class="section" id="parallel-mode">
 <h2>Parallel mode<a class="headerlink" href="#parallel-mode" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./
-├── log
-│   ├── buffer
-│   │   ├── agent_buffer_tb_logger
-│   │   └── agent_buffer_logger.txt
-│   ├── collector
-│   │   ├── 3b5f970b-0ff0-4394-bf8a-de43cadfd2b6_196408_logger.txt
-│   │   ├── XXX_X_logger.txt
-│   │   └── ...
-│   ├── evaluator
-│   │   ├── 3e483ac6-4a6e-4787-bfef-08f7cc3f14b8_300574_logger.txt
-│   │   ├── XXX_X_logger.txt
-│   │   └── ...
-│   ├── learner
-│   │   ├── learner_tb_logger
-│   │   └── learner_logger.txt
-│   ├── commander
-│   │   ├── commander_tb_logger
-│   │   ├── commander_collector_logger.txt
-│   │   ├── commander_evaluator_logger.txt
-│   │   └── commander_logger.txt
-│   └── coordinator_logger.txt
-├── ckpt_baseLearner_ (ckpt_BaseLearner_Mon_May_24_12_08_43_2021)
-│   └── iteration_.pth.tar (iteration_1000.pth.tar)
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
+├── ckpt
+│   └── iteration_0.pth.tar
 ├── data
-│   ├── env_ (env_0_0aa0d0b4-c20c-11eb-9cd2-dd796209c19b)
-│   └── env_ (env_0_0a9e0488-c20c-11eb-9cd2-dd796209c19b) ...
+├── log
+│   ├── buffer
+│   │   ├── buffer_logger.txt
+│   │   └── buffer_tb_logger
+│   │       └── events.out.tfevents.1626453752.CN0014009700M.local
+│   ├── collector
+│   │   ├── 4890b4c5-f084-4c94-b440-75f9fa602388_614285_logger.txt
+│   │   ├── c029d882-fe4f-4a1d-9451-13015bbca192_750418_logger.txt
+│   │   └── fc68e215-f062-4a1b-a0fd-dcf5f375b290_886803_logger.txt
+│   ├── commander
+│   │   ├── commander_collector_logger.txt
+│   │   ├── commander_evaluator_logger.txt
+│   │   ├── commander_logger.txt
+│   │   └── commander_tb_logger
+│   │       └── events.out.tfevents.1626453748.CN0014009700M.local
+│   ├── coordinator_logger.txt
+│   ├── evaluator
+│   │   ├── 1496df45-8858-4f38-82da-b4a39461a268_451909_logger.txt
+│   │   └── 2e8879e3-8af5-4ebb-8d50-8af829f03845_711157_logger.txt
+│   └── learner
+│       ├── learner_logger.txt
+│       └── learner_tb_logger
+│           └── events.out.tfevents.1626453750.CN0014009700M.local
 └── policy
-    └── policy_0ee6e602-9d10-4aff-84a3-980a726430f7_222729
+    ├── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961
+    └── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961.lock:
 </pre></div>
 </div>
 <p>In parallel mode, the log folder has five subfolders, including buffer, collector, evaluator, learner, commander and a file coordinator_logger.txt</p>
 <ul>
 <li><p>log/buffer</p>
 <blockquote>
-<div><p>In buffer folder, there is a file named <code class="docutils literal notranslate"><span class="pre">agent_buffer_logger.txt</span></code> and a subfolder named agent_buffer_tb_logger.</p>
-<p>The data in <code class="docutils literal notranslate"><span class="pre">agent_buffer_logger.txt</span></code> is the same as that in serial mode.</p>
-<p>In agent_buffer_tb_logger folder, there is a <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code> tensorboard file.</p>
+<div><p>In buffer folder, there is a file named <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> and a subfolder named buffer_tb_logger.</p>
+<p>The data in <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> is the same as that in serial mode.</p>
+<p>In buffer_tb_logger folder, there is a <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code> tensorboard file.</p>
 </div></blockquote>
 </li>
 <li><p>log/collector</p>
@@ -556,10 +499,9 @@
 <p>There are so many files in the collector and evaluator folder that it seems inconvenient. So we made a synthesis in the commander. This is the reason why there are collector and evaluator folders in parallel mode but the commander folder has collector text file and evaluator text file.</p>
 </div></blockquote>
 </li>
-<li><p>ckpt_baseLearner :</p>
+<li><p>ckpt:</p>
 <blockquote>
 <div><p>Parallel mode’s checkpoint folder is the same as serial mode’s.</p>
-<p>The folder is named in the way of “ckpt_baseLearner” + creation time (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Mon_May_24_12_08_43_2021&quot;</span></code>).</p>
 <dl class="simple">
 <dt>In this folder, there are model parameter checkpoints:</dt><dd><ul class="simple">
 <li><p>ckpt_best.pth.tar. Best model which reached highest evaluation score.</p></li>

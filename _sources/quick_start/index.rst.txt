@@ -23,6 +23,7 @@ DI-engine prefers a nested python dict object to represent all parameters and co
 .. code-block:: python
 
     cartpole_dqn_config = dict(
+        exp_name="cartpole_dqn",
         env=dict(
             collector_env_num=8,
             evaluator_env_num=5,
@@ -150,11 +151,15 @@ An example of setting all the above is showed as follow.
     import os
     from tensorboardX import SummaryWriter    
 
-    tb_logger = SummaryWriter(os.path.join('./log/', 'your_experiment_name'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    collector = SampleCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger, exp_name=cfg.exp_name)
 
 Aggregate the Training and Evaluation Pipelines
 -----------------------------------------------
@@ -222,7 +227,9 @@ and add the next lines after training converge. If everything is working fine, y
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     cfg.env.replay_path = './video'
     evaluator_env.enable_save_replay(cfg.env.replay_path)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 .. tip::

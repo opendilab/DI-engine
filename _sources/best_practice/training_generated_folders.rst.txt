@@ -15,24 +15,29 @@ In serial mode, generated file tree is as follows:
 
 ::
 
-    ./
+    cartpole_dqn
+    ├── ckpt
+    │   ├── ckpt_best.pth.tar
+    │   ├── iteration_0.pth.tar
+    │   └── iteration_561.pth.tar
+    ├── formatted_total_config.py
     ├── log
-    │   ├── buffer
-    │   │   └── agent_buffer_logger.txt
-    │   ├── collector
-    │   │   └── collect_logger.txt
-    │   ├── evaluator
-    │   │   └──  evaluator_logger.txt
-    │   ├── learner
-    │   │   └── learner_logger.txt
-    │   └── serial
-    └── ckpt_baseLearner_ (ckpt_BaseLearner_Mon_May_24_12_08_43_2021)
-        └── ckpt_best.pth.tar
+    │   ├── buffer
+    │   │   └── buffer_logger.txt
+    │   ├── collector
+    │   │   └── collector_logger.txt
+    │   ├── evaluator
+    │   │   └── evaluator_logger.txt
+    │   ├── learner
+    │   │   └── learner_logger.txt
+    │   └── serial
+    │       └── events.out.tfevents.1626453528.CN0014009700M.local
+    └── total_config.py
 
 
 - log/buffer
 
-    In buffer folder, there is a file named ``agent_buffer_logger.txt`` including some information about the data usage in the buffer.
+    In buffer folder, there is a file named ``buffer_logger.txt`` including some information about the data usage in the buffer.
 
     After a certain number of sample times, sample information will be printed to display the attributes of the sampled data, which demonstrating data quality. The table is like this:
 
@@ -104,70 +109,57 @@ In serial mode, generated file tree is as follows:
 
     In learner folder, there is a file named ``learner_logger.txt`` including some information about the learner.
 
-    The following information is generated during PPO training
+    The following information is generated during DQN training
 
-    - learner config and model:
+    - policy neural network architecture:
 
         ::
 
-            config:
-                cfg_type: BaseLearnerDict
-                dataloader:
-                num_workers: 0
-                hook:
-                    load_ckpt_before_run: ''
-                    log_show_after_iter: 100
-                    save_ckpt_after_iter: 10000
-                    save_ckpt_after_run: true
-                train_iterations: 1000000000
-            FCValueAC(
-            (_act): ReLU()
-            (_encoder): FCEncoder(
+            INFO:learner_logger:[RANK0]: DI-engine DRL Policy
+            DQN(
+              (encoder): FCEncoder(
                 (act): ReLU()
-                (init): Linear(in_features=4, out_features=64, bias=True)
-                (main): ResFCBlock(
-                (act): ReLU()
-                (fc1): Sequential(
+                (init): Linear(in_features=4, out_features=128, bias=True)
+                (main): Sequential(
+                  (0): Linear(in_features=128, out_features=128, bias=True)
+                  (1): ReLU()
+                  (2): Linear(in_features=128, out_features=64, bias=True)
+                  (3): ReLU()
+                )
+              )
+              (head): DuelingHead(
+                (A): Sequential(
+                  (0): Sequential(
                     (0): Linear(in_features=64, out_features=64, bias=True)
                     (1): ReLU()
+                  )
+                  (1): Sequential(
+                    (0): Linear(in_features=64, out_features=2, bias=True)
+                  )
                 )
-                (fc2): Sequential(
+                (V): Sequential(
+                  (0): Sequential(
                     (0): Linear(in_features=64, out_features=64, bias=True)
+                    (1): ReLU()
+                  )
+                  (1): Sequential(
+                    (0): Linear(in_features=64, out_features=1, bias=True)
+                  )
                 )
-                )
+              )
             )
-            (_actor): Sequential(
-                (0): Linear(in_features=64, out_features=128, bias=True)
-                (1): ReLU()
-                (2): Linear(in_features=128, out_features=128, bias=True)
-                (3): ReLU()
-                (4): Linear(in_features=128, out_features=2, bias=True)
-            )
-            (_critic): Sequential(
-                (0): Linear(in_features=64, out_features=128, bias=True)
-                (1): ReLU()
-                (2): Linear(in_features=128, out_features=128, bias=True)
-                (3): ReLU()
-                (4): Linear(in_features=128, out_features=1, bias=True)
-            )
-            )
+
 
 
     - learner information:
 
         Grid table:
 
-        +-------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
-        | Name  | cur_lr_val | total_loss_val | policy_loss_val | value_loss_val | entropy_loss_val | adv_abs_max_val | approx_kl_val | clipfrac_val |
-        +-------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
-        | Value | 0.001000   | -0.421546      | -4.209646       | 10.286912      | 0.691280         | 6.281444        | 0.000000      | 0.000000     |
-        +-------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
-
-        +-------+----------------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
-        | Name  | train_time_val | cur_lr_val | total_loss_val | policy_loss_val | value_loss_val | entropy_loss_val | adv_abs_max_val | approx_kl_val | clipfrac_val |
-        +-------+----------------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
-        | Value | 0.004722       | 0.001000   | -0.888706      | -4.184078       | 9.948707       | 0.686777         | 7.128615        | 0.005156      | 0.000000     |
-        +-------+----------------+------------+----------------+-----------------+----------------+------------------+-----------------+---------------+--------------+
+            +-------+------------+----------------+
+            | Name  | cur_lr_avg | total_loss_avg |
+            +-------+------------+----------------+
+            | Value | 0.001000   | 0.098996       |
+            +-------+------------+----------------+
 
 
 - serial
@@ -177,8 +169,6 @@ In serial mode, generated file tree is as follows:
     DI-engine saves all tensorboard files in serial folder as **one tensorboard file**, rather than respective folders. Because when running a lot of experiments, 4*n respective tensorboard files is not easy to discriminate. So in serial mode, all tensorboard files are in the serial folder. (However, in parallel mode, tensorboard files are in respective folder)
 
 - ckpt_baseLearner
-
-    The folder is named in the way of "ckpt_baseLearner" + creation time (e.g. ``"Mon_May_24_12_08_43_2021"``).
 
     In this folder, there are model parameter checkpoints:
         - ckpt_best.pth.tar. Best model which reached highest evaluation score. 
@@ -191,35 +181,36 @@ Parallel mode
 
 ::
 
-    ./
-    ├── log
-    │   ├── buffer
-    │   │   ├── agent_buffer_tb_logger
-    │   │   └── agent_buffer_logger.txt
-    │   ├── collector
-    │   │   ├── 3b5f970b-0ff0-4394-bf8a-de43cadfd2b6_196408_logger.txt
-    │   │   ├── XXX_X_logger.txt
-    │   │   └── ...
-    │   ├── evaluator
-    │   │   ├── 3e483ac6-4a6e-4787-bfef-08f7cc3f14b8_300574_logger.txt
-    │   │   ├── XXX_X_logger.txt
-    │   │   └── ...
-    │   ├── learner
-    │   │   ├── learner_tb_logger
-    │   │   └── learner_logger.txt
-    │   ├── commander
-    │   │   ├── commander_tb_logger
-    │   │   ├── commander_collector_logger.txt       
-    │   │   ├── commander_evaluator_logger.txt
-    │   │   └── commander_logger.txt
-    │   └── coordinator_logger.txt
-    ├── ckpt_baseLearner_ (ckpt_BaseLearner_Mon_May_24_12_08_43_2021)
-    │   └── iteration_.pth.tar (iteration_1000.pth.tar)
+    cartpole_dqn
+    ├── ckpt
+    │   └── iteration_0.pth.tar
     ├── data
-    │   ├── env_ (env_0_0aa0d0b4-c20c-11eb-9cd2-dd796209c19b)
-    │   └── env_ (env_0_0a9e0488-c20c-11eb-9cd2-dd796209c19b) ...
+    ├── log
+    │   ├── buffer
+    │   │   ├── buffer_logger.txt
+    │   │   └── buffer_tb_logger
+    │   │       └── events.out.tfevents.1626453752.CN0014009700M.local
+    │   ├── collector
+    │   │   ├── 4890b4c5-f084-4c94-b440-75f9fa602388_614285_logger.txt
+    │   │   ├── c029d882-fe4f-4a1d-9451-13015bbca192_750418_logger.txt
+    │   │   └── fc68e215-f062-4a1b-a0fd-dcf5f375b290_886803_logger.txt
+    │   ├── commander
+    │   │   ├── commander_collector_logger.txt
+    │   │   ├── commander_evaluator_logger.txt
+    │   │   ├── commander_logger.txt
+    │   │   └── commander_tb_logger
+    │   │       └── events.out.tfevents.1626453748.CN0014009700M.local
+    │   ├── coordinator_logger.txt
+    │   ├── evaluator
+    │   │   ├── 1496df45-8858-4f38-82da-b4a39461a268_451909_logger.txt
+    │   │   └── 2e8879e3-8af5-4ebb-8d50-8af829f03845_711157_logger.txt
+    │   └── learner
+    │       ├── learner_logger.txt
+    │       └── learner_tb_logger
+    │           └── events.out.tfevents.1626453750.CN0014009700M.local
     └── policy
-        └── policy_0ee6e602-9d10-4aff-84a3-980a726430f7_222729
+        ├── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961
+        └── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961.lock:
 
 
 
@@ -227,11 +218,11 @@ In parallel mode, the log folder has five subfolders, including buffer, collecto
 
 - log/buffer
 
-    In buffer folder, there is a file named ``agent_buffer_logger.txt`` and a subfolder named agent_buffer_tb_logger.
+    In buffer folder, there is a file named ``buffer_logger.txt`` and a subfolder named buffer_tb_logger.
 
-    The data in ``agent_buffer_logger.txt`` is the same as that in serial mode.
+    The data in ``buffer_logger.txt`` is the same as that in serial mode.
 
-    In agent_buffer_tb_logger folder, there is a ``events.out.tfevents`` tensorboard file.
+    In buffer_tb_logger folder, there is a ``events.out.tfevents`` tensorboard file.
 
 - log/collector
 
@@ -268,11 +259,9 @@ In parallel mode, the log folder has five subfolders, including buffer, collecto
     There are so many files in the collector and evaluator folder that it seems inconvenient. So we made a synthesis in the commander. This is the reason why there are collector and evaluator folders in parallel mode but the commander folder has collector text file and evaluator text file.
 
 
-- ckpt_baseLearner :
+- ckpt:
 
     Parallel mode's checkpoint folder is the same as serial mode's.
-
-    The folder is named in the way of "ckpt_baseLearner" + creation time (e.g. ``"Mon_May_24_12_08_43_2021"``).
 
     In this folder, there are model parameter checkpoints:
         - ckpt_best.pth.tar. Best model which reached highest evaluation score. 
