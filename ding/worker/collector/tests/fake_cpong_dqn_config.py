@@ -2,6 +2,7 @@ from easydict import EasyDict
 from ding.config import parallel_transform
 
 fake_cpong_dqn_config = dict(
+    exp_name='fake_cpong_dqn',
     env=dict(
         collector_env_num=16,
         collector_episode_num=2,
