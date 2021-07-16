@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cartpole_dqn_config = dict(
+    exp_name='cartpole_dqn',
     env=dict(
         collector_env_num=8,
         collector_episode_num=2,
@@ -86,8 +87,8 @@ create_config = cartpole_dqn_create_config
 
 cartpole_dqn_system_config = dict(
     coordinator=dict(),
-    path_data='./data',
-    path_policy='./policy',
+    path_data='./{}/data'.format(main_config.exp_name),
+    path_policy='./{}/policy'.format(main_config.exp_name),
     communication_mode='auto',
     learner_gpu_num=1,
 )

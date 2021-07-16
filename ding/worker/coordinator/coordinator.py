@@ -58,6 +58,7 @@ class Coordinator(object):
         Arguments:
             - cfg (:obj:`dict`): the config file to init the coordinator
         """
+        self._exp_name = cfg.main.exp_name
         self._coordinator_uid = get_task_uid()
         coor_cfg = cfg.system.coordinator
         self._collector_task_timeout = coor_cfg.collector_task_timeout
@@ -74,7 +75,7 @@ class Coordinator(object):
             'deal_with_increase_collector': self.deal_with_increase_collector,
             'deal_with_decrease_collector': self.deal_with_decrease_collector,
         }
-        self._logger, _ = build_logger(path='./log', name='coordinator', need_tb=False)
+        self._logger, _ = build_logger(path='./{}/log'.format(self._exp_name), name='coordinator', need_tb=False)
         self._interaction = CommCoordinator(coor_cfg, self._callback, self._logger)
         self._learner_task_queue = Queue()
         self._collector_task_queue = Queue()
@@ -188,7 +189,7 @@ class Coordinator(object):
                         buffer_id = learner_task['buffer_id']
                         if buffer_id not in self._replay_buffer:
                             replay_buffer_cfg = learner_task.pop('replay_buffer_cfg')
-                            self._replay_buffer[buffer_id] = create_buffer(replay_buffer_cfg)
+                            self._replay_buffer[buffer_id] = create_buffer(replay_buffer_cfg, exp_name=self._exp_name)
                             self._replay_buffer[buffer_id].start()
                             self.info("replay_buffer({}) is created".format(buffer_id))
                         self.info("learner_task({}) is successful to be assigned".format(learner_task['task_id']))
