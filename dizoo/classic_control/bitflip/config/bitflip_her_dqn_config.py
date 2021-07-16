@@ -2,9 +2,9 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-
 n_bits = 4
 bitflip_her_dqn_config = dict(
+    exp_name='bitflip_her_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=16,
