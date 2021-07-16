@@ -247,8 +247,16 @@ class TestDemonstrationBuffer:
     def test_naive(self, setup_demo_buffer_factory):
         setup_demo_buffer = next(setup_demo_buffer_factory)
         naive_demo_buffer = next(setup_demo_buffer_factory)
-        with open(demo_data_path, 'rb+') as f:
-            data = pickle.load(f)
+        while True:
+            with open(demo_data_path, 'rb+') as f:
+                data = pickle.load(f)
+            if len(data) != 0:
+                break
+            else:  # for the stability of dist-test
+                demo_data = {'data': generate_data_list(10)}
+                with open(demo_data_path, "wb") as f:
+                    pickle.dump(demo_data, f)
+
         setup_demo_buffer.load_state_dict(data)
         assert setup_demo_buffer.count() == len(data['data'])  # assert buffer not empty
         samples = setup_demo_buffer.sample(3, 0)

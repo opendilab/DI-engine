@@ -153,7 +153,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     config_string, _ = FormatCode(config_string)
     config_string = config_string.replace('inf', 'float("inf")')
     with open(path, "w") as f:
-        f.write('exp_config=' + config_string)
+        f.write('exp_config = ' + config_string)
 
 
 def read_config_directly(path: str) -> dict:
