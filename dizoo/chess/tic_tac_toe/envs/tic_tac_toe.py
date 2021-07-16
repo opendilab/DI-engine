@@ -1,5 +1,5 @@
+import sys
 import numpy as np
-
 
 from dizoo.chess.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
@@ -151,9 +151,10 @@ class TicTacToeEnv(BaseGameEnv):
                         and col <= 3
                 ):
                     break
-            except:
-                pass
-            print("Wrong input, try again")
+            except KeyboardInterrupt:
+                sys.exit(0)
+            except Exception as e:
+                print("Wrong input, try again")
         return choice
 
     def action_to_string(self, action_number):

@@ -1,6 +1,8 @@
 import gym
 import gym_chess
 import numpy as np
+import sys
+
 from dizoo.chess.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -59,11 +61,12 @@ class ChessEnv(BaseGameEnv):
                         f"Enter the index of next move for the player {self.to_play()}: "
                     )
                 )
-                if choice in self.env.legal_actoins:
+                if choice in self.env.legal_actions:
                     break
-            except:
-                pass
-            print("Wrong input, try again")
+            except KeyboardInterrupt:
+                sys.exit(0)
+            except Exception as e:
+                print("Wrong input, try again")
         return choice
 
     def info(self) -> BaseEnvInfo:

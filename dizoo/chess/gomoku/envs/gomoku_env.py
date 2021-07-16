@@ -1,6 +1,8 @@
 import gym
 import gym_gomoku
 import numpy as np
+import sys
+
 from dizoo.chess.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -148,9 +150,10 @@ class GomokuEnv(BaseGameEnv):
                         and col <= self.board_size
                 ):
                     break
-            except:
-                pass
-            print("Wrong input, try again")
+            except KeyboardInterrupt:
+                sys.exit(0)
+            except Exception as e:
+                print("Wrong input, try again")
         return choice
 
     def action_to_string(self, action_number):
