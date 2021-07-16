@@ -18,12 +18,12 @@ logging.info('')  # necessary
 class BaseLearner(object):
     r"""
     Overview:
-        Base class for model learning.
+        Base class for policy learning.
     Interface:
         train, call_hook, register_hook, save_checkpoint, start, setup_dataloader, close
     Property:
-        learn_info, priority_info, last_iter, name, rank, world_size, policy
-        monitor, log_buffer, logger, tb_logger
+        learn_info, priority_info, last_iter, train_iter, rank, world_size, policy
+        monitor, log_buffer, logger, tb_logger, ckpt_name, exp_name, instance_name
     """
 
     @classmethod
@@ -52,15 +52,20 @@ class BaseLearner(object):
             policy: namedtuple = None,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
             dist_info: Tuple[int, int] = None,
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'learner',
     ) -> None:
         """
         Overview:
-            Init method. Load config and use ``self._cfg`` to build common learner components,
-            e.g. logger, hooks.
-            Policy is not initialized here, but set afterwards through policy setter.
+            Initialization method, build common learner components according to cfg, such as hook, wrapper and so on.
         Arguments:
-            - cfg (:obj:`EasyDict`): Learner config, you can view `cfg <../../../configuration/index.html>`_ for ref.
-            - rank (:obj:`int`): Process number in multi-gpu training
+            - cfg (:obj:`EasyDict`): Learner config, you can refer cls.config for details.
+            - policy (:obj:`namedtuple`): A collection of policy function of learn mode. And policy can also be \
+                initialized when runtime.
+            - tb_logger (:obj:`SummaryWriter`): Tensorboard summary writer.
+            - dist_info (:obj:`Tuple[int, int]`): Multi-GPU distributed training information.
+            - exp_name (:obj:`str`): Experiment name, which is used to indicate output directory.
+            - instance_name (:obj:`str`): Instance name, which should be unique among different learners.
         Notes:
             If you want to debug in sync CUDA mode, please add the following code at the beginning of ``__init__``.
 
@@ -69,7 +74,8 @@ class BaseLearner(object):
                 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"  # for debug async CUDA
         """
         self._cfg = cfg
-        self._instance_name = self._name + '_' + time.ctime().replace(' ', '_').replace(':', '_')
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         self._ckpt_name = None
         self._timer = EasyTimer()
 
@@ -89,12 +95,18 @@ class BaseLearner(object):
         # Only rank == 0 learner needs monitor and tb_logger, others only need text_logger to display terminal output.
         if self._rank == 0:
             if tb_logger is not None:
-                self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
+                self._logger, _ = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+                )
                 self._tb_logger = tb_logger
             else:
-                self._logger, self._tb_logger = build_logger('./log/learner', 'learner')
+                self._logger, self._tb_logger = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name
+                )
         else:
-            self._logger, _ = build_logger('./log/learner', 'learner', need_tb=False)
+            self._logger, _ = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+            )
             self._tb_logger = None
         self._log_buffer = {
             'scalar': build_log_buffer(),
@@ -381,7 +393,11 @@ class BaseLearner(object):
         return self._tb_logger
 
     @property
-    def name(self) -> str:
+    def exp_name(self) -> str:
+        return self._exp_name
+
+    @property
+    def instance_name(self) -> str:
         return self._instance_name
 
     @property

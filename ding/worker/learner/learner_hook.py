@@ -118,7 +118,7 @@ class LoadCkptHook(LearnerHook):
             last_iter = state_dict.pop('last_iter')
             engine.last_iter.update(last_iter)
         engine.policy.load_state_dict(state_dict)
-        engine.info('{} load ckpt in {}'.format(engine.name, path))
+        engine.info('{} load ckpt in {}'.format(engine.instance_name, path))
 
 
 class SaveCkptHook(LearnerHook):
@@ -153,7 +153,10 @@ class SaveCkptHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner which needs to save checkpoint
         """
         if engine.rank == 0 and engine.last_iter.val % self._freq == 0:
-            dirname = './ckpt_{}'.format(engine.name)
+            if engine.instance_name == 'learner':
+                dirname = './{}/ckpt'.format(engine.exp_name)
+            else:
+                dirname = './{}/ckpt_{}'.format(engine.exp_name, engine.instance_name)
             if not os.path.exists(dirname):
                 try:
                     os.mkdir(dirname)
@@ -164,7 +167,7 @@ class SaveCkptHook(LearnerHook):
             state_dict = engine.policy.state_dict()
             state_dict.update({'last_iter': engine.last_iter.val})
             save_file(path, state_dict)
-            engine.info('{} save ckpt in {}'.format(engine.name, path))
+            engine.info('{} save ckpt in {}'.format(engine.instance_name, path))
 
 
 class LogShowHook(LearnerHook):
@@ -220,12 +223,12 @@ class LogShowHook(LearnerHook):
                 var_dict[k_attr] = getattr(engine.monitor, attr)[k]()
             engine.logger.info(engine.logger.get_tabulate_vars_hor(var_dict))
             for k, v in var_dict.items():
-                engine.tb_logger.add_scalar('learner_iter/' + k, v, iters)
-                engine.tb_logger.add_scalar('learner_step/' + k, v, engine._collector_envstep)
+                engine.tb_logger.add_scalar('{}_iter/'.format(engine.instance_name) + k, v, iters)
+                engine.tb_logger.add_scalar('{}_step/'.format(engine.instance_name) + k, v, engine._collector_envstep)
             # For 'histogram' type variables: log_buffer -> tb_var_dict -> tb_logger
             tb_var_dict = {}
             for k in engine.log_buffer['histogram']:
-                new_k = 'learner/' + k
+                new_k = '{}/'.format(engine.instance_name) + k
                 tb_var_dict[new_k] = engine.log_buffer['histogram'][k]
             for k, v in tb_var_dict.items():
                 engine.tb_logger.add_histogram(k, v, iters)

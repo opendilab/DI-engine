@@ -1,7 +1,9 @@
-import json
+import os
 import os.path as osp
+import json
 import shutil
 import sys
+import time
 import tempfile
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
@@ -151,7 +153,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     config_string, _ = FormatCode(config_string)
     config_string = config_string.replace('inf', 'float("inf")')
     with open(path, "w") as f:
-        f.write('exp_config=' + config_string)
+        f.write('exp_config = ' + config_string)
 
 
 def read_config_directly(path: str) -> dict:
@@ -403,7 +405,12 @@ def compile_config(
     assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
     cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+    if 'exp_name' not in cfg:
+        cfg.exp_name = 'default_experiment'
     if save_cfg:
+        if not os.path.exists(cfg.exp_name):
+            os.mkdir(cfg.exp_name)
+        save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg
 

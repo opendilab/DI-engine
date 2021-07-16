@@ -45,11 +45,17 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = EpisodeCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = EpisodeReplayBuffer(cfg.policy.other.replay_buffer, 'episode')
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    collector = EpisodeCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    replay_buffer = EpisodeReplayBuffer(
+        cfg.policy.other.replay_buffer, exp_name=cfg.exp_name, instance_name='episode_buffer'
+    )
 
     # Set up other modules, etc. epsilon greedy, hindsight experience replay
     eps_cfg = cfg.policy.other.eps
