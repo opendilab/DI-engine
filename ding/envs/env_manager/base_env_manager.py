@@ -46,14 +46,14 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
             except BaseException as e:
                 exceptions.append(e)
                 time.sleep(waiting_time)
-        e_info = ''.join(
-            [
-                'Retry {} failed from:\n {}\n'.format(i, ''.join(traceback.format_tb(e.__traceback__)) + str(e))
-                for i, e in enumerate(exceptions)
-            ]
+        logging.error("Function {} has exceeded max retries({})".format(func, max_retry))
+        runtime_error = RuntimeError(
+            "Function {} has exceeded max retries({}), and the latest exception is: {}".format(
+                func, max_retry, repr(exceptions[-1])
+            )
         )
-        func_exception = Exception("Function {} runtime error:\n{}".format(func, e_info))
-        raise RuntimeError("Function {} has exceeded max retries({})".format(func, max_retry)) from func_exception
+        runtime_error.__traceback__ = exceptions[-1].__traceback__
+        raise runtime_error
 
     return wrapper
 
@@ -318,8 +318,7 @@ class BaseEnvManager(object):
             return self._envs[env_id].step(act)
 
         try:
-            ret = step_fn()
-            return ret
+            return step_fn()
         except Exception as e:
             self._env_states[env_id] = EnvState.ERROR
             raise e
