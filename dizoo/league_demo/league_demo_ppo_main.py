@@ -63,26 +63,37 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     eval_policy1 = EvalPolicy1()
     eval_policy2 = EvalPolicy2()
 
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     collector = Episode1v1Collector(
-        cfg.policy.collect.collector, collector_env, [policy.collect_mode, policy.collect_mode], tb_logger
+        cfg.policy.collect.collector,
+        collector_env, [policy.collect_mode, policy.collect_mode],
+        tb_logger,
+        exp_name=cfg.exp_name
     )
     # collect_mode ppo use multimonial sample for selecting action
     evaluator1 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env1, [policy.collect_mode, eval_policy1], tb_logger, name='fixed'
+        cfg.policy.eval.evaluator,
+        evaluator_env1, [policy.collect_mode, eval_policy1],
+        tb_logger,
+        exp_name=cfg.exp_name,
+        instance_name='fixed_evaluator'
     )
     evaluator2 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env2, [policy.collect_mode, eval_policy2], tb_logger, name='uniform'
+        cfg.policy.eval.evaluator,
+        evaluator_env2, [policy.collect_mode, eval_policy2],
+        tb_logger,
+        exp_name=cfg.exp_name,
+        instance_name='uniform_evaluator'
     )
 
     for _ in range(max_iterations):
         if evaluator1.should_eval(learner.train_iter):
             stop_flag1, reward = evaluator1.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            tb_logger.add_scalar('evaluator1_step/reward_mean', reward, collector.envstep)
+            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, collector.envstep)
         if evaluator2.should_eval(learner.train_iter):
             stop_flag2, reward = evaluator2.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            tb_logger.add_scalar('evaluator2_step/reward_mean', reward, collector.envstep)
+            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, collector.envstep)
         if stop_flag1 and stop_flag2:
             break
         train_data = collector.collect(train_iter=learner.train_iter)

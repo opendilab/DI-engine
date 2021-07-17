@@ -469,7 +469,6 @@ class CommCoordinator(object):
             self._remain_learner_task.remove(task_id)
 
     def _period_sync_with_server(self) -> None:
-        start_time = time.time()
         while not self._end_flag:
             # First: send failed list to notify DI-engine server which replicas are failed,
             # then terminate such replicas.

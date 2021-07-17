@@ -46,7 +46,8 @@ class OnevOneEvaluator(object):
             env: BaseEnvManager = None,
             policy: List[namedtuple] = None,
             tb_logger: 'SummaryWriter' = None,  # noqa
-            name: Optional[str] = 'evaluator',
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -57,11 +58,17 @@ class OnevOneEvaluator(object):
             - cfg (:obj:`EasyDict`)
         """
         self._cfg = cfg
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         if tb_logger is not None:
-            self._logger, _ = build_logger(path='./log/evaluator', name=name, need_tb=False)
+            self._logger, _ = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+            )
             self._tb_logger = tb_logger
         else:
-            self._logger, self._tb_logger = build_logger(path='./log/evaluator', name=name)
+            self._logger, self._tb_logger = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            )
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -245,8 +252,8 @@ class OnevOneEvaluator(object):
                 continue
             if not np.isscalar(v):
                 continue
-            self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
-            self._tb_logger.add_scalar('evaluator_step/' + k, v, envstep)
+            self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
+            self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
         eval_reward = np.mean(episode_reward)
         if eval_reward > self._max_eval_reward:
             if save_ckpt_fn:

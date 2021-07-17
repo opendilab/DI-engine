@@ -1,7 +1,6 @@
-from typing import Tuple, Dict, Union
+from typing import Dict, Union
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from functools import reduce
 from ding.torch_utils import one_hot, MLP

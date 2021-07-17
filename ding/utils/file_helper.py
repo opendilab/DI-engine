@@ -11,7 +11,6 @@ import torch
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
 from .lock_helper import get_file_lock
 
-global _redis_cluster, _memcached
 _memcached = None
 _redis_cluster = None
 
@@ -122,7 +121,6 @@ def read_from_rediscluster(path: str) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global _redis_cluster
     _ensure_rediscluster()
     value_bytes = _redis_cluster.get(path)
     value = pickle.loads(value_bytes)
@@ -169,7 +167,6 @@ def read_from_mc(path: str, flush=False) -> object:
     Returns:
         - (:obj:`data`): Deserialized data
     """
-    global _memcached
     _ensure_memcached()
     while True:
         try:
@@ -183,7 +180,7 @@ def read_from_mc(path: str, flush=False) -> object:
             value_str = io.BytesIO(value_buf)
             value_str = torch.load(value_str, map_location='cpu')
             return value_str
-        except:
+        except Exception:
             print('read mc failed, retry...')
             time.sleep(0.01)
 
@@ -227,7 +224,6 @@ def save_file_ceph(path, data):
         else:
             raise RuntimeError('ceph can not save file, check your ceph installation')
     else:
-        import logging
         size = len(data)
         if save_path == 'do_not_save':
             logging.info(
@@ -263,7 +259,6 @@ def save_file_rediscluster(path, data):
         - path (:obj:`str`): File path (could be a string key) in redis
         - data (:obj:`Any`): Could be dict, list or tensor etc.
     """
-    global _redis_cluster
     _ensure_rediscluster()
     data = pickle.dumps(data)
     _redis_cluster.set(path, data)
@@ -343,7 +338,6 @@ def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
         fs_type = 'ceph' if path.lower().startswith('s3') else 'normal'
     assert fs_type in ['normal', 'ceph']
     if fs_type == 'ceph':
-        pass
         os.popen("aws s3 rm --recursive {}".format(path))
     elif fs_type == 'normal':
         os.popen("rm -rf {}".format(path))

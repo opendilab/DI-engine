@@ -59,7 +59,7 @@ class TestBaseEnvManager:
         with pytest.raises(AssertionError):
             env_manager.step([])
 
-    def test_error(self, setup_base_manager_cfg, setup_exception):
+    def test_error(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
         env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
         # Test reset error
@@ -96,7 +96,7 @@ class TestBaseEnvManager:
 
         env_manager.close()
 
-    def test_block(self, setup_base_manager_cfg, setup_exception, setup_watchdog):
+    def test_block(self, setup_base_manager_cfg, setup_watchdog):
         env_fn = setup_base_manager_cfg.pop('env_fn')
         env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
         watchdog = setup_watchdog(30)

@@ -1,9 +1,9 @@
-from typing import Callable, Optional, List, Union, Any
+from typing import Callable, Optional, List
 from collections import namedtuple
 import numpy as np
 from easydict import EasyDict
 
-from ding.utils import deep_merge_dicts, import_module, PLAYER_REGISTRY
+from ding.utils import import_module, PLAYER_REGISTRY
 from .algorithm import pfsp
 
 

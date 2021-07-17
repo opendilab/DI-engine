@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 league_demo_ppo_config = dict(
+    exp_name="league_demo_ppo",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=10,

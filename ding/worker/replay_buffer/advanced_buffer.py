@@ -28,8 +28,7 @@ class AdvancedReplayBuffer(IBuffer):
     """
 
     config = dict(
-        type='priority',
-        name='default',
+        type='advanced',
         # Max length of the buffer.
         replay_buffer_size=4096,
         # Max use times of one data in the buffer. Data will be removed once used for too many times.
@@ -65,8 +64,6 @@ class AdvancedReplayBuffer(IBuffer):
         ),
         # Monitor configuration for monitor and logger to use. This part does not affect buffer's function.
         monitor=dict(
-            # Logger's save path
-            log_path='./log/buffer/',
             sampled_data_attr=dict(
                 # Past datas will be used for moving average.
                 average_range=5,
@@ -84,7 +81,8 @@ class AdvancedReplayBuffer(IBuffer):
             self,
             cfg: dict,
             tb_logger: Optional['SummaryWriter'] = None,  # noqa
-            name: str = 'default',
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'buffer',
     ) -> int:
         """
         Overview:
@@ -94,8 +92,9 @@ class AdvancedReplayBuffer(IBuffer):
             - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
             - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
         """
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         self._end_flag = False
-        self.name = name
         self._cfg = cfg
         self._replay_buffer_size = self._cfg.replay_buffer_size
         self._deepcopy = self._cfg.deepcopy
@@ -155,12 +154,14 @@ class AdvancedReplayBuffer(IBuffer):
         # Monitor & Logger
         monitor_cfg = self._cfg.monitor
         if tb_logger is not None:
-            self._logger, _ = build_logger(monitor_cfg.log_path, self.name + '_buffer', need_tb=False)
+            self._logger, _ = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+            )
             self._tb_logger = tb_logger
         else:
             self._logger, self._tb_logger = build_logger(
-                monitor_cfg.log_path,
-                self.name + '_buffer',
+                './{}/log/{}'.format(self._exp_name, self._instance_name),
+                self._instance_name,
             )
         self._start_time = time.time()
         # Sampled data attributes.
@@ -173,7 +174,7 @@ class AdvancedReplayBuffer(IBuffer):
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
         self._periodic_thruput_monitor = PeriodicThruputMonitor(
-            self.name, monitor_cfg.periodic_thruput, self._logger, self._tb_logger
+            self._instance_name, monitor_cfg.periodic_thruput, self._logger, self._tb_logger
         )
 
         # Used data remover
@@ -347,7 +348,7 @@ class AdvancedReplayBuffer(IBuffer):
             if self._data[self._tail] is not None:
                 self._head = (self._tail + 1) % self._replay_buffer_size
             self._remove(self._tail)
-            data['replay_unique_id'] = generate_id(self.name, self._next_unique_id)
+            data['replay_unique_id'] = generate_id(self._instance_name, self._next_unique_id)
             data['replay_buffer_idx'] = self._tail
             self._set_weight(data)
             self._data[self._tail] = data
@@ -384,7 +385,7 @@ class AdvancedReplayBuffer(IBuffer):
                         self._head = (j + 1) % self._replay_buffer_size
                     self._remove(j)
                 for i in range(length):
-                    valid_data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
+                    valid_data[i]['replay_unique_id'] = generate_id(self._instance_name, self._next_unique_id + i)
                     valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                     self._set_weight(valid_data[i])
                     self._push_count += 1
@@ -401,7 +402,7 @@ class AdvancedReplayBuffer(IBuffer):
                             self._head = (j + 1) % self._replay_buffer_size
                         self._remove(j)
                     for i in range(valid_data_start, valid_data_start + L):
-                        valid_data[i]['replay_unique_id'] = generate_id(self.name, self._next_unique_id + i)
+                        valid_data[i]['replay_unique_id'] = generate_id(self._instance_name, self._next_unique_id + i)
                         valid_data[i]['replay_buffer_idx'] = (self._tail + i) % self._replay_buffer_size
                         self._set_weight(valid_data[i])
                         self._push_count += 1
@@ -598,7 +599,7 @@ class AdvancedReplayBuffer(IBuffer):
         if self._use_thruput_controller:
             self._thruput_controller.history_push_count += add_count
         self._tb_logger.add_scalar(
-            'buffer_{}_sec/'.format(self.name) + 'push', add_count,
+            'buffer_{}_sec/'.format(self._instance_name) + 'push', add_count,
             time.time() - self._start_time
         )
         self._cur_collector_envstep = cur_collector_envstep
@@ -649,11 +650,11 @@ class AdvancedReplayBuffer(IBuffer):
                 iter_metric = self._cur_learner_iter if self._cur_learner_iter != -1 else None
                 step_metric = self._cur_collector_envstep if self._cur_collector_envstep != -1 else None
                 if iter_metric is not None:
-                    self._tb_logger.add_scalar('buffer_{}_iter/'.format(self.name) + k, v, iter_metric)
+                    self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, iter_metric)
                 if step_metric is not None:
-                    self._tb_logger.add_scalar('buffer_{}_step/'.format(self.name) + k, v, step_metric)
+                    self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, step_metric)
         self._tb_logger.add_scalar(
-            'buffer_{}_sec/'.format(self.name) + 'sample', len(sample_data),
+            '{}_sec/'.format(self._instance_name) + 'sample', len(sample_data),
             time.time() - self._start_time
         )
         self._sampled_data_attr_print_count += 1

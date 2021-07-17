@@ -15,15 +15,6 @@ from ding.torch_utils import to_tensor, to_ndarray, to_list
 from ding.utils import WatchDog, deep_merge_dicts
 
 
-class EnvException(Exception):
-    pass
-
-
-@pytest.fixture(scope='module')
-def setup_exception():
-    return EnvException
-
-
 @pytest.fixture(scope='module')
 def setup_watchdog():
     return WatchDog
@@ -83,7 +74,7 @@ class FakeEnv(object):
 
     def dead(self):
         self._state = EnvState.ERROR
-        raise EnvException("env error, current time {}".format(self._current_time))
+        raise RuntimeError("env error, current time {}".format(self._current_time))
 
     def block(self):
         self._state = EnvState.ERROR
