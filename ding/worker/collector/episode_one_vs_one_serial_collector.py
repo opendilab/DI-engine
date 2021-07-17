@@ -59,6 +59,7 @@ class Episode1v1Collector(ISerialCollector):
             self._logger, self._tb_logger = build_logger(
                 path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
             )
+        self._traj_len = float("inf")
         self.reset(policy, env)
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
