@@ -104,7 +104,7 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(9, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 9,
@@ -121,7 +121,6 @@ ATARIENV_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
-    ,
     'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
