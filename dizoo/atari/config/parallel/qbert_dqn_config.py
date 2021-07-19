@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 qbert_dqn_config = dict(
+    exp_name='qbert_dqn',
     env=dict(
         collector_env_num=16,
         collector_episode_num=2,
@@ -89,8 +90,8 @@ create_config = qbert_dqn_create_config
 
 qbert_dqn_system_config = dict(
     coordinator=dict(),
-    path_data='./data',
-    path_policy='./policy',
+    path_data='./{}/data'.format(main_config.exp_name),
+    path_policy='./{}/policy'.format(main_config.exp_name),
     communication_mode='auto',
     learner_gpu_num=1,
 )

@@ -1,8 +1,7 @@
-from functools import reduce
 import torch
 import torch.nn.functional as F
-from .td import generalized_lambda_returns
 from ding.hpc_rl import hpc_wrapper
+from .td import generalized_lambda_returns
 
 
 def tb_cross_entropy(logit, label, mask=None):

@@ -99,7 +99,7 @@ class TestBaseLearner:
         torch.save({'model': {}, 'last_iter': 5}, path)
         time.sleep(0.5)
         cfg = self._get_cfg(path)
-        learner = FakeLearner(cfg)
+        learner = FakeLearner(cfg, exp_name='exp_test')
         learner.policy = FakePolicy()
         learner.setup_dataloader()
         learner.start()
@@ -107,7 +107,7 @@ class TestBaseLearner:
         assert learner.last_iter.val == 10 + 5
 
         # test hook
-        dir_name = 'ckpt_{}'.format(learner._instance_name)
+        dir_name = '{}/ckpt'.format(learner.exp_name)
         for n in [5, 10, 15]:
             assert os.path.exists(dir_name + '/iteration_{}.pth.tar'.format(n))
         for n in [0, 4, 7, 12]:

@@ -1,9 +1,7 @@
-import copy
 from easydict import EasyDict
-import os.path as osp
 from typing import Optional
 
-from ding.utils import deep_merge_dicts, LEAGUE_REGISTRY
+from ding.utils import LEAGUE_REGISTRY
 from .base_league import BaseLeague
 from .player import ActivePlayer
 

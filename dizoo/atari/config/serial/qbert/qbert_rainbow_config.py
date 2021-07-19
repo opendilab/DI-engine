@@ -15,6 +15,7 @@ qbert_rainbow_config = dict(
     policy=dict(
         cuda=True,
         priority=False,
+        priority_IS_weight=False,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
