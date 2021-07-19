@@ -121,7 +121,6 @@ ATARIENV_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
-    ,
     'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
