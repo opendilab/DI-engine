@@ -1,9 +1,7 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple
+from collections import namedtuple
 import copy
 import torch
-import logging
-from easydict import EasyDict
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample

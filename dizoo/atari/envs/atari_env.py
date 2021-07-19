@@ -20,11 +20,11 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(6, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 6,
-                'dtype': np.float32
+                'dtype': np.int64
             },
         ),
         rew_space=EnvElementInfo(
@@ -48,11 +48,11 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(6, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 6,
-                'dtype': np.float32
+                'dtype': np.int64
             },
         ),
         rew_space=EnvElementInfo(
@@ -76,11 +76,11 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(6, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 6,
-                'dtype': np.float32
+                'dtype': np.int64,
             },
         ),
         rew_space=EnvElementInfo(
@@ -133,11 +133,11 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(18, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 18,
-                'dtype': np.float32
+                'dtype': np.int64,
             },
         ),
         rew_space=EnvElementInfo(

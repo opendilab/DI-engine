@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod, abstractclassmethod
-from collections import namedtuple, deque
+from abc import ABC, abstractmethod
+from collections import namedtuple
 from typing import Optional, List, Dict, Any, Tuple, Union
 
 import torch
@@ -7,7 +7,7 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY, deep_merge_dicts
+from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -216,7 +216,7 @@ class Policy(ABC):
     # *************************************** collect function ************************************
 
     @abstractmethod
-    def _forward_collect(self, data_id: List[int], data: dict, **kwargs) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -224,7 +224,7 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         raise NotImplementedError
 
     # don't need to implement _reset_collect method by force
@@ -240,7 +240,7 @@ class Policy(ABC):
     # *************************************** eval function ************************************
 
     @abstractmethod
-    def _forward_eval(self, data_id: List[int], data: dict) -> Dict[str, Any]:
+    def _forward_eval(self, data: dict) -> Dict[str, Any]:
         raise NotImplementedError
 
     # don't need to implement _reset_eval method by force
@@ -270,15 +270,15 @@ class CommandModePolicy(Policy):
 
     # *************************************** command function ************************************
     @abstractmethod
-    def _get_setting_learn(self) -> dict:
+    def _get_setting_learn(self, command_info: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_collect(self) -> dict:
+    def _get_setting_collect(self, command_info: dict) -> dict:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_eval(self) -> dict:
+    def _get_setting_eval(self, command_info: dict) -> dict:
         raise NotImplementedError
 
 

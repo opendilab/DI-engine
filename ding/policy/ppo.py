@@ -1,13 +1,12 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
-import copy
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
      v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
-from ding.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -267,12 +266,12 @@ class PPOPolicy(Policy):
             }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

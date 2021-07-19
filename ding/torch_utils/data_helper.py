@@ -1,6 +1,6 @@
-import numbers
+from typing import Iterable, Any, Optional
 from collections.abc import Sequence
-from typing import Iterable, Any, List, Optional
+import numbers
 import time
 from threading import Thread
 from queue import Queue

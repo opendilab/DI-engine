@@ -1,8 +1,7 @@
+from typing import Tuple
 from collections import namedtuple
-from typing import Optional, Tuple
 import torch
 import torch.nn.functional as F
-from torch.distributions import Independent, Normal
 
 ppg_data = namedtuple('ppg_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'return_', 'weight'])
 ppg_joint_loss = namedtuple('ppg_joint_loss', ['auxiliary_loss', 'behavioral_cloning_loss'])
@@ -33,7 +32,6 @@ def ppg_joint_error(
     logp_old = dist_old.log_prob(action)
 
     # behavioral cloning loss
-    approx_kl = (logp_old - logp_new).mean()
     behavioral_cloning_loss = F.kl_div(logp_new, logp_old, reduction='batchmean')
 
     return ppg_joint_loss(auxiliary_loss, behavioral_cloning_loss)

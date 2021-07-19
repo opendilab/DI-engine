@@ -38,11 +38,15 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = NaiveReplayBuffer(cfg.policy.other.replay_buffer)
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    collector = SampleCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    replay_buffer = NaiveReplayBuffer(cfg.policy.other.replay_buffer, exp_name=cfg.exp_name)
     reward_model = RndRewardModel(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
 
     for _ in range(max_iterations):

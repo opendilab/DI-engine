@@ -9,7 +9,7 @@ from threading import Thread
 from easydict import EasyDict
 import numpy as np
 from ding.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
-from ding.config import read_config, compile_config_parallel
+from ding.config import read_config_with_system, compile_config_parallel
 from ding.utils import set_pkg_seed, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT
 
 
@@ -25,7 +25,7 @@ def dist_prepare_config(
         collector_port,
 ) -> str:
     set_pkg_seed(seed)
-    main_cfg, create_cfg, system_cfg = read_config(filename)
+    main_cfg, create_cfg, system_cfg = read_config_with_system(filename)
     config = compile_config_parallel(
         main_cfg,
         create_cfg=create_cfg,
@@ -57,7 +57,7 @@ def dist_launch_coordinator(
     # Disable some part of DI-engine log
     if not enable_total_log:
         coordinator_log = logging.getLogger('coordinator_logger')
-        # coordinator_log.disabled = True
+        coordinator_log.disabled = True
     if disable_flask_log:
         log = logging.getLogger('werkzeug')
         log.disabled = True

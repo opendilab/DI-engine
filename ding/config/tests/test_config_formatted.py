@@ -24,7 +24,7 @@ def test_config_formatted(config_path, name):
         main_config, seed=0, auto=True, create_cfg=create_config, save_cfg=True, save_path='{}_config.py'.format(name)
     )
 
-    module = importlib.import_module('formatted_{}_config'.format(name))
+    module = importlib.import_module('cartpole_{}.formatted_{}_config'.format(name, name))
     main_config, create_config = module.main_config, module.create_config
     cfg_test = compile_config(main_config, seed=0, auto=True, create_cfg=create_config, save_cfg=False)
     assert cfg == cfg_test, 'cfg_formatted_failed'

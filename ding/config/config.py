@@ -1,7 +1,9 @@
-import json
+import os
 import os.path as osp
+import json
 import shutil
 import sys
+import time
 import tempfile
 from importlib import import_module
 from typing import Optional, Tuple, NoReturn
@@ -151,31 +153,62 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     config_string, _ = FormatCode(config_string)
     config_string = config_string.replace('inf', 'float("inf")')
     with open(path, "w") as f:
-        f.write('exp_config=' + config_string)
+        f.write('exp_config = ' + config_string)
 
 
-def read_config(cfg: str, direct: bool = False) -> Tuple[dict, dict]:
+def read_config_directly(path: str) -> dict:
     """
     Overview:
-        read configuration from python file
+        Read configuration from a file path(now only suport python file) and directly return results.
     Arguments:
-        - cfg (:obj:`str`): Path of python file
-        - direct (:obj:`bool`): Read config directly if direct is true or divide config into main_config,\
-            create_config and system_config if direct is false
+        - path (:obj:`str`): Path of configuration file
     Returns:
-        - cfg (:obj:`Tuple[dict, dict]`): Config dict, such as [main_config, create_config, system_config]\
-            or main_config, create_config, system_config
+        - cfg (:obj:`Tuple[dict, dict]`): Configuration dict.
     """
-    suffix = cfg.split('.')[-1]
+    suffix = path.split('.')[-1]
     if suffix == 'py':
-        cfg = Config.file_to_dict(cfg).cfg_dict
-        if direct:
-            return cfg
+        return Config.file_to_dict(path).cfg_dict
+    else:
+        raise KeyError("invalid config file suffix: {}".format(suffix))
+
+
+def read_config(path: str) -> Tuple[dict, dict]:
+    """
+    Overview:
+        Read configuration from a file path(now only suport python file). And select some proper parts.
+    Arguments:
+        - path (:obj:`str`): Path of configuration file
+    Returns:
+        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config` and \
+            `create_cfg` two parts.
+    """
+    suffix = path.split('.')[-1]
+    if suffix == 'py':
+        cfg = Config.file_to_dict(path).cfg_dict
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
-        if 'system_config' in cfg:
-            return cfg['main_config'], cfg['create_config'], cfg['system_config']
-        else:
-            return cfg['main_config'], cfg['create_config']
+        assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
+        return cfg['main_config'], cfg['create_config']
+    else:
+        raise KeyError("invalid config file suffix: {}".format(suffix))
+
+
+def read_config_with_system(path: str) -> Tuple[dict, dict, dict]:
+    """
+    Overview:
+        Read configuration from a file path(now only suport python file). And select some proper parts
+    Arguments:
+        - path (:obj:`str`): Path of configuration file
+    Returns:
+        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config`, \
+            `create_cfg` and `system_config` three parts.
+    """
+    suffix = path.split('.')[-1]
+    if suffix == 'py':
+        cfg = Config.file_to_dict(path).cfg_dict
+        assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
+        assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
+        assert "system_config" in cfg, "Please make sure a 'system_config' variable is declared in config python file!"
+        return cfg['main_config'], cfg['create_config'], cfg['system_config']
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
@@ -372,7 +405,12 @@ def compile_config(
     assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
     cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+    if 'exp_name' not in cfg:
+        cfg.exp_name = 'default_experiment'
     if save_cfg:
+        if not os.path.exists(cfg.exp_name):
+            os.mkdir(cfg.exp_name)
+        save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg
 

@@ -1,9 +1,8 @@
+from typing import Iterable, Callable, Optional, Any, Union
 import time
 import platform
 import threading
 import queue
-from typing import Iterable, Callable, Optional, Any, Union
-from collections import defaultdict
 
 import torch
 import torch.multiprocessing as tm

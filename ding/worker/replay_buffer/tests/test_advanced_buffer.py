@@ -11,7 +11,7 @@ from ding.worker.replay_buffer import AdvancedReplayBuffer
 from ding.utils import deep_merge_dicts
 from ding.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
 
-demo_data_path = "test_demo_data.pkl"
+demo_data_path = "test_demo_data"
 
 
 @pytest.fixture(scope="function")
@@ -29,7 +29,7 @@ def setup_demo_buffer_factory():
             cfg.alpha = 0.6
             cfg.beta = 0.6
             cfg.enable_track_used_data = False
-            yield AdvancedReplayBuffer(name="demo", cfg=cfg)
+            yield AdvancedReplayBuffer(instance_name="demo", cfg=cfg)
 
     return generator()
 
@@ -39,7 +39,7 @@ class TestAdvancedBuffer:
 
     def test_push(self):
         buffer_cfg = deep_merge_dicts(AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         start_pointer = advanced_buffer._tail
         start_vaildlen = advanced_buffer.count()
         start_data_id = advanced_buffer._next_unique_id
@@ -61,7 +61,7 @@ class TestAdvancedBuffer:
         assert (advanced_buffer._next_unique_id == start_data_id + 100)
 
         buffer_cfg = deep_merge_dicts(AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         start_pointer = advanced_buffer._tail
         start_data_id = advanced_buffer._next_unique_id
         replay_buffer_size = advanced_buffer.replay_buffer_size
@@ -75,7 +75,7 @@ class TestAdvancedBuffer:
 
     def test_update(self):
         buffer_cfg = deep_merge_dicts(AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         for _ in range(64):
             advanced_buffer.push(generate_data(), 0)
             assert advanced_buffer.count() == sum([d is not None for d in advanced_buffer._data])
@@ -107,7 +107,7 @@ class TestAdvancedBuffer:
         buffer_cfg = deep_merge_dicts(
             AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=2))
         )
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         for _ in range(64):
             data = generate_data()
             data['priority'] = None
@@ -133,7 +133,7 @@ class TestAdvancedBuffer:
         buffer_cfg = deep_merge_dicts(
             AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=4))
         )
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         for i in range(65):
             advanced_buffer.push(generate_data(), 0)
         assert advanced_buffer._head == advanced_buffer._tail == 1
@@ -155,7 +155,7 @@ class TestAdvancedBuffer:
         buffer_cfg = deep_merge_dicts(
             AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=1))
         )
-        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        advanced_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
         assert (advanced_buffer.count() == 0)  # assert empty buffer
 
         def get_weights(data_):
@@ -207,7 +207,7 @@ class TestAdvancedBuffer:
             window_seconds=5,
             sample_min_limit_ratio=1.5,
         )
-        prioritized_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, name='test')
+        prioritized_buffer = AdvancedReplayBuffer(buffer_cfg, tb_logger=None, instance_name='test')
 
         # Too many samples
         data = generate_data_list(30)
@@ -247,8 +247,16 @@ class TestDemonstrationBuffer:
     def test_naive(self, setup_demo_buffer_factory):
         setup_demo_buffer = next(setup_demo_buffer_factory)
         naive_demo_buffer = next(setup_demo_buffer_factory)
-        with open(demo_data_path, 'rb+') as f:
-            data = pickle.load(f)
+        while True:
+            with open(demo_data_path, 'rb+') as f:
+                data = pickle.load(f)
+            if len(data) != 0:
+                break
+            else:  # for the stability of dist-test
+                demo_data = {'data': generate_data_list(10)}
+                with open(demo_data_path, "wb") as f:
+                    pickle.dump(demo_data, f)
+
         setup_demo_buffer.load_state_dict(data)
         assert setup_demo_buffer.count() == len(data['data'])  # assert buffer not empty
         samples = setup_demo_buffer.sample(3, 0)

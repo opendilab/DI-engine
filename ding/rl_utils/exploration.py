@@ -2,7 +2,6 @@ import math
 from abc import ABC, abstractmethod
 from typing import Callable, Union, Optional
 from copy import deepcopy
-from easydict import EasyDict
 from ding.torch_utils.data_helper import to_device
 
 import torch
