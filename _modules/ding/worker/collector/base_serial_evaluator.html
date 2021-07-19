@@ -316,6 +316,8 @@
 <span class="sd">            Determine whether you need to start the evaluation mode, if the number of training has reached\</span>
 <span class="sd">                the maximum number of times to start the evaluator, return True</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">train_iter</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_eval_iter</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">train_iter</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_eval_iter</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">eval_freq</span> <span class="ow">and</span> <span class="n">train_iter</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_eval_iter</span> <span class="o">=</span> <span class="n">train_iter</span>

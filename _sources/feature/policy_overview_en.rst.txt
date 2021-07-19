@@ -58,7 +58,7 @@ Policy Interfaces
 
     * ``_forward_learn`` : Forward method for learn mode.
 
-    * ``_reset_learn`` : Reset learn mode related varaiables if there are any. Do not need to implement this by force.
+    * ``_reset_learn`` : Reset learn mode related variables if there are any. Do not need to implement this by force.
 
     * ``_monitor_vars_learn`` : Variables that are monitored in learner training process. Those variables will be printed to text and tensorboard logger.
 
@@ -70,7 +70,7 @@ Policy Interfaces
 
     * ``_forward_collect`` : Forward method for collect mode.
 
-    * ``_reset_collect`` : Reset collect mode related varaiables if there are any. Do not need to implement this by force.
+    * ``_reset_collect`` : Reset collect mode related variables if there are any. Do not need to implement this by force.
 
     * ``_process_transition`` : Process env timestep and policy output into a transition.
 
@@ -84,7 +84,7 @@ Policy Interfaces
 
     * ``_forward_eval`` : Forward method for eval mode.
 
-    * ``_reset_eval`` : Reset eval mode related varaiables if there are any. Do not need to implement this by force.
+    * ``_reset_eval`` : Reset eval mode related variables if there are any. Do not need to implement this by force.
 
     * ``_state_dict_eval`` : Return model's current state dict.
 
