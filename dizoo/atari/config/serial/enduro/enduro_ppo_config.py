@@ -26,7 +26,6 @@ enduro_ppo_config = dict(
         ),
         learn=dict(
             update_per_collect=24,
-            # update_per_collect=5,
             batch_size=128,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
@@ -37,7 +36,6 @@ enduro_ppo_config = dict(
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             # entropy_weight=0.00001,
             entropy_weight=1e-6,
-            #clip_ratio=0.2,
             clip_ratio=0.1
         ),
         collect=dict(

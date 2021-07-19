@@ -1,5 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
 import torch
 import copy
 
@@ -271,13 +270,13 @@ class RainbowDQNPolicy(DQNPolicy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _get_train_sample(self, traj: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, traj: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
 
         Arguments:
-            - traj (:obj:`deque`): The trajactory's cache
+            - traj (:obj:`list`): The trajactory's buffer list
 
         Returns:
             - samples (:obj:`dict`): The training samples generated

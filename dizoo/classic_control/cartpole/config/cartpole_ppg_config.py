@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cartpole_ppg_config = dict(
+    exp_name="cartpole_ppg",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,

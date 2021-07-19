@@ -1,7 +1,6 @@
-from typing import Union, Optional, List, Any, Callable, Tuple
+from typing import Union, Optional, Tuple
 import os
 import torch
-import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
@@ -49,11 +48,13 @@ def serial_pipeline_il(
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
     # Main components
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial_il'))
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
     # ==========
     # Main loop
     # ==========

@@ -1,4 +1,3 @@
-import logging
 from functools import partial, lru_cache
 from typing import Callable, Optional
 
