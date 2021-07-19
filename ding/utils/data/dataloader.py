@@ -315,7 +315,9 @@ class AsyncDataLoader(IDataLoader):
                 if self.cuda_queue.empty():
                     time.sleep(0.01)
                 else:
-                    return self.cuda_queue.get()
+                    data = self.cuda_queue.get(timeout=60)
+                    self.cuda_queue.task_done()
+                    return data
             else:
                 if self.async_train_queue.empty():
                     time.sleep(0.01)
@@ -327,7 +329,7 @@ class AsyncDataLoader(IDataLoader):
         if self.use_cuda:
             while not self.cuda_queue.empty():
                 _ = self.cuda_queue.get()
-            self.cuda_queue.task_done()
+                self.cuda_queue.task_done()
             self.cuda_queue.join()
         else:
             while not self.async_train_queue.empty():
