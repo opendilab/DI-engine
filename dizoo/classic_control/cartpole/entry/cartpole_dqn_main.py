@@ -71,8 +71,9 @@ def main(cfg, seed=0):
         # Training
         for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data is not None:
-                learner.train(train_data, collector.envstep)
+            if train_data is None:
+                break
+            learner.train(train_data, collector.envstep)
 
 
 if __name__ == "__main__":
