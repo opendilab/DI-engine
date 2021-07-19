@@ -104,7 +104,7 @@ ATARIENV_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            shape=(9, ),
+            shape=(1, ),
             value={
                 'min': 0,
                 'max': 9,

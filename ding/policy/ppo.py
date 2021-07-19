@@ -124,10 +124,7 @@ class PPOPolicy(Policy):
         # normal ppo
         if not self._nstep_return:
             output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
-            adv = data['adv']
-            # if self._adv_norm:
-            #     # Normalize advantage in a total train_batch
-            #     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+            adv = data['adv'] 
             return_ = data['value'] + adv
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
