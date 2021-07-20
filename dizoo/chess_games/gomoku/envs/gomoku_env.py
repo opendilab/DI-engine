@@ -3,7 +3,7 @@ import gym_gomoku
 import numpy as np
 import sys
 
-from dizoo.chess.base_game_env import BaseGameEnv
+from dizoo.chess_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY

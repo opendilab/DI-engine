@@ -1,4 +1,4 @@
-from dizoo.chess.chess.envs.chess_env import ChessEnv
+from dizoo.chess_games.chess_env.envs.chess_env import ChessEnv
 
 
 env = ChessEnv()
