@@ -1,24 +1,19 @@
-from multiprocessing import Process, Pipe, connection, get_context, Array
+from typing import Any, Union, List, Tuple, Dict, Callable, Optional
+from multiprocessing import Pipe, connection, get_context, Array
 from collections import namedtuple
-import enum
 import logging
 import platform
 import time
-import math
 import copy
 import traceback
-import threading
 import numpy as np
 import torch
 import ctypes
 import pickle
 import cloudpickle
-from functools import partial
 from easydict import EasyDict
 from types import MethodType
-from typing import Any, Union, List, Tuple, Iterable, Dict, Callable, Optional
 
-from ding.torch_utils import to_tensor, to_ndarray, to_list
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager, EnvState, retry_wrapper, timeout_wrapper
 
@@ -275,7 +270,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Return:
             A dictionary with observations and their environment IDs.
         Note:
-            The observations are returned in torch.Tensor.
+            The observations are returned in np.ndarray.
         Example:
             >>>     obs_dict = env_manager.ready_obs
             >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}

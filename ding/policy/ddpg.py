@@ -1,12 +1,11 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
 import copy
-import numpy as np
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
-from ding.model import QAC, model_wrap
+from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
@@ -360,7 +359,7 @@ class DDPGPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:

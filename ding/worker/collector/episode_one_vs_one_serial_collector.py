@@ -28,7 +28,9 @@ class Episode1v1Collector(ISerialCollector):
             cfg: EasyDict,
             env: BaseEnvManager = None,
             policy: List[namedtuple] = None,
-            tb_logger: 'SummaryWriter' = None  # noqa
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -39,6 +41,8 @@ class Episode1v1Collector(ISerialCollector):
             - policy (:obj:`List[namedtuple]`): the api namedtuple of collect_mode policy
             - tb_logger (:obj:`SummaryWriter`): tensorboard handle
         """
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
         self._deepcopy_obs = cfg.deepcopy_obs
         self._transform_obs = cfg.transform_obs
@@ -47,10 +51,15 @@ class Episode1v1Collector(ISerialCollector):
         self._end_flag = False
 
         if tb_logger is not None:
-            self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
+            self._logger, _ = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+            )
             self._tb_logger = tb_logger
         else:
-            self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
+            self._logger, self._tb_logger = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            )
+        self._traj_len = float("inf")
         self.reset(policy, env)
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
@@ -244,9 +253,12 @@ class Episode1v1Collector(ISerialCollector):
                     for policy_id, policy in enumerate(self._policy):
                         if policy_id == 1:  # only use policy0 data for training
                             continue
-                        policy_timestep = type(timestep)(*[d[policy_id] if not isinstance(d, bool) else d for d in timestep])
+                        policy_timestep = type(timestep)(
+                            *[d[policy_id] if not isinstance(d, bool) else d for d in timestep]
+                        )
                         transition = self._policy[policy_id].process_transition(
-                            self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id], policy_timestep
+                            self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
+                            policy_timestep
                         )
                         transition['collect_iter'] = train_iter
                         self._traj_buffer[env_id][policy_id].append(transition)
@@ -271,8 +283,12 @@ class Episode1v1Collector(ISerialCollector):
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
                     }
-                    self._tb_logger.add_scalar('collector_iter/probs_select_action0', probs0[0].item(), train_iter)
-                    self._tb_logger.add_scalar('collector_iter/probs_select_action1', probs0[1].item(), train_iter)
+                    self._tb_logger.add_scalar(
+                        '{}_iter/probs_select_action0'.format(self._instance_name), probs0[0].item(), train_iter
+                    )
+                    self._tb_logger.add_scalar(
+                        '{}_iter/probs_select_action1'.format(self._instance_name), probs0[1].item(), train_iter
+                    )
                     collected_episode += 1
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):
@@ -323,7 +339,7 @@ class Episode1v1Collector(ISerialCollector):
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             for k, v in info.items():
-                self._tb_logger.add_scalar('collector_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
                 if k in ['total_envstep_count']:
                     continue
-                self._tb_logger.add_scalar('collector_step/' + k, v, self._total_envstep_count)
+                self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, self._total_envstep_count)

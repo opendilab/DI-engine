@@ -11,6 +11,7 @@ from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
 from game_env import GameEnv
+from demo_league import DemoLeague
 from league_demo_ppo_config import league_demo_ppo_config
 
 
@@ -49,47 +50,92 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
     evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
-    collector_env.seed(seed)
     evaluator_env1.seed(seed, dynamic_seed=False)
     evaluator_env2.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
-    model = VAC(**cfg.policy.model)
-    policy = PPOPolicy(cfg.policy, model=model)
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    league = DemoLeague(cfg.policy.other.league)
     eval_policy1 = EvalPolicy1()
     eval_policy2 = EvalPolicy2()
+    policies = {}
+    learners = {}
+    collectors = {}
+    for player_id in league.active_players_ids:
+        # default set the same arch model(different init weight)
+        model = VAC(**cfg.policy.model)
+        policy = PPOPolicy(cfg.policy, model=model)
+        policies[player_id] = policy
+        collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
+        collector_env.seed(seed)
 
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = Episode1v1Collector(
-        cfg.policy.collect.collector, collector_env, [policy.collect_mode, policy.collect_mode], tb_logger
-    )
+        learners[player_id] = BaseLearner(
+            cfg.policy.learn.learner,
+            policy.learn_mode,
+            tb_logger=tb_logger,
+            exp_name=cfg.exp_name,
+            instance_name=player_id + '_learner'
+        )
+        collectors[player_id] = Episode1v1Collector(
+            cfg.policy.collect.collector,
+            collector_env,
+            tb_logger=tb_logger,
+            exp_name=cfg.exp_name,
+            instance_name=player_id + '_colllector',
+        )
+
+    main_key = [k for k in learners.keys() if k.startswith('main_player')][0]
+    main_learner = learners[main_key]
+    main_collector = collectors[main_key]
     # collect_mode ppo use multimonial sample for selecting action
     evaluator1 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env1, [policy.collect_mode, eval_policy1], tb_logger, name='fixed'
+        cfg.policy.eval.evaluator,
+        evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
+        tb_logger,
+        exp_name=cfg.exp_name,
+        instance_name='fixed_evaluator'
     )
     evaluator2 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env2, [policy.collect_mode, eval_policy2], tb_logger, name='uniform'
+        cfg.policy.eval.evaluator,
+        evaluator_env2, [policies[main_key].collect_mode, eval_policy2],
+        tb_logger,
+        exp_name=cfg.exp_name,
+        instance_name='uniform_evaluator'
     )
 
     for _ in range(max_iterations):
-        if evaluator1.should_eval(learner.train_iter):
-            stop_flag1, reward = evaluator1.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            tb_logger.add_scalar('evaluator1_step/reward_mean', reward, collector.envstep)
-        if evaluator2.should_eval(learner.train_iter):
-            stop_flag2, reward = evaluator2.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            tb_logger.add_scalar('evaluator2_step/reward_mean', reward, collector.envstep)
+        if evaluator1.should_eval(main_learner.train_iter):
+            stop_flag1, reward = evaluator1.eval(
+                main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
+            )
+            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
+        if evaluator2.should_eval(main_learner.train_iter):
+            stop_flag2, reward = evaluator2.eval(
+                main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
+            )
+            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if stop_flag1 and stop_flag2:
             break
-        train_data = collector.collect(train_iter=learner.train_iter)
-        for d in train_data:
-            d['adv'] = d['reward']
-        for i in range(cfg.policy.learn.update_per_collect):
-            learner.train(train_data, collector.envstep)
+        for player_id in league.active_players_ids:
+            collector, learner = collectors[player_id], learners[player_id]
+            job = league.get_job_info(player_id)
+            opponent_player_id = job['player_id'][1]
+            # print('job player: {}'.format(job['player_id']))
+            collector.reset_policy([policies[player_id].collect_mode, policies[opponent_player_id].collect_mode])
+            train_data = collector.collect(train_iter=learner.train_iter)
+            for d in train_data:
+                d['adv'] = d['reward']
+
+            for i in range(cfg.policy.learn.update_per_collect):
+                learner.train(train_data, collector.envstep)
+
+            # TODO
+            # league.update_active_player({})
+            # league.judge_snapshot(player_id)
+            # league.finish_job({})
 
 
 if __name__ == "__main__":

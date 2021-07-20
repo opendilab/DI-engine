@@ -10,6 +10,7 @@ def setup_1v1commander():
     nstep = 1
     eval_interval = 5
     main_config = dict(
+        exp_name='one_vs_one_test',
         env=dict(
             collector_env_num=8,
             collector_episode_num=2,

@@ -1,9 +1,6 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
 import copy
 import torch
-import logging
-from easydict import EasyDict
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_train_sample, get_nstep_return_data
@@ -226,12 +223,12 @@ class QRDQNPolicy(DQNPolicy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

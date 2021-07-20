@@ -39,3 +39,9 @@ class GameEnv(BaseEnv):
 
     def close(self):
         pass
+
+    def __repr__(self):
+        return "DI-engine League Demo GameEnv"
+
+    def info(self):
+        pass

@@ -1,14 +1,8 @@
-from typing import List, Dict, Any, Callable
+from typing import Dict, Any, Callable
 from collections import namedtuple
 import numpy as np
-from numpy.core.overrides import ARRAY_FUNCTION_ENABLED
 
-from ding.torch_utils import Adam, to_device
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error
-from ding.model import model_wrap
-from ding.utils.data import default_collate, default_decollate
-from .base_policy import Policy
-from .common_utils import default_preprocess_learn
+from ding.torch_utils import to_device
 
 
 class PolicyFactory:
@@ -57,7 +51,7 @@ class PolicyFactory:
                     return np.random.uniform(low=min_val, high=max_val, size=shape)
 
             actions = {}
-            discrete = action_space.value['dtype'] == int
+            discrete = action_space.value['dtype'] == int or action_space.value['dtype'] == np.int64
             min, max, shape = action_space.value['min'], action_space.value['max'], action_space.shape
             for env_id in data:
                 # For continuous env, action is limited in [-1, 1] for model output.
