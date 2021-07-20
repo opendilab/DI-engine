@@ -84,6 +84,7 @@ class ConvEncoder(nn.Module):
             - outputs (:obj:`torch.Tensor`): Embedding tensor
         """
         # print("x = ", x)
+        # print(x.shape)
         x = x.float()
         x = self.main(x)
         # print("x = ", x)
@@ -141,6 +142,7 @@ class VAC(nn.Module):
         action_shape: int = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
         # Encoder Type
+        
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             encoder_cls = FCEncoder
         elif len(obs_shape) == 3:
@@ -354,11 +356,14 @@ class VAC(nn.Module):
             Returning the combination dictionry.
 
         """
+        # print("origin input x shape is:", x.shape)
         if self.share_encoder:
             actor_embedding = critic_embedding = self.encoder(x)
         else:
             actor_embedding = self.actor_encoder(x)
             critic_embedding = self.critic_encoder(x)
+        # print("critic_embedding is :", critic_embedding)
+        # print("critic_embedding shape is :", critic_embedding.shape)
         value = self.critic_head(critic_embedding)
         actor_output = self.actor_head(actor_embedding)
         if self.continuous:

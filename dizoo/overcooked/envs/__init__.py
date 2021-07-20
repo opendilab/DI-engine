@@ -1,1 +1,1 @@
-from .overcooked_env import OvercookEnv 
+from .overcooked_env import OvercookEnv, OvercookGameEnv 

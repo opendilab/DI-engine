@@ -7,8 +7,8 @@ overcooked_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        stop_value=10,
-		stack_obs=True,
+        stop_value=60,
+		concat_obs=True,
 		action_mask=False,
     ),
     policy=dict(
