@@ -23,3 +23,13 @@ Space Invaders
 | a2c       | 755      | n/a      | n/a      | 627      |
 | ppo       | 1459     | n/a      | 1025     | 960      |
 | ppg       | 1200     | n/a      | n/a      | n/a      |
+
+Enduro
+
+| Algorithm | DI-engine| tianshou | xingtian |   sb3    |
+| --------- | -------- | -------- | -------- | -------  |
+| dqn       | 1880     | 670      | n/a      | 1076      |
+| c51       | 2396     | 1032     | n/a      | n/a      |
+| qrdqn     | 2082     | 1055.9   | n/a      | n/a      |
+| rainbow   | 2229     | n/a      | n/a      | n/a      |
+| ppo       | 1459     | n/a      | n/a     | 1342      |
