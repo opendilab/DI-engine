@@ -15,3 +15,5 @@ from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_da
 from .value_rescale import value_transform, value_inv_transform
 from .vtrace import vtrace_data, vtrace_error
 from .beta_function import beta_function_map
+from .isw import compute_importance_weights
+from .retrace import compute_q_retraces
