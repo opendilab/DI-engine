@@ -1,10 +1,11 @@
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple
+import copy
 
 import torch
 
 from ding.model import model_wrap
-from ding.rl_utils import get_train_sample, compute_q_retraces
+from ding.rl_utils import get_train_sample, compute_q_retraces, acer_policy_error, acer_value_error, acer_trust_region_update
 from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -13,7 +14,7 @@ from ding.policy.base_policy import Policy
 EPS=1e-10
 
 @POLICY_REGISTRY.register('acer')
-class IMPALAPolicy(Policy):
+class ACERPolicy(Policy):
     r"""
     Overview:
         Policy class of IMPALA algorithm.
@@ -58,7 +59,6 @@ class IMPALAPolicy(Policy):
             update_per_collect=4,
             # (int) the number of data for a train iteration
             batch_size=16,
-            learning_rate=0.0005,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
@@ -70,11 +70,12 @@ class IMPALAPolicy(Policy):
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) clip ratio of importance weights
-            rho_clip_ratio=1.0,
-            # (float) clip ratio of importance weights
             c_clip_ratio=1.0,
-            # (float) clip ratio of importance sampling
-            rho_pg_clip_ratio=1.0,
+            use_trust_region=True,
+            trust_region_value=1.0,
+            learning_rate_actor=0.0005,
+            learning_rate_critic=0.0005,
+            target_theta=0.01
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -91,7 +92,7 @@ class IMPALAPolicy(Policy):
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            type='priority',
+            type='naive',
             replay_buffer_size=1000,
             max_use=16,
         ), ),
@@ -104,20 +105,24 @@ class IMPALAPolicy(Policy):
             Initialize the optimizer, algorithm config and main model.
         """
         # Optimizer
-        grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
-        clip_value = self._cfg.learn.get("clip_value", None)
-        optim_type = self._cfg.learn.get("optim", "adam")
-        if optim_type == 'rmsprop':
-            self._optimizer = RMSprop(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        elif optim_type == 'adam':
-            self._optimizer = Adam(
-                self._model.parameters(),
-                grad_clip_type=grad_clip_type,
-                clip_value=clip_value,
-                lr=self._cfg.learn.learning_rate
-            )
-        else:
-            raise NotImplementedError
+        # grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
+        # clip_value = self._cfg.learn.get("clip_value", None)
+        self._optimizer_actor = Adam(
+            self._model.actor.parameters(),
+            lr=self._cfg.learn.learning_rate_actor,
+        )
+        self._optimizer_critic = Adam(
+            self._model.critic.parameters(),
+            lr=self._cfg.learn.learning_rate_critic,
+        )
+
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta':self._cfg.learn.target_theta}
+        )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         self._action_shape = self._cfg.model.action_shape
@@ -130,12 +135,14 @@ class IMPALAPolicy(Policy):
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._gamma = self._cfg.learn.discount_factor
         self._lambda = self._cfg.learn.lambda_
-        self._rho_clip_ratio = self._cfg.learn.rho_clip_ratio
+        # self._rho_clip_ratio = self._cfg.learn.rho_clip_ratio
         self._c_clip_ratio = self._cfg.learn.c_clip_ratio
-        self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
-
+        # self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
+        self._use_trust_region = self._cfg.learn.use_trust_region
+        self._trust_region_value = self._cfg.learn.trust_region_value
         # Main model
         self._learn_model.reset()
+        self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
@@ -207,33 +214,64 @@ class IMPALAPolicy(Policy):
         self._learn_model.train()
         action_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')
         q_value_data = self._learn_model.forward(data['obs_plus_1'],mode='compute_critic')
+        avg_action_data = self._target_model.forward(data['obs_plus_1'],mode='compute_actor')
 
-        target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(action_data,q_value_data, data)
+        target_logit, behaviour_logit, avg_logit, actions, q_values, rewards, weights = self._reshape_data(action_data,avg_action_data,q_value_data, data)
         # Calculate vtrace error
-        rho = torch.softmax(target_logit,dim=-1)/(torch.softmax(behaviour_logit,dim=-1)+EPS)
-        q_retraces = compute_q_retraces()       
+        target_pi = torch.softmax(target_logit,dim=-1) #shape T,B,env_action_shape
+        behaviour_pi = torch.softmax(behaviour_logit,dim=-1) #shape T,B,env_action_shape
+        avg_pi = torch.softmax(avg_logit,dim=-1) #shape T,B,env_action_shape
+        with torch.no_grad():
+            ratio = target_pi[0:-1,...]/(behaviour_pi+EPS) #shape T,B,env_action_shape
+            v_pred=(q_values*target_pi).sum(-1).unsqueeze(-1) # shape (T+1),B,1
+            q_retraces = compute_q_retraces(q_values,v_pred,rewards,actions,weights,ratio,self._gamma)
+
+        q_retraces = q_retraces[0:-1,...]
+        q_values=q_values[0:-1,...]
+        v_pred=v_pred[0:-1,...]
+        target_pi=target_pi[0:-1,...]
+        avg_pi=avg_pi[0:-1,...]
 
 
-        data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
-        g, l, r, c, rg = self._gamma, self._lambda, self._rho_clip_ratio, self._c_clip_ratio, self._rho_pg_clip_ratio
-        vtrace_loss = vtrace_error(data, g, l, r, c, rg)
-        wv, we = self._value_weight, self._entropy_weight
-        total_loss = vtrace_loss.policy_loss + wv * vtrace_loss.value_loss - we * vtrace_loss.entropy_loss
         # ====================
-        # IMPALA update
+        # policy update
+        # ==================== 
+        actor_loss,bc_loss = acer_policy_error(q_values,q_retraces,v_pred,target_pi,actions,ratio,self._c_clip_ratio)
+        dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
+        entropy_loss=dist_new.entropy().unsqueeze(-1)
+        total_actor_loss=(actor_loss+bc_loss+self._entropy_weight*entropy_loss).mean()
+        actor_gradients = torch.autograd.grad(-total_actor_loss,target_pi,retain_graph=True)
+        if self._use_trust_region:
+            actor_gradients=acer_trust_region_update(actor_gradients,target_pi,avg_pi,self._trust_region_value)
+        self._optimizer_actor.zero_grad()
+        target_pi.backward(actor_gradients)
+        self._optimizer_actor.step()
+
+
+
         # ====================
-        self._optimizer.zero_grad()
-        total_loss.backward()
-        self._optimizer.step()
+        # critic update
+        # ====================
+        critic_loss = acer_value_error(q_values,q_retraces,actions).mean()
+        self._optimizer_critic.zero_grad()
+        critic_loss.backward()
+        self._optimizer_critic.step()
+        self._target_model.update(self._learn_model.state_dict())
+
+
+
+
         return {
-            'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': total_loss.item(),
-            'policy_loss': vtrace_loss.policy_loss.item(),
-            'value_loss': vtrace_loss.value_loss.item(),
-            'entropy_loss': vtrace_loss.entropy_loss.item(),
+            'cur_actor_lr': self._optimizer_actor.defaults['lr'],
+            'cur_critic_lr': self._optimizer_critic.defaults['lr'],
+            'actor_loss': actor_loss.mean().item(),
+            'bc_loss': bc_loss.mean().item(),
+            'policy_loss': total_actor_loss.item(),
+            'critic_loss': critic_loss.item(),
+            'entropy_loss': entropy_loss.mean().item(),
         }
 
-    def _reshape_data(self, action_data: Dict[str, Any], q_value_data: Dict[str, Any], data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
+    def _reshape_data(self, action_data: Dict[str, Any], avg_action_data: Dict[str,Any], q_value_data: Dict[str, Any], data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
         r"""
         Overview:
             Obtain weights for loss calculating, where should be 0 for done positions
@@ -257,17 +295,19 @@ class IMPALAPolicy(Policy):
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
         target_logit = action_data['logit'].reshape(self._unroll_len + 1, -1,
-                                               self._action_shape)[:-1]  # shape (T+1),B,env_obs_shape
-        behaviour_logit = data['logit']  # shape T,B
+                                               self._action_shape)  # shape (T+1),B,env_action_shape
+        behaviour_logit = data['logit']  # shape T,B,env_action_shape
+        avg_action_logit = avg_action_data['logit'].reshape(self._unroll_len + 1, -1,
+                                               self._action_shape)  # shape (T+1),B,env_action_shape
         actions = data['action']  # shape T,B
-        values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
+        values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1,
+                                               self._action_shape)  # shape (T+1),B,env_action_shape
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
-        values[1:] = values[1:] * weights_
-        weights[1:] = weights_[:-1]
-        rewards = rewards * weights  # shape T,B
-        return target_logit, behaviour_logit, actions, values, rewards, weights
+        weights= weights_
+        rewards = rewards  # shape T,B
+        return target_logit, behaviour_logit, avg_action_logit, actions, values, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         r"""
@@ -278,7 +318,8 @@ class IMPALAPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
+            'actor_optimizer': self._optimizer_actor.state_dict(),
+            'critic_optimzer': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -421,4 +462,4 @@ class IMPALAPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return super()._monitor_vars_learn() + ['policy_loss', 'q_value_loss', 'entropy_loss']
+        return super()._monitor_vars_learn() + ['actor_loss','bc_loss','policy_loss','critic_loss','entropy_loss'] 

@@ -9,4 +9,5 @@ from .cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_
 from .cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config
 from .cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config
 from .cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config
+from .cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config
 # from .cartpole_ppo_default_loader import cartpole_ppo_default_loader
