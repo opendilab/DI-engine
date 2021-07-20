@@ -76,6 +76,9 @@ class BattleSharedPayoff:
         # Thread lock.
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
 
+    def __repr__(self) -> str:
+        return repr(self._data)
+
     def __getitem__(self, players: tuple) -> np.ndarray:
         """
         Overview:

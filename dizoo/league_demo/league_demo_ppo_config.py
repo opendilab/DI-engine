@@ -37,25 +37,25 @@ league_demo_ppo_config = dict(
                 active_players=dict(
                     main_player=1,
                     main_exploiter=1,
-                    #league_exploiter=1,
+                    league_exploiter=1,
                 ),
                 main_player=dict(
-                    one_phase_step=500,
+                    one_phase_step=200,
                     branch_probs=dict(
-                        # pfsp=0.5,
+                        pfsp=0.5,
                         sp=1.0,
                     ),
                     strong_win_rate=0.7,
                 ),
                 main_exploiter=dict(
-                    one_phase_step=500,
+                    one_phase_step=200,
                     branch_probs=dict(main_players=1.0, ),
                     strong_win_rate=0.7,
                     min_valid_win_rate=0.3,
                 ),
                 league_exploiter=dict(
-                    one_phase_step=500,
-                    branch_probs=dict(pfsp=0.5, ),
+                    one_phase_step=200,
+                    branch_probs=dict(pfsp=1.0, ),
                     strong_win_rate=0.7,
                     mutate_prob=0.0,
                 ),

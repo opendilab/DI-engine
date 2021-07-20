@@ -86,6 +86,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_colllector',
         )
+    model = VAC(**cfg.policy.model)
+    policy = PPOPolicy(cfg.policy, model=model)
+    policies['historical'] = policy
 
     main_key = [k for k in learners.keys() if k.startswith('main_player')][0]
     main_learner = learners[main_key]
@@ -106,6 +109,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         instance_name='uniform_evaluator'
     )
 
+    for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
+        torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
+        league.judge_snapshot(player_id, force=True)
+
     for _ in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward = evaluator1.eval(
@@ -119,23 +126,31 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if stop_flag1 and stop_flag2:
             break
-        for player_id in league.active_players_ids:
+        for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
             collector, learner = collectors[player_id], learners[player_id]
             job = league.get_job_info(player_id)
             opponent_player_id = job['player_id'][1]
-            # print('job player: {}'.format(job['player_id']))
-            collector.reset_policy([policies[player_id].collect_mode, policies[opponent_player_id].collect_mode])
+            #print('job player: {}'.format(job['player_id']))
+            if 'historical' in opponent_player_id:
+                opponent_policy = policies['historical'].collect_mode
+                opponent_path = job['checkpoint_path'][1]
+                opponent_policy.load_state_dict(torch.load(opponent_path, map_location='cpu'))
+            else:
+                opponent_policy = policies[opponent_player_id].collect_mode
+            collector.reset_policy([policies[player_id].collect_mode, opponent_policy])
             train_data = collector.collect(train_iter=learner.train_iter)
             for d in train_data:
                 d['adv'] = d['reward']
 
             for i in range(cfg.policy.learn.update_per_collect):
                 learner.train(train_data, collector.envstep)
+            torch.save(learner.policy.state_dict(), player_ckpt_path)
 
-            # TODO
-            # league.update_active_player({})
-            # league.judge_snapshot(player_id)
-            # league.finish_job({})
+            player_info = learner.learn_info
+            player_info['player_id'] = player_id
+            league.update_active_player(player_info)
+            league.judge_snapshot(player_id)
+            league.finish_job({})
 
 
 if __name__ == "__main__":

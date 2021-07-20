@@ -97,7 +97,7 @@ class Episode1v1Collector(ISerialCollector):
             self._unroll_len = _policy[0].get_attribute('unroll_len')
             self._on_policy = _policy[0].get_attribute('cfg').on_policy
             self._traj_len = INF
-            self._logger.info(
+            self._logger.debug(
                 'Set default n_episode mode(n_episode({}), env_num({}), traj_len({}))'.format(
                     self._default_n_episode, self._env_num, self._traj_len
                 )
