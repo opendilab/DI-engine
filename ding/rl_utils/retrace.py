@@ -15,11 +15,12 @@ def compute_q_retraces(q_values,v_pred,rewards,actions,weights,ratio,gamma=0.9):
     tmp_retraces = v_pred[-1,...] #shape B,1
     q_retraces[-1,...] = v_pred[-1,...]
     q_gather = torch.zeros_like(v_pred)
-    ratio_gather = torch.zeros_like(actions)
+    # ratio_gather = torch.zeros_like(actions)
     q_gather[0:-1,...] = q_values[0:-1,...].gather(-1,actions) #shape (T+1),B,1
     ratio_gather = ratio.gather(-1,actions) #shape T,B,1
 
     for idx in reversed(range(n_len-1)):
         q_retraces[idx,...] = rewards[idx,...]+gamma*weights[idx,...]*tmp_retraces
-        tmp_retraces = ratio_gather[idx,...].clamp(max=1.0)*(q_retraces[idx,...]-q_gather[idx,...])
+        tmp_retraces = ratio_gather[idx,...].clamp(max=1.0)*(q_retraces[idx,...]-q_gather[idx,...])+v_pred[idx,...]
+    # print(q_retraces.squeeze())
     return q_retraces #shape (T+1),B,1

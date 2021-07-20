@@ -32,7 +32,7 @@ cartpole_acer_config = dict(
             # (int) the trajectory length to calculate v-trace target
             unroll_len=32,
             # (float) clip ratio of importance weights
-            c_clip_ratio=1.0,
+            c_clip_ratio=10,
             # (float) clip ratio of importance sampling
         ),
         collect=dict(
@@ -47,7 +47,6 @@ cartpole_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, )),
         other=dict(replay_buffer=dict(
-            type='naive',
             replay_buffer_size=10000,
             max_use=100,
         ), ),

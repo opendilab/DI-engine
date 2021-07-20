@@ -11,7 +11,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
 
-EPS=1e-10
+EPS=1e-30
 
 @POLICY_REGISTRY.register('acer')
 class ACERPolicy(Policy):
@@ -39,6 +39,7 @@ class ACERPolicy(Policy):
         7  | ``learn.update``   int      4              | How many updates(iterations) to train  | this args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
+        8  | ``c_clip_ratio``  float     1.0            | clip ratio of importance weights       | 
         == ==================== ======== ============== ======================================== =======================
     """
     unroll_len = 32
@@ -70,7 +71,7 @@ class ACERPolicy(Policy):
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) clip ratio of importance weights
-            c_clip_ratio=1.0,
+            c_clip_ratio=10,
             use_trust_region=True,
             trust_region_value=1.0,
             learning_rate_actor=0.0005,
@@ -92,7 +93,6 @@ class ACERPolicy(Policy):
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            type='naive',
             replay_buffer_size=1000,
             max_use=16,
         ), ),
@@ -105,11 +105,13 @@ class ACERPolicy(Policy):
             Initialize the optimizer, algorithm config and main model.
         """
         # Optimizer
-        # grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
-        # clip_value = self._cfg.learn.get("clip_value", None)
+        grad_clip_type = self._cfg.learn.get("grad_clip_type", None)
+        clip_value = self._cfg.learn.get("clip_value", None)
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
+            grad_clip_type=grad_clip_type,
+            clip_value=clip_value
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
@@ -134,7 +136,6 @@ class ACERPolicy(Policy):
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._gamma = self._cfg.learn.discount_factor
-        self._lambda = self._cfg.learn.lambda_
         # self._rho_clip_ratio = self._cfg.learn.rho_clip_ratio
         self._c_clip_ratio = self._cfg.learn.c_clip_ratio
         # self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
@@ -204,46 +205,43 @@ class ACERPolicy(Policy):
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
             - optional: 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority', 'staleness', 'use', 'IS'
         ReturnsKeys:
-            - necessary: ``cur_lr``, ``total_loss``, ``policy_loss`,``value_loss``,``entropy_loss``
-            - optional: ``priority``
+            - necessary: ``cur_lr_actor``, ``cur_lr_critic``, ``actor_loss`,``bc_loss``,``policy_loss``,``critic_loss``,``entropy_loss``
         """
         data = self._data_preprocess_learn(data)
-        # ====================
-        # IMPALA forward
-        # ====================
         self._learn_model.train()
         action_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')
         q_value_data = self._learn_model.forward(data['obs_plus_1'],mode='compute_critic')
         avg_action_data = self._target_model.forward(data['obs_plus_1'],mode='compute_actor')
 
         target_logit, behaviour_logit, avg_logit, actions, q_values, rewards, weights = self._reshape_data(action_data,avg_action_data,q_value_data, data)
-        # Calculate vtrace error
-        target_pi = torch.softmax(target_logit,dim=-1) #shape T,B,env_action_shape
+        target_pi = torch.softmax(target_logit,dim=-1) #shape (T+1),B,env_action_shape
         behaviour_pi = torch.softmax(behaviour_logit,dim=-1) #shape T,B,env_action_shape
-        avg_pi = torch.softmax(avg_logit,dim=-1) #shape T,B,env_action_shape
+        avg_pi = torch.softmax(avg_logit,dim=-1) #shape (T+1),B,env_action_shape
         with torch.no_grad():
             ratio = target_pi[0:-1,...]/(behaviour_pi+EPS) #shape T,B,env_action_shape
             v_pred=(q_values*target_pi).sum(-1).unsqueeze(-1) # shape (T+1),B,1
+            # Calculate retrace 
             q_retraces = compute_q_retraces(q_values,v_pred,rewards,actions,weights,ratio,self._gamma)
 
-        q_retraces = q_retraces[0:-1,...]
-        q_values=q_values[0:-1,...]
-        v_pred=v_pred[0:-1,...]
-        target_pi=target_pi[0:-1,...]
-        avg_pi=avg_pi[0:-1,...]
-
-
+        q_retraces = q_retraces[0:-1,...] #shape T,B,1
+        q_values=q_values[0:-1,...]     #shape T,B,env_action_shape
+        v_pred=v_pred[0:-1,...]         #shape T,B,1
+        target_pi=target_pi[0:-1,...]    #shape T,B,env_action_shape
+        avg_pi=avg_pi[0:-1,...]         #shape T,B,env_action_shape
+        total_valid=weights.sum()       #1
         # ====================
         # policy update
         # ==================== 
         actor_loss,bc_loss = acer_policy_error(q_values,q_retraces,v_pred,target_pi,actions,ratio,self._c_clip_ratio)
+        actor_loss=actor_loss*weights.unsqueeze(-1)
+        bc_loss=bc_loss*weights.unsqueeze(-1) 
         dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
-        entropy_loss=dist_new.entropy().unsqueeze(-1)
-        total_actor_loss=(actor_loss+bc_loss+self._entropy_weight*entropy_loss).mean()
+        entropy_loss=(dist_new.entropy()*weights).unsqueeze(-1) #shape T,B,1
+        total_actor_loss=(actor_loss+bc_loss+self._entropy_weight*entropy_loss).sum()/total_valid
+        self._optimizer_actor.zero_grad()
         actor_gradients = torch.autograd.grad(-total_actor_loss,target_pi,retain_graph=True)
         if self._use_trust_region:
             actor_gradients=acer_trust_region_update(actor_gradients,target_pi,avg_pi,self._trust_region_value)
-        self._optimizer_actor.zero_grad()
         target_pi.backward(actor_gradients)
         self._optimizer_actor.step()
 
@@ -252,7 +250,7 @@ class ACERPolicy(Policy):
         # ====================
         # critic update
         # ====================
-        critic_loss = acer_value_error(q_values,q_retraces,actions).mean()
+        critic_loss = (acer_value_error(q_values,q_retraces,actions)*weights.unsqueeze(-1)).sum()/total_valid
         self._optimizer_critic.zero_grad()
         critic_loss.backward()
         self._optimizer_critic.step()
@@ -264,11 +262,11 @@ class ACERPolicy(Policy):
         return {
             'cur_actor_lr': self._optimizer_actor.defaults['lr'],
             'cur_critic_lr': self._optimizer_critic.defaults['lr'],
-            'actor_loss': actor_loss.mean().item(),
-            'bc_loss': bc_loss.mean().item(),
+            'actor_loss': (actor_loss.sum()/total_valid).item(),
+            'bc_loss': (bc_loss.sum()/total_valid).item(),
             'policy_loss': total_actor_loss.item(),
             'critic_loss': critic_loss.item(),
-            'entropy_loss': entropy_loss.mean().item(),
+            'entropy_loss': (entropy_loss.sum()/total_valid).item(),
         }
 
     def _reshape_data(self, action_data: Dict[str, Any], avg_action_data: Dict[str,Any], q_value_data: Dict[str, Any], data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
@@ -289,6 +287,7 @@ class ACERPolicy(Policy):
             - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
              B is batch size and Obs_Shape is the shape of single env observation.
             - behaviour_logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim.
+            - avg_action_logit (:obj:`torch.FloatTensor`): :math: `(T+1, B, N)`, where N is action dim.
             - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
             - values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
@@ -305,8 +304,10 @@ class ACERPolicy(Policy):
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
-        weights= weights_
-        rewards = rewards  # shape T,B
+        weights[1:,...] = weights_[:-1,...]
+        rewards = rewards * weights
+        # weights= weights_
+        # rewards = rewards  # shape T,B
         return target_logit, behaviour_logit, avg_action_logit, actions, values, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -319,7 +320,7 @@ class ACERPolicy(Policy):
         return {
             'model': self._learn_model.state_dict(),
             'actor_optimizer': self._optimizer_actor.state_dict(),
-            'critic_optimzer': self._optimizer_critic.state_dict(),
+            'critic_optimizer': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -334,7 +335,8 @@ class ACERPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
+        self._optimizer_actor.load_state_dict(state_dict['actor_optimizer'])
+        self._optimizer_critic.load_state_dict(state_dict['critic_optimizer'])
 
     def _init_collect(self) -> None:
         r"""
@@ -462,4 +464,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return super()._monitor_vars_learn() + ['actor_loss','bc_loss','policy_loss','critic_loss','entropy_loss'] 
+        return ['actor_loss','bc_loss','policy_loss','critic_loss','entropy_loss'] 

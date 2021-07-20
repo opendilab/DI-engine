@@ -202,8 +202,7 @@ class QACD(nn.Module):
 
         """
 
-        obs = inputs
-        assert len(obs.shape) == 2
+        obs = inputs 
         x=self.critic_encoder(obs)
         x=self.critic_head(x)
         return {"q_value":x['pred']}

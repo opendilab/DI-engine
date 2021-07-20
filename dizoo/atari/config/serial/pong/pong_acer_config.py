@@ -32,29 +32,30 @@ pong_acer_config = dict(
             # here we follow impala serial pipeline
             update_per_collect=10,
             # (int) the number of data for a train iteration
-            batch_size=128,
+            batch_size=64,
             # grad_clip_type='clip_norm',
-            # clip_value=0.5,
-            learning_rate_actor=0.0003,
+            # clip_value=10,
+            learning_rate_actor=0.0001,
             learning_rate_critic=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.0,
+            entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
+            unroll_len=32,
+            use_trust_region=False,
             # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
-            c_clip_ratio=1.0,
+            c_clip_ratio=10,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
+            unroll_len=32,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
@@ -68,17 +69,17 @@ pong_acer_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(pong_impala_config)
+main_config = EasyDict(pong_acer_config)
 
-pong_impala_create_config = dict(
+pong_acer_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='impala'),
+    policy=dict(type='acer'),
 )
-create_config = EasyDict(pong_impala_create_config)
+create_config = EasyDict(pong_acer_create_config)
 
 if __name__ == '__main__':
     from ding.entry import serial_pipeline
