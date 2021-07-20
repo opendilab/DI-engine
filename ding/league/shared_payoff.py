@@ -1,12 +1,11 @@
 import copy
 from collections import defaultdict
-from typing import Union, Tuple, Optional
-from functools import partial
+from typing import Tuple, Optional
 from easydict import EasyDict
 import numpy as np
 
 from ding.utils import LockContext, LockContextType
-from .player import Player, ActivePlayer, HistoricalPlayer
+from .player import Player
 
 
 class BattleRecordDict(dict):

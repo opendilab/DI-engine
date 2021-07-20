@@ -1,9 +1,5 @@
 from typing import Optional, List, NoReturn
 import copy
-import json
-import os
-
-import yaml
 from easydict import EasyDict
 
 from ding.utils import find_free_port, find_free_port_slurm, node_to_partition, node_to_host, pretty_print, \
@@ -255,6 +251,7 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
     with open(path, "w") as f:
         f.write('from easydict import EasyDict\n\n')
         f.write('main_config = dict(\n')
+        f.write("    exp_name='{}',\n".format(config_.exp_name))
         for k, v in config_.items():
             if (k == 'env'):
                 f.write('    env=dict(\n')

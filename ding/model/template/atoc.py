@@ -1,7 +1,5 @@
-from typing import Union, List, Dict, Optional, Tuple, Callable
-from copy import deepcopy
+from typing import Union, Dict, Optional, Tuple
 
-import queue
 import torch
 import torch.nn as nn
 
@@ -211,7 +209,7 @@ class ATOCActorNet(nn.Module):
             - optional: ``group``, ``initiator_prob``, ``is_initiator``, ``new_thoughts``, ``old_thoughts``
         """
         assert len(obs.shape) == 3
-        self._cur_batch_size, n_agent, obs_shape = obs.shape
+        self._cur_batch_size = obs.shape[0]
         B, A, N = obs.shape
         assert A == self._n_agent
         assert N == self._obs_shape

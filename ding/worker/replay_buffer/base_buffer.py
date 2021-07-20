@@ -1,6 +1,6 @@
+from typing import Union, Dict, Any, List
 from abc import ABC, abstractmethod
 import copy
-from typing import Union, Optional, Dict, Any, List, Tuple
 from easydict import EasyDict
 
 from ding.utils import import_module, BUFFER_REGISTRY
@@ -113,7 +113,7 @@ def create_buffer(cfg: EasyDict, *args, **kwargs) -> IBuffer:
     import_module(cfg.get('import_names', []))
     if cfg.type == 'naive':
         kwargs.pop('tb_logger', None)
-    return BUFFER_REGISTRY.build(cfg.type, cfg, *args, **kwargs, name=cfg.pop('name', 'default'))
+    return BUFFER_REGISTRY.build(cfg.type, cfg, *args, **kwargs)
 
 
 def get_buffer_cls(cfg: EasyDict) -> type:

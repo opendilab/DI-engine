@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from typing import Tuple, Dict, Union
+from typing import Tuple, Dict
 
 import torch
 import numpy as np

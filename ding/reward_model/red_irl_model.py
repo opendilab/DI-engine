@@ -1,7 +1,5 @@
 from typing import Dict, List
-from easydict import EasyDict
 import pickle
-import logging
 import random
 import torch
 import torch.nn as nn

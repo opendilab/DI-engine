@@ -1,19 +1,17 @@
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import math
 import itertools
 import numpy as np
 import torch
 import torch.nn.functional as F
 import copy
-from collections import namedtuple, deque
-from typing import List, Dict, Any, Tuple, Union, Optional
-from torch.distributions.categorical import Categorical
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
-from ding.model import SQN
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
@@ -306,7 +304,7 @@ class SQNPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:

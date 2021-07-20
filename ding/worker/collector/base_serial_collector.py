@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod, abstractproperty
-from typing import List, Dict, Any, Optional, Callable, Tuple, Union
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Optional, Union
+from collections import namedtuple
 from easydict import EasyDict
 import copy
 

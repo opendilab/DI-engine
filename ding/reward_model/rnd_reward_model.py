@@ -1,15 +1,11 @@
 from typing import Union, Tuple
-from collections.abc import Iterable
 from easydict import EasyDict
 
 import random
-import copy
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import torch.nn.init as I
-from torch.distributions.categorical import Categorical
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
