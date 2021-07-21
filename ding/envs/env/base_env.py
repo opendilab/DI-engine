@@ -17,14 +17,8 @@ class BaseEnv(ABC, gym.Env):
         basic environment class, extended from ``gym.Env``
     Interface:
         ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \
-            ``create_evaluator_env_cfg``, ``enable_save_replay``, ``default_config``
+            ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
-
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = EasyDict(copy.deepcopy(cls.config))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
 
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
