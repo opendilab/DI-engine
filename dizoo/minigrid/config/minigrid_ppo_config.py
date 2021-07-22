@@ -2,12 +2,13 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 minigrid_ppo_config = dict(
-    exp_name="minigrid_ppo",
+    exp_name="minigrid_empty8_ppo",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='MiniGrid-Empty-8x8-v0',
         n_evaluator_episode=5,
-        stop_value=200,
+        stop_value=0.96,
     ),
     policy=dict(
         cuda=True,
@@ -40,7 +41,7 @@ minigrid_ppo_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo'),
 )
 minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
