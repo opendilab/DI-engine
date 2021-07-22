@@ -28,8 +28,7 @@ Enduro
 
 | Algorithm | DI-engine| tianshou | xingtian |   sb3    |
 | --------- | -------- | -------- | -------- | -------  |
-| dqn       | 1880     | 670      | n/a      | 1076      |
-| c51       | 2396     | 1032     | n/a      | n/a      |
-| qrdqn     | 2082     | 1055.9   | n/a      | n/a      |
-| rainbow   | 2229     | n/a      | n/a      | n/a      |
-| ppo       | 1459     | n/a      | n/a     | 1342      |
+| dqn       | 6159     | 670      | n/a      | 1076      |
+| qrdqn     | 2275     | 1055.9   | n/a      | n/a      |
+| rainbow   | 2359     | n/a      | n/a      | n/a      |
+| ppo       | 10960     | n/a      | n/a     | 1342      |
