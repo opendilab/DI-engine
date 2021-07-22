@@ -18,7 +18,6 @@ from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANA
 from .base_env_manager import BaseEnvManager, EnvState, retry_wrapper, timeout_wrapper
 
 _NTYPE_TO_CTYPE = {
-    np.bool: ctypes.c_bool,
     np.bool_: ctypes.c_bool,
     np.uint8: ctypes.c_uint8,
     np.uint16: ctypes.c_uint16,
