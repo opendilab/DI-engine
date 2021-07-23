@@ -18,20 +18,20 @@ class VAC(nn.Module):
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            share_encoder: bool = True,
-            continuous: bool = False,
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            sigma_type: Optional[str] = 'independent',
-            bound_type: Optional[str] = None,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        share_encoder: bool = True,
+        continuous: bool = False,
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 1,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        sigma_type: Optional[str] = 'independent',
+        bound_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:

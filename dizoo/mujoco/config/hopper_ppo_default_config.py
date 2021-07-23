@@ -57,7 +57,7 @@ hopper_ppo_create_default_config = dict(
         type='ppo',
         import_names=['ding.policy.ppo'],
     ),
-    replay_buffer=dict(type='naive',),
+    replay_buffer=dict(type='naive', ),
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
 create_config = hopper_ppo_create_default_config
