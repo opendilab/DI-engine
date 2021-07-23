@@ -61,7 +61,7 @@ def acer_trust_region_update(actor_gradients,target_pi,avg_pi,trust_region_value
     update_gradients = []
     for actor_gradient,KL_gradient in zip(actor_gradients,KL_gradients):
         scale = actor_gradient.mul(KL_gradient).sum(-1).unsqueeze(-1)-trust_region_value
-        scale = torch.div(scale,actor_gradient.mul(actor_gradient).sum(-1).unsqueeze(-1)).clamp(min=0.0)
+        scale = torch.div(scale,KL_gradient.mul(KL_gradient).sum(-1).unsqueeze(-1)).clamp(min=0.0)
         update_gradients.append(actor_gradient-scale*KL_gradient)
     return update_gradients
 
