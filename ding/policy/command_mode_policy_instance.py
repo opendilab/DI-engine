@@ -9,7 +9,7 @@ from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
-from .ppo import PPOPolicy
+from .ppo import PPOPolicy, PPOOffPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
@@ -107,6 +107,11 @@ class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_command')
 class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ppo_offpolicy_command')
+class PPOCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 

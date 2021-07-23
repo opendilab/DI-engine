@@ -1,9 +1,7 @@
 from typing import Dict, List
-from copy import deepcopy
 import math
 import random
 import pickle
-import numpy as np
 import torch
 
 from ding.utils import REWARD_MODEL_REGISTRY

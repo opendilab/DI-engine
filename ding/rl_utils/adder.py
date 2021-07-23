@@ -1,7 +1,6 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple, Union
+from typing import List, Dict, Any, Optional
 from collections import deque
 import copy
-import numpy as np
 import torch
 
 from ding.utils import list_split, lists_to_dicts

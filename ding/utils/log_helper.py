@@ -1,21 +1,11 @@
-'''
-Copyright 2020 Sensetime X-lab. All Rights Reserved
-
-Main Function:
-    1. log helper, used to help to save logger on terminal, tensorboard or save file.
-    2. CountVar, to help counting number.
-'''
 import json
 import logging
-import numbers
 import os
 import numpy as np
 import yaml
 from tabulate import tabulate
 from tensorboardX import SummaryWriter
-from typing import Optional, Tuple, Union, Dict, List, Any
-
-from ding.utils.autolog import TickTime
+from typing import Optional, Tuple, Union, Dict, Any
 
 
 def build_logger(

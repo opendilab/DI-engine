@@ -45,11 +45,17 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = EpisodeCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = EpisodeReplayBuffer(cfg.policy.other.replay_buffer, 'episode')
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    collector = EpisodeCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    replay_buffer = EpisodeReplayBuffer(
+        cfg.policy.other.replay_buffer, exp_name=cfg.exp_name, instance_name='episode_buffer'
+    )
 
     # Set up other modules, etc. epsilon greedy, hindsight experience replay
     eps_cfg = cfg.policy.other.eps
@@ -77,16 +83,17 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
             else:
                 sample_size = learner.policy.get_attribute('batch_size')
             train_episode = replay_buffer.sample(sample_size, learner.train_iter)
-            if train_episode is not None:
-                train_data = []
-                if her_cfg is not None:
-                    her_episodes = []
-                    for e in train_episode:
-                        her_episodes.extend(her_model.estimate(e))
-                    train_episode.extend(her_episodes)
+            if train_episode is None:
+                break
+            train_data = []
+            if her_cfg is not None:
+                her_episodes = []
                 for e in train_episode:
-                    train_data.extend(policy.collect_mode.get_train_sample(e))
-                learner.train(train_data, collector.envstep)
+                    her_episodes.extend(her_model.estimate(e))
+                train_episode.extend(her_episodes)
+            for e in train_episode:
+                train_data.extend(policy.collect_mode.get_train_sample(e))
+            learner.train(train_data, collector.envstep)
 
 
 if __name__ == "__main__":

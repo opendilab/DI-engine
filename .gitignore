@@ -1407,6 +1407,7 @@ policy_*
 /data
 .vscode
 *total_config.py
+formatted_*
 **/exp
 **/benchmark
 **/model_zoo
@@ -1415,3 +1416,6 @@ policy_*
 *.puml.png
 *.puml.eps
 *.puml.svg
+eval_config.py
+collect_demo_data_config.py
+default*

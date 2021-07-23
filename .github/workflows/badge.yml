@@ -1,0 +1,50 @@
+name: badges
+
+on:
+  push:
+    branches: [ main, 'badge/*', 'doc/*' ]
+  pull_request:
+    branches: [ main, 'badge/*', 'doc/*' ]
+
+jobs:
+  update-badges:
+    name: Update Badges
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.7 ]
+    env:
+      GIST_ID: 3690cccd811e4c5f771075c2f785c7bb
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Download cloc
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y cloc
+      - name: Get the Numbers
+        run: |
+          cloc .
+          echo "CODE_LINES=$(./cloc.sh --loc)" >> $GITHUB_ENV
+          echo "COMMENT_LINES=$(./cloc.sh --percentage)%" >> $GITHUB_ENV
+      - name: Create Lines-of-Code-Badge
+        uses: schneegans/dynamic-badges-action@v1.0.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ env.GIST_ID }}
+          filename: loc.json
+          label: Lines of Code
+          message: ${{ env.CODE_LINES }}
+          color: lightgrey
+      - name: Create Comments-Badge
+        uses: schneegans/dynamic-badges-action@v1.0.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ env.GIST_ID }}
+          filename: comments.json
+          label: Comments
+          message: ${{ env.COMMENT_LINES }}
+          color: green

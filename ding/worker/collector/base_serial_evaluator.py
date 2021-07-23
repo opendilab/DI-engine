@@ -1,15 +1,13 @@
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import Any, Optional, Callable, Tuple
 from collections import namedtuple, deque
 from easydict import EasyDict
-from functools import reduce
 import copy
 import numpy as np
 import torch
 
-from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts
+from ding.utils import build_logger, EasyTimer, lists_to_dicts
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from .base_serial_collector import CachePool
 
 
 class BaseSerialEvaluator(object):
@@ -45,22 +43,29 @@ class BaseSerialEvaluator(object):
             cfg: dict,
             env: BaseEnvManager = None,
             policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None  # noqa
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
             Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
             e.g. logger helper, timer.
-            Policy is not initialized here, but set afterwards through policy setter.
         Arguments:
-            - cfg (:obj:`EasyDict`)
+            - cfg (:obj:`EasyDict`): Configuration EasyDict.
         """
         self._cfg = cfg
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         if tb_logger is not None:
-            self._logger, _ = build_logger(path='./log/evaluator', name='evaluator', need_tb=False)
+            self._logger, _ = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+            )
             self._tb_logger = tb_logger
         else:
-            self._logger, self._tb_logger = build_logger(path='./log/evaluator', name='evaluator')
+            self._logger, self._tb_logger = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            )
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -150,6 +155,8 @@ class BaseSerialEvaluator(object):
             Determine whether you need to start the evaluation mode, if the number of training has reached\
                 the maximum number of times to start the evaluator, return True
         """
+        if train_iter == self._last_eval_iter:
+            return False
         if (train_iter - self._last_eval_iter) < self._cfg.eval_freq and train_iter != 0:
             return False
         self._last_eval_iter = train_iter
@@ -237,8 +244,8 @@ class BaseSerialEvaluator(object):
                 continue
             if not np.isscalar(v):
                 continue
-            self._tb_logger.add_scalar('evaluator_iter/' + k, v, train_iter)
-            self._tb_logger.add_scalar('evaluator_step/' + k, v, envstep)
+            self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
+            self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
         eval_reward = np.mean(episode_reward)
         if eval_reward > self._max_eval_reward:
             if save_ckpt_fn:
