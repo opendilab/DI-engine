@@ -131,7 +131,6 @@ class PPOPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         r"""
         Overview:
@@ -192,8 +191,8 @@ class PPOPolicy(Policy):
                 # Calculate ppo error
                 if self._continuous:
                     ppo_batch = ppo_data(
-                        output['logit'], batch['logit'], batch['action'], output['value'], batch['value'],
-                        adv, batch['return'], batch['weight']
+                        output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
+                        batch['return'], batch['weight']
                     )
                     ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio)
                 else:
@@ -333,8 +332,9 @@ class PPOPolicy(Policy):
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
-        data = get_gae(data, to_device(last_value, self._device), gamma=self._gamma,
-                       gae_lambda=self._gae_lambda, cuda=self._cuda)
+        data = get_gae(
+            data, to_device(last_value, self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=self._cuda
+        )
         if self._value_norm:
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std

@@ -171,7 +171,7 @@ def ppo_error_continuous(
         weight = torch.ones_like(adv)
 
     dist_new = Independent(Normal(mu_sigma_new[0], mu_sigma_new[1]), 1)
-    if len(mu_sigma_old[0].shape)==1:
+    if len(mu_sigma_old[0].shape) == 1:
         dist_old = Independent(Normal(mu_sigma_old[0].unsqueeze(-1), mu_sigma_old[1].unsqueeze(-1)), 1)
     else:
         dist_old = Independent(Normal(mu_sigma_old[0], mu_sigma_old[1]), 1)
