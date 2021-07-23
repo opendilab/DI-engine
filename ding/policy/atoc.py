@@ -1,8 +1,7 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
-import torch
-import numpy as np
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import copy
+import torch
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
@@ -315,7 +314,7 @@ class ATOCPolicy(Policy):
             }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         if self._communication:
             delta_q_batch = [d['delta_q'] for d in data]
             delta_min = torch.stack(delta_q_batch).min()

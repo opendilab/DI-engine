@@ -444,7 +444,6 @@ def binary_encode(y: torch.Tensor, max_val: torch.Tensor) -> torch.Tensor:
     """
     assert (max_val > 0)
     x = y.clamp(0, max_val)
-    B = x.shape[0]
     L = int(math.log(max_val, 2)) + 1
     binary = []
     one = torch.ones_like(x)

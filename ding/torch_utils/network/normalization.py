@@ -1,10 +1,8 @@
-from typing import Any
-import torch
+from typing import Optional
 import torch.nn as nn
-import torch.nn.functional as F
 
 
-def build_normalization(norm_type: str, dim: int = None) -> nn.Module:
+def build_normalization(norm_type: str, dim: Optional[int] = None) -> nn.Module:
     r"""
     Overview:
         Build the corresponding normalization module

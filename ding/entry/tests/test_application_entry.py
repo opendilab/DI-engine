@@ -4,6 +4,7 @@ import os
 import pickle
 
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
+from dizoo.classic_control.cartpole.envs import CartPoleEnv
 from ding.entry import serial_pipeline, eval, collect_demo_data
 from ding.config import compile_config
 
@@ -30,6 +31,14 @@ class TestApplication:
         stop_value = cfg_for_stop_value.env.stop_value
         config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
         eval_reward = eval(config, seed=0, state_dict=setup_state_dict['eval'])
+        assert eval_reward >= stop_value
+        config = deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)
+        eval_reward = eval(
+            config,
+            seed=0,
+            env_setting=[CartPoleEnv, None, [{} for _ in range(5)]],
+            state_dict=setup_state_dict['eval']
+        )
         assert eval_reward >= stop_value
 
     def test_collect_demo_data(self, setup_state_dict):

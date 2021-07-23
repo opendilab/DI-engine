@@ -4,7 +4,6 @@ from easydict import EasyDict
 import copy
 
 from ding.utils import import_module, COMMANDER_REGISTRY, LimitedSpaceContainer
-from ding.league import create_league
 
 
 class BaseCommander(ABC):
@@ -27,15 +26,12 @@ class BaseCommander(ABC):
 
     def judge_collector_finish(self, task_id: str, info: dict) -> bool:
         collector_done = info.get('collector_done', False)
-        cur_episode = info['cur_episode']
-        cur_sample = info['cur_sample']
         if collector_done:
             return True
         return False
 
     def judge_learner_finish(self, task_id: str, info: dict) -> bool:
         learner_done = info.get('learner_done', False)
-        cur_step = info['learner_step']
         if learner_done:
             return True
         return False
@@ -65,6 +61,7 @@ class NaiveCommander(BaseCommander):
                 "collector_task_space" and "learner_task_space".
         """
         self._cfg = cfg
+        self._exp_name = cfg.exp_name
         commander_cfg = self._cfg.policy.other.commander
         self._collector_task_space = LimitedSpaceContainer(0, commander_cfg.collector_task_space)
         self._learner_task_space = LimitedSpaceContainer(0, commander_cfg.learner_task_space)
@@ -95,6 +92,7 @@ class NaiveCommander(BaseCommander):
             collector_cfg.policy = copy.deepcopy(self._cfg.policy)
             collector_cfg.policy_update_path = 'test.pth'
             collector_cfg.env = self._collector_env_cfg
+            collector_cfg.exp_name = self._exp_name
             return {
                 'task_id': 'collector_task_id{}'.format(self._collector_task_count),
                 'buffer_id': 'test',
@@ -113,6 +111,7 @@ class NaiveCommander(BaseCommander):
         if self._learner_task_space.acquire_space():
             self._learner_task_count += 1
             learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
+            learner_cfg.exp_name = self._exp_name
             return {
                 'task_id': 'learner_task_id{}'.format(self._learner_task_count),
                 'policy_id': 'test.pth',

@@ -70,7 +70,7 @@ class TestSubprocessEnvManager:
             env_manager.step([])
 
     @pytest.mark.unittest
-    def test_error(self, setup_async_manager_cfg, setup_exception):
+    def test_error(self, setup_async_manager_cfg):
         env_fn = setup_async_manager_cfg.pop('env_fn')
         env_manager = SyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         # Test reset error

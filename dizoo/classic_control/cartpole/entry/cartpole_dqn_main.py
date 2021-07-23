@@ -42,11 +42,15 @@ def main(cfg, seed=0):
     policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
-    replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    collector = SampleCollector(
+        cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    evaluator = BaseSerialEvaluator(
+        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger, exp_name=cfg.exp_name)
 
     # Set up other modules, etc. epsilon greedy
     eps_cfg = cfg.policy.other.eps
@@ -67,8 +71,9 @@ def main(cfg, seed=0):
         # Training
         for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data is not None:
-                learner.train(train_data, collector.envstep)
+            if train_data is None:
+                break
+            learner.train(train_data, collector.envstep)
 
 
 if __name__ == "__main__":

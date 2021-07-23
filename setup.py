@@ -45,7 +45,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
-        'requests~=2.24.0',
+        'requests>=2.25.1',
         'six',
         'gym>=0.15.3',  # pypy incompatible
         'torch>=1.3.1,<=1.8.0',
@@ -62,7 +62,7 @@ setup(
         'sortedcontainers',
         'click==7.1.2',
         'URLObject~=2.4.3',
-        'urllib3==1.25.10',
+        'urllib3>=1.26.5',
         'readerwriterlock',
         'namedlist',
         'opencv-python',  # pypy incompatible
@@ -104,6 +104,9 @@ setup(
         ],
         'procgen_env': [
             'procgen',
+        ],
+        'minigrid_env': [
+            'gym-minigrid',
         ],
         'sc2_env': [
             'absl-py>=0.1.0',

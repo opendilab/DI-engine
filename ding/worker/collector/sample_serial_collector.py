@@ -1,7 +1,6 @@
 from typing import Optional, Any, List
-from collections import namedtuple, deque
+from collections import namedtuple
 from easydict import EasyDict
-import logging
 import numpy as np
 import torch
 
@@ -31,7 +30,9 @@ class SampleCollector(ISerialCollector):
             cfg: EasyDict,
             env: BaseEnvManager = None,
             policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None  # noqa
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -42,6 +43,8 @@ class SampleCollector(ISerialCollector):
             - policy (:obj:`namedtuple`): the api namedtuple of collect_mode policy
             - tb_logger (:obj:`SummaryWriter`): tensorboard handle
         """
+        self._exp_name = exp_name
+        self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
         self._deepcopy_obs = cfg.deepcopy_obs
         self._transform_obs = cfg.transform_obs
@@ -50,10 +53,14 @@ class SampleCollector(ISerialCollector):
         self._end_flag = False
 
         if tb_logger is not None:
-            self._logger, _ = build_logger(path='./log/collector', name='collector', need_tb=False)
+            self._logger, _ = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+            )
             self._tb_logger = tb_logger
         else:
-            self._logger, self._tb_logger = build_logger(path='./log/collector', name='collector')
+            self._logger, self._tb_logger = build_logger(
+                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+            )
         self.reset(policy, env)
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
@@ -325,7 +332,7 @@ class SampleCollector(ISerialCollector):
             for k, v in info.items():
                 if k in ['each_reward']:
                     continue
-                self._tb_logger.add_scalar('collector_iter/' + k, v, train_iter)
+                self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
                 if k in ['total_envstep_count']:
                     continue
-                self._tb_logger.add_scalar('collector_step/' + k, v, self._total_envstep_count)
+                self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, self._total_envstep_count)

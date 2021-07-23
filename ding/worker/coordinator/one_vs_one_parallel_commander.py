@@ -1,10 +1,8 @@
-from sys import path
-from ding.utils.default_helper import deep_merge_dicts
+from typing import Optional
 import time
-from typing import Optional, Union
 import copy
 
-from ding.utils import pretty_print
+from ding.utils import deep_merge_dicts
 from ding.policy import create_policy
 from ding.utils import LimitedSpaceContainer, get_task_uid, build_logger, COMMANDER_REGISTRY
 from ding.league import create_league, OneVsOneLeague
@@ -34,6 +32,7 @@ class OneVsOneCommander(BaseCommander):
             - cfg (:obj:`dict`): Dict type config file.
         """
         self._cfg = cfg
+        self._exp_name = cfg.exp_name
         commander_cfg = self._cfg.policy.other.commander
         self._commander_cfg = commander_cfg
 
@@ -59,9 +58,15 @@ class OneVsOneCommander(BaseCommander):
         # policy_cfg must be deepcopyed
         policy_cfg = copy.deepcopy(self._cfg.policy)
         self._policy = create_policy(policy_cfg, enable_field=['command']).command_mode
-        self._logger, self._tb_logger = build_logger("./log/commander", "commander", need_tb=True)
-        self._collector_logger, _ = build_logger("./log/commander", "commander_collector", need_tb=False)
-        self._evaluator_logger, _ = build_logger("./log/commander", "commander_evaluator", need_tb=False)
+        self._logger, self._tb_logger = build_logger(
+            "./{}/log/commander".format(self._exp_name), "commander", need_tb=True
+        )
+        self._collector_logger, _ = build_logger(
+            "./{}/log/commander".format(self._exp_name), "commander_collector", need_tb=False
+        )
+        self._evaluator_logger, _ = build_logger(
+            "./{}/log/commander".format(self._exp_name), "commander_evaluator", need_tb=False
+        )
         self._sub_logger = {
             'collector': self._collector_logger,
             'evaluator': self._evaluator_logger,
@@ -108,6 +113,7 @@ class OneVsOneCommander(BaseCommander):
             collector_cfg.policy_update_path = league_job_dict['checkpoint_path']
             collector_cfg.policy_update_flag = league_job_dict['player_active_flag']
             collector_cfg.eval_flag = eval_flag
+            collector_cfg.exp_name = self._exp_name
             if eval_flag:
                 collector_cfg.policy = copy.deepcopy([self._cfg.policy])
                 collector_cfg.env = self._evaluator_env_cfg
@@ -146,6 +152,7 @@ class OneVsOneCommander(BaseCommander):
             return None
         if self._learner_task_space.acquire_space():
             learner_cfg = copy.deepcopy(self._cfg.policy.learn.learner)
+            learner_cfg.exp_name = self._exp_name
             learner_command = {
                 'task_id': 'learner_task_{}'.format(get_task_uid()),
                 'policy_id': self._init_policy_id(),

@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Tuple
-import logging
 import gym
 import copy
-import numpy as np
 from easydict import EasyDict
 from namedlist import namedlist
 from collections import namedtuple
@@ -13,14 +11,13 @@ BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'
 BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'use_wrappers'])
 
 
-class BaseEnv(gym.Env):
+class BaseEnv(ABC, gym.Env):
     """
     Overview:
         basic environment class, extended from ``gym.Env``
     Interface:
         ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \
-            ``create_evaluator_env_cfg``,
-        ``enable_save_replay``
+            ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
 
     @abstractmethod

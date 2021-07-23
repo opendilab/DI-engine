@@ -1,20 +1,17 @@
-import math
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
-import copy
 import torch.nn as nn
-import numpy as np
 
-from ding.torch_utils import Adam, to_device, one_hot
+from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 try:
-    from dizoo.gfootball.model.bots import FootballRuleBaseModel, FootballKaggle5thPlaceModel
+    from dizoo.gfootball.model.bots import FootballKaggle5thPlaceModel
 except ImportError:
-    FootballRuleBaseModel, FootballKaggle5thPlaceModel = None, None
+    FootballKaggle5thPlaceModel = None
 
 
 @POLICY_REGISTRY.register('IL')
@@ -96,7 +93,6 @@ class ILPolicy(Policy):
         # imitation learn forward
         # ====================
         obs = data.get('obs')
-        action = data.get('action')
         logit = data.get('logit')
         assert isinstance(obs['processed_obs'], torch.Tensor), obs['processed_obs']
         model_action_logit = self._learn_model.forward(obs['processed_obs'])['logit']
@@ -172,7 +168,7 @@ class ILPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, origin_data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, origin_data: list) -> Union[None, List[Any]]:
         datas = []
         pre_rew = 0
         for i in range(len(origin_data) - 1, -1, -1):

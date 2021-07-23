@@ -1,5 +1,5 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple, deque
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
 import copy
 import numpy as np
@@ -10,7 +10,7 @@ from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data
     v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous,\
     get_gae
 from ding.model import model_wrap
-from ding.utils import POLICY_REGISTRY, deep_merge_dicts, split_data_generator, RunningMeanStd
+from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
@@ -307,12 +307,12 @@ class PPOPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
@@ -515,10 +515,10 @@ class PPOOffPolicy(Policy):
         if not self._nstep_return:
             output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
             adv = data['adv']
+            return_ = data['value'] + adv
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-            return_ = data['value'] + adv
             # Calculate ppo error
             ppodata = ppo_data(
                 output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
@@ -653,12 +653,12 @@ class PPOOffPolicy(Policy):
             }
         return transition
 
-    def _get_train_sample(self, data: deque) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:
             Get the trajectory and calculate GAE, return one data to cache for next time calculation
         Arguments:
-            - data (:obj:`deque`): The trajectory's cache
+            - data (:obj:`list`): The trajectory's cache
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
