@@ -35,8 +35,8 @@ lunarlander_acer_default_config = dict(
             update_per_collect=10,
             # (int) the number of data for a train iteration
             batch_size=32,
-            grad_clip_type='clip_norm',
-            clip_value=10,
+            # grad_clip_type='clip_norm',
+            # clip_value=10,
             learning_rate_actor=0.0001,
             learning_rate_critic=0.0001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
@@ -50,7 +50,7 @@ lunarlander_acer_default_config = dict(
             unroll_len=32,
             # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
-            c_clip_ratio=1.0,
+            c_clip_ratio=10,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -64,6 +64,7 @@ lunarlander_acer_default_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(replay_buffer=dict(
+            type='naive',
             replay_buffer_size=50000,
             max_use=100,
         ), ),

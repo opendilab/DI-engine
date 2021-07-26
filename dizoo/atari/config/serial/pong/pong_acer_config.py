@@ -46,7 +46,7 @@ pong_acer_config = dict(
             lambda_=0.95,
             # (int) the trajectory length to calculate v-trace target
             unroll_len=32,
-            use_trust_region=False,
+            use_trust_region=True,
             # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
             c_clip_ratio=10,
