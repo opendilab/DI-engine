@@ -22,6 +22,12 @@ class TicTacToeEnv(BaseGameEnv):
         obs = {'obs':self.get_observation(),'mask': self.legal_actions()}
         return obs
 
+    def do_action(self,action):
+        row = action // 3
+        col = action % 3
+        self.board[row, col] = self.player
+        self.player *= -1
+
     def step(self, action):
         row = action // 3
         col = action % 3
@@ -74,6 +80,11 @@ class TicTacToeEnv(BaseGameEnv):
             return True
 
         return False
+
+    def game_end(self):
+        end = self.have_winner()
+        winner = self.player if end else -1
+        return end, winner
 
     def seed(self, seed: int) -> None:
         pass

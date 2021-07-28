@@ -28,6 +28,11 @@ class GomokuEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         return {'obs': self.board, 'mask': self.legal_actions()}
 
+    def do_action(self,action):
+        row, col = self.action_to_coord(action)
+        self.player *= -1
+        self.board[row, col] = self.player
+
     def step(self, action):
         row, col = self.action_to_coord(action)
         self.board[row, col] = self.player
@@ -97,6 +102,11 @@ class GomokuEnv(BaseGameEnv):
                         if count == 5:
                             return True
         return not has_legal_actions
+
+    def game_end(self):
+        end = self.is_finished()
+        winner = self.player if end else -1
+        return end, winner
 
     def seed(self, seed: int) -> None:
         pass
