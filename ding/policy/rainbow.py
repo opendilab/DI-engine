@@ -70,7 +70,7 @@ class RainbowDQNPolicy(DQNPolicy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=True,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
-        random_collect_size=2000,
+        # random_collect_size=2000,
         model=dict(
             # (float) Value of the smallest atom in the support set.
             # Default to -10.0.
