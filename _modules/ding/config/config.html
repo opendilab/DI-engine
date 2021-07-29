@@ -174,7 +174,7 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span>
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">get_policy_cls</span>
-<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">BaseSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">BaseSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> <span class="n">AdvancedReplayBuffer</span><span class="p">,</span> \
     <span class="n">get_parallel_commander_cls</span><span class="p">,</span> <span class="n">get_parallel_collector_cls</span><span class="p">,</span> <span class="n">get_buffer_cls</span><span class="p">,</span> <span class="n">get_serial_collector_cls</span>
 <span class="kn">from</span> <span class="nn">ding.reward_model</span> <span class="kn">import</span> <span class="n">get_reward_model_cls</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">parallel_transform</span><span class="p">,</span> <span class="n">parallel_transform_slurm</span><span class="p">,</span> <span class="n">parallel_transform_k8s</span><span class="p">,</span> <span class="n">save_config_formatted</span>
@@ -470,7 +470,7 @@
         <span class="n">learner</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">,</span>
         <span class="n">collector</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">evaluator</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">BaseSerialEvaluator</span><span class="p">,</span>
-        <span class="n">buffer</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">buffer</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span><span class="p">,</span>
         <span class="n">env</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">reward_model</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
