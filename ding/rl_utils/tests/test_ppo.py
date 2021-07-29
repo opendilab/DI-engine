@@ -3,7 +3,7 @@ from itertools import product
 import numpy as np
 import torch
 
-from ding.rl_utils import ppo_data, ppo_error, ppo_error_continous
+from ding.rl_utils import ppo_data, ppo_error, ppo_error_continuous
 from ding.rl_utils.ppo import shape_fn_ppo
 
 use_value_clip_args = [True, False]

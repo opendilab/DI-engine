@@ -12,7 +12,7 @@ walker2d_ddpg_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        use_cuda=True,
+        cuda=True,
         on_policy=False,
         random_collect_size=25000,
         model=dict(
@@ -39,11 +39,7 @@ walker2d_ddpg_default_config = dict(
             unroll_len=1,
             noise_sigma=0.1,
         ),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=1000000,
-            ),
-        ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
 walker2d_ddpg_default_config = EasyDict(walker2d_ddpg_default_config)
@@ -59,7 +55,7 @@ walker2d_ddpg_default_create_config = dict(
         type='ddpg',
         import_names=['ding.policy.ddpg'],
     ),
-    replay_buffer=dict(type='naive',),
+    replay_buffer=dict(type='naive', ),
 )
 walker2d_ddpg_default_create_config = EasyDict(walker2d_ddpg_default_create_config)
 create_config = walker2d_ddpg_default_create_config

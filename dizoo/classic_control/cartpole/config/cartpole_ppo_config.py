@@ -10,6 +10,8 @@ cartpole_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
+        on_policy=True,
+        continuous=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -18,7 +20,7 @@ cartpole_ppo_config = dict(
             actor_head_hidden_size=128,
         ),
         learn=dict(
-            update_per_collect=6,
+            epoch_per_collect=2,
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,
@@ -26,7 +28,7 @@ cartpole_ppo_config = dict(
             clip_ratio=0.2,
         ),
         collect=dict(
-            n_sample=128,
+            n_sample=256,
             unroll_len=1,
             discount_factor=0.9,
             gae_lambda=0.95,

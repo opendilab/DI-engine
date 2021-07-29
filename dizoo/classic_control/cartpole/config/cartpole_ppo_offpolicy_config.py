@@ -1,23 +1,16 @@
 from easydict import EasyDict
 
-cartpole_ppo_rnd_config = dict(
-    exp_name="cartpole_ppo_rnd",
+cartpole_ppo_offpolicy_config = dict(
+    exp_name='cartpole_ppo_offpolicy',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
     ),
-    reward_model=dict(
-        intrinsic_reward_type='add',
-        learning_rate=1e-3,
-        obs_shape=4,
-        batch_size=32,
-        update_per_collect=10,
-    ),
     policy=dict(
-        cuda=False,
         on_policy=False,
+        cuda=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -39,18 +32,18 @@ cartpole_ppo_rnd_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_ppo_rnd_config = EasyDict(cartpole_ppo_rnd_config)
-main_config = cartpole_ppo_rnd_config
-cartpole_ppo_rnd_create_config = dict(
+cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
+main_config = cartpole_ppo_offpolicy_config
+cartpole_ppo_offpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
-    reward_model=dict(type='rnd'),
 )
-cartpole_ppo_rnd_create_config = EasyDict(cartpole_ppo_rnd_create_config)
-create_config = cartpole_ppo_rnd_create_config
+cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)
+create_config = cartpole_ppo_offpolicy_create_config
