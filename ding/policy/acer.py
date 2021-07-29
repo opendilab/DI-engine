@@ -29,11 +29,9 @@ class ACERPolicy(Policy):
                                                                                                  | erent from modes
         3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
                                                         | or off-policy
-        4. ``priority``         bool     False          | Whether use priority(PER)              | priority sample,
-                                                                                                 | update priority
-
-        5  | ``priority_``      bool     False          | Whether use Importance Sampling Weight | If True, priority
-           | ``IS_weight``                              |                                        | must be True
+        4  ``use_trust_region`` bool     True           | Whether the RL algorithm use trust     |
+                                                        | region constraint                      |
+        5  ``trust_region_value`` float  1.0            | the maximum range of the trust region  |
         6  ``unroll_len``       int      32             | trajectory length to calculate v-trace
                                                         | target
         7  | ``learn.update``   int      4              | How many updates(iterations) to train  | this args can be vary
