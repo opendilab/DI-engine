@@ -31,12 +31,13 @@ class Adder(object):
         Returns:
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
         """
-        value = torch.stack([d['value'] for d in data] + [last_value])
+        value = torch.stack([d['value'] for d in data])
+        next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
         reward = torch.stack([d['reward'] for d in data])
         if cuda:
             value = value.cuda()
             reward = reward.cuda()
-        adv = gae(gae_data(value, reward), gamma, gae_lambda)
+        adv = gae(gae_data(value, next_value, reward, None), gamma, gae_lambda)
         if cuda:
             adv = adv.cpu()
         for i in range(len(data)):

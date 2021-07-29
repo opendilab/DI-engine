@@ -257,7 +257,7 @@ def affine_transform(
     Returns:
         - transformed_data (:obj:`Any`): affine transformed data
     """
-    assert data.min() >= -1 and data.max() <= 1, data
+    data = np.clip(data, -1, 1)
     if min_val is not None:
         assert max_val is not None
         alpha = (max_val - min_val) / 2
