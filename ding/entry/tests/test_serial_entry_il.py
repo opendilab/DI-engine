@@ -6,21 +6,21 @@ import torch
 from collections import namedtuple
 import os
 
-from dizoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config, \
-    cartpole_dqn_config, cartpole_dqn_create_config
 from ding.torch_utils import Adam, to_device
 from ding.config import compile_config
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, get_nstep_return_data
 from ding.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
-from ding.policy import PPOPolicy, ILPolicy
+from ding.policy import PPOOffPolicy, ILPolicy
 from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
+from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config, \
+    cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config
 
 
 @POLICY_REGISTRY.register('ppo_il')
-class PPOILPolicy(PPOPolicy):
+class PPOILPolicy(PPOOffPolicy):
 
     def _forward_learn(self, data: dict) -> dict:
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.get('ignore_done', False), use_nstep=False)
@@ -46,20 +46,20 @@ class PPOILPolicy(PPOPolicy):
 @pytest.mark.unittest
 def test_serial_pipeline_il_ppo():
     # train expert policy
-    train_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    train_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     expert_policy = serial_pipeline(train_config, seed=0)
 
     # collect expert demo data
     collect_count = 10000
     expert_data_path = 'expert_data_ppo.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
-    collect_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    collect_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
 
     # il training 1
-    il_config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    il_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     il_config[0].policy.learn.train_epoch = 10
     il_config[0].policy.type = 'ppo_il'
     _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)

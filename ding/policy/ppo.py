@@ -220,7 +220,7 @@ class PPOPolicy(Policy):
                     'value_max': output['value'].max().item(),
                     'approx_kl': ppo_info.approx_kl,
                     'clipfrac': ppo_info.clipfrac,
-                    'act': batch['action'].mean().item(),
+                    'act': batch['action'].float().mean().item(),
                 }
                 if self._continuous:
                     return_info.update(
@@ -326,7 +326,7 @@ class PPOPolicy(Policy):
         else:
             with torch.no_grad():
                 last_value = self._collect_model.forward(
-                    data[-1]['next_obs'].unsqueeze(0), mode='compute_critic'
+                    data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
                 )['value']
         if self._value_norm:
             last_value *= self._running_mean_std.std
@@ -458,9 +458,7 @@ class PPOOffPolicy(Policy):
             gae_lambda=0.95,
         ),
         eval=dict(),
-        # Although ppo is an on-policy algorithm, ding reuses the buffer mechanism, and clear buffer after update.
-        # Note replay_buffer_size must be greater than n_sample.
-        other=dict(replay_buffer=dict(replay_buffer_size=1000, ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     )
 
     def _init_learn(self) -> None:
