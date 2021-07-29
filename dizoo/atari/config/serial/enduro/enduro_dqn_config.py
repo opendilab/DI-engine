@@ -33,7 +33,7 @@ enduro_dqn_config = dict(
         other=dict(
             eps=dict(
                 type='exp',
-                start=1.,
+                start=0.5,
                 end=0.05,
                 decay=1000000,
             ),
