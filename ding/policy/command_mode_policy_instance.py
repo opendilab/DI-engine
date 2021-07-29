@@ -111,7 +111,7 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('ppo_offpolicy_command')
-class PPOCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
+class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 
