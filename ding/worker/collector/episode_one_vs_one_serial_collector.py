@@ -251,9 +251,8 @@ class Episode1v1Collector(ISerialCollector):
                 self._total_envstep_count += 1
                 with self._timer:
                     for policy_id, policy in enumerate(self._policy):
-                        policy_timestep = type(timestep)(
-                            *[d[policy_id] if not isinstance(d, bool) else d for d in timestep]
-                        )
+                        policy_timestep = type(timestep
+                                               )(*[d[policy_id] if not isinstance(d, bool) else d for d in timestep])
                         transition = self._policy[policy_id].process_transition(
                             self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
                             policy_timestep
