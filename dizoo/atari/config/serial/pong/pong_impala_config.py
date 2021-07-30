@@ -10,9 +10,7 @@ pong_impala_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -22,10 +20,10 @@ pong_impala_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
-            critic_head_hidden_size = 512,
+            critic_head_hidden_size=512,
             critic_head_layer_num=2,
             actor_head_hidden_size=512,
-            actor_head_layer_num =2,
+            actor_head_layer_num=2,
         ),
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times

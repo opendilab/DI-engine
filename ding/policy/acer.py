@@ -175,17 +175,13 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
         # shape (T+1)*B,env_obs_shape
-        data['obs_plus_1'] = torch.cat(
-            (data['obs'] + data['next_obs'][-1:]), dim=0)
+        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)
         data['logit'] = torch.cat(
             data['logit'], dim=0
         ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-        data['action'] = torch.cat(data['action'], dim=0).reshape(
-            self._unroll_len, -1)  # shape T,B,
-        data['done'] = torch.cat(data['done'], dim=0).reshape(
-            self._unroll_len, -1).float()  # shape T,B,
-        data['reward'] = torch.cat(data['reward'], dim=0).reshape(
-            self._unroll_len, -1)  # shape T,B,
+        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
+        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         data['weight'] = torch.cat(
             data['weight'], dim=0
         ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
@@ -210,15 +206,13 @@ class ACERPolicy(Policy):
         """
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
-        action_data = self._learn_model.forward(
-            data['obs_plus_1'], mode='compute_actor')
-        q_value_data = self._learn_model.forward(
-            data['obs_plus_1'], mode='compute_critic')
-        avg_action_data = self._target_model.forward(
-            data['obs_plus_1'], mode='compute_actor')
+        action_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')
+        q_value_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_critic')
+        avg_action_data = self._target_model.forward(data['obs_plus_1'], mode='compute_actor')
 
         target_logit, behaviour_logit, avg_logit, actions, q_values, rewards, weights = self._reshape_data(
-            action_data, avg_action_data, q_value_data, data)
+            action_data, avg_action_data, q_value_data, data
+        )
         # shape (T+1),B,env_action_shape
         target_pi = torch.softmax(target_logit, dim=-1)
         # shape T,B,env_action_shape
@@ -227,12 +221,11 @@ class ACERPolicy(Policy):
         avg_pi = torch.softmax(avg_logit, dim=-1)
         with torch.no_grad():
             # shape T,B,env_action_shape
-            ratio = target_pi[0:-1, ...]/(behaviour_pi+EPS)
+            ratio = target_pi[0:-1, ...] / (behaviour_pi + EPS)
             # shape (T+1),B,1
-            v_pred = (q_values*target_pi).sum(-1).unsqueeze(-1)
+            v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
             # Calculate retrace
-            q_retraces = compute_q_retraces(
-                q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
+            q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
 
         q_retraces = q_retraces[0:-1]  # shape T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape
@@ -244,28 +237,24 @@ class ACERPolicy(Policy):
         # policy update
         # ====================
         actor_loss, bc_loss = acer_policy_error(
-            q_values, q_retraces, v_pred, target_pi, actions, ratio, self._c_clip_ratio)
-        actor_loss = actor_loss*weights.unsqueeze(-1)
-        bc_loss = bc_loss*weights.unsqueeze(-1)
+            q_values, q_retraces, v_pred, target_pi, actions, ratio, self._c_clip_ratio
+        )
+        actor_loss = actor_loss * weights.unsqueeze(-1)
+        bc_loss = bc_loss * weights.unsqueeze(-1)
         dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
-        entropy_loss = (dist_new.entropy() *
-                        weights).unsqueeze(-1)  # shape T,B,1
-        total_actor_loss = (
-            actor_loss+bc_loss+self._entropy_weight*entropy_loss).sum()/total_valid
+        entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)  # shape T,B,1
+        total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
         self._optimizer_actor.zero_grad()
-        actor_gradients = torch.autograd.grad(
-            -total_actor_loss, target_pi, retain_graph=True)
+        actor_gradients = torch.autograd.grad(-total_actor_loss, target_pi, retain_graph=True)
         if self._use_trust_region:
-            actor_gradients = acer_trust_region_update(
-                actor_gradients, target_pi, avg_pi, self._trust_region_value)
+            actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
         target_pi.backward(actor_gradients)
         self._optimizer_actor.step()
 
         # ====================
         # critic update
         # ====================
-        critic_loss = (acer_value_error(q_values, q_retraces, actions)
-                       * weights.unsqueeze(-1)).sum()/total_valid
+        critic_loss = (acer_value_error(q_values, q_retraces, actions) * weights.unsqueeze(-1)).sum() / total_valid
         self._optimizer_critic.zero_grad()
         critic_loss.backward()
         self._optimizer_critic.step()
@@ -274,14 +263,17 @@ class ACERPolicy(Policy):
         return {
             'cur_actor_lr': self._optimizer_actor.defaults['lr'],
             'cur_critic_lr': self._optimizer_critic.defaults['lr'],
-            'actor_loss': (actor_loss.sum()/total_valid).item(),
-            'bc_loss': (bc_loss.sum()/total_valid).item(),
+            'actor_loss': (actor_loss.sum() / total_valid).item(),
+            'bc_loss': (bc_loss.sum() / total_valid).item(),
             'policy_loss': total_actor_loss.item(),
             'critic_loss': critic_loss.item(),
-            'entropy_loss': (entropy_loss.sum()/total_valid).item(),
+            'entropy_loss': (entropy_loss.sum() / total_valid).item(),
         }
 
-    def _reshape_data(self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any], q_value_data: Dict[str, Any], data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
+    def _reshape_data(
+            self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any], q_value_data: Dict[str, Any],
+            data: Dict[str, Any]
+    ) -> Tuple[Any, Any, Any, Any, Any, Any]:
         r"""
         Overview:
             Obtain weights for loss calculating, where should be 0 for done positions
@@ -305,14 +297,17 @@ class ACERPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = action_data['logit'].reshape(self._unroll_len + 1, -1,
-                                                    self._action_shape)  # shape (T+1),B,env_action_shape
+        target_logit = action_data['logit'].reshape(
+            self._unroll_len + 1, -1, self._action_shape
+        )  # shape (T+1),B,env_action_shape
         behaviour_logit = data['logit']  # shape T,B,env_action_shape
-        avg_action_logit = avg_action_data['logit'].reshape(self._unroll_len + 1, -1,
-                                                            self._action_shape)  # shape (T+1),B,env_action_shape
+        avg_action_logit = avg_action_data['logit'].reshape(
+            self._unroll_len + 1, -1, self._action_shape
+        )  # shape (T+1),B,env_action_shape
         actions = data['action']  # shape T,B
-        values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1,
-                                                 self._action_shape)  # shape (T+1),B,env_action_shape
+        values = q_value_data['q_value'].reshape(
+            self._unroll_len + 1, -1, self._action_shape
+        )  # shape (T+1),B,env_action_shape
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
@@ -357,8 +352,7 @@ class ACERPolicy(Policy):
             Use multinomial_sample to choose action.
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(
-            self._model, wrapper_name='multinomial_sample')
+        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Dict[str, Any]]:
@@ -433,8 +427,7 @@ class ACERPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
             and use argmax_sample to choose action.
         """
-        self._eval_model = model_wrap(
-            self._model, wrapper_name='argmax_sample')
+        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:

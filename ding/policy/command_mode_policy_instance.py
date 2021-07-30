@@ -160,6 +160,7 @@ class COMACommandModePolicy(COMAPolicy, EpsCommandModePolicy):
 class ATOCCommandModePolicy(ATOCPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('acer_command')
-class ACERCommandModePolisy(ACERPolicy,DummyCommandModePolicy):
+class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
     pass

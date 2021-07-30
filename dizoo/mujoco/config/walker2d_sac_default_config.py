@@ -42,11 +42,7 @@ walker2d_sac_default_config = dict(
         ),
         command=dict(),
         eval=dict(),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=1000000,
-            ),
-        ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     ),
 )
 

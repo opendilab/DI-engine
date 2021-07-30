@@ -56,8 +56,7 @@ class ACER(nn.Module):
             encoder_cls = ConvEncoder
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(
-                    obs_shape)
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
             )
 
         self.actor_encoder = encoder_cls(
@@ -71,11 +70,7 @@ class ACER(nn.Module):
             critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
         self.actor_head = DiscreteHead(
-            actor_head_hidden_size,
-            action_shape,
-            actor_head_layer_num,
-            activation=activation,
-            norm_type=norm_type
+            actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
         )
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
@@ -134,8 +129,7 @@ class ACER(nn.Module):
 
 
         """
-        assert mode in self.mode, "not support forward mode: {}/{}".format(
-            mode, self.mode)
+        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:

@@ -57,9 +57,7 @@ lunarlander_dqn_default_config = dict(
                 end=0.1,
                 decay=50_000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=100000,
-            )
+            replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )

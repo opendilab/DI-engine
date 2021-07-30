@@ -39,11 +39,7 @@ hopper_ddpg_default_config = dict(
             unroll_len=1,
             noise_sigma=0.1,
         ),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=1000000,
-            ),
-        ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
 hopper_ddpg_default_config = EasyDict(hopper_ddpg_default_config)
@@ -59,7 +55,7 @@ hopper_ddpg_default_create_config = dict(
         type='ddpg',
         import_names=['ding.policy.ddpg'],
     ),
-    replay_buffer=dict(type='naive',),
+    replay_buffer=dict(type='naive', ),
 )
 hopper_ddpg_default_create_config = EasyDict(hopper_ddpg_default_create_config)
 create_config = hopper_ddpg_default_create_config

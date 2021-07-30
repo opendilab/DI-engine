@@ -44,11 +44,7 @@ halfcheetah_td3_default_config = dict(
             unroll_len=1,
             noise_sigma=0.1,
         ),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=1000000,
-            ),
-        ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
 
@@ -65,7 +61,7 @@ halfcheetah_td3_default_create_config = dict(
         policy_type='td3',
         import_names=['ding.policy.td3'],
     ),
-    replay_buffer=dict(type='naive',),
+    replay_buffer=dict(type='naive', ),
 )
 halfcheetah_td3_default_create_config = EasyDict(halfcheetah_td3_default_create_config)
 create_config = halfcheetah_td3_default_create_config

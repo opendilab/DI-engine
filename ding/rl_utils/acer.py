@@ -31,10 +31,11 @@ def acer_policy_error(q_values, q_retraces, v_pred, target_pi, actions, ratio, c
         """
     actions = actions.unsqueeze(-1)
     with torch.no_grad():
-        advantage_retraces = q_retraces-v_pred  # shape T,B,1
-        advantage_native = q_values-v_pred  # shape T,B,env_action_shape
-    actor_loss = ratio.gather(-1, actions).clamp(max=c_clip_ratio)*advantage_retraces*(
-        target_pi.gather(-1, actions)+EPS).log()  # shape T,B,1
+        advantage_retraces = q_retraces - v_pred  # shape T,B,1
+        advantage_native = q_values - v_pred  # shape T,B,env_action_shape
+    actor_loss = ratio.gather(-1, actions).clamp(max=c_clip_ratio
+                                                 ) * advantage_retraces * (target_pi.gather(-1, actions) +
+                                                                           EPS).log()  # shape T,B,1
 
     # bias correction term, the first target_pi will not calculate gradient flow
     bias_correction_loss = (1.0-c_clip_ratio/(ratio+EPS)).clamp(min=0.0)*target_pi.detach() * \
@@ -61,7 +62,7 @@ def acer_value_error(q_values, q_retraces, actions):
             - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)` 
         """
     actions = actions.unsqueeze(-1)
-    critic_loss = 0.5*(q_retraces-q_values.gather(-1, actions)).pow(2)
+    critic_loss = 0.5 * (q_retraces - q_values.gather(-1, actions)).pow(2)
     return critic_loss
 
 
@@ -81,14 +82,12 @@ def acer_trust_region_update(actor_gradients, target_pi, avg_pi, trust_region_va
             - avg_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
         """
     with torch.no_grad():
-        KL_gradients = [(avg_pi/(target_pi+EPS))]
+        KL_gradients = [(avg_pi / (target_pi + EPS))]
     update_gradients = []
     # TODO: here is only one elements in this list.Maybe will use to more elements in the future
     actor_gradient = actor_gradients[0]
     KL_gradient = KL_gradients[0]
-    scale = actor_gradient.mul(
-        KL_gradient).sum(-1, keepdim=True)-trust_region_value
-    scale = torch.div(scale, KL_gradient.mul(
-        KL_gradient).sum(-1, keepdim=True)).clamp(min=0.0)
-    update_gradients.append(actor_gradient-scale*KL_gradient)
+    scale = actor_gradient.mul(KL_gradient).sum(-1, keepdim=True) - trust_region_value
+    scale = torch.div(scale, KL_gradient.mul(KL_gradient).sum(-1, keepdim=True)).clamp(min=0.0)
+    update_gradients.append(actor_gradient - scale * KL_gradient)
     return update_gradients
