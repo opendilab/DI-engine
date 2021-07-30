@@ -18,28 +18,28 @@ EPS = 1e-8
 class ACERPolicy(Policy):
     r"""
     Overview:
-        Policy class of IMPALA algorithm.
+        Policy class of ACER algorithm.
 
     Config:
-        == ==================== ======== ============== ======================================== =======================
-        ID Symbol               Type     Default Value  Description                              Other(Shape)
-        == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      acer           | RL policy register name, refer to      | this arg is optional,
-                                                        | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
-                                                                                                 | erent from modes
-        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
-                                                        | or off-policy
-        4  ``trust_region`` bool     True           | Whether the RL algorithm use trust     |
-                                                        | region constraint                      |
-        5  ``trust_region_value`` float  1.0            | the maximum range of the trust region  |
-        6  ``unroll_len``       int      32             | trajectory length to calculate v-trace
-                                                        | target
-        7  | ``learn.update``   int      4              | How many updates(iterations) to train  | this args can be vary
-           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
-                                                        | valid in serial training               | means more off-policy
-        8  | ``c_clip_ratio``  float     1.0            | clip ratio of importance weights       | 
-        == ==================== ======== ============== ======================================== =======================
+        == ======================= ======== ============== ======================================== =======================
+        ID Symbol                  Type     Default Value  Description                              Other(Shape)
+        == ======================= ======== ============== ======================================== =======================
+        1  ``type``                str      acer           | RL policy register name, refer to      | this arg is optional,
+                                                           | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``                bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                           |                                        | erent from modes
+        3  ``on_policy``           bool     False          | Whether the RL algorithm is on-policy
+                                                           | or off-policy
+        4  ``trust_region``        bool     True           | Whether the RL algorithm use trust     |
+                                                           | region constraint                      |
+        5  ``trust_region_value``  float    1.0            | the maximum range of the trust region  |
+        6  ``unroll_len``          int      32             | trajectory length to calculate v-trace
+                                                           | target
+        7   ``learn.update``       int      4              | How many updates(iterations) to train  | this args can be vary
+            ``per_collect``                                | after collector's one collection. Only | from envs. Bigger val
+                                                           | valid in serial training               | means more off-policy
+        8   ``c_clip_ratio``       float    1.0            | clip ratio of importance weights       | 
+        == ======================= ======== ============== ======================================== =======================
     """
     unroll_len = 32
     config = dict(
@@ -466,7 +466,7 @@ class ACERPolicy(Policy):
         return output
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qacd', ['ding.model.template.qacd']
+        return 'acer', ['ding.model.template.acer']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

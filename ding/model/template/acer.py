@@ -7,11 +7,11 @@ from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, Multi
     FCEncoder, ConvEncoder
 
 
-@MODEL_REGISTRY.register('qacd')
-class QACD(nn.Module):
+@MODEL_REGISTRY.register('acer')
+class ACER(nn.Module):
     r"""
     Overview:
-        The QACD model.
+        The ACER model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -31,7 +31,7 @@ class QACD(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the QAC Model according to arguments.
+            Init the ACER Model according to arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
@@ -47,7 +47,7 @@ class QACD(nn.Module):
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
         """
-        super(QACD, self).__init__()
+        super(ACER, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -86,7 +86,7 @@ class QACD(nn.Module):
         r"""
         Overview:
             Use observation to predict output. 
-            Parameter updates with QACD's MLPs forward setup.
+            Parameter updates with ACER's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
                 - inputs (:obj:`torch.Tensor`):
@@ -94,7 +94,7 @@ class QACD(nn.Module):
                     Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
 
             Forward with ``'compute_critic'``, inputs:`torch.Tensor` Necessary Keys:
-                - ``obs``, ``action`` encoded tensors.
+                - ``obs`` encoded tensors.
 
             - mode (:obj:`str`): Name of the forward mode.
         Returns:
@@ -102,32 +102,36 @@ class QACD(nn.Module):
 
                 Forward with ``'compute_actor'``, Necessary Keys (either):
                     - logit (:obj:`torch.Tensor`):
-                        - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+                        - logit (:obj:`torch.Tensor`): Logit encoding tensor.
 
                 Forward with ``'compute_critic'``, Necessary Keys:
-                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+                    - q_value (:obj:`torch.Tensor`): Q value tensor.
+
         Actor Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size.
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
 
         Critic Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
-
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``obs_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+ 
         Actor Examples:
             >>> # Regression mode
-            >>> model = QACD(64, 64)
+            >>> model = ACER(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
 
         Critic Examples:
-            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QACD(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['pred'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
+            >>> inputs = torch.randn(4,N)
+            >>> model = ACER(obs_shape=(N, ),action_shape=5)
+            >>> model(inputs, mode='compute_critic')['q_value'] # q value
+            tensor([[-0.0681, -0.0431, -0.0530,  0.1454, -0.1093],
+            [-0.0647, -0.0281, -0.0527,  0.1409, -0.1162],
+            [-0.0596, -0.0321, -0.0676,  0.1386, -0.1113],
+            [-0.0874, -0.0406, -0.0487,  0.1346, -0.1135]],
+            grad_fn=<AddmmBackward>)
+
 
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(
@@ -148,29 +152,18 @@ class QACD(nn.Module):
         Returns:
             - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.
 
-        ReturnsKeys (either):
-            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.
-            - logit (:obj:`torch.Tensor`):
-                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
+        ReturnsKeys (either): 
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
         Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - logit (:obj:`list`): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape`` 
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ACER(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
+            >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
+            
         """
         x = self.actor_encoder(inputs)
         x = self.actor_head(x)
@@ -192,15 +185,17 @@ class QACD(nn.Module):
             - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``.
 
         Examples:
-            >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> inputs =torch.randn(4, N)
+            >>> model = ACER(obs_shape=(N, ),action_shape=5)
             >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-
+            tensor([[-0.0681, -0.0431, -0.0530,  0.1454, -0.1093],
+            [-0.0647, -0.0281, -0.0527,  0.1409, -0.1162],
+            [-0.0596, -0.0321, -0.0676,  0.1386, -0.1113],
+            [-0.0874, -0.0406, -0.0487,  0.1346, -0.1135]],
+            grad_fn=<AddmmBackward>) 
         """
 
         obs = inputs
