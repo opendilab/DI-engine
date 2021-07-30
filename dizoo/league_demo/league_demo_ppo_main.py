@@ -130,7 +130,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             collector, learner = collectors[player_id], learners[player_id]
             job = league.get_job_info(player_id)
             opponent_player_id = job['player_id'][1]
-            #print('job player: {}'.format(job['player_id']))
+            # print('job player: {}'.format(job['player_id']))
             if 'historical' in opponent_player_id:
                 opponent_policy = policies['historical'].collect_mode
                 opponent_path = job['checkpoint_path'][1]
