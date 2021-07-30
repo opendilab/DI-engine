@@ -1,10 +1,20 @@
+from typing import Tuple, List
 from collections import namedtuple
 import torch
+from torch.functional import Tensor
 import torch.nn.functional as F
 EPS = 1e-8
 
 
-def acer_policy_error(q_values, q_retraces, v_pred, target_pi, actions, ratio, c_clip_ratio=10.0):
+def acer_policy_error(
+        q_values: torch.Tensor,
+        q_retraces: torch.Tensor,
+        v_pred: torch.Tensor,
+        target_pi: torch.Tensor,
+        actions: torch.Tensor,
+        ratio: torch.Tensor,
+        c_clip_ratio: float = 10.0
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """
         Overview:
             Get ACER policy loss 
@@ -66,7 +76,9 @@ def acer_value_error(q_values, q_retraces, actions):
     return critic_loss
 
 
-def acer_trust_region_update(actor_gradients, target_pi, avg_pi, trust_region_value):
+def acer_trust_region_update(
+        actor_gradients: List[torch.Tensor], target_pi: torch.Tensor, avg_pi: torch.Tensor, trust_region_value: float
+) -> List[torch.Tensor]:
     """
         Overview:
             calcuate gradient with trust region constrain
