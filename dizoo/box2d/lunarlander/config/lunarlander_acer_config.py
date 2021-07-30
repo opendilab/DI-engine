@@ -28,6 +28,7 @@ lunarlander_acer_default_config = dict(
         discount_factor=0.99,
         # How many steps in td error.
         nstep=nstep,
+        unroll_len=32,
         # learn_mode config
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
@@ -45,18 +46,13 @@ lunarlander_acer_default_config = dict(
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
             # (float) additional discounting parameter
-            lambda_=0.95,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
-            # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
             c_clip_ratio=10,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
             gae_lambda=0.95,
@@ -66,7 +62,6 @@ lunarlander_acer_default_config = dict(
         other=dict(replay_buffer=dict(
             type='naive',
             replay_buffer_size=50000,
-            max_use=100,
         ), ),
     ),
 )

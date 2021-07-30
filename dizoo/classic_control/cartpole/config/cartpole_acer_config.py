@@ -14,6 +14,8 @@ cartpole_acer_config = dict(
             action_shape=2,
             encoder_hidden_size_list=[64, 64],
         ),
+        # (int) the trajectory length to calculate Q retrace target
+        unroll_len=32,
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow ppo serial pipeline
@@ -21,34 +23,29 @@ cartpole_acer_config = dict(
             # (int) the number of data for a train iteration
             batch_size=16,
             learning_rate_actor=0.0005,
-            learning_rate_critic=0.0005, 
+            learning_rate_critic=0.0005,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             # entropy_weight=0.0001,
             entropy_weight=0.0,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             # (float) additional discounting parameter
-            lambda_=0.95,
             # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
             # (float) clip ratio of importance weights
+            trust_region=True,
             c_clip_ratio=10,
             # (float) clip ratio of importance sampling
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
-            gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, )),
         other=dict(replay_buffer=dict(
             replay_buffer_size=10000,
-            max_use=100,
         ), ),
     ),
 )

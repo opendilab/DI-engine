@@ -22,11 +22,12 @@ pong_acer_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
-            critic_head_hidden_size = 512,
+            critic_head_hidden_size=512,
             critic_head_layer_num=2,
             actor_head_hidden_size=512,
-            actor_head_layer_num =2,
+            actor_head_layer_num=2,
         ),
+        unroll_len=32,
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
@@ -43,10 +44,7 @@ pong_acer_config = dict(
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             # (float) additional discounting parameter
-            lambda_=0.95,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
-            use_trust_region=True,
+            trust_region=True,
             # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
             c_clip_ratio=10,
@@ -54,18 +52,14 @@ pong_acer_config = dict(
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=32,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
-            gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(replay_buffer=dict(
             type='naive',
             replay_buffer_size=10000,
-            max_use=100,
         ), ),
     ),
 )

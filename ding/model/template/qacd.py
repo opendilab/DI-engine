@@ -3,9 +3,9 @@ import torch
 import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder
+
 
 @MODEL_REGISTRY.register('qacd')
 class QACD(nn.Module):
@@ -56,18 +56,19 @@ class QACD(nn.Module):
             encoder_cls = ConvEncoder
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(
+                    obs_shape)
             )
 
         self.actor_encoder = encoder_cls(
-                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-            )
+            obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+        )
         self.critic_encoder = encoder_cls(
-                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-            )
+            obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+        )
 
         self.critic_head = RegressionHead(
-            critic_head_hidden_size,action_shape,critic_head_layer_num,activation=activation,norm_type=norm_type
+            critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
         self.actor_head = DiscreteHead(
             actor_head_hidden_size,
@@ -80,7 +81,6 @@ class QACD(nn.Module):
         self.critic = [self.critic_encoder, self.critic_head]
         self.actor = nn.ModuleList(self.actor)
         self.critic = nn.ModuleList(self.critic)
-        
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
@@ -130,7 +130,8 @@ class QACD(nn.Module):
             tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
 
         """
-        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
+        assert mode in self.mode, "not support forward mode: {}/{}".format(
+            mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
@@ -202,7 +203,7 @@ class QACD(nn.Module):
 
         """
 
-        obs = inputs 
-        x=self.critic_encoder(obs)
-        x=self.critic_head(x)
-        return {"q_value":x['pred']}
+        obs = inputs
+        x = self.critic_encoder(obs)
+        x = self.critic_head(x)
+        return {"q_value": x['pred']}
