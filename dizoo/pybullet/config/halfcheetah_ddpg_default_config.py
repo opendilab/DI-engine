@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 halfcheetah_ddpg_default_config = dict(
     env=dict(
-        env_id='HalfCheetah-v3',
+        env_id='HalfCheetahMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,

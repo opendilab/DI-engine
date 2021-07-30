@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 walker2d_td3_default_config = dict(
     env=dict(
-        env_id='Walker2d-v3',
+        env_id='Walker2DMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,

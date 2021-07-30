@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 hopper_sac_default_config = dict(
     env=dict(
-        env_id='Hopper-v3',
+        env_id='HopperMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
