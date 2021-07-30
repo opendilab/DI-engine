@@ -5,7 +5,8 @@ import copy
 import torch
 
 from ding.model import model_wrap
-from ding.rl_utils import get_train_sample, compute_q_retraces, acer_policy_error, acer_value_error, acer_trust_region_update
+from ding.rl_utils import get_train_sample, compute_q_retraces, acer_policy_error,\
+     acer_value_error, acer_trust_region_update
 from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -21,25 +22,26 @@ class ACERPolicy(Policy):
         Policy class of ACER algorithm.
 
     Config:
-        == ======================= ======== ============== ======================================== =======================
-        ID Symbol                  Type     Default Value  Description                              Other(Shape)
-        == ======================= ======== ============== ======================================== =======================
-        1  ``type``                str      acer           | RL policy register name, refer to      | this arg is optional,
-                                                           | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``                bool     False          | Whether to use cuda for network        | this arg can be diff-
-                                                           |                                        | erent from modes
-        3  ``on_policy``           bool     False          | Whether the RL algorithm is on-policy
-                                                           | or off-policy
-        4  ``trust_region``        bool     True           | Whether the RL algorithm use trust     |
-                                                           | region constraint                      |
-        5  ``trust_region_value``  float    1.0            | the maximum range of the trust region  |
-        6  ``unroll_len``          int      32             | trajectory length to calculate v-trace
-                                                           | target
-        7   ``learn.update``       int      4              | How many updates(iterations) to train  | this args can be vary
-            ``per_collect``                                | after collector's one collection. Only | from envs. Bigger val
-                                                           | valid in serial training               | means more off-policy
-        8   ``c_clip_ratio``       float    1.0            | clip ratio of importance weights       | 
-        == ======================= ======== ============== ======================================== =======================
+        == ======================= ======== ============== ===================================== =======================
+        ID Symbol                  Type     Default Value  Description                           Other(Shape)
+        == ======================= ======== ============== ===================================== =======================
+        1  ``type``                str      acer           | RL policy register name, refer to   | this arg is optional,
+                                                           | registry ``POLICY_REGISTRY``        | a placeholder
+        2  ``cuda``                bool     False          | Whether to use cuda for network     | this arg can be diff-
+                                                           |                                     | erent from modes
+        3  ``on_policy``           bool     False          | Whether the RL algorithm is 
+                                                           | on-policy or off-policy
+        4  ``trust_region``        bool     True           | Whether the RL algorithm use trust  |
+                                                           | region constraint                   |
+        5  ``trust_region_value``  float    1.0            | maximum range of the trust region   |
+        6  ``unroll_len``          int      32             | trajectory length to calculate 
+                                                           | Q retrace target
+        7   ``learn.update``       int      4              | How many updates(iterations) to     | this args can be vary
+            ``per_collect``                                | train after collector's one         | from envs. Bigger val
+                                                           |  collection. Only                   | 
+                                                           | valid in serial training            | means more off-policy
+        8   ``c_clip_ratio``       float    1.0            | clip ratio of importance weights    | 
+        == ======================= ======== ============== ===================================== =======================
     """
     unroll_len = 32
     config = dict(
@@ -202,7 +204,8 @@ class ACERPolicy(Policy):
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
             - optional: 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority', 'staleness', 'use', 'IS'
         ReturnsKeys:
-            - necessary: ``cur_lr_actor``, ``cur_lr_critic``, ``actor_loss`,``bc_loss``,``policy_loss``,``critic_loss``,``entropy_loss``
+            - necessary: ``cur_lr_actor``, ``cur_lr_critic``, ``actor_loss`,``bc_loss``,``policy_loss``,\
+                ``critic_loss``,``entropy_loss``
         """
         data = self._data_preprocess_learn(data)
         self._learn_model.train()

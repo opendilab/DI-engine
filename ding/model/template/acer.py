@@ -80,13 +80,13 @@ class ACER(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
-            Use observation to predict output. 
-            Parameter updates with ACER's MLPs forward setup.
+        Use observation to predict output. 
+        Parameter updates with ACER's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
                 - inputs (:obj:`torch.Tensor`):
-                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+                Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
 
             Forward with ``'compute_critic'``, inputs:`torch.Tensor` Necessary Keys:
                 - ``obs`` encoded tensors.
