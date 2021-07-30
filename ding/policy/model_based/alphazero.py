@@ -48,43 +48,53 @@ class AbstractChessGame(object):
 class Node(object):
     def __init__(self, parent, prior_p: float, to_play):
         # Tree Structure
-        self.parent = parent
-        self.children = {}
+        self._parent = parent
+        self._children  = {}
 
         # Search meta data
-        self.visit_count = 0
+        self._visit_count = 0
         self.value_sum = 0
         self.prior_p = prior_p
 
     def value(self):
         """return current value, used to compute ucb score"""
-        if self.visit_count == 0:
+        if self._visit_count == 0:
             return 0
-        return self.value_sum / self.visit_count
+        return self.value_sum / self._visit_count
 
     def expand(self,action_priors):
         for action,prob in action_priors:
-            if action not in self.children:
-                self.children[action] = Node(self, prob)
+            if action not in self._children :
+                self._children [action] = Node(self, prob)
 
     def update(self,value):
-        self.visit_count += 1
+        self._visit_count += 1
         self.total_value += value
 
     def update_recursive(self,leaf_value):
         if not self.is_root():
-            self.parent.update_recursive(-leaf_value)
+            self._parent.update_recursive(-leaf_value)
         self.update(leaf_value)
 
     def is_leaf(self):
         """Check if the current node is a leaf node or not."""
-        return self.children == {}
+        return self._children  == {}
 
     def is_root(self):
         """Check if the current node is a root node or not."""
-        return self.parent is None
+        return self._parent is None
 
+    @property
+    def parent(self):
+        return self._parent
 
+    @property
+    def children(self):
+        return self._children
+
+    @property
+    def value(self):
+        return self._value
 
 class MCTS(object):
     def __init__(self, cfg):
@@ -98,34 +108,34 @@ class MCTS(object):
             relying on the prior more.
         n_playout: number of simulations, default to 10000
         """
-        self.cfg = cfg
+        self._cfg = cfg
         self._root = Node(None, 1.0)
 
-        self.num_sampling_moves = 30
-        self.max_moves = 512  # for chess and shogi, 722 for Go.
-        self.num_simulations = 800
+        self._num_sampling_moves = 30
+        self._max_moves = 512  # for chess and shogi, 722 for Go.
+        self._num_simulations = 800
 
         # UCB formula
-        self.pb_c_base = self.cfg.pb_c_base  # 19652
-        self.pb_c_init = self.cfg.pb_c_init  # 1.25
+        self._pb_c_base = self._cfg.pb_c_base  # 19652
+        self._pb_c_init = self._cfg.pb_c_init  # 1.25
 
         # Root prior exploration noise.
-        self.root_dirichlet_alpha = self.cfg.root_dirichlet_alpha # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
-        self.root_exploration_fraction = self.cfg.root_exploration_fraction # 0.25
+        self._root_dirichlet_alpha = self._cfg.root_dirichlet_alpha # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
+        self._root_exploration_fraction = self._cfg.root_exploration_fraction # 0.25
 
     def get_next_action(self,state,policy_forward_fn,temperature=1.0):
-        for n in range(self.num_simulations):
+        for n in range(self._num_simulations):
             state_copy = copy.deepcopy(state)
-            self.simulate(state_copy,policy_forward_fn)
+            self._simulate(state_copy,policy_forward_fn)
 
         # calc the move probabilities based on visit counts at the root node
         act_visits = [(act, node.visit_count)
                       for act, node in self._root.children.items()]
         acts, visits = zip(*act_visits)
         act_probs = nn.softmax(1.0/temperature * np.log(torch.as_tensor(visits) + 1e-10))
-        return act_probs
+        return acts, act_probs
 
-    def simulate(self, state,policy_forward_fn):
+    def _simulate(self, state,policy_forward_fn):
         """
             Run a single playout from the root to the leaf, getting a value at
         the leaf and propagating it back through its parents.
@@ -133,12 +143,12 @@ class MCTS(object):
         """
         node = self._root
         while not node.is_leaf():
-            action,node = self.select_child(node)
+            action,node = self._select_child(node)
             state.do_action(action)
 
         end, winner = state.game_end()
         if not end:
-            leaf_value = self.expand_leaf_node(node,state,policy_forward_fn)
+            leaf_value = self._expand_leaf_node(node,state,policy_forward_fn)
         else:
             if winner == -1:
                 leaf_value = 0
@@ -150,11 +160,11 @@ class MCTS(object):
 
 
     # Select the child with the highest UCB score.
-    def select_child(self, node):
-        _, action, child = max((self.ucb_score(node,child),action,child) for action,child in node.children.items())
+    def _select_child(self, node):
+        _, action, child = max((self._ucb_score(node,child),action,child) for action,child in node.children.items())
         return action, child
 
-    def expand_leaf_node(self, node,state,policy_forward_fn):
+    def _expand_leaf_node(self, node,state,policy_forward_fn):
         laef_value, policy_probs = policy_forward_fn(state)
         for action, prior_p in policy_probs.items():
             node.children[action] = Node(parent=node,prior_p=prior_p)
@@ -162,41 +172,23 @@ class MCTS(object):
 
     # The score for a node is based on its value, plus an exploration bonus based on
     # the prior.
-    def ucb_score(self, parent: Node, child: Node):
-        pb_c = math.log((parent.visit_count + self.pb_c_base + 1) /
-                        self.pb_c_base) + self.pb_c_init
+    def _ucb_score(self, parent: Node, child: Node):
+        pb_c = math.log((parent.visit_count + self._pb_c_base + 1) /
+                        self._pb_c_base) + self._pb_c_init
         pb_c *= math.sqrt(parent.visit_count) / (child.visit_count + 1)
 
         prior_score = pb_c * child.prior_p
         value_score = child.value()
         return prior_score + value_score
 
-    def add_exploration_noise(self, node):
+    def _add_exploration_noise(self, node):
         actions = node.children.keys()
-        noise = np.random.gamma(self.root_dirichlet_alpha, 1, len(actions))
-        frac = self.root_exploration_fraction
+        noise = np.random.gamma(self._root_dirichlet_alpha, 1, len(actions))
+        frac = self._root_exploration_fraction
         for a, n in zip(actions, noise):
             node.children[a].prior_p = node.children[a].prior_p * (1 - frac) + n * frac
 
-    def get_move_probs(self, state, temp=1e-3):
-        """Run all playouts sequentially and return the available actions and
-        their corresponding probabilities.
-        state: the current game state
-        temp: temperature parameter in (0, 1] controls the level of exploration
-        """
-        for n in range(self.num_simulations):
-            state_copy = copy.deepcopy(state)
-            self.simulate(state_copy)
-
-        # calc the move probabilities based on visit counts at the root node
-        act_visits = [(act, node.visit_count)
-                      for act, node in self._root.children.items()]
-        acts, visits = zip(*act_visits)
-        act_probs = nn.softmax(1.0/temp * np.log(torch.as_tensor(visits) + 1e-10))
-
-        return acts, act_probs
-
-    def update_with_move(self, last_move):
+    def _update_with_move(self, last_move):
         """Step forward in the tree, keeping everything we already know
         about the subtree.
         """

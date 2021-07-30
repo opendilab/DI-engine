@@ -33,7 +33,7 @@ class Node(object):
         self.value = 0.
 
     @property
-    def fullly_expanded(self) -> bool:
+    def fully_expanded(self) -> bool:
         return len(self.untriedActions) == 0
 
     def expand(self, untried_action: int) -> None:
