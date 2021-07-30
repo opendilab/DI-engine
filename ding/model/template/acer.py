@@ -80,7 +80,7 @@ class ACER(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
-        Use observation to predict output. 
+        Use observation to predict output.
         Parameter updates with ACER's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
@@ -109,7 +109,6 @@ class ACER(nn.Module):
         Critic Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``obs_shape``
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
- 
         Actor Examples:
             >>> # Regression mode
             >>> model = ACER(64, 64)
@@ -146,18 +145,17 @@ class ACER(nn.Module):
         Returns:
             - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.
 
-        ReturnsKeys (either): 
+        ReturnsKeys (either):
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
         Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape`` 
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
         Examples:
             >>> # Regression mode
             >>> model = ACER(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
-            
         """
         x = self.actor_encoder(inputs)
         x = self.actor_head(x)
@@ -189,7 +187,7 @@ class ACER(nn.Module):
             [-0.0647, -0.0281, -0.0527,  0.1409, -0.1162],
             [-0.0596, -0.0321, -0.0676,  0.1386, -0.1113],
             [-0.0874, -0.0406, -0.0487,  0.1346, -0.1135]],
-            grad_fn=<AddmmBackward>) 
+            grad_fn=<AddmmBackward>)
         """
 
         obs = inputs

@@ -29,18 +29,18 @@ class ACERPolicy(Policy):
                                                            | registry ``POLICY_REGISTRY``        | a placeholder
         2  ``cuda``                bool     False          | Whether to use cuda for network     | this arg can be diff-
                                                            |                                     | erent from modes
-        3  ``on_policy``           bool     False          | Whether the RL algorithm is 
+        3  ``on_policy``           bool     False          | Whether the RL algorithm is
                                                            | on-policy or off-policy
         4  ``trust_region``        bool     True           | Whether the RL algorithm use trust  |
                                                            | region constraint                   |
         5  ``trust_region_value``  float    1.0            | maximum range of the trust region   |
-        6  ``unroll_len``          int      32             | trajectory length to calculate 
+        6  ``unroll_len``          int      32             | trajectory length to calculate
                                                            | Q retrace target
         7   ``learn.update``       int      4              | How many updates(iterations) to     | this args can be vary
             ``per_collect``                                | train after collector's one         | from envs. Bigger val
-                                                           |  collection. Only                   | 
+                                                           |  collection. Only                   |
                                                            | valid in serial training            | means more off-policy
-        8   ``c_clip_ratio``       float    1.0            | clip ratio of importance weights    | 
+        8   ``c_clip_ratio``       float    1.0            | clip ratio of importance weights    |
         == ======================= ======== ============== ===================================== =======================
     """
     unroll_len = 32

@@ -17,7 +17,7 @@ def acer_policy_error(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Overview:
-        Get ACER policy loss 
+        Get ACER policy loss
     Arguments:
         - q_values (:obj:`torch.Tensor`): Q values
         - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
@@ -57,7 +57,7 @@ def acer_policy_error(
 def acer_value_error(q_values, q_retraces, actions):
     """
     Overview:
-        Get ACER critic loss 
+        Get ACER critic loss
     Arguments:
         - q_values (:obj:`torch.Tensor`): Q values
         - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
@@ -69,7 +69,7 @@ def acer_value_error(q_values, q_retraces, actions):
         - q_values (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where B is batch size and N is action dim
         - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
         - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
-        - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)` 
+        - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
     """
     actions = actions.unsqueeze(-1)
     critic_loss = 0.5 * (q_retraces - q_values.gather(-1, actions)).pow(2)
@@ -84,7 +84,7 @@ def acer_trust_region_update(
         calcuate gradient with trust region constrain
     Arguments:
         - actor_gradients (:obj:`list(torch.Tensor)`): gradients value's for different part
-        - target_pi (:obj:`torch.Tensor`): The new policy's probability 
+        - target_pi (:obj:`torch.Tensor`): The new policy's probability
         - avg_pi (:obj:`torch.Tensor`): The average policy's probability
         - trust_region_value (:obj:`float`): the range of trust region
     Returns:
