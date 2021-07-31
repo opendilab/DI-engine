@@ -58,7 +58,7 @@ ant_td3_default_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        policy_type='td3',
+        type='td3',
         import_names=['ding.policy.td3'],
     ),
     replay_buffer=dict(type='naive', ),
