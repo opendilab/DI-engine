@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 hopper_td3_default_config = dict(
     env=dict(
-        env_id='Hopper-v3',
+        env_id='HopperMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -53,8 +53,8 @@ main_config = hopper_td3_default_config
 
 hopper_td3_default_create_config = dict(
     env=dict(
-        type='mujoco',
-        import_names=['dizoo.mujoco.envs.mujoco_env'],
+        type='pybullet',
+        import_names=['dizoo.pybullet.envs.pybullet_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(
