@@ -1,8 +1,8 @@
 from easydict import EasyDict
 
-hopper_td3_default_config = dict(
+walker2d_ddpg_default_config = dict(
     env=dict(
-        env_id='Hopper-v3',
+        env_id='Walker2DMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -16,9 +16,9 @@ hopper_td3_default_config = dict(
         on_policy=False,
         random_collect_size=25000,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
-            twin_critic=True,
+            obs_shape=17,
+            action_shape=6,
+            twin_critic=False,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
             actor_head_type='regression',
@@ -31,13 +31,8 @@ hopper_td3_default_config = dict(
             ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
-            actor_update_freq=2,
-            noise=True,
-            noise_sigma=0.2,
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
+            actor_update_freq=1,
+            noise=False,
         ),
         collect=dict(
             n_sample=1,
@@ -47,21 +42,20 @@ hopper_td3_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
+walker2d_ddpg_default_config = EasyDict(walker2d_ddpg_default_config)
+main_config = walker2d_ddpg_default_config
 
-hopper_td3_default_config = EasyDict(hopper_td3_default_config)
-main_config = hopper_td3_default_config
-
-hopper_td3_default_create_config = dict(
+walker2d_ddpg_default_create_config = dict(
     env=dict(
-        type='mujoco',
-        import_names=['dizoo.mujoco.envs.mujoco_env'],
+        type='pybullet',
+        import_names=['dizoo.pybullet.envs.pybullet_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        type='td3',
-        import_names=['ding.policy.td3'],
+        type='ddpg',
+        import_names=['ding.policy.ddpg'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_td3_default_create_config = EasyDict(hopper_td3_default_create_config)
-create_config = hopper_td3_default_create_config
+walker2d_ddpg_default_create_config = EasyDict(walker2d_ddpg_default_create_config)
+create_config = walker2d_ddpg_default_create_config

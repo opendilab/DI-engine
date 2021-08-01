@@ -1,8 +1,8 @@
 from easydict import EasyDict
 
-hopper_td3_default_config = dict(
+ant_td3_default_config = dict(
     env=dict(
-        env_id='Hopper-v3',
+        env_id='AntMuJoCoEnv-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -16,8 +16,8 @@ hopper_td3_default_config = dict(
         on_policy=False,
         random_collect_size=25000,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=111,
+            action_shape=8,
             twin_critic=True,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
@@ -48,13 +48,13 @@ hopper_td3_default_config = dict(
     )
 )
 
-hopper_td3_default_config = EasyDict(hopper_td3_default_config)
-main_config = hopper_td3_default_config
+ant_td3_default__config = EasyDict(ant_td3_default_config)
+main_config = ant_td3_default_config
 
-hopper_td3_default_create_config = dict(
+ant_td3_default_create_config = dict(
     env=dict(
-        type='mujoco',
-        import_names=['dizoo.mujoco.envs.mujoco_env'],
+        type='pybullet',
+        import_names=['dizoo.pybullet.envs.pybullet_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(
@@ -63,5 +63,5 @@ hopper_td3_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_td3_default_create_config = EasyDict(hopper_td3_default_create_config)
-create_config = hopper_td3_default_create_config
+ant_td3_default_create_config = EasyDict(ant_td3_default_create_config)
+create_config = ant_td3_default_create_config
