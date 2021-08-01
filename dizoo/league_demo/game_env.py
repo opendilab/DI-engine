@@ -18,45 +18,45 @@ class GameEnv(BaseEnv):
         if self.game_type == 'zero_sum':
             if actions == [0, 0]:
                 rewards = 3, -3
-                results = "win", "lose"
+                results = "wins", "losses"
             elif actions == [0, 1]:
                 rewards = -2, 2
-                results = "lose", "win"
+                results = "losses", "wins"
             elif actions == [1, 0]:
                 rewards = -2, 2
-                results = "lose", "win"
+                results = "losses", "wins"
             elif actions == [1, 1]:
                 rewards = 1, -1
-                results = "win", "lose"
+                results = "wins", "losses"
             else:
                 raise RuntimeError("invalid actions: {}".format(actions))
         elif self.game_type == 'prisoner_dilemma':
             if actions == [0, 0]:
                 rewards = -1, -1
-                results = "draw", "draw"
+                results = "draws", "draws"
             elif actions == [0, 1]:
                 rewards = -20, 0
-                results = "win", "lose"
+                results = "wins", "losses"
             elif actions == [1, 0]:
                 rewards = 0, -20
-                results = "loss", "win"
+                results = "losses", "wins"
             elif actions == [1, 1]:
                 rewards = -10, -10
-                results = 'draw', 'draw'
+                results = 'draws', 'draws'
             else:
                 raise RuntimeError("invalid actions: {}".format(actions))
         observations = np.array([[0, 1], [1, 0]]).astype(np.float32)
         rewards = np.array(rewards).astype(np.float32)
         rewards = rewards[..., np.newaxis]
         dones = True, True
-        infos = {'result': results[0]}, {'result': results[1]}
-        return BaseEnvTimestep(
-            observations, rewards, True, [{
-                'final_eval_reward': rewards[0]
-            }, {
-                'final_eval_reward': rewards[1]
-            }]
-        )
+        infos = {
+            'result': results[0],
+            'final_eval_reward': rewards[0]
+        }, {
+            'result': results[1],
+            'final_eval_reward': rewards[1]
+        }
+        return BaseEnvTimestep(observations, rewards, True, infos)
 
     def close(self):
         pass

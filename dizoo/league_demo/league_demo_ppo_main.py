@@ -113,7 +113,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
 
-    for _ in range(max_iterations):
+    for run_iter in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
@@ -138,8 +138,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             else:
                 opponent_policy = policies[opponent_player_id].collect_mode
             collector.reset_policy([policies[player_id].collect_mode, opponent_policy])
-            train_data = collector.collect(train_iter=learner.train_iter)
-            train_data = train_data[0]  # only use launer player data for training
+            train_data, episode_info = collector.collect(train_iter=learner.train_iter)
+            train_data, episode_info = train_data[0], episode_info[0]  # only use launer player data for training
             for d in train_data:
                 d['adv'] = d['reward']
 
@@ -151,7 +151,14 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             player_info['player_id'] = player_id
             league.update_active_player(player_info)
             league.judge_snapshot(player_id)
-            league.finish_job({})
+            job_finish_info = {
+                'launch_player': job['launch_player'],
+                'player_id': job['player_id'],
+                'result': [e['result'] for e in episode_info],
+            }
+            league.finish_job(job_finish_info)
+        if run_iter % 100 == 0:
+            print(repr(league.payoff))
 
 
 if __name__ == "__main__":

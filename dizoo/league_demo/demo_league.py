@@ -30,8 +30,3 @@ class DemoLeague(BaseLeague):
     @staticmethod
     def save_checkpoint(src_checkpoint_path: str, dst_checkpoint_path: str) -> None:
         shutil.copy(src_checkpoint_path, dst_checkpoint_path)
-
-    # override
-    def finish_job(self, job_finish_info: dict):
-        # TODO
-        pass

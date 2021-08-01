@@ -1,4 +1,4 @@
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Tuple
 from collections import namedtuple, deque
 from easydict import EasyDict
 import numpy as np
@@ -190,7 +190,7 @@ class Episode1v1Collector(ISerialCollector):
     def collect(self,
                 n_episode: Optional[int] = None,
                 train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+                policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], List[Any]]:
         """
         Overview:
             Collect `n_episode` data with policy_kwargs, which is already trained `train_iter` iterations
@@ -199,8 +199,9 @@ class Episode1v1Collector(ISerialCollector):
             - train_iter (:obj:`int`): the number of training iteration
             - policy_kwargs (:obj:`dict`): the keyword args for policy forward
         Returns:
-            - return_data (:obj:`List`): A list containing collected episodes if not get_train_sample, otherwise, \
-                return train_samples split by unroll_len.
+            - return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+                the former is a list containing collected episodes if not get_train_sample, \
+                otherwise, return train_samples split by unroll_len.
         """
         if n_episode is None:
             if self._default_n_episode is None:
@@ -212,6 +213,7 @@ class Episode1v1Collector(ISerialCollector):
             policy_kwargs = {}
         collected_episode = 0
         return_data = [[] for _ in range(2)]
+        return_info = [[] for _ in range(2)]
         ready_env_id = set()
         remain_episode = n_episode
 
@@ -288,11 +290,13 @@ class Episode1v1Collector(ISerialCollector):
                         p.reset([env_id])
                     self._reset_stat(env_id)
                     ready_env_id.remove(env_id)
+                    for policy_id in range(2):
+                        return_info[policy_id].append(timestep.info[policy_id])
             if collected_episode >= n_episode:
                 break
         # log
         self._output_log(train_iter)
-        return return_data
+        return return_data, return_info
 
     def _output_log(self, train_iter: int) -> None:
         """

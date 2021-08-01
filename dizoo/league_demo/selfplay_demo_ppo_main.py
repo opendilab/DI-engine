@@ -104,7 +104,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, collector.envstep)
         if stop_flag1 and stop_flag2:
             break
-        train_data = collector.collect(train_iter=learner1.train_iter)
+        train_data, _ = collector.collect(train_iter=learner1.train_iter)
         for data in train_data:
             for d in data:
                 d['adv'] = d['reward']
