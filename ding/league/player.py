@@ -185,7 +185,7 @@ class ActivePlayer(Player):
             self.category,
             self.payoff,
             path,
-            self.player_id + '_{}'.format(int(self._total_agent_step)),
+            self.player_id + '_{}_historical'.format(int(self._total_agent_step)),
             self._total_agent_step,
             parent_id=self.player_id
         )

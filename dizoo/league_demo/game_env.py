@@ -4,8 +4,9 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 
 class GameEnv(BaseEnv):
 
-    def __init__(self):
-        pass
+    def __init__(self, game_type='prisoner_dilemma'):
+        self.game_type = game_type
+        assert self.game_type in ['zero_sum', 'prisoner_dilemma']
 
     def seed(self, seed, dynamic_seed=False):
         pass
@@ -13,29 +14,49 @@ class GameEnv(BaseEnv):
     def reset(self):
         return np.array([[0, 1], [1, 0]]).astype(np.float32)  # trivial observation
 
-    def step(step, actions):
-        if actions == [0, 0]:
-            rewards = -10, -10
-        elif actions == [0, 1]:
-            rewards = +1, -1
-        elif actions == [1, 0]:
-            rewards = -1, +1
-        elif actions == [1, 1]:
-            rewards = 0, 0
-        else:
-            raise RuntimeError("invalid actions: {}".format(actions))
+    def step(self, actions):
+        if self.game_type == 'zero_sum':
+            if actions == [0, 0]:
+                rewards = 3, -3
+                results = "wins", "losses"
+            elif actions == [0, 1]:
+                rewards = -2, 2
+                results = "losses", "wins"
+            elif actions == [1, 0]:
+                rewards = -2, 2
+                results = "losses", "wins"
+            elif actions == [1, 1]:
+                rewards = 1, -1
+                results = "wins", "losses"
+            else:
+                raise RuntimeError("invalid actions: {}".format(actions))
+        elif self.game_type == 'prisoner_dilemma':
+            if actions == [0, 0]:
+                rewards = -1, -1
+                results = "draws", "draws"
+            elif actions == [0, 1]:
+                rewards = -20, 0
+                results = "wins", "losses"
+            elif actions == [1, 0]:
+                rewards = 0, -20
+                results = "losses", "wins"
+            elif actions == [1, 1]:
+                rewards = -10, -10
+                results = 'draws', 'draws'
+            else:
+                raise RuntimeError("invalid actions: {}".format(actions))
         observations = np.array([[0, 1], [1, 0]]).astype(np.float32)
         rewards = np.array(rewards).astype(np.float32)
         rewards = rewards[..., np.newaxis]
         dones = True, True
-        infos = {}, {}
-        return BaseEnvTimestep(
-            observations, rewards, True, [{
-                'final_eval_reward': rewards[0]
-            }, {
-                'final_eval_reward': rewards[1]
-            }]
-        )
+        infos = {
+            'result': results[0],
+            'final_eval_reward': rewards[0]
+        }, {
+            'result': results[1],
+            'final_eval_reward': rewards[1]
+        }
+        return BaseEnvTimestep(observations, rewards, True, infos)
 
     def close(self):
         pass

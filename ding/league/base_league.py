@@ -1,5 +1,6 @@
 import uuid
 import copy
+import os
 from abc import abstractmethod
 from easydict import EasyDict
 import os.path as osp
@@ -35,6 +36,9 @@ class BaseLeague:
         """
         self.cfg = cfg
         self.path_policy = cfg.path_policy
+        if not osp.exists(self.path_policy):
+            os.mkdir(self.path_policy)
+
         self.league_uid = str(uuid.uuid1())
         self.active_players = []
         self.historical_players = []
@@ -52,13 +56,11 @@ class BaseLeague:
         for cate in self.cfg.player_category:  # Player's category (Depends on the env)
             for k, n in self.cfg.active_players.items():  # Active player's type
                 for i in range(n):  # This type's active player number
-                    name = '{}_{}_{}_{}'.format(k, cate, i, self.league_uid)
-                    ckpt_path = '{}_ckpt.pth'.format(name)
+                    name = '{}_{}_{}'.format(k, cate, i)
+                    ckpt_path = osp.join(self.path_policy, '{}_ckpt.pth'.format(name))
                     player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
                     if self.cfg.use_pretrain:
-                        self.save_checkpoint(
-                            self.cfg.pretrain_checkpoint_path[cate], osp.join(self.path_policy, player.checkpoint_path)
-                        )
+                        self.save_checkpoint(self.cfg.pretrain_checkpoint_path[cate], ckpt_path)
                     self.active_players.append(player)
                     self.payoff.add_player(player)
 
@@ -68,7 +70,7 @@ class BaseLeague:
                 main_player_name = [k for k in self.cfg.keys() if 'main_player' in k]
                 assert len(main_player_name) == 1, main_player_name
                 main_player_name = main_player_name[0]
-                name = '{}_{}_0_pretrain'.format(main_player_name, cate)
+                name = '{}_{}_0_pretrain_historical'.format(main_player_name, cate)
                 parent_name = '{}_{}_0'.format(main_player_name, cate)
                 hp = HistoricalPlayer(
                     self.cfg.get(main_player_name),
@@ -122,7 +124,7 @@ class BaseLeague:
         """
         raise NotImplementedError
 
-    def judge_snapshot(self, player_id: str) -> bool:
+    def judge_snapshot(self, player_id: str, force: bool = False) -> bool:
         """
         Overview:
             Judge whether a player is trained enough for snapshot. If yes, call player's ``snapshot``, create a
@@ -136,12 +138,10 @@ class BaseLeague:
         with self._active_players_lock:
             idx = self.active_players_ids.index(player_id)
             player = self.active_players[idx]
-            if player.is_trained_enough():
+            if force or player.is_trained_enough():
                 # Snapshot
                 hp = player.snapshot()
-                self.save_checkpoint(
-                    osp.join(self.path_policy, player.checkpoint_path), osp.join(self.path_policy, hp.checkpoint_path)
-                )
+                self.save_checkpoint(player.checkpoint_path, hp.checkpoint_path)
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
                 # Mutate

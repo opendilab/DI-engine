@@ -1,3 +1,4 @@
+import shutil
 from easydict import EasyDict
 from ding.league import BaseLeague, ActivePlayer
 
@@ -11,6 +12,7 @@ class DemoLeague(BaseLeague):
             'agent_num': 2,
             'launch_player': player.player_id,
             'player_id': [player.player_id, player_job_info.opponent.player_id],
+            'checkpoint_path': [player.checkpoint_path, player_job_info.opponent.checkpoint_path],
             'player_active_flag': [isinstance(p, ActivePlayer) for p in [player, player_job_info.opponent]],
         }
 
@@ -21,5 +23,10 @@ class DemoLeague(BaseLeague):
     # override
     def _update_player(self, player: ActivePlayer, player_info: dict) -> None:
         assert isinstance(player, ActivePlayer)
-        if 'train_iteration' in player_info:
-            player.total_agent_step = player_info['train_iteration']
+        if 'learner_step' in player_info:
+            player.total_agent_step = player_info['learner_step']
+
+    # override
+    @staticmethod
+    def save_checkpoint(src_checkpoint_path: str, dst_checkpoint_path: str) -> None:
+        shutil.copy(src_checkpoint_path, dst_checkpoint_path)

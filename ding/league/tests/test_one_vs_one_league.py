@@ -66,8 +66,7 @@ class TestOneVsOneLeague:
         active_player_ckpt = league.active_players[0].checkpoint_path
         tmp = torch.tensor([1, 2, 3])
         path_policy = one_vs_one_league_default_config.league.path_policy
-        os.makedirs(path_policy)
-        torch.save(tmp, os.path.join(path_policy, active_player_ckpt))
+        torch.save(tmp, active_player_ckpt)
 
         # judge_snapshot & update_active_player
         assert not league.judge_snapshot(active_player_id)

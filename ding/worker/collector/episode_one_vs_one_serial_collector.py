@@ -1,4 +1,4 @@
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Tuple
 from collections import namedtuple, deque
 from easydict import EasyDict
 import numpy as np
@@ -97,7 +97,7 @@ class Episode1v1Collector(ISerialCollector):
             self._unroll_len = _policy[0].get_attribute('unroll_len')
             self._on_policy = _policy[0].get_attribute('cfg').on_policy
             self._traj_len = INF
-            self._logger.info(
+            self._logger.debug(
                 'Set default n_episode mode(n_episode({}), env_num({}), traj_len({}))'.format(
                     self._default_n_episode, self._env_num, self._traj_len
                 )
@@ -190,7 +190,7 @@ class Episode1v1Collector(ISerialCollector):
     def collect(self,
                 n_episode: Optional[int] = None,
                 train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+                policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], List[Any]]:
         """
         Overview:
             Collect `n_episode` data with policy_kwargs, which is already trained `train_iter` iterations
@@ -199,8 +199,9 @@ class Episode1v1Collector(ISerialCollector):
             - train_iter (:obj:`int`): the number of training iteration
             - policy_kwargs (:obj:`dict`): the keyword args for policy forward
         Returns:
-            - return_data (:obj:`List`): A list containing collected episodes if not get_train_sample, otherwise, \
-                return train_samples split by unroll_len.
+            - return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+                the former is a list containing collected episodes if not get_train_sample, \
+                otherwise, return train_samples split by unroll_len.
         """
         if n_episode is None:
             if self._default_n_episode is None:
@@ -211,7 +212,8 @@ class Episode1v1Collector(ISerialCollector):
         if policy_kwargs is None:
             policy_kwargs = {}
         collected_episode = 0
-        return_data = []
+        return_data = [[] for _ in range(2)]
+        return_info = [[] for _ in range(2)]
         ready_env_id = set()
         remain_episode = n_episode
 
@@ -251,11 +253,8 @@ class Episode1v1Collector(ISerialCollector):
                 self._total_envstep_count += 1
                 with self._timer:
                     for policy_id, policy in enumerate(self._policy):
-                        if policy_id == 1:  # only use policy0 data for training
-                            continue
-                        policy_timestep = type(timestep)(
-                            *[d[policy_id] if not isinstance(d, bool) else d for d in timestep]
-                        )
+                        policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
+                        policy_timestep = type(timestep)(*policy_timestep_data)
                         transition = self._policy[policy_id].process_transition(
                             self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
                             policy_timestep
@@ -267,9 +266,9 @@ class Episode1v1Collector(ISerialCollector):
                             transitions = to_tensor_transitions(self._traj_buffer[env_id][policy_id])
                             if self._cfg.get_train_sample:
                                 train_sample = self._policy[policy_id].get_train_sample(transitions)
-                                return_data.extend(train_sample)
+                                return_data[policy_id].extend(train_sample)
                             else:
-                                return_data.append(transitions)
+                                return_data[policy_id].append(transitions)
                             self._traj_buffer[env_id][policy_id].clear()
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
@@ -282,24 +281,22 @@ class Episode1v1Collector(ISerialCollector):
                         'reward1': timestep.info[1]['final_eval_reward'],
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
+                        'probs0': probs0,
+                        'probs1': probs1,
                     }
-                    self._tb_logger.add_scalar(
-                        '{}_iter/probs_select_action0'.format(self._instance_name), probs0[0].item(), train_iter
-                    )
-                    self._tb_logger.add_scalar(
-                        '{}_iter/probs_select_action1'.format(self._instance_name), probs0[1].item(), train_iter
-                    )
                     collected_episode += 1
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):
                         p.reset([env_id])
                     self._reset_stat(env_id)
                     ready_env_id.remove(env_id)
+                    for policy_id in range(2):
+                        return_info[policy_id].append(timestep.info[policy_id])
             if collected_episode >= n_episode:
                 break
         # log
         self._output_log(train_iter)
-        return return_data
+        return return_data, return_info
 
     def _output_log(self, train_iter: int) -> None:
         """
@@ -316,6 +313,8 @@ class Episode1v1Collector(ISerialCollector):
             duration = sum([d['time'] for d in self._episode_info])
             episode_reward0 = [d['reward0'] for d in self._episode_info]
             episode_reward1 = [d['reward1'] for d in self._episode_info]
+            probs0 = [d['probs0'] for d in self._episode_info]
+            probs1 = [d['probs1'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -336,6 +335,14 @@ class Episode1v1Collector(ISerialCollector):
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
             }
+            info.update(
+                {
+                    'probs0_select_action0': sum([p[0] for p in probs0]) / len(probs0),
+                    'probs0_select_action1': sum([p[1] for p in probs0]) / len(probs0),
+                    'probs1_select_action0': sum([p[0] for p in probs1]) / len(probs1),
+                    'probs1_select_action1': sum([p[1] for p in probs1]) / len(probs1),
+                }
+            )
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             for k, v in info.items():
