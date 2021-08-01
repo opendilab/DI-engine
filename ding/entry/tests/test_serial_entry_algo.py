@@ -14,6 +14,7 @@ from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config  # noqa
 from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
@@ -261,3 +262,14 @@ def test_qrdqn():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("20. sqn\n")
+
+
+@pytest.mark.algotest
+def test_acer():
+    config = [deepcopy(cartpole_acer_config), deepcopy(cartpole_acer_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("22. acer\n")
