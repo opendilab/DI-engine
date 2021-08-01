@@ -42,6 +42,7 @@ main_config = dict(
             batch_size=32,
             learning_rate=0.0005,
             clip_value=4,
+            double_q=False,
             target_update_theta=0.005,
             discount_factor=0.95,
             collaq_loss_weight=1.0,
@@ -51,7 +52,7 @@ main_config = dict(
             unroll_len=10,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=500, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
                 type='linear',
@@ -76,11 +77,12 @@ create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='collaq'),
+    collector=dict(type='episode', get_train_sample=True),
 )
 create_config = EasyDict(create_config)
 
 
-def train_dqn(args):
+def train(args):
     config = [main_config, create_config]
     serial_pipeline(config, seed=args.seed)
 
@@ -92,4 +94,4 @@ if __name__ == "__main__":
     parser.add_argument('--seed', '-s', type=int, default=0)
     args = parser.parse_args()
 
-    train_dqn(args)
+    train(args)

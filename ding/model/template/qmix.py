@@ -111,9 +111,8 @@ class QMix(nn.Module):
             - action_shape (:obj:`int`): the dimension of action shape
             - hidden_size_list (:obj:`list`): the list of hidden size
             - mixer (:obj:`bool`): use mixer net or not, default to True
-            - use_gru (:obj:`bool`): use lstm type or not, default to False
-            - use_pmixer (:obj:`bool`): use pymarl mixer net or not, default to False. \
-                When mixer is False, we can't use pymarl mixer net or normal mixer net
+            - lstm_type (:obj:`str`): use lstm or gru, default to gru
+            - dueling (:obj:`bool`): use dueling head or not, default to False.
         """
         super(QMix, self).__init__()
         self._act = nn.ReLU()
@@ -378,7 +377,6 @@ class CollaQ(nn.Module):
             mixer: bool = True,
             lstm_type: str = 'gru',
             dueling: bool = False,
-            use_pmixer: bool = False,
     ) -> None:
         """
         Overview:
@@ -396,6 +394,8 @@ class CollaQ(nn.Module):
             - ally_feature_range (:obj:`Union[List[int], None]`): the agent ally's feature range
             - attention_size (:obj:`int`): the size of attention net layer
             - mixer (:obj:`bool`): use mixer net or not, default to True
+            - lstm_type (:obj:`str`): use lstm or gru, default to gru
+            - dueling (:obj:`bool`): use dueling head or not, default to False.
         """
         super(CollaQ, self).__init__()
         self.attention = attention

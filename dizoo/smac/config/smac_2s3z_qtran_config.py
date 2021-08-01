@@ -2,13 +2,13 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-agent_num = 8
+agent_num = 5
 collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
     env=dict(
-        map_name='3s5z',
+        map_name='2s3z',
         difficulty=7,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -18,21 +18,15 @@ main_config = dict(
         shared_memory=False,
         stop_value=0.999,
         n_evaluator_episode=32,
-        obs_alone=True
     ),
     policy=dict(
         model=dict(
             agent_num=agent_num,
-            obs_shape=150,
-            alone_obs_shape=94,
-            global_obs_shape=216,
-            action_shape=14,
-            hidden_size_list=[128],
-            attention=False,
-            self_feature_range=[124, 128],  # placeholder 4
-            ally_feature_range=[68, 124],  # placeholder  8*7
-            attention_size=32,
-            mixer=True,
+            obs_shape=96,
+            global_obs_shape=120,
+            action_shape=11,
+            hidden_size_list=[64],
+            embedding_size=64,
             lstm_type='gru',
             dueling=False,
         ),
@@ -42,23 +36,25 @@ main_config = dict(
             batch_size=32,
             learning_rate=0.0005,
             clip_value=5,
-            double_q=False,
-            target_update_theta=0.008,
+            double_q=True,
+            target_update_theta=0.01,
             discount_factor=0.95,
-            collaq_loss_weight=1.0,
+            td_weight=1,
+            opt_weight=0.1,
+            nopt_min_weight=0.0001,
         ),
         collect=dict(
             n_episode=32,
             unroll_len=10,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=50, )),
         other=dict(
             eps=dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=10000,
+                decay=5000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=15000,
@@ -76,7 +72,7 @@ create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='collaq'),
+    policy=dict(type='qtran'),
     collector=dict(type='episode', get_train_sample=True),
 )
 create_config = EasyDict(create_config)

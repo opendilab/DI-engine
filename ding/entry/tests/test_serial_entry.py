@@ -27,6 +27,7 @@ from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config,
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
+from dizoo.multiagent_particle.config import cooperative_navigation_qtran_config, cooperative_navigation_qtran_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
@@ -198,6 +199,8 @@ def test_collaq():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
 
 
 @pytest.mark.unittest
@@ -209,11 +212,26 @@ def test_coma():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
 
 
 @pytest.mark.unittest
 def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
+    config[0].policy.cuda = False
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf log ckpt*')
+
+
+@pytest.mark.unittest
+def test_qtran():
+    config = [deepcopy(cooperative_navigation_qtran_config), deepcopy(cooperative_navigation_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     try:

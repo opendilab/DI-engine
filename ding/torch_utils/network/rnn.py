@@ -271,12 +271,12 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
 class GRU(nn.GRUCell):
     r"""
     Overview:
-        Wrap the nn.LSTM , format the input and output
+        Wrap the nn.GRU , format the input and output
     Interface:
         forward
 
     .. note::
-        you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM>
+        you can reference the <https://pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU>
     """
 
     def __init__(self, input_size, hidden_size, num_layers):
@@ -294,7 +294,7 @@ class GRU(nn.GRUCell):
                 None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state
                 will be initialized to all zeros.
         Returns:
-            - prev_state (:obj:`tensor`): batch previous state in lstm
+            - prev_state (:obj:`tensor`): batch previous state in GRU
         """
         assert hasattr(self, 'num_layers')
         assert hasattr(self, 'hidden_size')
@@ -336,32 +336,32 @@ class GRU(nn.GRUCell):
     def forward(self, inputs, prev_state, list_next_state=True):
         r"""
         Overview:
-            wrapped nn.LSTM.forward
+            wrapped nn.GRU.forward
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
             - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - output (:obj:`tensor`): output from lstm
-            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
+            - output (:obj:`tensor`): output from GRU
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from GRU
         """
         prev_state = self._before_forward(inputs, prev_state)[0]
         next_state = nn.GRUCell.forward(self, inputs.squeeze(0), prev_state.squeeze(0))
         next_state.unsqueeze_(0)
         x = next_state
         next_state = self._after_forward([next_state, next_state.clone()], list_next_state)
-        # for compatibility of lstm
+        # for compatibility
         return x, next_state
 
     def _after_forward(self, next_state, list_next_state=False):
         r"""
         Overview:
-            process hidden state after lstm, make it list or remains tensor
+            process hidden state after GRU, make it list or remains tensor
         Arguments:
-            - nex_state (:obj:`tensor`): hidden state from lstm
+            - nex_state (:obj:`tensor`): hidden state from GRU
             - list_nex_state (:obj:`bool`): whether return next_state with list format, default set to False
         Returns:
-            - next_state (:obj:`tensor` or :obj:`list`): hidden state from lstm
+            - next_state (:obj:`tensor` or :obj:`list`): hidden state from GRU
         """
         if list_next_state:
             h, c = next_state
@@ -386,7 +386,7 @@ def get_lstm(
     Overview:
         Build and return the corresponding LSTM cell
     Arguments:
-        - lstm_type (:obj:`str`): version of lstm cell, now support ['normal', 'pytorch']
+        - lstm_type (:obj:`str`): version of rnn cell, now support ['normal', 'pytorch', 'hpc', 'gru']
         - input_size (:obj:`int`): size of the input vector
         - hidden_size (:obj:`int`): size of the hidden state vector
         - num_layers (:obj:`int`): number of lstm layers
@@ -405,4 +405,5 @@ def get_lstm(
     elif lstm_type == 'hpc':
         return HPCLSTM(seq_len, batch_size, input_size, hidden_size, num_layers, norm_type, dropout).cuda()
     elif lstm_type == 'gru':
+        assert num_layers == 1
         return GRU(input_size, hidden_size, num_layers)

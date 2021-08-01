@@ -585,7 +585,7 @@ class DRQN(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
-            - lstm_type (:obj:`Optional[str]`): Version of lstm cell, now support ``['normal', 'pytorch']``
+            - lstm_type (:obj:`Optional[str]`): Version of rnn cell, now support ['normal', 'pytorch', 'hpc', 'gru']
             - activation (:obj:`Optional[nn.Module]`):
                 The type of activation function to use in ``MLP`` the after ``layer_fn``,
                 if ``None`` then default set to ``nn.ReLU()``
@@ -681,12 +681,17 @@ class DRQN(nn.Module):
             assert len(x.shape) in [3, 5], x.shape
             x = parallel_wrapper(self.encoder)(x)
             lstm_embedding = []
+            # TODO(nyz) how to deal with hidden_size key-value
+            hidden_state_list = []
             for t in range(x.shape[0]):  # T timesteps
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)
                 lstm_embedding.append(output)
+                hidden_state = list(zip(*prev_state))
+                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)
             x = parallel_wrapper(self.head)(x)
             x['next_state'] = prev_state
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             return x
 
 

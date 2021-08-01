@@ -63,7 +63,7 @@ def eval(
 
 
 if __name__ == "__main__":
-    path = 'ckpt_best.pth.tar'
-    cfg = './smac_3s5z_qmix_config.py'
+    path = '../exp/MMM/qmix/1/ckpt_BaseLearner_Wed_Jul_14_22_16_56_2021/iteration_9900.pth.tar'
+    cfg = '../config/smac_MMM_qmix_config.py'
     state_dict = torch.load(path, map_location='cpu')
     eval(cfg, seed=0, state_dict=state_dict)
