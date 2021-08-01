@@ -1,4 +1,4 @@
-This environment is based on the openAI's work <https://github.com/openai/multiagent-particle-envs>, transplanted to nerevX.
+This environment is based on the openAI's work <https://github.com/openai/multiagent-particle-envs>, transplanted to DI-engine.
 
 Below is the original readme from openAI's open source code.
 

@@ -61,7 +61,7 @@ class QMIXPolicy(Policy):
             update_per_collect=20,
             batch_size=32,
             learning_rate=0.0005,
-            clip_value=1.5,
+            clip_value=100,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -71,13 +71,15 @@ class QMIXPolicy(Policy):
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
+            # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)
+            double_q=False,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=32 * 16,
+            n_episode=32,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
-            unroll_len=20,
+            unroll_len=10,
         ),
         eval=dict(),
         other=dict(
@@ -192,7 +194,13 @@ class QMIXPolicy(Policy):
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
         total_q = self._learn_model.forward(inputs, single_step=False)['total_q']
-        next_inputs = {'obs': data['next_obs']}
+
+        if self._cfg.learn.double_q:
+            next_inputs = {'obs': data['next_obs']}
+            logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
+            next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
+        else:
+            next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 

@@ -1,21 +1,24 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple
 import torch
+import torch.nn.functional as F
 import copy
+from easydict import EasyDict
 
-from ding.torch_utils import to_device, RMSprop
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
+from ding.torch_utils import Adam, RMSprop, to_device
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_epsilon_greedy_fn, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 
-@POLICY_REGISTRY.register('collaq')
-class CollaQPolicy(Policy):
+@POLICY_REGISTRY.register('qtran')
+class QTRANPolicy(Policy):
     r"""
     Overview:
-        Policy class of CollaQ algorithm. CollaQ is a multi-agent reinforcement learning algorithm
+        Policy class of QTRAN algorithm. QTRAN is a multi model reinforcement learning algorithm, \
+            you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Interface:
         _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
             _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
@@ -24,7 +27,7 @@ class CollaQPolicy(Policy):
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      collaq         | RL policy register name, refer to      | this arg is optional,
+        1  ``type``             str      qtran           | RL policy register name, refer to     | this arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     True           | Whether to use cuda for network        | this arg can be diff-
                                                                                                  | erent from modes
@@ -37,17 +40,15 @@ class CollaQPolicy(Policy):
         6  | ``learn.update_``  int      20             | How many updates(iterations) to train  | this args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        7  | ``learn.target_``  float    0.001          | Target network update momentum         | between[0,1]
+        7  | ``learn.target_``   float    0.001         | Target network update momentum         | between[0,1]
            | ``update_theta``                           | parameter.
         8  | ``learn.discount`` float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
            | ``_factor``                                | gamma                                  | reward env
-        9  | ``learn.collaq``   float    1.0            | The weight of collaq MARA loss
-           | ``_loss_weight``
         == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='collaq',
+        type='qtran',
         # (bool) Whether to use cuda for network.
         cuda=True,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
@@ -59,31 +60,33 @@ class CollaQPolicy(Policy):
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            # (int) Collect n_episode data, update_model n_iteration times
             update_per_collect=20,
-            # (int) The number of data for a train iteration
             batch_size=32,
-            # (float) Gradient-descent step size
             learning_rate=0.0005,
+            clip_value=1.5,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
-            # (float) Target network update weight, theta * new_w + (1 - theta) * old_w, defaults in [0, 0.1]
-            target_update_theta=0.001,
-            # (float) Discount factor for future reward, defaults int [0, 1]
+            # (float) Target network update momentum parameter.
+            # in [0, 1].
+            target_update_theta=0.008,
+            # (float) The discount factor for future rewards,
+            # in [0, 1].
             discount_factor=0.99,
-            # (float) The weight of collaq MARA loss
-            collaq_loss_weight=1.0,
-            # (float)
-            clip_value=100,
+            # (float) the loss weight of TD-error
+            td_weight=1,
+            # (float) the loss weight of Opt Loss
+            opt_weight=0.01,
+            # (float) the loss weight of Nopt Loss
+            nopt_min_weight=0.0001,
             # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)
-            double_q=False,
+            double_q=True,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_episode=32,
+            # n_sample=32 * 16,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
-            # in each forward when training. In qmix, it is greater than 1 because there is RNN.
+            # in each forward when training. In qtran, it is greater than 1 because there is RNN.
             unroll_len=10,
         ),
         eval=dict(),
@@ -97,12 +100,13 @@ class CollaQPolicy(Policy):
                 # (float) Start value for epsilon decay, in [0, 1].
                 end=0.05,
                 # (int) Decay length(env step)
-                decay=200000,
+                decay=50000,
             ),
             replay_buffer=dict(
-                # (int) max size of replay buffer
                 replay_buffer_size=5000,
-                max_reuse=10,
+                # (int) The maximum reuse times of each data
+                max_reuse=1e+9,
+                max_staleness=1e+9,
             ),
         ),
     )
@@ -111,7 +115,7 @@ class CollaQPolicy(Policy):
         """
         Overview:
             Learn mode init method. Called by ``self.__init__``.
-            Init the learner model of CollaQPolicy
+            Init the learner model of QTRANPolicy
         Arguments:
             .. note::
 
@@ -119,18 +123,19 @@ class CollaQPolicy(Policy):
 
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
-            - alpha (:obj:`float`): The collaQ loss factor, the weight for calculating MARL loss
-            - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
+            - agent_num (:obj:`int`): This is a multi-agent algorithm, we need to input agent num.
             - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        assert not self._priority and not self._priority_IS_weight, "not implemented priority in collaq"
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in QTRAN"
         self._optimizer = RMSprop(
             params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
         )
         self._gamma = self._cfg.learn.discount_factor
-        self._alpha = self._cfg.learn.collaq_loss_weight
+        self._td_weight = self._cfg.learn.td_weight
+        self._opt_weight = self._cfg.learn.opt_weight
+        self._nopt_min_weight = self._cfg.learn.nopt_min_weight
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
@@ -143,13 +148,13 @@ class CollaQPolicy(Policy):
             self._target_model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
             state_num=self._cfg.learn.batch_size,
-            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._learn_model.reset()
         self._target_model.reset()
@@ -158,10 +163,8 @@ class CollaQPolicy(Policy):
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
-
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
-
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, from \
                 [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}] -> {dict_key: Tensor([T, B, any_dims])}
@@ -193,7 +196,7 @@ class CollaQPolicy(Policy):
         """
         data = self._data_preprocess_learn(data)
         # ====================
-        # CollaQ forward
+        # Q-mix forward
         # ====================
         self._learn_model.train()
         self._target_model.train()
@@ -201,32 +204,52 @@ class CollaQPolicy(Policy):
         self._learn_model.reset(state=data['prev_state'][0])
         self._target_model.reset(state=data['prev_state'][0])
         inputs = {'obs': data['obs'], 'action': data['action']}
-        ret = self._learn_model.forward(inputs, single_step=False)
-        total_q = ret['total_q']
-        agent_colla_alone_q = ret['agent_colla_alone_q'].sum(-1).sum(-1)
+        learn_ret = self._learn_model.forward(inputs, single_step=False)
+        total_q = learn_ret['total_q']
+        vs = learn_ret['vs']
+        agent_q_act = learn_ret['agent_q_act']
+        logit_detach = learn_ret['logit'].clone()
+        logit_detach[data['obs']['action_mask'] == 0.0] = -9999999
+        logit_q, logit_action = logit_detach.max(dim=-1, keepdim=False)
 
         if self._cfg.learn.double_q:
             next_inputs = {'obs': data['next_obs']}
-            logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
-            next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
+            double_q_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
+            _, double_q_action = double_q_detach.max(dim=-1, keepdim=False)
+            next_inputs = {'obs': data['next_obs'], 'action': double_q_action}
         else:
             next_inputs = {'obs': data['next_obs']}
         with torch.no_grad():
             target_total_q = self._target_model.forward(next_inputs, single_step=False)['total_q']
 
-        # td_loss calculation
-        td_data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        td_loss, _ = v_1step_td_error(td_data, self._gamma)
-        # collaQ loss calculation
-        colla_loss = (agent_colla_alone_q ** 2).mean()
-        # combine loss with factor
-        loss = colla_loss * self._alpha + td_loss
+        # -- TD Loss --
+        td_data = v_1step_td_data(total_q, target_total_q.detach(), data['reward'], data['done'], data['weight'])
+        td_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
+        # -- TD Loss --
+
+        # -- Opt Loss --
+        if data['weight'] is None:
+            weight = torch.ones_like(data['reward'])
+        opt_inputs = {'obs': data['obs'], 'action': logit_action}
+        max_q = self._learn_model.forward(opt_inputs, single_step=False)['total_q']
+        opt_error = logit_q.sum(dim=2) - max_q.detach() + vs
+        opt_loss = (opt_error ** 2 * weight).mean()
+        # -- Opt Loss --
+
+        # -- Nopt Loss --
+        nopt_values = agent_q_act.sum(dim=2) - total_q.detach() + vs
+        nopt_error = nopt_values.clamp(max=0)
+        nopt_min_loss = (nopt_error ** 2 * weight).mean()
+        # -- Nopt Loss --
+
+        total_loss = self._td_weight * td_loss + self._opt_weight * opt_loss + self._nopt_min_weight * nopt_min_loss
         # ====================
-        # CollaQ update
+        # Q-mix update
         # ====================
         self._optimizer.zero_grad()
-        loss.backward()
-        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.learn.clip_value)
+        total_loss.backward()
+        # just get grad_norm
+        grad_norm = torch.nn.utils.clip_grad_norm_(self._model.parameters(), 10000000)
         self._optimizer.step()
         # =============
         # after update
@@ -234,9 +257,10 @@ class CollaQPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': loss.item(),
-            'colla_loss': colla_loss.item(),
+            'total_loss': total_loss.item(),
             'td_loss': td_loss.item(),
+            'opt_loss': opt_loss.item(),
+            'nopt_loss': nopt_min_loss.item(),
             'grad_norm': grad_norm,
         }
 
@@ -289,7 +313,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.collect.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
@@ -300,6 +324,7 @@ class CollaQPolicy(Policy):
             Forward function for collect mode with eps_greedy
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
         Returns:
             - data (:obj:`dict`): The collected data
         """
@@ -332,19 +357,18 @@ class CollaQPolicy(Policy):
             Generate dict type transition data from inputs.
         Arguments:
             - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least \
-                ['action', 'prev_state', 'agent_colla_alone_q']
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
             - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
                 (here 'obs' indicates obs after env step).
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`dict`): Dict type transition data, including 'obs', 'next_obs', 'prev_state',\
+                'action', 'reward', 'done'
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
             'prev_state': model_output['prev_state'],
             'action': model_output['action'],
-            'agent_colla_alone_q': model_output['agent_colla_alone_q'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -361,7 +385,7 @@ class CollaQPolicy(Policy):
             wrapper_name='hidden_state',
             state_num=self._cfg.eval.env_num,
             save_prev_state=True,
-            init_fn=lambda: [[None for _ in range(self._cfg.model.agent_num)] for _ in range(3)]
+            init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]
         )
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -369,7 +393,7 @@ class CollaQPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function for evaluation mode, similar to ``self._forward_collect``.
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least ['obs'].
         Returns:
@@ -417,9 +441,9 @@ class CollaQPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For collaq, ``ding.model.qmix.qmix``
+            by import_names path. For QTRAN, ``ding.model.qtran.qtran``
         """
-        return 'collaq', ['ding.model.template.qmix']
+        return 'qtran', ['ding.model.template.qtran']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
@@ -428,4 +452,4 @@ class CollaQPolicy(Policy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return ['cur_lr', 'total_loss', 'colla_loss', 'td_loss', 'grad_norm']
+        return ['cur_lr', 'total_loss', 'td_loss', 'opt_loss', 'nopt_loss', 'grad_norm']

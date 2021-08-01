@@ -21,6 +21,7 @@ from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
 from .acer import ACERPolicy
+from .qtran import QTRANPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -168,4 +169,9 @@ class ATOCCommandModePolicy(ATOCPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('acer_command')
 class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('qtran_command')
+class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
     pass

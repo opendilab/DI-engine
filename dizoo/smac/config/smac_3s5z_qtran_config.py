@@ -1,4 +1,3 @@
-import sys
 from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
@@ -22,42 +21,45 @@ main_config = dict(
     ),
     policy=dict(
         model=dict(
-            # (int) agent_num: The number of the agent.
-            # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
             agent_num=agent_num,
-            # (int) obs_shape: The shapeension of observation of each agent.
-            # For 3s5z, obs_shape=150; for 2c_vs_64zg, agent_num=404.
-            # (int) global_obs_shape: The shapeension of global observation.
-            # For 3s5z, obs_shape=216; for 2c_vs_64zg, agent_num=342.
-            obs_shape=dict(
-                agent_state=150,
-                global_state=216,
-            ),
-            # (int) action_shape: The number of action which each agent can take.
-            # action_shape= the number of common action (6) + the number of enemies.
-            # For 3s5z, obs_shape=14 (6+8); for 2c_vs_64zg, agent_num=70 (6+64).
+            obs_shape=150,
+            global_obs_shape=216,
             action_shape=14,
-            # (List[int]) The size of hidden layer
-            actor_hidden_size_list=[64],
+            hidden_size_list=[64],
+            embedding_size=64,
+            lstm_type='gru',
+            dueling=False,
         ),
-        # used in state_num of hidden_state
+        learn=dict(
+            multi_gpu=False,
+            update_per_collect=20,
+            batch_size=32,
+            learning_rate=0.0005,
+            double_q=True,
+            target_update_theta=0.006,
+            discount_factor=0.95,
+            td_weight=1,
+            opt_weight=0.1,
+            nopt_min_weight=0.0001,
+        ),
         collect=dict(
             n_episode=32,
+            unroll_len=10,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
-                type='exp',
-                start=0.5,
-                end=0.01,
-                decay=200000,
+                type='linear',
+                start=1,
+                end=0.05,
+                decay=10000,
             ),
             replay_buffer=dict(
-                # (int) max size of replay buffer
-                replay_buffer_size=5000,
-                # (int) max use count of data, if count is bigger than this value, the data will be removed from buffer
-                max_use=10,
+                replay_buffer_size=15000,
+                # (int) The maximum reuse times of each data
+                max_reuse=1e+9,
+                max_staleness=1e+9,
             ),
         ),
     ),
@@ -69,7 +71,7 @@ create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='coma'),
+    policy=dict(type='qtran'),
     collector=dict(type='episode', get_train_sample=True),
 )
 create_config = EasyDict(create_config)
@@ -82,6 +84,7 @@ def train(args):
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', '-s', type=int, default=0)
     args = parser.parse_args()

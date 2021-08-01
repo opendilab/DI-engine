@@ -3,13 +3,13 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-agent_num = 8
+agent_num = 10
 collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
     env=dict(
-        map_name='3s5z',
+        map_name='MMM',
         difficulty=7,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -30,19 +30,20 @@ main_config = dict(
             # (int) global_obs_shape: The shapeension of global observation.
             # For 3s5z, obs_shape=216; for 2c_vs_64zg, agent_num=342.
             obs_shape=dict(
-                agent_state=150,
-                global_state=216,
+                agent_state=186,
+                global_state=290,
             ),
             # (int) action_shape: The number of action which each agent can take.
             # action_shape= the number of common action (6) + the number of enemies.
             # For 3s5z, obs_shape=14 (6+8); for 2c_vs_64zg, agent_num=70 (6+64).
-            action_shape=14,
+            action_shape=16,
             # (List[int]) The size of hidden layer
             actor_hidden_size_list=[64],
         ),
         # used in state_num of hidden_state
         collect=dict(
             n_episode=32,
+            unroll_len=10,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
