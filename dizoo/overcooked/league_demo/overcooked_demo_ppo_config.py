@@ -31,7 +31,7 @@ overcooked_league_demo_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            n_episode=16, unroll_len=1, discount_factor=0.99, gae_lambda=0.95, collector=dict(get_train_sample=True, )
+            n_episode=4, unroll_len=1, discount_factor=0.99, gae_lambda=0.95, collector=dict(get_train_sample=True, )
         ),
         other=dict(
             league=dict(
