@@ -12,15 +12,15 @@ pong_dqn_config = dict(
         warp_frame=False,
         use_ram=True,
         pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
         priority=False,
         model=dict(
-            obs_shape=[512, ],
+            obs_shape=[
+                512,
+            ],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
@@ -32,9 +32,7 @@ pong_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

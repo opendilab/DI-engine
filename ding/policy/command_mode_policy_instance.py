@@ -20,6 +20,7 @@ from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
+from .acer import ACERPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -162,4 +163,9 @@ class COMACommandModePolicy(COMAPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('atoc_command')
 class ATOCCommandModePolicy(ATOCPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('acer_command')
+class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
     pass
