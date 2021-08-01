@@ -139,6 +139,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 opponent_policy = policies[opponent_player_id].collect_mode
             collector.reset_policy([policies[player_id].collect_mode, opponent_policy])
             train_data = collector.collect(train_iter=learner.train_iter)
+            train_data = train_data[0]  # only use launer player data for training
             for d in train_data:
                 d['adv'] = d['reward']
 
