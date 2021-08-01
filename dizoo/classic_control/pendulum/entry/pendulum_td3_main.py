@@ -63,11 +63,12 @@ def main(cfg, seed=0):
         # Collect data from environments
         new_data = collector.collect(train_iter=learner.train_iter)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        # Trian
+        # Train
         for i in range(cfg.policy.learn.update_per_collect):
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data is not None:
-                learner.train(train_data, collector.envstep)
+            if train_data is None:
+                break
+            learner.train(train_data, collector.envstep)
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from dizoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_s
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config  # noqa
 from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
+from dizoo.classic_control.cartpole.entry.cartpole_ppo_main import main as ppo_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
@@ -117,7 +118,7 @@ def test_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        ppo_main(config[0], seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
