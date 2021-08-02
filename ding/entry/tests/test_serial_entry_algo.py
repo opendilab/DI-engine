@@ -26,6 +26,9 @@ from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, 
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
+from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
+from dizoo.league_demo.league_demo_ppo_main import main as league_main
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -260,4 +263,24 @@ def test_qrdqn():
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
-        f.write("20. sqn\n")
+        f.write("21. qrdqn\n")
+
+
+@pytest.mark.algotest
+def test_selfplay():
+    try:
+        selfplay_main(league_demo_ppo_config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("23. selfplay\n")
+
+
+@pytest.mark.algotest
+def test_league():
+    try:
+        league_main(league_demo_ppo_config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("24. league\n")

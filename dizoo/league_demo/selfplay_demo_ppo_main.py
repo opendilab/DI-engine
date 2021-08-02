@@ -1,6 +1,7 @@
 import os
 import gym
 import numpy as np
+import copy
 import torch
 from tensorboardX import SummaryWriter
 
@@ -10,8 +11,8 @@ from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
-from game_env import GameEnv
-from league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.game_env import GameEnv
+from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 
 
 class EvalPolicy1:
@@ -80,15 +81,19 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         exp_name=cfg.exp_name
     )
     # collect_mode ppo use multimonial sample for selecting action
+    evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+    evaluator1_cfg.stop_value = cfg.env.stop_value[0]
     evaluator1 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator,
+        evaluator1_cfg,
         evaluator_env1, [policy1.collect_mode, eval_policy1],
         tb_logger,
         exp_name=cfg.exp_name,
         instance_name='fixed_evaluator'
     )
+    evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+    evaluator2_cfg.stop_value = cfg.env.stop_value[1]
     evaluator2 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator,
+        evaluator2_cfg,
         evaluator_env2, [policy1.collect_mode, eval_policy2],
         tb_logger,
         exp_name=cfg.exp_name,
