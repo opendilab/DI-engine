@@ -282,7 +282,7 @@ def test_acer():
 @pytest.mark.algotest
 def test_selfplay():
     try:
-        selfplay_main(league_demo_ppo_config, seed=0)
+        selfplay_main(deepcopy(league_demo_ppo_config), seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -292,7 +292,7 @@ def test_selfplay():
 @pytest.mark.algotest
 def test_league():
     try:
-        league_main(league_demo_ppo_config, seed=0)
+        league_main(deepcopy(league_demo_ppo_config), seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
