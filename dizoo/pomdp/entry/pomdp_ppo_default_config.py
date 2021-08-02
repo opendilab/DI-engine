@@ -12,16 +12,16 @@ pong_ppo_config = dict(
         warp_frame=False,
         use_ram=True,
         pomdp=dict(noise_scale=0.01, zero_p=0.2, reward_noise=0.01, duplicate_p=0.2),
-        manager=dict(
-            shared_memory=False,
-        )
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
         on_policy=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
-            obs_shape=[512, ],
+            obs_shape=[
+                512,
+            ],
             action_shape=6,
             encoder_hidden_size_list=[512, 512, 256],
             actor_head_hidden_size=256,
@@ -50,13 +50,11 @@ pong_ppo_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=200, )),
-        other=dict(
-            replay_buffer=dict(
-                replay_buffer_size=100000,
-                max_use=3,
-                min_sample_ratio=1,
-            ),
-        ),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=100000,
+            max_use=3,
+            min_sample_ratio=1,
+        ), ),
     ),
 )
 main_config = EasyDict(pong_ppo_config)

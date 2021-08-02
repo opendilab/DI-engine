@@ -294,7 +294,6 @@ class PPOPolicy(Policy):
         else:
             return get_nstep_return_data(data, self._nstep)
 
-
     def _init_eval(self) -> None:
         r"""
         Overview:
@@ -326,6 +325,7 @@ class PPOPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
 
@@ -336,7 +336,6 @@ class PPOPolicy(Policy):
         return super()._monitor_vars_learn() + [
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
-
 
 
 @POLICY_REGISTRY.register('ppo_lstm_command')

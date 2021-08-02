@@ -127,7 +127,7 @@ def ppo_value_error(
     return value_loss
 
 
-def ppo_error_continous(
+def ppo_error_continuous(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
@@ -170,8 +170,11 @@ def ppo_error_continous(
     if weight is None:
         weight = torch.ones_like(adv)
 
-    dist_new = Normal(mu_sigma_new[0].squeeze(), mu_sigma_new[1].squeeze())
-    dist_old = Normal(mu_sigma_old[0].squeeze(), mu_sigma_old[1].squeeze())
+    dist_new = Independent(Normal(mu_sigma_new[0], mu_sigma_new[1]), 1)
+    if len(mu_sigma_old[0].shape) == 1:
+        dist_old = Independent(Normal(mu_sigma_old[0].unsqueeze(-1), mu_sigma_old[1].unsqueeze(-1)), 1)
+    else:
+        dist_old = Independent(Normal(mu_sigma_old[0], mu_sigma_old[1]), 1)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
     entropy_loss = (dist_new.entropy() * weight).mean()

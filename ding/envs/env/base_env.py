@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, Tuple
 import gym
+import copy
 from easydict import EasyDict
 from namedlist import namedlist
 from collections import namedtuple
@@ -16,8 +17,7 @@ class BaseEnv(ABC, gym.Env):
         basic environment class, extended from ``gym.Env``
     Interface:
         ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \
-            ``create_evaluator_env_cfg``,
-        ``enable_save_replay``
+            ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
 
     @abstractmethod

@@ -18,6 +18,7 @@ from .qmix import QMIXPolicy
 from .coma import COMAPolicy
 from .collaq import CollaQPolicy
 from .atoc import ATOCPolicy
+from .acer import ACERPolicy
 
 from .il import ILPolicy
 
