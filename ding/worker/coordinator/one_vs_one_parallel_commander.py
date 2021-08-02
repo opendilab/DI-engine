@@ -160,7 +160,7 @@ class OneVsOneCommander(BaseCommander):
                 'learner_cfg': learner_cfg,
                 'replay_buffer_cfg': self._cfg.policy.other.replay_buffer,
                 'policy': copy.deepcopy(self._cfg.policy),
-                'league_save_checkpoint_path': 'policy/' + self._active_player.checkpoint_path,
+                'league_save_checkpoint_path': self._active_player.checkpoint_path,
             }
             # self._logger.info(
             #     "[LEARNER] Task starts:\n{}".format(
