@@ -73,6 +73,7 @@ class ACERPolicy(Policy):
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
+            load_path=None,
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) clip ratio of importance weights
@@ -120,7 +121,6 @@ class ACERPolicy(Policy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -144,9 +144,12 @@ class ACERPolicy(Policy):
         # self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
         self._use_trust_region = self._cfg.learn.trust_region
         self._trust_region_value = self._cfg.learn.trust_region_value
-        # Main model
+        # Main model 
         self._learn_model.reset()
         self._target_model.reset()
+        if self._cfg.learn.load_path is not None:
+            state_dict = torch.load(self._cfg.learn.load_path)
+            self._load_state_dict_learn(state_dict)
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
@@ -329,6 +332,7 @@ class ACERPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'actor_optimizer': self._optimizer_actor.state_dict(),
             'critic_optimizer': self._optimizer_critic.state_dict(),
         }
@@ -345,6 +349,7 @@ class ACERPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['actor_optimizer'])
         self._optimizer_critic.load_state_dict(state_dict['critic_optimizer'])
 

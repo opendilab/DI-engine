@@ -34,6 +34,7 @@ cartpole_acer_config = dict(
             # (float) clip ratio of importance weights
             trust_region=True,
             c_clip_ratio=10,
+            load_path='/Users/simon/Documents/sensetime/default_experiment/ckpt/iteration_800.pth.tar'
             # (float) clip ratio of importance sampling
         ),
         collect=dict(
