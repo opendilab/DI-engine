@@ -28,6 +28,9 @@ from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, 
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
+from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
+from dizoo.league_demo.league_demo_ppo_main import main as league_main
 
 
 @pytest.mark.unittest
@@ -252,6 +255,22 @@ def test_sqn():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf log ckpt*')
+
+
+@pytest.mark.unittest
+def test_selfplay():
+    try:
+        selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_league():
+    try:
+        league_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+    except Exception as e:
+        assert False, "pipeline fail"
 
 
 @pytest.mark.unittest

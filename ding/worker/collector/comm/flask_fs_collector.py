@@ -161,7 +161,8 @@ class FlaskFileSystemCollector(BaseCommCollector):
         """
         if self._collector_close_flag:
             return
-        path = os.path.join(self._path_policy, path)
+        if self._path_policy not in path:
+            path = os.path.join(self._path_policy, path)
         return read_file(path, use_lock=True)
 
     # override
