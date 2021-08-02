@@ -1,1 +1,17 @@
+2021.8.3(v0.1.1)
+- env: selfplay/league demo (#12)
+- env: pybullet env (#16)
+- env: minigrid env (#13)
+- env: atari enduro config (#11)
+- algo: on policy PPO (#9)
+- algo: ACER algorithm (#14)
+- feature: polish experiment directory structure (#10)
+- refactor: split doc to new repo (#4)
+- fix: atari env info action space bug
+- fix: env manager retry wrapper raise exception info bug
+- fix: dist entry disable-flask-log typo
+- style: codestyle optimization by lgtm (#7)
+- style: code/comment statistics badge
+- style: github CI workflow
+
 2021.7.8(v0.1.0)
