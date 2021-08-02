@@ -82,12 +82,13 @@ class BattleSharedPayoff:
         data = []
         for k, v in self._data.items():
             k1 = k.split('-')
+            # k is the format of '{}-{}'.format(name1, name2), and each HistoricalPlayer has `historical` suffix
             if 'historical' in k1[0]:
-                # reverse show
-                naive_win_rate = v['losses'] / (v['wins'] + v['losses'] + 1e-8)
+                # reverse representation
+                naive_win_rate = (v['losses'] + v['draws'] / 2) / (v['wins'] + v['losses'] + v['draws'] + 1e-8)
                 data.append([k1[1], k1[0], v['losses'], v['draws'], v['wins'], naive_win_rate])
             else:
-                naive_win_rate = v['wins'] / (v['wins'] + v['losses'] + 1e-8)
+                naive_win_rate = (v['wins'] + v['draws'] / 2) / (v['wins'] + v['losses'] + v['draws'] + 1e-8)
                 data.append([k1[0], k1[1], v['wins'], v['draws'], v['losses'], naive_win_rate])
         data = sorted(data, key=lambda x: x[0])
         s = tabulate(data, headers=headers, tablefmt='grid')
