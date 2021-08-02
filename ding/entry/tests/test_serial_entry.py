@@ -272,7 +272,7 @@ def test_league():
     except Exception:
         assert False, "pipeline fail"
 
-        
+
 @pytest.mark.unittest
 def test_acer():
     config = [deepcopy(cartpole_acer_config), deepcopy(cartpole_acer_create_config)]
