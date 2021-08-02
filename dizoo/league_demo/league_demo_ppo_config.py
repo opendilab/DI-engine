@@ -11,6 +11,7 @@ league_demo_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
+        continuous=False,
         model=dict(
             obs_shape=2,
             action_shape=2,

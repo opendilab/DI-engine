@@ -260,7 +260,7 @@ def test_sqn():
 @pytest.mark.unittest
 def test_selfplay():
     try:
-        selfplay_main(league_demo_ppo_config, seed=0, max_iterations=1)
+        selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -268,8 +268,8 @@ def test_selfplay():
 @pytest.mark.unittest
 def test_league():
     try:
-        league_main(league_demo_ppo_config, seed=0, max_iterations=1)
-    except Exception:
+        league_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+    except Exception as e:
         assert False, "pipeline fail"
 
 
