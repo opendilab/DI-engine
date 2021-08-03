@@ -28,7 +28,7 @@ qbert_ppo_config = dict(
             update_per_collect=24,
             batch_size=128,
             # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
+            adv_norm=False,
             learning_rate=0.0001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=1.0,

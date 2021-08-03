@@ -234,6 +234,7 @@ class PPGPolicy(Policy):
         self._learn_model.train()
         policy_data, value_data = data['policy'], data['value']
         policy_adv, value_adv = policy_data['adv'], value_data['adv']
+        return_ = value_data['value'] + value_adv
         if self._adv_norm:
             # Normalize advantage in a total train_batch
             policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
@@ -250,7 +251,6 @@ class PPGPolicy(Policy):
         self._optimizer_ac.step()
 
         # Policy Phase(Value)
-        return_ = value_data['value'] + value_adv
         value_output = self._learn_model.forward(value_data['obs'], mode='compute_critic')
         value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
         value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
