@@ -209,7 +209,7 @@
             <span class="c1"># (float) loss weight of the entropy regularization, the weight of policy network is set to 1</span>
             <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
             <span class="c1"># (bool) Whether to normalize advantage. Default to False.</span>
-            <span class="n">normalize_advantage</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -253,7 +253,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">value_weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">entropy_weight</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">normalize_advantage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">adv_norm</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_grad_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">grad_norm</span>
 
         <span class="c1"># Main and target models</span>
@@ -277,11 +277,10 @@
         <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
 
         <span class="n">adv</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span>
+        <span class="n">return_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">adv</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span><span class="p">:</span>
             <span class="c1"># norm adv in total train_batch</span>
             <span class="n">adv</span> <span class="o">=</span> <span class="p">(</span><span class="n">adv</span> <span class="o">-</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">adv</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="n">return_</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">adv</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">a2c_data</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
 
         <span class="c1"># Calculate A2C loss</span>
