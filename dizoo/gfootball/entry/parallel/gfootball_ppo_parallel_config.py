@@ -3,7 +3,6 @@ from ding.config import parallel_transform
 from copy import deepcopy
 from ding.entry import parallel_pipeline
 
-
 gfootball_ppo_config = dict(
     env=dict(
         collector_env_num=1,
@@ -65,10 +64,7 @@ gfootball_ppo_create_config = dict(
         type='gfootball_sp',
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='ppo_lstm_command',
-        import_names=['dizoo.gfootball.policy.ppo_lstm']
-                 ),
+    policy=dict(type='ppo_lstm_command', import_names=['dizoo.gfootball.policy.ppo_lstm']),
     learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
         type='one_vs_one',
@@ -100,7 +96,6 @@ gfootball_ppo_system_config = dict(
 )
 gfootball_ppo_system_config = EasyDict(gfootball_ppo_system_config)
 system_config = gfootball_ppo_system_config
-
 
 if __name__ == '__main__':
     config = tuple([deepcopy(main_config), deepcopy(create_config), deepcopy(system_config)])

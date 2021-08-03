@@ -409,3 +409,121 @@ def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
 @lru_cache()
 def one_time_warning(warning_msg: str) -> None:
     logging.warning(warning_msg)
+
+
+def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
+    assert isinstance(data, dict), type(data)
+    length = []
+    for v in data.values():
+        if v is None:
+            continue
+        elif isinstance(v, list) or isinstance(v, tuple):
+            length.append(len(v[0]))
+        else:
+            length.append(len(v))
+    assert len(length) > 0
+    assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
+    length = length[0]
+    assert split_size >= 1 and split_size <= length
+    if shuffle:
+        indices = np.random.permutation(length)
+    else:
+        indices = np.arange(length)
+    for i in range(0, length, split_size):
+        if i + split_size > length:
+            i = length - split_size
+        batch = {}
+        for k in data.keys():
+            if data[k] is None:
+                batch[k] = None
+            elif isinstance(data[k], list) or isinstance(data[k], tuple):
+                batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
+            else:
+                batch[k] = data[k][indices[i:i + split_size]]
+        yield batch
+
+
+class RunningMeanStd(object):
+    """
+    Overview:
+       Wrapper to update new variable, new mean, and new count
+    Interface:
+        ``__init__``, ``update``, ``reset``, ``new_shape``
+    Properties:
+        - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``
+    """
+
+    def __init__(self, epsilon=1e-4, shape=()):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate  \
+                signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+            - epsilon (:obj:`Float`): the epsilon used for self for the std output
+            - shape (:obj: `np.array`): the np array shape used for the expression  \
+                of this wrapper on attibutes of mean and variance
+        """
+        self._epsilon = epsilon
+        self._shape = shape
+        self.reset()
+
+    def update(self, x):
+        """
+        Overview:
+            Update mean, variable, and count
+        Arguments:
+            - ``x``: the batch
+        """
+        batch_mean = np.mean(x, axis=0)
+        batch_var = np.var(x, axis=0)
+        batch_count = x.shape[0]
+
+        new_count = batch_count + self._count
+        mean_delta = batch_mean - self._mean
+        new_mean = self._mean + mean_delta * batch_count / new_count
+        # this method for calculating new variable might be numerically unstable
+        m_a = self._var * self._count
+        m_b = batch_var * batch_count
+        m2 = m_a + m_b + np.square(mean_delta) * self._count * batch_count / new_count
+        new_var = m2 / new_count
+        self._mean = new_mean
+        self._var = new_var
+        self._count = new_count
+
+    def reset(self):
+        """
+        Overview:
+            Resets the state of the environment and reset properties: ``_mean``, ``_var``, ``_count``
+        """
+        self._mean = np.zeros(self._shape, 'float32')
+        self._var = np.ones(self._shape, 'float32')
+        self._count = self._epsilon
+
+    @property
+    def mean(self) -> np.ndarray:
+        """
+        Overview:
+            Property ``mean`` gotten  from ``self._mean``
+        """
+        return self._mean
+
+    @property
+    def std(self) -> np.ndarray:
+        """
+        Overview:
+            Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``
+        """
+        return np.sqrt(self._var + 1e-8)
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        """
+        Overview:
+           Get new shape of observation, acton, and reward; in this case unchanged.
+        Arguments:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        Returns:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        """
+        return obs_shape, act_shape, rew_shape

@@ -1,6 +1,6 @@
 from .exploration import get_epsilon_greedy_fn, create_noise_generator
 from .ppo import ppo_data, ppo_loss, ppo_info, ppo_policy_data, ppo_policy_error, ppo_value_data, ppo_value_error,\
-    ppo_error, ppo_error_continous
+    ppo_error, ppo_error_continuous
 from .ppg import ppg_data, ppg_joint_loss, ppg_joint_error
 from .gae import gae_data, gae
 from .a2c import a2c_data, a2c_error
@@ -15,3 +15,5 @@ from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_da
 from .value_rescale import value_transform, value_inv_transform
 from .vtrace import vtrace_data, vtrace_error
 from .beta_function import beta_function_map
+from .retrace import compute_q_retraces
+from .acer import acer_policy_error, acer_value_error, acer_trust_region_update

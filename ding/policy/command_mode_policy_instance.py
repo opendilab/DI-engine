@@ -9,7 +9,7 @@ from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
-from .ppo import PPOPolicy
+from .ppo import PPOPolicy, PPOOffPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
@@ -20,6 +20,7 @@ from .qmix import QMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
+from .acer import ACERPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -110,6 +111,11 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('ppo_offpolicy_command')
+class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('a2c_command')
 class A2CCommandModePolicy(A2CPolicy, DummyCommandModePolicy):
     pass
@@ -157,4 +163,9 @@ class COMACommandModePolicy(COMAPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('atoc_command')
 class ATOCCommandModePolicy(ATOCPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('acer_command')
+class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
     pass

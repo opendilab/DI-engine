@@ -14,7 +14,9 @@ from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole_qrdqn_config, cartpole_qrdqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config  # noqa
 from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
+from dizoo.classic_control.cartpole.entry.cartpole_ppo_main import main as ppo_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
@@ -26,6 +28,9 @@ from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, 
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
+from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
+from dizoo.league_demo.league_demo_ppo_main import main as league_main
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -90,7 +95,7 @@ def test_rainbow():
 def test_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     try:
-        serial_pipeline(config, seed=0)
+        ppo_main(config[0], seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -260,4 +265,35 @@ def test_qrdqn():
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
-        f.write("20. sqn\n")
+        f.write("21. qrdqn\n")
+
+
+@pytest.mark.algotest
+def test_acer():
+    config = [deepcopy(cartpole_acer_config), deepcopy(cartpole_acer_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("22. acer\n")
+
+
+@pytest.mark.algotest
+def test_selfplay():
+    try:
+        selfplay_main(deepcopy(league_demo_ppo_config), seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("23. selfplay\n")
+
+
+@pytest.mark.algotest
+def test_league():
+    try:
+        league_main(deepcopy(league_demo_ppo_config), seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("24. league\n")

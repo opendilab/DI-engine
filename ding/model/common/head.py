@@ -600,16 +600,18 @@ class RegressionHead(nn.Module):
 
 class ReparameterizationHead(nn.Module):
     default_sigma_type = ['fixed', 'independent', 'conditioned']
+    default_bound_type = ['tanh', None]
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 2,
-            sigma_type: Optional[str] = None,
-            fixed_sigma_value: Optional[float] = 1.0,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 2,
+        sigma_type: Optional[str] = None,
+        fixed_sigma_value: Optional[float] = 1.0,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        bound_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
@@ -631,6 +633,10 @@ class ReparameterizationHead(nn.Module):
         self.sigma_type = sigma_type
         assert sigma_type in self.default_sigma_type, "Please indicate sigma_type as one of {}".format(
             self.default_sigma_type
+        )
+        self.bound_type = bound_type
+        assert bound_type in self.default_bound_type, "Please indicate bound_type as one of {}".format(
+            self.default_bound_type
         )
         self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
         self.mu = nn.Linear(hidden_size, output_size)
@@ -666,6 +672,8 @@ class ReparameterizationHead(nn.Module):
         """
         x = self.main(x)
         mu = self.mu(x)
+        if self.bound_type == 'tanh':
+            mu = torch.tanh(mu)
         if self.sigma_type == 'fixed':
             sigma = self.sigma.to(mu.device) + torch.zeros_like(mu)  # addition aims to broadcast shape
         elif self.sigma_type == 'independent':

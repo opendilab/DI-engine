@@ -5,7 +5,7 @@ from tensorboardX import SummaryWriter
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
-from ding.policy import PPOPolicy
+from ding.policy import PPOOffPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed, deep_merge_dicts
 from ding.reward_model import RndRewardModel
@@ -20,7 +20,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
-        PPOPolicy,
+        PPOOffPolicy,
         BaseLearner,
         SampleCollector,
         BaseSerialEvaluator,
@@ -37,7 +37,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     model = VAC(**cfg.policy.model)
-    policy = PPOPolicy(cfg.policy, model=model)
+    policy = PPOOffPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     collector = SampleCollector(
@@ -55,7 +55,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             if stop:
                 break
         new_data = collector.collect(train_iter=learner.train_iter)
-        assert all([len(c) == 0 for c in collector._traj_buffer.values()])
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         reward_model.collect_data(new_data)
         reward_model.train()
@@ -65,7 +64,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             reward_model.estimate(train_data)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
-        replay_buffer.clear()
 
 
 if __name__ == "__main__":

@@ -155,6 +155,8 @@ class BaseSerialEvaluator(object):
             Determine whether you need to start the evaluation mode, if the number of training has reached\
                 the maximum number of times to start the evaluator, return True
         """
+        if train_iter == self._last_eval_iter:
+            return False
         if (train_iter - self._last_eval_iter) < self._cfg.eval_freq and train_iter != 0:
             return False
         self._last_eval_iter = train_iter
