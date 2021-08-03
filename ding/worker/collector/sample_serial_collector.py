@@ -101,7 +101,7 @@ class SampleCollector(ISerialCollector):
                     self._unroll_len,
                     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
                 )
-                self._logger.info(
+                self._logger.debug(
                     'Set default n_sample mode(n_sample({}), env_num({}), traj_len({}))'.format(
                         self._default_n_sample, self._env_num, self._traj_len
                     )

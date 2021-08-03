@@ -105,6 +105,9 @@ setup(
         'procgen_env': [
             'procgen',
         ],
+        'minigrid_env': [
+            'gym-minigrid',
+        ],
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',

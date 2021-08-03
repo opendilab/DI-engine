@@ -215,7 +215,9 @@ class FlaskFileSystemLearner(BaseCommLearner):
         """
         if not os.path.exists(self._path_policy):
             os.mkdir(self._path_policy)
-        path = os.path.join(self._path_policy, self._policy_id)
+        path = self._policy_id
+        if self._path_policy not in path:
+            path = os.path.join(self._path_policy, path)
         setattr(self, "_latest_policy_path", path)
         save_file(path, state_dict, use_lock=True)
 

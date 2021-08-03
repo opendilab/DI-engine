@@ -2,6 +2,7 @@ import copy
 from collections import defaultdict
 from typing import Tuple, Optional
 from easydict import EasyDict
+from tabulate import tabulate
 import numpy as np
 
 from ding.utils import LockContext, LockContextType
@@ -75,6 +76,23 @@ class BattleSharedPayoff:
         self._min_win_rate_games = cfg.get('min_win_rate_games', 8)
         # Thread lock.
         self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
+
+    def __repr__(self) -> str:
+        headers = ["Home Player", "Away Player", "Wins", "Draws", "Losses", "Naive Win Rate"]
+        data = []
+        for k, v in self._data.items():
+            k1 = k.split('-')
+            # k is the format of '{}-{}'.format(name1, name2), and each HistoricalPlayer has `historical` suffix
+            if 'historical' in k1[0]:
+                # reverse representation
+                naive_win_rate = (v['losses'] + v['draws'] / 2) / (v['wins'] + v['losses'] + v['draws'] + 1e-8)
+                data.append([k1[1], k1[0], v['losses'], v['draws'], v['wins'], naive_win_rate])
+            else:
+                naive_win_rate = (v['wins'] + v['draws'] / 2) / (v['wins'] + v['losses'] + v['draws'] + 1e-8)
+                data.append([k1[0], k1[1], v['wins'], v['draws'], v['losses'], naive_win_rate])
+        data = sorted(data, key=lambda x: x[0])
+        s = tabulate(data, headers=headers, tablefmt='grid')
+        return s
 
     def __getitem__(self, players: tuple) -> np.ndarray:
         """
@@ -172,18 +190,21 @@ class BattleSharedPayoff:
 
         with self._lock:
             home_id, away_id = job_info['player_id']
+            job_info_result = job_info['result']
+            # for compatibility of one-layer list
+            if not isinstance(job_info_result[0], list):
+                job_info_result = [job_info_result]
             try:
-                assert home_id in self._players_ids
-                assert away_id in self._players_ids
+                assert home_id in self._players_ids, "home_id error"
+                assert away_id in self._players_ids, "away_id error"
                 # Assert all results are in ['wins', 'losses', 'draws']
-                assert all([i in BattleRecordDict.data_keys[:3] for j in job_info['result'] for i in j])
+                assert all([i in BattleRecordDict.data_keys[:3] for j in job_info_result for i in j]), "results error"
             except Exception as e:
-                print("[ERROR] invalid job_info: {}".format(job_info))
-                print(e)
+                print("[ERROR] invalid job_info: {}\n\tError reason is: {}".format(job_info, e))
                 return False
             key, reverse = self.get_key(home_id, away_id)
             # Update with decay
-            for j in job_info['result']:
+            for j in job_info_result:
                 for i in j:
                     # All categories should decay
                     self._data[key] *= self._decay

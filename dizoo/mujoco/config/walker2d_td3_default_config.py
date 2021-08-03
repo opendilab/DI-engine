@@ -12,7 +12,7 @@ walker2d_td3_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        use_cuda=True,
+        cuda=True,
         on_policy=False,
         random_collect_size=25000,
         model=dict(
@@ -58,7 +58,7 @@ walker2d_td3_default_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        policy_type='td3',
+        type='td3',
         import_names=['ding.policy.td3'],
     ),
     replay_buffer=dict(type='naive', ),

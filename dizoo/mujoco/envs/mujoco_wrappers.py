@@ -1,6 +1,5 @@
 import gym
 import numpy as np
-import pybulletgym
 
 from ding.envs import ObsNormEnv, RewardNormEnv
 
