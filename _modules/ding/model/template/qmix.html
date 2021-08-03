@@ -272,9 +272,8 @@
 <span class="sd">            - action_shape (:obj:`int`): the dimension of action shape</span>
 <span class="sd">            - hidden_size_list (:obj:`list`): the list of hidden size</span>
 <span class="sd">            - mixer (:obj:`bool`): use mixer net or not, default to True</span>
-<span class="sd">            - use_gru (:obj:`bool`): use lstm type or not, default to False</span>
-<span class="sd">            - use_pmixer (:obj:`bool`): use pymarl mixer net or not, default to False. \</span>
-<span class="sd">                When mixer is False, we can&#39;t use pymarl mixer net or normal mixer net</span>
+<span class="sd">            - lstm_type (:obj:`str`): use lstm or gru, default to gru</span>
+<span class="sd">            - dueling (:obj:`bool`): use dueling head or not, default to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
@@ -539,7 +538,6 @@
             <span class="n">mixer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">lstm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span>
             <span class="n">dueling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">use_pmixer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -557,6 +555,8 @@
 <span class="sd">            - ally_feature_range (:obj:`Union[List[int], None]`): the agent ally&#39;s feature range</span>
 <span class="sd">            - attention_size (:obj:`int`): the size of attention net layer</span>
 <span class="sd">            - mixer (:obj:`bool`): use mixer net or not, default to True</span>
+<span class="sd">            - lstm_type (:obj:`str`): use lstm or gru, default to gru</span>
+<span class="sd">            - dueling (:obj:`bool`): use dueling head or not, default to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">CollaQ</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">attention</span>

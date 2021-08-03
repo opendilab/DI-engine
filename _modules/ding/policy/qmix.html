@@ -222,7 +222,7 @@
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
             <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0005</span><span class="p">,</span>
-            <span class="n">clip_value</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+            <span class="n">clip_value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
             <span class="c1"># ==============================================================</span>
             <span class="c1"># The following configs is algorithm-specific</span>
             <span class="c1"># ==============================================================</span>
@@ -232,13 +232,15 @@
             <span class="c1"># (float) The discount factor for future rewards,</span>
             <span class="c1"># in [0, 1].</span>
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)</span>
+            <span class="n">double_q</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
-            <span class="c1"># n_sample=32 * 16,</span>
+            <span class="n">n_episode</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
             <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;, the length of timesteps</span>
             <span class="c1"># in each forward when training. In qmix, it is greater than 1 because there is RNN.</span>
-            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -353,7 +355,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]}</span>
         <span class="n">total_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">single_step</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s1">&#39;total_q&#39;</span><span class="p">]</span>
-        <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">double_q</span><span class="p">:</span>
+            <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]}</span>
+            <span class="n">logit_detach</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">,</span> <span class="n">single_step</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">logit_detach</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]}</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">target_total_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">,</span> <span class="n">single_step</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s1">&#39;total_q&#39;</span><span class="p">]</span>
 
