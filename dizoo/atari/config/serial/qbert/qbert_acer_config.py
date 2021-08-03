@@ -18,6 +18,7 @@ qbert_acer_config = dict(
         cuda=True,
         on_policy=False,
         priority=False,
+        random_collect_size=1000,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -27,20 +28,20 @@ qbert_acer_config = dict(
             actor_head_hidden_size=512,
             actor_head_layer_num=2,
         ),
-        unroll_len=64,
+        unroll_len=32,
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
             update_per_collect=10,
             # (int) the number of data for a train iteration
-            batch_size=64,
+            batch_size=32,
             # grad_clip_type='clip_norm',
             # clip_value=10,
             learning_rate_actor=0.0001,
             learning_rate_critic=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.008,
+            entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
             # (float) additional discounting parameter
@@ -56,7 +57,7 @@ qbert_acer_config = dict(
             discount_factor=0.99,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
             type='naive',
             replay_buffer_size=10000,

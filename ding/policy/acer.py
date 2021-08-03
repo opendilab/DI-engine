@@ -73,10 +73,7 @@ class ACERPolicy(Policy):
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
-<<<<<<< HEAD
             load_path=None,
-=======
->>>>>>> opendilab/main
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) clip ratio of importance weights
@@ -124,10 +121,6 @@ class ACERPolicy(Policy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-<<<<<<< HEAD
-=======
-
->>>>>>> opendilab/main
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -240,6 +233,9 @@ class ACERPolicy(Policy):
             # Calculate retrace
             q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
 
+        weights_ext = torch.ones_like(weights)
+        weights_ext[1:] = weights[0:-1]
+        weights = weights_ext
         q_retraces = q_retraces[0:-1]  # shape T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape
         v_pred = v_pred[0:-1]  # shape T,B,1
@@ -273,6 +269,10 @@ class ACERPolicy(Policy):
         self._optimizer_critic.step()
         self._target_model.update(self._learn_model.state_dict())
 
+        with torch.no_grad():
+            kl_div = avg_pi*((avg_pi+EPS).log()-(target_pi+EPS).log())
+            kl_div = (kl_div.sum(-1)*weights).sum()/total_valid
+
         return {
             'cur_actor_lr': self._optimizer_actor.defaults['lr'],
             'cur_critic_lr': self._optimizer_critic.defaults['lr'],
@@ -281,6 +281,7 @@ class ACERPolicy(Policy):
             'policy_loss': total_actor_loss.item(),
             'critic_loss': critic_loss.item(),
             'entropy_loss': (entropy_loss.sum() / total_valid).item(),
+            'kl_div': kl_div.item()
         }
 
     def _reshape_data(
@@ -324,8 +325,9 @@ class ACERPolicy(Policy):
         rewards = data['reward']  # shape T,B
         weights_ = 1 - data['done']  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
-        weights[1:, ...] = weights_[:-1, ...]
-        rewards = rewards * weights
+        weights = weights_
+        # weights[1:, ...] = weights_[:-1, ...]
+        rewards = rewards # * weights
         # weights= weights_
         # rewards = rewards  # shape T,B
         return target_logit, behaviour_logit, avg_action_logit, actions, values, rewards, weights
@@ -339,10 +341,7 @@ class ACERPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
-<<<<<<< HEAD
             'target_model': self._target_model.state_dict(),
-=======
->>>>>>> opendilab/main
             'actor_optimizer': self._optimizer_actor.state_dict(),
             'critic_optimizer': self._optimizer_critic.state_dict(),
         }
@@ -359,10 +358,7 @@ class ACERPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-<<<<<<< HEAD
-        self._target_model.load_state_dict(state_dict['target_model'])
-=======
->>>>>>> opendilab/main
+        self._target_model.load_state_dict(state_dict['model'])
         self._optimizer_actor.load_state_dict(state_dict['actor_optimizer'])
         self._optimizer_critic.load_state_dict(state_dict['critic_optimizer'])
 
@@ -492,4 +488,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss']
+        return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss','kl_div']
