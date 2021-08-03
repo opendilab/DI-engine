@@ -25,9 +25,8 @@ pong_a2c_config = dict(
             update_per_collect=1,
             batch_size=160,
             # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
+            adv_norm=False,
             learning_rate=0.0001414,
-            weight_decay=0,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1

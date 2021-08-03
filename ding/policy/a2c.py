@@ -48,7 +48,7 @@ class A2CPolicy(Policy):
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
+            adv_norm=False,
             ignore_done=False,
         ),
         collect=dict(
@@ -92,7 +92,7 @@ class A2CPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
-        self._adv_norm = self._cfg.learn.normalize_advantage
+        self._adv_norm = self._cfg.learn.adv_norm
         self._grad_norm = self._cfg.learn.grad_norm
 
         # Main and target models
@@ -116,11 +116,10 @@ class A2CPolicy(Policy):
         output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
 
         adv = data['adv']
+        return_ = data['value'] + adv
         if self._adv_norm:
             # norm adv in total train_batch
             adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-        with torch.no_grad():
-            return_ = data['value'] + adv
         data = a2c_data(output['logit'], data['action'], output['value'], adv, return_, data['weight'])
 
         # Calculate A2C loss
