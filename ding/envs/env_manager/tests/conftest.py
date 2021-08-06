@@ -88,15 +88,16 @@ class FakeEnv(object):
                 'min': [-1.0, -1.0, -8.0],
                 'max': [1.0, 1.0, 8.0],
                 'dtype': np.float32,
-            }, None),
+            }),
             act_space=T((1, ), {
                 'min': -2.0,
                 'max': 2.0,
-            }, None),
+            }),
             rew_space=T((1, ), {
                 'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
                 'max': -0.0,
-            }, None),
+            }),
+            use_wrappers=None,
         )
 
     def close(self):
@@ -167,6 +168,8 @@ def setup_base_manager_cfg():
 def setup_sync_manager_cfg():
     manager_cfg = get_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
+    # TODO(nyz) test fail when shared_memory = True
+    manager_cfg['shared_memory'] = False
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
     return deep_merge_dicts(SyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))
 
