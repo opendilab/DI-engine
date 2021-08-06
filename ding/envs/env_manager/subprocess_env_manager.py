@@ -177,6 +177,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Arguments:
             - env_fn (:obj:`List[Callable]`): The function to create environment
             - cfg (:obj:`EasyDict`): Config
+
+        .. note::
+
+            - wait_num: for each time the minimum number of env return to gather
+            - step_wait_timeout: for each time the minimum number of env return to gather
         """
         super().__init__(env_fn, cfg)
         self._shared_memory = self._cfg.shared_memory
@@ -187,6 +192,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._lock = LockContext(LockContextType.THREAD_LOCK)
         self._connect_timeout = self._cfg.connect_timeout
         self._connect_timeout = np.max([self._connect_timeout, self._step_timeout + 0.5, self._reset_timeout + 0.5])
+        self._async_args = {
+            'step': {
+                'wait_num': min(self._wait_num, self._env_num),
+                'timeout': self._step_wait_timeout
+            }
+        }
 
     def _create_state(self) -> None:
         r"""
@@ -209,7 +220,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         for env_id in range(self.env_num):
             self._create_env_subprocess(env_id)
         self._waiting_env = {'step': set()}
-        self._setup_async_args()
         self._closed = False
 
     def _create_env_subprocess(self, env_id):
@@ -239,23 +249,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if self._env_replay_path is not None:
             self._pipe_parents[env_id].send(['enable_save_replay', [self._env_replay_path[env_id]], {}])
             self._pipe_parents[env_id].recv()
-
-    def _setup_async_args(self) -> None:
-        r"""
-        Overview:
-            Set up the async arguments utilized in method ``step``.
-        .. note::
-
-            - wait_num: for each time the minimum number of env return to gather
-            - timeout: for each time the minimum number of env return to gather
-        """
-        self._async_args = {
-            'step': {
-                'mode': 'async',
-                'wait_num': self._wait_num,
-                'timeout': self._step_wait_timeout
-            },
-        }
 
     @property
     def ready_env(self) -> List[int]:
@@ -709,15 +702,29 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
 @ENV_MANAGER_REGISTRY.register('subprocess')
 class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
+    config = dict(
+        episode_num=float("inf"),
+        max_retry=5,
+        step_timeout=60,
+        auto_reset=True,
+        reset_timeout=60,
+        retry_waiting_time=0.1,
+        # subprocess specified args
+        shared_memory=True,
+        context='spawn' if platform.system().lower() == 'windows' else 'fork',
+        wait_num=float("inf"),  # inf mean all the environments
+        step_wait_timeout=None,
+        connect_timeout=60,
+        force_reproducibility=False,
+    )
 
-    def _setup_async_args(self) -> None:
-        self._async_args = {
-            'step': {
-                'mode': 'sync',
-                'wait_num': self._env_num,  # math.inf,
-                'timeout': None,
-            },
-        }
+    def __init__(
+            self,
+            env_fn: List[Callable],
+            cfg: EasyDict = EasyDict({}),
+    ) -> None:
+        super(SyncSubprocessEnvManager, self).__init__(env_fn, cfg)
+        self._force_reproducibility = self._cfg.force_reproducibility
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
@@ -771,6 +778,8 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
                     reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
                     reset_thread.daemon = True
                     reset_thread.start()
+                    if self._force_reproducibility:
+                        reset_thread.join()
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:
