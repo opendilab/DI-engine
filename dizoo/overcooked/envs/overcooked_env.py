@@ -1,4 +1,4 @@
-from collections import namedtuple
+from namedlist import namedlist
 import numpy as np
 import gym
 from typing import Any, Union, List
@@ -12,8 +12,8 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 
-OvercookEnvTimestep = namedtuple('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
-OvercookEnvInfo = namedtuple('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+OvercookEnvTimestep = namedlist('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
+OvercookEnvInfo = namedlist('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 # n, s = Direction.NORTH, Direction.SOUTH
 # e, w = Direction.EAST, Direction.WEST

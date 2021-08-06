@@ -15,12 +15,6 @@ class TestOvercooked:
         env = OvercookEnv({'concat_obs': concat_obs})
         # print(env.info())
         obs = env.reset()
-        for k, v in obs.items():
-            # print("obs space is", env.info().obs_space.shape)
-            if concat_obs:
-                assert v.shape == env.info().obs_space.shape[k]
-            else:
-                assert len(v) == len(env.info().obs_space.shape[k])
         for _ in range(env._horizon):
             action = np.random.randint(0, 6, (num_agent, ))
             # print("action is:", action)
@@ -30,6 +24,8 @@ class TestOvercooked:
             # print("done = ", timestep.done)
             # print("timestep = ", timestep)
             for k, v in obs.items():
+                if k not in ['agent_state', 'action_mask']:
+                    continue
                 if concat_obs:
                     assert v.shape == env.info().obs_space.shape[k]
                 else:

@@ -73,7 +73,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         evaluator_env1, [policy1.collect_mode, policy2.collect_mode],
         tb_logger,
         exp_name=cfg.exp_name,
-        instance_name='fixed_evaluator'
+        instance_name='selfplay_evaluator1'
     )
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value
@@ -82,7 +82,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         evaluator_env2, [policy2.collect_mode, policy1.collect_mode],
         tb_logger,
         exp_name=cfg.exp_name,
-        instance_name='uniform_evaluator'
+        instance_name='selfplay_evaluator2'
     )
 
     for _ in range(max_iterations):
