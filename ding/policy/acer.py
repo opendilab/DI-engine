@@ -144,7 +144,7 @@ class ACERPolicy(Policy):
         # self._rho_pg_clip_ratio = self._cfg.learn.rho_pg_clip_ratio
         self._use_trust_region = self._cfg.learn.trust_region
         self._trust_region_value = self._cfg.learn.trust_region_value
-        # Main model 
+        # Main model
         self._learn_model.reset()
         self._target_model.reset()
         if self._cfg.learn.load_path is not None:
@@ -270,8 +270,8 @@ class ACERPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
 
         with torch.no_grad():
-            kl_div = avg_pi*((avg_pi+EPS).log()-(target_pi+EPS).log())
-            kl_div = (kl_div.sum(-1)*weights).sum()/total_valid
+            kl_div = avg_pi * ((avg_pi + EPS).log() - (target_pi + EPS).log())
+            kl_div = (kl_div.sum(-1) * weights).sum() / total_valid
 
         return {
             'cur_actor_lr': self._optimizer_actor.defaults['lr'],
@@ -327,7 +327,6 @@ class ACERPolicy(Policy):
         weights = torch.ones_like(rewards)  # shape T,B
         weights = weights_
         # weights[1:, ...] = weights_[:-1, ...]
-        rewards = rewards # * weights
         # weights= weights_
         # rewards = rewards  # shape T,B
         return target_logit, behaviour_logit, avg_action_logit, actions, values, rewards, weights
@@ -488,4 +487,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss','kl_div']
+        return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss', 'kl_div']
