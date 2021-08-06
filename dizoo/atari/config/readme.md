@@ -10,6 +10,7 @@ Qbert
 | a2c       | 4388     | n/a      | n/a      | 3882     |
 | ppo       | 16775    | n/a      | 14771    | 15627    |
 | ppg       | 17013    | n/a      | n/a      | n/a      |
+| acer      | 22725    | n/a      | n/a      | n/a      |
 
 Space Invaders
 
