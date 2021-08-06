@@ -6,11 +6,13 @@ overcooked_league_demo_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=10,
-        stop_value=60,
+        stop_value=80,
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=False,
+        continuous=False,
+        recompute_adv=True,
         model=dict(
             obs_shape=[5, 4, 26],
             action_shape=6,
@@ -21,7 +23,7 @@ overcooked_league_demo_ppo_config = dict(
         ),
         learn=dict(
             update_per_collect=4,
-            batch_size=64,
+            batch_size=128,
             learning_rate=0.001,
             value_weight=0.5,
             entropy_weight=0.01,
@@ -29,9 +31,10 @@ overcooked_league_demo_ppo_config = dict(
 			nstep=1,
             nstep_return=False,
             adv_norm=True,
+            value_norm=True,
         ),
         collect=dict(
-            n_episode=4, unroll_len=1, discount_factor=0.99, gae_lambda=0.95, collector=dict(get_train_sample=True, )
+            n_episode=8, unroll_len=1, discount_factor=0.99, gae_lambda=0.95, collector=dict(get_train_sample=True, )
         ),
         other=dict(
             league=dict(

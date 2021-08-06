@@ -95,29 +95,19 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     main_learner = learners[main_key]
     main_collector = collectors[main_key]
     # collect_mode ppo use multimonial sample for selecting action
-<<<<<<< HEAD
-    evaluator1 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator,
-=======
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
     evaluator1 = OnevOneEvaluator(
         evaluator1_cfg,
->>>>>>> upstream/main
         evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
         tb_logger,
         exp_name=cfg.exp_name,
         instance_name='fixed_evaluator'
     )
-<<<<<<< HEAD
-    evaluator2 = OnevOneEvaluator(
-        cfg.policy.eval.evaluator,
-=======
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value[1]
     evaluator2 = OnevOneEvaluator(
         evaluator2_cfg,
->>>>>>> upstream/main
         evaluator_env2, [policies[main_key].collect_mode, eval_policy2],
         tb_logger,
         exp_name=cfg.exp_name,

@@ -6,19 +6,12 @@ league_demo_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=100,
-<<<<<<< HEAD
-        stop_value=999999,  # placeholder
-=======
         stop_value=[-0.01, -5],
->>>>>>> upstream/main
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=False,
-<<<<<<< HEAD
-=======
         continuous=False,
->>>>>>> upstream/main
         model=dict(
             obs_shape=2,
             action_shape=2,

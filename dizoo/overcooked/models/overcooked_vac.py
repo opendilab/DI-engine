@@ -8,7 +8,7 @@ from ding.model.common import ReparameterizationHead, RegressionHead, DiscreteHe
     FCEncoder
 
 
-class ConvEncoder(nn.Module):
+class BaselineConvEncoder(nn.Module):
     r"""
     Overview:
         The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.
@@ -19,7 +19,7 @@ class ConvEncoder(nn.Module):
     def __init__(
             self,
             obs_shape: SequenceType,
-            hidden_size_list: SequenceType = [32, 64, 64, 128],
+            hidden_size_list: SequenceType = [25, 25, 25],
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
@@ -35,18 +35,16 @@ class ConvEncoder(nn.Module):
             - norm_type (:obj:`str`):
                 The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
         """
-        super(ConvEncoder, self).__init__()
+        super(BaselineConvEncoder, self).__init__()
         self.obs_shape = obs_shape
-        self.act = activation
-        self.hidden_size_list = hidden_size_list
-        self.hidden_size_list = [4, 4, 4]
-
+        self.act = nn.LeakyReLU()
+        self.hidden_size_list = [25, 25, 25]
         layers = []
-        kernel_size = [1, 1, 1]
+        kernel_size = [5, 3, 3]
         stride = [1, 1, 1]
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
-            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
+            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], padding=(2, 2)))
             layers.append(self.act)
             input_size = hidden_size_list[i]
         assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
@@ -92,11 +90,11 @@ class ConvEncoder(nn.Module):
         return x
 
 
-@MODEL_REGISTRY.register('vac_overcooked')
-class VAC(nn.Module):
+@MODEL_REGISTRY.register('baselinevac_overcooked')
+class BaselineVAC(nn.Module):
     r"""
     Overview:
-        The VAC model.
+        The Reproduced Baseline VAC model for overcook.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -108,9 +106,9 @@ class VAC(nn.Module):
             action_shape: Union[int, SequenceType],
             share_encoder: bool = True,
             continuous: bool = False,
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            encoder_hidden_size_list: SequenceType = [25, 25, 25],
             actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 2,
+            actor_head_layer_num: int = 3,
             critic_head_hidden_size: int = 64,
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
@@ -137,21 +135,22 @@ class VAC(nn.Module):
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
-        super(VAC, self).__init__()
+        super(BaselineVAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
         # Encoder Type
-        
+
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             encoder_cls = FCEncoder
         elif len(obs_shape) == 3:
-            encoder_cls = ConvEncoder
+            encoder_cls = BaselineConvEncoder
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
             )
-        self.share_encoder = share_encoder
+        # self.share_encoder = share_encoder
+        self.share_encoder = True
         if self.share_encoder:
             self.encoder = encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         else:
