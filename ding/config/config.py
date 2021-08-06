@@ -99,7 +99,6 @@ class Config(object):
             cfg_dict = {k: v for k, v in module.__dict__.items() if not k.startswith('_')}
             del sys.modules[temp_module_name]
             sys.path.pop(0)
-            temp_config_file.close()
 
         cfg_text = filename + '\n'
         with open(filename, 'r') as f:
