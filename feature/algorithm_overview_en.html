@@ -750,6 +750,9 @@
 </div>
 <div class="section" id="smac-benchmark">
 <h2>SMAC Benchmark<a class="headerlink" href="#smac-benchmark" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">setting:</span> <span class="pre">SC2</span> <span class="pre">version=4.6.2.69232,</span> <span class="pre">difficulty=7</span></code></p>
+</div></blockquote>
 <ul>
 <li><dl>
 <dt>QMIX</dt><dd><table class="docutils align-default">
@@ -780,10 +783,24 @@
 </tr>
 <tr class="row-odd"><td><p>5m vs. 6m</p></td>
 <td><p>2M</p></td>
-<td><p>0.73</p></td>
+<td><p>0.6</p></td>
 <td><p>6.5h</p></td>
 <td><p>0.76</p></td>
 <td><p>7.5h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>3.5h</p></td>
+<td><p>1</p></td>
+<td><p>9.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.4</p></td>
+<td><p>5.5h</p></td>
+<td><p>0.7</p></td>
+<td><p>10h</p></td>
 </tr>
 </tbody>
 </table>
@@ -812,16 +829,30 @@
 <tbody>
 <tr class="row-even"><td><p>3s5z</p></td>
 <td><p>2M</p></td>
-<td><p>1</p></td>
-<td><p>7.6h</p></td>
+<td><p>0.9</p></td>
+<td><p>8.5h</p></td>
 <td><p>1</p></td>
 <td><p>28h</p></td>
 </tr>
 <tr class="row-odd"><td><p>5m vs. 6m</p></td>
 <td><p>2M</p></td>
-<td><p>0.82</p></td>
+<td><p>0.7</p></td>
 <td><p>9.5h</p></td>
 <td><p>0.8</p></td>
+<td><p>24h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>6.7h</p></td>
+<td><p>1</p></td>
+<td><p>38h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.6</p></td>
+<td><p>13h</p></td>
+<td><p>0.9</p></td>
 <td><p>24h</p></td>
 </tr>
 </tbody>
@@ -855,6 +886,86 @@
 <td><p>2.9h</p></td>
 <td><p>0</p></td>
 <td><p>2.7h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>2.5h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>2.6h</p></td>
+<td><p>0.1</p></td>
+<td><p>3h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0.2</p></td>
+<td><p>3.5h</p></td>
+<td><p>0</p></td>
+<td><p>3h</p></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>QTRAN</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 10%" />
+<col style="width: 20%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Env Steps</p></th>
+<th class="head"><p>Ours(win rate)</p></th>
+<th class="head"><p>Ours(time)</p></th>
+<th class="head"><p>Pymarl(win rate)</p></th>
+<th class="head"><p>Pymarl(time)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>2M</p></td>
+<td><p>0.9</p></td>
+<td><p>4h</p></td>
+<td><p>0.1</p></td>
+<td><p>11.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>5m vs. 6m</p></td>
+<td><p>2M</p></td>
+<td><p>0.55</p></td>
+<td><p>5.5h</p></td>
+<td><p>0.7</p></td>
+<td><p>7h</p></td>
+</tr>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>2M</p></td>
+<td><p>1</p></td>
+<td><p>5.5h</p></td>
+<td><p>1</p></td>
+<td><p>8.5h</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM2</p></td>
+<td><p>2M</p></td>
+<td><p>0</p></td>
+<td><ul class="simple">
+<li></li>
+</ul>
+</td>
+<td><p>0</p></td>
+<td><p>8.5h</p></td>
 </tr>
 </tbody>
 </table>

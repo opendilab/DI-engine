@@ -338,6 +338,11 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - env_fn (:obj:`List[Callable]`): The function to create environment</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): Config</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            - wait_num: for each time the minimum number of env return to gather</span>
+<span class="sd">            - step_wait_timeout: for each time the minimum number of env return to gather</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_fn</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">shared_memory</span>
@@ -348,6 +353,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">connect_timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;wait_num&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">),</span>
+                <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_wait_timeout</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_create_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -370,7 +381,6 @@
         <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">()}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_async_args</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">_create_env_subprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">):</span>
@@ -400,23 +410,6 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;enable_save_replay&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span><span class="p">[</span><span class="n">env_id</span><span class="p">]],</span> <span class="p">{}])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_setup_async_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Set up the async arguments utilized in method ``step``.</span>
-<span class="sd">        .. note::</span>
-
-<span class="sd">            - wait_num: for each time the minimum number of env return to gather</span>
-<span class="sd">            - timeout: for each time the minimum number of env return to gather</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="s1">&#39;async&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;wait_num&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait_num</span><span class="p">,</span>
-                <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_wait_timeout</span>
-            <span class="p">},</span>
-        <span class="p">}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ready_env</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
@@ -870,15 +863,29 @@
 
 <div class="viewcode-block" id="SyncSubprocessEnvManager"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;subprocess&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SyncSubprocessEnvManager</span><span class="p">(</span><span class="n">AsyncSubprocessEnvManager</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">max_retry</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="c1"># subprocess specified args</span>
+        <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">context</span><span class="o">=</span><span class="s1">&#39;spawn&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;windows&#39;</span> <span class="k">else</span> <span class="s1">&#39;fork&#39;</span><span class="p">,</span>
+        <span class="n">wait_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>  <span class="c1"># inf mean all the environments</span>
+        <span class="n">step_wait_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">force_reproducibility</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_setup_async_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="s1">&#39;sync&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;wait_num&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">,</span>  <span class="c1"># math.inf,</span>
-                <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="p">},</span>
-        <span class="p">}</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">env_fn</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span>
+            <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">({}),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SyncSubprocessEnvManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_fn</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_force_reproducibility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">force_reproducibility</span>
 
 <div class="viewcode-block" id="SyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -932,6 +939,8 @@
                     <span class="n">reset_thread</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;regular_reset&#39;</span><span class="p">)</span>
                     <span class="n">reset_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">reset_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_force_reproducibility</span><span class="p">:</span>
+                        <span class="n">reset_thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span>
             <span class="k">else</span><span class="p">:</span>
