@@ -54,19 +54,9 @@ class OvercookEnv(BaseEnv):
         pass
 
     def step(self, action):
-        # if self._action_mask:
-        #     assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
-        # else:
-        #     for i in range(len(action)):
-        #         if not self.action_space.contains(action[i]):
-        #             # print("a = ", a)
-        #             action[i] = [5]
         if isinstance(action, list):
             action = np.concatenate(action)
-        # print(self.action_space)
-        # print("action = ", action)
         assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
-        # print("action = ", action)
         agent_action, other_agent_action = [Action.INDEX_TO_ACTION[a] for a in action]
 
         if self.agent_idx == 0:
@@ -78,8 +68,6 @@ class OvercookEnv(BaseEnv):
         if self._use_shaped_reward:
             reward += env_info['shaped_r_by_agent'][0]
             reward += env_info['shaped_r_by_agent'][1]
-        # reward = np.array(reward)
-        # print("reward = ", reward)
 
         reward = np.array([float(reward)])
         self._final_eval_reward += reward
@@ -96,15 +84,12 @@ class OvercookEnv(BaseEnv):
         env_info["policy_agent_idx"] = self.agent_idx
         env_info["final_eval_reward"] = self._final_eval_reward
 
-        # if "episode" in env_info.keys():
-        #     env_info["episode"]["policy_agent_idx"] = self.agent_idx
-
         action_mask = self.get_action_mask()
         if self._action_mask:
             obs = {
                 "agent_state": both_agents_ob,
-                # "overcooked_state": self.base_env.state,
-                # "other_agent_env_idx": 1 - self.agent_idx,
+                "overcooked_state": self.base_env.state,
+                "other_agent_env_idx": 1 - self.agent_idx,
                 "action_mask": action_mask
             }
         else:
@@ -133,8 +118,8 @@ class OvercookEnv(BaseEnv):
         if self._action_mask:
             obs = {
                 "agent_state": both_agents_ob,
-                # "overcooked_state": self.base_env.state,
-                # "other_agent_env_idx": 1 - self.agent_idx,
+                "overcooked_state": self.base_env.state,
+                "other_agent_env_idx": 1 - self.agent_idx,
                 "action_mask": action_mask
             }
         else:
@@ -175,18 +160,6 @@ class OvercookEnv(BaseEnv):
             rew_space=T((1, ), None)
         )
         return env_info
-
-    @staticmethod
-    def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_cfg = copy.deepcopy(cfg)
-        collector_env_num = collector_cfg.pop('collector_env_num', 1)
-        return [collector_cfg for _ in range(collector_env_num)]
-
-    @staticmethod
-    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_cfg = copy.deepcopy(cfg)
-        evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
-        return [evaluator_cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self):
         pass
@@ -225,23 +198,11 @@ class OvercookGameEnv(BaseEnv):
         pass
 
     def step(self, action):
-        # if self._action_mask:
-        #     assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
-        # else:
-        #     for i in range(len(action)):
-        #         if not self.action_space.contains(action[i]):
-        #             # print("a = ", a)
-        #             action[i] = [5]
         if isinstance(action, list):
             action = np.array(action).astype(np.int)
             if action.shape == (2, 1):
                 action = [action[0][0], action[1][0]]
-        # print(self.action_space)
-        # print("action = ", action)
-        # print(action.shape)
-        # print("action = ", action)
         assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
-        # print("action = ", action)
         agent_action, other_agent_action = [Action.INDEX_TO_ACTION[a] for a in action]
 
         if self.agent_idx == 0:
@@ -250,8 +211,6 @@ class OvercookGameEnv(BaseEnv):
             joint_action = (other_agent_action, agent_action)
 
         next_state, reward, done, env_info = self.base_env.step(joint_action)
-        # reward = np.array(reward)
-        # print("reward = ", reward)
 
         reward = np.array([float(reward)])
         self._final_eval_reward += reward
@@ -275,15 +234,12 @@ class OvercookGameEnv(BaseEnv):
         env_info["policy_agent_idx"] = self.agent_idx
         env_info["final_eval_reward"] = self._final_eval_reward
 
-        # if "episode" in env_info.keys():
-        #     env_info["episode"]["policy_agent_idx"] = self.agent_idx
-
         action_mask = self.get_action_mask()
         if self._action_mask:
             obs = {
                 "agent_state": both_agents_ob,
-                # "overcooked_state": self.base_env.state,
-                # "other_agent_env_idx": 1 - self.agent_idx,
+                "overcooked_state": self.base_env.state,
+                "other_agent_env_idx": 1 - self.agent_idx,
                 "action_mask": action_mask
             }
         else:
@@ -314,8 +270,8 @@ class OvercookGameEnv(BaseEnv):
         if self._action_mask:
             obs = {
                 "agent_state": both_agents_ob,
-                # "overcooked_state": self.base_env.state,
-                # "other_agent_env_idx": 1 - self.agent_idx,
+                "overcooked_state": self.base_env.state,
+                "other_agent_env_idx": 1 - self.agent_idx,
                 "action_mask": action_mask
             }
         else:
@@ -356,18 +312,6 @@ class OvercookGameEnv(BaseEnv):
             rew_space=T((1, ), None)
         )
         return env_info
-
-    # @staticmethod
-    # def create_collector_env_cfg(cfg: dict) -> List[dict]:
-    #     collector_cfg = copy.deepcopy(cfg)
-    #     collector_env_num = collector_cfg.pop('collector_env_num', 1)
-    #     return [collector_cfg for _ in range(collector_env_num)]
-
-    # @staticmethod
-    # def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-    #     evaluator_cfg = copy.deepcopy(cfg)
-    #     evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
-    #     return [evaluator_cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self):
         return "DI-engine Overcooked GameEnv"
