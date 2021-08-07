@@ -1,0 +1,17 @@
+seed: 0
+env:
+  type: 'tictactoe'
+  import_names: ['dizoo.chess_games.tic_tac_toe.envs.tic_tac_toe']
+replay_buffer:
+  buffer_size: 100
+model:
+  type: 'tictactoe_model'
+  import_names: [ 'dizoo.chess_games.tic_tac_toe.model.tictactoe_model' ]
+learner:
+  batch_size: 32
+  weight_decay:  0.0001
+  update_per_sample: 5
+  cuda: False
+  kl_targ = 0.02
+collector:
+  collect_n_episodes: 1

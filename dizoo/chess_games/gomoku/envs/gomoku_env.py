@@ -210,6 +210,32 @@ class GomokuEnv(BaseGameEnv):
             use_wrappers=None,
         )
 
+    def get_equi_data(self, play_data):
+        """augment the data set by rotation and flipping
+        play_data: [(state, mcts_prob, winner_z), ..., ...]
+        """
+        extend_data = []
+        for mini_batch in play_data:
+            state = mini_batch['state']
+            mcts_prob = mini_batch['mcts_prob']
+            winner = mini_batch['winner']
+            for i in [1, 2, 3, 4]:
+                # rotate counterclockwise
+                equi_state = np.array([np.rot90(s, i) for s in state])
+                equi_mcts_prob = np.rot90(np.flipud(
+                    mcts_prob.reshape(self.board_size, self.board_size)), i)
+                extend_data.append({'state': equi_state,
+                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
+                                    'winner': winner})
+                # flip horizontally
+                equi_state = np.array([np.fliplr(s) for s in equi_state])
+                equi_mcts_prob = np.fliplr(equi_mcts_prob)
+                extend_data.append({'state': equi_state,
+                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
+                                    'winner': winner})
+        return extend_data
+    def close(self) -> None:
+        pass
     def __repr__(self) -> str:
         return 'chess'
 

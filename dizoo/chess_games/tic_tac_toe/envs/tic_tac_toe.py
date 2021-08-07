@@ -1,16 +1,19 @@
 import sys
+
 import numpy as np
 
-from dizoo.chess_games.base_game_env import BaseGameEnv
-from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnvInfo, BaseEnvTimestep
+from ding.envs.common.env_element import EnvElementInfo
 from ding.utils import ENV_REGISTRY
+from dizoo.chess_games.base_game_env import BaseGameEnv
 
 
 @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
     def __init__(self, cfg=None):
-        self.board = np.zeros((3, 3), dtype="int32")
+        self.board_height = 3
+        self.board_width = 3
+        self.board = np.zeros((self.board_width, self.board_height), dtype="int32")
         self.player = 1
 
     def to_play(self):
@@ -19,10 +22,10 @@ class TicTacToeEnv(BaseGameEnv):
     def reset(self):
         self.board = np.zeros((3, 3), dtype="int32")
         self.player = 1
-        obs = {'obs':self.get_observation(),'mask': self.legal_actions()}
+        obs = {'obs': self.get_observation(), 'mask': self.legal_actions()}
         return obs
 
-    def do_action(self,action):
+    def do_action(self, action):
         row = action // 3
         col = action % 3
         self.board[row, col] = self.player
@@ -39,7 +42,7 @@ class TicTacToeEnv(BaseGameEnv):
 
         self.player *= -1
         info = {'next_player': self.player}
-        obs = {'obs':self.get_observation(),'mask': self.legal_actions()}
+        obs = {'obs': self.get_observation(), 'mask': self.legal_actions()}
         return BaseEnvTimestep(obs, reward, done, info)
 
     def get_observation(self):
@@ -181,6 +184,31 @@ class TicTacToeEnv(BaseGameEnv):
         col = action_number % 3 + 1
         return f"Play row {row}, column {col}"
 
+    def get_equi_data(self, play_data):
+        """augment the data set by rotation and flipping
+        play_data: [(state, mcts_prob, winner_z), ..., ...]
+        """
+        extend_data = []
+        for mini_batch in play_data:
+            state = mini_batch['state']
+            mcts_prob = mini_batch['mcts_prob']
+            winner = mini_batch['winner']
+            for i in [1, 2, 3, 4]:
+                # rotate counterclockwise
+                equi_state = np.array([np.rot90(s, i) for s in state])
+                equi_mcts_prob = np.rot90(np.flipud(
+                    mcts_prob.reshape(self.board_height, self.board_width)), i)
+                extend_data.append({'state': equi_state,
+                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
+                                    'winner': winner})
+                # flip horizontally
+                equi_state = np.array([np.fliplr(s) for s in equi_state])
+                equi_mcts_prob = np.fliplr(equi_mcts_prob)
+                extend_data.append({'state': equi_state,
+                                    'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
+                                    'winner': winner})
+        return extend_data
+
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
         return BaseEnvInfo(
@@ -193,14 +221,14 @@ class TicTacToeEnv(BaseGameEnv):
                     'dtype': np.float32,
                 },
             ),
-            'mask':T(
-                (1,),
-                {
-                    'min': 0,
-                    'max': 8,
-                    'dtype': int,
-                },
-            ),
+                'mask': T(
+                    (1,),
+                    {
+                        'min': 0,
+                        'max': 8,
+                        'dtype': int,
+                    },
+                ),
             },
             # [min, max)
             act_space=T(
@@ -220,6 +248,9 @@ class TicTacToeEnv(BaseGameEnv):
             ),
             use_wrappers=None,
         )
+
+    def close(self) -> None:
+        pass
 
     def __repr__(self) -> str:
         return 'TicTacToe'

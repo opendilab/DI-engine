@@ -1,199 +1,127 @@
-import math
+import os
+
 import numpy as np
-from typing import List
-import copy
-from abc import abstractmethod
-import torch
-import torch.nn as nn
+import torch.distributions
+import torch.nn.functional as F
 
-class AbstractChessGame(object):
+from ding.config.config import read_config_yaml
+from ding.model import create_model
+from ding.utils import POLICY_REGISTRY
 
-    def do_move(self,action):
-        pass
-
-    @abstractmethod
-    def do_action(self,action_id):
-        raise NotImplementedError
-
-    @abstractmethod
-    def legal_moves(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def legal_actions(self):
-        """
-        Should return the legal actions at each turn, if it is not available, it can return
-        the whole action space. At each turn, the game have to be able to handle one of returned actions.
-
-        For complex game where calculating legal moves is too long, the idea is to define the legal actions
-        equal to the action space but to return a negative reward if the action is illegal.
-        Returns:
-            An array of integers, subset of the action space.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def game_end(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_current_player(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_play(self):
-        raise NotImplementedError
+cfg_path = os.path.join(os.getcwd(), 'alphazero_config.yaml')
+default_az_cfg = read_config_yaml(cfg_path)
 
 
-class Node(object):
-    def __init__(self, parent, prior_p: float, to_play):
-        # Tree Structure
-        self._parent = parent
-        self._children  = {}
-
-        # Search meta data
-        self._visit_count = 0
-        self.value_sum = 0
-        self.prior_p = prior_p
-
-    def value(self):
-        """return current value, used to compute ucb score"""
-        if self._visit_count == 0:
-            return 0
-        return self.value_sum / self._visit_count
-
-    def expand(self,action_priors):
-        for action,prob in action_priors:
-            if action not in self._children :
-                self._children [action] = Node(self, prob)
-
-    def update(self,value):
-        self._visit_count += 1
-        self.total_value += value
-
-    def update_recursive(self,leaf_value):
-        if not self.is_root():
-            self._parent.update_recursive(-leaf_value)
-        self.update(leaf_value)
-
-    def is_leaf(self):
-        """Check if the current node is a leaf node or not."""
-        return self._children  == {}
-
-    def is_root(self):
-        """Check if the current node is a root node or not."""
-        return self._parent is None
-
-    @property
-    def parent(self):
-        return self._parent
-
-    @property
-    def children(self):
-        return self._children
-
-    @property
-    def value(self):
-        return self._value
-
-class MCTS(object):
-    def __init__(self, cfg):
-        """
-        policy_value_fn: a function that takes in a board state and outputs
-            a list of (action, probability) tuples and also a score in [-1, 1]
-            (i.e. the expected value of the end game score from the current
-            player's perspective) for the current player.
-        c_puct: a number in (0, inf) that controls how quickly exploration
-            converges to the maximum-value policy. A higher value means
-            relying on the prior more.
-        n_playout: number of simulations, default to 10000
-        """
+@POLICY_REGISTRY.register('alphazero')
+class AlphaZeroPolicy:
+    def __init__(self, cfg, model=None):
         self._cfg = cfg
-        self._root = Node(None, 1.0)
+        self._model = model if model else create_model(cfg.model)
+        self._cuda = cfg.learner.cuda and torch.cuda.is_available()
+        self._device = torch.cuda.current_device() if self._cuda else 'cpu'
 
-        self._num_sampling_moves = 30
-        self._max_moves = 512  # for chess and shogi, 722 for Go.
-        self._num_simulations = 800
+        self._grad_norm = cfg.learner.get('grad_norm', 1)
+        self._lr_multiplier = 1.0
+        self._learning_rate = self.cfg.policy.learning_rate
+        self._weight_decay = self._cfg.learner.get('weight_decay', 0)
+        self._optimizer = torch.optim.Adam(self._model.parameters(),
+                                           weight_decay=self._weight_decay,
+                                           lr=self._learning_rate)
+        self._kl_targ = self._cfg.policy.get('kl_targ', 0.02)
 
-        # UCB formula
-        self._pb_c_base = self._cfg.pb_c_base  # 19652
-        self._pb_c_init = self._cfg.pb_c_init  # 1.25
+    def compute_logit_value(self, state_batch):
+        logits, values = self._model(state_batch)
+        return logits, values
 
-        # Root prior exploration noise.
-        self._root_dirichlet_alpha = self._cfg.root_dirichlet_alpha # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
-        self._root_exploration_fraction = self._cfg.root_exploration_fraction # 0.25
+    def compute_prob_value(self, state_batch):
+        logits, values = self._model(state_batch)
+        dist = torch.distributions.Categorical(logits=logits)
+        probs = dist.probs()
+        return probs, values
 
-    def get_next_action(self,state,policy_forward_fn,temperature=1.0):
-        for n in range(self._num_simulations):
-            state_copy = copy.deepcopy(state)
-            self._simulate(state_copy,policy_forward_fn)
-
-        # calc the move probabilities based on visit counts at the root node
-        act_visits = [(act, node.visit_count)
-                      for act, node in self._root.children.items()]
-        acts, visits = zip(*act_visits)
-        act_probs = nn.softmax(1.0/temperature * np.log(torch.as_tensor(visits) + 1e-10))
-        return acts, act_probs
-
-    def _simulate(self, state,policy_forward_fn):
+    def policy_value_fn(self, env):
         """
-            Run a single playout from the root to the leaf, getting a value at
-        the leaf and propagating it back through its parents.
-        State is modified in-place, so a copy must be provided.
+        input: env
+        output: a list of (action, probability) tuples for each available
+        action and the score of the env state
         """
-        node = self._root
-        while not node.is_leaf():
-            action,node = self._select_child(node)
-            state.do_action(action)
+        legal_positions = env.legal_actions
+        current_state = env.current_state().reshape(-1, 4, self.env_width, self.env_height)
+        current_state = torch.from_numpy(current_state).to(device=self._device, dtype=torch.float)
+        act_probs, value = self.compute_logit_value(current_state)
+        act_probs = zip(legal_positions, act_probs[legal_positions])
+        value = value.data[0][0]
+        return act_probs, value
 
-        end, winner = state.game_end()
-        if not end:
-            leaf_value = self._expand_leaf_node(node,state,policy_forward_fn)
-        else:
-            if winner == -1:
-                leaf_value = 0
-            else:
-                leaf_value = 1 if state.get_current_player() == winner else -1
+    def train_step(self, inputs):
+        state_batch = inputs['state']
+        mcts_probs = inputs['mcts_prob']
+        winner_batch = inputs['winner']
+        lr = inputs['lr']
 
-        # Update value and visit count of nodes in this traversal.
-        node.update_recursive(-leaf_value)
+        state_batch = state_batch.to(device=self._device, dtype=torch.float)
+        mcts_probs = mcts_probs.to(device=self._device, dtype=torch.float)
+        winner_batch = winner_batch.to(device=self._device, dtype=torch.float)
+
+        log_act_probs, values = self.compute_prob_value(state_batch)
+        # ============
+        # policy loss
+        # ============
+        policy_loss = - torch.mean(torch.sum(mcts_probs * log_act_probs))
+
+        # ============
+        # value loss
+        # ============
+        value_loss = F.mse_loss(values.view(-1), winner_batch)
+
+        total_loss = value_loss + policy_loss
+        self._optimizer.zero_grad()
+        self.set_learning_rate(self._optimizer, lr)
+
+        total_loss.backward()
+
+        # grad_norm = torch.nn.utils.clip_grad_norm_(
+        #     list(self._model.parameters()),
+        #     max_norm=self._grad_norm,
+        # )
+        self._optimizer.step()
+        # calc policy entropy, for monitoring only
+        entropy = -torch.mean(
+            torch.sum(torch.exp(log_act_probs) * log_act_probs, 1)
+        )
+
+        return total_loss.item(), entropy.item()
+
+    def update_policy(self, inputs, update_per_collect):
+        state_batch = inputs['state']
+        mcts_probs = inputs['mcts_prob']
+        winner_batch = inputs['winner']
+
+        old_logits, old_values = self._model.compute_logit_value(state_batch)
+        old_log_probs = F.log_softmax(old_logits, dim=-1)
+        old_probs = torch.exp(old_log_probs)
+        for _ in range(update_per_collect):
+            loss, entropy = self.train_step(state_batch, mcts_probs, winner_batch,
+                                            self._learning_rate * self._lr_multiplier)
+            new_logits, new_v = self.compute_logit_value(state_batch)
+            new_log_probs = F.log_softmax(new_logits, dim=-1)
+            kl = torch.mean(torch.sum(old_probs * (old_log_probs - new_log_probs), axis=1))
+            if kl > self.kl_targ * 4:  # early stopping if D_KL diverges badly
+                break
+        # adaptively adjust the learning rate
+        if kl > self._kl_tart * 2 and self._lr_multiplier > 0.1:
+            self._lr_multiplier /= 1.5
+        elif kl < self._kl_tart / 2 and self._lr_multiplier < 10:
+            self._lr_multiplier *= 1.5
+
+        return loss.item(), entropy.item()
+
+    @staticmethod
+    def set_learning_rate(optimizer, lr):
+        """Sets the learning rate to the given value"""
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = lr
 
 
-    # Select the child with the highest UCB score.
-    def _select_child(self, node):
-        _, action, child = max((self._ucb_score(node,child),action,child) for action,child in node.children.items())
-        return action, child
-
-    def _expand_leaf_node(self, node,state,policy_forward_fn):
-        laef_value, policy_probs = policy_forward_fn(state)
-        for action, prior_p in policy_probs.items():
-            node.children[action] = Node(parent=node,prior_p=prior_p)
-        return laef_value
-
-    # The score for a node is based on its value, plus an exploration bonus based on
-    # the prior.
-    def _ucb_score(self, parent: Node, child: Node):
-        pb_c = math.log((parent.visit_count + self._pb_c_base + 1) /
-                        self._pb_c_base) + self._pb_c_init
-        pb_c *= math.sqrt(parent.visit_count) / (child.visit_count + 1)
-
-        prior_score = pb_c * child.prior_p
-        value_score = child.value()
-        return prior_score + value_score
-
-    def _add_exploration_noise(self, node):
-        actions = node.children.keys()
-        noise = np.random.gamma(self._root_dirichlet_alpha, 1, len(actions))
-        frac = self._root_exploration_fraction
-        for a, n in zip(actions, noise):
-            node.children[a].prior_p = node.children[a].prior_p * (1 - frac) + n * frac
-
-    def _update_with_move(self, last_move):
-        """Step forward in the tree, keeping everything we already know
-        about the subtree.
-        """
-        if last_move in self._root._children:
-            self._root = self._root._children[last_move]
-            self._root._parent = None
-        else:
-            self._root = Node(None, 1.0)
+if __name__ == '__main__':
+    policy = AlphaZeroPolicy(default_az_cfg)
