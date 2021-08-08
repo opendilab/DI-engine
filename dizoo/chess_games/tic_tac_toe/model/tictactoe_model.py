@@ -1,3 +1,4 @@
+import torch.nn.functional as F
 from torch import nn
 
 from ding.torch_utils.network.nn_module import conv2d_block
@@ -18,8 +19,9 @@ class TicTacToeModel(nn.Module):
 
         # encoder part
         self.encoder = nn.Sequential(
-            conv2d_block(in_channels=3,out_channels=16,kernel_size=1,stride=1,padding=0,activation=nn.ReLU(),norm_type=None),
-            ResBlock(in_channels=16,activation=nn.ReLU(),norm_type=None)
+            conv2d_block(in_channels=3, out_channels=16, kernel_size=1, stride=1, padding=0, activation=nn.ReLU(),
+                         norm_type=None),
+            ResBlock(in_channels=16, activation=nn.ReLU(), norm_type=None)
         )
 
         # action policy head
@@ -48,16 +50,25 @@ class TicTacToeModel(nn.Module):
         value = self.value_head(encoded_embedding)
         return logit, value
 
+    def compute_prob_value(self, state_batch):
+        logits, values = self.forward(state_batch)
+        dist = torch.distributions.Categorical(logits=logits)
+        probs = dist.probs()
+        return probs, values
+
+    def compute_logp_value(self, state_batch):
+        logits, values = self.forward(state_batch)
+        log_probs = F.log_softmax(logits, dim=-1)
+        return log_probs, values
+
 
 if __name__ == '__main__':
     import torch
-    from easydict import EasyDict
 
     board_width = 3
     board_height = 3
     input_channels = 3
     batch_size = 3
-
 
     inputs = torch.randn(batch_size, input_channels, board_width, board_height)
     model = TicTacToeModel({})

@@ -1,3 +1,4 @@
+import torch.nn.functional as F
 from torch import nn
 
 from ding.torch_utils.network.nn_module import conv2d_block
@@ -46,6 +47,17 @@ class GomokuModel(nn.Module):
         # state value layers
         value = self.value_head(encoded_embedding)
         return logit, value
+
+    def compute_prob_value(self, state_batch):
+        logits, values = self.forward(state_batch)
+        dist = torch.distributions.Categorical(logits=logits)
+        probs = dist.probs()
+        return probs, values
+
+    def compute_logp_value(self, state_batch):
+        logits, values = self.forward(state_batch)
+        log_probs = F.log_softmax(logits, dim=-1)
+        return log_probs, values
 
 
 if __name__ == '__main__':

@@ -39,6 +39,11 @@ class AlphaZeroPolicy:
         probs = dist.probs()
         return probs, values
 
+    def compute_logp_value(self, state_batch):
+        logits, values = self._model(state_batch)
+        log_probs = F.log_softmax(logits,dim=-1)
+        return log_probs, values
+
     def policy_value_fn(self, env):
         """
         input: env
@@ -48,7 +53,7 @@ class AlphaZeroPolicy:
         legal_positions = env.legal_actions
         current_state = env.current_state().reshape(-1, 4, self.env_width, self.env_height)
         current_state = torch.from_numpy(current_state).to(device=self._device, dtype=torch.float)
-        act_probs, value = self.compute_logit_value(current_state)
+        act_probs, value = self.compute_prob_value(current_state)
         act_probs = zip(legal_positions, act_probs[legal_positions])
         value = value.data[0][0]
         return act_probs, value
@@ -97,14 +102,12 @@ class AlphaZeroPolicy:
         mcts_probs = inputs['mcts_prob']
         winner_batch = inputs['winner']
 
-        old_logits, old_values = self._model.compute_logit_value(state_batch)
-        old_log_probs = F.log_softmax(old_logits, dim=-1)
+        old_log_probs, old_values = self.compute_logp_value(state_batch)
         old_probs = torch.exp(old_log_probs)
         for _ in range(update_per_collect):
             loss, entropy = self.train_step(state_batch, mcts_probs, winner_batch,
                                             self._learning_rate * self._lr_multiplier)
-            new_logits, new_v = self.compute_logit_value(state_batch)
-            new_log_probs = F.log_softmax(new_logits, dim=-1)
+            new_log_probs , new_value = self.compute_logp_value(state_batch)
             kl = torch.mean(torch.sum(old_probs * (old_log_probs - new_log_probs), axis=1))
             if kl > self.kl_targ * 4:  # early stopping if D_KL diverges badly
                 break
