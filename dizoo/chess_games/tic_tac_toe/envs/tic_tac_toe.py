@@ -2,9 +2,9 @@ import sys
 
 import numpy as np
 
-from ding.envs import BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElementInfo
-from ding.utils import ENV_REGISTRY
+from ding.envs.env.base_env import BaseEnvInfo, BaseEnvTimestep
+from ding.utils.registry_factory import ENV_REGISTRY
 from dizoo.chess_games.base_game_env import BaseGameEnv
 
 
@@ -13,88 +13,82 @@ class TicTacToeEnv(BaseGameEnv):
     def __init__(self, cfg=None):
         self.board_height = 3
         self.board_width = 3
+        self.players = [1, 2]
+
+    @property
+    def current_player(self):
+        return self._current_player
+
+    @property
+    def current_opponent_player(self):
+        return self.players[0] if self.current_player == self.players[1] else self.players[1]
+
+    @property
+    def legal_actions(self):
+        return self._legal_actions
+
+    def reset(self, start_player=0):
         self.board = np.zeros((self.board_width, self.board_height), dtype="int32")
-        self.player = 1
-
-    def to_play(self):
-        return 0 if self.player == 1 else 1
-
-    def reset(self):
-        self.board = np.zeros((3, 3), dtype="int32")
-        self.player = 1
-        obs = {'obs': self.get_observation(), 'mask': self.legal_actions()}
-        return obs
+        self._current_player = self.players[start_player]
+        self._legal_actions = list(range(self.board_width * self.board_height))
+        return self.current_state()
 
     def do_action(self, action):
         row = action // 3
         col = action % 3
-        self.board[row, col] = self.player
-        self.player *= -1
+        self.board[row, col] = self.current_player
+        self._current_player = self.current_opponent_player
+        self._legal_actions.remove(action)
 
     def step(self, action):
-        row = action // 3
-        col = action % 3
-        self.board[row, col] = self.player
+        curr_player = self.current_player
+        next_player = self.current_opponent_player
+        self.do_action(action)
 
-        done = self.have_winner() or len(self.legal_actions()) == 0
+        done, winner = self.game_end()
+        reward = int((winner == curr_player))
 
-        reward = 1 if self.have_winner() else 0
+        info = {'next_player': next_player}
+        return BaseEnvTimestep(self.current_state(), reward, done, info)
 
-        self.player *= -1
-        info = {'next_player': self.player}
-        obs = {'obs': self.get_observation(), 'mask': self.legal_actions()}
-        return BaseEnvTimestep(obs, reward, done, info)
-
-    def get_observation(self):
-        board_player1 = np.where(self.board == 1, 1, 0)
-        board_player2 = np.where(self.board == -1, 1, 0)
-        board_to_play = np.full((3, 3), self.player)
-        return np.array([board_player1, board_player2, board_to_play], dtype="int32")
-
-    def legal_actions(self):
-        legal = []
-        for i in range(9):
-            row = i // 3
-            col = i % 3
-            if self.board[row, col] == 0:
-                legal.append(i)
-        return legal
+    def current_state(self):
+        board_curr_player = np.where(self.board == self.current_player, 1, 0)
+        board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
+        board_to_play = np.full((3, 3), self.current_player)
+        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype="int32")
 
     def have_winner(self):
         # Horizontal and vertical checks
         for i in range(3):
-            if (self.board[i, :] == self.player * np.ones(3, dtype="int32")).all():
-                return True
-            if (self.board[:, i] == self.player * np.ones(3, dtype="int32")).all():
-                return True
+            if len(set(self.board[i, :])) == 1 and (self.board[i, 0] != 0):
+                return True, self.board[i, 0]
+            if len(set(self.board[:, i])) == 1 and (self.board[0, i] != 0):
+                return True, self.board[0, i]
 
         # Diagonal checks
-        if (
-                self.board[0, 0] == self.player
-                and self.board[1, 1] == self.player
-                and self.board[2, 2] == self.player
-        ):
-            return True
-        if (
-                self.board[2, 0] == self.player
-                and self.board[1, 1] == self.player
-                and self.board[0, 2] == self.player
-        ):
-            return True
+        if self.board[0, 0] == self.board[1, 1] == self.board[2, 2] != 0:
+            return True, self.board[0, 0]
+        if self.board[2, 0] == self.board[1, 1] == self.board[0, 2] != 0:
+            return True, self.board[2, 0]
 
-        return False
+        return False, -1
 
     def game_end(self):
-        end = self.have_winner()
-        winner = self.player if end else -1
-        return end, winner
+        """Check whether the game is ended or not"""
+        win, winner = self.have_winner()
+        if win:
+            return True, winner
+        elif len(self.legal_actions) == 0:
+            return True, -1
+        else:
+            return False, -1
 
     def seed(self, seed: int) -> None:
         pass
 
     def expert_action(self):
         board = self.board
-        action = np.random.choice(self.legal_actions())
+        action = np.random.choice(self.legal_actions)
         # Horizontal and vertical checks
         for i in range(3):
             if abs(sum(board[i, :])) == 2:
@@ -102,7 +96,7 @@ class TicTacToeEnv(BaseGameEnv):
                 action = np.ravel_multi_index(
                     (np.array([i]), np.array([ind])), (3, 3)
                 )[0]
-                if self.player * sum(board[i, :]) > 0:
+                if self.current_player * sum(board[i, :]) > 0:
                     return action
 
             if abs(sum(board[:, i])) == 2:
@@ -110,7 +104,7 @@ class TicTacToeEnv(BaseGameEnv):
                 action = np.ravel_multi_index(
                     (np.array([ind]), np.array([i])), (3, 3)
                 )[0]
-                if self.player * sum(board[:, i]) > 0:
+                if self.current_player * sum(board[:, i]) > 0:
                     return action
 
         # Diagonal checks
@@ -121,7 +115,7 @@ class TicTacToeEnv(BaseGameEnv):
             action = np.ravel_multi_index(
                 (np.array([ind]), np.array([ind])), (3, 3)
             )[0]
-            if self.player * sum(diag) > 0:
+            if self.current_player * sum(diag) > 0:
                 return action
 
         if abs(sum(anti_diag)) == 2:
@@ -129,7 +123,7 @@ class TicTacToeEnv(BaseGameEnv):
             action = np.ravel_multi_index(
                 (np.array([ind]), np.array([2 - ind])), (3, 3)
             )[0]
-            if self.player * sum(anti_diag) > 0:
+            if self.current_player * sum(anti_diag) > 0:
                 return action
 
         return action
@@ -148,17 +142,17 @@ class TicTacToeEnv(BaseGameEnv):
             try:
                 row = int(
                     input(
-                        f"Enter the row (1, 2 or 3, from bottom to up) to play for the player {self.to_play()}: "
+                        f"Enter the row (1, 2 or 3, from bottom to up) to play for the player {self.current_player}: "
                     )
                 )
                 col = int(
                     input(
-                        f"Enter the column (1, 2 or 3, from left to right) to play for the player {self.to_play()}: "
+                        f"Enter the column (1, 2 or 3, from left to right) to play for the player {self.current_player}: "
                     )
                 )
                 choice = (row - 1) * 3 + (col - 1)
                 if (
-                        choice in self.legal_actions()
+                        choice in self.legal_actions
                         and 1 <= row
                         and 1 <= col
                         and row <= 3

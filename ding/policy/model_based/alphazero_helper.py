@@ -6,47 +6,10 @@ from abc import abstractmethod
 import torch
 import torch.nn as nn
 
-class AbstractChessGame(object):
-
-    def do_move(self,action):
-        pass
-
-    @abstractmethod
-    def do_action(self,action_id):
-        raise NotImplementedError
-
-    @abstractmethod
-    def legal_moves(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def legal_actions(self):
-        """
-        Should return the legal actions at each turn, if it is not available, it can return
-        the whole action space. At each turn, the game have to be able to handle one of returned actions.
-
-        For complex game where calculating legal moves is too long, the idea is to define the legal actions
-        equal to the action space but to return a negative reward if the action is illegal.
-        Returns:
-            An array of integers, subset of the action space.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def game_end(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_current_player(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_play(self):
-        raise NotImplementedError
 
 
 class Node(object):
-    def __init__(self, parent, prior_p: float, to_play):
+    def __init__(self, parent, prior_p: float):
         # Tree Structure
         self._parent = parent
         self._children  = {}
@@ -153,7 +116,7 @@ class MCTS(object):
             if winner == -1:
                 leaf_value = 0
             else:
-                leaf_value = 1 if state.get_current_player() == winner else -1
+                leaf_value = 1 if state.current_player == winner else -1
 
         # Update value and visit count of nodes in this traversal.
         node.update_recursive(-leaf_value)

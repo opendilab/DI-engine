@@ -1,18 +1,21 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
 from ding.envs import BaseEnv
+
 
 class BaseGameEnv(BaseEnv):
     """
     Inherit this class for muzero to play
     """
 
-    def to_play(self):
+    @abstractmethod
+    def current_player(self):
         """
         Return the current player.
         Returns:
-            The current player, it should be an element of the players list in the config. 
+            The current player, it should be an element of the players list in the config.
         """
-        return 0
+        raise NotImplementedError
 
     @abstractmethod
     def legal_actions(self):
@@ -26,6 +29,19 @@ class BaseGameEnv(BaseEnv):
             An array of integers, subset of the action space.
         """
         pass
+
+    @abstractmethod
+    def do_action(self, action_id):
+        raise NotImplementedError
+
+    @abstractmethod
+    def game_end(self):
+        """
+        Should return whether this game is done or not, and if done, which player is the  winner
+        Returns:
+            A tuple of env_done, winner
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def render(self):
