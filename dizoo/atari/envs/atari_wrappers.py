@@ -25,8 +25,7 @@ def wrap_deepmind(
     """
     assert 'NoFrameskip' in env_id
     if not only_info:
-        env = gym.make(env_id)
-        # env = gym.wrappers.Monitor(env,'/Users/simon/Documents/sensetime/replay',force=True)
+        env = gym.make(env_id) 
         env = NoopResetEnv(env, noop_max=30)
         env = MaxAndSkipEnv(env, skip=4)
         if episode_life:

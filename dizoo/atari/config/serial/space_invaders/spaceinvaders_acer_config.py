@@ -7,7 +7,7 @@ spaceinvaders_acer_config = dict(
         collector_env_num=16,
         evaluator_env_num=4,
         n_evaluator_episode=8,
-        stop_value=20,
+        stop_value=1000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
@@ -25,7 +25,7 @@ spaceinvaders_acer_config = dict(
             actor_head_hidden_size=512,
             actor_head_layer_num=2,
         ),
-        unroll_len=32,
+        unroll_len=64,
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
@@ -34,13 +34,13 @@ spaceinvaders_acer_config = dict(
             batch_size=64,
             # grad_clip_type='clip_norm',
             # clip_value=10,
-            learning_rate_actor=0.0001,
-            learning_rate_critic=0.0003,
+            learning_rate_actor=0.00005,
+            learning_rate_critic=0.0001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.01,
+            entropy_weight=0.03,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
+            discount_factor=0.99,
             # (float) additional discounting parameter
             trust_region=True,
             # (float) clip ratio of importance weights
@@ -51,10 +51,10 @@ spaceinvaders_acer_config = dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
+            discount_factor=0.99,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
             type='naive',
             replay_buffer_size=10000,

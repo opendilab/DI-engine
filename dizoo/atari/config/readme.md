@@ -24,6 +24,7 @@ Space Invaders
 | a2c       | 755      | n/a      | n/a      | 627      |
 | ppo       | 1459     | n/a      | 1025     | 960      |
 | ppg       | 1200     | n/a      | n/a      | n/a      |
+| acer      | 1975     | n/a      | n/a      | n/a      |
 
 Enduro
 

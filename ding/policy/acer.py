@@ -357,7 +357,7 @@ class ACERPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-        self._target_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['actor_optimizer'])
         self._optimizer_critic.load_state_dict(state_dict['critic_optimizer'])
 
