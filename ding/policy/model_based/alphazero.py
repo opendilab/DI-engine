@@ -53,10 +53,10 @@ class AlphaZeroPolicy:
         legal_positions = env.legal_actions
         current_state = env.current_state().reshape(-1, 4, self.env_width, self.env_height)
         current_state = torch.from_numpy(current_state).to(device=self._device, dtype=torch.float)
-        act_probs, value = self.compute_prob_value(current_state)
-        act_probs = zip(legal_positions, act_probs[legal_positions])
+        action_probs, value = self.compute_prob_value(current_state)
+        action_probs = zip(legal_positions, action_probs[legal_positions])
         value = value.data[0][0]
-        return act_probs, value
+        return action_probs, value
 
     def train_step(self, inputs):
         state_batch = inputs['state']
@@ -68,11 +68,11 @@ class AlphaZeroPolicy:
         mcts_probs = mcts_probs.to(device=self._device, dtype=torch.float)
         winner_batch = winner_batch.to(device=self._device, dtype=torch.float)
 
-        log_act_probs, values = self.compute_prob_value(state_batch)
+        log_probs, values = self.compute_prob_value(state_batch)
         # ============
         # policy loss
         # ============
-        policy_loss = - torch.mean(torch.sum(mcts_probs * log_act_probs))
+        policy_loss = - torch.mean(torch.sum(mcts_probs * log_probs))
 
         # ============
         # value loss
@@ -92,7 +92,7 @@ class AlphaZeroPolicy:
         self._optimizer.step()
         # calc policy entropy, for monitoring only
         entropy = -torch.mean(
-            torch.sum(torch.exp(log_act_probs) * log_act_probs, 1)
+            torch.sum(torch.exp(log_probs) * log_probs, 1)
         )
 
         return total_loss.item(), entropy.item()

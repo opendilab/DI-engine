@@ -129,11 +129,11 @@ class MCTS(object):
             self._simulate(state_copy,policy_forward_fn)
 
         # calc the move probabilities based on visit counts at the root node
-        act_visits = [(act, node.visit_count)
+        action_visits = [(act, node.visit_count)
                       for act, node in self._root.children.items()]
-        acts, visits = zip(*act_visits)
-        act_probs = nn.softmax(1.0/temperature * np.log(torch.as_tensor(visits) + 1e-10))
-        return acts, act_probs
+        actions, visits = zip(*action_visits)
+        action_probs = nn.softmax(1.0/temperature * np.log(torch.as_tensor(visits) + 1e-10))
+        return actions, action_probs
 
     def _simulate(self, state,policy_forward_fn):
         """
@@ -165,10 +165,10 @@ class MCTS(object):
         return action, child
 
     def _expand_leaf_node(self, node,state,policy_forward_fn):
-        laef_value, policy_probs = policy_forward_fn(state)
-        for action, prior_p in policy_probs.items():
+        action_probs,leaf_value = policy_forward_fn(state)
+        for action, prior_p in action_probs.items():
             node.children[action] = Node(parent=node,prior_p=prior_p)
-        return laef_value
+        return leaf_value
 
     # The score for a node is based on its value, plus an exploration bonus based on
     # the prior.
