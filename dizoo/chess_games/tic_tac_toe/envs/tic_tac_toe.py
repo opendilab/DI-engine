@@ -14,7 +14,7 @@ class TicTacToeEnv(BaseGameEnv):
         self.board_height = 3
         self.board_width = 3
         self.players = [1, 2]
-
+        self.num_actions = 9
     @property
     def current_player(self):
         return self._current_player
@@ -23,14 +23,24 @@ class TicTacToeEnv(BaseGameEnv):
     def current_opponent_player(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
 
+    # @property
+    # def legal_actions(self):
+    #     return self._legal_actions
+
     @property
     def legal_actions(self):
-        return self._legal_actions
+        legal = []
+        for i in range(9):
+            row = i // 3
+            col = i % 3
+            if self.board[row, col] == 0:
+                legal.append(i)
+        return legal
 
     def reset(self, start_player=0):
         self.board = np.zeros((self.board_width, self.board_height), dtype="int32")
         self._current_player = self.players[start_player]
-        self._legal_actions = list(range(self.board_width * self.board_height))
+        # self._legal_actions = list(range(self.board_width * self.board_height))
         return self.current_state()
 
     def do_action(self, action):
@@ -38,7 +48,7 @@ class TicTacToeEnv(BaseGameEnv):
         col = action % 3
         self.board[row, col] = self.current_player
         self._current_player = self.current_opponent_player
-        self._legal_actions.remove(action)
+        # self._legal_actions.remove(action)
 
     def step(self, action):
         curr_player = self.current_player
@@ -55,7 +65,7 @@ class TicTacToeEnv(BaseGameEnv):
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
         board_to_play = np.full((3, 3), self.current_player)
-        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype="int32")
+        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
 
     def have_winner(self):
         # Horizontal and vertical checks
@@ -183,10 +193,10 @@ class TicTacToeEnv(BaseGameEnv):
         play_data: [(state, mcts_prob, winner_z), ..., ...]
         """
         extend_data = []
-        for mini_batch in play_data:
-            state = mini_batch['state']
-            mcts_prob = mini_batch['mcts_prob']
-            winner = mini_batch['winner']
+        for data in play_data:
+            state = data['state']
+            mcts_prob = data['mcts_prob']
+            winner = data['winner']
             for i in [1, 2, 3, 4]:
                 # rotate counterclockwise
                 equi_state = np.array([np.rot90(s, i) for s in state])

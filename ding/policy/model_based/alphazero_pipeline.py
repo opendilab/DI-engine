@@ -30,10 +30,9 @@ def serial_az_pipeline(
     """
     cfg = read_config_yaml(cfg_path)
     # Create main components: env, policy
-
-    collector = AlphazeroCollector(cfg)
-    replay_buffer = deque(maxlen=cfg.replaybuffer.buffer_size)
     agent = AlphaZeroPolicy(cfg)
+    collector = AlphazeroCollector(cfg, agent=agent)
+    replay_buffer = deque(maxlen=cfg.replay_buffer.buffer_size)
     batch_size = cfg.learner.batch_size
     for iter_count in range(1500):
         for idx in range(cfg.collector.collect_n_episodes):
