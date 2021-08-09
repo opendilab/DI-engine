@@ -13,7 +13,7 @@ from ding.policy import PPOPolicy
 from dizoo.overcooked.models.overcooked_vac import BaselineVAC
 from ding.utils import set_pkg_seed
 from dizoo.overcooked.envs import OvercookGameEnv
-from overcooked_demo_ppo_config import overcooked_demo_ppo_config
+from dizoo.overcooked.config import overcooked_demo_ppo_config
 
 def wrapped_overcookgame():
     return OvercookGameEnv({})
@@ -49,8 +49,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     policy1 = PPOPolicy(cfg.policy, model=model1)
     model2 = BaselineVAC(**cfg.policy.model)
     policy2 = PPOPolicy(cfg.policy, model=model2)
-    # eval_policy1 = EvalPolicy1()
-    # eval_policy2 = EvalPolicy2()
 
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner1 = BaseLearner(
@@ -95,9 +93,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         if stop_flag1 and stop_flag2:
             break
         train_data, _ = collector.collect(train_iter=learner1.train_iter)
-        for data in train_data:
-            for d in data:
-                d['adv'] = d['reward']
         for i in range(cfg.policy.learn.update_per_collect):
             learner1.train(train_data[0], collector.envstep)
             learner2.train(train_data[1], collector.envstep)
