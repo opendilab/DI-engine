@@ -15,8 +15,8 @@ from .base_policy import Policy
 class WQMIXPolicy(Policy):
     r"""
     Overview:
-        Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
-            you can view the paper in the following link https://arxiv.org/abs/1803.11485
+        Policy class of WQMIX algorithm. WQMIX is a reinforcement learning algorithm modified from Qmix, \
+            you can view the paper in the following link https://arxiv.org/abs/2006.10800
     Interface:
         _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
             _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
@@ -241,7 +241,7 @@ class WQMIXPolicy(Policy):
             max_action_qtot  = self._learn_model_star.forward(inputs, single_step=False)['total_q']
 
             # Only if the action of each agent is optimal ,then the joint action is optimal
-            is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0] # (H,B,N)->(H,B)
+            is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0] # shape (H,B,N)->(H,B)
 
             qtot_larger = target_v  > max_action_qtot
             ws = torch.ones_like(td_error) * w_to_use

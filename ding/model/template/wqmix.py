@@ -12,7 +12,7 @@ from .q_learning import DRQN
 class Mixer(nn.Module):
     """
     Overview:
-        mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value
+        mixer network in WQMIX (same as Qmix's mixer network), which mix up the independent q_value of each agent to a total q_value
     Interface:
         __init__, forward
     """
@@ -84,7 +84,7 @@ class Mixer(nn.Module):
 class WQMix(nn.Module):
     """
     Overview:
-        QMIX network
+        WQMIX network, which is same as Qmix network
     Interface:
         __init__, forward, _setup_global_encoder
     """
