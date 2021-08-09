@@ -3,13 +3,13 @@ import random
 from collections import deque
 
 import numpy as np
-import torch
-import torch.nn.functional as F
+
 from ding.config.config import read_config_yaml
-from ding.envs import get_env_cls
 from ding.policy.model_based.alphazero import AlphaZeroPolicy
 from ding.policy.model_based.alphazero_collector import AlphazeroCollector
-def serial_az_pipeline(
+
+
+def serial_alphazero_pipeline(
         cfg_path,
 ) -> 'Policy':  # noqa
     """
@@ -32,6 +32,7 @@ def serial_az_pipeline(
     # Create main components: env, policy
     agent = AlphaZeroPolicy(cfg)
     collector = AlphazeroCollector(cfg, agent=agent)
+    evaluator = AlphazeroCollector(cfg, agent=agent)
     replay_buffer = deque(maxlen=cfg.replay_buffer.buffer_size)
     batch_size = cfg.learner.batch_size
     for iter_count in range(1500):
@@ -44,12 +45,14 @@ def serial_az_pipeline(
             continue
         else:
             mini_batch = random.sample(replay_buffer, batch_size)
-            agent.update_policy(mini_batch,cfg.learner.update_per_collect)
-
+            agent.update_policy(mini_batch, cfg.learner.update_per_collect)
+        if iter_count % 100 == 0:
+            winner_list_first, winner_list_next = evaluator.start_play_with_expert(test_episode_num=10)
+            print(np.mean(winner_list_first), np.mean(winner_list_next))
 
     return True
 
 
 if __name__ == '__main__':
     cfg_path = os.path.join(os.getcwd(), 'alphazero_config.yaml')
-    serial_az_pipeline(cfg_path)
+    serial_alphazero_pipeline(cfg_path)

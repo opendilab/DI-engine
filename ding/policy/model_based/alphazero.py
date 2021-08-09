@@ -119,8 +119,8 @@ class AlphaZeroPolicy:
             self._lr_multiplier /= 1.5
         elif kl < self._kl_targ / 2 and self._lr_multiplier < 10:
             self._lr_multiplier *= 1.5
-        print(f'loss:{loss}')
-        print(f'entropy:{entropy}')
+        # print(f'loss:{loss}')
+        # print(f'entropy:{entropy}')
         return loss, entropy
 
     @staticmethod

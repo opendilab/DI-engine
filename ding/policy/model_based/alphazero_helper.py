@@ -80,10 +80,11 @@ class MCTS(object):
                                                    0.3)  # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
         self._root_exploration_fraction = self._cfg.get('root_exploration_fraction', 0.25)  # 0.25
 
-    def get_next_action(self, state, policy_forward_fn, temperature=1.0):
+    def get_next_action(self, state, policy_forward_fn, temperature=1.0,sample=True):
         root = Node(None, 1.0)
         self._expand_leaf_node(root, state, policy_forward_fn)
-
+        if sample:
+            self._add_exploration_noise(root)
         for n in range(self._num_simulations):
             state_copy = copy.deepcopy(state)
             self._simulate(root, state_copy, policy_forward_fn)
@@ -98,8 +99,16 @@ class MCTS(object):
 
         actions, visits = zip(*action_visits)
         action_probs = nn.functional.softmax(1.0 / temperature * np.log(torch.as_tensor(visits) + 1e-10)).numpy()
-        action = np.random.choice(actions, p=action_probs)
-
+        # if add_noise:
+        #     action = np.random.choice(
+        #             actions,
+        #             p=0.75*action_probs + 0.25*np.random.dirichlet(0.3*np.ones(len(action_probs)))
+        #         )
+        # else:
+        if sample:
+            action = np.random.choice(actions, p=action_probs)
+        else:
+            action = actions[np.argmax(action_probs)]
         return action, action_probs
 
     def _simulate(self, node, state, policy_forward_fn):

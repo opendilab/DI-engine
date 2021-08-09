@@ -5,7 +5,7 @@ env:
 replay_buffer:
   buffer_size: 100
 mcts:
-  num_simulations: 20
+  num_simulations: 50
 model:
   type: 'tictactoe_model'
   import_names: [ 'dizoo.chess_games.tic_tac_toe.model.tictactoe_model' ]

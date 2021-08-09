@@ -23,7 +23,7 @@ class AlphazeroCollector:
         states, mcts_probs, current_players = [], [], []
         done = False
         while not done and len(states) < self.max_moves:
-            action, move_probs = self.mcts.get_next_action( self.env,policy_forward_fn = self.agent.policy_value_fn,temperature=1.0)
+            action, move_probs = self.mcts.get_next_action( self.env,policy_forward_fn = self.agent.policy_value_fn,temperature=1.0,sample=True)
             # store the data
             states.append(self.env.current_state())
             mcts_probs.append(move_probs)
@@ -38,10 +38,10 @@ class AlphazeroCollector:
                     winners[np.array(current_players) == winner] = 1.0
                     winners[np.array(current_players) != winner] = -1.0
                 # reset MCTS root node
-                if winner != -1:
-                    print("Game end. Winner is player:", winner)
-                else:
-                    print("Game end. Tie")
+                # if winner != -1:
+                    # print("Game end. Winner is player:", winner)
+                # else:
+                    # print("Game end. Tie")
                 # mini_batch = {}
                 # mini_batch['state'] = states
                 # mini_batch['mcts_prob'] = mcts_probs
@@ -50,6 +50,68 @@ class AlphazeroCollector:
                 data = [{'state':state,'mcts_prob':mcts_prob,'winner':winner} for state, mcts_prob, winner in zip(states,mcts_probs,winners)]
                 # return winner, zip(states,mcts_probs,winners)
                 return winner, data
+
+    def start_play_with_expert(self, test_episode_num=1,):
+        winner_list = []
+        print('agent start first')
+        for i in range(test_episode_num):
+            self.env.reset()
+            done = False
+            while not done:
+                action, move_probs = self.mcts.get_next_action( self.env,policy_forward_fn = self.agent.policy_value_fn,temperature=1.0,sample=False)
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+                action = self.env.expert_action()
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+        print(f'agent start first winner_list:{winner_list}')
+        winrate_list_first = (( np.array(winner_list) == 1) + (np.array(winner_list) == -1) *0.5)
+        winner_list.clear()
+        print('build-in bot start first')
+        for i in range(test_episode_num):
+            self.env.reset()
+            done = False
+            while not done:
+                action = self.env.expert_action()
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+
+                action, move_probs = self.mcts.get_next_action( self.env,policy_forward_fn = self.agent.policy_value_fn,temperature=1.0,sample=False)
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+        print(f'build-in bot start first winner_list:{winner_list}')
+        winrate_list_next = (( np.array(winner_list) == 2) + (np.array(winner_list) == -1) *0.5)
+
+
+        return winrate_list_first,winrate_list_next
     def get_equi_data(self, play_data):
         return self.env.get_equi_data(play_data)
 
