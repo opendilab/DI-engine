@@ -9,7 +9,6 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
-# from ding.model import VAC
 from dizoo.overcooked.models.overcooked_vac import BaselineVAC
 from ding.utils import set_pkg_seed
 from dizoo.overcooked.envs import OvercookGameEnv

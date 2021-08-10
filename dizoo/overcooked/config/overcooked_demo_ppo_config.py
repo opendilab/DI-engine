@@ -16,9 +16,6 @@ overcooked_league_demo_ppo_config = dict(
         model=dict(
             obs_shape=[5, 4, 26],
             action_shape=6,
-            # encoder_hidden_size_list=[32, 32, 16],
-            # critic_head_hidden_size=32,
-            # actor_head_hidden_size=32,
             share_encoder=False,
         ),
         learn=dict(

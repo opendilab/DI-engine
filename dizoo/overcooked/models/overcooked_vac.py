@@ -245,14 +245,11 @@ class BaselineVAC(nn.Module):
             ``compute_actor_critic`` interface aims to save computation when shares encoder.
             Returning the combination dictionry.
         """
-        # print("origin input x shape is:", x.shape)
         if self.share_encoder:
             actor_embedding = critic_embedding = self.encoder(x)
         else:
             actor_embedding = self.actor_encoder(x)
             critic_embedding = self.critic_encoder(x)
-        # print("critic_embedding is :", critic_embedding)
-        # print("critic_embedding shape is :", critic_embedding.shape)
         value = self.critic_head(critic_embedding)
         actor_output = self.actor_head(actor_embedding)
         if self.continuous:
