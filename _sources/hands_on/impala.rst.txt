@@ -120,6 +120,7 @@ need all training sample (sequences of training data) have the same length. This
 Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
 refer to doc of ``ding.rl_utils.adder``.
 
+.. _ref2other:
 .. code:: python
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ACER &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>ACER</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/acer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="acer">
+<h1>ACER<a class="headerlink" href="#acer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>ACER, short for actor-critic with experience replay, is an off-policy actor-critic model with experience replay. It greatly increases
+the sample efficiency and decreasing the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO and truncates importance sample weights with
+bias correction to control the stability of the off-policy estimator. You can find more details in this paper
+<a class="reference external" href="https://arxiv.org/abs/1611.01224">Sample Efficient Actor-Critic with Experience Replay</a>.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>ACER  is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
+</ol>
+<p>2. ACER can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces with several differences
+s
+3. ACER is a actor-critic RL algorithm, which optimizes actor network and critic network, respectively.</p>
+<ol class="arabic simple" start="4">
+<li><p>ACER decouples acting from learning. Collectors in ACER needs to record behavior probabilty distributions.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations">
+<h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
+<p>Loss used in ACER contains policy loss and value loss. They often update seperately, so it’s necessary to control their relative update speed.</p>
+<div class="section" id="retrace-q-value-estimation">
+<h3>Retrace Q-value estimation<a class="headerlink" href="#retrace-q-value-estimation" title="Permalink to this headline">¶</a></h3>
+<p>Given a trajectory generated under the behavior policy <span class="math notranslate nohighlight">\(\mu\)</span>,  we retrieve a trajectory <span class="math notranslate nohighlight">\(\{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}\)</span>
+the Retrace estimator can be
+expressed recursively as follows:</p>
+<div class="math notranslate nohighlight">
+\[Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
+1},a_{t+1})]+\gamma V(x_{t+1})\]</div>
+<p>where  <span class="math notranslate nohighlight">\(\bar{\rho}_t\)</span> is the truncated importance weight, <span class="math notranslate nohighlight">\(\bar{\rho}_t=\min\{c,\rho\}\)</span> with <span class="math notranslate nohighlight">\(\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}\)</span>. <span class="math notranslate nohighlight">\(\pi\)</span> is target policy
+Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the taget policy for any behavior policy
+we approximate the Q value by neural network <span class="math notranslate nohighlight">\(Q_{\theta}\)</span> in a mean squared error loss:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[L_{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.\]</div>
+</div></blockquote>
+</div>
+<div class="section" id="policy-gradient">
+<h3>policy gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h3>
+<p>To safe-guard against high variance, ACER uses truncated importance weights and introduaces
+correction term via the following decomposition of <span class="math notranslate nohighlight">\(g^{acer}\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[g^{\text{acer}}=\bar{\rho_t}\nabla_\theta\log\pi_{\theta}(a_t|x_t)[Q^{\text{ret}}(x_t,a_t)-V_{\theta}(x_t)]+\mathbb{E}_{a\sim \pi}\left([\frac{\rho_t(a)-c}{\rho_t(a)}]_+\nabla_{\theta}\log\pi_{\theta}(a|x_t)[Q_\theta(x_t,a)-V_{\theta}(x_t)\right)\right].\]</div>
+<p>To ensure more stability, ACER limit the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{split}
+&amp;\text{minimize}_z\quad\frac{1}{2}\|g_t^{\text{acer}}-z\|_2^2\\
+&amp;subjec\ to\quad \nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]^\top\le\delta
+\end{split}\end{split}\]</div>
+<p>The <span class="math notranslate nohighlight">\(\phi(\theta)\)</span> is target policy network and the <span class="math notranslate nohighlight">\(\phi(\theta_a)\)</span> is average policy network.
+letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]\)</span>, the solution can be easily derived in closed form using the KKT condition:</p>
+<div class="math notranslate nohighlight">
+\[z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k\]</div>
+</div>
+</div>
+<div class="section" id="pseudocode">
+<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<p>There are several differences that using ACER on discrete action space or continuous action space.</p>
+<a class="reference internal image-reference" href="../_images/ACER_alg1.png"><img alt="../_images/ACER_alg1.png" class="align-center" src="../_images/ACER_alg1.png" style="width: 458.49999999999994px; height: 135.79999999999998px;" /></a>
+<a class="reference internal image-reference" href="../_images/ACER_alg2.png"><img alt="../_images/ACER_alg2.png" class="align-center" src="../_images/ACER_alg2.png" style="width: 467.59999999999997px; height: 466.2px;" /></a>
+<p>In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sample actions to replace the expectation.</p>
+<a class="reference internal image-reference" href="../_images/ACER_alg3.png"><img alt="../_images/ACER_alg3.png" class="align-center" src="../_images/ACER_alg3.png" style="width: 469.7px; height: 457.09999999999997px;" /></a>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>Here we show the ACER algorithm on discrete action space.
+The default config is defined as follows:</p>
+<dl class="py class">
+<dt id="ding.policy.acer.ACERPolicy">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.policy.acer.</span></code><code class="sig-name descname"><span class="pre">ACERPolicy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/acer.html#ACERPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.acer.ACERPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of ACER algorithm.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 21%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 35%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>acer</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is</div>
+<div class="line">on-policy or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">trust_region</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm use trust</div>
+<div class="line">region constraint</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">trust_region_value</span></code></p></td>
+<td><p>float</p></td>
+<td><p>1.0</p></td>
+<td><div class="line-block">
+<div class="line">maximum range of the trust region</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">unroll_len</span></code></p></td>
+<td><p>int</p></td>
+<td><p>32</p></td>
+<td><div class="line-block">
+<div class="line">trajectory length to calculate</div>
+<div class="line">Q retrace target</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">learn.update</span></code>
+<code class="docutils literal notranslate"><span class="pre">per_collect</span></code></p></td>
+<td><p>int</p></td>
+<td><p>4</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to</div>
+<div class="line">train after collector’s one</div>
+<div class="line-block">
+<div class="line">collection. Only</div>
+</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line"><br /></div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">c_clip_ratio</span></code></p></td>
+<td><p>float</p></td>
+<td><p>1.0</p></td>
+<td><div class="line-block">
+<div class="line">clip ratio of importance weights</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Usually, we hope to compute everything as a batch to improve efficiency. This is done in <code class="docutils literal notranslate"><span class="pre">policy._get_train_sample</span></code>.
+Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
+refer to doc of <code class="docutils literal notranslate"><span class="pre">ding.rl_utils.adder</span></code>.</p>
+<p>You can find more information in <a class="reference internal" href="impala.html#ref2other"><span class="std std-ref">here</span></a></p>
+<p>The whole code of ACER you can find <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py">here</a>.
+Here we show some details of this algorithm.</p>
+<p>First, we use the following functions to compute retrace Q value.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">rewards</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">weights</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">                Get Retrace Q value</span>
+<span class="sd">            Arguments:</span>
+<span class="sd">                - q_values (:obj:`torch.Tensor`): Q values</span>
+<span class="sd">                - v_pred (:obj:`torch.Tensor`): V values</span>
+<span class="sd">                - reward (:obj:`torch.Tensor`): reward values</span>
+<span class="sd">                - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
+<span class="sd">                - weights (:obj:`torch.Tensor`): setting padding postion</span>
+<span class="sd">                - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
+<span class="sd">            Returns:</span>
+<span class="sd">                - q_retraces (:obj:`torch.Tensor`):  retrace Q values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rewards</span> <span class="o">=</span> <span class="n">rewards</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">q_retraces</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v_pred</span><span class="p">)</span>
+    <span class="n">n_len</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">q_retraces</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">q_gather</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v_pred</span><span class="p">)</span>
+    <span class="n">q_gather</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">q_values</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span>
+    <span class="n">ratio_gather</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_len</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
+        <span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">*</span><span class="n">tmp_retraces</span>
+        <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">ratio_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">-</span><span class="n">q_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">])</span><span class="o">+</span><span class="n">v_pred</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">q_retraces</span>
+</pre></div>
+</div>
+<p>After that, we calculate policy loss value, it will calcuate the actor loss with importance weights trunction and bias correction loss by the following function</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_policy_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">target_pi</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">c_clip_ratio</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get ACER policy loss</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - q_values (:obj:`torch.Tensor`): Q values</span>
+<span class="sd">            - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
+<span class="sd">            - v_pred (:obj:`torch.Tensor`): V values</span>
+<span class="sd">            - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
+<span class="sd">            - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
+<span class="sd">            - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
+<span class="sd">            - c_clip_ratio (:obj:`float`): clip value for ratio</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - actor_loss (:obj:`torch.Tensor`): policy loss from q_retrace</span>
+<span class="sd">            - bc_loss (:obj:`torch.Tensor`): bias correct policy loss</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">advantage_retraces</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="o">-</span><span class="n">v_pred</span>
+        <span class="n">advantage_native</span> <span class="o">=</span> <span class="n">q_values</span><span class="o">-</span><span class="n">v_pred</span>
+    <span class="n">actor_loss</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="n">c_clip_ratio</span><span class="p">)</span><span class="o">*</span><span class="n">advantage_retraces</span><span class="o">*</span><span class="p">(</span><span class="n">target_pi</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span><span class="o">+</span><span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+    <span class="n">bc_loss</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">c_clip_ratio</span><span class="o">/</span><span class="p">(</span><span class="n">ratio</span><span class="o">+</span><span class="n">EPS</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">*</span><span class="n">target_pi</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">*</span><span class="n">advantage_native</span><span class="o">*</span><span class="p">(</span><span class="n">target_pi</span><span class="o">+</span><span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
+    <span class="n">bc_loss</span><span class="o">=</span><span class="n">bc_loss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">actor_loss</span><span class="p">,</span><span class="n">bc_loss</span>
+</pre></div>
+</div>
+<p>Then, we execute backward operation towards target_pi. Moreover, we need to calculate the correction gradient in the trust region:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_trust_region_update</span><span class="p">(</span><span class="n">actor_gradients</span><span class="p">,</span><span class="n">target_pi</span><span class="p">,</span><span class="n">avg_pi</span><span class="p">,</span><span class="n">trust_region_value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            calcuate gradient with trust region constrain</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - actor_gradients (:obj:`list(torch.Tensor)`): gradients value&#39;s for different part</span>
+<span class="sd">            - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
+<span class="sd">            - avg_pi (:obj:`torch.Tensor`): The average policy&#39;s probability</span>
+<span class="sd">            - trust_region_value (:obj:`float`): the range of trust region</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - update_gradients (:obj:`torch.Tensor`): gradients under trust region constraint</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">KL_gradients</span> <span class="o">=</span> <span class="p">[(</span><span class="n">avg_pi</span><span class="o">/</span><span class="p">(</span><span class="n">target_pi</span><span class="o">+</span><span class="n">EPS</span><span class="p">))]</span>
+    <span class="n">update_gradients</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">actor_gradient</span><span class="p">,</span><span class="n">KL_gradient</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">actor_gradients</span><span class="p">,</span><span class="n">KL_gradients</span><span class="p">):</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">actor_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">trust_region_value</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span><span class="n">KL_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">update_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actor_gradient</span><span class="o">-</span><span class="n">scale</span><span class="o">*</span><span class="n">KL_gradient</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">update_gradients</span>
+</pre></div>
+</div>
+<p>With new gradients, we can continue to backward and then update parameters with gradients.</p>
+<p>Finally, we should calculate the Q value loss to update Q-Network</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">actions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get ACER critic loss</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - q_values (:obj:`torch.Tensor`): Q values</span>
+<span class="sd">            - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
+<span class="sd">            - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
+<span class="sd">            - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - critic_loss (:obj:`torch.Tensor`): critic loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">critic_loss</span><span class="o">=</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q_retraces</span><span class="o">-</span><span class="n">q_values</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">))</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">critic_loss</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<p>Ziyu Wang, Victor Bapst, Nicolas Heess, Volodymyr Mnih, Remi Munos, Koray Kavukcuoglu, Nando de Freitas: “Sample Efficient Actor-Critic with Experience Replay”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1611.01224">https://arxiv.org/abs/1611.01224</a> arxiv:1611.01224].</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
