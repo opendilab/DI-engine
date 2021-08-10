@@ -92,6 +92,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     policies['historical'] = policy
 
     main_key = [k for k in learners.keys() if k.startswith('main_player')][0]
+    main_player = league.get_player_by_id(main_key)
     main_learner = learners[main_key]
     main_collector = collectors[main_key]
     # collect_mode ppo use multimonial sample for selecting action
@@ -120,18 +121,32 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     for run_iter in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
-            stop_flag1, reward = evaluator1.eval(
+            stop_flag1, reward, episode_info = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
+            )
+            win_loss_result = [e['result'] for e in episode_info[0]]
+            # set fixed policy trueskill equal 0
+            main_player.rating = league.metric_env.rate_1vsC(
+                main_player.rating, league.metric_env.create_rating(mu=0), win_loss_result
             )
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
         if evaluator2.should_eval(main_learner.train_iter):
-            stop_flag2, reward = evaluator2.eval(
+            stop_flag2, reward, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
+            )
+            win_loss_result = [e['result'] for e in episode_info[0]]
+            # set uniform policy trueskill equal 20
+            main_player.rating = league.metric_env.rate_1vsC(
+                main_player.rating, league.metric_env.create_rating(mu=20), win_loss_result
             )
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if stop_flag1 and stop_flag2:
             break
         for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
+            tb_logger.add_scalar(
+                'league/{}_trueskill'.format(player_id),
+                league.get_player_by_id(player_id).rating.exposure, main_collector.envstep
+            )
             collector, learner = collectors[player_id], learners[player_id]
             job = league.get_job_info(player_id)
             opponent_player_id = job['player_id'][1]
@@ -144,7 +159,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 opponent_policy = policies[opponent_player_id].collect_mode
             collector.reset_policy([policies[player_id].collect_mode, opponent_policy])
             train_data, episode_info = collector.collect(train_iter=learner.train_iter)
-            train_data, episode_info = train_data[0], episode_info[0]  # only use launer player data for training
+            train_data, episode_info = train_data[0], episode_info[0]  # only use launch player data for training
             for d in train_data:
                 d['adv'] = d['reward']
 
@@ -156,7 +171,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             player_info['player_id'] = player_id
             league.update_active_player(player_info)
             league.judge_snapshot(player_id)
+            # set eval_flag=True to enable trueskill update
             job_finish_info = {
+                'eval_flag': True,
                 'launch_player': job['launch_player'],
                 'player_id': job['player_id'],
                 'result': [e['result'] for e in episode_info],

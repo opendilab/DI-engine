@@ -36,10 +36,10 @@ class GameEnv(BaseEnv):
                 results = "draws", "draws"
             elif actions == [0, 1]:
                 rewards = -20, 0
-                results = "wins", "losses"
+                results = "losses", "wins"
             elif actions == [1, 0]:
                 rewards = 0, -20
-                results = "losses", "wins"
+                results = "wins", "losses"
             elif actions == [1, 1]:
                 rewards = -10, -10
                 results = 'draws', 'draws'
