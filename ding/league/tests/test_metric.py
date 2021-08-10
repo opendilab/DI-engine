@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
-from trueskill import TrueSkill, rate_1vs1
-from ding.league import get_elo, get_elo_array
+from ding.league import get_elo, get_elo_array, LeagueMetricEnv
 
 
 @pytest.mark.unittest
@@ -25,7 +24,7 @@ def test_elo_calculator():
 @pytest.mark.unittest
 def test_true_skill():
     sigma = 25 / 3
-    env = TrueSkill(mu=0, sigma=sigma, beta=sigma / 2, tau=0.0, draw_probability=0.02)
+    env = LeagueMetricEnv(mu=0, sigma=sigma, beta=sigma / 2, tau=0.0, draw_probability=0.02)
     r1 = env.create_rating()
     r2 = env.create_rating()
     assert r1.mu == 0
@@ -33,10 +32,10 @@ def test_true_skill():
     assert r2.sigma == sigma
     assert r2.sigma == sigma
     # r1 draw r2
-    r1, r2 = rate_1vs1(r1, r2, drawn=True)
+    r1, r2 = env.rate_1vs1(r1, r2, drawn=True)
     assert r1.mu == r2.mu
     # r1 win r2
-    new_r1, new_r2 = rate_1vs1(r1, r2)
+    new_r1, new_r2 = env.rate_1vs1(r1, r2)
     assert new_r1.mu > r1.mu
     assert new_r2.mu < r2.mu
     assert new_r1.mu + new_r2.mu == 0

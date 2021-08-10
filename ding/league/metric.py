@@ -64,9 +64,9 @@ class LeagueMetricEnv(TrueSkill):
             sigma = self.sigma
         return PlayerRating(mu, sigma)
 
-    def rate_1vs1(self, team1, team2, result=None):
+    def rate_1vs1(self, team1, team2, result=None, **kwargs):
         if result is None:
-            return rate_1vs1(team1, team2)
+            return rate_1vs1(team1, team2, **kwargs)
         else:
             for r in result:
                 if r == 'wins':
