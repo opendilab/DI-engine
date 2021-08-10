@@ -272,9 +272,9 @@ class TestMainExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[1], MainExploiter)
-        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
+        info = {'reset_checkpoint_path': 'pretrain_checkpoint.pth'}
         for _ in range(10):
-            assert setup_league[1].mutate(info) == info['pretrain_checkpoint_path']
+            assert setup_league[1].mutate(info) == info['reset_checkpoint_path']
 
 
 @pytest.mark.unittest
@@ -296,7 +296,7 @@ class TestLeagueExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[2], LeagueExploiter)
-        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
+        info = {'reset_checkpoint_path': 'pretrain_checkpoint.pth'}
         results = []
         for _ in range(1000):
             results.append(setup_league[2].mutate(info))

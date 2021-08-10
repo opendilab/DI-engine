@@ -115,6 +115,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         instance_name='uniform_evaluator'
     )
 
+    def load_checkpoint_fn(player_id: str, ckpt_path: str):
+        state_dict = torch.load(ckpt_path)
+        policies[player_id].learn_mode.load_state_dict(state_dict)
+
+    torch.save(policies['historical'].learn_mode.state_dict(), league.reset_checkpoint_path)
+    league.load_checkpoint = load_checkpoint_fn
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
