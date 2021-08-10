@@ -48,7 +48,15 @@ class EloCalculator(object):
 
 
 class PlayerRating(Rating):
-    pass
+
+    def __init__(self, mu: float = None, sigma: float = None, elo_init: int = None) -> None:
+        super(PlayerRating, self).__init__(mu, sigma)
+        self.elo = elo_init
+
+    def __repr__(self) -> str:
+        c = type(self)
+        args = ('.'.join([c.__module__, c.__name__]), self.mu, self.sigma, self.exposure, self.elo)
+        return '%s(mu=%.3f, sigma=%.3f, exposure=%.3f, elo=%d)' % args
 
 
 class LeagueMetricEnv(TrueSkill):
@@ -57,36 +65,59 @@ class LeagueMetricEnv(TrueSkill):
         TrueSkill rating system among game players, for more details pleas refer to ``https://trueskill.org/``
     """
 
-    def create_rating(self, mu=None, sigma=None):
+    def __init__(self, *args, elo_init: int = 1200, **kwargs) -> None:
+        super(LeagueMetricEnv, self).__init__(*args, **kwargs)
+        self.elo_init = elo_init
+
+    def create_rating(self, mu: float = None, sigma: float = None, elo_init: int = None) -> PlayerRating:
         if mu is None:
             mu = self.mu
         if sigma is None:
             sigma = self.sigma
-        return PlayerRating(mu, sigma)
+        if elo_init is None:
+            elo_init = self.elo_init
+        return PlayerRating(mu, sigma, elo_init)
 
-    def rate_1vs1(self, team1, team2, result=None, **kwargs):
+    @staticmethod
+    def _rate_1vs1(t1, t2, **kwargs):
+        t1_elo, t2_elo = t1.elo, t2.elo
+        t1, t2 = rate_1vs1(t1, t2, **kwargs)
+        if 'drawn' in kwargs:
+            result = 0
+        else:
+            result = 1
+        t1_elo, t2_elo = EloCalculator.get_new_rating(t1_elo, t2_elo, result)
+        t1 = PlayerRating(t1.mu, t1.sigma, t1_elo)
+        t2 = PlayerRating(t2.mu, t2.sigma, t2_elo)
+        return t1, t2
+
+    def rate_1vs1(self,
+                  team1: PlayerRating,
+                  team2: PlayerRating,
+                  result: List[str] = None,
+                  **kwargs) -> Tuple[PlayerRating, PlayerRating]:
         if result is None:
-            return rate_1vs1(team1, team2, **kwargs)
+            return self._rate_1vs1(team1, team2, **kwargs)
         else:
             for r in result:
                 if r == 'wins':
-                    team1, team2 = rate_1vs1(team1, team2)
+                    team1, team2 = self._rate_1vs1(team1, team2)
                 elif r == 'draws':
-                    team1, team2 = rate_1vs1(team1, team2, drawn=True)
+                    team1, team2 = self._rate_1vs1(team1, team2, drawn=True)
                 elif r == 'losses':
-                    team2, team1 = rate_1vs1(team2, team1)
+                    team2, team1 = self._rate_1vs1(team2, team1)
                 else:
                     raise RuntimeError("invalid result: {}".format(r))
         return team1, team2
 
-    def rate_1vsC(self, team1, team2, result):
+    def rate_1vsC(self, team1: PlayerRating, team2: PlayerRating, result: List[str]) -> PlayerRating:
         for r in result:
             if r == 'wins':
-                team1, _ = rate_1vs1(team1, team2)
+                team1, _ = self._rate_1vs1(team1, team2)
             elif r == 'draws':
-                team1, _ = rate_1vs1(team1, team2, drawn=True)
+                team1, _ = self._rate_1vs1(team1, team2, drawn=True)
             elif r == 'losses':
-                _, team1 = rate_1vs1(team2, team1)
+                _, team1 = self._rate_1vs1(team2, team1)
             else:
                 raise RuntimeError("invalid result: {}".format(r))
         return team1
