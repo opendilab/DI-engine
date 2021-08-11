@@ -17,8 +17,7 @@ from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
-# from .wqmix import WQMIXPolicy
-from .wqmix_ff import WQMIXPolicy
+from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
