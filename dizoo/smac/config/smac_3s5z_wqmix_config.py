@@ -7,7 +7,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-   exp_name='3s5z_wqmix_eps1e4_upc200', # PU
+   exp_name='3s5z_wqmix_ff256_eps1e4_upc20', # PU
     env=dict(
         map_name='3s5z',
         difficulty=7,
@@ -27,14 +27,15 @@ main_config = dict(
             global_obs_shape=216,
             action_shape=14,
             hidden_size_list=[32],
+            # hidden_size_list=[256,256,256],
             mixer=True,
             lstm_type='gru',
             dueling=False,
         ),
         learn=dict(
             multi_gpu=False,
-            # update_per_collect=20, 默认值
-            update_per_collect=200,
+            update_per_collect=20, 
+            # update_per_collect=40,
             batch_size=32,
             learning_rate=0.0005,
             clip_value=5,
@@ -62,8 +63,8 @@ main_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                # decay=10000,
-                decay=1000000,
+                decay=10000,
+                # decay=1000000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=15000,
