@@ -17,11 +17,10 @@ lunarlander_dqn_default_config = dict(
         cuda=False,
         # Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
-        # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
-            obs_dim=8,
-            action_dim=4,
-            encoder_hidden_dim_list=[512, 64],
+            obs_shape=8,
+            action_shape=4,
+            encoder_hidden_size_list=[512, 64],
             # Whether to use dueling head.
             dueling=True,
         ),
@@ -31,8 +30,6 @@ lunarlander_dqn_default_config = dict(
         nstep=nstep,
         # learn_mode config
         learn=dict(
-            # How many steps to train after collector's one collection. Bigger "train_iteration" means bigger off-policy.
-            # collect data -> train fixed steps -> collect data -> ...
             update_per_collect=10,
             batch_size=64,
             learning_rate=0.001,
@@ -55,7 +52,7 @@ lunarlander_dqn_default_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=50_000,
+                decay=50000,
             ),
             replay_buffer=dict(replay_buffer_size=100000, )
         ),
