@@ -233,6 +233,7 @@ class ACERPolicy(Policy):
             # Calculate retrace
             q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
 
+        # the terminal states' weights are 0. it needs to be shift to count valid state
         weights_ext = torch.ones_like(weights)
         weights_ext[1:] = weights[0:-1]
         weights = weights_ext
@@ -326,9 +327,6 @@ class ACERPolicy(Policy):
         weights_ = 1 - data['done']  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
         weights = weights_
-        # weights[1:, ...] = weights_[:-1, ...]
-        # weights= weights_
-        # rewards = rewards  # shape T,B
         return target_logit, behaviour_logit, avg_action_logit, actions, values, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
