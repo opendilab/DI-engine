@@ -168,9 +168,7 @@
 
 <span class="kn">from</span> <span class="nn">ding.league.player</span> <span class="kn">import</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">HistoricalPlayer</span><span class="p">,</span> <span class="n">create_player</span>
 <span class="kn">from</span> <span class="nn">ding.league.shared_payoff</span> <span class="kn">import</span> <span class="n">create_payoff</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LEAGUE_REGISTRY</span><span class="p">,</span> \
-    <span class="n">deep_merge_dicts</span>
-<span class="kn">from</span> <span class="nn">.metric</span> <span class="kn">import</span> <span class="n">LeagueMetricEnv</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">read_file</span><span class="p">,</span> <span class="n">save_file</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LEAGUE_REGISTRY</span>
 
 
 <div class="viewcode-block" id="BaseLeague"><a class="viewcode-back" href="../../../api_doc/league/league.html#ding.league.base_league.BaseLeague">[docs]</a><span class="k">class</span> <span class="nc">BaseLeague</span><span class="p">:</span>
@@ -190,41 +188,6 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
         <span class="k">return</span> <span class="n">cfg</span>
 
-    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="n">league_type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">,</span>
-        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ding.league.base_league&quot;</span><span class="p">],</span>
-        <span class="c1"># ---player----</span>
-        <span class="c1"># &quot;player_category&quot; is just a name. Depends on the env.</span>
-        <span class="c1"># For example, in StarCraft, this can be [&#39;zerg&#39;, &#39;terran&#39;, &#39;protoss&#39;].</span>
-        <span class="n">player_category</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">],</span>
-        <span class="c1"># Support different types of active players for solo and battle league.</span>
-        <span class="c1"># For solo league, supports [&#39;solo_active_player&#39;].</span>
-        <span class="c1"># For battle league, supports [&#39;battle_active_player&#39;, &#39;main_player&#39;, &#39;main_exploiter&#39;, &#39;league_exploiter&#39;].</span>
-        <span class="c1"># active_players=dict(),</span>
-        <span class="c1"># &quot;use_pretrain&quot; means whether to use pretrain model to initialize active player.</span>
-        <span class="n">use_pretrain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># &quot;use_pretrain_init_historical&quot; means whether to use pretrain model to initialize historical player.</span>
-        <span class="c1"># &quot;pretrain_checkpoint_path&quot; is the pretrain checkpoint path used in &quot;use_pretrain&quot; and</span>
-        <span class="c1"># &quot;use_pretrain_init_historical&quot;. If both are False, &quot;pretrain_checkpoint_path&quot; can be omitted as well.</span>
-        <span class="c1"># Otherwise, &quot;pretrain_checkpoint_path&quot; should list paths of all player categories.</span>
-        <span class="n">use_pretrain_init_historical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">pretrain_checkpoint_path</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;default_cate_pretrain.pth&#39;</span><span class="p">,</span> <span class="p">),</span>
-        <span class="c1"># ---payoff---</span>
-        <span class="n">payoff</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># Supports [&#39;battle&#39;]</span>
-            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;battle&#39;</span><span class="p">,</span>
-            <span class="n">decay</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-            <span class="n">min_win_rate_games</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">metric</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">sigma</span><span class="o">=</span><span class="mi">25</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="n">beta</span><span class="o">=</span><span class="mi">25</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="n">tau</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-            <span class="n">draw_probability</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
-        <span class="p">),</span>
-    <span class="p">)</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -232,19 +195,16 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): League config.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path_policy</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">path_policy</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">osp</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_policy</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_policy</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">league_uid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
-        <span class="c1"># TODO dict players</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">player_path</span> <span class="o">=</span> <span class="s2">&quot;./league&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span> <span class="o">=</span> <span class="n">create_payoff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">payoff</span><span class="p">)</span>
-        <span class="n">metric_cfg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">metric</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metric_env</span> <span class="o">=</span> <span class="n">LeagueMetricEnv</span><span class="p">(</span><span class="n">metric_cfg</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span> <span class="n">metric_cfg</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">metric_cfg</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="n">metric_cfg</span><span class="o">.</span><span class="n">draw_probability</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_players_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">type_</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_players</span><span class="p">()</span>
 
@@ -259,9 +219,7 @@
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>  <span class="c1"># This type&#39;s active player number</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">cate</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
                     <span class="n">ckpt_path</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_policy</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_ckpt.pth&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-                    <span class="n">player</span> <span class="o">=</span> <span class="n">create_player</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">cate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_env</span><span class="o">.</span><span class="n">create_rating</span><span class="p">()</span>
-                    <span class="p">)</span>
+                    <span class="n">player</span> <span class="o">=</span> <span class="n">create_player</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">cate</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">use_pretrain</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">pretrain_checkpoint_path</span><span class="p">[</span><span class="n">cate</span><span class="p">],</span> <span class="n">ckpt_path</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
@@ -282,7 +240,6 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">pretrain_checkpoint_path</span><span class="p">[</span><span class="n">cate</span><span class="p">],</span>
                     <span class="n">name</span><span class="p">,</span>
                     <span class="mi">0</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">metric_env</span><span class="o">.</span><span class="n">create_rating</span><span class="p">(),</span>
                     <span class="n">parent_id</span><span class="o">=</span><span class="n">parent_name</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hp</span><span class="p">)</span>
@@ -344,7 +301,7 @@
             <span class="n">player</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">force</span> <span class="ow">or</span> <span class="n">player</span><span class="o">.</span><span class="n">is_trained_enough</span><span class="p">():</span>
                 <span class="c1"># Snapshot</span>
-                <span class="n">hp</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metric_env</span><span class="p">)</span>
+                <span class="n">hp</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">snapshot</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">checkpoint_path</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hp</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span><span class="o">.</span><span class="n">add_player</span><span class="p">(</span><span class="n">hp</span><span class="p">)</span>
@@ -400,22 +357,7 @@
 <span class="sd">            - job_info (:obj:`dict`): A dict containing job result information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO(nyz) more fine-grained job info</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">job_info</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;eval_flag&#39;</span> <span class="ow">in</span> <span class="n">job_info</span> <span class="ow">and</span> <span class="n">job_info</span><span class="p">[</span><span class="s1">&#39;eval_flag&#39;</span><span class="p">]:</span>
-            <span class="n">home_id</span><span class="p">,</span> <span class="n">away_id</span> <span class="o">=</span> <span class="n">job_info</span><span class="p">[</span><span class="s1">&#39;player_id&#39;</span><span class="p">]</span>
-            <span class="n">home_player</span><span class="p">,</span> <span class="n">away_player</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_player_by_id</span><span class="p">(</span><span class="n">home_id</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_player_by_id</span><span class="p">(</span><span class="n">away_id</span><span class="p">)</span>
-            <span class="n">job_info_result</span> <span class="o">=</span> <span class="n">job_info</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">job_info_result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">job_info_result</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">job_info_result</span><span class="p">,</span> <span class="p">[])</span>
-            <span class="n">home_player</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span> <span class="n">away_player</span><span class="o">.</span><span class="n">rating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_env</span><span class="o">.</span><span class="n">rate_1vs1</span><span class="p">(</span>
-                <span class="n">home_player</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span> <span class="n">away_player</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">job_info_result</span>
-            <span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">get_player_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Player&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
-        <span class="k">if</span> <span class="s1">&#39;historical&#39;</span> <span class="ow">in</span> <span class="n">player_id</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">historical_players</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">player_id</span> <span class="o">==</span> <span class="n">player_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_players</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">player_id</span> <span class="o">==</span> <span class="n">player_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">payoff</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">job_info</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseLeague.save_checkpoint"><a class="viewcode-back" href="../../../api_doc/league/league.html#ding.league.base_league.BaseLeague.save_checkpoint">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">save_checkpoint</span><span class="p">(</span><span class="n">src_checkpoint</span><span class="p">,</span> <span class="n">dst_checkpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
