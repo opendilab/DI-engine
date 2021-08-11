@@ -464,7 +464,7 @@ class WQMIXPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names patorch. For QMIX, ``ding.model.qmix.qmix``
         """
-        return 'wqmix', ['ding.model.template.wqmix_ff'] # TODO
+        return 'wqmix', ['ding.model.template.wqmix'] 
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
