@@ -240,7 +240,6 @@ class WQMIXPolicy(Policy):
         loss_weighted.backward(retain_graph=True)
         grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network.parameters())+list(self._model._mixer.parameters()), self._cfg.learn.clip_value)
         self._optimizer_star.zero_grad()
-        torch.autograd.set_detect_anomaly(True)
         loss_star.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network_star.parameters())+list(self._model._mixer_star.parameters()), self._cfg.learn.clip_value) # Q_star
         self._optimizer.step()  # Q update
