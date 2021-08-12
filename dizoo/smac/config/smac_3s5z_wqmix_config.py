@@ -46,11 +46,11 @@ main_config = dict(
 
             ## for OW  Optimistically-Weighted
             wqmix_ow = True,
-            w = 0.5, 
+            alpha = 0.5, 
 
             ## for CW  Centrally-Weighted
             # wqmix_ow = False,
-            # w = 0.75, 
+            # alpha  = 0.75, 
         ),
         collect=dict(
             n_episode=32,
