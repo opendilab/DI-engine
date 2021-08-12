@@ -7,7 +7,6 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-   exp_name='3s5z_wqmix_ff256_eps1e4_upc20', # PU
     env=dict(
         map_name='3s5z',
         difficulty=7,
@@ -27,7 +26,6 @@ main_config = dict(
             global_obs_shape=216,
             action_shape=14,
             hidden_size_list=[32],
-            # hidden_size_list=[256,256,256],
             mixer=True,
             lstm_type='gru',
             dueling=False,
@@ -35,19 +33,16 @@ main_config = dict(
         learn=dict(
             multi_gpu=False,
             update_per_collect=20, 
-            # update_per_collect=40,
             batch_size=32,
             learning_rate=0.0005,
             clip_value=5,
             target_update_theta=0.008,
             discount_factor=0.95,
-            ######
-            double_q=True,
 
+            double_q=True,
             ## for OW  Optimistically-Weighted
             wqmix_ow = True,
             alpha = 0.5, 
-
             ## for CW  Centrally-Weighted
             # wqmix_ow = False,
             # alpha  = 0.75, 
@@ -63,8 +58,8 @@ main_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=10000,
-                # decay=1000000,
+                # decay=10000,
+                decay=1000000,
             ),
             replay_buffer=dict(
                 replay_buffer_size=15000,
@@ -82,7 +77,6 @@ create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='subprocess'),
-    #env_manager=dict(type='base'),
     policy=dict(type='wqmix'),
     collector=dict(type='episode', get_train_sample=True),
 )
