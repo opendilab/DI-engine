@@ -234,6 +234,7 @@
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
             <span class="c1"># (float) additional discounting parameter</span>
             <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+            <span class="n">load_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="c1"># (int) the trajectory length to calculate v-trace target</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="n">unroll_len</span><span class="p">,</span>
             <span class="c1"># (float) clip ratio of importance weights</span>
@@ -281,7 +282,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
             <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_critic</span><span class="p">,</span>
         <span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
@@ -308,6 +308,9 @@
         <span class="c1"># Main model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">load_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">load_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_dict_learn</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_data_preprocess_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -391,6 +394,10 @@
             <span class="c1"># Calculate retrace</span>
             <span class="n">q_retraces</span> <span class="o">=</span> <span class="n">compute_q_retraces</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">v_pred</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
 
+        <span class="c1"># the terminal states&#39; weights are 0. it needs to be shift to count valid state</span>
+        <span class="n">weights_ext</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">weights_ext</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights_ext</span>
         <span class="n">q_retraces</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># shape T,B,1</span>
         <span class="n">q_values</span> <span class="o">=</span> <span class="n">q_values</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># shape T,B,env_action_shape</span>
         <span class="n">v_pred</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># shape T,B,1</span>
@@ -424,6 +431,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
 
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">kl_div</span> <span class="o">=</span> <span class="n">avg_pi</span> <span class="o">*</span> <span class="p">((</span><span class="n">avg_pi</span> <span class="o">+</span> <span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span> <span class="o">-</span> <span class="p">(</span><span class="n">target_pi</span> <span class="o">+</span> <span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+            <span class="n">kl_div</span> <span class="o">=</span> <span class="p">(</span><span class="n">kl_div</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total_valid</span>
+
         <span class="k">return</span> <span class="p">{</span>
             <span class="s1">&#39;cur_actor_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
             <span class="s1">&#39;cur_critic_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
@@ -432,6 +443,7 @@
             <span class="s1">&#39;policy_loss&#39;</span><span class="p">:</span> <span class="n">total_actor_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;critic_loss&#39;</span><span class="p">:</span> <span class="n">critic_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;entropy_loss&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">entropy_loss</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total_valid</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;kl_div&#39;</span><span class="p">:</span> <span class="n">kl_div</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_reshape_data</span><span class="p">(</span>
@@ -475,10 +487,7 @@
         <span class="n">rewards</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span>  <span class="c1"># shape T,B</span>
         <span class="n">weights_</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span>  <span class="c1"># shape T,B</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">rewards</span><span class="p">)</span>  <span class="c1"># shape T,B</span>
-        <span class="n">weights</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights_</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
-        <span class="n">rewards</span> <span class="o">=</span> <span class="n">rewards</span> <span class="o">*</span> <span class="n">weights</span>
-        <span class="c1"># weights= weights_</span>
-        <span class="c1"># rewards = rewards  # shape T,B</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">weights_</span>
         <span class="k">return</span> <span class="n">target_logit</span><span class="p">,</span> <span class="n">behaviour_logit</span><span class="p">,</span> <span class="n">avg_action_logit</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">weights</span>
 
     <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -490,6 +499,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;actor_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;critic_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
         <span class="p">}</span>
@@ -506,6 +516,7 @@
 <span class="sd">            complicated operation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;actor_optimizer&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;critic_optimizer&#39;</span><span class="p">])</span>
 
@@ -635,7 +646,7 @@
 <span class="sd">            The user can define and use customized network model but must obey the same interface definition indicated \</span>
 <span class="sd">            by import_names path. For IMPALA, ``ding.model.interface.IMPALA``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;actor_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;bc_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;actor_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;bc_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;kl_div&#39;</span><span class="p">]</span></div>
 </pre></div>
 
            </div>
