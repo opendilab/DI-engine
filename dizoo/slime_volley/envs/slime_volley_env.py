@@ -1,7 +1,7 @@
 from namedlist import namedlist
 import numpy as np
 import gym
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional
 import copy
 import slimevolleygym
 from typing import Optional
@@ -30,11 +30,14 @@ class SlimeVolleyEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
 
-    def step(self, action):
-        assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
-            action = action.squeeze()  # 0-dim tensor
-        obs, rew, done, info = self._env.step(action)
+    def step(self, action1: np.ndarray, action2: Optional[np.ndarray] = None):
+        assert isinstance(action1, np.ndarray), type(action1)
+        assert action2 is None or isinstance(action1, np.ndarray), type(action2)
+        if action1.shape == (1, ):
+            action1 = action1.squeeze()  # 0-dim tensor
+        if action2 is not None and action2.shape == (1, ):
+            action2 = action2.squeeze()  # 0-dim tensor
+        obs, rew, done, info = self._env.step(action1, action2)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward

@@ -121,6 +121,9 @@ setup(
             'whichcraft',
             'joblib',
         ],
+        'slimevolleygym_env': [
+            'slimevolleygym',
+        ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
     classifiers=[
