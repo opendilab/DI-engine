@@ -1,5 +1,4 @@
 import gym
-import gym_gomoku
 import numpy as np
 import sys
 
@@ -14,36 +13,24 @@ class GomokuEnv(BaseGameEnv):
     def __init__(self, cfg={}):
         self.cfg = cfg
         self.board_size = self.cfg.get('board_size', 15)
-        self.player = 1
+        self.players = [1, 2]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         self.board_markers = [
             chr(x) for x in range(ord("A"), ord("A") + self.board_size)
         ]
+        self.num_actions = self.board_size * self.board_size
 
-    def to_play(self):
-        return 0 if self.player == 1 else 1
 
-    def reset(self):
-        self.player = 1
-        self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
-        return {'obs': self.board, 'mask': self.legal_actions()}
+    @property
+    def current_player(self):
+        return self._current_player
 
-    def do_action(self,action):
-        row, col = self.action_to_coord(action)
-        self.player *= -1
-        self.board[row, col] = self.player
+    @property
+    def current_opponent_player(self):
+        return self.players[0] if self.current_player == self.players[1] else self.players[1]
 
-    def step(self, action):
-        row, col = self.action_to_coord(action)
-        self.board[row, col] = self.player
-        obs = {'obs': self.board, 'mask': self.legal_actions()}
 
-        done = self.is_finished()
-        reward = 1 if done else 0
-        self.player *= -1
-        info = {'next_player': self.player}
-        return BaseEnvTimestep(obs, reward, done, info)
-
+    @property
     def legal_actions(self):
         ''' Get all the next legal action, namely empty space that you can place your 'color' stone
              Return: Coordinate of all the empty space, [(x1, y1), (x2, y2), ...]
@@ -54,6 +41,34 @@ class GomokuEnv(BaseGameEnv):
                 if (self.board[i][j] == 0):
                     legal_actions.append(self.coord_to_action(i, j))
         return legal_actions
+
+    def reset(self, start_player=0):
+        self._current_player = self.players[start_player]
+        self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
+        return self.current_state()
+
+    def do_action(self,action):
+        row, col = self.action_to_coord(action)
+        self.board[row, col] = self.current_player
+        self._current_player = self.current_opponent_player
+
+    def step(self, action):
+        curr_player = self.current_player
+        next_player = self.current_opponent_player
+        self.do_action(action)
+
+        done, winner = self.game_end()
+        reward = int((winner == curr_player))
+
+        info = {'next_player': next_player}
+        return BaseEnvTimestep(self.current_state(), reward, done, info)
+
+    def current_state(self):
+        board_curr_player = np.where(self.board == self.current_player, 1, 0)
+        board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
+        board_to_play = np.full((self.board_size, self.board_size), self.current_player)
+
+        return np.array([board_curr_player, board_opponent_player, board_to_play,board_to_play], dtype=np.float32)
 
     def legal_moves(self):
         legal_moves = []
@@ -73,7 +88,7 @@ class GomokuEnv(BaseGameEnv):
         coord = (a // self.board_size, a % self.board_size)
         return coord
 
-    def is_finished(self):
+    def have_winner(self):
         has_legal_actions = False
         directions = ((1, -1), (1, 0), (1, 1), (0, 1))
         for i in range(self.board_size):
@@ -100,12 +115,11 @@ class GomokuEnv(BaseGameEnv):
                         count += 1
                         # if 5 in a line, store positions of all stones, return value
                         if count == 5:
-                            return True
-        return not has_legal_actions
+                            return True, player
+        return not has_legal_actions, -1
 
     def game_end(self):
-        end = self.is_finished()
-        winner = self.player if end else -1
+        end, winner = self.have_winner()
         return end, winner
 
     def seed(self, seed: int) -> None:
@@ -215,10 +229,10 @@ class GomokuEnv(BaseGameEnv):
         play_data: [(state, mcts_prob, winner_z), ..., ...]
         """
         extend_data = []
-        for mini_batch in play_data:
-            state = mini_batch['state']
-            mcts_prob = mini_batch['mcts_prob']
-            winner = mini_batch['winner']
+        for data in play_data:
+            state = data['state']
+            mcts_prob = data['mcts_prob']
+            winner = data['winner']
             for i in [1, 2, 3, 4]:
                 # rotate counterclockwise
                 equi_state = np.array([np.rot90(s, i) for s in state])
@@ -237,7 +251,7 @@ class GomokuEnv(BaseGameEnv):
     def close(self) -> None:
         pass
     def __repr__(self) -> str:
-        return 'chess'
+        return 'gomoku'
 
 
 if __name__ == '__main__':

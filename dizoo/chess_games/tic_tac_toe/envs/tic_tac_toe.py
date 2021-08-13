@@ -48,7 +48,6 @@ class TicTacToeEnv(BaseGameEnv):
         col = action % 3
         self.board[row, col] = self.current_player
         self._current_player = self.current_opponent_player
-        # self._legal_actions.remove(action)
 
     def step(self, action):
         curr_player = self.current_player
