@@ -74,7 +74,7 @@ class ParticleEnv(BaseEnv):
                 },
             )
             rew_space['agent' + str(i)] = T(
-                (1, ),
+                (1,),
                 {
                     'min': -np.inf,
                     'max': +np.inf,
@@ -84,21 +84,21 @@ class ParticleEnv(BaseEnv):
             act = self._env.action_space[i]
             if isinstance(act, MultiDiscrete):
                 act_space['agent' + str(i)] = T(
-                    (act.shape, ),
+                    (act.shape,),
                     {
                         'min': [int(l) for l in list(act.low)],
                         'max': [int(h) for h in list(act.high)]
                     },
                 )
             elif isinstance(act, gym.spaces.Tuple):
-                #are not used in our environment yet
+                # are not used in our environment yet
                 act_space['agent' + str(i)] = T(
-                    (len(act.gym.spaces), ),
+                    (len(act.gym.spaces),),
                     {'space': act.gym.spaces},
                 )
             elif isinstance(act, gym.spaces.Discrete):
                 act_space['agent' + str(i)] = T(
-                    (1, ),
+                    (1,),
                     {
                         'min': 0,
                         'max': act.n - 1,
@@ -126,6 +126,168 @@ CNEnvTimestep = namedtuple('CNEnvTimestep', ['obs', 'reward', 'done', 'info'])
 CNEnvInfo = namedtuple('CNEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 
+@ENV_REGISTRY.register('modified_predator_prey')
+class ModifiedPredatorPrey(BaseEnv):
+
+    def __init__(self, cfg: dict) -> None:
+        self._cfg = cfg
+        self._env_name = 'simple_tagv1'
+        self._n_predator = cfg.get("n_predator", 2)
+        self._n_prey = cfg.get("n_prey", 1)
+        self._n_agent = self._n_predator + self._n_prey
+        self._num_landmarks = cfg.get("num_landmarks", 3)
+        self._external_cfg = {'num_catch': cfg.get('num_catch', 1),
+                              'reward_right_catch': cfg.get('reward_right_catch', 1),
+                              'reward_wrong_catch': cfg.get('reward_wrong_catch', 0)}
+        self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, self._n_prey, self._external_cfg, True)
+        self._env.discrete_action_input = cfg.get('discrete_action', True)
+        self._max_step = cfg.get('max_step', 100)
+        self.obs_alone = cfg.get('obs_alone', False)
+        self._env.force_discrete_action = cfg.get('force_discrete_action', False)
+        self.action_dim = 5
+        # obs = np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + entity_pos)
+        self.obs_dim = 2 + 2 + (self._n_agent - 1) * 2 + self._num_landmarks * 2
+        self.global_obs_dim = self._n_agent * 2 + self._num_landmarks * 2 + self._n_agent * 2
+        self.obs_alone_dim = 2 + 2 + (self._num_landmarks) * 2
+
+    def reset(self) -> torch.Tensor:
+        self._step_count = 0
+        self._sum_reward = 0
+        # if hasattr(self, '_seed'):
+        #     # Note: the real env instance only has a empty seed method, only pass
+        #     self._env.seed = self._seed
+        obs_n = self._env.reset()
+        obs_n = self.process_obs(obs_n)
+        return obs_n
+
+    def close(self) -> None:
+        # Note: the real env instance only has a empty close method, only pass
+        self._env.close()
+
+    def seed(self, seed: int, dynamic_seed: bool = False) -> None:
+        self._seed = seed
+        if dynamic_seed:
+            raise NotImplementedError
+        if hasattr(self, '_seed'):
+            # Note: the real env instance only has a empty seed method, only pass
+            self._env.seed = self._seed
+
+    def _process_action(self, action: list):
+        return to_list(action) + self._random_action()
+
+    # generate random action for prey
+    def _random_action(self):
+        action = []
+        for i in range(self._n_prey):
+            action.append(np.random.choice(self.action_dim))
+        return action
+
+    def process_obs(self, obs: list):
+        ret = {}
+        obs = obs[:self._n_predator]
+        obs = np.array(obs).astype(np.float32)
+        ret['agent_state'] = np.concatenate([obs[:, 0:4 + (self._n_agent - 1) * 2], obs[:, -self._num_landmarks * 2:]],
+                                            1)
+        ret['global_state'] = np.concatenate(
+            [obs[:, 0:4].flatten(), obs[0, -self._n_prey * 4 - self._num_landmarks * 2:]])
+        if self.obs_alone:
+            ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
+            ret['agent_alone_padding_state'] = np.concatenate(
+                [
+                    obs[:, 0:4],
+                    np.zeros((self._n_predator, (self._n_agent - 1) * 2), np.float32), obs[:, -self._num_landmarks * 2:]
+                ], 1
+            )
+        ret['action_mask'] = np.ones((self._n_predator, self.action_dim))
+        return ret
+
+    # note: the reward is shared between all the agents
+    # (see dizoo/multiagent_particle/envs/multiagent/scenarios/simple_tagv1.py)
+    # If you need to make the reward different to each agent, change the code there
+    def step(self, action: list) -> BaseEnvTimestep:
+        # self._env.render()
+        self._step_count += 1
+        action = self._process_action(action)
+        obs_n, rew_n, _, info_n = self._env.step(action)
+        obs_n = self.process_obs(obs_n)
+        rew_n = np.array([sum(rew_n)])
+        info = info_n
+
+        # collide_sum = 0
+        # for i in range(self._n_agent):
+        #     collide_sum += info['n'][i][1]
+        rew_n = rew_n / (self._max_step * self._n_predator)
+        self._sum_reward += rew_n
+        if self._step_count >= self._max_step:
+            done_n = True
+        else:
+            done_n = False
+        if done_n:
+            info['final_eval_reward'] = self._sum_reward
+        return CNEnvTimestep(obs_n, rew_n, done_n, info)
+
+    def info(self):
+        T = EnvElementInfo
+        if self._obs_alone:
+            return CNEnvInfo(
+                agent_num=self._n_predator,
+                obs_space=T(
+                    {
+                        'agent_state': (self._n_predator, self.obs_dim),
+                        'global_state': (self.global_obs_dim,),
+                        'action_mask': (self._n_predator, self.action_dim)
+                    },
+                    None,
+                ),
+                act_space=T(
+                    (self._n_predator, self.action_dim),
+                    {
+                        'min': 0,
+                        'max': self.action_dim,
+                        'dtype': int
+                    },
+                ),
+                rew_space=T(
+                    (1,),
+                    None,
+                )
+            )
+        return CNEnvInfo(
+            agent_num=self._n_predator,
+            obs_space=T(
+                {
+                    'agent_state': (self._n_predator, self.obs_dim),
+                    'agent_alone_state': (self._n_predator, self.obs_alone_dim),
+                    'agent_alone_padding_state': (self._n_predator, self.obs_dim),
+                    'global_state': (self.global_obs_dim,),
+                    'action_mask': (self._n_predator, self.action_dim)
+                },
+                None,
+            ),
+            act_space=T(
+                (self._n_predator, self.action_dim),
+                {
+                    'min': 0,
+                    'max': self.action_dim,
+                    'dtype': int
+                },
+            ),
+            rew_space=T(
+                (1,),
+                None,
+            )
+        )
+
+    def __repr__(self) -> str:
+        return "DI-engine wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        self._env = wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
+
+
 # same structure as smac env
 @ENV_REGISTRY.register('cooperative_navigation')
 class CooperativeNavigation(BaseEnv):
@@ -133,8 +295,8 @@ class CooperativeNavigation(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = 'simple_spread'
-        self._n_agent = cfg.n_agent
-        self._num_landmarks = cfg.get("num_landmarks", 3)
+        self._n_agent = cfg.get("n_agent", 5)
+        self._num_landmarks = cfg.get("num_landmarks", 5)
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
@@ -233,7 +395,7 @@ class CooperativeNavigation(BaseEnv):
                     },
                 ),
                 rew_space=T(
-                    (1, ),
+                    (1,),
                     None,
                 )
             )
@@ -244,7 +406,7 @@ class CooperativeNavigation(BaseEnv):
                     'agent_state': (self._n_agent, self.obs_dim),
                     'agent_alone_state': (self._n_agent, self.obs_alone_dim),
                     'agent_alone_padding_state': (self._n_agent, self.obs_dim),
-                    'global_state': (self.global_obs_dim, ),
+                    'global_state': (self.global_obs_dim,),
                     'action_mask': (self._n_agent, self.action_dim)
                 },
                 None,
@@ -258,7 +420,7 @@ class CooperativeNavigation(BaseEnv):
                 },
             ),
             rew_space=T(
-                (1, ),
+                (1,),
                 None,
             )
         )

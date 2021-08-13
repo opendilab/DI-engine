@@ -1,7 +1,7 @@
 from typing import Tuple, List
 from collections import namedtuple
 import torch
-from torch.functional import Tensor
+# from torch.functional import Tensor
 import torch.nn.functional as F
 EPS = 1e-8
 
