@@ -17,7 +17,7 @@ class Mixer(nn.Module):
         __init__, forward
     """
 
-    def __init__(self, agent_num, state_dim, mixing_embed_dim, hypernet_embed=64):
+    def __init__(self, agent_num: int, state_dim: int, mixing_embed_dim: int, hypernet_embed: int=64)-> None:
         """
         Overview:
             initialize pymarl mixer network
@@ -28,12 +28,12 @@ class Mixer(nn.Module):
             - hypernet_embed (:obj:`int`): the dimension of hypernet emdedding, default to 64
         """
         super(Mixer, self).__init__()
-        self.n_agents = agent_num
+        self.agent_num = agent_num
         self.state_dim = state_dim
         self.embed_dim = mixing_embed_dim
         self.hyper_w_1 = nn.Sequential(
             nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(),
-            nn.Linear(hypernet_embed, self.embed_dim * self.n_agents)
+            nn.Linear(hypernet_embed, self.embed_dim * self.agent_num)
         )
         self.hyper_w_final = nn.Sequential(
             nn.Linear(self.state_dim, hypernet_embed), nn.ReLU(), nn.Linear(hypernet_embed, self.embed_dim)
@@ -45,7 +45,7 @@ class Mixer(nn.Module):
         # V(s) instead of a bias for the last layers
         self.V = nn.Sequential(nn.Linear(self.state_dim, self.embed_dim), nn.ReLU(), nn.Linear(self.embed_dim, 1))
 
-    def forward(self, agent_qs, states):
+    def forward(self, agent_qs: torch.FloatTensor , states: torch.FloatTensor)-> torch.FloatTensor:
         """
         Overview:
             forward computation graph of pymarl mixer network
@@ -61,11 +61,11 @@ class Mixer(nn.Module):
         """
         bs = agent_qs.shape[:-1]
         states = states.reshape(-1, self.state_dim)
-        agent_qs = agent_qs.view(-1, 1, self.n_agents)
+        agent_qs = agent_qs.view(-1, 1, self.agent_num)
         # First layer
         w1 = torch.abs(self.hyper_w_1(states))
         b1 = self.hyper_b_1(states)
-        w1 = w1.view(-1, self.n_agents, self.embed_dim)
+        w1 = w1.view(-1, self.agent_num, self.embed_dim)
         b1 = b1.view(-1, 1, self.embed_dim)
         hidden = F.elu(torch.bmm(agent_qs, w1) + b1)
         # Second layer
@@ -82,26 +82,27 @@ class Mixer(nn.Module):
 class Mixer_star(nn.Module):
     """
     Overview:
-        mixer network for Q_star in WQMIX (same as Qmix's mixer network), which mix up the independent q_value of each agent to a total q_value.
+        mixer network for Q_star in WQMIX , which mix up the independent q_value of each agent to a total q_value and is\
+        diffrent from the Qmix's mixer network, here the mixing network is a feedforward network with 3 hidden layers of\ 
+        256 dim.
     Interface:
         __init__, forward
     """
 
-    def __init__(self, agent_num, state_dim, mixing_embed_dim):
+    def __init__(self, agent_num: int, state_dim: int, mixing_embed_dim: int) -> None:
         """
         Overview:
-            initialize pymarl mixer network
+            initialize the mixer network of Q_star in WQMIX.
         Arguments:
             - agent_num (:obj:`int`): the number of agent
             - state_dim(:obj:`int`): the dimension of global observation state
             - mixing_embed_dim (:obj:`int`): the dimension of mixing state emdedding
-            - hypernet_embed (:obj:`int`): the dimension of hypernet emdedding, default to 64
         """
         super(Mixer_star, self).__init__()
-        self.n_agents = agent_num
+        self.agent_num = agent_num
         self.state_dim = state_dim
         self.embed_dim = mixing_embed_dim
-        self.input_dim = self.n_agents + self.state_dim # shape N+A 
+        self.input_dim = self.agent_num + self.state_dim # shape N+A 
         non_lin = nn.ReLU()
         self.net = nn.Sequential(nn.Linear(self.input_dim, self.embed_dim),
                                  non_lin,
@@ -116,10 +117,10 @@ class Mixer_star(nn.Module):
                                non_lin,
                                nn.Linear(self.embed_dim, 1))
 
-    def forward(self, agent_qs, states):
+    def forward(self, agent_qs: torch.FloatTensor, states: torch.FloatTensor) -> torch.FloatTensor:
         """
         Overview:
-            forward computation graph of pymarl mixer network
+            forward computation graph of the mixer network for Q_star in WQMIX.
         Arguments:
             - agent_qs (:obj:`torch.FloatTensor`): the independent q_value of each agent
             - states (:obj:`torch.FloatTensor`): the emdedding vector of global state
@@ -133,7 +134,7 @@ class Mixer_star(nn.Module):
         # in below annotations about the shape of the variables, T is timestep, B is batch_size A is agent_num, N is obs_shape， for example, in 3s5z, we can set T=10, B=32, A=8, N=216
         bs = agent_qs.shape[:-1] # (T*B, A)
         states = states.reshape(-1, self.state_dim) # T*B, N),
-        agent_qs = agent_qs.reshape(-1, self.n_agents) # (T, B, A) -> (T*B, A)
+        agent_qs = agent_qs.reshape(-1, self.agent_num) # (T, B, A) -> (T*B, A)
         inputs = torch.cat([states, agent_qs], dim=1) # (T*B, N) (T*B, A)-> (T*B, N+A)
         advs = self.net(inputs) # (T*B, 1)
         vs = self.V(states) #  (T*B, 1)
@@ -203,6 +204,10 @@ class WQMix(nn.Module):
                     calculate ``agent_q_act``
             - single_step (:obj:`bool`): whether single_step forward, if so, add timestep dim before forward and\
                 remove it after forward
+            - Q_star (:obj:`bool`): whether Q_star network forward. If True, using the Q_star network, where the \
+                agent networks have the same architecture as Q network but do not share parameters\
+                and the mixing network is a feedforward network with 3 hidden layers of 256 dim; if False, 
+                using the Q network, same as the Q network in Qmix paper.
         Returns:
             - ret (:obj:`dict`): output data dict with keys [``total_q``, ``logit``, ``next_state``]
             - total_q (:obj:`torch.Tensor`): total q_value, which is the result of mixer network
@@ -218,7 +223,7 @@ class WQMix(nn.Module):
             - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
         """
-        if Q_star: # Q_star, where the agent networks have the same architecture as QMIX but do not share parameters and the mixing network is a feedforward network with 3 hidden layers of 256 dim
+        if Q_star: # forward using Q_star network
             agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
             'prev_state']
             action = data.get('action', None)
@@ -230,7 +235,7 @@ class WQMix(nn.Module):
             ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
             prev_state = reduce(lambda x, y: x + y, prev_state)
             agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
-            output = self._q_network_star({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True}) # # here is the forward pass of the agent networks of Q_star
+            output = self._q_network_star({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True}) # here is the forward pass of the agent networks of Q_star
             agent_q, next_state = output['logit'], output['next_state']
             next_state, _ = list_split(next_state, step=A)
             agent_q = agent_q.reshape(T, B, A, -1)
@@ -257,7 +262,7 @@ class WQMix(nn.Module):
                 'next_state': next_state,
                 'action_mask': data['obs']['action_mask']
             }
-        else:  # Q
+        else:  # forward using Q network
             agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
                 'prev_state']
             action = data.get('action', None)
@@ -269,7 +274,7 @@ class WQMix(nn.Module):
             ), '{}-{}-{}-{}'.format([type(p) for p in prev_state], B, A, len(prev_state[0]))
             prev_state = reduce(lambda x, y: x + y, prev_state)
             agent_state = agent_state.reshape(T, -1, *agent_state.shape[3:])
-            output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True})
+            output = self._q_network({'obs': agent_state, 'prev_state': prev_state, 'enable_fast_timestep': True}) # here is the forward pass of the agent networks of Q
             agent_q, next_state = output['logit'], output['next_state']
             next_state, _ = list_split(next_state, step=A)
             agent_q = agent_q.reshape(T, B, A, -1)
@@ -285,7 +290,7 @@ class WQMix(nn.Module):
             agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
             if self.mixer:
                 global_state_embedding = self._global_state_encoder(global_state)
-                total_q = self._mixer(agent_q_act, global_state_embedding)
+                total_q = self._mixer(agent_q_act, global_state_embedding)  # here is the forward pass of the mixer networks of Q
             else:
                 total_q = agent_q_act.sum(-1)
             if single_step:
