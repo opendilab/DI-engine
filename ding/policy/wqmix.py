@@ -71,8 +71,6 @@ class WQMIXPolicy(Policy):
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
-            # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)
-            double_q=True,
             w = 0.5, # for OW
             # w = 0.75, # for CW
             wqmix_ow = True,
@@ -184,12 +182,9 @@ class WQMIXPolicy(Policy):
         total_q = self._learn_model.forward(inputs, single_step=False, Q_star=False)['total_q']
         total_q_star = self._learn_model.forward(inputs, single_step=False, Q_star=True)['total_q']
 
-        if self._cfg.learn.double_q:
-            next_inputs = {'obs': data['next_obs']}
-            logit_detach = self._learn_model.forward(next_inputs, single_step=False, Q_star=False)['logit'].clone().detach()
-            next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
-        else:
-            next_inputs = {'obs': data['next_obs']}
+        next_inputs = {'obs': data['next_obs']}
+        logit_detach = self._learn_model.forward(next_inputs, single_step=False, Q_star=False)['logit'].clone().detach()
+        next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
 
         with torch.no_grad():
             target_total_q = self._learn_model.forward(next_inputs, single_step=False, Q_star=True)['total_q']
@@ -202,7 +197,7 @@ class WQMIXPolicy(Policy):
 
         td_error = (total_q - target_v).clone().detach()
         _data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        _loss, td_error_per_sample = v_1step_td_error(_data, self._gamma)
+        _, td_error_per_sample = v_1step_td_error(_data, self._gamma)
 
         data_star = v_1step_td_data(total_q_star, target_total_q, data['reward'], data['done'], data['weight'])
         loss_star, td_error_per_sample_star_ = v_1step_td_error(data_star, self._gamma)
@@ -226,25 +221,22 @@ class WQMIXPolicy(Policy):
             ws = torch.ones_like(td_error) * alpha_to_use 
             # if y_i > Q_star or u =  u_star,  then w =1; if not, w = alpha_to_use 
             ws = torch.where(is_max_action | qtot_larger, torch.ones_like(td_error) * 1, ws)  
-          
-      
+
         if data['weight'] is None:
             data['weight'] = torch.ones_like(data['reward'])
         loss_weighted = (ws.detach() * td_error_per_sample * data['weight']).mean()
 
-       
         # ====================
         # Q and Q_star update
         # ====================
         self._optimizer.zero_grad()
-        loss_weighted.backward(retain_graph=True)
-        grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network.parameters())+list(self._model._mixer.parameters()), self._cfg.learn.clip_value)
         self._optimizer_star.zero_grad()
+        loss_weighted.backward(retain_graph=True)
         loss_star.backward()
+        grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network.parameters())+list(self._model._mixer.parameters()), self._cfg.learn.clip_value) # Q
         grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network_star.parameters())+list(self._model._mixer_star.parameters()), self._cfg.learn.clip_value) # Q_star
         self._optimizer.step()  # Q update
         self._optimizer_star.step()  # Q_star update
-
 
         # =============
         # after update

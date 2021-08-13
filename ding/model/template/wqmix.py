@@ -17,7 +17,7 @@ class Mixer(nn.Module):
         __init__, forward
     """
 
-    def __init__(self, agent_num: int, state_dim: int, mixing_embed_dim: int, hypernet_embed: int=64)-> None:
+    def __init__(self, agent_num: int, state_dim: int, mixing_embed_dim: int, hypernet_embed: int=64) -> None:
         """
         Overview:
             initialize pymarl mixer network
@@ -161,7 +161,6 @@ class WQMix(nn.Module):
             global_obs_shape: int,
             action_shape: int,
             hidden_size_list: list,
-            mixer: bool = True,
             lstm_type: str = 'gru',
             dueling: bool = False
     ) -> None:
@@ -174,7 +173,6 @@ class WQMix(nn.Module):
             - global_obs_shape (:obj:`int`): the dimension of global observation state
             - action_shape (:obj:`int`): the dimension of action shape
             - hidden_size_list (:obj:`list`): the list of hidden size
-            - mixer (:obj:`bool`): use mixer net or not, default to True
             - lstm_type (:obj:`str`): use lstm or gru, default to gru
             - dueling (:obj:`bool`): use dueling head or not, default to False.
         """
@@ -182,14 +180,10 @@ class WQMix(nn.Module):
         self._act = nn.ReLU()
         self._q_network = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type, dueling=dueling)
         self._q_network_star = DRQN(obs_shape, action_shape, hidden_size_list, lstm_type=lstm_type, dueling=dueling)
-
         embedding_size = hidden_size_list[-1]
-        self.mixer = mixer
-        if self.mixer:
-            self._mixer = Mixer(agent_num, global_obs_shape, mixing_embed_dim=embedding_size)
-            self._mixer_star = Mixer_star(agent_num, global_obs_shape, mixing_embed_dim=256) # the mixing network of Q_star is a feedforward network with 3 hidden layers of 256 dim
-
-            self._global_state_encoder = nn.Sequential()
+        self._mixer = Mixer(agent_num, global_obs_shape, mixing_embed_dim=embedding_size)
+        self._mixer_star = Mixer_star(agent_num, global_obs_shape, mixing_embed_dim=256) # the mixing network of Q_star is a feedforward network with 3 hidden layers of 256 dim
+        self._global_state_encoder = nn.Sequential()
 
     def forward(self, data: dict, single_step: bool = True, Q_star: bool=False) -> dict:
         """
@@ -204,10 +198,10 @@ class WQMix(nn.Module):
                     calculate ``agent_q_act``
             - single_step (:obj:`bool`): whether single_step forward, if so, add timestep dim before forward and\
                 remove it after forward
-            - Q_star (:obj:`bool`): whether Q_star network forward. If True, using the Q_star network, where the \
-                agent networks have the same architecture as Q network but do not share parameters\
-                and the mixing network is a feedforward network with 3 hidden layers of 256 dim; if False, 
-                using the Q network, same as the Q network in Qmix paper.
+            - Q_star (:obj:`bool`): whether Q_star network forward. If True, using the Q_star network, where the\
+                agent networks have the same architecture as Q network but do not share parameters and the mixing\
+                network is a feedforward network with 3 hidden layers of 256 dim; if False, using the Q network,\
+                same as the Q network in Qmix paper.
         Returns:
             - ret (:obj:`dict`): output data dict with keys [``total_q``, ``logit``, ``next_state``]
             - total_q (:obj:`torch.Tensor`): total q_value, which is the result of mixer network
@@ -249,11 +243,10 @@ class WQMix(nn.Module):
                 action = agent_q.argmax(dim=-1)
             agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
             agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
-            if self.mixer:
-                global_state_embedding = self._global_state_encoder(global_state)
-                total_q = self._mixer_star(agent_q_act, global_state_embedding) # here is the forward pass of the mixer networks of Q_star
-            else:
-                total_q = agent_q_act.sum(-1)
+           
+            global_state_embedding = self._global_state_encoder(global_state)
+            total_q = self._mixer_star(agent_q_act, global_state_embedding) # here is the forward pass of the mixer networks of Q_star
+        
             if single_step:
                 total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
             return {
@@ -288,11 +281,10 @@ class WQMix(nn.Module):
                 action = agent_q.argmax(dim=-1)
             agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
             agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
-            if self.mixer:
-                global_state_embedding = self._global_state_encoder(global_state)
-                total_q = self._mixer(agent_q_act, global_state_embedding)  # here is the forward pass of the mixer networks of Q
-            else:
-                total_q = agent_q_act.sum(-1)
+
+            global_state_embedding = self._global_state_encoder(global_state)
+            total_q = self._mixer(agent_q_act, global_state_embedding)  # here is the forward pass of the mixer networks of Q
+      
             if single_step:
                 total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
             return {

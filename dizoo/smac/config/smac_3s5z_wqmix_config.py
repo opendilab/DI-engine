@@ -15,7 +15,6 @@ main_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        shared_memory=False,
         stop_value=0.999,
         n_evaluator_episode=32,
     ),
@@ -26,7 +25,6 @@ main_config = dict(
             global_obs_shape=216,
             action_shape=14,
             hidden_size_list=[32],
-            mixer=True,
             lstm_type='gru',
             dueling=False,
         ),
@@ -39,7 +37,6 @@ main_config = dict(
             target_update_theta=0.008,
             discount_factor=0.95,
 
-            double_q=True,
             ## for OW  Optimistically-Weighted
             wqmix_ow = True,
             alpha = 0.5, 
@@ -58,7 +55,6 @@ main_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                # decay=10000,
                 decay=1000000,
             ),
             replay_buffer=dict(
