@@ -102,7 +102,9 @@ def serial_pipeline_reward_model(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
+            # print(f"before:{new_data}")
             reward_model.collect_data(new_data)
+            # print(f"after:{new_data}")
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
@@ -119,7 +121,9 @@ def serial_pipeline_reward_model(
                 )
                 break
             # update train_data reward
+            # print(f"before:{train_data}")
             reward_model.estimate(train_data)
+            # print(f"after:{train_data}")
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
