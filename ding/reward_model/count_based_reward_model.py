@@ -48,6 +48,8 @@ class CountBasedRewardModel(BaseRewardModel):
         if self._counter_type == 'SimHash':
             print(cfg)
             self._counter = SimHash(cfg.state_dim, cfg.hash_dim, self.device)
+        elif self._counter_type == 'AutoEncoder':
+            self._counter = AutoEncoder(cfg.state_dim,cfg.hash_dim,self.device)
 
     def train(self):
         """
@@ -116,3 +118,8 @@ class SimHash():
         for key in keys:
             counts.append(self.hash[key])
         return counts
+
+class AutoEncoder():
+    def __init__(self,state_dim,k,device):
+        pass
+    
