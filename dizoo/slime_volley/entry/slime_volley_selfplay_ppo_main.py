@@ -4,6 +4,7 @@ import numpy as np
 import copy
 import torch
 from tensorboardX import SummaryWriter
+from functools import partial
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
@@ -11,8 +12,8 @@ from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
-from dizoo.league_demo.game_env import GameEnv
-from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.slime_volley.envs import SlimeVolleyEnv
+from dizoo.slime_volley.config import slime_volley_league_ppo_config
 
 
 class EvalPolicy1:
@@ -39,7 +40,7 @@ class EvalPolicy2:
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
-    cfg.exp_name = 'selfplay_demo_ppo'
+    cfg.exp_name = 'slime_volley_selfplay_ppo'
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -51,9 +52,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env1 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    evaluator_env2 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env)
+                                            for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     collector_env.seed(seed)
     evaluator_env1.seed(seed, dynamic_seed=False)
@@ -119,4 +121,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(league_demo_ppo_config)
+    main(slime_volley_league_ppo_config)

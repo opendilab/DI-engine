@@ -14,8 +14,8 @@ pong_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
+        # (bool) whether to use on-policy training pipeline(on-policy means behaviour policy and training policy are the same)
         on_policy=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,

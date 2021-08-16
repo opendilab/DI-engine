@@ -4,16 +4,17 @@ import gym
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
+from functools import partial
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
-from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.envs import BaseEnvManager
 from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
-from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
-from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.slime_volley.envs import SlimeVolleyEnv
+from dizoo.slime_volley.config import slime_volley_league_ppo_config
 
 
 class EvalPolicy1:
@@ -28,12 +29,7 @@ class EvalPolicy1:
 class EvalPolicy2:
 
     def forward(self, data: dict) -> dict:
-        return {
-            env_id: {
-                'action': torch.from_numpy(np.random.choice([0, 1], p=[0.5, 0.5], size=(1, )))
-            }
-            for env_id in data.keys()
-        }
+        return {env_id: {'action': torch.from_numpy(np.random.randint(0, 6, (1, )))} for env_id in data.keys()}
 
     def reset(self, data_id: list = []) -> None:
         pass
@@ -51,8 +47,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    evaluator_env1 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    evaluator_env2 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     evaluator_env1.seed(seed, dynamic_seed=False)
     evaluator_env2.seed(seed, dynamic_seed=False)
@@ -70,7 +66,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         model = VAC(**cfg.policy.model)
         policy = PPOPolicy(cfg.policy, model=model)
         policies[player_id] = policy
-        collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
+        collector_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager)
         collector_env.seed(seed)
 
         learners[player_id] = BaseLearner(
@@ -167,4 +163,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(league_demo_ppo_config)
+    main(slime_volley_league_ppo_config)

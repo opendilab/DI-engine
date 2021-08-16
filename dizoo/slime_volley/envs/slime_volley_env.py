@@ -30,20 +30,34 @@ class SlimeVolleyEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
 
-    def step(self, action1: np.ndarray, action2: Optional[np.ndarray] = None):
+    def step(self, action: np.ndarray):
+        if isinstance(action, list):
+            # agent_num = 2
+            action1, action2 = action[0], action[1]
+        else:
+            # agent_num = 1
+            action1 = action
+            action2 = None
         assert isinstance(action1, np.ndarray), type(action1)
         assert action2 is None or isinstance(action1, np.ndarray), type(action2)
         if action1.shape == (1, ):
             action1 = action1.squeeze()  # 0-dim tensor
         if action2 is not None and action2.shape == (1, ):
             action2 = action2.squeeze()  # 0-dim tensor
-        obs, rew, done, info = self._env.step(action1, action2)
+        action1 = SlimeVolleyEnv._process_action(action1)
+        action2 = SlimeVolleyEnv._process_action(action2)
+        obs1, rew, done, info = self._env.step(action1, action2)
+        obs2 = info['otherObs']
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
-        return BaseEnvTimestep(obs, rew, done, info)
+        obs1 = to_ndarray(obs1).astype(np.float32)
+        obs2 = to_ndarray(obs2).astype(np.float32)
+        observations = np.stack([obs1, obs2], axis=0)
+        rewards = to_ndarray([rew, -rew]).astype(np.float32)
+        rewards = rewards[..., np.newaxis]
+        infos = info, info
+        return BaseEnvTimestep(observations, rewards, done, infos)
 
     def reset(self):
         if not self._init_flag:
@@ -61,6 +75,7 @@ class SlimeVolleyEnv(BaseEnv):
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
+        obs = np.stack([obs, obs], axis=0)
         return obs
 
     def info(self):
@@ -76,19 +91,21 @@ class SlimeVolleyEnv(BaseEnv):
                 },
             ),
             # [min, max)
+            # 6 valid actions: 
             act_space=T(
-                (3, ),
+                (1, ),
                 {
                     'min': 0,
-                    'max': 2,
+                    'max': 6,
                     'dtype': int,
                 },
             ),
             rew_space=T(
                 (1, ),
                 {
-                    'min': float("-inf"),
-                    'max': float("-inf"),
+                    'min': -5.0,
+                    'max': 5.0,
+                    'dtype': np.float32,
                 },
             ),
             use_wrappers=None,
@@ -101,3 +118,32 @@ class SlimeVolleyEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+    
+    @staticmethod
+    def _process_action(action: np.ndarray, _type: str = "binary") -> np.ndarray:
+        action = action.item()
+        # Env receives action in [0, 5] (int type). Can translater into:
+        # 1) "binary" type: np.array([0, 1, 0])
+        # 2) "atari" type: NOOP, LEFT, UPLEFT, UP, UPRIGHT, RIGHT
+        to_atari_action = {
+            0: 0,  # NOOP
+            1: 4,  # LEFT
+            2: 7,  # UPLEFT
+            3: 2,  # UP
+            4: 6,  # UPRIGHT
+            5: 3,  # RIGHT
+        }
+        to_binary_action = {
+            0: [0, 0, 0], # NOOP
+            1: [1, 0, 0], # LEFT (forward)
+            2: [1, 0, 1], # UPLEFT (forward jump)
+            3: [0, 0, 1], # UP (jump)
+            4: [0, 1, 1], # UPRIGHT (backward jump)
+            5: [0, 1, 0],  # RIGHT (backward)
+        }
+        if _type == "binary":
+            return to_ndarray(to_binary_action[action])
+        elif _type == "atari":
+            return to_atari_action[action]
+        else:
+            raise NotImplementedError
