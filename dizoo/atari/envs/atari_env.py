@@ -149,6 +149,62 @@ ATARIENV_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
+    'FreewayNoFrameskip-v4': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(210, 160, 3),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 3,
+                'dtype': np.int64,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'GravitarNoFrameskip-v4': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(210, 160, 3),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 18,
+                'dtype': np.int64,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
+        ),
+        use_wrappers=None,
+    ),
 }
 
 

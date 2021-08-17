@@ -9,6 +9,8 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+
+
 @ENV_REGISTRY.register('mountaincar')
 class CartPoleEnv(BaseEnv):
 
@@ -54,7 +56,7 @@ class CartPoleEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew]) # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
@@ -64,8 +66,8 @@ class CartPoleEnv(BaseEnv):
             obs_space=T(
                 (2, ),
                 {
-                    'min': [-1.2,-0.6],
-                    'max': [1.2,0.6],
+                    'min': [-1.2, -0.6],
+                    'max': [1.2, 0.6],
                     'dtype': np.float32,
                 },
             ),

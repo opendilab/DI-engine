@@ -32,25 +32,29 @@ mountaincar_dqn_config = dict(
                 end=0.001,
                 decay=10000,
             ),
-            replay_buffer=dict(type='naive',replay_buffer_size=20000, ),
+            replay_buffer=dict(
+                type='naive',
+                replay_buffer_size=20000,
+            ),
         ),
     ),
-    reward_model=dict(type='countbased',
-                      counter_type='SimHash',
-                      bonus_coefficent=0.01,
-                      state_dim=2,
-                      hash_dim=64,),
+    reward_model=dict(
+        type='countbased',
+        counter_type='SimHash',
+        bonus_coefficent=0.01,
+        state_dim=2,
+        hash_dim=64,
+    ),
 )
 mountaincar_dqn_config = EasyDict(mountaincar_dqn_config)
 main_config = mountaincar_dqn_config
 mountaincar_dqn_create_config = dict(
     env=dict(
         type='mountaincar',
-        import_names=[
-            'dizoo.classic_control.mountaincar.envs.mountaincar_env'],
+        import_names=['dizoo.classic_control.mountaincar.envs.mountaincar_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='dqn'), 
+    policy=dict(type='dqn'),
 )
 mountaincar_dqn_create_config = EasyDict(mountaincar_dqn_create_config)
 create_config = mountaincar_dqn_create_config
