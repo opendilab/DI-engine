@@ -66,7 +66,7 @@ def serial_pipeline_sqil(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     #model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-    expert_policy.collect_mode.load_state_dict(torch.load('/home/SENSETIME/nieyunpeng/nerveX/dizoo/box2d/lunarlander/config/This_is_demo_data_lunarlander/ckpt/ckpt_best.pth.tar', map_location='cpu'))
+    expert_policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu'))
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)

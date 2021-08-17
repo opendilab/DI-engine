@@ -28,7 +28,7 @@ qbert_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=100, demonstration_info_path = '/home/SENSETIME/nieyunpeng/nerveX/dizoo/atari/config/serial/pong/This_is_demo_data_qbert/ckpt/ckpt_best.pth.tar'),
+        collect=dict(n_sample=100, demonstration_info_path = '/home/SENSETIME/User/nerveX/dizoo/atari/config/serial/pong/This_is_demo_data_qbert/ckpt/ckpt_best.pth.tar'), #Users should add their own path here (path should lead to a well-trained model)
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

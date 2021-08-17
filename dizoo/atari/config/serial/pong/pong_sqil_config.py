@@ -30,7 +30,7 @@ pong_sqil_config = dict(
             target_update_freq=500,
             alpha = 0.12
         ),
-        collect=dict(n_sample=96, demonstration_info_path = '/home/SENSETIME/nieyunpeng/nerveX/dizoo/atari/config/serial/pong/This_is_demo_data_pong/ckpt/ckpt_best.pth.tar'),
+        collect=dict(n_sample=96, demonstration_info_path = '/home/SENSETIME/User/nerveX/dizoo/atari/config/serial/pong/This_is_demo_data_pong/ckpt/ckpt_best.pth.tar'), #Users should add their own path here (path should lead to a well-trained model)
         other=dict(
             eps=dict(
                 type='exp',

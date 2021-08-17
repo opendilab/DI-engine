@@ -30,7 +30,7 @@ space_invaders_sqil_config = dict(
             target_update_freq=500,
             alpha = 0.1
         ),
-        collect=dict(n_sample=100, demonstration_info_path = '/home/SENSETIME/nieyunpeng/nerveX/dizoo/atari/config/serial/space_invaders/This_is_demo_data_pong/ckpt/ckpt_best.pth.tar'),
+        collect=dict(n_sample=100, demonstration_info_path = '/home/SENSETIME/User/nerveX/dizoo/atari/config/serial/space_invaders/This_is_demo_data_pong/ckpt/ckpt_best.pth.tar'), #Users should add their own path here (path should lead to a well-trained model)
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
