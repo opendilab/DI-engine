@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
-
+from torch.distributions import Categorical
 
 class IModelWrapper(ABC):
     r"""
@@ -230,6 +230,49 @@ class EpsGreedySampleWrapper(IModelWrapper):
         for i, l in enumerate(logit):
             if np.random.random() > eps:
                 action.append(l.argmax(dim=-1))
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output['action'] = action
+        return output
+
+class EpsGreedySampleWrapper_sql(IModelWrapper):
+    r"""
+    Overview:
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        eps = kwargs.pop('eps')
+        alpha = kwargs.pop('alpha')
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps:
+                prob = torch.softmax(output['logit'] / alpha, dim=-1)
+                prob = prob / torch.sum(prob, 1, keepdims=True)
+                pi_action = torch.zeros(prob.shape)
+                pi_action = Categorical(prob)
+                pi_action = pi_action.sample()
+                action.append(pi_action)
             else:
                 if mask:
                     action.append(sample_action(prob=mask[i].float()))
