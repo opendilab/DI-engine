@@ -8,7 +8,7 @@ from dizoo.procgen.coinrun.envs import CoinRunEnv
 class TestCoinRunEnv:
 
     def test_naive(self):
-        env = CoinRunEnv(EasyDict({'use_act_scale': True}))
+        env = CoinRunEnv(EasyDict({}))
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()

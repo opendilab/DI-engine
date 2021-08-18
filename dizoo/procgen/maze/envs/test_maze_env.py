@@ -8,7 +8,7 @@ from dizoo.procgen.maze.envs import MazeEnv
 class TestMazeEnv:
 
     def test_naive(self):
-        env = MazeEnv(EasyDict({'use_act_scale': True}))
+        env = MazeEnv(EasyDict({}))
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()

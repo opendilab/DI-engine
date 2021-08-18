@@ -36,7 +36,11 @@ class CoinRunEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make('procgen:procgen-coinrun-v0', start_level=0, num_levels=1)
             self._init_flag = True
-        if hasattr(self, '_seed'):
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            np_seed = 100 * np.random.randint(1, 1000)
+            self._env.close()
+            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed + np_seed, num_levels=1)
+        elif hasattr(self, '_seed'):
             self._env.close()
             self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
@@ -83,7 +87,7 @@ class CoinRunEnv(BaseEnv):
             ),
             # [min, max)
             act_space=T(
-                (15, ),
+                (1, ),
                 {
                     'min': 0,
                     'max': 15,

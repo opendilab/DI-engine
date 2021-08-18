@@ -9,7 +9,7 @@ coinrun_ppo_default_config = dict(
         stop_value=10,
     ),
     policy=dict(
-        use_cuda=False,
+        cuda=False,
         on_policy=False,
         model=dict(
             obs_shape=[3, 64, 64],
