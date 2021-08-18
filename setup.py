@@ -66,7 +66,8 @@ setup(
         'readerwriterlock',
         'namedlist',
         'opencv-python',  # pypy incompatible
-        'enum_tools'
+        'enum_tools',
+        'scipy',
     ],
     extras_require={
         'test': [
