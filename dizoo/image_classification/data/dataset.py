@@ -114,7 +114,7 @@ def transforms_imagenet_eval(
     return transforms.Compose(tfl)
 
 
-class IterableImageNetDataset(data.IterableDataset):
+class ImageNetDataset(data.Dataset):
 
     def __init__(self, root: str, is_training: bool, transform: Callable = None) -> None:
         self.root = root
@@ -129,11 +129,11 @@ class IterableImageNetDataset(data.IterableDataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __iter__(self) -> Union[torch.Tensor, torch.Tensor]:
-        for img, target in self.data:
-            img = Image.open(img).convert('RGB')
-            if self.transform is not None:
-                img = self.transform(img)
-            if target is None:
-                target = torch.tensor(-1, dtype=torch.long)
-            yield img, target
+    def __getitem__(self, index: int) -> Union[torch.Tensor, torch.Tensor]:
+        img, target = self.data[index]
+        img = Image.open(img).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+        if target is None:
+            target = torch.tensor(-1, dtype=torch.long)
+        return img, target

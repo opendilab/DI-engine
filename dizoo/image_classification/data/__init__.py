@@ -1,1 +1,1 @@
-from .dataset import IterableImageNetDataset
+from .dataset import ImageNetDataset

@@ -8,9 +8,9 @@ from torch.utils.data import DataLoader
 from ding.worker import BaseLearner, LearnerHook
 from ding.config import read_config, compile_config
 from ding.torch_utils import resnet18
-from ding.utils import set_pkg_seed, get_rank
+from ding.utils import set_pkg_seed, get_rank, dist_init
 from dizoo.image_classification.policy import ImageClassificationPolicy
-from dizoo.image_classification.data import IterableImageNetDataset
+from dizoo.image_classification.data import ImageNetDataset
 from dizoo.image_classification.entry.imagenet_res18_config import imagenet_res18_config
 
 
@@ -72,19 +72,23 @@ class ImageClsLogShowHook(LearnerHook):
 
 def main(cfg: dict, seed: int) -> None:
     cfg = compile_config(cfg, seed=seed, policy=ImageClassificationPolicy)
+    if cfg.policy.learn.multi_gpu:
+        rank, world_size = dist_init()
+    else:
+        rank, world_size = 0, 1
 
     # Random seed
-    rank = get_rank()
     set_pkg_seed(cfg.seed + rank, use_cuda=cfg.policy.cuda)
 
     model = resnet18()
     policy = ImageClassificationPolicy(cfg.policy, model=model, enable_field=['learn', 'eval'])
+    learn_dataset = ImageNetDataset(cfg.policy.collect.learn_data_path, is_training=True)
+    eval_dataset = ImageNetDataset(cfg.policy.collect.eval_data_path, is_training=False)
     if cfg.policy.learn.multi_gpu:
-        raise NotImplementedError
+        learn_sampler = torch.utils.data.distributed.DistributedSampler(learn_dataset)
+        eval_sampler = torch.utils.data.distributed.DistributedSampler(eval_dataset)
     else:
         learn_sampler, eval_sampler = None, None
-    learn_dataset = IterableImageNetDataset(cfg.policy.collect.learn_data_path, is_training=True)
-    eval_dataset = IterableImageNetDataset(cfg.policy.collect.eval_data_path, is_training=False)
     learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler)
     eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler)
 

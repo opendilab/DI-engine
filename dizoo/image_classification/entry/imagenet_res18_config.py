@@ -3,11 +3,11 @@ from easydict import EasyDict
 imagenet_res18_config = dict(
     exp_name='imagenet_res18',
     policy=dict(
-        cuda=False,
+        cuda=True,
         learn=dict(
-            multi_gpu=False,
+            multi_gpu=True,
             train_epoch=200,
-            batch_size=3,
+            batch_size=32,
             learning_rate=0.01,
             decay_epoch=30,
             decay_rate=0.1,
@@ -23,8 +23,8 @@ imagenet_res18_config = dict(
             )
         ),
         collect=dict(
-            learn_data_path='./data/train',
-            eval_data_path='./data/eval',
+            learn_data_path='/mnt/lustre/share/images/train',
+            eval_data_path='/mnt/lustre/share/images/val',
         ),
         eval=dict(batch_size=4, )
     ),
