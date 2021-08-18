@@ -6,7 +6,7 @@ from torch.distributions import Categorical
 import logging
 from easydict import EasyDict
 from ding.torch_utils import Adam, to_device
-from ding.utils.data  import default_collate, default_decollate
+from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
@@ -195,7 +195,7 @@ class SQLPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps, alpha = self._cfg.learn.alpha)
+            output = self._collect_model.forward(data, eps=eps, alpha=self._cfg.learn.alpha)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -285,8 +285,5 @@ class SQLPolicy(Policy):
         """
         return 'dqn', ['ding.model.template.q_learning']
 
-    
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + [
-            'record_value_function'
-        ]
+        return super()._monitor_vars_learn() + ['record_value_function']

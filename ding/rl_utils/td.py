@@ -469,6 +469,7 @@ def qrdqn_nstep_td_error(
 
     return (loss * weight).mean(), loss
 
+
 def q_nstep_sql_td_error(
         data: namedtuple,
         gamma: float,
@@ -511,16 +512,12 @@ def q_nstep_sql_td_error(
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
     #target_q_s_a = next_n_q[batch_range, next_n_action]
-    target_v = alpha * torch.logsumexp(next_n_q / alpha, 1)    #target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1)) 
-    #print(target_v) 
+    target_v = alpha * torch.logsumexp(
+        next_n_q / alpha, 1
+    )  #target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
     target_v[target_v == float("Inf")] = 20
     target_v[target_v == float("-Inf")] = -20
     record_target_v = copy.deepcopy(target_v)
-    '''
-    print('This is target V')
-    print(target_v)
-    print('end')
-    '''
     #print(target_v)
     if cum_reward:
         if value_gamma is None:
@@ -529,16 +526,9 @@ def q_nstep_sql_td_error(
             target_v = reward + value_gamma * target_v * (1 - done)
     else:
         target_v = nstep_return(nstep_return_data(reward, target_v, done), gamma, nstep, value_gamma)
-        '''
-    print('This is V again')
-    print(target_v)
-    print('end')
-    print('This is not regarding the algorithm')
-    print(q_s_a)
-    print('end')
-    '''
     td_error_per_sample = criterion(q_s_a, target_v.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample, record_target_v
+
 
 iqn_nstep_td_data = namedtuple(
     'iqn_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'replay_quantiles', 'weight']

@@ -15,6 +15,8 @@ from ding.utils import set_pkg_seed
 from ding.model import DQN
 from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
 from ding.utils import set_pkg_seed
+
+
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -61,7 +63,9 @@ def serial_pipeline_sqil(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     #model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-    expert_policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu'))
+    expert_policy.collect_mode.load_state_dict(
+        torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
+    )
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
@@ -72,7 +76,13 @@ def serial_pipeline_sqil(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    expert_collector = create_serial_collector(cfg.policy.collect.collector, env=expert_collector_env, policy = expert_policy.collect_mode, tb_logger=tb_logger, exp_name=cfg.exp_name) 
+    expert_collector = create_serial_collector(
+        cfg.policy.collect.collector,
+        env=expert_collector_env,
+        policy=expert_policy.collect_mode,
+        tb_logger=tb_logger,
+        exp_name=cfg.exp_name
+    )
     evaluator = BaseSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
@@ -105,7 +115,7 @@ def serial_pipeline_sqil(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs = {'eps': -1})
+        expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs={'eps': -1})
         for i in range(len(new_data)):
             new_data[i]['reward'] = torch.tensor([0.])
             expert_data[i]['reward'] = torch.tensor([1.])
@@ -115,7 +125,9 @@ def serial_pipeline_sqil(
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = replay_buffer.sample((learner.policy.get_attribute('batch_size')) // 2, learner.train_iter)
-            train_data_demonstration = expert_buffer.sample((learner.policy.get_attribute('batch_size')) // 2, learner.train_iter)
+            train_data_demonstration = expert_buffer.sample(
+                (learner.policy.get_attribute('batch_size')) // 2, learner.train_iter
+            )
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(

@@ -7,6 +7,7 @@ from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from torch.distributions import Categorical
 
+
 class IModelWrapper(ABC):
     r"""
     Overview:
@@ -240,6 +241,7 @@ class EpsGreedySampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class EpsGreedySampleWrapperSql(IModelWrapper):
     r"""
     Overview:
@@ -419,7 +421,7 @@ wrapper_name_map = {
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
-    'eps_greedy_sample_sql':EpsGreedySampleWrapperSql,
+    'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
     # model wrapper
