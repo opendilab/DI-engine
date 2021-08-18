@@ -6,10 +6,10 @@ slime_volley_league_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=100,
-        stop_value=[
-            -0.01,  # Pure random policy evaluator
-            -5  # Uniform sample policy evaluator
-        ],
+        stop_value=0,
+        # Single-agent env for evaluator; Double-agent env for collector.
+        # Should be assigned True or False in code.
+        is_evaluator=None,
         manager=dict(shared_memory=False, ),
         env_id="SlimeVolley-v0",
     ),
@@ -18,7 +18,7 @@ slime_volley_league_ppo_config = dict(
         continuous=False,
         model=dict(
             obs_shape=12,
-            action_shape=3,
+            action_shape=6,
             encoder_hidden_size_list=[32, 32],
             critic_head_hidden_size=32,
             actor_head_hidden_size=32,

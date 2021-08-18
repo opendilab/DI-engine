@@ -19,6 +19,9 @@ class SlimeVolleyEnv(BaseEnv):
         self._cfg = cfg
         self._init_flag = False
         self._replay_path = None
+        # Evaluator env is single-agent env. obs, action, done, info are all single.
+        # Collector env is double-agent env, obs, action, info are double, done is still single.
+        self._is_evaluator = cfg.is_evaluator
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -30,14 +33,13 @@ class SlimeVolleyEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
 
-    def step(self, action: np.ndarray):
-        if isinstance(action, list):
-            # agent_num = 2
-            action1, action2 = action[0], action[1]
+    def step(self, action: Union[np.ndarray, List[np.ndarray]]):
+        if self._is_evaluator:
+            assert isinstance(action, np.ndarray)
+            action1, action2 = action, None
         else:
-            # agent_num = 1
-            action1 = action
-            action2 = None
+            assert isinstance(action, list) and isinstance(action[0], np.ndarray)
+            action1, action2 = action[0], action[1]
         assert isinstance(action1, np.ndarray), type(action1)
         assert action2 is None or isinstance(action1, np.ndarray), type(action2)
         if action1.shape == (1, ):
@@ -47,17 +49,21 @@ class SlimeVolleyEnv(BaseEnv):
         action1 = SlimeVolleyEnv._process_action(action1)
         action2 = SlimeVolleyEnv._process_action(action2)
         obs1, rew, done, info = self._env.step(action1, action2)
-        obs2 = info['otherObs']
+        obs1 = to_ndarray(obs1).astype(np.float32)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs1 = to_ndarray(obs1).astype(np.float32)
-        obs2 = to_ndarray(obs2).astype(np.float32)
-        observations = np.stack([obs1, obs2], axis=0)
-        rewards = to_ndarray([rew, -rew]).astype(np.float32)
-        rewards = rewards[..., np.newaxis]
-        infos = info, info
-        return BaseEnvTimestep(observations, rewards, done, infos)
+        reward = to_ndarray([rew]).astype(np.float32)
+        if self._is_evaluator:
+            return BaseEnvTimestep(obs1, reward, done, info)
+        else:
+            obs2 = info['otherObs']
+            obs2 = to_ndarray(obs2).astype(np.float32)
+            observations = np.stack([obs1, obs2], axis=0)
+            rewards = to_ndarray([rew, -rew]).astype(np.float32)
+            rewards = rewards[..., np.newaxis]
+            infos = info, info
+            return BaseEnvTimestep(observations, rewards, done, infos)
 
     def reset(self):
         if not self._init_flag:
@@ -75,8 +81,11 @@ class SlimeVolleyEnv(BaseEnv):
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        obs = np.stack([obs, obs], axis=0)
-        return obs
+        if self._is_evaluator:
+            return obs
+        else:
+            obs = np.stack([obs, obs], axis=0)
+            return obs
 
     def info(self):
         T = EnvElementInfo
@@ -121,6 +130,8 @@ class SlimeVolleyEnv(BaseEnv):
     
     @staticmethod
     def _process_action(action: np.ndarray, _type: str = "binary") -> np.ndarray:
+        if action is None:
+            return None
         action = action.item()
         # Env receives action in [0, 5] (int type). Can translater into:
         # 1) "binary" type: np.array([0, 1, 0])

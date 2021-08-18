@@ -7,7 +7,7 @@ from tensorboardX import SummaryWriter
 from functools import partial
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, Episode1v1Collector, NaiveReplayBuffer, BaseSerialEvaluator
 from ding.envs import BaseEnvManager
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -17,24 +17,6 @@ from dizoo.slime_volley.envs import SlimeVolleyEnv
 from dizoo.slime_volley.config import slime_volley_league_ppo_config
 
 
-class EvalPolicy1:
-
-    def forward(self, data: dict) -> dict:
-        return {env_id: {'action': torch.zeros(1)} for env_id in data.keys()}
-
-    def reset(self, data_id: list = []) -> None:
-        pass
-
-
-class EvalPolicy2:
-
-    def forward(self, data: dict) -> dict:
-        return {env_id: {'action': torch.from_numpy(np.random.randint(0, 6, (1, )))} for env_id in data.keys()}
-
-    def reset(self, data_id: list = []) -> None:
-        pass
-
-
 def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg = compile_config(
         cfg,
@@ -42,22 +24,25 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         PPOPolicy,
         BaseLearner,
         Episode1v1Collector,
-        OnevOneEvaluator,
+        BaseSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    evaluator_env1 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env_cfg = copy.deepcopy(cfg.env)
+    collector_env_cfg.is_evaluator = False
+    evaluator_env_cfg = copy.deepcopy(cfg.env)
+    evaluator_env_cfg.is_evaluator = True
+    collector_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, collector_env_cfg)
+                                           for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, evaluator_env_cfg)
+                                           for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
-    evaluator_env1.seed(seed, dynamic_seed=False)
-    evaluator_env2.seed(seed, dynamic_seed=False)
+    evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     league = DemoLeague(cfg.policy.other.league)
-    eval_policy1 = EvalPolicy1()
-    eval_policy2 = EvalPolicy2()
     policies = {}
     learners = {}
     collectors = {}
@@ -91,41 +76,29 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     main_learner = learners[main_key]
     main_collector = collectors[main_key]
     # collect_mode ppo use multinomial sample for selecting action
-    evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
-    evaluator1_cfg.stop_value = cfg.env.stop_value[0]
-    evaluator1 = OnevOneEvaluator(
-        evaluator1_cfg,
-        evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
+    evaluator_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+    evaluator_cfg.stop_value = cfg.env.stop_value
+    evaluator = BaseSerialEvaluator(
+        evaluator_cfg,
+        evaluator_env,
+        policies[main_key].collect_mode,
         tb_logger,
         exp_name=cfg.exp_name,
         instance_name='fixed_evaluator'
-    )
-    evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
-    evaluator2_cfg.stop_value = cfg.env.stop_value[1]
-    evaluator2 = OnevOneEvaluator(
-        evaluator2_cfg,
-        evaluator_env2, [policies[main_key].collect_mode, eval_policy2],
-        tb_logger,
-        exp_name=cfg.exp_name,
-        instance_name='uniform_evaluator'
     )
 
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
 
+    stop_flag = False
     for run_iter in range(max_iterations):
-        if evaluator1.should_eval(main_learner.train_iter):
-            stop_flag1, reward = evaluator1.eval(
+        if evaluator.should_eval(main_learner.train_iter):
+            stop_flag, reward = evaluator.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
-        if evaluator2.should_eval(main_learner.train_iter):
-            stop_flag2, reward = evaluator2.eval(
-                main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
-            )
-            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
-        if stop_flag1 and stop_flag2:
+        if stop_flag:
             break
         for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
             collector, learner = collectors[player_id], learners[player_id]
