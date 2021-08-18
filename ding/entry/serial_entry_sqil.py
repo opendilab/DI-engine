@@ -13,8 +13,6 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 from ding.model import DQN
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from ding.utils import set_pkg_seed
 
 
 def serial_pipeline_sqil(

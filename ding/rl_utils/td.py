@@ -511,14 +511,15 @@ def q_nstep_sql_td_error(
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
-    #target_q_s_a = next_n_q[batch_range, next_n_action]
+    # target_q_s_a = next_n_q[batch_range, next_n_action]
     target_v = alpha * torch.logsumexp(
         next_n_q / alpha, 1
-    )  #target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
+    )  # target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
     target_v[target_v == float("Inf")] = 20
     target_v[target_v == float("-Inf")] = -20
-    #For an appropriate hyper-parameter alpha, these hardcodes can be removed. However, algorithms may face the danger of explosion for other alphas.
-    #The hardcodes above are to prevent this situation from happening
+    # For an appropriate hyper-parameter alpha, these hardcodes can be removed.
+    # However, algorithms may face the danger of explosion for other alphas.
+    # The hardcodes above are to prevent this situation from happening
     record_target_v = copy.deepcopy(target_v)
     #print(target_v)
     if cum_reward:
