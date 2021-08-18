@@ -14,7 +14,13 @@ imagenet_res18_config = dict(
             warmup_lr=1e-4,
             warmup_epoch=3,
             weight_decay=1e-4,
-            learner=dict(hook=dict(log_show_after_iter=10, ), ),
+            learner=dict(
+                log_show_freq=10,
+                hook=dict(
+                    log_show_after_iter=int(1e9),  # use user-defined hook, disable it
+                    save_ckpt_after_iter=1000,
+                )
+            )
         ),
         collect=dict(
             learn_data_path='./data/train',
