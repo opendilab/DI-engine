@@ -517,6 +517,8 @@ def q_nstep_sql_td_error(
     )  #target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
     target_v[target_v == float("Inf")] = 20
     target_v[target_v == float("-Inf")] = -20
+    #For an appropriate hyper-parameter alpha, these hardcodes can be removed. However, algorithms may face the danger of explosion for other alphas.
+    #The hardcodes above are to prevent this situation from happening
     record_target_v = copy.deepcopy(target_v)
     #print(target_v)
     if cum_reward:
