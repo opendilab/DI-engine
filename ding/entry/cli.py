@@ -120,14 +120,8 @@ def cli(
             config = get_predefined_config(env, policy)
         serial_pipeline(config, seed, max_iterations=train_iter)
     if mode == 'serial_sqil':
-        if config == 'lunarlander_sqil_config.py':
-            from .serial_entry_sqil_lunarlander import serial_pipeline_sqil
-        elif config == 'cartpole_sqil_config.py':
-            from .serial_entry_sqil_cartpole import serial_pipeline_sqil
-        elif config == 'pong_sqil_config.py':
-            from .serial_entry_sqil_pong import serial_pipeline_sqil
-        elif config == 'spaceinvaders_sqil_config.py':
-            from .serial_entry_sqil_spaceinvaders import serial_pipeline_sqil
+        if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
+            from .serial_entry_sqil import serial_pipeline_sqil
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline_sqil(config, seed, max_iterations=train_iter)

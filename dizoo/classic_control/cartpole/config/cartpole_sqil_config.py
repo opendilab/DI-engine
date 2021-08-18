@@ -23,7 +23,7 @@ cartpole_sqil_config = dict(
             learning_rate=0.001,
             alpha = 0.12
         ),
-        collect=dict(n_sample=8, demonstration_info_path = '/home/SENSETIME/User/nerveX/dizoo/classic_control/cartpole/config/This_is_demo_data_cartpole/ckpt/ckpt_best.pth.tar'), #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=8, demonstration_info_path = 'path'), #Users should add their own path here (path should lead to a well-trained model)
         eval=dict(evaluator=dict(eval_freq=50, )),  #note: this is the times after which you learns to evaluate
         other=dict(
             eps=dict(

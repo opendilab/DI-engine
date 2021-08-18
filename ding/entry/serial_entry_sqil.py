@@ -12,13 +12,8 @@ from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseS
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
-from ding.policy import SQLPolicy
 from ding.model import DQN
-from dizoo.classic_control.cartpole.config.cartpole_sqil_config import main_config, create_config
-from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config
 from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import BaseEnvManager, DingEnvWrapper
-from copy import deepcopy
 from ding.utils import set_pkg_seed
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],

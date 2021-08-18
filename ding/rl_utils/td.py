@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.rl_utils.value_rescale import value_transform, value_inv_transform
 from ding.hpc_rl import hpc_wrapper
-
+import copy
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
 

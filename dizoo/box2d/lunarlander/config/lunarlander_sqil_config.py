@@ -28,7 +28,7 @@ lunarlander_sqil_config = dict(
         ),
         collect=dict(
             n_sample=64,
-            demonstration_info_path='/home/SENSETIME/User/nerveX/dizoo/box2d/lunarlander/config/This_is_demo_data_lunarlander/ckpt/ckpt_best.pth.tar', #Users should add their own path here (path should lead to a well-trained model)
+            demonstration_info_path='path', #Users should add their own path here (path should lead to a well-trained model)
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
         ),

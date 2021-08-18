@@ -43,8 +43,6 @@ class SQLPolicy(Policy):
             update_per_collect=3,  # after the batch data come into the learner, train with the data for 3 times
             batch_size=64,
             learning_rate=0.001,
-            # (float) L2 norm weight for network parameters.
-            weight_decay=0.0,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -136,12 +134,6 @@ class SQLPolicy(Policy):
             data_n, self._gamma, self._cfg.learn.alpha, nstep=self._nstep, value_gamma=value_gamma
         )
         record_target_v = record_target_v.mean()
-        '''
-        print('This is loss')
-        print(loss)
-        print(td_error_per_sample)
-        print('end')
-        '''
         # ====================
         # Q-learning update
         # ====================
@@ -149,10 +141,6 @@ class SQLPolicy(Policy):
         loss.backward()
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
-        '''
-        for param_group in self._optimizer.param_groups:
-            print(param_group['lr'])
-        '''    
         self._optimizer.step()
 
         # =============
@@ -210,20 +198,6 @@ class SQLPolicy(Policy):
             output = self._collect_model.forward(data, eps=eps, alpha = self._cfg.learn.alpha)
         if self._cuda:
             output = to_device(output, 'cpu')
-        '''
-        #print(output)
-        prob = torch.softmax(output['logit'] / self._cfg.learn.alpha, dim=-1)
-        prob = prob / torch.sum(prob, 1, keepdims=True)
-        pi_action = torch.zeros(prob.shape)
-        #print(prob)
-        pi_action = Categorical(prob)
-        
-        prob = torch.softmax(output['logit'], dim=-1)
-        pi_action = torch.multinomial(prob, 1)
-        
-        pi_action = pi_action.sample()
-        output['action'] = pi_action
-        '''
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
