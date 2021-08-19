@@ -22,6 +22,7 @@ from .coma import COMAPolicy
 from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
+from .sql import SQLPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -104,6 +105,11 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('sqn_command')
 class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('sql_command')
+class SQLCommandModePolicy(SQLPolicy, EpsCommandModePolicy):
     pass
 
 
