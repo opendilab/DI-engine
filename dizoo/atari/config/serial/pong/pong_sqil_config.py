@@ -49,7 +49,7 @@ pong_sqil_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='base', force_reproducibility = True),
     policy=dict(type='sql'),
 )
 pong_sqil_create_config = EasyDict(pong_sqil_create_config)

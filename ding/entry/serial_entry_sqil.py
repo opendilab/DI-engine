@@ -14,17 +14,21 @@ from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 from ding.model import DQN
 
-
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
+        expert_model: Optional[torch.nn.Module] = None,
         max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry.
+        Serial pipeline sqil entry: we create this serial pipeline in order to\
+            implement SQIL in DI-engine. For now, we support the following envs\
+            Cartpole, Lunarlander, Pong, Spaceinvader, Qbert. The demonstration\
+            data come from the expert model. We use a well-trained model to \
+            generate demonstration data online
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -33,6 +37,8 @@ def serial_pipeline_sqil(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - expert_model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.\
+            The default model is DQN(**cfg.policy.model)
         - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
             when reaching this iteration.
     Returns:
@@ -56,7 +62,7 @@ def serial_pipeline_sqil(
     expert_collector_env.seed(cfg.seed)
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    expert_model = DQN(**cfg.policy.model)
+    #expert_model = DQN(**cfg.policy.model)
     expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['collect'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     #model = DQN(**cfg.policy.model)
@@ -115,8 +121,10 @@ def serial_pipeline_sqil(
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs={'eps': -1})
         for i in range(len(new_data)):
-            new_data[i]['reward'] = torch.tensor([0.])
-            expert_data[i]['reward'] = torch.tensor([1.])
+            device_1 = new_data[i]['obs'].device
+            device_2 = expert_data[i]['obs'].device
+            new_data[i]['reward'] = torch.zeros(cfg.policy.nstep).to(device_1)
+            expert_data[i]['reward'] = torch.ones(cfg.policy.nstep).to(device_2)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         expert_buffer.push(expert_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data

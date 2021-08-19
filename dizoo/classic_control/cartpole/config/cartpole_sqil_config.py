@@ -43,7 +43,7 @@ cartpole_sqil_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='base', force_reproducibility = True),
     policy=dict(type='sql'),
 )
 cartpole_sqil_create_config = EasyDict(cartpole_sqil_create_config)

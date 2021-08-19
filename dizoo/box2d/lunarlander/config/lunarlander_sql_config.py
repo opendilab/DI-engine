@@ -43,7 +43,7 @@ lunarlander_sql_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='base', force_reproducibility = True),
     policy=dict(type='sql'),
 )
 lunarlander_sql_create_config = EasyDict(lunarlander_sql_create_config)
