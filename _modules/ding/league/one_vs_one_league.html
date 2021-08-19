@@ -214,6 +214,13 @@
             <span class="n">decay</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
             <span class="n">min_win_rate_games</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="n">metric</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="mi">25</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="n">beta</span><span class="o">=</span><span class="mi">25</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">tau</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">draw_probability</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="c1"># override</span>
