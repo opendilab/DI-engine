@@ -14,6 +14,7 @@ from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 from ding.model import DQN
 
+
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
