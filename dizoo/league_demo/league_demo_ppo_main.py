@@ -18,15 +18,23 @@ from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 
 class EvalPolicy1:
 
+    def __init__(self, optimal_policy: list) -> None:
+        assert len(optimal_policy) == 2
+        self.optimal_policy = optimal_policy
+
     def forward(self, data: dict) -> dict:
-        return {env_id: {'action': torch.zeros(1)} for env_id in data.keys()}
+        return {
+            env_id: {
+                'action': torch.from_numpy(np.random.choice([0, 1], p=self.optimal_policy, size=(1, )))
+            }
+            for env_id in data.keys()
+        }
 
     def reset(self, data_id: list = []) -> None:
         pass
 
 
 class EvalPolicy2:
-
     def forward(self, data: dict) -> dict:
         return {
             env_id: {
@@ -60,7 +68,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     league = DemoLeague(cfg.policy.other.league)
-    eval_policy1 = EvalPolicy1()
+    eval_policy1 = EvalPolicy1(evaluator_env1._env_ref.optimal_policy)
     eval_policy2 = EvalPolicy2()
     policies = {}
     learners = {}
@@ -131,9 +139,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
-            # set fixed policy trueskill equal 0
+            # set fixed NE policy trueskill equal 20
             main_player.rating = league.metric_env.rate_1vsC(
-                main_player.rating, league.metric_env.create_rating(mu=0), win_loss_result
+                main_player.rating, league.metric_env.create_rating(mu=20), win_loss_result
             )
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
         if evaluator2.should_eval(main_learner.train_iter):
@@ -141,9 +149,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
-            # set uniform policy trueskill equal 20
+            # set random(uniform) policy trueskill equal 0
             main_player.rating = league.metric_env.rate_1vsC(
-                main_player.rating, league.metric_env.create_rating(mu=20), win_loss_result
+                main_player.rating, league.metric_env.create_rating(mu=0), win_loss_result
             )
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if stop_flag1 and stop_flag2:
