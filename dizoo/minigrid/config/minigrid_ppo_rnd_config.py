@@ -1,7 +1,7 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
-minigrid_ppo_rnd_config = dict(
+minigrid_ppo_rnd_config = dict(   
     exp_name='minigrid_empty8_ppo_rnd',
     env=dict(
         collector_env_num=8,
@@ -18,6 +18,7 @@ minigrid_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
+        continuous=False, 
         cuda=True,
         model=dict(
             obs_shape=2739,
