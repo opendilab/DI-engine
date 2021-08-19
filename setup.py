@@ -67,6 +67,7 @@ setup(
         'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools',
+        'scipy',
         'trueskill',
     ],
     extras_require={

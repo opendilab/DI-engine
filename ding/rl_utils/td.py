@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.rl_utils.value_rescale import value_transform, value_inv_transform
 from ding.hpc_rl import hpc_wrapper
-
+import copy
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
 
@@ -468,6 +468,69 @@ def qrdqn_nstep_td_error(
     loss = (u * (tau - (target_q_s_a - q_s_a).detach().le(0.).float()).abs()).sum(-1).mean(1)
 
     return (loss * weight).mean(), loss
+
+
+def q_nstep_sql_td_error(
+        data: namedtuple,
+        gamma: float,
+        alpha: float,
+        nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep (1 step or n step) td_error for q-learning based algorithm
+    Arguments:
+        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_sql_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - Alpha (:obj:｀float`): A parameter to weight entropy term in a policy equation
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target soft_q_value
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - nstep (:obj:`int`): nstep num, default set to 1
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+            ['q', 'next_n_q', 'action', 'reward', 'done']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    """
+    q, next_n_q, action, next_n_action, reward, done, weight = data
+    assert len(action.shape) == 1, action.shape
+    if weight is None:
+        weight = torch.ones_like(action)
+
+    batch_range = torch.arange(action.shape[0])
+    q_s_a = q[batch_range, action]
+    # target_q_s_a = next_n_q[batch_range, next_n_action]
+    target_v = alpha * torch.logsumexp(
+        next_n_q / alpha, 1
+    )  # target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
+    target_v[target_v == float("Inf")] = 20
+    target_v[target_v == float("-Inf")] = -20
+    # For an appropriate hyper-parameter alpha, these hardcodes can be removed.
+    # However, algorithms may face the danger of explosion for other alphas.
+    # The hardcodes above are to prevent this situation from happening
+    record_target_v = copy.deepcopy(target_v)
+    #print(target_v)
+    if cum_reward:
+        if value_gamma is None:
+            target_v = reward + (gamma ** nstep) * target_v * (1 - done)
+        else:
+            target_v = reward + value_gamma * target_v * (1 - done)
+    else:
+        target_v = nstep_return(nstep_return_data(reward, target_v, done), gamma, nstep, value_gamma)
+    td_error_per_sample = criterion(q_s_a, target_v.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample, record_target_v
 
 
 iqn_nstep_td_data = namedtuple(

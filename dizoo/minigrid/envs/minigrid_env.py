@@ -112,7 +112,9 @@ class MiniGridEnv(BaseEnv):
             info['current_step'] = self._current_step
             info['max_step'] = self._max_step
             if self._save_replay:
-                path = os.path.join(self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count))
+                path = os.path.join(
+                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+                )
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)

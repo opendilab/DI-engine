@@ -133,8 +133,8 @@ class CooperativeNavigation(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._env_name = 'simple_spread'
-        self._n_agent = cfg.n_agent
-        self._num_landmarks = cfg.get("num_landmarks", 3)
+        self._n_agent = cfg.get("n_agent", 5)
+        self._num_landmarks = cfg.get("num_landmarks", 5)
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
