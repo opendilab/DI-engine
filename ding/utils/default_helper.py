@@ -417,8 +417,9 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     for v in data.values():
         if v is None:
             continue
-        elif isinstance(v, list) or isinstance(v, tuple):
-            length.append(len(v[0]))
+        elif isinstance(v, list) or isinstance(v, tuple): # todo len(data['replay_unique_id'])
+            # length.append(len(v[0]))
+            length.append(len(v))
         else:
             length.append(len(v))
     assert len(length) > 0
