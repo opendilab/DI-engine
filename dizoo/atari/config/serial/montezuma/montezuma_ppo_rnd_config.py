@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 montezuma_ppo_rnd_config = dict(
-     exp_name='montezuma_ppo_rnd',
+    exp_name='montezuma_ppo_rnd',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
@@ -21,6 +21,7 @@ montezuma_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
+        continuous=False, 
         cuda=True,
         on_policy=False,
         # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
