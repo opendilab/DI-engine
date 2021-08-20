@@ -9,7 +9,7 @@ montezuma_ppo_rnd_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='MontezumaRevengesNoFrameskip-v4',
+        env_id='MontezumaRevengeNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
