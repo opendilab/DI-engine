@@ -128,8 +128,8 @@ class Mixer_star(nn.Module):
             - states (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size
             - q_tot (:obj:`torch.FloatTensor`): :math:`(B, )`
         """
-        # in below annotations about the shape of the variables, T is timestep, 
-        # B is batch_size A is agent_num, N is obs_shape， for example, 
+        # in below annotations about the shape of the variables, T is timestep,
+        # B is batch_size A is agent_num, N is obs_shape， for example,
         # in 3s5z, we can set T=10, B=32, A=8, N=216
         bs = agent_qs.shape[:-1]  # (T*B, A)
         states = states.reshape(-1, self.state_dim)  # T*B, N),
