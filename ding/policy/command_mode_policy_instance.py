@@ -152,9 +152,11 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('wqmix_command')
 class WQMIXCommandModePolicy(WQMIXPolicy, EpsCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('collaq_command')
 class CollaQCommandModePolicy(CollaQPolicy, EpsCommandModePolicy):

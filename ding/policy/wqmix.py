@@ -71,9 +71,9 @@ class WQMIXPolicy(Policy):
             # (float) The discount factor for future rewards,
             # in [0, 1].
             discount_factor=0.99,
-            w = 0.5, # for OW
+            w=0.5,  # for OW
             # w = 0.75, # for CW
-            wqmix_ow = True,
+            wqmix_ow=True,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
@@ -123,10 +123,18 @@ class WQMIXPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in WQMIX"
         self._optimizer = RMSprop(
-            params=list(self._model._q_network.parameters())+list(self._model._mixer.parameters()), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)
+            params=list(self._model._q_network.parameters()) + list(self._model._mixer.parameters()),
+            lr=self._cfg.learn.learning_rate,
+            alpha=0.99,
+            eps=0.00001
+        )
         self._gamma = self._cfg.learn.discount_factor
         self._optimizer_star = RMSprop(
-            params=list(self._model._q_network_star.parameters())+list(self._model._mixer_star.parameters()), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001)
+            params=list(self._model._q_network_star.parameters()) + list(self._model._mixer_star.parameters()),
+            lr=self._cfg.learn.learning_rate,
+            alpha=0.99,
+            eps=0.00001
+        )
         self._learn_model = model_wrap(
             self._model,
             wrapper_name='hidden_state',
@@ -203,24 +211,24 @@ class WQMIXPolicy(Policy):
         loss_star, td_error_per_sample_star_ = v_1step_td_error(data_star, self._gamma)
 
         # our implemention is based on the https://github.com/oxwhirl/wqmix
-        # Weighting 
-        alpha_to_use = self._cfg.learn.alpha 
-        if  self._cfg.learn.wqmix_ow: # Optimistically-Weighted
-            ws = torch.ones_like(td_error) * alpha_to_use 
-            # if td_error < 0, i.e. Q < y_i, then w =1; if not, w = alpha_to_use 
-            ws = torch.where(td_error < 0, torch.ones_like(td_error) * 1, ws)  
-        else: # Centrally-Weighted
+        # Weighting
+        alpha_to_use = self._cfg.learn.alpha
+        if self._cfg.learn.wqmix_ow:  # Optimistically-Weighted
+            ws = torch.ones_like(td_error) * alpha_to_use
+            # if td_error < 0, i.e. Q < y_i, then w =1; if not, w = alpha_to_use
+            ws = torch.where(td_error < 0, torch.ones_like(td_error) * 1, ws)
+        else:  # Centrally-Weighted
             inputs = {'obs': data['obs']}
             logit_detach = self._learn_model.forward(inputs, single_step=False, Q_star=False)['logit'].clone().detach()
             cur_max_actions = logit_detach.argmax(dim=-1)
             inputs = {'obs': data['obs'], 'action': cur_max_actions}
-            max_action_qtot  = self._learn_model.forward(inputs, single_step=False, Q_star=True)['total_q'] # Q_star
+            max_action_qtot = self._learn_model.forward(inputs, single_step=False, Q_star=True)['total_q']  # Q_star
             # Only if the action of each agent is optimal, then the joint action is optimal
-            is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0] # shape (H,B,N) -> (H,B)
-            qtot_larger = target_v  > max_action_qtot
-            ws = torch.ones_like(td_error) * alpha_to_use 
-            # if y_i > Q_star or u =  u_star,  then w =1; if not, w = alpha_to_use 
-            ws = torch.where(is_max_action | qtot_larger, torch.ones_like(td_error) * 1, ws)  
+            is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0]  # shape (H,B,N) -> (H,B)
+            qtot_larger = target_v > max_action_qtot
+            ws = torch.ones_like(td_error) * alpha_to_use
+            # if y_i > Q_star or u =  u_star,  then w =1; if not, w = alpha_to_use
+            ws = torch.where(is_max_action | qtot_larger, torch.ones_like(td_error) * 1, ws)
 
         if data['weight'] is None:
             data['weight'] = torch.ones_like(data['reward'])
@@ -233,8 +241,14 @@ class WQMIXPolicy(Policy):
         self._optimizer_star.zero_grad()
         loss_weighted.backward(retain_graph=True)
         loss_star.backward()
-        grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network.parameters())+list(self._model._mixer.parameters()), self._cfg.learn.clip_value) # Q
-        grad_norm = torch.nn.utils.clip_grad_norm_(list(self._model._q_network_star.parameters())+list(self._model._mixer_star.parameters()), self._cfg.learn.clip_value) # Q_star
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            list(self._model._q_network.parameters()) + list(self._model._mixer.parameters()),
+            self._cfg.learn.clip_value
+        )  # Q
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            list(self._model._q_network_star.parameters()) + list(self._model._mixer_star.parameters()),
+            self._cfg.learn.clip_value
+        )  # Q_star
         self._optimizer.step()  # Q update
         self._optimizer_star.step()  # Q_star update
 
@@ -429,7 +443,7 @@ class WQMIXPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names patorch. For WQMIX, ``ding.model.wqmix.wqmix``
         """
-        return 'wqmix', ['ding.model.template.wqmix'] 
+        return 'wqmix', ['ding.model.template.wqmix']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
