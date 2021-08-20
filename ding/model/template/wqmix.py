@@ -12,7 +12,7 @@ from .q_learning import DRQN
 class Mixer(nn.Module):
     """
     Overview:
-        mixer network for Q in WQMIX (same as Qmix's mixer network), 
+        mixer network for Q in WQMIX (same as Qmix's mixer network),
         which mix up the independent q_value of each agent to a total q_value.
     Interface:
         __init__, forward
@@ -84,7 +84,7 @@ class Mixer(nn.Module):
 class Mixer_star(nn.Module):
     """
     Overview:
-        mixer network for Q_star in WQMIX , which mix up the independent q_value of 
+        mixer network for Q_star in WQMIX , which mix up the independent q_value of
         each agent to a total q_value and is diffrent from the Qmix's mixer network,
         here the mixing network is a feedforward network with 3 hidden layers of 256 dim.
     Interface:
