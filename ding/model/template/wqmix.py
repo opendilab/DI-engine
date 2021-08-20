@@ -12,7 +12,8 @@ from .q_learning import DRQN
 class Mixer(nn.Module):
     """
     Overview:
-        mixer network for Q in WQMIX (same as Qmix's mixer network), which mix up the independent q_value of each agent to a total q_value.
+        mixer network for Q in WQMIX (same as Qmix's mixer network), 
+        which mix up the independent q_value of each agent to a total q_value.
     Interface:
         __init__, forward
     """
@@ -83,9 +84,9 @@ class Mixer(nn.Module):
 class Mixer_star(nn.Module):
     """
     Overview:
-        mixer network for Q_star in WQMIX , which mix up the independent q_value of each agent to a total q_value and is\
-        diffrent from the Qmix's mixer network, here the mixing network is a feedforward network with 3 hidden layers of\ 
-        256 dim.
+        mixer network for Q_star in WQMIX , which mix up the independent q_value of 
+        each agent to a total q_value and is diffrent from the Qmix's mixer network,
+        here the mixing network is a feedforward network with 3 hidden layers of 256 dim.
     Interface:
         __init__, forward
     """
@@ -127,13 +128,15 @@ class Mixer_star(nn.Module):
             - states (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size
             - q_tot (:obj:`torch.FloatTensor`): :math:`(B, )`
         """
-        # in below annotations about the shape of the variables, T is timestep, B is batch_size A is agent_num, N is obs_shape， for example, in 3s5z, we can set T=10, B=32, A=8, N=216
+        # in below annotations about the shape of the variables, T is timestep, 
+        # B is batch_size A is agent_num, N is obs_shape， for example, 
+        # in 3s5z, we can set T=10, B=32, A=8, N=216
         bs = agent_qs.shape[:-1]  # (T*B, A)
         states = states.reshape(-1, self.state_dim)  # T*B, N),
         agent_qs = agent_qs.reshape(-1, self.agent_num)  # (T, B, A) -> (T*B, A)
         inputs = torch.cat([states, agent_qs], dim=1)  # (T*B, N) (T*B, A)-> (T*B, N+A)
         advs = self.net(inputs)  # (T*B, 1)
-        vs = self.V(states)  #  (T*B, 1)
+        vs = self.V(states)  # (T*B, 1)
         y = advs + vs
         q_tot = y.view(*bs)  # (T*B, 1) -> (T, B)
 
