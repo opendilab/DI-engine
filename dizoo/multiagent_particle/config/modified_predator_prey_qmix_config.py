@@ -51,14 +51,12 @@ main_config = dict(
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
-        other=dict(
-            eps=dict(
-                type='exp',
-                start=1.0,
-                end=0.05,
-                decay=100000,
-            ),
-        ),
+        other=dict(eps=dict(
+            type='exp',
+            start=1.0,
+            end=0.05,
+            decay=100000,
+        ), ),
     ),
 )
 main_config = EasyDict(main_config)

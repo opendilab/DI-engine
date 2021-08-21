@@ -78,7 +78,7 @@ class Scenario(BaseScenario):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
         dist = np.sqrt(np.sum(np.square(delta_pos)))
         dist_min = agent1.size + agent2.size
-        return True if dist < dist_min*self.collision_ratio else False
+        return True if dist < dist_min * self.collision_ratio else False
 
     # return all agents that are not adversaries
     def good_agents(self, world):
@@ -177,4 +177,5 @@ class Scenario(BaseScenario):
                 prey_pos.append(other.state.p_pos)
                 prey_vel.append(other.state.p_vel)
         return np.concatenate(
-            [agent.state.p_pos] + [agent.state.p_vel] + other_pos + other_vel + prey_pos + prey_vel + entity_pos)
+            [agent.state.p_pos] + [agent.state.p_vel] + other_pos + other_vel + prey_pos + prey_vel + entity_pos
+        )

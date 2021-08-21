@@ -74,7 +74,7 @@ class ParticleEnv(BaseEnv):
                 },
             )
             rew_space['agent' + str(i)] = T(
-                (1,),
+                (1, ),
                 {
                     'min': -np.inf,
                     'max': +np.inf,
@@ -84,7 +84,7 @@ class ParticleEnv(BaseEnv):
             act = self._env.action_space[i]
             if isinstance(act, MultiDiscrete):
                 act_space['agent' + str(i)] = T(
-                    (act.shape,),
+                    (act.shape, ),
                     {
                         'min': [int(l) for l in list(act.low)],
                         'max': [int(h) for h in list(act.high)]
@@ -93,12 +93,12 @@ class ParticleEnv(BaseEnv):
             elif isinstance(act, gym.spaces.Tuple):
                 # are not used in our environment yet
                 act_space['agent' + str(i)] = T(
-                    (len(act.gym.spaces),),
+                    (len(act.gym.spaces), ),
                     {'space': act.gym.spaces},
                 )
             elif isinstance(act, gym.spaces.Discrete):
                 act_space['agent' + str(i)] = T(
-                    (1,),
+                    (1, ),
                     {
                         'min': 0,
                         'max': act.n - 1,
@@ -136,10 +136,12 @@ class ModifiedPredatorPrey(BaseEnv):
         self._n_prey = cfg.get("n_prey", 1)
         self._n_agent = self._n_predator + self._n_prey
         self._num_landmarks = cfg.get("num_landmarks", 3)
-        self._external_cfg = {'num_catch': cfg.get('num_catch', 1),
-                              'reward_right_catch': cfg.get('reward_right_catch', 1),
-                              'reward_wrong_catch': cfg.get('reward_wrong_catch', 0),
-                              'collision_ratio': cfg.get('collision_ratio', 1)}
+        self._external_cfg = {
+            'num_catch': cfg.get('num_catch', 1),
+            'reward_right_catch': cfg.get('reward_right_catch', 1),
+            'reward_wrong_catch': cfg.get('reward_wrong_catch', 0),
+            'collision_ratio': cfg.get('collision_ratio', 1)
+        }
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, self._n_prey, self._external_cfg, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
@@ -187,10 +189,12 @@ class ModifiedPredatorPrey(BaseEnv):
         ret = {}
         obs = obs[:self._n_predator]
         obs = np.array(obs).astype(np.float32)
-        ret['agent_state'] = np.concatenate([obs[:, 0:4 + (self._n_agent - 1) * 2], obs[:, -self._num_landmarks * 2:]],
-                                            1)
+        ret['agent_state'] = np.concatenate(
+            [obs[:, 0:4 + (self._n_agent - 1) * 2], obs[:, -self._num_landmarks * 2:]], 1
+        )
         ret['global_state'] = np.concatenate(
-            [obs[:, 0:4].flatten(), obs[0, -self._n_prey * 4 - self._num_landmarks * 2:]])
+            [obs[:, 0:4].flatten(), obs[0, -self._n_prey * 4 - self._num_landmarks * 2:]]
+        )
         if self.obs_alone:
             ret['agent_alone_state'] = np.concatenate([obs[:, 0:4], obs[:, -self._num_landmarks * 2:]], 1)
             ret['agent_alone_padding_state'] = np.concatenate(
@@ -235,7 +239,7 @@ class ModifiedPredatorPrey(BaseEnv):
                 obs_space=T(
                     {
                         'agent_state': (self._n_predator, self.obs_dim),
-                        'global_state': (self.global_obs_dim,),
+                        'global_state': (self.global_obs_dim, ),
                         'action_mask': (self._n_predator, self.action_dim)
                     },
                     None,
@@ -249,7 +253,7 @@ class ModifiedPredatorPrey(BaseEnv):
                     },
                 ),
                 rew_space=T(
-                    (1,),
+                    (1, ),
                     None,
                 )
             )
@@ -260,7 +264,7 @@ class ModifiedPredatorPrey(BaseEnv):
                     'agent_state': (self._n_predator, self.obs_dim),
                     'agent_alone_state': (self._n_predator, self.obs_alone_dim),
                     'agent_alone_padding_state': (self._n_predator, self.obs_dim),
-                    'global_state': (self.global_obs_dim,),
+                    'global_state': (self.global_obs_dim, ),
                     'action_mask': (self._n_predator, self.action_dim)
                 },
                 None,
@@ -274,7 +278,7 @@ class ModifiedPredatorPrey(BaseEnv):
                 },
             ),
             rew_space=T(
-                (1,),
+                (1, ),
                 None,
             )
         )
@@ -370,7 +374,8 @@ class CooperativeNavigation(BaseEnv):
         rew_n = rew_n / (self._max_step * self._n_agent)
         self._sum_reward += rew_n
         occupied_landmarks = info['n'][0][3]
-        if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent or occupied_landmarks >= self._num_landmarks:
+        if self._step_count >= self._max_step or occupied_landmarks >= self._n_agent \
+                or occupied_landmarks >= self._num_landmarks:
             done_n = True
         else:
             done_n = False
@@ -396,7 +401,7 @@ class CooperativeNavigation(BaseEnv):
                     },
                 ),
                 rew_space=T(
-                    (1,),
+                    (1, ),
                     None,
                 )
             )
@@ -407,7 +412,7 @@ class CooperativeNavigation(BaseEnv):
                     'agent_state': (self._n_agent, self.obs_dim),
                     'agent_alone_state': (self._n_agent, self.obs_alone_dim),
                     'agent_alone_padding_state': (self._n_agent, self.obs_dim),
-                    'global_state': (self.global_obs_dim,),
+                    'global_state': (self.global_obs_dim, ),
                     'action_mask': (self._n_agent, self.action_dim)
                 },
                 None,
@@ -421,7 +426,7 @@ class CooperativeNavigation(BaseEnv):
                 },
             ),
             rew_space=T(
-                (1,),
+                (1, ),
                 None,
             )
         )

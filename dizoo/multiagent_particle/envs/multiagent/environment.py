@@ -195,7 +195,7 @@ class MultiAgentEnv(gym.Env):
                     action[0][:] = [0.0 for _ in action[0]]
                     action[0][d] = 1.0
                 # print("is discrete action space", self.discrete_action_space)
-                if self.discrete_action_space:  #discrete_action_space is always true
+                if self.discrete_action_space:  # discrete_action_space is always true
                     # print("action = ", action[0])
                     if any(np.isnan(action[0])):
                         raise ValueError
@@ -281,7 +281,6 @@ class MultiAgentEnv(gym.Env):
 
         results = []
         for i in range(len(self.viewers)):
-            from dizoo.multiagent_particle.envs.multiagent import rendering
             # update bounds to center around agent
             cam_range = 1
             if self.shared_viewer:
