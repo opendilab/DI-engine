@@ -138,7 +138,8 @@ class ModifiedPredatorPrey(BaseEnv):
         self._num_landmarks = cfg.get("num_landmarks", 3)
         self._external_cfg = {'num_catch': cfg.get('num_catch', 1),
                               'reward_right_catch': cfg.get('reward_right_catch', 1),
-                              'reward_wrong_catch': cfg.get('reward_wrong_catch', 0)}
+                              'reward_wrong_catch': cfg.get('reward_wrong_catch', 0),
+                              'collision_ratio': cfg.get('collision_ratio', 1)}
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, self._n_prey, self._external_cfg, True)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)

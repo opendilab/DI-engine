@@ -20,6 +20,7 @@ class Scenario(BaseScenario):
         self.num_catch = cfg.num_catch
         self.reward_right_catch = cfg.reward_right_catch
         self.reward_wrong_catch = cfg.reward_wrong_catch
+        self.collision_ratio = cfg.collision_ratio
         # add agents
         world.agents = [Agent() for i in range(num_agents)]
         for i, agent in enumerate(world.agents):
@@ -77,7 +78,7 @@ class Scenario(BaseScenario):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
         dist = np.sqrt(np.sum(np.square(delta_pos)))
         dist_min = agent1.size + agent2.size
-        return True if dist < dist_min else False
+        return True if dist < dist_min*self.collision_ratio else False
 
     # return all agents that are not adversaries
     def good_agents(self, world):
