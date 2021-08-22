@@ -18,7 +18,8 @@ minigrid_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
-        continuous=False, 
+        continuous=False,
+        on_policy=False, 
         cuda=True,
         model=dict(
             obs_shape=2739,
