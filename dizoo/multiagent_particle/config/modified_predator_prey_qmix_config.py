@@ -70,6 +70,9 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+modified_predator_prey_qmix_config = main_config
+modified_predator_prey_qmix_create_config = create_config
+
 
 def train(args):
     config = [main_config, create_config]

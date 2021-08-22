@@ -58,6 +58,9 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+cooperative_navigation_qmix_config = main_config
+cooperative_navigation_qmix_create_config = create_config
+
 
 def train(args):
     config = [main_config, create_config]

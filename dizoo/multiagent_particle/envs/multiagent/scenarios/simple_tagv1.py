@@ -94,30 +94,7 @@ class Scenario(BaseScenario):
         return main_reward
 
     def agent_reward(self, agent, world):
-        # Agents are negatively rewarded if caught by adversaries
         rew = 0
-        # shape = False
-        # adversaries = self.adversaries(world)
-        # if shape:  # reward can optionally be shaped (increased reward for increased distance from adversary)
-        #     for adv in adversaries:
-        #         rew += 0.1 * np.sqrt(np.sum(np.square(agent.state.p_pos - adv.state.p_pos)))
-        # if agent.collide:
-        #     for a in adversaries:
-        #         if self.is_collision(a, agent):
-        #             rew -= 10
-        #
-        # # agents are penalized for exiting the screen, so that they can be caught by the adversaries
-        # def bound(x):
-        #     if x < 0.9:
-        #         return 0
-        #     if x < 1.0:
-        #         return (x - 0.9) * 10
-        #     return min(np.exp(2 * x - 2), 10)
-        #
-        # for p in range(world.dim_p):
-        #     x = abs(agent.state.p_pos[p])
-        #     rew -= bound(x)
-
         return rew
 
     def adversary_reward(self, agent, world):
@@ -139,18 +116,6 @@ class Scenario(BaseScenario):
                     rew += self.reward_right_catch * catch
                 elif catch > 0:
                     rew += self.reward_wrong_catch
-
-        # # agents are penalized for exiting the screen, so that they can be caught by the adversaries
-        # def bound(x):
-        #     if x < 0.9:
-        #         return 0
-        #     if x < 1.0:
-        #         return (x - 0.9) * 10
-        #     return min(np.exp(2 * x - 2), 10)
-        #
-        # for p in range(world.dim_p):
-        #     x = abs(agent.state.p_pos[p])
-        #     rew -= bound(x)
         return rew
 
     def observation(self, agent, world):
