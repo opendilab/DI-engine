@@ -9,8 +9,10 @@ Hands on RL
     c51_qrdqn_iqn
     rainbow
     sqn
+    sqil
 
     a2c
+    acer
     ppo
     ppg
     impala

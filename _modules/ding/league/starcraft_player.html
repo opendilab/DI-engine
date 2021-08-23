@@ -159,7 +159,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.league.starcraft_player</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PLAYER_REGISTRY</span>
@@ -266,7 +266,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            MainPlayer does not mutate</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 
 
 <div class="viewcode-block" id="MainExploiter"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.MainExploiter">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;main_exploiter&#39;</span><span class="p">)</span>
@@ -329,9 +329,9 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Main exploiter is sure to mutate(reset) to the supervised learning player</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - mutate_ckpt_path (:obj:`str`): mutation target checkpoint path</span>
+<span class="sd">            - ckpt_path (:obj:`str`): the pretrained model&#39;s ckpt path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;reset_checkpoint_path&#39;</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;pretrain_checkpoint_path&#39;</span><span class="p">]</span></div></div>
 
 
 <div class="viewcode-block" id="LeagueExploiter"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.LeagueExploiter">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;league_exploiter&#39;</span><span class="p">)</span>
@@ -381,17 +381,17 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">is_trained_enough</span><span class="p">(</span><span class="n">select_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">HistoricalPlayer</span><span class="p">))</span></div>
 
     <span class="c1"># override</span>
-<div class="viewcode-block" id="LeagueExploiter.mutate"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.LeagueExploiter.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<div class="viewcode-block" id="LeagueExploiter.mutate"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.LeagueExploiter.mutate">[docs]</a>    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            League exploiter can mutate to the supervised learning player with 0.25 prob</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - ckpt_path (:obj:`Union[str, None]`): with ``mutate_prob`` prob returns the pretrained model&#39;s ckpt path, \</span>
+<span class="sd">            - ckpt_path (:obj:`str`): with ``mutate_prob`` prob returns the pretrained model&#39;s ckpt path, \</span>
 <span class="sd">                with left 1 - ``mutate_prob`` prob returns None, which means no mutation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_prob</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;reset_checkpoint_path&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;pretrain_checkpoint_path&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="kc">None</span></div></div>
 </pre></div>
 
