@@ -1,16 +1,16 @@
-from multiprocessing.dummy import Value
 import time
 import numpy as np
-import pickle
 import multiprocessing as mp
 from ding.torch_utils.data_helper import to_list, to_ndarray
 from multiprocessing import Process, Manager, Pipe, connection, get_context, Array, Lock, RawArray
 import ctypes
-import pyarrow
 import pyarrow.plasma as plasma
-import mmap
-import contextlib
+from ding.utils.import_helper import try_import_pyarrow,try_import_pickle
 
+
+
+pickle = try_import_pickle()
+pyarrow = try_import_pyarrow()
 
 def bold(x):
     return '\033[1m' + str(x) + '\033[0m'
@@ -111,152 +111,119 @@ class Tock():
 
 class MultiprocessingPickle:
 
-    def __init__(self, data, cpu_count, mode='dump') -> None:
+    def __init__(self, data, shape, cpu_count, mode='dump', byte_length = -1) -> None:
         self.data = data
+        self.shape = shape
         self.cpu_count = cpu_count
         self.mode = mode
-        self.dump = []
-        self.load = []
-        if self.mode == 'dump':
-            self.pack()
-        if self.mode == 'load':
-            self.unpack()
+        self.byte_length = byte_length
 
-    def job_serialized(self, i, buffer):
+        
 
+    def job_serialized(self, i, buffer, byte_length):
         serialized_x = pickle.dumps(self.arr[i], protocol=pickle.HIGHEST_PROTOCOL)
-        # with buffer.get_lock():
-        #     print(i)
-        #     print(self.arr[i])
-        #     serialized_x = pickle.dumps(self.arr[i], protocol=pickle.HIGHEST_PROTOCOL)
-        #     print(serialized_x)
-        #     print(type(serialized_x))
-        #     buffer[i] = serialized_x
+        buffer[i*byte_length:(i+1)*byte_length] = serialized_x[:]
 
-        if i == 0:
-            buffer[i] = b'4'
-        elif i == 1:
-            buffer[i] = serialized_x[0]
-        elif i == 2:
-            buffer[i] = b'3'
-        elif i == 3:
-            buffer[i] = b'5'
-        elif i == 4:
-            buffer[i] = serialized_x[1]
-        elif i == 5:
-            buffer[i] = serialized_x[2]
 
-        #     buffer[i*16800153:(i+1)*16800153] = serialized_x[:]
-        #     print(buffer[i*16800153:(i+1)*16800153])
-        # for j in range(i*16800153,(i+1)*16800153):
-        #     #print(j)
-        #     #arr[j] = serialized_x[j-i*16800153]
-        #     buffer[j] = serialized_x[j-i*16800153]
-        # print(type(serialized_x))
-        # print(len(serialized_x))
-        #print(arr[i*16800153:(i+1)*16800153])
-
-        # print(dir(buffer))
-        # print(len(buffer))
-        # print('-----')
-
-    def job_deserialized(self, i, return_list):
-        deserialized_x = pickle.loads(self.data[i])
-        return_list = deserialized_x
+    def job_deserialized(self, i, buffer, byte_length,split_length):
+        deserialized_x = pickle.loads(self.data[i*byte_length:(i+1)*byte_length])
+        buffer[i*split_length:(i+1)*split_length] = deserialized_x[:]
 
     def pack(self):
+
         self.data = self.data.reshape(-1)
         self.arr = to_ndarray(np.array_split(self.data, self.cpu_count))
         processes = []
 
-        buffer = Array(ctypes.c_char, 6)
-        #print(buffer.value)
-        print(buffer[:])
-
-        for i in range(self.cpu_count):
-            p = mp.Process(target=self.job_serialized, args=(i, buffer))
+        #get byte_length
+        if self.byte_length == -1:
+            serialized_x_0 = pickle.dumps(self.arr[0], protocol=pickle.HIGHEST_PROTOCOL)
+            self.byte_length = len(serialized_x_0)
+            buffer = Array(ctypes.c_char, self.cpu_count*self.byte_length)
+            buffer[:self.byte_length] = serialized_x_0[:]
+            start = 1
+            end = self.cpu_count
+        else:
+            buffer = Array(ctypes.c_char, self.cpu_count*self.byte_length)
+            start = 0
+            end = self.cpu_count
+    
+        for i in range(start,end):
+            p = mp.Process(target=self.job_serialized, args=(i,buffer, self.byte_length))
             p.start()
             processes.append(p)
         for precess in processes:
             precess.join()
-        print('---')
-        print(buffer[:])
-        #print(buffer.value)
-        exit()
+        return buffer[:], self.byte_length
 
     def unpack(self):
         processes = []
-        buffer = mp.Array(ctypes.c_double, 252000000)
-        return_arr = np.frombuffer(buffer.get_obj(), dtype=ctypes.c_double).reshape((6, 42000000))
-
+        buffer = mp.Array(ctypes.c_double, int(np.prod(self.shape)))
+        assert self.byte_length != -1
+        split_length = int(np.prod(self.shape)/self.cpu_count)
         for i in range(self.cpu_count):
-            p = mp.Process(
-                target=self.job_deserialized, args=(
-                    i,
-                    return_arr,
-                )
-            )
+            p = mp.Process(target=self.job_deserialized, args=(i,buffer,self.byte_length,split_length))
             p.start()
             processes.append(p)
         for precess in processes:
             precess.join()
-        self.load = return_arr
+        return buffer[:]
 
 
 class MultiprocessingPyarrow:
-
-    def __init__(self, data, cpu_count, mode='dump') -> None:
+    def __init__(self, data, shape, cpu_count, mode='dump', byte_length = -1) -> None:
         self.data = data
+        self.shape = shape
         self.cpu_count = cpu_count
         self.mode = mode
-        self.dump = []
-        self.load = []
-        if self.mode == 'dump':
-            self.pack()
-        if self.mode == 'load':
-            self.unpack()
+        self.byte_length = byte_length
+        
 
-    def job_serialized(self, i, return_list):
+    def job_serialized(self, i, buffer, byte_length):
         serialized_x = pyarrow.serialize(self.arr[i]).to_buffer()
-        return_list[i] = serialized_x
+        buffer[i*byte_length:(i+1)*byte_length] = serialized_x[:]
 
-    def job_deserialized(self, i, return_list):
-        deserialized_x = pyarrow.deserialize(self.data[i])
-        return_list[i] = deserialized_x
+
+    def job_deserialized(self, i, buffer, byte_length,split_length):
+        deserialized_x = pyarrow.deserialize(self.data[i*byte_length:(i+1)*byte_length])
+        buffer[i*split_length:(i+1)*split_length] = deserialized_x[:]
 
     def pack(self):
+
         self.data = self.data.reshape(-1)
         self.arr = to_ndarray(np.array_split(self.data, self.cpu_count))
         processes = []
-        manager = Manager()
-        return_list = manager.list([0] * self.cpu_count)
-        for i in range(self.cpu_count):
-            p = mp.Process(
-                target=self.job_serialized, args=(
-                    i,
-                    return_list,
-                )
-            )
+
+        #get byte_length
+        if self.byte_length == -1:
+            serialized_x_0 = pyarrow.serialize(self.arr[0]).to_buffer()
+            self.byte_length = len(serialized_x_0)
+            buffer = Array(ctypes.c_char, self.cpu_count*self.byte_length)
+            buffer[:self.byte_length] = serialized_x_0[:]
+            start = 1
+            end = self.cpu_count
+        else:
+            buffer = Array(ctypes.c_char, self.cpu_count*self.byte_length)
+            start = 0
+            end = self.cpu_count
+            
+        for i in range(start,end):
+            p = mp.Process(target=self.job_serialized, args=(i,buffer, self.byte_length))
             p.start()
             processes.append(p)
         for precess in processes:
             precess.join()
-        self.dump = return_list
-        print(self.dump)
+        return buffer[:], self.byte_length
 
     def unpack(self):
         processes = []
-        manager = Manager()
-        return_list = manager.list([0] * self.cpu_count)
+        buffer = mp.Array(ctypes.c_double, int(np.prod(self.shape)))
+        assert self.byte_length != -1
+        split_length = int(np.prod(self.shape)/self.cpu_count)
         for i in range(self.cpu_count):
-            p = mp.Process(
-                target=self.job_deserialized, args=(
-                    i,
-                    return_list,
-                )
-            )
+            p = mp.Process(target=self.job_deserialized, args=(i,buffer,self.byte_length,split_length))
             p.start()
             processes.append(p)
         for precess in processes:
             precess.join()
-        self.load = return_list
+        return buffer[:]

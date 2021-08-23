@@ -3,6 +3,7 @@ from typing import List
 
 import ding
 from .default_helper import one_time_warning
+import sys
 
 
 def try_import_ceph():
@@ -105,3 +106,24 @@ def import_module(modules: List[str]) -> None:
     """
     for name in modules:
         importlib.import_module(name)
+
+
+def try_import_pyarrow():
+    try:
+        # if pyarrow is installed, DI-engine will use pyarrow to serialize/deserialize objects.
+        import pyarrow
+    except ImportError:
+        pyarrow = None
+        # if pyarrow is not installed, parl will use pickle/pickle5 to serialize/deserialize objects.
+    return pyarrow
+
+
+def try_import_pickle():
+    try:
+        import pickle5 as pickle
+        assert sys.version_info > (3,8)
+    except ModuleNotFoundError as e:
+        import pickle
+        assert sys.version_info < (3,8)
+    return pickle
+    
