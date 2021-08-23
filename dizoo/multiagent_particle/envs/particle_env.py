@@ -142,7 +142,7 @@ class ModifiedPredatorPrey(BaseEnv):
             'reward_wrong_catch': cfg.get('reward_wrong_catch', 0),
             'collision_ratio': cfg.get('collision_ratio', 1)
         }
-        self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, self._n_prey, self._external_cfg, True)
+        self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True, self._n_prey, self._external_cfg)
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
         self.obs_alone = cfg.get('obs_alone', False)
