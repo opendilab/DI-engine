@@ -1,8 +1,9 @@
 import os
-
+import json
+from typing import Tuple
 from easydict import EasyDict
-
 from ding.interaction.base import split_http_address
+from .default_helper import one_time_warning
 
 DEFAULT_NAMESPACE = 'default'
 DEFAULT_POD_NAME = 'dijob-example-coordinator'
@@ -46,3 +47,45 @@ def get_operator_server_kwargs(cfg: EasyDict) -> dict:
 
 def exist_operator_server() -> bool:
     return 'KUBERNETES_SERVER_URL' in os.environ
+
+
+def pod_exec_command(kubeconfig: str, name: str, namespace: str, cmd: str) -> Tuple[int, str]:
+    try:
+        from kubernetes import config
+        from kubernetes.client import CoreV1Api
+        from kubernetes.client.rest import ApiException
+        from kubernetes.stream import stream
+    except ModuleNotFoundError as e:
+        one_time_warning("You have not installed kubernetes package! Please try 'pip install DI-engine[k8s]'.")
+        exit(-1)
+
+    config.load_kube_config(config_file=kubeconfig)
+    core_v1 = CoreV1Api()
+    resp = None
+    try:
+        resp = core_v1.read_namespaced_pod(name=name, namespace=namespace)
+    except ApiException as e:
+        if e.status != 404:
+            return -1, "Unknown error: %s" % e
+    if not resp:
+        return -1, f"Pod {name} does not exist."
+    if resp.status.phase != 'Running':
+        return -1, f"Pod {name} is not in Running."
+    exec_command = ['/bin/sh', '-c', cmd]
+    resp = stream(
+        core_v1.connect_get_namespaced_pod_exec,
+        name,
+        namespace,
+        command=exec_command,
+        stderr=False,
+        stdin=False,
+        stdout=True,
+        tty=False
+    )
+    resp = resp.replace("\'", "\"") \
+        .replace('None', 'null') \
+        .replace(': False', ': 0') \
+        .replace(': True', ': 1') \
+        .replace('"^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$"', '\\"^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$\\"')
+    resp = json.loads(resp)
+    return resp['code'], resp['message']

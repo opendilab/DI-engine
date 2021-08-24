@@ -122,6 +122,9 @@ setup(
             'whichcraft',
             'joblib',
         ],
+        'k8s': [
+            'kubernetes',
+        ]
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
     classifiers=[
