@@ -1,9 +1,13 @@
 import pytest
 import time
 import os
+import torch
 from copy import deepcopy
 
 from ding.entry import serial_pipeline
+from ding.entry.serial_entry_sqil import serial_pipeline_sqil
+from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
+from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
@@ -297,3 +301,20 @@ def test_league():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("24. league\n")
+
+
+@pytest.mark.algotest
+def test_sqil():
+    expert_policy_state_dict_path = './expert_policy.pth'
+    config = [deepcopy(cartpole_sql_config), deepcopy(cartpole_sql_create_config)]
+    expert_policy = serial_pipeline(config, seed=0)
+    torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
+
+    config = [deepcopy(cartpole_sqil_config), deepcopy(cartpole_sqil_create_config)]
+    config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
+    try:
+        serial_pipeline_sqil(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("25. sqil\n")
