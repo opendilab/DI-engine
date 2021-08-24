@@ -7,7 +7,7 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
+from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -78,7 +78,9 @@ class Policy(ABC):
                     torch.cuda.set_device(self._rank)
                     model.cuda()
                 if self._cfg.learn.multi_gpu:
-                    self._init_multi_gpu_setting(model)
+                    bp_update_sync = self._cfg.learn.get('bp_update_sync', True)
+                    self._bp_update_sync = bp_update_sync
+                    self._init_multi_gpu_setting(model, bp_update_sync)
             else:
                 self._rank = 0
                 if self._cuda:
@@ -94,12 +96,24 @@ class Policy(ABC):
         for field in self._enable_field:
             getattr(self, '_init_' + field)()
 
-    def _init_multi_gpu_setting(self, model: torch.nn.Module) -> None:
+    def _init_multi_gpu_setting(self, model: torch.nn.Module, bp_update_sync: bool) -> None:
         for name, param in model.state_dict().items():
             assert isinstance(param.data, torch.Tensor), type(param.data)
             broadcast(param.data, 0)
         for name, param in model.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
+        if not bp_update_sync:
+
+            def make_hook(name, p):
+                def hook(*ignore):
+                    allreduce_async(name, p.grad.data)
+                return hook
+
+            for i, (name, p) in enumerate(model.named_parameters()):
+                if p.requires_grad:
+                    p_tmp = p.expand_as(p)
+                    grad_acc = p_tmp.grad_fn.next_functions[0][0]
+                    grad_acc.register_hook(make_hook(name, p))
 
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         if model is None:
@@ -183,9 +197,12 @@ class Policy(ABC):
         return "DI-engine DRL Policy\n{}".format(repr(self._model))
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                allreduce(param.grad.data)
+        if self._bp_update_sync:
+            for name, param in model.named_parameters():
+                if param.requires_grad:
+                    allreduce(param.grad.data)
+        else:
+            synchronize()
 
     # don't need to implement default_model method by force
     def default_model(self) -> Tuple[str, List[str]]:

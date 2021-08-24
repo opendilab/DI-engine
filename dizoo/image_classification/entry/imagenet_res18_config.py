@@ -6,6 +6,7 @@ imagenet_res18_config = dict(
         cuda=True,
         learn=dict(
             multi_gpu=True,
+            bp_update_sync=False,
             train_epoch=200,
             batch_size=32,
             learning_rate=0.01,

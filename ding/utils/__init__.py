@@ -24,7 +24,7 @@ from .type_helper import SequenceType
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
-        allreduce, broadcast, DistContext
+        allreduce, broadcast, DistContext, allreduce_async, synchronize
 else:
     from .pytorch_ddp_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
-        allreduce, broadcast, DistContext
+        allreduce, broadcast, DistContext, allreduce_async, synchronize

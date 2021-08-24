@@ -89,8 +89,8 @@ def main(cfg: dict, seed: int) -> None:
         eval_sampler = torch.utils.data.distributed.DistributedSampler(eval_dataset)
     else:
         learn_sampler, eval_sampler = None, None
-    learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler)
-    eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler)
+    learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler, num_workers=3)
+    eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler, num_workers=3)
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
