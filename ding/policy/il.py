@@ -120,7 +120,7 @@ class ILPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect model.
+            Init traj and unroll length, collect model.
         """
         self._collect_model = model_wrap(FootballKaggle5thPlaceModel(), wrapper_name='base')
         self._gamma = self._cfg.collect.discount_factor

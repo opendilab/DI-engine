@@ -63,10 +63,8 @@ def serial_pipeline_sqil(
     expert_collector_env.seed(cfg.seed)
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    #expert_model = DQN(**cfg.policy.model)
     expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['collect'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    #model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(
         torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')

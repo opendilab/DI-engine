@@ -58,7 +58,7 @@ space_invaders_ppo_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(space_invaders_ppo_create_config)
 
