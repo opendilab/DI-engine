@@ -346,7 +346,7 @@ def compile_config(
         if 'collector' not in create_cfg:
             create_cfg.collector = EasyDict(dict(type='sample'))
         if 'replay_buffer' not in create_cfg:
-            create_cfg.replay_buffer = EasyDict(dict(type='priority'))
+            create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
         if env is None:
             env = get_env_cls(create_cfg.env)
         if env_manager is None:
@@ -451,7 +451,7 @@ def compile_config_parallel(
     """
     # for compatibility
     if 'replay_buffer' not in create_cfg:
-        create_cfg.replay_buffer = EasyDict(dict(type='priority'))
+        create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
     # env
     env = get_env_cls(create_cfg.env)
     if 'default_config' in dir(env):

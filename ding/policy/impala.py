@@ -84,13 +84,11 @@ class IMPALAPolicy(Policy):
             discount_factor=0.9,
             gae_lambda=0.95,
             collector=dict(
-                type='sample',
                 collect_print_freq=1000,
             ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            type='priority',
             replay_buffer_size=1000,
             max_use=16,
         ), ),
