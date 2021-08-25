@@ -312,7 +312,7 @@
     <span class="n">config_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">yapf.yapflib.yapf_api</span> <span class="kn">import</span> <span class="n">FormatCode</span>
     <span class="n">config_string</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">FormatCode</span><span class="p">(</span><span class="n">config_string</span><span class="p">)</span>
-    <span class="n">config_string</span> <span class="o">=</span> <span class="n">config_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">,</span> <span class="s1">&#39;float(&quot;inf&quot;)&#39;</span><span class="p">)</span>
+    <span class="n">config_string</span> <span class="o">=</span> <span class="n">config_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;inf,&#39;</span><span class="p">,</span> <span class="s1">&#39;float(&quot;inf&quot;),&#39;</span><span class="p">)</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;exp_config = &#39;</span> <span class="o">+</span> <span class="n">config_string</span><span class="p">)</span></div>
 

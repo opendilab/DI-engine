@@ -358,17 +358,40 @@ called by the <code class="docutils literal notranslate"><span class="pre">epsil
 </div>
 <div class="section" id="visualization-logging">
 <h3>Visualization &amp; Logging<a class="headerlink" href="#visualization-logging" title="Permalink to this headline">¶</a></h3>
-<p>Some environments have a rendering surface or visualization. DI-engine adds a switch to save these replays.
-After training, users need to indicate <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.load_path</span></code> in config,
+<p>Some environments have a rendering surface or visualization. DI-engine doesn’t use render interface but add a switch to save these replays.
+After training, users need to indicate <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.hook.load_ckpt_before_run</span></code> in config,
 and add the next lines after training converge. If everything is working fine, you can find some videos with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in the replay_path(some GUI interfaces are normal).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span> <span class="o">=</span> <span class="s1">&#39;./video&#39;</span>
-<span class="n">evaluator_env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span><span class="p">)</span>
+<span class="n">evaluator_env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span><span class="p">)</span>  <span class="c1"># switch save replay interface</span>
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">BaseSerialEvaluator</span><span class="p">(</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
 <span class="p">)</span>
 <span class="n">evaluator</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Two corresponding fields <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.hook.load_ckpt_before_run</span></code> is shown as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;your_replay_save_dir_path&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="o">...</span><span class="p">,</span>
+            <span class="n">learner</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                 <span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                     <span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;your_ckpt_path&#39;</span><span class="p">,</span>
+                 <span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="o">...</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>

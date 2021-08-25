@@ -218,19 +218,44 @@ called by the ``epsilon_greedy`` function each step. And you can select your own
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some environments have a rendering surface or visualization. DI-engine adds a switch to save these replays.
-After training, users need to indicate ``env.replay_path`` and ``policy.learn.learner.load_path`` in config,
+Some environments have a rendering surface or visualization. DI-engine doesn't use render interface but add a switch to save these replays.
+After training, users need to indicate ``env.replay_path`` and ``policy.learn.learner.hook.load_ckpt_before_run`` in config,
 and add the next lines after training converge. If everything is working fine, you can find some videos with ``.mp4`` suffix in the replay_path(some GUI interfaces are normal).
+
 
 .. code-block:: python
 
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     cfg.env.replay_path = './video'
-    evaluator_env.enable_save_replay(cfg.env.replay_path)
+    evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
     evaluator = BaseSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+
+.. note::
+  
+  Two corresponding fields ``env.replay_path`` and ``policy.learn.learner.hook.load_ckpt_before_run`` is shown as follows:
+
+  .. code-block:: python
+  
+    config = dict(
+        env=dict(
+            replay_path='your_replay_save_dir_path',
+        ),
+        policy=dict(
+            ...,
+            learn=dict(
+                ...,
+                learner=dict(
+                     hook=dict(
+                         load_ckpt_before_run='your_ckpt_path',
+                     )
+                ),
+            ),
+            ...,
+        ),
+    )
 
 .. tip::
 
