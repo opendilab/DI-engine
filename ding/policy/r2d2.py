@@ -176,24 +176,25 @@ class R2D2Policy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
-        assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
+        # assert len(data['obs']) == 2 * self._nstep + self._burnin_step, data['obs'].shape  # todo: why 2*a+b
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._nstep)])
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len-self._nstep)])
         ignore_done = self._cfg.learn.ignore_done
+
         if ignore_done:
-            data['done'] = [None for _ in range(self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len-self._nstep)]
         else:
-            data['done'] = data['done'][bs:bs + self._nstep].float()
-        data['action'] = data['action'][bs:bs + self._nstep]
-        data['reward'] = data['reward'][bs:]
-        # split obs into three parts ['burnin_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
-        data['burnin_obs'] = data['obs'][:bs]
-        data['main_obs'] = data['obs'][bs:bs + self._nstep]
+            data['done'] = data['done'][bs:self._unroll_len-self._nstep].float()
+
+        data['action'] = data['action'][bs:self._unroll_len-self._nstep]
+        data['reward'] = data['reward'][bs:self._unroll_len-self._nstep]
+
+        data['burnin_obs'] = data['obs'][:bs]     
+        data['main_obs'] = data['obs'][bs:self._unroll_len-self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
-        if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._nstep)]
-        else:
-            data['value_gamma'] = data['value_gamma'][bs:bs + self._nstep]
+
+        data['value_gamma'] = [None for _ in range(self._unroll_len-self._nstep)]
+
         return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -215,8 +216,10 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
-        self._target_model.reset(data_id=None, state=data['prev_state'][0])
+        # self._learn_model.reset(data_id=None, state=data['prev_state'][0])
+        # self._target_model.reset(data_id=None, state=data['prev_state'][0])
+        self._learn_model.reset()
+        self._target_model.reset()
         if len(data['burnin_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_obs'], 'enable_fast_timestep': True}
@@ -235,7 +238,8 @@ class R2D2Policy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        for t in range(self._nstep):
+        # for t in range(self._nstep):
+        for t in range(self._unroll_len- self._burnin_step-self._nstep):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
@@ -284,7 +288,8 @@ class R2D2Policy(Policy):
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._unroll_len = self._burnin_step + 2 * self._nstep
+        self._unroll_len = self._cfg.unroll_len + self._cfg.burnin_step # TODO
+
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
