@@ -8,7 +8,19 @@ from queue import Queue
 import numpy as np
 import torch
 
+def one_hot_embedding(labels, num_classes):
+    """Embedding labels to one-hot form.
 
+    Args:
+      labels: (LongTensor) class labels, sized [N,].
+      num_classes: (int) number of classes.
+
+    Returns:
+      (tensor) encoded labels, sized [N, #classes].
+    """
+    y = torch.eye(num_classes) 
+    return y[labels] 
+    
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     r"""
     Overview:
@@ -368,3 +380,5 @@ def get_tensor_data(data: Any) -> Any:
         return {k: get_tensor_data(v) for k, v in data.items()}
     else:
         raise TypeError("not support type in get_tensor_data: {}".format(type(data)))
+
+
