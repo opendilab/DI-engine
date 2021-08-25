@@ -91,7 +91,7 @@ def serial_pipeline_reward_model(
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
-        collect_kwargs = commander.step()
+        collect_kwargs = commander.step() # {'eps': 0.95}
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -105,8 +105,8 @@ def serial_pipeline_reward_model(
             reward_model.collect_data(new_data)
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
-        reward_model.train()
-        reward_model.clear_data()
+        # reward_model.train() # pu TODO
+        # reward_model.clear_data() # pu TODO
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -119,7 +119,7 @@ def serial_pipeline_reward_model(
                 )
                 break
             # update train_data reward
-            reward_model.estimate(train_data)
+            # reward_model.estimate(train_data) # pu TODO
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)

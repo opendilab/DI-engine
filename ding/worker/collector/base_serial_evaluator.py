@@ -194,7 +194,9 @@ class BaseSerialEvaluator(object):
             while not eval_monitor.is_finished():
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
-                policy_output = self._policy.forward(obs)
+                beta_index = {i: 0*i for i in range(5)}
+                beta_index= to_tensor(beta_index, dtype=torch.int64)
+                policy_output = self._policy.forward(obs,beta_index)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)

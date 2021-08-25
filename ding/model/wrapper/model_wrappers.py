@@ -240,6 +240,44 @@ class EpsGreedySampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+class EpsGreedySampleNGUWrapper(IModelWrapper):
+    r"""
+    Overview:
+        eps is a dict n_env
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        kwargs.pop('eps')
+        eps ={i: 0.4 ** ( 1 + 8*i/(8-1)) for i in range(8)} # TODO
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps[i]:
+                action.append(l.argmax(dim=-1))
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output['action'] = action
+        return output
 
 class ActionNoiseWrapper(IModelWrapper):
     r"""
@@ -375,7 +413,8 @@ wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
-    'eps_greedy_sample': EpsGreedySampleWrapper,
+    'eps_greedy_sample': EpsGreedySampleWrapper, 
+    'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
     # model wrapper

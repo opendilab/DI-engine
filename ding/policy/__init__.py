@@ -10,6 +10,7 @@ from .a2c import A2CPolicy
 from .ppo import PPOPolicy
 from .sac import SACPolicy
 from .impala import IMPALAPolicy
+from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
 from .ppg import PPGPolicy
 from .sqn import SQNPolicy

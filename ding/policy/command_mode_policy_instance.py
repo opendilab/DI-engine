@@ -13,6 +13,7 @@ from .ppo import PPOPolicy, PPOOffPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
+from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .sac import SACPolicy
@@ -174,4 +175,9 @@ class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('qtran_command')
 class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ngu_command')
+class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
     pass
