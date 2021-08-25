@@ -10,7 +10,7 @@ from ding.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
 
-@BUFFER_REGISTRY.register('priority')
+@BUFFER_REGISTRY.register('advanced')
 class AdvancedReplayBuffer(IBuffer):
     r"""
     Overview:
