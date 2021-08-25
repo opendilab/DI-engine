@@ -105,8 +105,10 @@ class Policy(ABC):
         if not bp_update_sync:
 
             def make_hook(name, p):
+
                 def hook(*ignore):
                     allreduce_async(name, p.grad.data)
+
                 return hook
 
             for i, (name, p) in enumerate(model.named_parameters()):
