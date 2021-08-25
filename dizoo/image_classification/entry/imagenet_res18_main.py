@@ -10,7 +10,7 @@ from ding.config import read_config, compile_config
 from ding.torch_utils import resnet18
 from ding.utils import set_pkg_seed, get_rank, dist_init
 from dizoo.image_classification.policy import ImageClassificationPolicy
-from dizoo.image_classification.data import ImageNetDataset
+from dizoo.image_classification.data import ImageNetDataset, DistributedSampler
 from dizoo.image_classification.entry.imagenet_res18_config import imagenet_res18_config
 
 
@@ -85,8 +85,8 @@ def main(cfg: dict, seed: int) -> None:
     learn_dataset = ImageNetDataset(cfg.policy.collect.learn_data_path, is_training=True)
     eval_dataset = ImageNetDataset(cfg.policy.collect.eval_data_path, is_training=False)
     if cfg.policy.learn.multi_gpu:
-        learn_sampler = torch.utils.data.distributed.DistributedSampler(learn_dataset)
-        eval_sampler = torch.utils.data.distributed.DistributedSampler(eval_dataset)
+        learn_sampler = DistributedSampler(learn_dataset)
+        eval_sampler = DistributedSampler(eval_dataset)
     else:
         learn_sampler, eval_sampler = None, None
     learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler, num_workers=3)

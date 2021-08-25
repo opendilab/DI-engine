@@ -412,7 +412,10 @@ def compile_config(
         cfg.exp_name = 'default_experiment'
     if save_cfg:
         if not os.path.exists(cfg.exp_name):
-            os.mkdir(cfg.exp_name)
+            try:
+                os.mkdir(cfg.exp_name)
+            except FileExistsError:
+                pass
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg

@@ -189,4 +189,4 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
 
 
 def synchronize():
-    link.synchronize()
+    get_link().synchronize()
