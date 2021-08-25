@@ -390,13 +390,13 @@ def compile_config(
         learner.default_config(),
         policy_config.learn.learner,
     )
-    if collector is not None:
+    if create_cfg is not None or collector is not None:
         policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
     policy_config.eval.evaluator = deep_merge_dicts(
         evaluator.default_config(),
         policy_config.eval.evaluator,
     )
-    if buffer is not None:
+    if create_cfg is not None or buffer is not None:
         policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     if len(reward_model_config) > 0:
