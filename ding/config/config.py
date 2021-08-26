@@ -304,7 +304,7 @@ env_config_template = EasyDict(env_config_template)
 
 def compile_config(
         cfg: EasyDict,
-        env_manager: type = BaseEnvManager,
+        env_manager: type = None,
         policy: type = None,
         learner: type = BaseLearner,
         collector: type = None,
@@ -361,6 +361,7 @@ def compile_config(
         env_config.update(create_cfg.env)
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         env_config.manager.update(create_cfg.env_manager)
+        print(env_config)
         policy_config = policy.default_config()
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
@@ -379,6 +380,8 @@ def compile_config(
         else:
             env_config = EasyDict()  # env does not have default_config
         env_config = deep_merge_dicts(env_config_template, env_config)
+        if env_manager is None:
+            env_manager = BaseEnvManager  # for compatibility
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         policy_config = policy.default_config()
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
