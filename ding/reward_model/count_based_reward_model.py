@@ -88,6 +88,7 @@ class CountBasedRewardModel(BaseRewardModel):
         if self._counter_type == 'SimHash':
             s = torch.stack([item['obs'] for item in data], dim=0).to(self.device)
             hash_cnts = self._counter.update(s)
+            self.tb_logger.add_scalar('reward_model/statehash_size', len(self._counter.hash), self.train_iter)
             for item, cnt in zip(data, hash_cnts):
                 item['reward'] = item['reward'] + self._beta / np.sqrt(cnt)
         else:

@@ -39,6 +39,50 @@ MINIGRID_INFO_DICT = {
         }),
         use_wrappers=None,
     ),
+    'MiniGrid-FourRooms-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        use_wrappers=None,
+    ),
+    'MiniGrid-DoorKey-16x16-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        use_wrappers=None,
+    ),
 }
 
 
