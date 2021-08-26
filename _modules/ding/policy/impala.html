@@ -244,9 +244,7 @@
             <span class="c1"># (float) discount factor for future reward, defaults int [0, 1]</span>
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
             <span class="n">gae_lambda</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
-            <span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-            <span class="p">),</span>
+            <span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="p">),</span>
         <span class="p">),</span>
         <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
