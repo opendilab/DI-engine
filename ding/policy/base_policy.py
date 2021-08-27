@@ -75,14 +75,14 @@ class Policy(ABC):
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
                 self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank)
+                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
                 if self._cfg.learn.multi_gpu:
                     self._init_multi_gpu_setting(model)
             else:
                 self._rank = 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank)
+                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
             self._model = model
             self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
