@@ -268,6 +268,51 @@ None, if not async_op or if not part of the group</p>
 </div>
 <div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.allreduce">
 <span id="allreduce"></span><h3>allreduce<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.allreduce" title="Permalink to this headline">¶</a></h3>
+<p>Reduces the tensor data across all machines in such a way that all get
+the final result.</p>
+<p>After the call <code class="docutils literal notranslate"><span class="pre">tensor</span></code> is going to be bitwise identical in all processes.</p>
+<p>Complex tensors are supported.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>tensor (Tensor): Input and output of the collective. The function</dt><dd><p>operates in-place.</p>
+</dd>
+<dt>op (optional): One of the values from</dt><dd><p><code class="docutils literal notranslate"><span class="pre">torch.distributed.ReduceOp</span></code>
+enum.  Specifies an operation used for element-wise reductions.</p>
+</dd>
+<dt>group (ProcessGroup, optional): The process group to work on. If None,</dt><dd><p>the default process group will be used.</p>
+</dd>
+</dl>
+<p>async_op (bool, optional): Whether this op should be an async op</p>
+</dd>
+<dt>Returns:</dt><dd><p>Async work handle, if async_op is set to True.
+None, if not async_op or if not part of the group</p>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># All tensors below are of torch.int64 type.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># We have 2 process groups, 2 ranks.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rank</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span>
+<span class="go">tensor([1, 2]) # Rank 0</span>
+<span class="go">tensor([3, 4]) # Rank 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">ReduceOp</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span>
+<span class="go">tensor([4, 6]) # Rank 0</span>
+<span class="go">tensor([4, 6]) # Rank 1</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># All tensors below are of torch.cfloat type.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># We have 2 process groups, 2 ranks.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="o">+</span><span class="mi">1</span><span class="n">j</span><span class="p">,</span> <span class="mi">2</span><span class="o">+</span><span class="mi">2</span><span class="n">j</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">cfloat</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">rank</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mi">1</span><span class="n">j</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span>
+<span class="go">tensor([1.+1.j, 2.+2.j]) # Rank 0</span>
+<span class="go">tensor([3.+3.j, 4.+4.j]) # Rank 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dist</span><span class="o">.</span><span class="n">all_reduce</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">ReduceOp</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span>
+<span class="go">tensor([4.+4.j, 6.+6.j]) # Rank 0</span>
+<span class="go">tensor([4.+4.j, 6.+6.j]) # Rank 1</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </div>
 <div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.get_group">
 <span id="get-group"></span><h3>get_group<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_group" title="Permalink to this headline">¶</a></h3>
