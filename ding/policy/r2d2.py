@@ -190,7 +190,10 @@ class R2D2Policy(Policy):
         data['burnin_obs'] = data['obs'][:bs]     
         data['main_obs'] = data['obs'][bs:self._unroll_len_add_burnin_step-self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
-        data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+        if 'value_gamma' not in data:
+            data['value_gamma'] =  [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+        else:
+            data['value_gamma'] = data['value_gamma'][bs:self._unroll_len_add_burnin_step-self._nstep]
 
         return data
 
@@ -350,7 +353,7 @@ class R2D2Policy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data,self._unroll_len_add_burnin_step)
+        return get_train_sample(data, self._unroll_len_add_burnin_step)
 
     def _init_eval(self) -> None:
         r"""

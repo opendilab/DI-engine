@@ -417,7 +417,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     for v in data.values():
         if v is None:
             continue
-        elif isinstance(v, list) or isinstance(v, tuple): 
+        elif isinstance(v, list) or isinstance(v, tuple):
             length.append(len(v[0]))
         else:
             length.append(len(v))
