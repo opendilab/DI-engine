@@ -57,3 +57,4 @@ create_config = minigrid_ppo_rnd_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model([main_config, create_config], seed=0)
+    
