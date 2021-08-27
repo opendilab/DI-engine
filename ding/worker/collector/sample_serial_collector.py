@@ -94,7 +94,7 @@ class SampleCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
-            self._unroll_len = _policy.get_attribute('unroll_len') + _policy.get_attribute('burnin_step') # TODO
+            self._unroll_len = _policy.get_attribute('unroll_len_add_burnin_step') 
             self._on_policy = _policy.get_attribute('on_policy')
             if self._default_n_sample is not None:
                 self._traj_len = max(
@@ -259,7 +259,7 @@ class SampleCollector(ISerialCollector):
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
-                        train_sample = self._policy.get_train_sample(transitions)
+                        train_sample = self._policy.get_train_sample(transitions) # key operation
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
