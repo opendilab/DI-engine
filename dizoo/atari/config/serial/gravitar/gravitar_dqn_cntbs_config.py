@@ -61,6 +61,7 @@ gravitar_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='countbased')
 )
 gravitar_dqn_create_config = EasyDict(gravitar_dqn_create_config)
 create_config = gravitar_dqn_create_config

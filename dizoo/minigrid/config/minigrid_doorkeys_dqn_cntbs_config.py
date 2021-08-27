@@ -55,6 +55,7 @@ minigrid_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='countbased'),
 )
 minigrid_dqn_create_config = EasyDict(minigrid_dqn_create_config)
 create_config = minigrid_dqn_create_config

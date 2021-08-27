@@ -1,4 +1,5 @@
 from typing import Any, List
+from easydict import EasyDict
 import numpy as np
 import torch
 import pickle
@@ -6,9 +7,11 @@ import scipy.stats as stats
 from torch.functional import Tensor
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel
-from ding.model.autoencoder import AutoEncoder
+from ding.model.common.autoencoder import AutoEncoder
 from collections import deque
 import random
+from ding.config.config import deep_merge_dicts
+import logging
 EPS = 1e-8
 
 
@@ -44,22 +47,23 @@ class CountBasedRewardModel(BaseRewardModel):
             - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(CountBasedRewardModel, self).__init__()
-        self.cfg: dict = cfg
-        self._beta = cfg.bonus_coefficent
-        self._counter_type = cfg.counter_type
+        self.cfg: EasyDict = EasyDict(deep_merge_dicts(self.config, cfg))
+        self._beta = self.cfg.bonus_coefficent
+        self._counter_type = self.cfg.counter_type
         self.device = device
         self.tb_logger = tb_logger
         assert self._counter_type in ['SimHash', 'AutoEncoder']
-        print(cfg)
+        print(self.cfg)
         if self._counter_type == 'SimHash':
-            self._counter = SimHash(cfg.state_dim, cfg.hash_dim, self.device)
+            self._counter = SimHash(self.cfg.state_dim, self.cfg.hash_dim, self.device)
+            self.estimate_iter = 0
         elif self._counter_type == 'AutoEncoder':
             self._counter = AutoEncoderCounter(
-                cfg.state_dim, cfg.hash_dim, self.device, learning_rate=cfg.learning_rate
+                self.cfg.state_dim, self.cfg.hash_dim, self.device, learning_rate=self.cfg.learning_rate
             )
-            self.replay_buf = deque(maxlen=cfg.max_buff_len)
-            self.batch_size = cfg.batch_size
-            self.update_per_iter = cfg.update_per_iter
+            self.replay_buf = deque(maxlen=self.cfg.max_buff_len)
+            self.batch_size = self.cfg.batch_size
+            self.update_per_iter = self.cfg.update_per_iter
             self.train_iter = 0
 
     def train(self) -> None:
@@ -74,6 +78,8 @@ class CountBasedRewardModel(BaseRewardModel):
                 total_loss = self._counter.train(data)
                 self.tb_logger.add_scalar('reward_model/autoencoder_loss', total_loss, self.train_iter)
                 self.train_iter += 1
+            else:
+                logging.warning(f"no enough data {len(self.replay_buf)}/{self.batch_size}")
 
     def estimate(self, data: list) -> None:
         """
@@ -88,9 +94,10 @@ class CountBasedRewardModel(BaseRewardModel):
         if self._counter_type == 'SimHash':
             s = torch.stack([item['obs'] for item in data], dim=0).to(self.device)
             hash_cnts = self._counter.update(s)
-            self.tb_logger.add_scalar('reward_model/statehash_size', len(self._counter.hash), self.train_iter)
+            self.tb_logger.add_scalar('reward_model/statehash_size', len(self._counter.hash), self.estimate_iter)
             for item, cnt in zip(data, hash_cnts):
                 item['reward'] = item['reward'] + self._beta / np.sqrt(cnt)
+            self.estimate_iter += 1
         else:
             self.collect_data(data)
             if self.train_iter % self.update_per_iter == 0:
@@ -115,12 +122,6 @@ class CountBasedRewardModel(BaseRewardModel):
         if self._counter_type == 'AutoEncoder':
             self.replay_buf.extend([item['obs'][-1:] for item in data])
 
-        # if self._counter_type == 'SimHash':
-        #     s = torch.stack([item['obs'] for item in data], dim=0).to(self.device)
-        #     hash_cnts = self._counter.update(s)
-        #     for item, cnt in zip(data, hash_cnts):
-        #         item['reward'] = item['reward']+self._beta/np.sqrt(cnt)
-
     def clear_data(self):
         """
         Overview:
@@ -135,6 +136,7 @@ class SimHash():
     def __init__(self, state_emb: int, k: int, device) -> None:
         self.hash = {}
         self.fc = torch.nn.Linear(state_emb, k, bias=False).to(device)
+        # calcuating  hash value need a random matrix sampled from gaussion distribution
         self.fc.weight.data = torch.randn_like(self.fc.weight)
         self.device = device
 
@@ -142,6 +144,7 @@ class SimHash():
         counts = []
         if len(states.size()) > 2:
             states = torch.flatten(states, 1)
+        # hash value = sign(A*states)
         keys = np.sign(self.fc(states).to('cpu').detach().numpy()).tolist()
         for idx, key in enumerate(keys):
             key = str(key)
@@ -160,6 +163,7 @@ class AutoEncoderCounter():
         self.optimizer = torch.optim.Adam(self.autoencoder.parameters(), lr=learning_rate)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, 1000, 0.9)
         self.fc = torch.nn.Linear(256, k, bias=False).to(device)
+        # this part is similar as SimHash
         self.fc.weight.data = torch.randn_like(self.fc.weight)
         self.device = device
         self.pixel_value = 64
@@ -169,7 +173,7 @@ class AutoEncoderCounter():
         counts = []
         self.autoencoder.eval()
         with torch.no_grad():
-            states_emb = self.autoencoder.generator(states)
+            states_emb = self.autoencoder.generate(states)
             states_emb = torch.round(states_emb)
             keys = np.sign(self.fc(states_emb).to('cpu').detach().numpy()).tolist()
         for idx, key in enumerate(keys):
@@ -178,17 +182,20 @@ class AutoEncoderCounter():
             self.hash[key] = self.hash.get(key, 0) + 1
         for key in keys:
             counts.append(self.hash[key])
-        # print(len(self.hash))
         return counts
 
     def train(self, states: torch.Tensor, noise_intensity: float = 0.3) -> Any:
         self.autoencoder.train()
-        state_emb = self.autoencoder.generator(states)
+        # generate embedding in latent space
+        state_emb = self.autoencoder.generate(states)
         state_emb_noise = state_emb+noise_intensity * \
             (2*torch.rand_like(state_emb)-1)
+        # reconstruct from latent space
         rec_image = self.autoencoder.reconstruct(state_emb_noise)
         origin_image = torch.round(states * (self.pixel_value - 1)).long()
+        # reconstruct loss
         rec_loss = -(rec_image.gather(1, origin_image) + EPS).log()
+        # let embedding more close to 0 or 1
         embedding_loss = torch.min((1 - state_emb).pow(2), state_emb.pow(2))
         total_loss = rec_loss.sum([1, 2, 3]).mean() + \
             self.mu*embedding_loss.mean()

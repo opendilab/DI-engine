@@ -1,4 +1,5 @@
 from copy import deepcopy
+from ding import reward_model
 from ding.entry import serial_pipeline, serial_pipeline_reward_model
 from easydict import EasyDict
 
@@ -61,6 +62,7 @@ freeway_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='countbased')
 )
 freeway_dqn_create_config = EasyDict(freeway_dqn_create_config)
 create_config = freeway_dqn_create_config

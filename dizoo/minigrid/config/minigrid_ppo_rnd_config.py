@@ -50,7 +50,7 @@ minigrid_ppo_rnd_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo'),
-    reward_model=dict(type='rnd'),
+    reward_model=dict(type='countbased'),
 )
 minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
 create_config = minigrid_ppo_rnd_create_config

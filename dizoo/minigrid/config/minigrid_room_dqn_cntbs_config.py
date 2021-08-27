@@ -1,3 +1,4 @@
+from ding import reward_model
 from easydict import EasyDict
 from ding.entry import serial_pipeline, serial_pipeline_reward_model
 
@@ -55,6 +56,7 @@ minigrid_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='countbased')
 )
 minigrid_dqn_create_config = EasyDict(minigrid_dqn_create_config)
 create_config = minigrid_dqn_create_config
