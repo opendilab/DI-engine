@@ -259,7 +259,7 @@ class SampleCollector(ISerialCollector):
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
-                        train_sample = self._policy.get_train_sample(transitions) # key operation
+                        train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
