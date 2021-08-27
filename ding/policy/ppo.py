@@ -35,6 +35,7 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
+        nstep_return=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -158,30 +159,30 @@ class PPOPolicy(Policy):
             data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:
-                with torch.no_grad():
-                    # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
-                    value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
-                    next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
-                    if self._value_norm:
-                        value *= self._running_mean_std.std
-                        next_value *= self._running_mean_std.std
+            # if self._recompute_adv: # new v network compute new value
+            #     with torch.no_grad():
+            #         # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
+            #         value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
+            #         next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
+            #         if self._value_norm:
+            #             value *= self._running_mean_std.std
+            #             next_value *= self._running_mean_std.std
 
-                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                    # GAE need (T, B) shape input and return (T, B) output
-                    data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                    # value = value[:-1]
-                    unnormalized_returns = value + data['adv']
+            #         gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
+            #         # GAE need (T, B) shape input and return (T, B) output
+            #         data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda) #  TODO bug reward should be (T,B) T is trajectory length and B is batch size
+            #         # value = value[:-1]
+            #         unnormalized_returns = value + data['adv']
 
-                    if self._value_norm:
-                        data['value'] = value / self._running_mean_std.std
-                        data['return'] = unnormalized_returns / self._running_mean_std.std
-                        self._running_mean_std.update(unnormalized_returns.cpu().numpy())
-                    else:
-                        data['value'] = value
-                        data['return'] = unnormalized_returns
-
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+            #         if self._value_norm:
+            #             data['value'] = value / self._running_mean_std.std
+            #             data['return'] = unnormalized_returns / self._running_mean_std.std
+            #             self._running_mean_std.update(unnormalized_returns.cpu().numpy())
+            #         else:
+            #             data['value'] = value
+            #             data['return'] = unnormalized_returns
+            # data.pop('replay_unique_id',None) # pu
+            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True): # self._cfg.learn.batch_size=64
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:
@@ -317,6 +318,7 @@ class PPOPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = to_device(data, self._device)
+        # adder is defined in _init_collect
         if self._cfg.learn.ignore_done:
             data[-1]['done'] = False
 
