@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 lunarlander_r2d2_config = dict(
-    exp_name='lunarlander_r2d2',
+    exp_name='lunarlander_r2d2_bs2_n5',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -17,13 +17,12 @@ lunarlander_r2d2_config = dict(
         model=dict(
             obs_shape=8,
             action_shape=4,
-            # hidden_size_list=[128, 128, 64],
             encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.999,
-        burnin_step=20,
-        nstep=2,
-        unroll_len=80,#
+        burnin_step=2,
+        nstep=5,
+        unroll_len=80,
         learn=dict(
             update_per_collect=20,
             batch_size=64,
