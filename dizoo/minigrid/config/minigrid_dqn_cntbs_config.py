@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline,serial_pipeline_reward_model
+from ding.entry import serial_pipeline, serial_pipeline_reward_model
 
 minigrid_dqn_config = dict(
     exp_name="minigrid_empty8_dqn",
@@ -16,7 +16,7 @@ minigrid_dqn_config = dict(
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            encoder_hidden_size_list=[256, 128, 64, 64], 
+            encoder_hidden_size_list=[256, 128, 64, 64],
         ),
         nstep=3,
         discount_factor=0.99,
