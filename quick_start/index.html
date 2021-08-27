@@ -359,10 +359,10 @@ called by the <code class="docutils literal notranslate"><span class="pre">epsil
 <div class="section" id="visualization-logging">
 <h3>Visualization &amp; Logging<a class="headerlink" href="#visualization-logging" title="Permalink to this headline">¶</a></h3>
 <p>Some environments have a rendering surface or visualization. DI-engine doesn’t use render interface but add a switch to save these replays.
-After training, users need to indicate <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.hook.load_ckpt_before_run</span></code> in config,
-and add the next lines after training converge. If everything is working fine, you can find some videos with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in the replay_path(some GUI interfaces are normal).</p>
+After training, users can add the next lines to enable this function. If everything is working fine, you can find some videos with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in the <code class="docutils literal notranslate"><span class="pre">replay_path</span></code> (some GUI interfaces are normal).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
-<span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span> <span class="o">=</span> <span class="s1">&#39;./video&#39;</span>
+<span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span> <span class="o">=</span> <span class="s1">&#39;./video&#39;</span>  <span class="c1"># indicate save replay directory path</span>
+<span class="n">evaluator_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">evaluator_env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span><span class="p">)</span>  <span class="c1"># switch save replay interface</span>
 <span class="n">evaluator</span> <span class="o">=</span> <span class="n">BaseSerialEvaluator</span><span class="p">(</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span> <span class="n">evaluator_env</span><span class="p">,</span> <span class="n">policy</span><span class="o">.</span><span class="n">eval_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
@@ -372,21 +372,14 @@ and add the next lines after training converge. If everything is working fine, y
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Two corresponding fields <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.hook.load_ckpt_before_run</span></code> is shown as follows:</p>
+<p>If users want to visualize with a trained policy, please refer to <code class="docutils literal notranslate"><span class="pre">dizoo/classic_control/cartpole/entry/cartpole_dqn_eval.py</span></code> to construct a user-defined evaluation function, and indicate two fields <code class="docutils literal notranslate"><span class="pre">env.replay_path</span></code> and <code class="docutils literal notranslate"><span class="pre">policy.learn.learner.hook.load_ckpt_before_run</span></code> in config, an example is shown as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
         <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;your_replay_save_dir_path&#39;</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span>
-        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="o">...</span><span class="p">,</span>
-            <span class="n">learner</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                 <span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                     <span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;your_ckpt_path&#39;</span><span class="p">,</span>
-                 <span class="p">)</span>
-            <span class="p">),</span>
-        <span class="p">),</span>
+        <span class="n">load_path</span><span class="o">=</span><span class="s1">&#39;your_ckpt_path&#39;</span><span class="p">,</span>
         <span class="o">...</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">)</span>
@@ -395,7 +388,7 @@ and add the next lines after training converge. If everything is working fine, y
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>If users encounter some errors in recording videos by gym wrapper, you should install <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> first.</p>
+<p>Each new RL environments can define their own <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to specify how to generate replay files. DI-engine utilizes <code class="docutils literal notranslate"><span class="pre">gym</span> <span class="pre">wrapper</span> <span class="pre">(coupled</span> <span class="pre">with</span> <span class="pre">ffmpeg)</span></code> to generate replay for some traditional environments. If users encounter some errors in recording videos by <code class="docutils literal notranslate"><span class="pre">gym</span> <span class="pre">wrapper</span></code> , you should install <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> first.</p>
 </div>
 <p>Similar with other Deep Learning platforms, DI-engine uses tensorboard to record key parameters and results during
 training. In addition to the default logging parameters, users can add their own logging parameters as follow.</p>

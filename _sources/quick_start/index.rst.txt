@@ -219,14 +219,14 @@ Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some environments have a rendering surface or visualization. DI-engine doesn't use render interface but add a switch to save these replays.
-After training, users need to indicate ``env.replay_path`` and ``policy.learn.learner.hook.load_ckpt_before_run`` in config,
-and add the next lines after training converge. If everything is working fine, you can find some videos with ``.mp4`` suffix in the replay_path(some GUI interfaces are normal).
+After training, users can add the next lines to enable this function. If everything is working fine, you can find some videos with ``.mp4`` suffix in the ``replay_path`` (some GUI interfaces are normal).
 
 
 .. code-block:: python
 
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    cfg.env.replay_path = './video'
+    cfg.env.replay_path = './video'  # indicate save replay directory path
+    evaluator_env.seed(seed=0, dynamic_seed=False)
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
     evaluator = BaseSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -234,8 +234,8 @@ and add the next lines after training converge. If everything is working fine, y
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 .. note::
-  
-  Two corresponding fields ``env.replay_path`` and ``policy.learn.learner.hook.load_ckpt_before_run`` is shown as follows:
+
+  If users want to visualize with a trained policy, please refer to ``dizoo/classic_control/cartpole/entry/cartpole_dqn_eval.py`` to construct a user-defined evaluation function, and indicate two fields ``env.replay_path`` and ``policy.learn.learner.hook.load_ckpt_before_run`` in config, an example is shown as follows:
 
   .. code-block:: python
   
@@ -245,21 +245,14 @@ and add the next lines after training converge. If everything is working fine, y
         ),
         policy=dict(
             ...,
-            learn=dict(
-                ...,
-                learner=dict(
-                     hook=dict(
-                         load_ckpt_before_run='your_ckpt_path',
-                     )
-                ),
-            ),
+            load_path='your_ckpt_path',
             ...,
         ),
     )
 
 .. tip::
 
-    If users encounter some errors in recording videos by gym wrapper, you should install ``ffmpeg`` first.
+    Each new RL environments can define their own ``enable_save_replay`` method to specify how to generate replay files. DI-engine utilizes ``gym wrapper (coupled with ffmpeg)`` to generate replay for some traditional environments. If users encounter some errors in recording videos by ``gym wrapper`` , you should install ``ffmpeg`` first.
 
 
 Similar with other Deep Learning platforms, DI-engine uses tensorboard to record key parameters and results during
