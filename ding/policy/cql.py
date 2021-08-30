@@ -376,13 +376,27 @@ class CQLPolicy(Policy):
         if self._min_q_version == 3:
             # importance sammpled version
             random_density = np.log(0.5 ** curr_actions_tensor.shape[-1])
-            cat_q1 = torch.stack([q_rand[0] - random_density, q_next_actions[0] - new_log_pis.detach(),
-                                  q_curr_actions[0] - curr_log_pis.detach()], 1)
-            cat_q2 = torch.stack([q_rand[1] - random_density, q_next_actions[1] - new_log_pis.detach(),
-                                  q_curr_actions[1] - curr_log_pis.detach()], 1)
+            cat_q1 = torch.stack(
+                [
+                    q_rand[0] - random_density, q_next_actions[0] - new_log_pis.detach(),
+                    q_curr_actions[0] - curr_log_pis.detach()
+                ], 1
+            )
+            cat_q2 = torch.stack(
+                [
+                    q_rand[1] - random_density, q_next_actions[1] - new_log_pis.detach(),
+                    q_curr_actions[1] - curr_log_pis.detach()
+                ], 1
+            )
 
-        min_qf1_loss = torch.logsumexp(cat_q1 / self._temp, dim=1,).mean() * self._min_q_weight * self._temp
-        min_qf2_loss = torch.logsumexp(cat_q2 / self._temp, dim=1,).mean() * self._min_q_weight * self._temp
+        min_qf1_loss = torch.logsumexp(
+            cat_q1 / self._temp,
+            dim=1,
+        ).mean() * self._min_q_weight * self._temp
+        min_qf2_loss = torch.logsumexp(
+            cat_q2 / self._temp,
+            dim=1,
+        ).mean() * self._min_q_weight * self._temp
         """Subtract the log likelihood of data"""
         min_qf1_loss = min_qf1_loss - q_pred[0].mean() * self._min_q_weight
         min_qf2_loss = min_qf2_loss - q_pred[1].mean() * self._min_q_weight
