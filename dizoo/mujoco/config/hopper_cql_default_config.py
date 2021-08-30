@@ -23,8 +23,8 @@ hopper_cql_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            data_type='d4rl',
-            data_path='../cql_generation/default_experiment/expert_iteration_200000.pkl',
+            data_type='mujoco',
+            data_path='./default_experiment/expert_iteration_200000.pkl',
             train_epoch=30000,
             batch_size=256,
             learning_rate_q=3e-4,
@@ -44,11 +44,7 @@ hopper_cql_default_config = dict(
             unroll_len=1,
         ),
         command=dict(),
-        eval = dict(
-            evaluator=dict(
-                eval_freq= 500,
-            )
-        ),
+        eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),
 )

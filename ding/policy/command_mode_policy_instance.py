@@ -26,6 +26,7 @@ from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .cql import CQLPolicy
 
+
 class EpsCommandModePolicy(CommandModePolicy):
 
     def _init_command(self) -> None:
@@ -152,6 +153,7 @@ class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
 @POLICY_REGISTRY.register('sac_command')
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('cql_command')
 class SACCommandModePolicy(CQLPolicy, DummyCommandModePolicy):

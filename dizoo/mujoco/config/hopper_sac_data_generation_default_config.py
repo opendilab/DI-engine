@@ -5,7 +5,7 @@ hopper_sac_data_genearation_default_config = dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=1,
+        collector_env_num=10,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
@@ -35,11 +35,13 @@ hopper_sac_data_genearation_default_config = dict(
             alpha=0.2,
             reparameterization=True,
             auto_alpha=False,
-            hook=dict(
-                load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
-                save_ckpt_after_run=False,
-                save_path='./default_experiment/expert.pkl',
-            )
+            save_path='./default_experiment/expert_iteration_200000.pkl',
+            learner = dict(
+                hook=dict(
+                    load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
+                    save_ckpt_after_run=False,
+                )
+            ),
         ),
         collect=dict(
             n_sample=1,

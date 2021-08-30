@@ -17,6 +17,7 @@ class NaiveRLDataset(Dataset):
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         return self._data[idx]
 
+
 class OfflineRLDataset(Dataset):
 
     def __init__(self, data_path: str) -> None:
@@ -60,7 +61,7 @@ class D4RLDataset(Dataset):
         for i in range(len(dataset['observations'])):
             # if i >1000:
             #     break
-            trans_data={}
+            trans_data = {}
             # import ipdb;ipdb.set_trace()
             trans_data['obs'] = torch.from_numpy(dataset['observations'][i]).to(self._device)
             trans_data['next_obs'] = torch.from_numpy(dataset['next_observations'][i]).to(self._device)

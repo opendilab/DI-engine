@@ -81,13 +81,15 @@ def serial_pipeline_data_generation(
 
     collect_kwargs = commander.step()
 
-    new_data = collector.collect(n_sample=cfg.policy.other.replay_buffer.replay_buffer_size, policy_kwargs=collect_kwargs)
+    new_data = collector.collect(
+        n_sample=cfg.policy.other.replay_buffer.replay_buffer_size, policy_kwargs=collect_kwargs
+    )
     replay_buffer.push(new_data, cur_collector_envstep=0)
 
     # Save replay buffer data
     save_data(replay_buffer, cfg.policy.learn.save_path)
 
-    _, reward = evaluator.eval(train_iter= learner.train_iter, envstep= collector.envstep)
+    _, reward = evaluator.eval(train_iter=learner.train_iter, envstep=collector.envstep)
 
     print('final reward is: {}'.format(reward))
 

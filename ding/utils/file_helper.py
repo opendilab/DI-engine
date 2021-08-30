@@ -342,6 +342,7 @@ def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
     elif fs_type == 'normal':
         os.popen("rm -rf {}".format(path))
 
-def save_data(buffer, datapath: str)-> NoReturn:
+
+def save_data(buffer, datapath: str) -> NoReturn:
     # with open(datapath, 'w') as f:
     torch.save(buffer._data, datapath)

@@ -56,7 +56,7 @@ def serial_pipeline_offline(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    if cfg.policy.learn.data_type=='d4rl':
+    if cfg.policy.learn.data_type == 'd4rl':
         dataset = D4RLDataset(cfg.env.env_id, policy._device)
     else:
         dataset = OfflineRLDataset(cfg.policy.learn.data_path)
