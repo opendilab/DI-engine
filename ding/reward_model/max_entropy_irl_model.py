@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from ding.utils.data import default_collate, default_decollate
 from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 
@@ -46,16 +47,24 @@ class MaxEntropyModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = MaxEntropyModel(config.input_size, config.hidden_size)
+        self.reward_model = MaxEntropyNN(config.input_size, config.hidden_size)
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.parameters(), lr = config.learning_rate)
 
     def train(self, expert_demo: torch.Tensor, samp: torch.Tensor):
+        #print(len(samp))
+        #print(len(expert_demo))
+        samp.extend(expert_demo)
+        #print(samp[0])
+        #print(samp[50])
+        expert_demo = default_collate(expert_demo)
+        #print(samp)
+        samp = default_collate(samp)
+        #print(expert_demo['obs'],expert_demo['action'])
+        cost_demo = self.reward_model(torch.cat([expert_demo['obs'],expert_demo['action'].float().reshape(-1,1)],dim=-1))
+        cost_samp = self.reward_model(torch.cat([samp['obs'],samp['action'].float().reshape(-1,1)],dim=-1))
 
-        cost_demo = self.reward_model(expert_demo)
-        cost_samp = self.reward_model(samp)
-
-        prob = []
+        prob = samp['prob']
 
         loss_IOC = torch.mean(cost_demo) + \
             torch.log(torch.mean(torch.exp(-cost_samp)/(prob+1e-7)))
@@ -66,4 +75,26 @@ class MaxEntropyModel(BaseRewardModel):
 
     def cal_reward(self, samp):
         cost_samp = self.reward_model(samp)
-        return cost_samp
+        reward = -cost_samp
+        return reward
+
+    def estimate(self, data: list) -> None:
+        pass
+
+    def collect_data(self, data) -> None:
+        """
+        Overview:
+            Collecting training data, not implemented if reward model (i.e. online_net) is only trained ones, \
+                if online_net is trained continuously, there should be some implementations in collect_data method
+        """
+        # if online_net is trained continuously, there should be some implementations in collect_data method
+        pass
+
+    def clear_data(self):
+        """
+        Overview:
+            Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones, \
+                if online_net is trained continuously, there should be some implementations in clear_data method
+        """
+        # if online_net is trained continuously, there should be some implementations in clear_data method
+        pass

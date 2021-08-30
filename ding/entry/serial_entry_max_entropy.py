@@ -127,21 +127,25 @@ def serial_pipeline_max_entropy(
         for i in range(len(new_data)):
             device_1 = new_data[i]['obs'].device
             device_2 = expert_data[i]['obs'].device
-            probs = F.softmax(new_data[i]['logits'], dim = -1)
-            new_data[i]['probs'] = torch.tensor(probs[new_data[i]['action']]).to(device_1)
-            expert_data[i]['probs'] = torch.ones_like(expert_data[i]['action']).to(device_2)
+            probs = F.softmax(new_data[i]['logit'], dim = -1)
+            #new_data[i]['prob'] = torch.tensor(probs[new_data[i]['action']]).to(device_1)
+            new_data[i]['prob'] = probs[new_data[i]['action']].to(device_1)
+            #print(new_data[i]['prob'])
+            expert_data[i]['prob'] = torch.ones_like(expert_data[i]['action'].float()).to(device_2)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        expert_buffer.push(expert_data, cur_collector_envstep=collector.envstep)
+        expert_buffer.push(expert_data, cur_collector_envstep=expert_collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.reward_model.update_per_collect):
-            expert_demo = expert_buffer.sample(cfg.reward_model.batch_size)
-            samp = expert_buffer.sample(cfg.reward_model.batch_size)
+            expert_demo = expert_buffer.sample(cfg.reward_model.batch_size, learner.train_iter)
+            samp = replay_buffer.sample(cfg.reward_model.batch_size, learner.train_iter)
             reward_model.train(expert_demo, samp)
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = replay_buffer.sample((learner.policy.get_attribute('batch_size')) // 2, learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             for i in range(len(train_data)):
-                train_data[i]['reward'] = reward_model.cal_reward(train_data[i])
+                #print(train_data[i]['obs'])
+                with torch.no_grad():
+                    train_data[i]['reward'] = reward_model.cal_reward(torch.cat([train_data[i]['obs'],train_data[i]['action'].float()]).unsqueeze(0)).squeeze(0)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
