@@ -51,7 +51,7 @@ def split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
             start_index=i+1
             traj_cnt=0
             continue
-    return split_traj_and_compute_adv_data
+    return split_traj_and_compute_adv_data+data[start_index:i+1] # add the remaining data 
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
