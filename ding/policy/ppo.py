@@ -14,7 +14,44 @@ from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
+from ding.utils import dicts_to_lists, lists_to_dicts
+def compute_adv(data,last_value,cfg):
+    # data = get_gae_with_default_last_value( # data: episode dict [] Get the trajectory and calculate GAE
+    #         data,
+    #         data[-1]['done'],
+    #         # data['done'][-1],
+    #         gamma= cfg.collect.discount_factor,
+    #         gae_lambda= cfg.collect.gae_lambda,
+    #         cuda= False, # cfg.policy.cuda,
+    #     )
+    data = get_gae(
+        data, to_device(last_value, 'cpu') , gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False
+    )
+    if not cfg.nstep_return:
+        return get_train_sample(data, cfg.collect.unroll_len)
+    else:
+        return get_nstep_return_data(data, cfg.nstep)
 
+def split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
+    split_traj_and_compute_adv_data=[]
+    start_index=0
+    traj_cnt=0
+    for i in range(len(data)):
+        traj_cnt+=1
+        if data[i]['done']==True:
+        # if data['done'][i]==True:
+            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1),cfg)
+            split_traj_and_compute_adv_data.extend(traj_data)
+            start_index=i+1
+            traj_cnt=0
+            continue
+        if traj_cnt == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
+            traj_data=compute_adv(data[start_index:i+1],next_value[i],cfg)
+            split_traj_and_compute_adv_data.extend(traj_data)
+            start_index=i+1
+            traj_cnt=0
+            continue
+    return split_traj_and_compute_adv_data
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
@@ -156,32 +193,45 @@ class PPOPolicy(Policy):
             data['return'] = unnormalized_return / self._running_mean_std.std
             self._running_mean_std.update(unnormalized_return.cpu().numpy())
         else:
-            data['return'] = data['adv'] + data['value']
+            # if ppo_onpolicy_rnd, the data['adv'] should be recompute accordingto the new reward before calling this _forward_learn()
+            data['return'] = data['adv'] + data['value'] 
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            # if self._recompute_adv: # new v network compute new value
-            #     with torch.no_grad():
-            #         # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
-            #         value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
-            #         next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
-            #         if self._value_norm:
-            #             value *= self._running_mean_std.std
-            #             next_value *= self._running_mean_std.std
+            if self._recompute_adv: # new v network compute new value
+                with torch.no_grad():
+                    # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
+                    value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
+                    next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
+                    if self._value_norm:
+                        value *= self._running_mean_std.std
+                        next_value *= self._running_mean_std.std
 
-            #         gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-            #         # GAE need (T, B) shape input and return (T, B) output
-            #         data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda) #  TODO bug reward should be (T,B) T is trajectory length and B is batch size
-            #         # value = value[:-1]
-            #         unnormalized_returns = value + data['adv']
+                    # gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
+                    # # GAE need (T, B) shape input and return (T, B) output
+                    # #  TODO(pu) bug? data['reward'] should be (T,B), where T is trajectory length and B is batch size, 
+                    # # but the input data may be a concatenate of many episodes with diffrent length!
+                    # data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda) 
 
-            #         if self._value_norm:
-            #             data['value'] = value / self._running_mean_std.std
-            #             data['return'] = unnormalized_returns / self._running_mean_std.std
-            #             self._running_mean_std.update(unnormalized_returns.cpu().numpy())
-            #         else:
-            #             data['value'] = value
-            #             data['return'] = unnormalized_returns
-            # data.pop('replay_unique_id',None) # pu
+                    data['value']=value
+                    data['weight']=[None for i in range(data['reward'].shape[0])]
+                    data=dicts_to_lists(data)
+                    data = split_traj_and_compute_adv(data, next_value ,self._cfg) # TODO
+                    data=lists_to_dicts(data)
+                    for k,v in data.items():
+                        if isinstance(v[0],torch.Tensor):
+                            data[k]=torch.stack(v,dim=0)
+                    data['weight'] = None
+
+                    unnormalized_returns = value + data['adv']
+
+                    if self._value_norm:
+                        data['value'] = value / self._running_mean_std.std
+                        data['return'] = unnormalized_returns / self._running_mean_std.std
+                        self._running_mean_std.update(unnormalized_returns.cpu().numpy())
+                    else:
+                        data['value'] = value
+                        data['return'] = unnormalized_returns
+            
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True): # self._cfg.learn.batch_size=64
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
@@ -250,6 +300,7 @@ class PPOPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
+        self._unroll_len_add_burnin_step = self._unroll_len
         self._continuous = self._cfg.continuous
         if self._continuous:
             self._collect_model = model_wrap(self._model, wrapper_name='base')

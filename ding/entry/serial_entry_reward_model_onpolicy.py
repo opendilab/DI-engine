@@ -13,41 +13,41 @@ from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
-   
-
+from ding.utils import dicts_to_lists, lists_to_dicts
 def compute_adv(data,cfg):
     data = get_gae_with_default_last_value( # data: episode dict [] Get the trajectory and calculate GAE
             data,
             data[-1]['done'],
+            # data['done'][-1],
             gamma= cfg.policy.collect.discount_factor,
             gae_lambda= cfg.policy.collect.gae_lambda,
-            cuda= False,#cfg.policy.cuda,
+            cuda= False, # cfg.policy.cuda,
         )
-    if not cfg.policy.nstep_return:
+    if not cfg.nstep_return:
         return get_train_sample(data, cfg.policy.collect.unroll_len)
     else:
-        return get_nstep_return_data(data, cfg.policy.nstep)
+        return get_nstep_return_data(data, cfg.nstep)
 
 def split_traj_and_compute_adv(data,cfg): # 64*8 -> 63*8
-    split_traj_and_recompute_adv_data=[]
+    split_traj_and_compute_adv_data=[]
     start_index=0
     traj_cnt=0
     for i in range(len(data)):
         traj_cnt+=1
         if data[i]['done']==True:
+        # if data['done'][i]==True:
             traj_data=compute_adv(data[start_index:i+1],cfg)
-            split_traj_and_recompute_adv_data.extend(traj_data)
+            split_traj_and_compute_adv_data.extend(traj_data)
             start_index=i+1
             traj_cnt=0
             continue
         if traj_cnt==cfg.policy.collect.n_sample // cfg.policy.collect.collector_env_num: # self._traj_len 64
             traj_data=compute_adv(data[start_index:i+1],cfg)
-            split_traj_and_recompute_adv_data.extend(traj_data)
+            split_traj_and_compute_adv_data.extend(traj_data)
             start_index=i+1
             traj_cnt=0
             continue
-    return split_traj_and_recompute_adv_data
-
+    return split_traj_and_compute_adv_data
 
 def serial_pipeline_reward_model_onpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -133,16 +133,16 @@ def serial_pipeline_reward_model_onpolicy(
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
-        # while new_data_count < target_new_data_count:
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        # new_data_count += len(new_data)
-        # collect data for reward_model training
-        # TODO
-        # reward_model.collect_data(new_data)
-        # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        while new_data_count < target_new_data_count:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+            new_data_count += len(new_data)
+            # collect data for reward_model training
+            # TODO
+            reward_model.collect_data(new_data)
+            # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
-        # reward_model.train()# TODO
-        # reward_model.clear_data() # TODO
+        reward_model.train()# TODO
+        reward_model.clear_data() # TODO
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect): # 1
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -156,8 +156,18 @@ def serial_pipeline_reward_model_onpolicy(
                 )
                 break
             # update train_data reward
-            # reward_model.estimate(train_data) # TODO
-            train_data = split_traj_and_compute_adv(train_data,cfg) # TODO
+            reward_model.estimate(train_data) # TODO
+
+            # learner.policy._learn_model.train()
+            # value = learner.policy._learn_model.forward(data['obs'], mode='compute_critic')['value']
+            # data=lists_to_dicts(data)
+            # data['value']=value
+            # data=lists_to_dicts(data)
+            # data = split_traj_and_compute_adv(data, cfg) # TODO
+     
+            # unnormalized_returns = value + data['adv']
+            # data['return'] = unnormalized_returns
+
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)

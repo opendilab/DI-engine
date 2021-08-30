@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_onpolicy
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ppo_onpolicy_rnd',
+    exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,
@@ -18,15 +18,17 @@ minigrid_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
+        recompute_adv=True,
         cuda=True,
         continuous=False,
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            encoder_hidden_size_list=[256, 128, 64, 64],
+            # encoder_hidden_size_list=[256, 128, 64, 64],
+            encoder_hidden_size_list=[128, 64],
         ),
         learn=dict(
-            epoch_per_collect=10,  # TODO
+            epoch_per_collect=1,  # TODO 10
             update_per_collect=1, #4,
             batch_size=64,
             learning_rate=0.0003,
@@ -42,7 +44,7 @@ minigrid_ppo_rnd_config = dict(
                 # cfg_type = EpisodeCollectorDict, 
                 # type = episode,#sample,
             ),
-            n_sample=int(64*8), #128  self._default_n_sample
+            n_sample=int(64*collector_env_num), #  self._traj_len  = max(1,64*8//8)=64 
             #    self._traj_len = max(
             #      self._unroll_len,
             #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
