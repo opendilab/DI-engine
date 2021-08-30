@@ -94,7 +94,7 @@ class SampleCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
-            self._unroll_len = _policy.get_attribute('unroll_len_add_burnin_step') 
+            self._unroll_len = _policy.get_attribute('_unroll_len') 
             self._on_policy = _policy.get_attribute('on_policy')
             if self._default_n_sample is not None:
                 self._traj_len = max(

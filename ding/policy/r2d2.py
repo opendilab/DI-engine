@@ -286,6 +286,7 @@ class R2D2Policy(Policy):
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step 
+        self._unroll_len = self._unroll_len_add_burnin_step # for compatibility
 
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
