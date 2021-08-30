@@ -40,7 +40,7 @@ def split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
         traj_cnt+=1
         if data[i]['done']==True:
         # if data['done'][i]==True:
-            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1),cfg)
+            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1)[0],cfg)
             split_traj_and_compute_adv_data.extend(traj_data)
             start_index=i+1
             traj_cnt=0
