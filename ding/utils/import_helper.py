@@ -121,9 +121,8 @@ def try_import_pyarrow():
 def try_import_pickle():
     try:
         import pickle5 as pickle
-        assert sys.version_info > (3,8)
+        assert sys.version_info > (3, 8)
     except ModuleNotFoundError as e:
         import pickle
-        assert sys.version_info < (3,8)
+        assert sys.version_info < (3, 8)
     return pickle
-    

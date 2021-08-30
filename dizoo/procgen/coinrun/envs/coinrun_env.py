@@ -59,7 +59,6 @@ class CoinRunEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
@@ -117,4 +116,3 @@ class CoinRunEnv(BaseEnv):
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
-

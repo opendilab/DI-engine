@@ -28,7 +28,7 @@ qbert_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=100, demonstration_info_path = None),
+        collect=dict(n_sample=100, demonstration_info_path=None),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -48,7 +48,7 @@ qbert_dqn_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess', force_reproducibility = True),
+    env_manager=dict(type='subprocess', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)

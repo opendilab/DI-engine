@@ -39,7 +39,7 @@ class MazeEnv(BaseEnv):
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)        
+            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
             self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=1)

@@ -21,14 +21,11 @@ lunarlander_sqil_config = dict(
         ),
         nstep=1,
         discount_factor=0.97,
-        learn=dict(
-            batch_size=64,
-            learning_rate=0.001,
-            alpha = 0.08
-        ),
+        learn=dict(batch_size=64, learning_rate=0.001, alpha=0.08),
         collect=dict(
             n_sample=64,
-            demonstration_info_path='path', #Users should add their own path here (path should lead to a well-trained model)
+            demonstration_info_path=
+            'path',  #Users should add their own path here (path should lead to a well-trained model)
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
         ),
@@ -51,7 +48,7 @@ lunarlander_sqil_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility = True),
+    env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 lunarlander_sqil_create_config = EasyDict(lunarlander_sqil_create_config)

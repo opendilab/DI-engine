@@ -18,12 +18,8 @@ cartpole_sql_config = dict(
         ),
         nstep=1,
         discount_factor=0.97,
-        learn=dict(
-            batch_size=64,
-            learning_rate=0.001,
-            alpha = 0.12
-        ),
-        collect=dict(n_sample=8, demonstration_info_path = None), 
+        learn=dict(batch_size=64, learning_rate=0.001, alpha=0.12),
+        collect=dict(n_sample=8, demonstration_info_path=None),
         eval=dict(evaluator=dict(eval_freq=50, )),  #note: this is the times after which you learns to evaluate
         other=dict(
             eps=dict(
@@ -43,7 +39,7 @@ cartpole_sql_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility = True),
+    env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 cartpole_sql_create_config = EasyDict(cartpole_sql_create_config)
