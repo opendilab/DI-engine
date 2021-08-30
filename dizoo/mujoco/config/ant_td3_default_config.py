@@ -48,7 +48,7 @@ ant_td3_default_config = dict(
     )
 )
 
-ant_td3_default__config = EasyDict(ant_td3_default_config)
+ant_td3_default_config = EasyDict(ant_td3_default_config)
 main_config = ant_td3_default_config
 
 ant_td3_default_create_config = dict(

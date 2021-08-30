@@ -20,6 +20,8 @@ pong_a2c_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=1,

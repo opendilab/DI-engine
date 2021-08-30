@@ -105,7 +105,7 @@ class C51DQN(nn.Module):
         obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        head_hidden_size: int = 64,
+        head_hidden_size: int = None,
         head_layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
@@ -132,6 +132,8 @@ class C51DQN(nn.Module):
         super(C51DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)

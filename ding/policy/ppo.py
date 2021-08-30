@@ -317,7 +317,6 @@ class PPOPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = to_device(data, self._device)
-        # adder is defined in _init_collect
         if self._cfg.learn.ignore_done:
             data[-1]['done'] = False
 

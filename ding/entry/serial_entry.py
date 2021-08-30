@@ -82,7 +82,7 @@ def serial_pipeline(
     if cfg.policy.get('random_collect_size', 0) > 0:
         action_space = collector_env.env_info().act_space
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(policy.collect_mode)
+        collector.reset_policy(random_policy)
         collect_kwargs = commander.step()
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
