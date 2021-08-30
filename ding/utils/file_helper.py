@@ -341,3 +341,7 @@ def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
         os.popen("aws s3 rm --recursive {}".format(path))
     elif fs_type == 'normal':
         os.popen("rm -rf {}".format(path))
+
+def save_data(buffer, datapath: str)-> NoReturn:
+    # with open(datapath, 'w') as f:
+    torch.save(buffer._data, datapath)

@@ -219,6 +219,8 @@ class SampleCollector(ISerialCollector):
         return_data = []
 
         while collected_sample < n_sample:
+            if collected_sample % 10000 == 0:
+                self._logger.info("[COLLECT] collected_sample {}/{}".format(collected_sample, n_sample))
             with self._timer:
                 # Get current env obs.
                 obs = self._env.ready_obs
