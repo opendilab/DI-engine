@@ -64,8 +64,10 @@ class MaxEntropyModel(BaseRewardModel):
         cost_demo = self.reward_model(torch.cat([expert_demo['obs'],expert_demo['action'].float().reshape(-1,1)],dim=-1))
         cost_samp = self.reward_model(torch.cat([samp['obs'],samp['action'].float().reshape(-1,1)],dim=-1))
 
-        prob = samp['prob']
-
+        prob = samp['prob'].unsqueeze(-1)
+        #print(len(cost_samp))
+        #print(len(prob))
+        #print(len(torch.exp(-cost_samp)/(prob+1e-7)))
         loss_IOC = torch.mean(cost_demo) + \
             torch.log(torch.mean(torch.exp(-cost_samp)/(prob+1e-7)))
         # UPDATING THE COST FUNCTION
