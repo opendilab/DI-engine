@@ -42,7 +42,7 @@ minigrid_ppo_create_config = dict(
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
 )
 minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
 create_config = minigrid_ppo_create_config

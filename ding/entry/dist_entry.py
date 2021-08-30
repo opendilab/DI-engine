@@ -10,7 +10,7 @@ from easydict import EasyDict
 import numpy as np
 from ding.worker import Coordinator, create_comm_collector, create_comm_learner, LearnerAggregator
 from ding.config import read_config_with_system, compile_config_parallel
-from ding.utils import set_pkg_seed, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT
+from ding.utils import set_pkg_seed, DEFAULT_K8S_AGGREGATOR_SLAVE_PORT, pod_exec_command
 
 
 def dist_prepare_config(
@@ -244,3 +244,90 @@ def dist_launch_spawn_learner(
     finally:
         # close open file descriptors
         pass
+
+
+def dist_add_replicas(
+        replicas_type: str,
+        kubeconfig: str,
+        replicas: int,
+        coordinator_name: str,
+        namespace: str,
+        cpus: int,
+        gpus: int,
+        memory: str,
+) -> None:
+    assert coordinator_name and namespace, "Please provide --coordinator-name or --namespace"
+
+    import json
+    data = {
+        "namespace": namespace,
+        "coordinator": coordinator_name,
+    }
+    res = {"replicas": replicas}
+    if cpus > 0:
+        res['cpus'] = cpus
+    if gpus > 0:
+        res['gpus'] = gpus
+    if memory:
+        res['memory'] = memory
+    if replicas_type == 'collector':
+        data['collectors'] = res
+    elif replicas_type == 'learner':
+        data['learners'] = res
+    cmd = 'curl -X POST $KUBERNETES_SERVER_URL/v1alpha1/replicas ' \
+        '-H "content-type: application/json" ' \
+        f'-d \'{json.dumps(data)}\''
+    ret, msg = pod_exec_command(kubeconfig, coordinator_name, namespace, cmd)
+    if ret == 0:
+        print(f'{replicas_type} add successfully')
+    else:
+        print(f'Failed to add {replicas_type}, return code: {ret}, message: {msg}')
+
+
+def dist_delete_replicas(
+        replicas_type: str, kubeconfig: str, replicas: int, coordinator_name: str, namespace: str
+) -> None:
+    assert coordinator_name and namespace, "Please provide --coordinator-name or --namespace"
+
+    import json
+    data = {
+        "namespace": namespace,
+        "coordinator": coordinator_name,
+    }
+    if replicas_type == 'collector':
+        data['collectors'] = {"replicas": replicas}
+    elif replicas_type == 'learner':
+        data['learners'] = {"replicas": replicas}
+    cmd = 'curl -X DELETE $KUBERNETES_SERVER_URL/v1alpha1/replicas ' \
+        '-H "content-type: application/json" ' \
+        f'-d \'{json.dumps(data)}\''
+    ret, msg = pod_exec_command(kubeconfig, coordinator_name, namespace, cmd)
+    if ret == 0:
+        print(f'{replicas_type} delete successfully')
+    else:
+        print(f'Failed to delete {replicas_type}, return code: {ret}, message: {msg}')
+
+
+def dist_restart_replicas(
+        replicas_type: str, kubeconfig: str, coordinator_name: str, namespace: str, restart_pod_name: str
+) -> None:
+    assert coordinator_name and namespace, "Please provide --coordinator-name or --namespace"
+
+    import json
+    data = {
+        "namespace": namespace,
+        "coordinator": coordinator_name,
+    }
+    assert restart_pod_name, "Please provide restart pod name with --restart-pod-name"
+    if replicas_type == 'collector':
+        data['collectors'] = [restart_pod_name]
+    elif replicas_type == 'learner':
+        data['learners'] = [restart_pod_name]
+    cmd = 'curl -X POST $KUBERNETES_SERVER_URL/v1alpha1/replicas/failed ' \
+        '-H "content-type: application/json" ' \
+        f'-d \'{json.dumps(data)}\''
+    ret, msg = pod_exec_command(kubeconfig, coordinator_name, namespace, cmd)
+    if ret == 0:
+        print(f'{replicas_type} restart successfully')
+    else:
+        print(f'Failed to restart {replicas_type}, return code: {ret}, message: {msg}')

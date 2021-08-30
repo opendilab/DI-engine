@@ -151,7 +151,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     config_string = str(config_)
     from yapf.yapflib.yapf_api import FormatCode
     config_string, _ = FormatCode(config_string)
-    config_string = config_string.replace('inf', 'float("inf")')
+    config_string = config_string.replace('inf,', 'float("inf"),')
     with open(path, "w") as f:
         f.write('exp_config = ' + config_string)
 

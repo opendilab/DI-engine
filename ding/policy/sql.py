@@ -170,13 +170,12 @@ class SQLPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, adder, collect model.
+            Init traj and unroll length, collect model.
             Enable the eps_greedy_sample
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
-        self._info = self._cfg.collect.demonstration_info_path
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_sql')
         self._collect_model.reset()
 
