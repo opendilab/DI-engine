@@ -6,7 +6,7 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep=5
 minigrid_ppo_rnd_config = dict(   
-    exp_name='minigrid_empty8_r2d2_rnd_noadd',
+    exp_name='minigrid_empty8_ngu_r2d2_rnd_beta_debug',
     # exp_name='minigrid_empty8_r2d2_debug',
     env=dict(
         collector_env_num=collector_env_num ,
@@ -72,7 +72,8 @@ minigrid_ppo_rnd_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    # env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     reward_model=dict(type='rnd'),
 )

@@ -251,7 +251,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         kwargs.pop('eps')
-        eps ={i: 0.4 ** ( 1 + 8*i/(8-1)) for i in range(8)} # TODO
+        eps ={i: 0.4 ** ( 1 + 8*i/(args[0]['obs'].shape[0]-1)) for i in range(args[0]['obs'].shape[0])} # TODO
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']

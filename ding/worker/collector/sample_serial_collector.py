@@ -219,7 +219,12 @@ class SampleCollector(ISerialCollector):
             policy_kwargs = {}
         collected_sample = 0
         return_data = []
-
+        # beta={i:torch.randn(1)  for i in range(8)}
+        index_to_beta ={i: 0.4**(1+8*i/(self._env_num-1)) for i in range(self._env_num)  }
+        index_to_beta ={i: 0.3*torch.sigmoid(torch.tensor(10*(2*i-(self._env_num-2)) / (self._env_num-2)) )for i in range(self._env_num)  }
+        index_to_gamma ={i: 1 - torch.exp(  ( (self._env_num-1-i)*torch.log(torch.tensor(1-0.997))+i*torch.log(torch.tensor(1-0.99))) / (self._env_num-1) ) for i in range(self._env_num)  }
+        beta_index = {i: np.random.randint(0, self._env_num) for i in range(self._env_num)}
+        prev_action = {i: Nnone for i in range(self._env_num)}
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
@@ -228,17 +233,16 @@ class SampleCollector(ISerialCollector):
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
-                # beta={i:torch.randn(1)  for i in range(8)}
-                index_to_beta ={i: 0.3*torch.sigmoid(to_tensor(10*(2*i-(self._env_num-2)) / (self._env_num-2), dtype=torch.float32) )for i in range(self._env_num)  }
-                beta_index = {i: np.random.randint(0, self._env_num) for i in range(self._env_num)}
+                
                 beta_index= to_tensor(beta_index, dtype=torch.int64)
                 self._beta_pool.update(beta_index)
-                policy_output = self._policy.forward(obs, beta_index, **policy_kwargs) # TODO beta,r_e,r_i
+                policy_output = self._policy.forward(obs, beta_index,prev_action, prev_reward_e, **policy_kwargs) # TODO action,r_e,r_i
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
+                prev_action = actions
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -255,7 +259,7 @@ class SampleCollector(ISerialCollector):
                         self._logger.info('env_id {}, abnormal step {}', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
-                        self._beta_pool[env_id], self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                        self._beta_pool[env_id], self._obs_pool[env_id], self._policy_output_pool[env_id], timestep,
                     )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
@@ -272,6 +276,7 @@ class SampleCollector(ISerialCollector):
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
                         self._traj_buffer[env_id].clear()
+                        beta_index[env_id] = np.random.randint(0, self._env_num) # TODO
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
