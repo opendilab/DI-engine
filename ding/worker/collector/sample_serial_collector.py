@@ -26,13 +26,13 @@ class SampleCollector(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
-            self,
-            cfg: EasyDict,
-            env: BaseEnvManager = None,
-            policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'collector'
+        self,
+        cfg: EasyDict,
+        env: BaseEnvManager = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -94,7 +94,7 @@ class SampleCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
-            self._unroll_len = _policy.get_attribute('_unroll_len') 
+            self._unroll_len = _policy.get_attribute('unroll_len')
             self._on_policy = _policy.get_attribute('on_policy')
             if self._default_n_sample is not None:
                 self._traj_len = max(
