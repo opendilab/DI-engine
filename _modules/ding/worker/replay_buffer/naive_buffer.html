@@ -256,14 +256,16 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NaiveReplayBuffer.sample"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NaiveReplayBuffer.sample"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample data with length ``size``.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - size (:obj:`int`): The number of the data that will be sampled.</span>
 <span class="sd">            - cur_learner_iter (:obj:`int`): Learner&#39;s current iteration. \</span>
 <span class="sd">                Not used in naive buffer, but preserved for compatibility.</span>
+<span class="sd">            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \</span>
+<span class="sd">                means only sample among the last 10 data</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - sample_data (:obj:`list`): A list of data with length ``size``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -273,7 +275,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">can_sample</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_with_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">result</span></div>
 
@@ -395,12 +397,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the sample index list.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - size (:obj:`int`): The number of the data that will be sampled</span>
+<span class="sd">            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \</span>
+<span class="sd">                means only sample among the last 10 data</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -409,7 +413,11 @@
             <span class="n">tail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">tail</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">sample_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">tail</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">tail</span><span class="p">))[</span><span class="n">sample_range</span><span class="p">]</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">indices</span>
 
     <span class="k">def</span> <span class="nf">_sample_with_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>

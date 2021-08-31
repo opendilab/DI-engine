@@ -414,17 +414,14 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 
 <dl class="py method">
 <dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The number of the data that will be sampled.</p></li>
-<li><dl class="simple">
-<dt>cur_learner_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Learner’s current iteration. </dt><dd><p>Not used in naive buffer, but preserved for compatibility.</p>
-</dd>
-</dl>
-</li>
+<li><p>cur_learner_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Learner’s current iteration.                 Not used in naive buffer, but preserved for compatibility.</p></li>
+<li><p>sample_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">slice</span></code>): Buffer slice for sampling, such as <cite>slice(-10, None)</cite>, which                 means only sample among the last 10 data</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -568,13 +565,14 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 
 <dl class="py method">
 <dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The number of the data that will be sampled.</p></li>
 <li><p>cur_learner_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Learner’s current iteration, used to calculate staleness.</p></li>
+<li><p>sample_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">slice</span></code>): Buffer slice for sampling, such as <cite>slice(-10, None)</cite>, which                 means only sample among the last 10 data</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -582,11 +580,7 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </ul>
 </dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>necessary: original keys(e.g. <cite>obs</cite>, <cite>action</cite>, <cite>next_obs</cite>, <cite>reward</cite>, <cite>info</cite>), </dt><dd><p><cite>replay_unique_id</cite>, <cite>replay_buffer_idx</cite></p>
-</dd>
-</dl>
-</li>
+<li><p>necessary: original keys(e.g. <cite>obs</cite>, <cite>action</cite>, <cite>next_obs</cite>, <cite>reward</cite>, <cite>info</cite>),                 <cite>replay_unique_id</cite>, <cite>replay_buffer_idx</cite></p></li>
 <li><p>optional(if use priority): <cite>IS</cite>, <cite>priority</cite></p></li>
 </ul>
 </dd>
@@ -743,17 +737,14 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 
 <dl class="py method">
 <dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The number of the data that will be sampled.</p></li>
-<li><dl class="simple">
-<dt>cur_learner_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Learner’s current iteration. </dt><dd><p>Not used in naive buffer, but preserved for compatibility.</p>
-</dd>
-</dl>
-</li>
+<li><p>cur_learner_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Learner’s current iteration.                 Not used in naive buffer, but preserved for compatibility.</p></li>
+<li><p>sample_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">slice</span></code>): Buffer slice for sampling, such as <cite>slice(-10, None)</cite>, which                 means only sample among the last 10 data</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
