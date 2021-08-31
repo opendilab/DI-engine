@@ -10,6 +10,13 @@ from ding.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
 
+def to_positive_index(idx: Union[int, None], size: int) -> int:
+    if idx is None or idx >= 0:
+        return idx
+    else:
+        return size + idx
+
+
 @BUFFER_REGISTRY.register('advanced')
 class AdvancedReplayBuffer(IBuffer):
     r"""
@@ -206,13 +213,15 @@ class AdvancedReplayBuffer(IBuffer):
         if self._enable_track_used_data:
             self._used_data_remover.close()
 
-    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
-        r"""
+    def sample(self, size: int, cur_learner_iter: int, sample_range: slice = None) -> Optional[list]:
+        """
         Overview:
             Sample data with length ``size``.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``
         ReturnsKeys:
@@ -235,7 +244,7 @@ class AdvancedReplayBuffer(IBuffer):
             )
             return None
         with self._lock:
-            indices = self._get_indices(size)
+            indices = self._get_indices(size, sample_range)
             result = self._sample_with_indices(indices, cur_learner_iter)
             # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
             # the same indices, i.e. the same datas would be sampled afterwards.
@@ -498,7 +507,7 @@ class AdvancedReplayBuffer(IBuffer):
         # only the data passes all the check functions, would the check return True
         return all([fn(d) for fn in self.check_list])
 
-    def _get_indices(self, size: int) -> list:
+    def _get_indices(self, size: int, sample_range: slice = None) -> list:
         r"""
         Overview:
             Get the sample index list according to the priority probability.
@@ -511,8 +520,16 @@ class AdvancedReplayBuffer(IBuffer):
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # Uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
-        mass *= self._sum_tree.reduce()
+        if sample_range is None:
+            # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
+            mass *= self._sum_tree.reduce()
+        else:
+            # Rescale to [a, b)
+            start = to_positive_index(sample_range.start, self._replay_buffer_size)
+            end = to_positive_index(sample_range.stop, self._replay_buffer_size)
+            a = self._sum_tree.reduce(0, start)
+            b = self._sum_tree.reduce(0, end)
+            mass = mass * (b - a) + a
         # Find prefix sum index to sample with probability
         return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
