@@ -189,8 +189,6 @@ class NGUPolicy(Policy):
             # data['done'] = data['done'][bs:self._unroll_len_add_burnin_step ].float()
             data['done'] = data['done'][bs:self._unroll_len_add_burnin_step - self._nstep].float()
 
-       
-
         data['burnin_action'] = data['action'][:bs]
         data['main_action'] = data['action'][bs:self._unroll_len_add_burnin_step - self._nstep]
         data['target_action'] = data['action'][bs + self._nstep:]
