@@ -158,8 +158,8 @@ class NGU(nn.Module):
             prev_action = inputs['prev_action']
             prev_reward_e = inputs['prev_reward_e']
         else:
-            prev_action = torch.cat([torch.ones_like(inputs['action'][:,0].unsqueeze(1))*self.action_shape, inputs['action'][:,1:]],dim=1) # 20,1  20,31 -> 20,32
-            prev_reward_e = torch.cat([torch.zeros_like(inputs['reward'][:,0].unsqueeze(1)),inputs['reward'][:,1:]],dim=1) # 20,1,5  20,31,5 -> 20,32,5 
+            prev_action = torch.cat([torch.ones_like(inputs['action'][:,0].unsqueeze(1))*self.action_shape, inputs['action'][:,:-1]],dim=1) # 20,1  20,31 -> 20,32
+            prev_reward_e = torch.cat([torch.zeros_like(inputs['reward'][:,0].unsqueeze(1)),inputs['reward'][:,:-1]],dim=1) # 20,1,5  20,31,5 -> 20,32,5 
         # prev_action, prev_reward_e,  prev_areward_i = inputs['prev_action'], inputs['prev_reward_e'], inputs['prev_reward_i']
         beta = inputs['beta']  # beta_index
         if inference:

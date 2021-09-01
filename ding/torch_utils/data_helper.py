@@ -20,6 +20,19 @@ def one_hot_embedding(labels, num_classes):
     """
     y = torch.eye(num_classes) 
     return y[labels] 
+
+def one_hot_embedding_none(labels, num_classes):
+    """Embedding labels to one-hot form.
+
+    Args:
+      labels: (LongTensor) class labels, sized [N,].
+      num_classes: (int) number of classes.
+
+    Returns:
+      (tensor) encoded labels, sized [N, #classes].
+    """
+    y = torch.eye(num_classes) 
+    return  torch.stack([torch.zeros(num_classes) if i is None or i==num_classes else  y[i]  for i in labels], dim=0)
     
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     r"""
