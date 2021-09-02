@@ -12,7 +12,7 @@ class Scheduler(object):
             Default: 'entropy_weight'
         schedule_mode (str) : One of 'reduce', 'add','multi'. The schecule_mode 
             decides the way of updating the parameters.  Default:'reduce'.
-        change_amount (float) : Amount by which the parameter will be 
+        factor (float) : Amount by which the parameter will be 
             increased/decreased. Default: 0.05
         change_range (list) : Indicates the minimum and maximum value 
             the parameter can reach respectively. Default: [-1,1]
@@ -33,7 +33,7 @@ class Scheduler(object):
     def __init__(self, cfg,
                 # schedule_parameter = 'entropy_weight',
                 # schedule_mode = 'reduce',
-                # change_amount = 0.05,
+                # factor = 0.05,
                 # change_range = [-1,1],
                 # threshold = 1e-4,
                 # optimize_mode = 'min',
@@ -43,7 +43,7 @@ class Scheduler(object):
         
         schedule_parameter = cfg.policy.scheduler.schedule_parameter
         schedule_mode = cfg.policy.scheduler.schedule_mode
-        change_amount = cfg.policy.scheduler.change_amount
+        factor = cfg.policy.scheduler.factor
         change_range = cfg.policy.scheduler.change_range
         threshold = cfg.policy.scheduler.threshold
         optimize_mode = cfg.policy.scheduler.optimize_mode
@@ -56,12 +56,18 @@ class Scheduler(object):
         assert schedule_mode in ['reduce','add','multi'], 'The schedule mode should be one of [\'reduce\', \'add\', \'multi\']'
         self.schedule_mode = schedule_mode
         
-        assert isinstance(change_amount, float) or isinstance(change_amount, int), 'The change_amount should be a float/int number greater than 0'
-        assert change_amount > 0, 'The change_amount should be a float/int number greater than 0'
-        self.change_amount = change_amount
+        assert isinstance(factor, float) or isinstance(factor, int), 'The factor should be a float/int number greater than 0'
+        assert factor > 0, 'The factor should be a float/int number greater than 0'
+        self.factor = factor
 
         assert isinstance(change_range, list) and len(change_range) == 2, 'The change_range should be a list with 2 float numbers'
         assert (isinstance(change_range[0], float) or isinstance(change_range[0], int)) and (isinstance(change_range[1], float) or isinstance(change_range[1], int)), 'The change_range should be a list with 2 float/int numbers'
+        if schedule_parameter == 'entropy_weight':
+            assert (change_range[0] <= cfg.policy.learn.entropy_weight 
+                    and change_range[1] >= cfg.policy.learn.entropy_weight), 'The change range should cover the initial entropy weight value'
+        if schedule_parameter == 'learning_rate':
+            assert (change_range[0] <= cfg.policy.learn.learning_rate 
+                    and change_range[1] >= cfg.policy.learn.learning_rate), 'The change range should cover the initial learning rate value'
         self.change_range = change_range
 
         assert isinstance(threshold, float) or isinstance(threshold, int), 'The threshold should be a float/int number'
@@ -104,22 +110,32 @@ class Scheduler(object):
     
     def update_para(self, cfg):
         if self.schedule_parameter == 'entropy_weight':
+            entropy_weight = cfg.policy.learn.entropy_weight
             if self.schedule_mode == 'reduce':
-                tmp_parameter = cfg.policy.learn.entropy_weight - self.change_amount
-                if 
-                cfg.policy.learn.entropy_weight -= self.change_amount
+                cfg.policy.learn.entropy_weight = max(entropy_weight - self.factor, self.change_range[0])
+            
             if self.schedule_mode == 'add':
-                cfg.policy.learn.entropy_weight += self.change_amount
+                cfg.policy.learn.entropy_weight = min(entropy_weight + self.factor, self.change_range[1])
+            
             if self.schedule_mode == 'multi':
-                cfg.policy.learn.entropy_weight *= self.change_amount
-        
+                if self.factor >= 1:
+                    cfg.policy.learn.entropy_weight = min (self.factor*entropy_weight, self.change_range[1])
+                else:
+                    cfg.policy.learn.entropy_weight = max (self.factor*entropy_weight, self.change_range[0])
+
         if self.schedule_parameter == 'learning_rate':
+            learning_rate = cfg.policy.learn.learning_rate
             if self.schedule_mode == 'reduce':
-                cfg.policy.learn.learning_rate -= self.change_amount
+                cfg.policy.learn.learning_rate = max(learning_rate - self.factor, self.change_range[0])
+                
             if self.schedule_mode == 'add':
-                cfg.policy.learn.learning_rate += self.change_amount
+                cfg.policy.learn.learning_rate = min(learning_rate + self.factor, self.change_range[1])
+
             if self.schedule_mode == 'multi':
-                cfg.policy.learn.learning_rate *= self.change_amount
+                if self.factor >= 1:
+                    cfg.policy.learn.learning_rate = min (self.factor*learning_rate, self.change_range[1])
+                else:
+                    cfg.policy.learn.learning_rate = max (self.factor*learning_rate, self.change_range[0])
 
     @property
     def in_cooldown(self):
