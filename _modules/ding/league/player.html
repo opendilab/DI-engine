@@ -186,7 +186,8 @@
             <span class="n">init_payoff</span><span class="p">:</span> <span class="s1">&#39;BattleSharedPayoff&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">checkpoint_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">player_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-            <span class="n">total_agent_step</span><span class="p">:</span> <span class="nb">int</span>
+            <span class="n">total_agent_step</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">rating</span><span class="p">:</span> <span class="s1">&#39;PlayerRating&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -200,6 +201,7 @@
 <span class="sd">            - player_id (:obj:`str`): Player id in string format.</span>
 <span class="sd">            - total_agent_step (:obj:`int`): For active player, it should be 0; \</span>
 <span class="sd">                For historical player, it should be parent player&#39;s ``_total_agent_step`` when ``snapshot``.</span>
+<span class="sd">            - rating (:obj:`PlayerRating`): player rating information in total league</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_category</span> <span class="o">=</span> <span class="n">category</span>
@@ -208,7 +210,8 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">player_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_player_id</span> <span class="o">=</span> <span class="n">player_id</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">total_agent_step</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="p">(</span><span class="n">total_agent_step</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">total_agent_step</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span> <span class="o">=</span> <span class="n">total_agent_step</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span> <span class="o">=</span> <span class="n">total_agent_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rating</span> <span class="o">=</span> <span class="n">rating</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">category</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -232,7 +235,15 @@
 
     <span class="nd">@total_agent_step</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">total_agent_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span> <span class="o">=</span> <span class="n">step</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span> <span class="o">=</span> <span class="n">step</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rating</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;PlayerRating&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rating</span>
+
+    <span class="nd">@rating</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_rating</span><span class="p">:</span> <span class="s1">&#39;PlayerRating&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rating</span> <span class="o">=</span> <span class="n">_rating</span></div>
 
 
 <div class="viewcode-block" id="HistoricalPlayer"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.player.HistoricalPlayer">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;historical_player&#39;</span><span class="p">)</span>
@@ -329,10 +340,12 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HistoricalPlayer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_env</span><span class="p">:</span> <span class="s1">&#39;LeagueMetricEnv&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HistoricalPlayer</span><span class="p">:</span>  <span class="c1"># noqa</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate a snapshot historical player from the current player, called in league&#39;s ``_snapshot``.</span>
+<span class="sd">        Argument:</span>
+<span class="sd">            - metric_env (:obj:`LeagueMetricEnv`): player rating environment, one league one env</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - snapshot_player (:obj:`HistoricalPlayer`): new instantiated historical player</span>
 
@@ -348,6 +361,7 @@
             <span class="n">path</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">player_id</span> <span class="o">+</span> <span class="s1">&#39;_</span><span class="si">{}</span><span class="s1">_historical&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span><span class="p">)),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_total_agent_step</span><span class="p">,</span>
+            <span class="n">metric_env</span><span class="o">.</span><span class="n">create_rating</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rating</span><span class="o">.</span><span class="n">mu</span><span class="p">),</span>
             <span class="n">parent_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">player_id</span>
         <span class="p">)</span>
 
