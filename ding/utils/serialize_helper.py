@@ -22,15 +22,18 @@ class MultiprocessingPickle:
         self.byte_length = byte_length
 
     def job_serialized(self, i, buffer, byte_length):
-        serialized_x = pickle.dumps(self.arr[i], protocol=pickle.HIGHEST_PROTOCOL)
-        buffer[i * byte_length:(i + 1) * byte_length] = serialized_x[:]
+        with Tock('1'):
+            serialized_x = pickle.dumps(self.arr[i], protocol=pickle.HIGHEST_PROTOCOL)
+        with Tock('2'):
+            buffer[i * byte_length:(i + 1) * byte_length] = serialized_x[:]
 
     def job_deserialized(self, i, buffer, byte_length, split_length):
-        deserialized_x = pickle.loads(self.data[i * byte_length:(i + 1) * byte_length])
-        buffer[i * split_length:(i + 1) * split_length] = deserialized_x[:]
+        with Tock('3'):
+            deserialized_x = pickle.loads(self.data[i * byte_length:(i + 1) * byte_length])
+        with Tock('4'):
+            buffer[i * split_length:(i + 1) * split_length] = deserialized_x[:]
 
     def pack(self):
-
         self.data = self.data.reshape(-1)
         self.arr = to_ndarray(np.array_split(self.data, self.cpu_count))
         processes = []

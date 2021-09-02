@@ -23,6 +23,7 @@ class SerializedZoo:
             return cloudpickle.dumps(self.var)
 
         if self.type == 'pickle':
+            print(pickle.HIGHEST_PROTOCOL)
             return pickle.dumps(self.var, protocol=pickle.HIGHEST_PROTOCOL)
 
         if self.type == 'pyarrow':
