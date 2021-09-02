@@ -177,24 +177,35 @@ class R2D2Policy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)])
+
+        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate the q_nstep_td_error,
+        # should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep] 
         ignore_done = self._cfg.learn.ignore_done
-
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step-bs-self._nstep)]
         else:
-            data['done'] = data['done'][bs:self._unroll_len_add_burnin_step-self._nstep].float()
+            data['done'] = data['done'][bs:-self._nstep].float()
 
-        data['action'] = data['action'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['reward'] = data['reward'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['burnin_obs'] = data['obs'][:bs]     
-        data['main_obs'] = data['obs'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['target_obs'] = data['obs'][bs + self._nstep:]
+        # if the data don't include 'weight' or 'value_gamma' then fill in None in a list 
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] =  [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+            data['value_gamma'] =  [None for _ in range(self._unroll_len_add_burnin_step-bs-self._nstep)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:self._unroll_len_add_burnin_step-self._nstep]
+            data['value_gamma'] = data['value_gamma'][bs:-self._nstep]
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step-bs-self._nstep)])
 
+        data['action'] = data['action'][bs:-self._nstep]
+        data['reward'] = data['reward'][bs:-self._nstep]
+
+        # the burnin_obs is used to calculate the init hidden state for the calculation of the q_value 
+        data['burnin_obs'] = data['obs'][:bs]
+        # the main_obs is used to calculate the q_value, 
+        # the [bs:-self._nstep] means using the data from [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
+        data['main_obs'] = data['obs'][bs:-self._nstep] 
+        # the target_obs is used to calculate the target_q_value 
+        data['target_obs'] = data['obs'][bs + self._nstep:] 
+        
         return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -236,7 +247,7 @@ class R2D2Policy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        for t in range(self._unroll_len_add_burnin_step- self._burnin_step-self._nstep):
+        for t in range(self._unroll_len_add_burnin_step-self._burnin_step-self._nstep):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
