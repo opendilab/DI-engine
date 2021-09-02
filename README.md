@@ -86,7 +86,7 @@ ding -m serial -e cartpole -p dqn -s 0
 ```
 
 ## Contributing
-We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides.
+We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides. And our roadmap can be accessed by [this link](https://github.com/opendilab/DI-engine/projects/1)
 
 ## Citation
 ```latex
