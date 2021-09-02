@@ -82,7 +82,7 @@ class Scheduler(object):
 
         assert isinstance(cooldown, int), 'The cooldown_counter should be a integer greater than or equal to 0'
         assert cooldown >= 0, 'The cooldown_counter should be a integer greater than or equal to 0'
-        self.cooldown= cooldown
+        self.cooldown = cooldown
         self.cooldown_counter = cooldown
 
         self.last_metrics = None
