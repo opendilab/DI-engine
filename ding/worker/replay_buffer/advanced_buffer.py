@@ -454,8 +454,8 @@ class AdvancedReplayBuffer(IBuffer):
                     self._max_priority = max(self._max_priority, priority)
                 else:
                     self._logger.debug(
-                        'buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
-                            idx, self._data[idx]['replay_unique_id'], id_
+                        '[Skip Update]: buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
+                            idx, id_, priority
                         )
                     )
 
