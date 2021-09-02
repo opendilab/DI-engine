@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer, BaseSerialEvaluator
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -14,6 +14,7 @@ from ding.utils import set_pkg_seed
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.league_scheduler import Scheduler
 
 
 class EvalPolicy1:
@@ -73,6 +74,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     policies = {}
     learners = {}
     collectors = {}
+
     for player_id in league.active_players_ids:
         # default set the same arch model(different init weight)
         model = VAC(**cfg.policy.model)
@@ -95,6 +97,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_colllector',
         )
+
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
@@ -133,6 +136,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
 
+    para_scheduler = Scheduler(cfg)
     for run_iter in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward, episode_info = evaluator1.eval(
@@ -144,6 +148,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 main_player.rating, league.metric_env.create_rating(mu=20), win_loss_result
             )
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
+        
         if evaluator2.should_eval(main_learner.train_iter):
             stop_flag2, reward, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
@@ -154,8 +159,14 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 main_player.rating, league.metric_env.create_rating(mu=0), win_loss_result
             )
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
+        
         if stop_flag1 and stop_flag2:
             break
+        
+        if cfg.policy.scheduler.schedule_flag:
+            metrics = main_player.rating.exposure
+            para_scheduler.step(metrics, cfg)
+
         for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
             tb_logger.add_scalar(
                 'league/{}_trueskill'.format(player_id),

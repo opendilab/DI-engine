@@ -1,4 +1,5 @@
 from easydict import EasyDict
+from torch.nn.modules.activation import Threshold
 
 league_demo_ppo_config = dict(
     exp_name="league_demo_ppo",
@@ -6,7 +7,7 @@ league_demo_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=100,
-        stop_value=[-0.01, -5],
+        stop_value=[-10.1, -5.1],
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(
@@ -30,6 +31,17 @@ league_demo_ppo_config = dict(
         ),
         collect=dict(
             n_episode=128, unroll_len=1, discount_factor=1.0, gae_lambda=1.0, collector=dict(get_train_sample=True, )
+        ),
+        scheduler=dict(
+            schedule_flag = True,
+            schedule_parameter='entropy_weight',
+            schedule_mode='reduce',
+            change_amount=0.05,
+            change_range=[-1,1],
+            threshold=0.1,
+            optimize_mode='max',
+            patience=1,
+            cooldown=0,
         ),
         other=dict(
             league=dict(
@@ -76,6 +88,7 @@ league_demo_ppo_config = dict(
                 ),
             ),
         ),
+
     ),
 )
 league_demo_ppo_config = EasyDict(league_demo_ppo_config)
