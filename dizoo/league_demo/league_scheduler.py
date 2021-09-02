@@ -120,15 +120,15 @@ class Scheduler(object):
             
             if self.schedule_mode == 'multi':
                 if self.factor >= 1:
-                    cfg.policy.learn.entropy_weight = min (self.factor*entropy_weight, self.change_range[1])
+                    cfg.policy.learn.entropy_weight = min(self.factor*entropy_weight, self.change_range[1])
                 else:
-                    cfg.policy.learn.entropy_weight = max (self.factor*entropy_weight, self.change_range[0])
+                    cfg.policy.learn.entropy_weight = max(self.factor*entropy_weight, self.change_range[0])
             
             if self.schedule_mode == 'div':
                 if self.factor >= 1:
-                    cfg.policy.learn.entropy_weight = max (float(entropy_weight)/float(self.factor), self.change_range[0])
+                    cfg.policy.learn.entropy_weight = max(float(entropy_weight) / float(self.factor), self.change_range[0])
                 else:
-                    cfg.policy.learn.entropy_weight = min (float(entropy_weight)/float(self.factor), self.change_range[1])
+                    cfg.policy.learn.entropy_weight = min(float(entropy_weight) / float(self.factor), self.change_range[1])
 
         if self.schedule_parameter == 'learning_rate':
             learning_rate = cfg.policy.learn.learning_rate
@@ -140,15 +140,15 @@ class Scheduler(object):
 
             if self.schedule_mode == 'multi':
                 if self.factor >= 1:
-                    cfg.policy.learn.learning_rate = min (self.factor*learning_rate, self.change_range[1])
+                    cfg.policy.learn.learning_rate = min(self.factor*learning_rate, self.change_range[1])
                 else:
-                    cfg.policy.learn.learning_rate = max (self.factor*learning_rate, self.change_range[0])
+                    cfg.policy.learn.learning_rate = max(self.factor*learning_rate, self.change_range[0])
 
             if self.schedule_mode == 'div':
                 if self.factor >= 1:
-                    cfg.policy.learn.learning_rate = max (float(learning_rate)/float(self.factor), self.change_range[0])
+                    cfg.policy.learn.learning_rate = max(float(learning_rate) / float(self.factor), self.change_range[0])
                 else:
-                    cfg.policy.learn.learning_rate = min (float(learning_rate)/float(self.factor), self.change_range[1])
+                    cfg.policy.learn.learning_rate = min(float(learning_rate) / float(self.factor), self.change_range[1])
 
 
     @property
