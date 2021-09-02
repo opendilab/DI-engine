@@ -1,9 +1,15 @@
+import os
 import shutil
 from easydict import EasyDict
 from ding.league import BaseLeague, ActivePlayer
 
 
 class DemoLeague(BaseLeague):
+
+    def __init__(self, cfg):
+        super(DemoLeague, self).__init__(cfg)
+        self.reset_checkpoint_path = os.path.join(self.path_policy, 'reset_ckpt.pth')
+
     # override
     def _get_job_info(self, player: ActivePlayer, eval_flag: bool = False) -> dict:
         assert isinstance(player, ActivePlayer), player.__class__
@@ -18,7 +24,12 @@ class DemoLeague(BaseLeague):
 
     # override
     def _mutate_player(self, player: ActivePlayer):
-        pass
+        for p in self.active_players:
+            result = p.mutate({'reset_checkpoint_path': self.reset_checkpoint_path})
+            if result is not None:
+                p.rating = self.metric_env.create_rating()
+                self.load_checkpoint(p.player_id, result)  # load_checkpoint is set by the caller of league
+                self.save_checkpoint(result, p.checkpoint_path)
 
     # override
     def _update_player(self, player: ActivePlayer, player_info: dict) -> None:
