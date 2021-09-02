@@ -10,9 +10,9 @@ class Scheduler(object):
     Args:
         schedule_parameter (str) : One of 'entropy_weight', 'learning_rate'. 
             Default: 'entropy_weight'
-        schedule_mode (str) : One of 'reduce', 'add','multi'. The schecule_mode 
+        schedule_mode (str) : One of 'reduce', 'add','multi','div'. The schecule_mode 
             decides the way of updating the parameters.  Default:'reduce'.
-        factor (float) : Amount by which the parameter will be 
+        factor (float) : Amount (greater than 0) by which the parameter will be 
             increased/decreased. Default: 0.05
         change_range (list) : Indicates the minimum and maximum value 
             the parameter can reach respectively. Default: [-1,1]
@@ -53,7 +53,7 @@ class Scheduler(object):
         assert schedule_parameter in ['entropy_weight', 'learning_rate'], 'The parameter to be scheduled should be one of [\'entropy_weight\', \'learning_rate\']'
         self.schedule_parameter = schedule_parameter
         
-        assert schedule_mode in ['reduce','add','multi'], 'The schedule mode should be one of [\'reduce\', \'add\', \'multi\']'
+        assert schedule_mode in ['reduce','add','multi','div'], 'The schedule mode should be one of [\'reduce\', \'add\', \'multi\',\'div\']'
         self.schedule_mode = schedule_mode
         
         assert isinstance(factor, float) or isinstance(factor, int), 'The factor should be a float/int number greater than 0'
@@ -107,6 +107,7 @@ class Scheduler(object):
             self.update_para(cfg)
             self.cooldown_counter = self.cooldown
             self.bad_epochs_num = 0
+            
     
     def update_para(self, cfg):
         if self.schedule_parameter == 'entropy_weight':
@@ -122,6 +123,12 @@ class Scheduler(object):
                     cfg.policy.learn.entropy_weight = min (self.factor*entropy_weight, self.change_range[1])
                 else:
                     cfg.policy.learn.entropy_weight = max (self.factor*entropy_weight, self.change_range[0])
+            
+            if self.schedule_mode == 'div':
+                if self.factor >= 1:
+                    cfg.policy.learn.entropy_weight = max (float(entropy_weight)/float(self.factor), self.change_range[0])
+                else:
+                    cfg.policy.learn.entropy_weight = min (float(entropy_weight)/float(self.factor), self.change_range[1])
 
         if self.schedule_parameter == 'learning_rate':
             learning_rate = cfg.policy.learn.learning_rate
@@ -136,6 +143,13 @@ class Scheduler(object):
                     cfg.policy.learn.learning_rate = min (self.factor*learning_rate, self.change_range[1])
                 else:
                     cfg.policy.learn.learning_rate = max (self.factor*learning_rate, self.change_range[0])
+
+            if self.schedule_mode == 'div':
+                if self.factor >= 1:
+                    cfg.policy.learn.learning_rate = max (float(learning_rate)/float(self.factor), self.change_range[0])
+                else:
+                    cfg.policy.learn.learning_rate = min (float(learning_rate)/float(self.factor), self.change_range[1])
+
 
     @property
     def in_cooldown(self):
