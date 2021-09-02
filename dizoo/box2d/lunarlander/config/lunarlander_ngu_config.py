@@ -6,28 +6,19 @@ print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
-minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ngu_r2d2_rnd', #TODO
+lunarlander_ngu_config = dict(
+    exp_name='lunarlander_ngu_debug', #TODO
     env=dict(
-        collector_env_num=collector_env_num,
+        collector_env_num=collector_env_num, 
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        env_id='MiniGrid-Empty-8x8-v0',
-        stop_value=0.96,
+        stop_value=195,
     ),
-    # reward_model=dict(
-    #     intrinsic_reward_type='add',  #add',  # 'assign'
-    #     learning_rate=0.001,
-    #     obs_shape=2739,
-    #     batch_size=32,
-    #     update_per_collect=10,
-    #     nstep=nstep,
-    # ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  #add',  # 'assign'
         learning_rate=0.001,
-        obs_shape=2739,
-        action_shape = 7,
+        obs_shape=8,
+        action_shape = 4,
         batch_size=32,
         update_per_collect=10,
         nstep=nstep,
@@ -37,8 +28,8 @@ minigrid_ppo_rnd_config = dict(
     episodic_reward_model=dict(
         intrinsic_reward_type='add',  #add',  # 'assign'
         learning_rate=0.001,
-        obs_shape=2739,
-        action_shape = 7,
+        obs_shape=8,
+        action_shape = 4,
         batch_size=32,
         update_per_collect=10,
         nstep=nstep,
@@ -50,16 +41,15 @@ minigrid_ppo_rnd_config = dict(
         on_policy=False,
         cuda=True,
         priority=False,
-        discount_factor=0.997,
+        discount_factor=0.999,
         burnin_step=2, #TODO
         nstep=nstep,
         unroll_len=40,  # 80
         model=dict(
-            obs_shape=2739,
-            action_shape=7,
-            encoder_hidden_size_list=[256, 128, 64, 64],
+            obs_shape=8,
+            action_shape=4,
+            encoder_hidden_size_list=[128, 128, 64],
             collector_env_num=collector_env_num,#TODO
-            # encoder_hidden_size_list=[256, 64], #TODO
         ),
         learn=dict(
             update_per_collect=20,  #4,
@@ -69,7 +59,7 @@ minigrid_ppo_rnd_config = dict(
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
-            target_update_freq=500,  #100,
+            target_update_freq=100,  #100,
         ),
         collect=dict(
             # n_sample=128,
@@ -90,23 +80,24 @@ minigrid_ppo_rnd_config = dict(
         ),
     ),
 )
-minigrid_ppo_rnd_config = EasyDict(minigrid_ppo_rnd_config)
-main_config = minigrid_ppo_rnd_config
-minigrid_ppo_rnd_create_config = dict(
+lunarlander_ngu_config = EasyDict(lunarlander_ngu_config)
+main_config = lunarlander_ngu_config
+lunarlander_ngu_create_config = dict(
     env=dict(
-        type='minigrid',
-        import_names=['dizoo.minigrid.envs.minigrid_env'],
+        type='lunarlander',
+        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd'),
+    episodic_reward_model=dict(type='episodic'),
     collector=dict(
         type='sample_ngu', # TODO
     )
 )
-minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
-create_config = minigrid_ppo_rnd_create_config
+lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
+create_config = lunarlander_ngu_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
