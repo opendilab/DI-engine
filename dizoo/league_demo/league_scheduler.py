@@ -56,7 +56,8 @@ class Scheduler(object):
         assert schedule_mode in ['reduce','add','multi'], 'The schedule mode should be one of [\'reduce\', \'add\', \'multi\']'
         self.schedule_mode = schedule_mode
         
-        assert isinstance(change_amount, float) or isinstance(change_amount, int), 'The change_amount should be a float/int number'
+        assert isinstance(change_amount, float) or isinstance(change_amount, int), 'The change_amount should be a float/int number greater than 0'
+        assert change_amount > 0, 'The change_amount should be a float/int number greater than 0'
         self.change_amount = change_amount
 
         assert isinstance(change_range, list) and len(change_range) == 2, 'The change_range should be a list with 2 float numbers'
@@ -104,6 +105,8 @@ class Scheduler(object):
     def update_para(self, cfg):
         if self.schedule_parameter == 'entropy_weight':
             if self.schedule_mode == 'reduce':
+                tmp_parameter = cfg.policy.learn.entropy_weight - self.change_amount
+                if 
                 cfg.policy.learn.entropy_weight -= self.change_amount
             if self.schedule_mode == 'add':
                 cfg.policy.learn.entropy_weight += self.change_amount
