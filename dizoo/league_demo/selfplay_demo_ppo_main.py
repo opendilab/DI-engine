@@ -50,10 +50,17 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         NaiveReplayBuffer,
         save_cfg=True
     )
+    env_type = cfg.env.env_type
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env1 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env2 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env1.seed(seed, dynamic_seed=False)

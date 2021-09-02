@@ -6,7 +6,8 @@ league_demo_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=100,
-        stop_value=[-0.01, -5],
+        env_type='prisoner_dilemma',  # ['zero_sum', 'prisoner_dilemma']
+        stop_value=[-10.1, -5.05],  # prisoner_dilemma
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(

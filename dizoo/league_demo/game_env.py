@@ -10,7 +10,7 @@ class GameEnv(BaseEnv):
         if self.game_type == 'prisoner_dilemma':
             self.optimal_policy = [0, 1]
         elif self.game_type == 'zero_sum':
-            self.optimal_policy == [0.375, 0.625]
+            self.optimal_policy = [0.375, 0.625]
 
     def seed(self, seed, dynamic_seed=False):
         pass
