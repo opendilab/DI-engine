@@ -53,6 +53,7 @@ class NGU(nn.Module):
         obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        collector_env_num : Optional[int] = 1, # TODO
         dueling: bool = True,
         head_hidden_size: Optional[int] = None,
         head_layer_num: int = 1,
@@ -79,6 +80,7 @@ class NGU(nn.Module):
         # For compatibility: 1, (1, ), [4, 32, 32]
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         self.action_shape = action_shape
+        self.collector_env_num = collector_env_num
         if head_hidden_size is None:
             head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
@@ -91,7 +93,7 @@ class NGU(nn.Module):
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DRQN".format(obs_shape)
             )
-        input_size = head_hidden_size + 8 + action_shape+1 # TODO
+        input_size = head_hidden_size +  self.collector_env_num + action_shape+1 # TODO
         # LSTM Type
         self.rnn = get_lstm(lstm_type, input_size=input_size, hidden_size=head_hidden_size)
         # Head Type
@@ -162,13 +164,14 @@ class NGU(nn.Module):
             prev_reward_e = torch.cat([torch.zeros_like(inputs['reward'][:,0].unsqueeze(1)),inputs['reward'][:,:-1]],dim=1) # 20,1,5  20,31,5 -> 20,32,5 
         # prev_action, prev_reward_e,  prev_areward_i = inputs['prev_action'], inputs['prev_reward_e'], inputs['prev_reward_i']
         beta = inputs['beta']  # beta_index
-        if inference:
+        if inference: # collect,eval
             x = self.encoder(x)
             x = x.unsqueeze(0)
             prev_reward_e  = prev_reward_e.unsqueeze(0).unsqueeze(-1)
-            # beta=beta.unsqueeze(1).unsqueeze(0)
-            # env_num= x.shape[1] #collect 8 eval 5
-            env_num = 8
+
+            # env_num= x.shape[1] # collect 8 eval 5
+            env_num= self.collector_env_num 
+            # env_num = 8
             beta_onehot = one_hot_embedding(beta, env_num).unsqueeze(0)
             prev_action_onehot  = one_hot_embedding_none(prev_action, self.action_shape).unsqueeze(0)
             x_a_r_beta = torch.cat([x,  prev_action_onehot, prev_reward_e,  beta_onehot], dim=-1) # shape [1,8,80]
@@ -178,13 +181,12 @@ class NGU(nn.Module):
             x = self.head(x)
             x['next_state'] = next_state
             return x
-        else:
+        else: # train
             assert len(x.shape) in [3, 5], x.shape  # 20,32,2739
             x = parallel_wrapper(self.encoder)(x)  # 20,32,64
-            # prev_reward_e  = prev_reward_e.unsqueeze(-1)
             # if nstep:
             prev_reward_e  = prev_reward_e[:,:,0].unsqueeze(-1)  # 20,32,1
-            env_num = 8  # x.shape[1]
+            env_num = self.collector_env_num 
             beta_onehot = one_hot_embedding(beta.view(-1), env_num).view([beta.shape[0],beta.shape[1],-1]) # 20,32,8
             prev_action_onehot  = one_hot_embedding_none(prev_action.view(-1), self.action_shape).view([prev_action.shape[0],prev_action.shape[1],-1]) # 20,32,7
             x_a_r_beta = torch.cat([x,  prev_action_onehot, prev_reward_e,  beta_onehot], dim=-1) # 20,32,80 

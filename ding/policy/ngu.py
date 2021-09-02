@@ -328,36 +328,12 @@ class NGUPolicy(Policy):
         self._gamma = self._cfg.discount_factor
         # self._unroll_len_add_burnin_step  = self._burnin_step + 2 * self._nstep # pu
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step  # TODO
-        self._unroll_len = self._unroll_len_add_burnin_step
+        self._unroll_len = self._unroll_len_add_burnin_step # for compatibility
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample_ngu')
         self._collect_model.reset()
-
-    # def _forward_collect(self, data: dict, eps: float) -> dict:
-    #     r"""
-    #     Overview:
-    #         Collect output according to eps_greedy plugin
-
-    #     Arguments:
-    #         - data (:obj:`dict`): Dict type data, including at least ['obs'].
-
-    #     Returns:
-    #         - data (:obj:`dict`): The collected data
-    #     """
-    #     data_id = list(data.keys())
-    #     data = default_collate(list(data.values()))
-    #     if self._cuda:
-    #         data = to_device(data, self._device)
-    #     data = {'obs': data}
-    #     self._collect_model.eval()
-    #     with torch.no_grad():
-    #         output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True) # TODO eps 8个
-    #     if self._cuda:
-    #         output = to_device(output, 'cpu')
-    #     output = default_decollate(output)
-    #     return {i: d for i, d in zip(data_id, output)}
 
     def _forward_collect(self, beta: dict, obs: dict, prev_action:dict,  prev_reward_e:dict, eps: dict) -> dict:
         r"""
