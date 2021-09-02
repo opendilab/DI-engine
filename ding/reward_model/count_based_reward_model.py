@@ -102,6 +102,7 @@ class CountBasedRewardModel(BaseRewardModel):
             self.collect_data(data)
             if self.train_iter % self.update_per_iter == 0:
                 self.train()
+            # like origin paper, only use the latest frame image as hash target
             s = torch.stack([item['obs'][-1:] for item in data], dim=0).to(self.device)
             hash_cnts = self._counter.update(s)
             self.tb_logger.add_scalar('reward_model/statehash_size', len(self._counter.hash), self.train_iter)
@@ -188,6 +189,7 @@ class AutoEncoderCounter():
         self.autoencoder.train()
         # generate embedding in latent space
         state_emb = self.autoencoder.generate(states)
+        # add noise to embedding. max intensity * [-1,1]
         state_emb_noise = state_emb+noise_intensity * \
             (2*torch.rand_like(state_emb)-1)
         # reconstruct from latent space

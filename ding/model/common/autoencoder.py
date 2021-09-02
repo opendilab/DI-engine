@@ -14,7 +14,9 @@ class AutoEncoder(nn.Module):
         input_dim = state_dim[0]
         kernel_size = [5, 5, 5]
         for i in range(len(encoder_feature_dim)):
-            encoder.append(nn.Conv2d(input_dim, encoder_feature_dim[i], kernel_size=kernel_size[i], stride=2,padding=2))
+            encoder.append(
+                nn.Conv2d(input_dim, encoder_feature_dim[i], kernel_size=kernel_size[i], stride=2, padding=2)
+            )
             encoder.append(nn.ReLU(inplace=True))
             input_dim = encoder_feature_dim[i]
         self.downsample = nn.Sequential(*encoder)
