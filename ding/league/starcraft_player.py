@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 import numpy as np
 
 from ding.utils import PLAYER_REGISTRY
@@ -105,7 +105,7 @@ class MainPlayer(ActivePlayer):
         Overview:
             MainPlayer does not mutate
         """
-        return None
+        pass
 
 
 @PLAYER_REGISTRY.register('main_exploiter')
@@ -168,9 +168,9 @@ class MainExploiter(ActivePlayer):
         Overview:
             Main exploiter is sure to mutate(reset) to the supervised learning player
         Returns:
-            - ckpt_path (:obj:`str`): the pretrained model's ckpt path
+            - mutate_ckpt_path (:obj:`str`): mutation target checkpoint path
         """
-        return info['pretrain_checkpoint_path']
+        return info['reset_checkpoint_path']
 
 
 @PLAYER_REGISTRY.register('league_exploiter')
@@ -220,15 +220,15 @@ class LeagueExploiter(ActivePlayer):
         return super().is_trained_enough(select_fn=lambda p: isinstance(p, HistoricalPlayer))
 
     # override
-    def mutate(self, info) -> Optional[str]:
+    def mutate(self, info) -> Union[str, None]:
         """
         Overview:
             League exploiter can mutate to the supervised learning player with 0.25 prob
         Returns:
-            - ckpt_path (:obj:`str`): with ``mutate_prob`` prob returns the pretrained model's ckpt path, \
+            - ckpt_path (:obj:`Union[str, None]`): with ``mutate_prob`` prob returns the pretrained model's ckpt path, \
                 with left 1 - ``mutate_prob`` prob returns None, which means no mutation
         """
         p = np.random.uniform()
         if p < self.mutate_prob:
-            return info['pretrain_checkpoint_path']
+            return info['reset_checkpoint_path']
         return None
