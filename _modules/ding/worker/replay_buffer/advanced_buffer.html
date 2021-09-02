@@ -258,7 +258,8 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`dict`): Config dict.</span>
 <span class="sd">            - tb_logger (:obj:`Optional[&#39;SummaryWriter&#39;]`): Outer tb logger. Usually get this argument in serial mode.</span>
-<span class="sd">            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.</span>
+<span class="sd">            - exp_name (:obj:`Optional[str]`): Name of this experiment.</span>
+<span class="sd">            - instance_name (:obj:`Optional[str]`): Name of this instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
@@ -776,10 +777,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">push_data_count</span> <span class="o">+=</span> <span class="n">add_count</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_thruput_controller</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_controller</span><span class="o">.</span><span class="n">history_push_count</span> <span class="o">+=</span> <span class="n">add_count</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span>
-            <span class="s1">&#39;buffer_</span><span class="si">{}</span><span class="s1">_sec/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;push&#39;</span><span class="p">,</span> <span class="n">add_count</span><span class="p">,</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span>
-        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cur_collector_envstep</span> <span class="o">=</span> <span class="n">cur_collector_envstep</span>
 
     <span class="k">def</span> <span class="nf">_monitor_update_of_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -831,10 +828,6 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_iter/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">iter_metric</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">step_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_step/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">step_metric</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span>
-            <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_sec/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">),</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span>
-        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_count</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">_calculate_staleness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
