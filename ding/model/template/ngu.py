@@ -2,12 +2,12 @@ from typing import Union, Optional, Dict, Callable, List
 import torch
 import torch.nn as nn
 
-from ding.torch_utils import get_lstm
+from ding.torch_utils import get_lstm, one_hot, to_tensor, to_ndarray
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
-from ding.torch_utils.data_helper import one_hot_embedding,one_hot_embedding_none
+# from ding.torch_utils.data_helper import one_hot_embedding, one_hot_embedding_none
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
-from ding.torch_utils import to_tensor, to_ndarray
+
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:
     r"""
@@ -39,6 +39,7 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
 
     return wrapper
 
+
 @MODEL_REGISTRY.register('ngu')
 class NGU(nn.Module):
     """
@@ -49,17 +50,17 @@ class NGU(nn.Module):
     """
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        collector_env_num : Optional[int] = 1, # TODO
-        dueling: bool = True,
-        head_hidden_size: Optional[int] = None,
-        head_layer_num: int = 1,
-        lstm_type: Optional[str] = 'normal',
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            collector_env_num: Optional[int] = 1,  # TODO
+            dueling: bool = True,
+            head_hidden_size: Optional[int] = None,
+            head_layer_num: int = 1,
+            lstm_type: Optional[str] = 'normal',
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
     ) -> None:
         r"""
         Overview:
@@ -93,7 +94,7 @@ class NGU(nn.Module):
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DRQN".format(obs_shape)
             )
-        input_size = head_hidden_size +  self.collector_env_num + action_shape+1 # TODO
+        input_size = head_hidden_size + self.collector_env_num + action_shape + 1  # TODO
         # LSTM Type
         self.rnn = get_lstm(lstm_type, input_size=input_size, hidden_size=head_hidden_size)
         # Head Type
@@ -160,37 +161,43 @@ class NGU(nn.Module):
             prev_action = inputs['prev_action']
             prev_reward_e = inputs['prev_reward_e']
         else:
-            prev_action = torch.cat([torch.ones_like(inputs['action'][:,0].unsqueeze(1))*self.action_shape, inputs['action'][:,:-1]],dim=1) # 20,1  20,31 -> 20,32
-            prev_reward_e = torch.cat([torch.zeros_like(inputs['reward'][:,0].unsqueeze(1)),inputs['reward'][:,:-1]],dim=1) # 20,1,5  20,31,5 -> 20,32,5 
+            prev_action = torch.cat(
+                [torch.ones_like(inputs['action'][:, 0].unsqueeze(1)) * (-1), inputs['action'][:, :-1]], dim=1
+            )  # 20,1  20,31 -> 20,32 self.action_shape
+            prev_reward_e = torch.cat(
+                [torch.zeros_like(inputs['reward'][:, 0].unsqueeze(1)), inputs['reward'][:, :-1]], dim=1
+            )  # 20,1,5  20,31,5 -> 20,32,5
         # prev_action, prev_reward_e,  prev_areward_i = inputs['prev_action'], inputs['prev_reward_e'], inputs['prev_reward_i']
         beta = inputs['beta']  # beta_index
-        if inference: # collect,eval
+        if inference:  # collect,eval
             x = self.encoder(x)
             x = x.unsqueeze(0)
-            prev_reward_e  = prev_reward_e.unsqueeze(0).unsqueeze(-1)
+            prev_reward_e = prev_reward_e.unsqueeze(0).unsqueeze(-1)
 
             # env_num= x.shape[1] # collect 8 eval 5
-            env_num= self.collector_env_num 
+            env_num = self.collector_env_num
             # env_num = 8
-            beta_onehot = one_hot_embedding(beta, env_num).unsqueeze(0)
-            prev_action_onehot  = one_hot_embedding_none(prev_action, self.action_shape).unsqueeze(0)
-            x_a_r_beta = torch.cat([x,  prev_action_onehot, prev_reward_e,  beta_onehot], dim=-1) # shape [1,8,80]
+            beta_onehot = one_hot(beta, env_num).unsqueeze(0)
+            prev_action_onehot = one_hot(prev_action, self.action_shape).unsqueeze(0)
+            x_a_r_beta = torch.cat([x, prev_action_onehot, prev_reward_e, beta_onehot], dim=-1)  # shape [1,8,80]
             x, next_state = self.rnn(x_a_r_beta.to(torch.float32), prev_state)
             # x, next_state = self.rnn(x, prev_state)
             x = x.squeeze(0)
             x = self.head(x)
             x['next_state'] = next_state
             return x
-        else: # train
+        else:  # train
             assert len(x.shape) in [3, 5], x.shape  # 20,32,2739
             x = parallel_wrapper(self.encoder)(x)  # 20,32,64
             # if nstep:
-            prev_reward_e  = prev_reward_e[:,:,0].unsqueeze(-1)  # 20,32,1
-            env_num = self.collector_env_num 
-            beta_onehot = one_hot_embedding(beta.view(-1), env_num).view([beta.shape[0],beta.shape[1],-1]) # 20,32,8
-            prev_action_onehot  = one_hot_embedding_none(prev_action.view(-1), self.action_shape).view([prev_action.shape[0],prev_action.shape[1],-1]) # 20,32,7
-            x_a_r_beta = torch.cat([x,  prev_action_onehot, prev_reward_e,  beta_onehot], dim=-1) # 20,32,80 
-            x =  x_a_r_beta
+            prev_reward_e = prev_reward_e[:, :, 0].unsqueeze(-1)  # 20,32,1
+            env_num = self.collector_env_num
+            beta_onehot = one_hot(beta.view(-1), env_num).view([beta.shape[0], beta.shape[1], -1])  # 20,32,8
+            prev_action_onehot = one_hot(prev_action.view(-1), self.action_shape).view(
+                [prev_action.shape[0], prev_action.shape[1], -1]
+            )  # 20,32,7
+            x_a_r_beta = torch.cat([x, prev_action_onehot, prev_reward_e, beta_onehot], dim=-1)  # 20,32,80
+            x = x_a_r_beta
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
@@ -198,10 +205,10 @@ class NGU(nn.Module):
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)
                 lstm_embedding.append(output)
                 hidden_state = list(zip(*prev_state))
-                hidden_state_list.append(torch.cat(hidden_state[0], dim=1)) # take the first hidden state
-            x = torch.cat(lstm_embedding, 0) # [20, 32, 64]
+                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))  # take the first hidden state
+            x = torch.cat(lstm_embedding, 0)  # [20, 32, 64]
             x = parallel_wrapper(self.head)(x)
-            x['next_state'] = prev_state # including the first hidden state and the second cell state
+            x['next_state'] = prev_state  # including the first hidden state and the second cell state
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             return x
 
@@ -216,16 +223,16 @@ class NGUnoar(nn.Module):
     """
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        dueling: bool = True,
-        head_hidden_size: Optional[int] = None,
-        head_layer_num: int = 1,
-        lstm_type: Optional[str] = 'normal',
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            dueling: bool = True,
+            head_hidden_size: Optional[int] = None,
+            head_layer_num: int = 1,
+            lstm_type: Optional[str] = 'normal',
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
     ) -> None:
         r"""
         Overview:

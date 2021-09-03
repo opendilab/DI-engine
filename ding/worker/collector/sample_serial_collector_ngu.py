@@ -26,13 +26,13 @@ class SampleCollectorNGU(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
-        self,
-        cfg: EasyDict,
-        env: BaseEnvManager = None,
-        policy: namedtuple = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'collector'
+            self,
+            cfg: EasyDict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'collector'
     ) -> None:
         """
         Overview:
@@ -192,11 +192,12 @@ class SampleCollectorNGU(ISerialCollector):
         """
         self.close()
 
-    def collect(self,
-                n_sample: Optional[int] = None,
-                train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None,
-            ) -> List[Any]:
+    def collect(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            policy_kwargs: Optional[dict] = None,
+    ) -> List[Any]:
         """
         Overview:
             Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations
@@ -222,10 +223,10 @@ class SampleCollectorNGU(ISerialCollector):
         collected_sample = 0
         return_data = []
         # beta={i:torch.randn(1)  for i in range(8)}
-     
+
         beta_index = {i: np.random.randint(0, self._env_num) for i in range(self._env_num)}
-        prev_action = {i: torch.tensor(self._action_shape) for i in range(self._env_num)} # TODO    self.action_shape
-        prev_reward_e= {i:to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
+        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO    self.action_shape
+        prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
@@ -237,8 +238,8 @@ class SampleCollectorNGU(ISerialCollector):
 
                 beta_index = to_tensor(beta_index, dtype=torch.int64)
                 self._beta_pool.update(beta_index)
-                policy_output = self._policy.forward(beta_index,
-                    obs,  prev_action, prev_reward_e, **policy_kwargs
+                policy_output = self._policy.forward(
+                    beta_index, obs, prev_action, prev_reward_e, **policy_kwargs
                 )  # TODO action,r_e,r_i
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
@@ -246,7 +247,7 @@ class SampleCollectorNGU(ISerialCollector):
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
                 prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
-                prev_reward_e  = to_ndarray(prev_reward_e)
+                prev_reward_e = to_ndarray(prev_reward_e)
                 prev_action = actions
 
             # TODO(nyz) this duration may be inaccurate in async env

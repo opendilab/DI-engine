@@ -358,8 +358,17 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
     old_shape = val.shape
     val_reshape = val.reshape(-1, 1)
     ret = torch.zeros(val_reshape.shape[0], num, device=val.device)
+    # to remember the index where the original value is -1, if the value is -1, then
+    # it should be converted to all zeros encodings and the corresponding entry in index_neg_one
+    # is 1, which is used to multiply the ret to get the correct encodings bellowing
+    index_neg_one = torch.eq(val_reshape, -1).long()
+    if index_neg_one.sum() != 0:  # -1 exists in val
+        # convert the original value -1 to 0
+        val_reshape = torch.where(val_reshape != -1, val_reshape, torch.zeros(val_reshape.shape).long())
     try:
         ret.scatter_(1, val_reshape, 1)
+        if index_neg_one.sum() != 0:  # -1 exists in val
+            ret = ret * (1 - index_neg_one)
     except RuntimeError:
         raise RuntimeError('value: {}\nnum: {}\t:val_shape: {}\n'.format(val_reshape, num, val_reshape.shape))
     if num_first:

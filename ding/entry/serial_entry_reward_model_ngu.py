@@ -8,9 +8,9 @@ from tensorboardX import SummaryWriter
 from ding.envs import get_vec_env_setting, create_env_manager
 # from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
 #     create_serial_collector
-from ding.worker import BaseLearner,  BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import  BaseSerialEvaluatorNGU  as BaseSerialEvaluator# TODO
-from ding.worker.collector.sample_serial_collector_ngu import  SampleCollectorNGU as SampleCollector  # TODO
+from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
+from ding.worker.collector.sample_serial_collector_ngu import SampleCollectorNGU as SampleCollector  # TODO
 
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
@@ -20,11 +20,11 @@ from ding.utils import set_pkg_seed
 
 
 def serial_pipeline_reward_model_ngu(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    max_iterations: Optional[int] = int(1e10),
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -64,7 +64,7 @@ def serial_pipeline_reward_model_ngu(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    cfg.policy.collect.collector['type']='sample_ngu'
+    cfg.policy.collect.collector['type'] = 'sample_ngu'
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -83,7 +83,9 @@ def serial_pipeline_reward_model_ngu(
     # cfg.rnd_reward_model.update({'type':'rnd'})
     # cfg.episodic_reward_model.update({'type':'episodic'})
     rnd_reward_model = create_reward_model(cfg.rnd_reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
-    episodic_reward_model = create_reward_model(cfg.episodic_reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
+    episodic_reward_model = create_reward_model(
+        cfg.episodic_reward_model, policy.collect_mode.get_attribute('device'), tb_logger
+    )
     # ==========
     # Main loop
     # ==========
@@ -114,8 +116,8 @@ def serial_pipeline_reward_model_ngu(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
-            rnd_reward_model.collect_data(new_data) #TODO
-            episodic_reward_model.collect_data(new_data) #TODO
+            rnd_reward_model.collect_data(new_data)  #TODO
+            episodic_reward_model.collect_data(new_data)  #TODO
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         rnd_reward_model.train()  # pu TODO
@@ -136,7 +138,15 @@ def serial_pipeline_reward_model_ngu(
             # update train_data reward
             rnd_reward = rnd_reward_model.estimate(train_data)  # pu TODO
             episodic_reward = episodic_reward_model.estimate(train_data)  # pu TODO
-            train_data = fusion_reward(train_data, rnd_reward,episodic_reward,nstep=5,collector_env_num=cfg.policy.collect.env_num,tb_logger=tb_logger,estimate_cnt=estimate_cnt)
+            train_data = fusion_reward(
+                train_data,
+                rnd_reward,
+                episodic_reward,
+                nstep=cfg.policy.nstep,
+                collector_env_num=cfg.policy.collect.env_num,
+                tb_logger=tb_logger,
+                estimate_cnt=estimate_cnt
+            )
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
