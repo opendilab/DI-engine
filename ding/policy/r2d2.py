@@ -78,7 +78,7 @@ class R2D2Policy(Policy):
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
-        nstep=3,
+        nstep=5,
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
         burnin_step=2,
