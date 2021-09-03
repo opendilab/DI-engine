@@ -24,7 +24,7 @@ hopper_medium_cql_default_config = dict(
         ),
         learn=dict(
             data_type='d4rl',
-            data_path='../cql_generation/default_experiment/expert_iteration_200000.pkl',
+            data_path=None,
             train_epoch=30000,
             batch_size=256,
             learning_rate_q=3e-4,

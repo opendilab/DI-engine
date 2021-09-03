@@ -27,7 +27,8 @@ class OfflineRLDataset(Dataset):
 
     def __init__(self, cfg: dict) -> None:
         self._data_path = cfg.policy.learn.data_path
-        self._data = torch.load(self._data_path)
+        with open(self._data_path, 'rb') as f:
+            self._data = pickle.load(f)
 
     def __len__(self) -> int:
         return len(self._data)
@@ -49,7 +50,7 @@ class D4RLDataset(Dataset):
 
         # Init parameters
         data_path = cfg.policy.learn.get('data_path', None)
-        env_id = cfg.policy.learn.cfg.env.env_id
+        env_id = cfg.env.env_id
 
         # Create the environment
         if data_path:
