@@ -23,7 +23,7 @@ hopper_cql_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            data_type='mujoco',
+            data_type='offline',
             data_path='./default_experiment/expert_iteration_200000.pkl',
             train_epoch=30000,
             batch_size=256,

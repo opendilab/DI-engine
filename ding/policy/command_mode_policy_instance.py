@@ -156,7 +156,7 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('cql_command')
-class SACCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
+class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
 

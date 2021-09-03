@@ -10,7 +10,7 @@ from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseS
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, create_dataset
 
 from torch.utils.data import DataLoader
 from ding.utils.data import OfflineRLDataset, D4RLDataset
@@ -56,10 +56,8 @@ def serial_pipeline_offline(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    if cfg.policy.learn.data_type == 'd4rl':
-        dataset = D4RLDataset(cfg.env.env_id, policy._device)
-    else:
-        dataset = OfflineRLDataset(cfg.policy.learn.data_path)
+    # import ipdb; ipdb.set_trace()
+    dataset = create_dataset(cfg)
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = BaseSerialEvaluator(

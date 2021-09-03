@@ -1,8 +1,13 @@
 from typing import Dict
 import gym
 import numpy as np
-import d4rl
+import logging
 from ding.envs import ObsNormEnv, RewardNormEnv
+
+try:
+    import d4rl  # register d4rl enviroments with open ai gym
+except ImportError:
+    logging.warning("not found d4rl env, please install it, refer to https://github.com/rail-berkeley/d4rl")
 
 
 def wrap_d4rl(

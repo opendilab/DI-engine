@@ -14,6 +14,7 @@ PLAYER_REGISTRY = Registry()
 MODEL_REGISTRY = Registry()
 ENV_MANAGER_REGISTRY = Registry()
 REWARD_MODEL_REGISTRY = Registry()
+DATASET_REGISTRY = Registry()
 
 registries = {
     'policy': POLICY_REGISTRY,
@@ -30,4 +31,5 @@ registries = {
     'league': LEAGUE_REGISTRY,
     'player': PLAYER_REGISTRY,
     'buffer': BUFFER_REGISTRY,
+    'dataset': DATASET_REGISTRY,
 }
