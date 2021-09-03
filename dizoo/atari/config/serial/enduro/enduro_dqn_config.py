@@ -52,7 +52,7 @@ enduro_dqn_create_config = dict(
     policy=dict(type='dqn'),
 )
 enduro_dqn_create_config = EasyDict(enduro_dqn_create_config)
-create_config =enduro_dqn_create_config
+create_config = enduro_dqn_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)
