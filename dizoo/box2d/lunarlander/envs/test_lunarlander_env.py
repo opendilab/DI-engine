@@ -1,3 +1,4 @@
+from time import time
 import pytest
 import numpy as np
 from dizoo.box2d.lunarlander.envs import LunarLanderEnv

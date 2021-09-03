@@ -1,1 +1,1 @@
-from .particle_env import ParticleEnv, CooperativeNavigation
+from .particle_env import ParticleEnv, CooperativeNavigation, ModifiedPredatorPrey

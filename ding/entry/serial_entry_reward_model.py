@@ -15,11 +15,11 @@ from ding.utils import set_pkg_seed
 
 
 def serial_pipeline_reward_model(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    max_iterations: Optional[int] = int(1e10),
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -87,13 +87,11 @@ def serial_pipeline_reward_model(
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         collector.reset_policy(random_policy)
         collect_kwargs = commander.step()
-        # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
-        collect_kwargs = commander.step()  # {'eps': 0.95}
-        # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
+        collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -104,11 +102,11 @@ def serial_pipeline_reward_model(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
-            # reward_model.collect_data(new_data) #TODO
+            reward_model.collect_data(new_data)
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
-        # reward_model.train()  # pu TODO
-        # reward_model.clear_data()  # pu TODO
+        reward_model.train()
+        reward_model.clear_data()
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -121,7 +119,7 @@ def serial_pipeline_reward_model(
                 )
                 break
             # update train_data reward
-            # reward_model.estimate(train_data)  # pu TODO
+            reward_model.estimate(train_data)
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
