@@ -286,7 +286,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        PeriodicThruputMonitor is a tool to record and print logs(text &amp; tensorboard) how many datas are</span>
-<span class="sd">        pushed/sampled/removed/valid in a period of time. For tensorboard, you can view it in &#39;buffer_{$NAME}_sec&#39;.</span>
+<span class="sd">        pushed/sampled/removed/valid in a period of time.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        close</span>
 <span class="sd">    Property:</span>
@@ -326,7 +326,7 @@
                 <span class="p">}</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">get_tabulate_vars_hor</span><span class="p">(</span><span class="n">count_dict</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">count_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_sec/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_print_times</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;buffer_</span><span class="si">{}</span><span class="s1">_sec/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_print_times</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_history_push_count</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_history_sample_count</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_remove_data_count</span> <span class="o">=</span> <span class="mi">0</span>
