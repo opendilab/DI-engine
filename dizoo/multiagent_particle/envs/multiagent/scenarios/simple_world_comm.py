@@ -248,7 +248,7 @@ class Scenario(BaseScenario):
             oth_f1 = self.is_collision(other, world.forests[0])
             oth_f2 = self.is_collision(other, world.forests[1])
             if (inf1 and oth_f1) or (inf2 and oth_f2) or (not inf1 and not oth_f1 and not inf2
-                                                          and not oth_f2) or agent.leader:  #without forest vis
+                                                          and not oth_f2) or agent.leader:  # without forest vis
                 other_pos.append(other.state.p_pos - agent.state.p_pos)
                 if not other.adversary:
                     other_vel.append(other.state.p_vel)

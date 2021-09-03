@@ -6,7 +6,8 @@ league_demo_ppo_config = dict(
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=100,
-        stop_value=[-0.01, -5],
+        env_type='prisoner_dilemma',  # ['zero_sum', 'prisoner_dilemma']
+        stop_value=[-10.1, -5.05],  # prisoner_dilemma
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(
@@ -58,7 +59,7 @@ league_demo_ppo_config = dict(
                     one_phase_step=200,
                     branch_probs=dict(pfsp=1.0, ),
                     strong_win_rate=0.7,
-                    mutate_prob=0.0,
+                    mutate_prob=0.5,
                 ),
                 use_pretrain=False,
                 use_pretrain_init_historical=False,
@@ -66,7 +67,14 @@ league_demo_ppo_config = dict(
                     type='battle',
                     decay=0.99,
                     min_win_rate_games=8,
-                )
+                ),
+                metric=dict(
+                    mu=0,
+                    sigma=25 / 3,
+                    beta=25 / 3 / 2,
+                    tau=0.0,
+                    draw_probability=0.02,
+                ),
             ),
         ),
     ),
