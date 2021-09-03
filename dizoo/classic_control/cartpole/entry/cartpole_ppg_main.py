@@ -66,7 +66,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         for i in range(cfg.policy.learn.update_per_collect):
             batch_size = learner.policy.get_attribute('batch_size')
             policy_data = policy_buffer.sample(batch_size['policy'], learner.train_iter)
-            value_data = policy_buffer.sample(batch_size['value'], learner.train_iter)
+            value_data = value_buffer.sample(batch_size['value'], learner.train_iter)
             if policy_data is not None and value_data is not None:
                 train_data = {'policy': policy_data, 'value': value_data}
                 learner.train(train_data, collector.envstep)

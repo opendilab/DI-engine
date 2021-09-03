@@ -66,7 +66,9 @@ setup(
         'readerwriterlock',
         'namedlist',
         'opencv-python',  # pypy incompatible
-        'enum_tools'
+        'enum_tools',
+        'scipy',
+        'trueskill',
     ],
     extras_require={
         'test': [
@@ -121,6 +123,9 @@ setup(
             'whichcraft',
             'joblib',
         ],
+        'k8s': [
+            'kubernetes',
+        ]
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
     classifiers=[
