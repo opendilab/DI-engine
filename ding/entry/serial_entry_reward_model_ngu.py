@@ -100,6 +100,7 @@ def serial_pipeline_reward_model_ngu(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
+    estimate_cnt = 0
     for _ in range(max_iterations):
         collect_kwargs = commander.step()  # {'eps': 0.95}
         # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
@@ -135,7 +136,7 @@ def serial_pipeline_reward_model_ngu(
             # update train_data reward
             rnd_reward = rnd_reward_model.estimate(train_data)  # pu TODO
             episodic_reward = episodic_reward_model.estimate(train_data)  # pu TODO
-            train_data = fusion_reward(train_data, episodic_reward,rnd_reward,nstep=5,collector_env_num=cfg.policy.collect.env_num)
+            train_data = fusion_reward(train_data, rnd_reward,episodic_reward,nstep=5,collector_env_num=cfg.policy.collect.env_num,tb_logger=tb_logger,estimate_cnt=estimate_cnt)
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
