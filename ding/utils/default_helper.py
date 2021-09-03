@@ -611,7 +611,7 @@ class Tick():
 class Tock():
 
     def __init__(self, name=None, report_time=True):
-        self.name = '' if name == None else name + ':'
+        self.name = '' if name is None else name + ':'
         self.report_time = report_time
 
     def __enter__(self):
