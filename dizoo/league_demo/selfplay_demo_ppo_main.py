@@ -50,10 +50,17 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         NaiveReplayBuffer,
         save_cfg=True
     )
+    env_type = cfg.env.env_type
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env1 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env2 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env1.seed(seed, dynamic_seed=False)
@@ -102,10 +109,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     for _ in range(max_iterations):
         if evaluator1.should_eval(learner1.train_iter):
-            stop_flag1, reward = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
+            stop_flag1, reward, _ = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, collector.envstep)
         if evaluator2.should_eval(learner1.train_iter):
-            stop_flag2, reward = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
+            stop_flag2, reward, _ = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, collector.envstep)
         if stop_flag1 and stop_flag2:
             break

@@ -89,6 +89,7 @@ class Config(object):
         with tempfile.TemporaryDirectory() as temp_config_dir:
             temp_config_file = tempfile.NamedTemporaryFile(dir=temp_config_dir, suffix=ext_name)
             temp_config_name = osp.basename(temp_config_file.name)
+            temp_config_file.close()
             shutil.copyfile(filename, temp_config_file.name)
 
             temp_module_name = osp.splitext(temp_config_name)[0]
@@ -98,7 +99,6 @@ class Config(object):
             cfg_dict = {k: v for k, v in module.__dict__.items() if not k.startswith('_')}
             del sys.modules[temp_module_name]
             sys.path.pop(0)
-            temp_config_file.close()
 
         cfg_text = filename + '\n'
         with open(filename, 'r') as f:
@@ -151,7 +151,7 @@ def save_config_py(config_: dict, path: str) -> NoReturn:
     config_string = str(config_)
     from yapf.yapflib.yapf_api import FormatCode
     config_string, _ = FormatCode(config_string)
-    config_string = config_string.replace('inf', 'float("inf")')
+    config_string = config_string.replace('inf,', 'float("inf"),')
     with open(path, "w") as f:
         f.write('exp_config = ' + config_string)
 
@@ -346,7 +346,7 @@ def compile_config(
         if 'collector' not in create_cfg:
             create_cfg.collector = EasyDict(dict(type='sample'))
         if 'replay_buffer' not in create_cfg:
-            create_cfg.replay_buffer = EasyDict(dict(type='priority'))
+            create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
         if env is None:
             env = get_env_cls(create_cfg.env)
         if env_manager is None:
@@ -451,7 +451,7 @@ def compile_config_parallel(
     """
     # for compatibility
     if 'replay_buffer' not in create_cfg:
-        create_cfg.replay_buffer = EasyDict(dict(type='priority'))
+        create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
     # env
     env = get_env_cls(create_cfg.env)
     if 'default_config' in dir(env):

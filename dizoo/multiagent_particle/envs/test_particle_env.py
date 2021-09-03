@@ -93,7 +93,7 @@ class TestCooperativeNavigation:
 
     def test_discrete_naive(self):
         num_agent, num_landmark = 5, 5
-        env = CooperativeNavigation({'num_agents': num_agent, 'num_landmarks': num_landmark, 'max_step': 100})
+        env = CooperativeNavigation({'n_agents': num_agent, 'num_landmarks': num_landmark, 'max_step': 100})
         print(env.info())
         obs = env.reset()
         for k, v in obs.items():
@@ -111,7 +111,7 @@ class TestCooperativeNavigation:
         num_agent, num_landmark = 5, 5
         env = CooperativeNavigation(
             {
-                'num_agents': num_agent,
+                'n_agent': num_agent,
                 'num_landmarks': num_landmark,
                 'max_step': 100,
                 'discrete_action': False
@@ -119,7 +119,9 @@ class TestCooperativeNavigation:
         )
         env.seed = 2
         print(env.info())
+        # print("obs space is", env.info().obs_space.shape)
         obs = env.reset()
+        # print("obs = ", obs)
         for k, v in obs.items():
             assert v.shape == env.info().obs_space.shape[k]
         for _ in range(env._max_step):
