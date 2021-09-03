@@ -180,40 +180,39 @@ class NGUPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - self._nstep)])
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)])
         ignore_done = self._cfg.learn.ignore_done
 
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)]
         else:
             # data['done'] = data['done'][bs:self._unroll_len_add_burnin_step ].float()
-            data['done'] = data['done'][bs:self._unroll_len_add_burnin_step - self._nstep].float()
+            data['done'] = data['done'][bs: - self._nstep].float()
+        if 'value_gamma' not in data:
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)]
+        else:
+            data['value_gamma'] = data['value_gamma'][bs:- self._nstep]
 
         data['burnin_action'] = data['action'][:bs]
-        data['main_action'] = data['action'][bs:self._unroll_len_add_burnin_step - self._nstep]
+        data['main_action'] = data['action'][bs:- self._nstep]
         data['target_action'] = data['action'][bs + self._nstep:]
 
         data['burnin_reward'] = data['reward'][:bs]
-        data['main_reward'] = data['reward'][bs:self._unroll_len_add_burnin_step - self._nstep]
+        data['main_reward'] = data['reward'][bs:- self._nstep]
         data['target_reward'] = data['reward'][bs + self._nstep:]
 
         # split obs into three parts ['burnin_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
         data['burnin_obs'] = data['obs'][:bs]
-        data['main_obs'] = data['obs'][bs:self._unroll_len_add_burnin_step - self._nstep]
+        data['main_obs'] = data['obs'][bs: - self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
 
         data['burnin_beta'] = data['beta'][:bs]
-        data['main_beta'] = data['beta'][bs:self._unroll_len_add_burnin_step - self._nstep]
+        data['main_beta'] = data['beta'][bs:- self._nstep]
         data['target_beta'] = data['beta'][bs + self._nstep:]
 
         # Must be after the previous slicing operation
-        data['action'] = data['action'][bs:self._unroll_len_add_burnin_step - self._nstep]
-        data['reward'] = data['reward'][bs:self._unroll_len_add_burnin_step - self._nstep]
-
-        if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - self._nstep)]
-        else:
-            data['value_gamma'] = data['value_gamma'][bs:self._unroll_len_add_burnin_step - self._nstep]
+        data['action'] = data['action'][bs: - self._nstep]
+        data['reward'] = data['reward'][bs:- self._nstep]
 
         return data
 

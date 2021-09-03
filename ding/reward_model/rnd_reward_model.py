@@ -19,30 +19,7 @@ def collect_states(iterator):  # get total_states
         res.append(state)
     return res
 
-class RndNetwork(nn.Module):
 
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
-        super(RndNetwork, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.target = FCEncoder(obs_shape, hidden_size_list)
-            self.predictor = FCEncoder(obs_shape, hidden_size_list)
-        elif len(obs_shape) == 3:
-            self.target = ConvEncoder(obs_shape, hidden_size_list)
-            self.predictor = ConvEncoder(obs_shape, hidden_size_list)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
-        for param in self.target.parameters():
-            param.requires_grad = False
-
-    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        predict_feature = self.predictor(obs)
-        with torch.no_grad():
-            target_feature = self.target(obs)
-        return predict_feature, target_feature
-        
 class RndNetwork(nn.Module):
 
     def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
@@ -92,14 +69,8 @@ class RndRewardModel(BaseRewardModel):
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_data = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
-        self.estimate_cnt = 0
 
     def _train(self) -> None:
-        if isinstance(self.train_data[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
-            tmp = []
-            for i in range(len(self.train_data)):
-                tmp += self.train_data[i]
-            self.train_data = tmp
         train_data: list = random.sample(self.train_data, self.cfg.batch_size)
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
         predict_feature, target_feature = self.reward_model(train_data)
@@ -118,55 +89,20 @@ class RndRewardModel(BaseRewardModel):
         Rewrite the reward key in each row of the data.
         """
         obs = collect_states(data)
-        if isinstance(obs[0], list):  # if self.train_data list( list(torch.tensor) )
-            tmp = []
-            for i in range(len(data)):
-                tmp += obs[i]
-            obs = tmp
         obs = torch.stack(obs).to(self.device)
         with torch.no_grad():
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            self.estimate_cnt += 1
-            self.tb_logger.add_scalar('intrinsic_reward_max', reward.max(), self.estimate_cnt)
-            self.tb_logger.add_scalar('intrinsic_reward_min', reward.min(), self.estimate_cnt)
             reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
-            if not isinstance(data[0], (list, dict)):
-                reward = reward.to(data[0]['reward'].device)
-                reward = torch.chunk(reward, reward.shape[0], dim=0)
-                for item, rew in zip(data, reward):
-                    if self.intrinsic_reward_type == 'add':
-                        item['reward'] += rew
-                    elif self.intrinsic_reward_type == 'new':
-                        item['intrinsic_reward'] = rew
-                    elif self.intrinsic_reward_type == 'assign':
-                        item['reward'] = rew
-            else:  #rnn nstep
-                reward = reward.to(data[0]['reward'][0].device)
-                reward = torch.chunk(reward, int(reward.shape[0]), dim=0)
-                # reward = torch.chunk(reward, int(reward.shape[0]/len(data[0]['reward'])), dim=0)
-                # reward.shape[0] 64 batch_size len(data[0]['reward'])) 24=20+2*2 eps_len
-                batch_size = int(reward.__len__() / len(data[0]['reward']))
-                eps_len = len(data[0]['reward'])  ## pu if r2d2 n-step reward   fake_reward = torch.zeros(1)
-                for i in range(batch_size):  #64 batch_size
-                    for j in range(eps_len):  #24 24=20+2*2 eps_len
-                        if j < eps_len - self.cfg.nstep:
-                            bonus = torch.cat([reward[i * eps_len + j + k] for k in range(self.cfg.nstep)], dim=0)
-                            if self.intrinsic_reward_type == 'add':
-                                data[i]['reward'][j] += bonus
-                            # elif self.intrinsic_reward_type == 'new':
-                            #     data[i]['reward'][j]+= bonus
-                            elif self.intrinsic_reward_type == 'assign':
-                                data[i]['reward'][j] = bonus
-
-                # for i in range(batch_size): #64 batch_size
-                #     for j in range(eps_len): #24 24=20+2*2 eps_len
-                #             if self.intrinsic_reward_type == 'add':
-                #                 data[i]['reward'][j]+=reward[i*eps_len+j]
-                #             elif self.intrinsic_reward_type == 'new':
-                #                 data[i]['reward'][j]+=reward[i*eps_len+j]
-                #             elif self.intrinsic_reward_type == 'assign':
-                #                 data[i]['reward'][j]=reward[i*eps_len+j]
+            reward = reward.to(data[0]['reward'].device)
+            reward = torch.chunk(reward, reward.shape[0], dim=0)
+        for item, rew in zip(data, reward):
+            if self.intrinsic_reward_type == 'add':
+                item['reward'] += rew
+            elif self.intrinsic_reward_type == 'new':
+                item['intrinsic_reward'] = rew
+            elif self.intrinsic_reward_type == 'assign':
+                item['reward'] = rew
 
     def collect_data(self, data: list) -> None:
         self.train_data.extend(collect_states(data))
