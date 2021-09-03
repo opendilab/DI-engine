@@ -100,5 +100,6 @@ class Scenario(BaseScenario):
                 entity_color + other_pos
             )
         else:
-            #other_pos = list(reversed(other_pos)) if random.uniform(0,1) > 0.5 else other_pos  # randomize position of other agents in adversary network
+            # randomize position of other agents in adversary network
+            #other_pos = list(reversed(other_pos)) if random.uniform(0,1) > 0.5 else other_pos
             return np.concatenate([agent.state.p_vel] + entity_pos + other_pos)
