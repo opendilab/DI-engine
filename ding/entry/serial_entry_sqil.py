@@ -12,9 +12,6 @@ from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseS
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
-from ding.model import DQN
-import ipdb
-
 
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],
