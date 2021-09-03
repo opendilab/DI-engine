@@ -1,7 +1,8 @@
-from ding.utils.serialize_zoo import *
+from ding.utils.serialize_zoo import SerializedZoo
 from ding.utils.import_helper import try_import_pyarrow, try_import_pickle
 import pytest
 from ding.torch_utils.data_helper import to_list, to_ndarray
+import numpy as np
 
 
 @pytest.mark.unittest

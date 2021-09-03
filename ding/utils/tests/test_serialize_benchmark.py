@@ -12,7 +12,7 @@ import pyarrow.plasma as plasma
 import datetime
 import time
 from ding.utils.default_helper import yellow, cyan, Tick, Tock
-from ding.utils.serialize_zoo import *
+from ding.utils.serialize_zoo import SerializedZoo
 
 import pytest
 
