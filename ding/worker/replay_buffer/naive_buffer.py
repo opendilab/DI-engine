@@ -198,6 +198,7 @@ class NaiveReplayBuffer(IBuffer):
                     L = min(space, residual_num)
                     if self._valid_count != self._replay_buffer_size:
                         self._valid_count += L
+                        self._periodic_thruput_monitor.valid_count = self._valid_count
                     elif self._enable_track_used_data:
                         for i in range(L):
                             self._used_data_remover.add_used_data(self._data[new_tail + i])
@@ -250,6 +251,7 @@ class NaiveReplayBuffer(IBuffer):
                         self._used_data_remover.add_used_data(self._data[i])
                     self._data[i] = None
             self._valid_count = 0
+            self._periodic_thruput_monitor.valid_count = self._valid_count
             self._push_count = 0
             self._tail = 0
 
