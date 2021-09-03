@@ -363,3 +363,4 @@ class VectorEvalMonitor(object):
                     new_dict[k + '_mean'] = np.mean(total_info[k])
             total_info.update(new_dict)
             return total_info
+            

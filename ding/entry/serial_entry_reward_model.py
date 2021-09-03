@@ -130,3 +130,4 @@ def serial_pipeline_reward_model(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
+    

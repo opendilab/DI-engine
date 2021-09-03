@@ -109,3 +109,4 @@ class RndRewardModel(BaseRewardModel):
 
     def clear_data(self) -> None:
         self.train_data.clear()
+        
