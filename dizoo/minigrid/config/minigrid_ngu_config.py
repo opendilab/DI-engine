@@ -5,9 +5,9 @@ import torch
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
-nstep = 5
+nstep = 2#5
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ngu_r2d2_rnd', #TODO
+    exp_name='minigrid_empty8_ngu_bs2_n2_ul40_upc4_tuf100_ed1e4_rbs5e4',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -57,19 +57,20 @@ minigrid_ppo_rnd_config = dict(
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            encoder_hidden_size_list=[256, 128, 64, 64],
+            encoder_hidden_size_list=[128, 128, 64],
+            # encoder_hidden_size_list=[256, 128, 64, 64],
             collector_env_num=collector_env_num,#TODO
             # encoder_hidden_size_list=[256, 64], #TODO
         ),
         learn=dict(
-            update_per_collect=20,  #4,
-            batch_size=32,  #64,
+            update_per_collect=4,#20,  #4,
+            batch_size=64,#32,  #64,
             learning_rate=0.0005,
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
-            target_update_freq=500,  #100,
+            target_update_freq=100,  #500,
         ),
         collect=dict(
             # n_sample=128,
@@ -86,7 +87,7 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, )  #10000
+            replay_buffer=dict(replay_buffer_size=50000, )  
         ),
     ),
 )
@@ -100,7 +101,9 @@ minigrid_ppo_rnd_create_config = dict(
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    reward_model=dict(type='rnd'),
+    # reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd'),
+    episodic_reward_model=dict(type='episodic'),
     collector=dict(
         type='sample_ngu', # TODO
     )

@@ -5,9 +5,9 @@ import torch
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
-nstep = 5
+nstep = 5 #5
 lunarlander_ngu_config = dict(
-    exp_name='lunarlander_ngu_debug', #TODO
+    exp_name='lunarlander_ngu_bs2_n5_ul40_upc4_tuf100_ed1e4_rbs5e4_debug',
     env=dict(
         collector_env_num=collector_env_num, 
         evaluator_env_num=evaluator_env_num,
@@ -41,7 +41,7 @@ lunarlander_ngu_config = dict(
         on_policy=False,
         cuda=True,
         priority=False,
-        discount_factor=0.999,
+        discount_factor=0.99,#0.999,
         burnin_step=2, #TODO
         nstep=nstep,
         unroll_len=40,  # 80
@@ -52,8 +52,8 @@ lunarlander_ngu_config = dict(
             collector_env_num=collector_env_num,#TODO
         ),
         learn=dict(
-            update_per_collect=20,  #4,
-            batch_size=32,  #64,
+            update_per_collect=4,#20,  #4,
+            batch_size=64,#32, 
             learning_rate=0.0005,
             value_weight=0.5,
             entropy_weight=0.001,
@@ -76,7 +76,7 @@ lunarlander_ngu_config = dict(
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, )  #10000
+            replay_buffer=dict(replay_buffer_size=50000, )  #10000
         ),
     ),
 )

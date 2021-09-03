@@ -106,7 +106,6 @@ class BaseSerialEvaluatorNGU(object):
             self._policy = _policy
         self._action_shape = _policy.get_attribute('cfg').model.action_shape
         self._policy.reset()
-   
 
     def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
         """
@@ -192,17 +191,15 @@ class BaseSerialEvaluatorNGU(object):
         self._env.reset()
         self._policy.reset()
         beta_index = {i: 0 for i in range(self._env_num)}
-        beta_index= to_tensor(beta_index, dtype=torch.int64)
-        prev_action = {i: torch.tensor(self._action_shape) for i in range(self._env_num)} # TODO    self.action_shape
-        prev_reward_e= {i:to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
+        beta_index = to_tensor(beta_index, dtype=torch.int64)
+        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO    self.action_shape
+        prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         with self._timer:
             while not eval_monitor.is_finished():
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
                 # policy_output = self._policy.forward(obs,beta_index)
-                policy_output = self._policy.forward(beta_index,
-                    obs,  prev_action, prev_reward_e
-                )  # TODO action,r_e,r_i
+                policy_output = self._policy.forward(beta_index, obs, prev_action, prev_reward_e)  # TODO action,r_e,r_i
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)

@@ -180,39 +180,39 @@ class NGUPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)])
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
         ignore_done = self._cfg.learn.ignore_done
 
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
             # data['done'] = data['done'][bs:self._unroll_len_add_burnin_step ].float()
-            data['done'] = data['done'][bs: - self._nstep].float()
+            data['done'] = data['done'][bs:-self._nstep].float()
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step-bs - self._nstep)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:- self._nstep]
+            data['value_gamma'] = data['value_gamma'][bs:-self._nstep]
 
         data['burnin_action'] = data['action'][:bs]
-        data['main_action'] = data['action'][bs:- self._nstep]
+        data['main_action'] = data['action'][bs:-self._nstep]
         data['target_action'] = data['action'][bs + self._nstep:]
 
         data['burnin_reward'] = data['reward'][:bs]
-        data['main_reward'] = data['reward'][bs:- self._nstep]
+        data['main_reward'] = data['reward'][bs:-self._nstep]
         data['target_reward'] = data['reward'][bs + self._nstep:]
 
         # split obs into three parts ['burnin_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
         data['burnin_obs'] = data['obs'][:bs]
-        data['main_obs'] = data['obs'][bs: - self._nstep]
+        data['main_obs'] = data['obs'][bs:-self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
 
         data['burnin_beta'] = data['beta'][:bs]
-        data['main_beta'] = data['beta'][bs:- self._nstep]
+        data['main_beta'] = data['beta'][bs:-self._nstep]
         data['target_beta'] = data['beta'][bs + self._nstep:]
 
         # Must be after the previous slicing operation
-        data['action'] = data['action'][bs: - self._nstep]
-        data['reward'] = data['reward'][bs:- self._nstep]
+        data['action'] = data['action'][bs:-self._nstep]
+        data['reward'] = data['reward'][bs:-self._nstep]
 
         return data
 
@@ -327,14 +327,14 @@ class NGUPolicy(Policy):
         self._gamma = self._cfg.discount_factor
         # self._unroll_len_add_burnin_step  = self._burnin_step + 2 * self._nstep # pu
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step  # TODO
-        self._unroll_len = self._unroll_len_add_burnin_step # for compatibility
+        self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample_ngu')
         self._collect_model.reset()
 
-    def _forward_collect(self, beta: dict, obs: dict, prev_action:dict,  prev_reward_e:dict, eps: dict) -> dict:
+    def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, eps: dict) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin
@@ -350,13 +350,13 @@ class NGUPolicy(Policy):
         obs = default_collate(list(obs.values()))
         beta = default_collate(list(beta.values()))
         prev_action = default_collate(list(prev_action.values()))
-        prev_reward_e = default_collate(list( prev_reward_e.values()))
+        prev_reward_e = default_collate(list(prev_reward_e.values()))
         if self._cuda:
             obs = to_device(obs, self._device)
             beta = to_device(beta, self._device)
             prev_action = to_device(prev_action, self._device)
-            prev_reward_e  = to_device( prev_reward_e, self._device)
-        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action,'prev_reward_e':prev_reward_e}
+            prev_reward_e = to_device(prev_reward_e, self._device)
+        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)  # TODO eps 8个
@@ -416,7 +416,13 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, beta: dict, obs: dict, prev_action:dict,  prev_reward_e:dict,) -> dict:
+    def _forward_eval(
+            self,
+            beta: dict,
+            obs: dict,
+            prev_action: dict,
+            prev_reward_e: dict,
+    ) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
@@ -431,13 +437,13 @@ class NGUPolicy(Policy):
         obs = default_collate(list(obs.values()))
         beta = default_collate(list(beta.values()))
         prev_action = default_collate(list(prev_action.values()))
-        prev_reward_e = default_collate(list( prev_reward_e.values()))
+        prev_reward_e = default_collate(list(prev_reward_e.values()))
         if self._cuda:
             obs = to_device(obs, self._device)
             beta = to_device(beta, self._device)
             prev_action = to_device(prev_action, self._device)
-            prev_reward_e  = to_device( prev_reward_e, self._device)
-        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action,'prev_reward_e':prev_reward_e}
+            prev_reward_e = to_device(prev_reward_e, self._device)
+        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}
 
         self._eval_model.eval()
         with torch.no_grad():
