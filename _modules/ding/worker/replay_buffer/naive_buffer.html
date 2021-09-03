@@ -162,10 +162,11 @@
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
 <span class="kn">from</span> <span class="nn">ding.worker.replay_buffer</span> <span class="kn">import</span> <span class="n">IBuffer</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">BUFFER_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">UsedDataRemover</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">BUFFER_REGISTRY</span><span class="p">,</span> <span class="n">build_logger</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">UsedDataRemover</span><span class="p">,</span> <span class="n">PeriodicThruputMonitor</span>
 
 
 <div class="viewcode-block" id="NaiveReplayBuffer"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer">[docs]</a><span class="nd">@BUFFER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;naive&#39;</span><span class="p">)</span>
@@ -193,7 +194,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="s1">&#39;EasyDict&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">,</span>
+            <span class="n">tb_logger</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;SummaryWriter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">exp_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span><span class="p">,</span>
             <span class="n">instance_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;buffer&#39;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -202,7 +203,9 @@
 <span class="sd">            Initialize the buffer</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`dict`): Config dict.</span>
-<span class="sd">            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.</span>
+<span class="sd">            - tb_logger (:obj:`Optional[&#39;SummaryWriter&#39;]`): Outer tb logger. Usually get this argument in serial mode.</span>
+<span class="sd">            - exp_name (:obj:`Optional[str]`): Name of this experiment.</span>
+<span class="sd">            - instance_name (:obj:`Optional[str]`): Name of this instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
@@ -223,6 +226,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">enable_track_used_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span> <span class="o">=</span> <span class="n">UsedDataRemover</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="c1"># Periodic thruput. Here by default, monitor range is 60 seconds. You can modify it for free.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span> <span class="o">=</span> <span class="n">PeriodicThruputMonitor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="NaiveReplayBuffer.start"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -239,7 +256,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="NaiveReplayBuffer.push"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.push">[docs]</a>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">cur_collector_envstep</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -253,8 +272,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_extend</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">push_data_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">push_data_count</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
 <div class="viewcode-block" id="NaiveReplayBuffer.sample"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -276,8 +297,9 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">)</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_with_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">result</span></div>
+            <span class="n">sample_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_with_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">sample_data_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_data</span></div>
 
     <span class="k">def</span> <span class="nf">_append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ori_data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -295,6 +317,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_push_count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
@@ -321,6 +344,7 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">+</span> <span class="n">length</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">+=</span> <span class="n">length</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
                 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
@@ -335,6 +359,7 @@
                     <span class="n">L</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">space</span><span class="p">,</span> <span class="n">residual_num</span><span class="p">)</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">+=</span> <span class="n">L</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
                     <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
                         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">new_tail</span> <span class="o">+</span> <span class="n">i</span><span class="p">])</span>
@@ -387,6 +412,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_push_count</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">=</span> <span class="mi">0</span></div>
 
