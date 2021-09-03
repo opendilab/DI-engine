@@ -49,7 +49,7 @@ minigrid_ppo_rnd_create_config = dict(
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(type='ppo'),
     reward_model=dict(type='rnd'),
 )
 minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
