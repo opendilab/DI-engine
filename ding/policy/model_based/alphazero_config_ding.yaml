@@ -17,8 +17,6 @@ policy:
   learn:
     # (bool) Whether to use multi gpu
     multi_gpu: False
-    # (int) for a2c update_per_collect must be 1.
-    update_per_collect: 1  # this line should not be seen by users
     batch_size: 64
     learning_rate: 0.001
     weight_decay: 0.0001
@@ -32,10 +30,9 @@ policy:
     # The following configs is algorithm-specific
     # : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : : :
     # (float) loss weight of the value network the weight of policy network is set to 1
-    value_weight: 0.5
-    # (float) loss weight of the entropy regularization the weight of policy network is set to 1
-    entropy_weight: 0.01
-    kl_targ: 0.02
+    value_weight: 1.0
+#    # (float) loss weight of the entropy regularization the weight of policy network is set to 1
+#    entropy_weight: 0.01
     learner:
       train_iterations: 10000
       hook:
