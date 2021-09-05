@@ -14,7 +14,6 @@ class GomokuEnv(BaseGameEnv):
         self.cfg = cfg
         self.board_size = self.cfg.get('board_size', 15)
         self.players = [1, 2]
-        self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         self.board_markers = [
             chr(x) for x in range(ord("A"), ord("A") + self.board_size)
         ]
@@ -32,13 +31,10 @@ class GomokuEnv(BaseGameEnv):
 
     @property
     def legal_actions(self):
-        ''' Get all the next legal action, namely empty space that you can place your 'color' stone
-             Return: Coordinate of all the empty space, [(x1, y1), (x2, y2), ...]
-         '''
         legal_actions = []
         for i in range(self.board_size):
             for j in range(self.board_size):
-                if (self.board[i][j] == 0):
+                if self.board[i][j] == 0:
                     legal_actions.append(self.coord_to_action(i, j))
         return legal_actions
 
@@ -48,7 +44,7 @@ class GomokuEnv(BaseGameEnv):
         return self.current_state()
 
     def do_action(self,action):
-        row, col = self.action_to_coord(action)
+        row, col =self.action_to_coord(action)
         self.board[row, col] = self.current_player
         self._current_player = self.current_opponent_player
 
@@ -67,16 +63,7 @@ class GomokuEnv(BaseGameEnv):
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
         board_to_play = np.full((self.board_size, self.board_size), self.current_player)
-
-        return np.array([board_curr_player, board_opponent_player, board_to_play,board_to_play], dtype=np.float32)
-
-    def legal_moves(self):
-        legal_moves = []
-        for i in range(self.board_size):
-            for j in range(self.board_size):
-                if (self.board[i][j] == 0):
-                    legal_moves.append((i, j))
-        return legal_moves
+        return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
 
     def coord_to_action(self, i, j):
         ''' convert coordinate i, j to action a in [0, board_size**2)
@@ -126,7 +113,7 @@ class GomokuEnv(BaseGameEnv):
         pass
 
     def expert_action(self):
-        action_list = self.legal_actions()
+        action_list = self.legal_actions
         return np.random.choice(action_list)
 
     def render(self):
@@ -142,7 +129,7 @@ class GomokuEnv(BaseGameEnv):
                     print(".", end=" ")
                 elif ch == 1:
                     print("X", end=" ")
-                elif ch == -1:
+                elif ch == 2:
                     print("O", end=" ")
             print()
 
@@ -157,24 +144,27 @@ class GomokuEnv(BaseGameEnv):
             try:
                 row = int(
                     input(
-                        f"Enter the row (from top to bottom) to play for the player {self.to_play()}: "
+                        f"Enter the row (1, 2, ...,{self.board_size}, from up to bottom) to play for the player {self.current_player}: "
                     )
                 )
                 col = int(
                     input(
-                        f"Enter the column (from left to right) to play for the player {self.to_play()}: "
+                        f"Enter the column (1, 2, ...,{self.board_size}, from left to right) to play for the player {self.current_player}: "
                     )
                 )
-                choice = (row - 1) * self.board_size + (col - 1)
+                choice = self.coord_to_action(row-1,col-1)
                 if (
-                        choice in self.legal_actions()
+                        choice in self.legal_actions
                         and 1 <= row
                         and 1 <= col
                         and row <= self.board_size
                         and col <= self.board_size
                 ):
                     break
+                else:
+                    print("Wrong input, try again")
             except KeyboardInterrupt:
+                print("exit")
                 sys.exit(0)
             except Exception as e:
                 print("Wrong input, try again")
@@ -192,37 +182,6 @@ class GomokuEnv(BaseGameEnv):
         row = action_number // self.board_size+ 1
         col = action_number % self.board_size + 1
         return f"Play row {row}, column {col}"
-
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=2,
-            obs_space=T(
-                (self.board_size, self.board_size, 119),
-                {
-                    'min': -1,
-                    'max': 1,
-                    'dtype': np.int32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (1,),
-                {
-                    'min': 0,
-                    'max': self.board_size ** 2,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1,),
-                {
-                    'min': -1.0,
-                    'max': 1.0
-                },
-            ),
-            use_wrappers=None,
-        )
 
     def get_equi_data(self, play_data):
         """augment the data set by rotation and flipping
@@ -248,8 +207,41 @@ class GomokuEnv(BaseGameEnv):
                                     'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
                                     'winner': winner})
         return extend_data
+
+    def info(self) -> BaseEnvInfo:
+        T = EnvElementInfo
+        return BaseEnvInfo(
+            agent_num=2,
+            obs_space=T(
+                (self.board_size, self.board_size, 3),
+                {
+                    'min': -1,
+                    'max': 1,
+                    'dtype': np.float32,
+                },
+            ),
+            # [min, max)
+            act_space=T(
+                (1,),
+                {
+                    'min': 0,
+                    'max': self.board_size ** 2,
+                    'dtype': int,
+                },
+            ),
+            rew_space=T(
+                (1,),
+                {
+                    'min': -1.0,
+                    'max': 1.0
+                },
+            ),
+            use_wrappers=None,
+        )
+
     def close(self) -> None:
         pass
+
     def __repr__(self) -> str:
         return 'gomoku'
 
