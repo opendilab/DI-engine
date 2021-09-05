@@ -10,8 +10,12 @@ from ding.utils import DATASET_REGISTRY
 @DATASET_REGISTRY.register('naive')
 class NaiveRLDataset(Dataset):
 
-    def __init__(self, cfg: dict) -> None:
-        self._data_path = cfg.policy.learn.data_path
+    def __init__(self, cfg) -> None:
+        assert type(cfg) in [str, dict], "invalid cfg type: {}".format(type(cfg))
+        if isinstance(cfg, dict):
+            self._data_path = cfg.policy.learn.data_path
+        elif isinstance(cfg, str):
+            self._data_path = cfg
         with open(self._data_path, 'rb') as f:
             self._data: List[Dict[str, torch.Tensor]] = pickle.load(f)
 

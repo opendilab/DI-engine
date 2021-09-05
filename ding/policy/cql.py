@@ -357,7 +357,6 @@ class CQLPolicy(Policy):
         curr_actions_tensor, curr_log_pis = self._get_policy_actions(data, self._num_actions)
         new_curr_actions_tensor, new_log_pis = self._get_policy_actions({'obs': next_obs}, self._num_actions)
 
-        # random_actions_tensor = torch.FloatTensor(q2_pred.shape[0] * self.num_random, actions.shape[-1]).uniform_(-1, 1) # .cuda()
         random_actions_tensor = torch.FloatTensor(curr_actions_tensor.shape).uniform_(-1,
                                                                                       1).to(curr_actions_tensor.device)
 
