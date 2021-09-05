@@ -82,6 +82,9 @@ class R2D2Policy(Policy):
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
         burnin_step=2,
+        # (int) the trajectory length to unroll the RNN network minus
+        # the timestep of burnin operation
+        unroll_len=80,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -99,7 +102,7 @@ class R2D2Policy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
+            n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
