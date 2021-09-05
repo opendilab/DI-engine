@@ -82,6 +82,9 @@ class R2D2Policy(Policy):
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
         burnin_step=2,
+        # (int) the trajectory length to unroll the RNN network minus
+        # the timestep of burnin operation
+        unroll_len=80,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -99,7 +102,7 @@ class R2D2Policy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
+            n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -178,7 +181,7 @@ class R2D2Policy(Policy):
             data = to_device(data, self._device)
         bs = self._burnin_step
 
-        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate 
+        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
         # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
@@ -200,7 +203,7 @@ class R2D2Policy(Policy):
 
         # the burnin_obs is used to calculate the init hidden state for the calculation of the q_value
         data['burnin_obs'] = data['obs'][:bs]
-        # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from 
+        # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
         # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
         data['main_obs'] = data['obs'][bs:-self._nstep]
         # the target_obs is used to calculate the target_q_value
