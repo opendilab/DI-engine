@@ -17,8 +17,6 @@ from ding.worker import BaseLearner, create_buffer
 
 def serial_alphazero_pipeline(
         input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        # env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
