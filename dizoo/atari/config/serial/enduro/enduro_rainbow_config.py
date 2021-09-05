@@ -55,7 +55,7 @@ enduro_rainbow_create_config = dict(
     policy=dict(type='rainbow'),
 )
 enduro_rainbow_create_config = EasyDict(enduro_rainbow_create_config)
-create_config =enduro_rainbow_create_config
+create_config = enduro_rainbow_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

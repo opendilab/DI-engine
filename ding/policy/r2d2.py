@@ -178,8 +178,8 @@ class R2D2Policy(Policy):
             data = to_device(data, self._device)
         bs = self._burnin_step
 
-        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate the q_nstep_td_error,
-        # should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate 
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
@@ -200,8 +200,8 @@ class R2D2Policy(Policy):
 
         # the burnin_obs is used to calculate the init hidden state for the calculation of the q_value
         data['burnin_obs'] = data['obs'][:bs]
-        # the main_obs is used to calculate the q_value,
-        # the [bs:-self._nstep] means using the data from [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
+        # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from 
+        # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
         data['main_obs'] = data['obs'][bs:-self._nstep]
         # the target_obs is used to calculate the target_q_value
         data['target_obs'] = data['obs'][bs + self._nstep:]
