@@ -11,8 +11,7 @@ from dizoo.chess_games.base_game_env import BaseGameEnv
 @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
     def __init__(self, cfg=None):
-        self.board_height = 3
-        self.board_width = 3
+        self.board_size = 3
         self.players = [1, 2]
         self.num_actions = 9
     @property
@@ -23,29 +22,23 @@ class TicTacToeEnv(BaseGameEnv):
     def current_opponent_player(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
 
-    # @property
-    # def legal_actions(self):
-    #     return self._legal_actions
 
     @property
     def legal_actions(self):
-        legal = []
-        for i in range(9):
-            row = i // 3
-            col = i % 3
-            if self.board[row, col] == 0:
-                legal.append(i)
-        return legal
+        legal_actions = []
+        for i in range(self.board_size):
+            for j in range(self.board_size):
+                if self.board[i][j] == 0:
+                    legal_actions.append(self.coord_to_action(i, j))
+        return legal_actions
 
     def reset(self, start_player=0):
-        self.board = np.zeros((self.board_width, self.board_height), dtype="int32")
         self._current_player = self.players[start_player]
-        # self._legal_actions = list(range(self.board_width * self.board_height))
+        self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         return self.current_state()
 
-    def do_action(self, action):
-        row = action // 3
-        col = action % 3
+    def do_action(self,action):
+        row, col =self.action_to_coord(action)
         self.board[row, col] = self.current_player
         self._current_player = self.current_opponent_player
 
@@ -63,8 +56,18 @@ class TicTacToeEnv(BaseGameEnv):
     def current_state(self):
         board_curr_player = np.where(self.board == self.current_player, 1, 0)
         board_opponent_player = np.where(self.board == self.current_opponent_player, 1, 0)
-        board_to_play = np.full((3, 3), self.current_player)
+        board_to_play = np.full((self.board_size, self.board_size), self.current_player)
         return np.array([board_curr_player, board_opponent_player, board_to_play], dtype=np.float32)
+
+    def coord_to_action(self, i, j):
+        ''' convert coordinate i, j to action a in [0, board_size**2)
+        '''
+        a = i * self.board_size + j  # action index
+        return a
+
+    def action_to_coord(self, a):
+        coord = (a // self.board_size, a % self.board_size)
+        return coord
 
     def have_winner(self):
         # Horizontal and vertical checks
@@ -159,16 +162,19 @@ class TicTacToeEnv(BaseGameEnv):
                         f"Enter the column (1, 2 or 3, from left to right) to play for the player {self.current_player}: "
                     )
                 )
-                choice = (row - 1) * 3 + (col - 1)
+                choice = self.coord_to_action(row-1,col-1)
                 if (
                         choice in self.legal_actions
                         and 1 <= row
                         and 1 <= col
-                        and row <= 3
-                        and col <= 3
+                        and row <= self.board_size
+                        and col <= self.board_size
                 ):
                     break
+                else:
+                    print("Wrong input, try again")
             except KeyboardInterrupt:
+                print("exit")
                 sys.exit(0)
             except Exception as e:
                 print("Wrong input, try again")
@@ -183,8 +189,8 @@ class TicTacToeEnv(BaseGameEnv):
         Returns:
             String representing the action.
         """
-        row = action_number // 3 + 1
-        col = action_number % 3 + 1
+        row = action_number // self.board_size+ 1
+        col = action_number % self.board_size + 1
         return f"Play row {row}, column {col}"
 
     def get_equi_data(self, play_data):
@@ -200,7 +206,7 @@ class TicTacToeEnv(BaseGameEnv):
                 # rotate counterclockwise
                 equi_state = np.array([np.rot90(s, i) for s in state])
                 equi_mcts_prob = np.rot90(np.flipud(
-                    mcts_prob.reshape(self.board_height, self.board_width)), i)
+                    mcts_prob.reshape(self.board_size, self.board_size)), i)
                 extend_data.append({'state': equi_state,
                                     'mcts_prob': np.flipud(equi_mcts_prob).flatten(),
                                     'winner': winner})
@@ -216,29 +222,20 @@ class TicTacToeEnv(BaseGameEnv):
         T = EnvElementInfo
         return BaseEnvInfo(
             agent_num=2,
-            obs_space={'obs': T(
-                (3, 3, 3),
+            obs_space=T(
+                (self.board_size, self.board_size, 3),
                 {
                     'min': -1,
                     'max': 1,
                     'dtype': np.float32,
                 },
             ),
-                'mask': T(
-                    (1,),
-                    {
-                        'min': 0,
-                        'max': 8,
-                        'dtype': int,
-                    },
-                ),
-            },
             # [min, max)
             act_space=T(
                 (1,),
                 {
                     'min': 0,
-                    'max': 8,
+                    'max': self.board_size ** 2,
                     'dtype': int,
                 },
             ),
