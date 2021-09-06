@@ -49,6 +49,7 @@ def serial_pipeline_sqil(
         expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
         cfg, create_cfg = input_cfg
+        expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     expert_create_cfg.policy.type = expert_create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
