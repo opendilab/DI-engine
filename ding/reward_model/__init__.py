@@ -8,4 +8,4 @@ from .red_irl_model import RedRewardModel
 from .her_reward_model import HerRewardModel
 # exploration
 from .rnd_reward_model import RndRewardModel
-from .curiosity_reward_model import CuriosityRewardModel
+from .curiosity_reward_model import ICMRewardModel
