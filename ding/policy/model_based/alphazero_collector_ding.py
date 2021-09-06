@@ -41,19 +41,24 @@ class AlphazeroCollector:
             )
         self._iter_count = 0
         self.envstep = 0
+        self.winner_list = []
+
     def collect(self, n_episode: Optional[int] = None, train_iter: int = 0, policy_kwargs: Optional[dict] = None) -> List[Any]:
         if n_episode is None:
             n_episode = self._collect_n_episode
         data_all = []
-        winner_list = []
         for i in range(n_episode):
             winner, data = self._self_play()
-            winner_list.append(winner)
+            self.winner_list.append(winner)
             data_all.extend(data)
         self._iter_count += 1
-        if self._iter_count % 10 == 0:
-            winrate =( (np.array(winner_list) == 1) + 0.5 *(np.array(winner_list) == -1) ).mean()
-            self._logger.info(f'winrate:{winrate}')
+        if self._iter_count % self._collect_print_freq == 0:
+            winrate =( (np.array(self.winner_list) == 1) + 0.5 *(np.array(self.winner_list) == -1) ).mean()
+            self._logger.info(f'winrate_list:{self.winner_list}')
+            self._logger.info(f'player1 winrate:{winrate}')
+            self._logger.info(f'player2 winrate:{1-winrate}')
+            self.winner_list.clear()
+
         return data_all
 
     def _self_play(self,):
