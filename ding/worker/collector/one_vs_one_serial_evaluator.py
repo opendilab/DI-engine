@@ -171,7 +171,7 @@ class OnevOneEvaluator(object):
             train_iter: int = -1,
             envstep: int = -1,
             n_episode: Optional[int] = None
-    ) -> Tuple[bool, float]:
+    ) -> Tuple[bool, float, list]:
         '''
         Overview:
             Evaluate policy and store the best policy based on whether it reaches the highest historical reward.
@@ -183,12 +183,14 @@ class OnevOneEvaluator(object):
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - eval_reward (:obj:`float`): Current eval_reward.
+            - return_info (:obj:`list`): Environment information of each finished episode
         '''
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
+        return_info = [[] for _ in range(2)]
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         for p in self._policy:
@@ -219,6 +221,8 @@ class OnevOneEvaluator(object):
                         if 'episode_info' in t.info[0]:
                             eval_monitor.update_info(env_id, t.info[0]['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
+                        for policy_id in range(2):
+                            return_info[policy_id].append(t.info[policy_id])
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
                                 env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
@@ -266,7 +270,7 @@ class OnevOneEvaluator(object):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, eval_reward
+        return stop_flag, eval_reward, return_info
 
 
 class VectorEvalMonitor(object):
