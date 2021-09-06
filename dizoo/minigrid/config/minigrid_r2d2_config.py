@@ -2,27 +2,28 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
-lunarlander_r2d2_config = dict(
-    exp_name='lunarlander_r2d2_bs2_n5_ul40',
+minigrid_r2d2_config = dict(
+    exp_name='minigrid_empty8_r2d2_bs2_n5',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
+        env_id='MiniGrid-Empty-8x8-v0',
         n_evaluator_episode=5,
-        stop_value=195,
+        stop_value=0.96,
     ),
     policy=dict(
         cuda=False,
         on_policy=False,
         priority=False,
         model=dict(
-            obs_shape=8,
-            action_shape=4,
-            encoder_hidden_size_list=[128, 128, 64],
+            obs_shape=2739,
+            action_shape=7,
+            encoder_hidden_size_list=[256, 128, 64, 64],
         ),
         discount_factor=0.999,
         burnin_step=2,
         nstep=5,
-        unroll_len=40, #80,
+        unroll_len=80,
         learn=dict(
             update_per_collect=20,
             batch_size=64,
@@ -44,18 +45,18 @@ lunarlander_r2d2_config = dict(
         ),
     ),
 )
-lunarlander_r2d2_config = EasyDict(lunarlander_r2d2_config)
-main_config = lunarlander_r2d2_config
-lunarlander_r2d2_create_config = dict(
+minigrid_r2d2_config = EasyDict(minigrid_r2d2_config)
+main_config = minigrid_r2d2_config
+minigrid_r2d2_create_config = dict(
     env=dict(
-        type='lunarlander',
-        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+        type='minigrid',
+        import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-lunarlander_r2d2_create_config = EasyDict(lunarlander_r2d2_create_config)
-create_config = lunarlander_r2d2_create_config
+minigrid_r2d2_create_config = EasyDict(minigrid_r2d2_create_config)
+create_config = minigrid_r2d2_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
