@@ -52,7 +52,7 @@ inverse RL, and RND in exploration problems. Various training pipelines and cust
 
 ### Other
 - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
-- [treevalue](https://github.com/opendilab/treevalue) (preview)
+- [treevalue](https://github.com/opendilab/treevalue)
 
 ## Installation
 
@@ -96,14 +96,14 @@ ding -m serial -e cartpole -p dqn -s 0
 |  3   |       [QRDQN](https://arxiv.org/pdf/1806.06923v1.pdf)        | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/qrdqn](https://github.com/opendilab/DI-engine/blob/main/ding/policy/qrdqn.py) |       ding -m serial -c cartpole_qrdqn_config.py -s 0        |
 |  4   |         [IQN](https://arxiv.org/pdf/1806.06923.pdf)          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/iqn](https://github.com/opendilab/DI-engine/blob/main/ding/policy/iqn.py) |        ding -m serial -c cartpole_iqn_config.py -s 0         |
 |  5   |         [Rainbow](https://arxiv.org/abs/1710.02298)          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/rainbow](https://github.com/opendilab/DI-engine/blob/main/ding/policy/rainbow.py) |      ding -m serial -c cartpole_rainbow_config.py -s 0       |
-|  6   | [SQL]([A2C](https://arxiv.org/abs/1602.01783)[PPO](https://arxiv.org/abs/1707.06347)[PPG](https://arxiv.org/pdf/2009.04416.pdf)) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![continuous](https://img.shields.io/badge/-continous-green) | [policy/sql](https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py) |        ding -m serial -c cartpole_sql_config.py -s 0         |
+|  6   |         [SQL](https://arxiv.org/pdf/1702.08165.pdf)          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![continuous](https://img.shields.io/badge/-continous-green) | [policy/sql](https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py) |        ding -m serial -c cartpole_sql_config.py -s 0         |
 |  7   |      [R2D2](https://openreview.net/forum?id=r1lyTjAqYX)      | ![dist](https://img.shields.io/badge/-distributed-blue)![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/r2d2](https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py) |        ding -m serial -c cartpole_r2d2_config.py -s 0        |
 |  8   |           [A2C](https://arxiv.org/abs/1602.01783)            | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/a2c](https://github.com/opendilab/DI-engine/blob/main/ding/policy/a2c.py) |        ding -m serial -c cartpole_a2c_config.py -s 0         |
 |  9   |           [PPO](https://arxiv.org/abs/1707.06347)            | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![continuous](https://img.shields.io/badge/-continous-green) | [policy/ppo](https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py) | python3 -u cartpole_ppo_main.py / ding -m serial_onpolicy -c cartpole_ppo_config.py -s 0 |
 |  10  |         [PPG](https://arxiv.org/pdf/2009.04416.pdf)          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/ppg](https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppg.py) |               python3 -u cartpole_ppg_main.py                |
 |  11  |         [ACER](https://arxiv.org/pdf/1611.01224.pdf)         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![continuous](https://img.shields.io/badge/-continous-green) | [policy/acer](https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py) |        ding -m serial -c cartpole_acer_config.py -s 0        |
 |  12  |          [IMPALA](https://arxiv.org/abs/1802.01561)          | ![dist](https://img.shields.io/badge/-distributed-blue)![discrete](https://img.shields.io/badge/-discrete-brightgreen) | [policy/impala](https://github.com/opendilab/DI-engine/blob/main/ding/policy/impala.py) |       ding -m serial -c cartpole_impala_config.py -s 0       |
-|  13  | [DDPG](![dist](https://img.shields.io/badge/-distributed-blue)) | ![continuous](https://img.shields.io/badge/-continous-green) | [policy/ddpg](https://github.com/opendilab/DI-engine/blob/main/ding/policy/ddpg.py) |        ding -m serial -c pendulum_ddpg_config.py -s 0        |
+|  13  |         [DDPG](https://arxiv.org/pdf/1509.02971.pdf)         | ![continuous](https://img.shields.io/badge/-continous-green) | [policy/ddpg](https://github.com/opendilab/DI-engine/blob/main/ding/policy/ddpg.py) |        ding -m serial -c pendulum_ddpg_config.py -s 0        |
 |  14  |         [TD3](https://arxiv.org/pdf/1802.09477.pdf)          | ![continuous](https://img.shields.io/badge/-continous-green) | [policy/td3](https://github.com/opendilab/DI-engine/blob/main/ding/policy/td3.py) | python3 -u pendulum_td3_main.py / ding -m serial -c pendulum_td3_config.py -s 0 |
 |  15  |           [SAC](https://arxiv.org/abs/1801.01290)            | ![continuous](https://img.shields.io/badge/-continous-green) | [policy/sac](https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py) |        ding -m serial -c pendulum_sac_config.py -s 0         |
 |  16  |           [QMIX](https://arxiv.org/abs/1801.01290)           |      ![MARL](https://img.shields.io/badge/-MARL-yellow)      | [policy/qmix](https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py) |       ding -m serial -c smac_3s5z_qmix_config.py -s 0        |
@@ -125,11 +125,11 @@ ding -m serial -e cartpole -p dqn -s 0
 
 ![dist](https://img.shields.io/badge/-distributed-blue) means distributed training (collector-learner parallel) RL algorithm
 
-![MARL](https://img.shields.io/badge/-MARL-yellow)means multi-agent RL algorithm
+![MARL](https://img.shields.io/badge/-MARL-yellow) means multi-agent RL algorithm
 
 ![exp](https://img.shields.io/badge/-exploration-orange) means RL algorithm which is related to exploration and sparse reward
 
-![IL](https://img.shields.io/badge/-IL-purple) Means Imitation Learning, including Behaviour Cloning, Inverse RL, Adversarial Structured IL
+![IL](https://img.shields.io/badge/-IL-purple) means Imitation Learning, including Behaviour Cloning, Inverse RL, Adversarial Structured IL
 
 ![offline](https://img.shields.io/badge/-offlineRL-darkblue) means offline RL algorithm
 
