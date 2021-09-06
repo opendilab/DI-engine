@@ -313,7 +313,7 @@ def test_sqil():
     config = [deepcopy(cartpole_sqil_config), deepcopy(cartpole_sqil_create_config)]
     config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
     try:
-        serial_pipeline_sqil(config, seed=0)
+        serial_pipeline_sqil(config, [cartpole_sql_config, cartpole_sql_create_config], seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:

@@ -150,7 +150,8 @@ def cli(
             from .serial_entry_sqil import serial_pipeline_sqil
         if config is None:
             config = get_predefined_config(env, policy)
-        serial_pipeline_sqil(config, seed, max_iterations=train_iter)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
