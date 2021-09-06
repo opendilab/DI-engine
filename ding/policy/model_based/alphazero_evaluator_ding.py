@@ -56,9 +56,48 @@ class AlphazeroEvaluator:
 
     def eval(self,test_episode_num=None):
         test_episode_num = test_episode_num if test_episode_num else self._default_n_episode
-        winrate_list_first, winrate_list_next = self.start_play_with_expert(test_episode_num)
-        stop = winrate_list_first.mean() >= self._stop_value
-        return stop, winrate_list_first.mean()
+
+        sp_stop, sp_winrate = self.self_play((test_episode_num))
+        expert_winrate_list_first, expert_winrate_list_next = self.start_play_with_expert(test_episode_num)
+        expert_winrate_first = expert_winrate_list_first.mean()
+        expert_stop =  expert_winrate_first>= self._stop_value
+        return sp_stop, sp_winrate
+
+    def self_play(self,test_episode_num=1,):
+        winner_list = []
+
+        for i in range(test_episode_num):
+            self.env.reset()
+            done = False
+            while not done:
+                action, move_probs = self._policy.forward(self.env)
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+                action = self.env.expert_action()
+                self.env.do_action(action)
+                done, winner = self.env.game_end()
+                if done:
+                    winner_list.append(winner)
+                    # if winner != -1:
+                    #     print("Game end. Winner is player:", winner)
+                    # else:
+                    #     print("Game end. Tie")
+                    break
+
+        winrate = ((np.array(winner_list) == 1) + 0.5 * (np.array(winner_list) == -1)).mean()
+        self._logger.info(f'[EVALUATOR] self play winrate_list:{winner_list}')
+        self._logger.info(f'[EVALUATOR] self play player1 winrate:{winrate}')
+        self._logger.info(f'[EVALUATOR] self play player2 winrate:{1 - winrate}')
+        stop = winrate >= self._stop_value
+        return stop, winrate
+
     def start_play_with_expert(self, test_episode_num=1, ):
         winner_list = []
         print('agent start first')
