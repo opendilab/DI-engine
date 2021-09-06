@@ -4,7 +4,7 @@ import os
 import torch
 from copy import deepcopy
 
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
@@ -35,6 +35,8 @@ from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config,
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
+from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -318,3 +320,38 @@ def test_sqil():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("25. sqil\n")
+
+
+@pytest.mark.algotest
+def test_cql():
+    # train expert
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [
+        deepcopy(pendulum_sac_data_genearation_default_config),
+        deepcopy(pendulum_sac_data_genearation_default_create_config)
+    ]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.learn.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("26. cql\n")
