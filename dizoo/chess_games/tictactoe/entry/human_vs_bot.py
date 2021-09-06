@@ -1,4 +1,4 @@
-from dizoo.chess_games.tic_tac_toe.envs.tic_tac_toe import TicTacToeEnv
+from dizoo.chess_games.tic_tac_toe.envs.tictactoe import TicTacToeEnv
 
 env = TicTacToeEnv()
 env.reset()

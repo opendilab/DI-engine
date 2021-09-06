@@ -71,7 +71,7 @@ class TicTacToeEnv(BaseGameEnv):
 
     def have_winner(self):
         # Horizontal and vertical checks
-        for i in range(3):
+        for i in range(self.board_size):
             if len(set(self.board[i, :])) == 1 and (self.board[i, 0] != 0):
                 return True, self.board[i, 0]
             if len(set(self.board[:, i])) == 1 and (self.board[0, i] != 0):
