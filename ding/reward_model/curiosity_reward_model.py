@@ -11,7 +11,7 @@ from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 
-def collect_states(iterator:list) -> Tuple[list, list, list] : 
+def collect_states(iterator: list) -> Tuple[list, list, list] : 
     states = []
     next_states = []
     actions = []
@@ -125,11 +125,11 @@ class ICMRewardModel(BaseRewardModel):
         train_data_list = [i for i in range(0, len(self.train_states))]
         train_data_index = random.sample(train_data_list, self.cfg.batch_size)
         data_states: list = [self.train_states[i] for i in train_data_index]
-        data_states: torch.Tensor = torch.stack(data_states)
+        data_states: torch.Tensor = torch.stack(data_states).to(self.device)
         data_next_states: list = [self.train_next_states[i] for i in train_data_index]
-        data_next_states: torch.Tensor = torch.stack(data_next_states)
+        data_next_states: torch.Tensor = torch.stack(data_next_states).to(self.device)
         data_actions: list = [self.train_actions[i] for i in train_data_index]
-        data_actions: torch.Tensor = torch.stack(data_actions)
+        data_actions: torch.Tensor = torch.stack(data_actions).to(self.device)
         real_next_state_feature, pred_next_state_feature, pred_action = self.reward_model(data_states, data_next_states, data_actions)
         inverse_loss = self.ce(pred_action, data_actions.squeeze(dim=1).long())
         forward_loss = self.forward_mse(pred_next_state_feature, real_next_state_feature.detach())
