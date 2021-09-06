@@ -106,12 +106,11 @@ def serial_alphazero_pipeline(
         # Learn policy from collected data
         train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
         if train_data is None:
-            # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
+            # It is possible that replay buffer's data count is too few to train
             logging.warning(
-                "Replay buffer's data can only train for {} steps. ".format(i) +
-                "You can modify data collect config, e.g. increasing n_sample, n_episode."
+                "replay buffer's data count is too few to train need more data"
             )
-            break
+            continue
         learner.train(train_data, collector.envstep)
 
     # Learner's after_run hook.
