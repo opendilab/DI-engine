@@ -349,8 +349,6 @@ def test_cql():
 
     # train cql
     config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
-    config[0].policy.learn.train_epoch = 1
-    config[0].policy.eval.evaluator.eval_freq = 1
     try:
         serial_pipeline_offline(config, seed=0)
     except Exception:

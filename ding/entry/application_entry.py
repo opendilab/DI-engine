@@ -121,16 +121,17 @@ def collect_demo_data(
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['collect', 'eval'])
     # for policies like DQN (in collect_mode has eps-greedy)
-    collect_demo_policy = policy.collect_function(
-        policy._forward_collect,
-        policy._process_transition,
-        policy._get_train_sample,
-        policy._reset_collect,
-        policy._get_attribute,
-        policy._set_attribute,
-        policy._state_dict_collect,
-        policy._load_state_dict_collect,
-    )
+    # collect_demo_policy = policy.collect_function(
+    #     policy._forward_eval,
+    #     policy._process_transition,
+    #     policy._get_train_sample,
+    #     policy._reset_eval,
+    #     policy._get_attribute,
+    #     policy._set_attribute,
+    #     policy._state_dict_collect,
+    #     policy._load_state_dict_collect,
+    # )
+    collect_demo_policy = policy.collect_mode
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)

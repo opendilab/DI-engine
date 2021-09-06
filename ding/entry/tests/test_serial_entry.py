@@ -319,7 +319,7 @@ def test_cql():
         deepcopy(pendulum_sac_data_genearation_default_config),
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
-    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    collect_count = 1000
     expert_data_path = config[0].policy.learn.save_path
     state_dict = torch.load('./default_experiment/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
@@ -332,6 +332,7 @@ def test_cql():
     # test cql
     config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
     config[0].policy.learn.train_epoch = 1
+    config[0].policy.eval.evaluator.eval_freq = 1
     try:
         serial_pipeline_offline(config, seed=0)
     except Exception:

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', '-s', type=int, default=10)
     args = parser.parse_args()
 
-    # train_expert(args)
+    train_expert(args)
     eval_ckpt(args)
     generate(args)
     train_cql(args)
