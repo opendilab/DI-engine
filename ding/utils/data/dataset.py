@@ -2,37 +2,24 @@ from typing import List, Dict
 import pickle
 import torch
 import numpy as np
+
+from easydict import EasyDict
 from torch.utils.data import Dataset
 
-from ding.utils import DATASET_REGISTRY
+from ding.utils import DATASET_REGISTRY, import_module
 
 
 @DATASET_REGISTRY.register('naive')
 class NaiveRLDataset(Dataset):
 
     def __init__(self, cfg) -> None:
-        assert type(cfg) in [str, dict], "invalid cfg type: {}".format(type(cfg))
-        if isinstance(cfg, dict):
+        assert type(cfg) in [str, EasyDict], "invalid cfg type: {}".format(type(cfg))
+        if isinstance(cfg, EasyDict):
             self._data_path = cfg.policy.learn.data_path
         elif isinstance(cfg, str):
             self._data_path = cfg
         with open(self._data_path, 'rb') as f:
             self._data: List[Dict[str, torch.Tensor]] = pickle.load(f)
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-        return self._data[idx]
-
-
-@DATASET_REGISTRY.register('offline')
-class OfflineRLDataset(Dataset):
-
-    def __init__(self, cfg: dict) -> None:
-        self._data_path = cfg.policy.learn.data_path
-        with open(self._data_path, 'rb') as f:
-            self._data = pickle.load(f)
 
     def __len__(self) -> int:
         return len(self._data)
@@ -83,6 +70,6 @@ class D4RLDataset(Dataset):
 
 
 def create_dataset(cfg, **kwargs) -> Dataset:
-    # cfg = EasyDict(cfg)
-    # import_module(cfg.get('import_names', []))
+    cfg = EasyDict(cfg)
+    import_module(cfg.get('import_names', []))
     return DATASET_REGISTRY.build(cfg.policy.learn.data_type, cfg=cfg, **kwargs)

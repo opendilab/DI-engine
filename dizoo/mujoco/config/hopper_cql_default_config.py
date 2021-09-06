@@ -23,7 +23,7 @@ hopper_cql_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            data_type='offline',
+            data_type='naive',
             data_path='./default_experiment/expert_iteration_200000.pkl',
             train_epoch=30000,
             batch_size=256,
@@ -34,7 +34,6 @@ hopper_cql_default_config = dict(
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
-            reparameterization=True,
             auto_alpha=False,
             lagrange_thresh=-1.0,
             min_q_weight=5.0,

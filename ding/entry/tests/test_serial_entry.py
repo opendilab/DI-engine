@@ -3,7 +3,7 @@ import time
 import os
 from copy import deepcopy
 
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
@@ -32,6 +32,8 @@ from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config,
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
+from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
 
 
 @pytest.mark.unittest
@@ -299,3 +301,40 @@ def test_acer():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_cql():
+    # train expert
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [
+        deepcopy(pendulum_sac_data_genearation_default_config),
+        deepcopy(pendulum_sac_data_genearation_default_create_config)
+    ]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.learn.save_path
+    state_dict = torch.load('./default_experiment/ckpt/iteration_0.pth.tar', map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # test cql
+    config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
+    config[0].policy.learn.train_epoch = 1
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf default_experiment')

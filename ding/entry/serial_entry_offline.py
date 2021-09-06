@@ -13,7 +13,6 @@ from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed, create_dataset
 
 from torch.utils.data import DataLoader
-from ding.utils.data import OfflineRLDataset, D4RLDataset
 
 
 def serial_pipeline_offline(
@@ -21,7 +20,6 @@ def serial_pipeline_offline(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
