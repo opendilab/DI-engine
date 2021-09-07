@@ -190,7 +190,7 @@
             <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
             <span class="n">learner</span><span class="p">:</span> <span class="s1">&#39;BaseLearner&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">collector</span><span class="p">:</span> <span class="s1">&#39;BaseSerialCollector&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
-            <span class="n">evaluator</span><span class="p">:</span> <span class="s1">&#39;BaseSerialEvaluator&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+            <span class="n">evaluator</span><span class="p">:</span> <span class="s1">&#39;InteractionSerialEvaluator&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">replay_buffer</span><span class="p">:</span> <span class="s1">&#39;IBuffer&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
             <span class="n">policy</span><span class="p">:</span> <span class="n">namedtuple</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -201,7 +201,7 @@
 <span class="sd">            - cfg (:obj:`dict`): the config of commander</span>
 <span class="sd">            - learner (:obj:`BaseLearner`): the learner</span>
 <span class="sd">            - collector (:obj:`BaseSerialCollector`): the collector</span>
-<span class="sd">            - evaluator (:obj:`BaseSerialEvaluator`): the evaluator</span>
+<span class="sd">            - evaluator (:obj:`InteractionSerialEvaluator`): the evaluator</span>
 <span class="sd">            - replay_buffer (:obj:`IBuffer`): the buffer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
