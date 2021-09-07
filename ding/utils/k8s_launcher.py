@@ -1,5 +1,4 @@
 import yaml
-import os
 import subprocess
 from enum import Enum, unique
 
@@ -17,7 +16,7 @@ class K8sLauncher(object):
         self.servers = 1
         self.agents = 0
         self.type = K8sType.Local
-        self.preload_images = []
+        self._images = []
 
         self._load(config_path)
         self._check_k3d_tools()
@@ -25,22 +24,26 @@ class K8sLauncher(object):
     def _load(self, config_path: str) -> None:
         with open(config_path, 'r') as f:
             data = yaml.load(f)
-            for k, v in data.items():
-                if k == 'name':
-                    self.name = v
-                elif k == 'servers':
-                    self.servers = v
-                elif k == 'agents':
-                    self.agents = v
-                elif k == 'type':
-                    if v == 'k3s':
-                        self.type = K8sType.K3s
-                    elif v == 'local':
-                        self.type = K8sType.Local
-                    else:
-                        raise ValueError("no type found for {}".format(v))
-                elif k == 'preload_images':
-                    self.preload_images = v
+            self.name = data.get('name') if data.get('name') else self.name
+            if data.get('servers'):
+                if type(data.get('servers')) is not int:
+                    raise TypeError(f"servers' type is expected int, actual {type(data.get('servers'))}")
+                self.servers = data.get('servers')
+            if data.get('agents'):
+                if type(data.get('agents')) is not int:
+                    raise TypeError(f"agents' type is expected int, actual {type(data.get('agents'))}")
+                self.agents = data.get('agents')
+            if data.get('type'):
+                if data.get('type') == 'k3s':
+                    self.type = K8sType.K3s
+                elif data.get('type') == 'local':
+                    self.type = K8sType.Local
+                else:
+                    raise ValueError(f"no type found for {data.get('type')}")
+            if data.get('preload_images'):
+                if type(data.get('preload_images')) is not list:
+                    raise TypeError(f"preload_images' type is expected list, actual {type(data.get('preload_images'))}")
+                self._images = data.get('preload_images')
     
     def _check_k3d_tools(self) -> None:
         if self.type != K8sType.K3s:
@@ -49,18 +52,38 @@ class K8sLauncher(object):
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, _ = proc.communicate()
         if out.decode('utf-8') == '':
-            raise FileNotFoundError("No k3d tools found, please install k3d by executing ./hack/install-k3d.sh")
+            raise FileNotFoundError("No k3d tools found, please install by executing ./hack/install-k8s-tools.sh")
 
     def create_cluster(self) -> None:
+        print(f'Creating k8s cluster...')
+        if self.type != K8sType.K3s:
+            return
         args = ['k3d', 'cluster', 'create', f'{self.name}', f'--servers={self.servers}', f'--agents={self.agents}']
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
         if err.decode('utf-8') != '':
-            raise RuntimeError(f'failed to create cluster {self.name}: {err.decode("utf8")}')
+            raise RuntimeError(f'Failed to create cluster {self.name}: {err.decode("utf8")}')
+        
+        # preload images
+        self.preload_images(self._images)
 
     def delete_cluster(self) -> None:
+        print(f'Deleting k8s cluster...')
+        if self.type != K8sType.K3s:
+            return
         args = ['k3d', 'cluster', 'delete', f'{self.name}']
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
         if err.decode('utf-8') != '':
-            raise RuntimeError(f'failed to delete cluster {self.name}: {err.decode("utf8")}')
+            raise RuntimeError(f'Failed to delete cluster {self.name}: {err.decode("utf8")}')
+
+    def preload_images(self, images: list) -> None:
+        if self.type != K8sType.K3s:
+            return
+        args = ['k3d', 'image', 'import', f'--cluster={self.name}']
+        args += images
+
+        proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+        _, err = proc.communicate()
+        if err.decode('utf-8') != '' and not 'WARN' in err.decode('utf-8'):
+            raise RuntimeError(f'Failed to preload images: {err.decode("utf8")}')
