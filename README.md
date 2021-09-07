@@ -137,6 +137,25 @@ ding -m serial -e cartpole -p dqn -s 0
 
 P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
+
+## Environments
+|  No  |                Environment               |                 Label               |         viz                        |                   origin link                              |                        dizoo link                            |
+| :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:----------------------------------------------------------: | :----------------------------------------------------------: |
+|  1   |       [atari]                            | ![discrete]   | dizoo/atari/atari.gif                                   |             (https://github.com/openai/gym/tree/master/gym/envs/atari)        | dizoo/atari/envs                                        |
+|  2   |       [box2d/bipedalwalker]              | ![continuous] | dizoo/box2d/bipedalwalker/original.gif                    |        (https://github.com/openai/gym/tree/master/gym/envs/box2d)        | dizoo/box2d/bipedalwalker/envs                          |
+|  3   |       [box2d/lunarlander]                | ![discrete]   | dizoo/box2d/lunarlander/lunarlander.gif                 |             (https://github.com/openai/gym/tree/master/gym/envs/box2d)        | dizoo/box2d/lunarlander/envs                            |
+|  4   |       [classic_control]                  | ![discrete]   | dizoo/classic_control/cartpole/cartpole.gif             |      (https://github.com/openai/gym/tree/master/gym/envs/classic_control) | dizoo.classic_control                                |
+|  4   |       [competitive_rl]                   | ![discrete]   | dizoo/competitive_rl/competitive_rl.gif                 |      (https://github.com/cuhkrlcourse/competitive-rl)                  | dizoo.classic_control                                   |
+|  5   |       [gfootball]                        | ![discrete]   | dizoo/gfootball/gfootball.gif                           |      (https://github.com/google-research/football)                     | dizoo.gfootball/envs                                    |
+|  6   |       [minigrid]                         | ![discrete]   | dizoo/minigrid/minigrid.gif                             |      (https://github.com/maximecb/gym-minigrid)                        | dizoo/minigrid/envs                                     |
+|  7   |       [mujoco]                           | ![discrete] ![continuous]  | dizoo/mujoco/mujoco.gif                    |      (https://github.com/openai/gym/tree/master/gym/envs/mujoco)       | dizoo/majoco/envs                                       |
+|  8   |       [multiagent_particle]              | ![discrete]   | dizoo/multiagent_particle/multiagent_particle.gif       |      (https://github.com/openai/multiagent-particle-envs)              | dizoo/multiagent_particle/envs                          | 
+|  9   |       [overcooked]                       | ![discrete]   | dizoo/overcooked/overcooked.gif                         |       (https://github.com/HumanCompatibleAI/overcooked-demo) | dizoo/overcooded/envs                                              |
+|  10  |       [pomdp]                            | ![discrete]   |  |  |  |
+|  11  |       [procgen]                          | ![discrete]   | dizoo/procgen/coinrun/coinrun.gif dizoo/procgen/maze/maze.gif|  (https://github.com/openai/procgen)                               | dizoo/procgen                                           |
+|  12  |       [pybullet]                         | ![discrete] ![continuous]  | dizoo/pybullet/pybullet.gif                |       (https://github.com/benelot/pybullet-gym)                         | dizoo/pybullet/envs                                     |
+|  13  |       [smac]                             | ![discrete]   | dizoo/smac/smac.gif                                     |      (https://github.com/oxwhirl/smac)                                 | dizoo/smac/envs                                         |
+|  14  |       [league_demo]                      | ![discrete]   |    |    | dizoo/league_demo/envs                |
 ## Contributing
 
 We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides. And our roadmap can be accessed by [this link](https://github.com/opendilab/DI-engine/projects/1).
