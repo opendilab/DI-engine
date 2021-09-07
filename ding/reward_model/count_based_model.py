@@ -15,15 +15,14 @@ from .base_reward_model import BaseRewardModel
 @REWARD_MODEL_REGISTRY.register('countbased')
 class CountbasedRewardModel(BaseRewardModel):
     """
-        # TODO:
+        
     """
     
     config = dict(
+
         type='countbased',
         counter_type='PixelCNN',
         intrinsic_reward_type='add',
-        # learning_rate=1e-3,
-        batch_size=16,
         bonus_coeffient=0.1,
         img_height=42,
         img_width=42,
@@ -75,19 +74,25 @@ class CountbasedRewardModel(BaseRewardModel):
                 eps=1e-4,
             )
 
-    def _train(self):
-        train_data: list = self.train_data
-        train_data: torch.Tensor = torch.stack(train_data).to(self.device)
+    def _train(self, train_data):
+        '''
+            Using sequence data to train the network.(1, H, W, 1)
+        '''
         flattened_logits, target_pixel_loss, _ = self._counter(train_data)
-        loss = nn.CrossEntropyLoss()(flattened_logits, target_pixel_loss.long())
-        loss = loss.mean()
+        # flattened_logits:[BHWC, D]; target_pixel_loss:[BHWC]
+        loss = nn.CrossEntropyLoss(reduction='none')(   # loss:[D]
+            flattened_logits, target_pixel_loss.long()
+        )
+        print(loss.shape)
+        loss = loss.mean()  # loss: [1]
+        print(loss.shape)
+
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
 
     def train(self) -> None:
-        self._train()
-        # self.clear_data()
+        pass
 
     def estimate(self, data, t) -> None:
         """
@@ -95,26 +100,30 @@ class CountbasedRewardModel(BaseRewardModel):
         """
         if self._counter_type == 'PixelCNN':
             obs = self._collect_states(data)
-            obs = torch.stack(obs).to(self.device)
+            for o, item in zip(obs, data):
+                o = o.unsqueeze(0).to(self.device)
 
-            prob = (self._probs(obs) + 1e-8).sum().item()
+                prob = (self._probs(o) + 1e-8).sum().item()
+                
+                self._train(o)
 
-            with torch.no_grad():
-                recoding_prob = (self._probs(obs) + 1e-8).sum().item()
+                with torch.no_grad():
+                    recoding_prob = (self._probs(o) + 1e-8).sum().item()
 
-            pred_gain = np.log(recoding_prob) - np.log(prob)
+                pred_gain = max(0, np.log(recoding_prob) - np.log(prob))
 
-            intrinsic_reward = [pow(
-                exp(self.cfg.bonus_coeffient * pow(t+1, -0.5) * pred_gain) - 1, 0.5
-            )]
+                intrinsic_reward = pow(
+                    exp(self.cfg.bonus_coeffient * pow(t+1, -0.5) * pred_gain) - 1, 0.5
+                )
 
-            for item, rew in zip(data, intrinsic_reward):
+                print(f'time:{t}, intrisic reward:{intrinsic_reward}')
+
                 if self.intrinsic_reward_type == 'add':
-                    item['reward'] += rew
+                    item['reward'] += intrinsic_reward
                 elif self.intrinsic_reward_type == 'new':
-                    item['intrinsic_reward'] = rew
+                    item['intrinsic_reward'] = intrinsic_reward
                 elif self.intrinsic_reward_type == 'assign':
-                    item['reward'] = rew
+                    item['reward'] = intrinsic_reward
 
     def _probs(self, obs):
         _, indexes, target = self._counter(obs)
@@ -125,36 +134,26 @@ class CountbasedRewardModel(BaseRewardModel):
         obs = []
         for item in data:
             state = item['obs']
-            state = state.permute(1, 2, 0)
-            state = state.numpy()
-            state = cv2.resize(state, self.obs_shape)
-            state = np.reshape(state, [42, 42, 1])
-            state = torch.Tensor(state).to(self.device)
-            state = state.permute(2, 0, 1)  #CHW
-            # print(f'one data in model:{state.shape}')
+            state = state.unsqueeze(0)
+            state = nn.functional.interpolate(state, 42)
+            state = state.squeeze(0)
             obs.append(state)
         return obs
         
     def collect_data(self, data: list) -> None:
-        obs = self._collect_states(data)
-        self.train_data.extend(obs)
+        pass
 
     def clear_data(self) -> None:
-        self.train_data.clear()
+        pass
 
-            
-
-
-
-# Borrowed implement
 
 class GatedActivation(nn.Module):
-    """Gated activation function as introduced in [2].
+    """Gated activation function as introduced in https://arxiv.org/pdf/1703.01310.pdf.
     The function computes actiation_fn(f) * sigmoid(g). The f and g correspond to the
     top 1/2 and bottom 1/2 of the input channels.
     """
 
-    def __init__(self, activation_fn=torch.tanh):
+    def __init__(self, activation_fn=torch.nn.Tanh()):
         """Initializes a new GatedActivation instance.
         Args:
             activation_fn: Activation to use for the top 1/2 input channels.
@@ -262,7 +261,7 @@ class GatedPixelCNNLayer(nn.Module):
         hstack = self._activation(hstack)
         skip = self._hstack_skip(hstack)
         hstack = self._hstack_residual(hstack)
-        # NOTE(eugenhotaj): We cannot use a residual connection for causal layers
+        # We cannot use a residual connection for causal layers
         # otherwise we'll have access to future pixels.
         if not self._mask_center:
             hstack += hstack_input
@@ -274,13 +273,6 @@ class GatedPixelCNN(nn.Module):
     """The Gated PixelCNN model."""
 
     def __init__(
-        # self,
-        # in_channels=1,
-        # out_channels=1,
-        # n_gated=10,
-        # gated_channels=128,
-        # head_channels=32,
-        # sample_fn=None,
         self,
         in_channels=1,
         out_channels=1,
@@ -311,7 +303,7 @@ class GatedPixelCNN(nn.Module):
                 GatedPixelCNNLayer(
                     in_channels=gated_channels,
                     out_channels=gated_channels,
-                    # paper in exploration is 1, default paper is 3
+                    # paper in exploration is 1, default pixelcnn paper is 3
                     kernel_size=1,
                     mask_center=False,
                 )
@@ -332,23 +324,17 @@ class GatedPixelCNN(nn.Module):
 
     def forward(self, x):
         vstack, hstack, skip_connections = self._input(x, x)
-        # print(f'7x7 conv:{skip_connections.shape}')
         for gated_layer in self._gated_layers:
             vstack, hstack, skip = gated_layer(vstack, hstack)
             skip_connections += skip
-            # print(f'3x3 gate:{skip_connections.shape}')
-        # return self._head(skip_connections) # logits
         logits = self._head(skip_connections)
+
         logits, x = logits.permute(0, 2, 3, 1), x.permute(0, 2, 3, 1)
-        # print(f'logits, x:{logits.shape, x.shape}')
+
         flattened_logits = torch.reshape(logits, [-1, self.q_level])
-        # print(f'flat logits:{flattened_logits.shape}')
+        
         target_pixel_loss = torch.reshape(x, [-1])
-        # print(f'targrt ppixel loss:{target_pixel_loss.shape}')
+        
         flattened_output = nn.Softmax(dim=-1)(flattened_logits)
-        # print(f'flat output:{flattened_output.shape}')
-        # output = torch.reshape(
-        #     flattened_output, 
-        #     [-1, self.height, self.width, self.out_channels, self.q_level]
-        # )
+        
         return flattened_logits, target_pixel_loss, flattened_output
