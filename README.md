@@ -140,7 +140,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 ## Environments
 |  No  |                Environment               |                 Label               |         viz                        |                   dizoo link                              |
-| :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:----------------------------------------------------------: | :----------------------------------------------------------: |
+| :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:---------------------------------------------------------: |
 |  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | (./dizoo/atari/atari.gif)     |             (./dizoo/atari/envs)             |
 |  2   |       [box2d/bipedalwalker](https://github.com/openai/gym/tree/master/gym/envs/box2d)    | ![continuous](https://img.shields.io/badge/-continous-green) | (./dizoo/box2d/bipedalwalker/original.gif)        | (./dizoo/box2d/bipedalwalker/envs)         |
 |  3   |       [box2d/lunarlander](https://github.com/openai/gym/tree/master/gym/envs/box2d)      | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | (./dizoo/box2d/lunarlander/lunarlander.gif)   |  .(/dizoo/box2d/lunarlander/envs)              |
