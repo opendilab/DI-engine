@@ -29,6 +29,3 @@ class TestPixelCNN:
         assert flattened_logits.shape == torch.Size([B*H*W*C, D])
         assert target_pixel_loss.shape == torch.Size([B*H*W*C])
         assert flattened_output.shape == torch.Size([B*H*W*C, D])
-
-if __name__ == '__main__':
-    pytest.main()
