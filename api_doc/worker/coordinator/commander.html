@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="worker.coordinator.comm_coordinator" href="comm_coordinator.html" />
@@ -200,8 +203,8 @@
 <div class="section" id="baseserialcommander">
 <h3>BaseSerialCommander<a class="headerlink" href="#baseserialcommander" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_serial_commander.</span></code><code class="sig-name descname"><span class="pre">BaseSerialCommander</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseLearner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialCollector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialEvaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">IBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_serial_commander.</span></span><span class="sig-name descname"><span class="pre">BaseSerialCommander</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseLearner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialCollector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialEvaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">IBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Base serial commander class.</p>
 </dd>
@@ -211,8 +214,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseLearner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialCollector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialEvaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">IBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseLearner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialCollector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseSerialEvaluator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">replay_buffer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">IBuffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init the BaseSerialCommander</p>
 </dd>
@@ -228,8 +231,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_serial_commander.BaseSerialCommander.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_serial_commander.html#BaseSerialCommander.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_serial_commander.BaseSerialCommander.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the commander</p>
 </dd>
@@ -245,8 +248,8 @@
 <div class="section" id="basecommander">
 <h3>BaseCommander<a class="headerlink" href="#basecommander" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.coordinator.base_parallel_commander.BaseCommander">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_parallel_commander.</span></code><code class="sig-name descname"><span class="pre">BaseCommander</span></code><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#BaseCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.BaseCommander" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.BaseCommander">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_parallel_commander.</span></span><span class="sig-name descname"><span class="pre">BaseCommander</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#BaseCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.BaseCommander" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Base parallel commander abstract class.</p>
 </dd>
@@ -259,8 +262,8 @@
 <div class="section" id="naivecommander">
 <h3>NaiveCommander<a class="headerlink" href="#naivecommander" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_parallel_commander.</span></code><code class="sig-name descname"><span class="pre">NaiveCommander</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.base_parallel_commander.</span></span><span class="sig-name descname"><span class="pre">NaiveCommander</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>A naive implementation of parallel commander.</p>
 </dd>
@@ -269,8 +272,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init the naive commander according to config</p>
 </dd>
@@ -286,8 +289,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task">
-<code class="sig-name descname"><span class="pre">finish_collector_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task">
+<span class="sig-name descname"><span class="pre">finish_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>finish collector task will add the collector_task_finish_count</p>
 </dd>
@@ -295,8 +298,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task">
-<code class="sig-name descname"><span class="pre">finish_learner_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task">
+<span class="sig-name descname"><span class="pre">finish_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.finish_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>finish learner task will add the learner_task_finish_count and get the buffer_id of task to close the buffer</p>
 </dd>
@@ -306,8 +309,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task">
-<code class="sig-name descname"><span class="pre">get_collector_task</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task">
+<span class="sig-name descname"><span class="pre">get_collector_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get a new collector task when <code class="docutils literal notranslate"><span class="pre">collector_task_count</span></code> is smaller than <code class="docutils literal notranslate"><span class="pre">collector_task_space</span></code>.</p>
 </dd>
@@ -319,8 +322,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task">
-<code class="sig-name descname"><span class="pre">get_learner_task</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task">
+<span class="sig-name descname"><span class="pre">get_learner_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.get_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the new learner task when task_count is less than task_space</p>
 </dd>
@@ -332,8 +335,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task">
-<code class="sig-name descname"><span class="pre">notify_fail_collector_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task">
+<span class="sig-name descname"><span class="pre">notify_fail_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>naive coordinator will pass when need to notify_fail_collector_task</p>
 </dd>
@@ -341,8 +344,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task">
-<code class="sig-name descname"><span class="pre">notify_fail_learner_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task">
+<span class="sig-name descname"><span class="pre">notify_fail_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/base_parallel_commander.html#NaiveCommander.notify_fail_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>naive coordinator will pass when need to notify_fail_learner_task</p>
 </dd>
@@ -369,8 +372,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 <div class="section" id="solocommander">
 <h3>SoloCommander<a class="headerlink" href="#solocommander" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.solo_parallel_commander.</span></code><code class="sig-name descname"><span class="pre">SoloCommander</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.solo_parallel_commander.</span></span><span class="sig-name descname"><span class="pre">SoloCommander</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Parallel commander for solo games.</p>
 </dd>
@@ -379,8 +382,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init the solo commander according to config.</p>
 </dd>
@@ -392,8 +395,8 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task">
-<code class="sig-name descname"><span class="pre">finish_collector_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task">
+<span class="sig-name descname"><span class="pre">finish_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get collector’s finish_task_info and release collector_task_space.
 If collector’s task is evaluation, judge the convergence and return it.</p>
@@ -415,8 +418,8 @@ If collector’s task is evaluation, judge the convergence and return it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task">
-<code class="sig-name descname"><span class="pre">finish_learner_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task">
+<span class="sig-name descname"><span class="pre">finish_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">str</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get learner’s finish_task_info, release learner_task_space, reset corresponding variables.</p>
 </dd>
@@ -433,8 +436,8 @@ If collector’s task is evaluation, judge the convergence and return it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task">
-<code class="sig-name descname"><span class="pre">get_collector_task</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task">
+<span class="sig-name descname"><span class="pre">get_collector_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return the new collector task when there is residual task space; Otherwise return None.</p>
 </dd>
@@ -446,8 +449,8 @@ If collector’s task is evaluation, judge the convergence and return it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task">
-<code class="sig-name descname"><span class="pre">get_learner_task</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task">
+<span class="sig-name descname"><span class="pre">get_learner_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return the new learner task when there is residual task space; Otherwise return None.</p>
 </dd>
@@ -459,8 +462,8 @@ If collector’s task is evaluation, judge the convergence and return it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task">
-<code class="sig-name descname"><span class="pre">notify_fail_collector_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task">
+<span class="sig-name descname"><span class="pre">notify_fail_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Release task space when collector task fails.</p>
 </dd>
@@ -468,8 +471,8 @@ If collector’s task is evaluation, judge the convergence and return it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task">
-<code class="sig-name descname"><span class="pre">notify_fail_learner_task</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task">
+<span class="sig-name descname"><span class="pre">notify_fail_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Release task space when learner task fails.</p>
 </dd>

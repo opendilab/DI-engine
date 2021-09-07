@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="A2C" href="a2c.html" />
@@ -201,8 +204,8 @@
 <div class="section" id="r2d2policy">
 <h2>R2D2Policy<a class="headerlink" href="#r2d2policy" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.policy.r2d2.R2D2Policy">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.policy.r2d2.</span></code><code class="sig-name descname"><span class="pre">R2D2Policy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.r2d2.</span></span><span class="sig-name descname"><span class="pre">R2D2Policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Policy class of R2D2, from paper <cite>Recurrent Experience Replay in Distributed Reinforcement Learning</cite> .
 R2D2 proposes that several tricks should be used to improve upon DRQN,
@@ -478,8 +481,8 @@ namely some recurrent experience replay tricks such as burn-in.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._forward_collect">
-<code class="sig-name descname"><span class="pre">_forward_collect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_collect" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_collect">
+<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collect output according to eps_greedy plugin</p>
 </dd>
@@ -495,8 +498,8 @@ namely some recurrent experience replay tricks such as burn-in.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._forward_eval">
-<code class="sig-name descname"><span class="pre">_forward_eval</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_eval" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_eval">
+<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward function of collect mode, similar to <code class="docutils literal notranslate"><span class="pre">self._forward_collect</span></code>.</p>
 </dd>
@@ -512,8 +515,8 @@ namely some recurrent experience replay tricks such as burn-in.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._forward_learn">
-<code class="sig-name descname"><span class="pre">_forward_learn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_learn" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_learn">
+<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward and backward function of learn mode.
 Acquire the data, calculate the loss and optimize learner model.</p>
@@ -541,8 +544,8 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._init_collect">
-<code class="sig-name descname"><span class="pre">_init_collect</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_collect" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_collect">
+<span class="sig-name descname"><span class="pre">_init_collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collect mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init traj and unroll length, collect model.</p>
@@ -551,8 +554,8 @@ Init traj and unroll length, collect model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._init_eval">
-<code class="sig-name descname"><span class="pre">_init_eval</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_eval" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_eval">
+<span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Evaluate mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init eval model with argmax strategy.</p>
@@ -561,8 +564,8 @@ Init eval model with argmax strategy.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._init_learn">
-<code class="sig-name descname"><span class="pre">_init_learn</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_learn" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_learn">
+<span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Init the learner model of R2D2Policy</p>
 </dd>
@@ -582,8 +585,8 @@ Init eval model with argmax strategy.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.r2d2.R2D2Policy._process_transition">
-<code class="sig-name descname"><span class="pre">_process_transition</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._process_transition" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._process_transition">
+<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._process_transition" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Generate dict type transition data from inputs.</p>
 </dd>

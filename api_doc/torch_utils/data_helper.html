@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="distribution" href="distribution.html" />
@@ -346,8 +349,8 @@
 <div class="section" id="cudafetcher">
 <h2>CudaFetcher<a class="headerlink" href="#cudafetcher" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.torch_utils.data_helper.CudaFetcher">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.torch_utils.data_helper.</span></code><code class="sig-name descname"><span class="pre">CudaFetcher</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.data_helper.</span></span><span class="sig-name descname"><span class="pre">CudaFetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Fetch data from source, and transfer it to specified device.</p>
 </dd>
@@ -355,8 +358,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.torch_utils.data_helper.CudaFetcher.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Stop <cite>producer</cite> thread by setting <cite>end_flag</cite> to <cite>True</cite>.</p>
 </dd>
@@ -364,8 +367,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.data_helper.CudaFetcher.run">
-<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.run" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.run" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start <cite>producer</cite> thread: Keep fetching data from source,
 change the device, and put into <cite>queue</cite> for request.</p>

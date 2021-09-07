@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="utils.data" href="data/index.html" />
@@ -207,8 +210,8 @@
 <h2>SegmentTree<a class="headerlink" href="#segmenttree" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/segment_tree.py for usage.</p>
 <dl class="py class">
-<dt id="ding.utils.segment_tree.SegmentTree">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></code><code class="sig-name descname"><span class="pre">SegmentTree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neutral_element</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SegmentTree">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></span><span class="sig-name descname"><span class="pre">SegmentTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neutral_element</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
 non-leaf nodes are to do some operations on its left and right child.</p>
@@ -217,8 +220,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SegmentTree.__getitem__">
-<code class="sig-name descname"><span class="pre">__getitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SegmentTree.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span></code></p>
 </dd>
@@ -234,8 +237,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SegmentTree.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neutral_element</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SegmentTree.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neutral_element</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize the segment tree. Tree’s root node is at index 1.</p>
 </dd>
@@ -249,8 +252,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SegmentTree.__setitem__">
-<code class="sig-name descname"><span class="pre">__setitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__setitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SegmentTree.__setitem__">
+<span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.__setitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span> <span class="pre">=</span> <span class="pre">val</span></code>; Then update the related nodes.</p>
 </dd>
@@ -263,8 +266,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SegmentTree.reduce">
-<code class="sig-name descname"><span class="pre">reduce</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.reduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SegmentTree.reduce">
+<span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SegmentTree.reduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reduce the tree in range <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end)</span></code></p>
 </dd>
@@ -283,11 +286,11 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="ding.utils.segment_tree.SumSegmentTree">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></code><code class="sig-name descname"><span class="pre">SumSegmentTree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></span><span class="sig-name descname"><span class="pre">SumSegmentTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="ding.utils.segment_tree.SumSegmentTree.__getitem__">
-<code class="sig-name descname"><span class="pre">__getitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span></code></p>
 </dd>
@@ -303,8 +306,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SumSegmentTree.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init sum segment tree by passing <code class="docutils literal notranslate"><span class="pre">operation='sum'</span></code></p>
 </dd>
@@ -312,8 +315,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SumSegmentTree.__setitem__">
-<code class="sig-name descname"><span class="pre">__setitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.__setitem__">
+<span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span> <span class="pre">=</span> <span class="pre">val</span></code>; Then update the related nodes.</p>
 </dd>
@@ -326,8 +329,8 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SumSegmentTree.find_prefixsum_idx">
-<code class="sig-name descname"><span class="pre">find_prefixsum_idx</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefixsum</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trust_caller</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree.find_prefixsum_idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.find_prefixsum_idx" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.find_prefixsum_idx">
+<span class="sig-name descname"><span class="pre">find_prefixsum_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefixsum</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trust_caller</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree.find_prefixsum_idx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.find_prefixsum_idx" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Find the highest non-zero index i, sum_{j}leaf[j] &lt;= <code class="docutils literal notranslate"><span class="pre">prefixsum</span></code> (where 0 &lt;= j &lt; i)
 and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="pre">prefixsum</span></code> (where 0 &lt;= j &lt; i+1)</p>
@@ -349,8 +352,8 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.SumSegmentTree.reduce">
-<code class="sig-name descname"><span class="pre">reduce</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.reduce">
+<span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reduce the tree in range <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end)</span></code></p>
 </dd>
@@ -369,11 +372,11 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py class">
-<dt id="ding.utils.segment_tree.MinSegmentTree">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></code><code class="sig-name descname"><span class="pre">MinSegmentTree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></span><span class="sig-name descname"><span class="pre">MinSegmentTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="ding.utils.segment_tree.MinSegmentTree.__getitem__">
-<code class="sig-name descname"><span class="pre">__getitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span></code></p>
 </dd>
@@ -389,8 +392,8 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.MinSegmentTree.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init sum segment tree by passing <code class="docutils literal notranslate"><span class="pre">operation='min'</span></code></p>
 </dd>
@@ -398,8 +401,8 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.MinSegmentTree.__setitem__">
-<code class="sig-name descname"><span class="pre">__setitem__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.__setitem__">
+<span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__setitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set <code class="docutils literal notranslate"><span class="pre">leaf[idx]</span> <span class="pre">=</span> <span class="pre">val</span></code>; Then update the related nodes.</p>
 </dd>
@@ -412,8 +415,8 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.segment_tree.MinSegmentTree.reduce">
-<code class="sig-name descname"><span class="pre">reduce</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.reduce">
+<span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.reduce" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reduce the tree in range <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end)</span></code></p>
 </dd>

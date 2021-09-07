@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="league.player" href="player.html" />
@@ -201,8 +204,8 @@
 <div class="section" id="baseleague">
 <h3>BaseLeague<a class="headerlink" href="#baseleague" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.league.base_league.BaseLeague">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.league.base_league.</span></code><code class="sig-name descname"><span class="pre">BaseLeague</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.base_league.</span></span><span class="sig-name descname"><span class="pre">BaseLeague</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>League, proposed by Google Deepmind AlphaStar. Can manage multiple players in one league.</p>
 </dd>
@@ -214,8 +217,8 @@
 <p>In <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, league would also initialized players as well(in <code class="docutils literal notranslate"><span class="pre">_init_players</span></code> method).</p>
 </div>
 <dl class="py method">
-<dt id="ding.league.base_league.BaseLeague.finish_job">
-<code class="sig-name descname"><span class="pre">finish_job</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.finish_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.finish_job" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague.finish_job">
+<span class="sig-name descname"><span class="pre">finish_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.finish_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.finish_job" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Finish current job. Update shared payoff to record the game results.</p>
 </dd>
@@ -227,8 +230,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.base_league.BaseLeague.get_job_info">
-<code class="sig-name descname"><span class="pre">get_job_info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.get_job_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague.get_job_info">
+<span class="sig-name descname"><span class="pre">get_job_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.get_job_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get info dict of the job which is to be launched to an active player.</p>
 </dd>
@@ -249,8 +252,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.base_league.BaseLeague.judge_snapshot">
-<code class="sig-name descname"><span class="pre">judge_snapshot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.judge_snapshot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague.judge_snapshot">
+<span class="sig-name descname"><span class="pre">judge_snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.judge_snapshot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Judge whether a player is trained enough for snapshot. If yes, call player’s <code class="docutils literal notranslate"><span class="pre">snapshot</span></code>, create a
 historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
@@ -268,8 +271,8 @@ Otherwise, return False.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.base_league.BaseLeague.save_checkpoint">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">save_checkpoint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_checkpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_checkpoint</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague.save_checkpoint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_checkpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_checkpoint</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Copy a checkpoint from path <code class="docutils literal notranslate"><span class="pre">src_checkpoint</span></code> to path <code class="docutils literal notranslate"><span class="pre">dst_checkpoint</span></code>.</p>
 </dd>
@@ -282,8 +285,8 @@ Otherwise, return False.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.base_league.BaseLeague.update_active_player">
-<code class="sig-name descname"><span class="pre">update_active_player</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.update_active_player"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.base_league.BaseLeague.update_active_player">
+<span class="sig-name descname"><span class="pre">update_active_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/league/base_league.html#BaseLeague.update_active_player"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.base_league.BaseLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update an active player’s info.</p>
 </dd>
@@ -327,8 +330,8 @@ to get the instance object.</p>
 <div class="section" id="onevsoneleague">
 <h3>OneVsOneLeague<a class="headerlink" href="#onevsoneleague" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.league.one_vs_one_league.</span></code><code class="sig-name descname"><span class="pre">OneVsOneLeague</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/one_vs_one_league.html#OneVsOneLeague"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.one_vs_one_league.</span></span><span class="sig-name descname"><span class="pre">OneVsOneLeague</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/one_vs_one_league.html#OneVsOneLeague"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>One vs One battle game league.
 Decide which two players will play against each other.</p>
@@ -337,8 +340,8 @@ Decide which two players will play against each other.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague.finish_job">
-<code class="sig-name descname"><span class="pre">finish_job</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.finish_job" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague.finish_job">
+<span class="sig-name descname"><span class="pre">finish_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.finish_job" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Finish current job. Update shared payoff to record the game results.</p>
 </dd>
@@ -350,8 +353,8 @@ Decide which two players will play against each other.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague.get_job_info">
-<code class="sig-name descname"><span class="pre">get_job_info</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague.get_job_info">
+<span class="sig-name descname"><span class="pre">get_job_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_flag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.get_job_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get info dict of the job which is to be launched to an active player.</p>
 </dd>
@@ -372,8 +375,8 @@ Decide which two players will play against each other.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague.judge_snapshot">
-<code class="sig-name descname"><span class="pre">judge_snapshot</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague.judge_snapshot">
+<span class="sig-name descname"><span class="pre">judge_snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.judge_snapshot" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Judge whether a player is trained enough for snapshot. If yes, call player’s <code class="docutils literal notranslate"><span class="pre">snapshot</span></code>, create a
 historical player(prepare the checkpoint and add it to the shared payoff), then mutate it, and return True.
@@ -391,8 +394,8 @@ Otherwise, return False.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague.save_checkpoint">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">save_checkpoint</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_checkpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_checkpoint</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague.save_checkpoint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_checkpoint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_checkpoint</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.save_checkpoint" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Copy a checkpoint from path <code class="docutils literal notranslate"><span class="pre">src_checkpoint</span></code> to path <code class="docutils literal notranslate"><span class="pre">dst_checkpoint</span></code>.</p>
 </dd>
@@ -405,8 +408,8 @@ Otherwise, return False.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.league.one_vs_one_league.OneVsOneLeague.update_active_player">
-<code class="sig-name descname"><span class="pre">update_active_player</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.league.one_vs_one_league.OneVsOneLeague.update_active_player">
+<span class="sig-name descname"><span class="pre">update_active_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.league.one_vs_one_league.OneVsOneLeague.update_active_player" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update an active player’s info.</p>
 </dd>

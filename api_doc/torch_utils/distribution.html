@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="metric" href="metric.html" />
@@ -210,8 +213,8 @@
 <div class="section" id="pd">
 <h2>Pd<a class="headerlink" href="#pd" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.torch_utils.distribution.Pd">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></code><code class="sig-name descname"><span class="pre">Pd</span></code><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></span><span class="sig-name descname"><span class="pre">Pd</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract class for parameterizable probability distributions and sampling functions.</p>
 </dd>
@@ -223,8 +226,8 @@
 <p>In dereived classes, <cite>logits</cite> should be an attribute member stored in class.</p>
 </div>
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.Pd.entropy">
-<code class="sig-name descname"><span class="pre">entropy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.entropy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.entropy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate the softmax entropy of logits</p>
 </dd>
@@ -240,8 +243,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.Pd.mode">
-<code class="sig-name descname"><span class="pre">mode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.mode" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return logits argmax result. This method is designed for deterministic.</p>
 </dd>
@@ -249,8 +252,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.Pd.neglogp">
-<code class="sig-name descname"><span class="pre">neglogp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.neglogp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd.neglogp">
+<span class="sig-name descname"><span class="pre">neglogp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.neglogp" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate cross_entropy between input x and logits</p>
 </dd>
@@ -266,8 +269,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.Pd.noise_mode">
-<code class="sig-name descname"><span class="pre">noise_mode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.noise_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.noise_mode" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd.noise_mode">
+<span class="sig-name descname"><span class="pre">noise_mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.noise_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.noise_mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Add noise to logits. This method is designed for randomness</p>
 </dd>
@@ -275,8 +278,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.Pd.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.Pd.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#Pd.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.Pd.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample from logits’s distribution by using softmax. This method is designed for multinomial.</p>
 </dd>
@@ -289,8 +292,8 @@
 <div class="section" id="categoricalpd">
 <h2>CategoricalPd<a class="headerlink" href="#categoricalpd" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.torch_utils.distribution.CategoricalPd">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></code><code class="sig-name descname"><span class="pre">CategoricalPd</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></span><span class="sig-name descname"><span class="pre">CategoricalPd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Catagorical probility distribution sampler</p>
 </dd>
@@ -298,8 +301,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.entropy">
-<code class="sig-name descname"><span class="pre">entropy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.entropy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.entropy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate the softmax entropy of logits</p>
 </dd>
@@ -315,8 +318,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.mode">
-<code class="sig-name descname"><span class="pre">mode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.mode" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>return logits argmax result</p>
 </dd>
@@ -337,8 +340,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.neglogp">
-<code class="sig-name descname"><span class="pre">neglogp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.neglogp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.neglogp">
+<span class="sig-name descname"><span class="pre">neglogp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.neglogp" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate cross_entropy between input x and logits</p>
 </dd>
@@ -355,8 +358,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.noise_mode">
-<code class="sig-name descname"><span class="pre">noise_mode</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.noise_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.noise_mode" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.noise_mode">
+<span class="sig-name descname"><span class="pre">noise_mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.noise_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.noise_mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>add noise to logits</p>
 </dd>
@@ -377,8 +380,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">viz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample from logits’s distribution by using softmax</p>
 </dd>
@@ -399,8 +402,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPd.update_logits">
-<code class="sig-name descname"><span class="pre">update_logits</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.update_logits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.update_logits" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPd.update_logits">
+<span class="sig-name descname"><span class="pre">update_logits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPd.update_logits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPd.update_logits" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Updata logits</p>
 </dd>
@@ -417,8 +420,8 @@
 <div class="section" id="categoricalpdpytorch">
 <h2>CategoricalPdPytorch<a class="headerlink" href="#categoricalpdpytorch" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></code><code class="sig-name descname"><span class="pre">CategoricalPdPytorch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.distribution.</span></span><span class="sig-name descname"><span class="pre">CategoricalPdPytorch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Wrapped <code class="docutils literal notranslate"><span class="pre">torch.distributions.Categorical</span></code></p>
 </dd>
@@ -434,8 +437,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch.entropy">
-<code class="sig-name descname"><span class="pre">entropy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.entropy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.entropy">
+<span class="sig-name descname"><span class="pre">entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.entropy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.entropy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate the softmax entropy of logits</p>
 </dd>
@@ -451,8 +454,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch.mode">
-<code class="sig-name descname"><span class="pre">mode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.mode" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return logits argmax result</p>
 </dd>
@@ -464,8 +467,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch.neglogp">
-<code class="sig-name descname"><span class="pre">neglogp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.neglogp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.neglogp">
+<span class="sig-name descname"><span class="pre">neglogp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'mean'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.neglogp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.neglogp" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calculate cross_entropy between input x and logits</p>
 </dd>
@@ -482,8 +485,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample from logits’s distribution by using softmax</p>
 </dd>
@@ -495,8 +498,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.torch_utils.distribution.CategoricalPdPytorch.update_logits">
-<code class="sig-name descname"><span class="pre">update_logits</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.update_logits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.update_logits" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.update_logits">
+<span class="sig-name descname"><span class="pre">update_logits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.update_logits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.update_logits" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Updata logits</p>
 </dd>

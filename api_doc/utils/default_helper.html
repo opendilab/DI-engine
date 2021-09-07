@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="utils.design_helper" href="design_helper.html" />
@@ -353,8 +356,8 @@
 <div class="section" id="limitedspacecontainer">
 <h3>LimitedSpaceContainer<a class="headerlink" href="#limitedspacecontainer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.default_helper.</span></code><code class="sig-name descname"><span class="pre">LimitedSpaceContainer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.default_helper.</span></span><span class="sig-name descname"><span class="pre">LimitedSpaceContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>A space simulator.</p>
 </dd>
@@ -362,8 +365,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_val</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set <code class="docutils literal notranslate"><span class="pre">min_val</span></code> and <code class="docutils literal notranslate"><span class="pre">max_val</span></code> of the container, also set <code class="docutils literal notranslate"><span class="pre">cur</span></code> to <code class="docutils literal notranslate"><span class="pre">min_val</span></code> for initialization.</p>
 </dd>
@@ -376,8 +379,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.acquire_space">
-<code class="sig-name descname"><span class="pre">acquire_space</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.acquire_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.acquire_space" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.acquire_space">
+<span class="sig-name descname"><span class="pre">acquire_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.acquire_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.acquire_space" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Try to get one pice of space. If there is one, return True; Otherwise return False.</p>
 </dd>
@@ -389,8 +392,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.decrease_space">
-<code class="sig-name descname"><span class="pre">decrease_space</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.decrease_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.decrease_space" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.decrease_space">
+<span class="sig-name descname"><span class="pre">decrease_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.decrease_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.decrease_space" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Decrease one piece in space. Decrement <code class="docutils literal notranslate"><span class="pre">max_val</span></code>.</p>
 </dd>
@@ -398,8 +401,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.get_residual_space">
-<code class="sig-name descname"><span class="pre">get_residual_space</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.get_residual_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.get_residual_space" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.get_residual_space">
+<span class="sig-name descname"><span class="pre">get_residual_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.get_residual_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.get_residual_space" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get all residual pieces of space. Set <code class="docutils literal notranslate"><span class="pre">cur</span></code> to <code class="docutils literal notranslate"><span class="pre">max_val</span></code></p>
 </dd>
@@ -411,8 +414,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.increase_space">
-<code class="sig-name descname"><span class="pre">increase_space</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.increase_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.increase_space" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.increase_space">
+<span class="sig-name descname"><span class="pre">increase_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.increase_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.increase_space" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Increase one piece in space. Increment <code class="docutils literal notranslate"><span class="pre">max_val</span></code>.</p>
 </dd>
@@ -420,8 +423,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.default_helper.LimitedSpaceContainer.release_space">
-<code class="sig-name descname"><span class="pre">release_space</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.release_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.release_space" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.default_helper.LimitedSpaceContainer.release_space">
+<span class="sig-name descname"><span class="pre">release_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/utils/default_helper.html#LimitedSpaceContainer.release_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.default_helper.LimitedSpaceContainer.release_space" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Release only one piece of space. Decrement <code class="docutils literal notranslate"><span class="pre">cur</span></code>, but ensure it won’t be negative.</p>
 </dd>

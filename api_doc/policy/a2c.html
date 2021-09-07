@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="DDPG" href="ddpg.html" />
@@ -201,15 +204,15 @@
 <div class="section" id="a2cpolicy">
 <h2>A2CPolicy<a class="headerlink" href="#a2cpolicy" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="ding.policy.a2c.A2CPolicy">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.policy.a2c.</span></code><code class="sig-name descname"><span class="pre">A2CPolicy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.a2c.</span></span><span class="sig-name descname"><span class="pre">A2CPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Policy class of A2C algorithm.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._forward_collect">
-<code class="sig-name descname"><span class="pre">_forward_collect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_collect" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._forward_collect">
+<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward function for collect mode</p>
 </dd>
@@ -225,8 +228,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._forward_eval">
-<code class="sig-name descname"><span class="pre">_forward_eval</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_eval" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._forward_eval">
+<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward function for eval mode, similar to <code class="docutils literal notranslate"><span class="pre">self._forward_collect</span></code>.</p>
 </dd>
@@ -242,8 +245,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._forward_learn">
-<code class="sig-name descname"><span class="pre">_forward_learn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_learn" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._forward_learn">
+<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._forward_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward and backward function of learn mode.</p>
 </dd>
@@ -259,8 +262,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._get_train_sample">
-<code class="sig-name descname"><span class="pre">_get_train_sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._get_train_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._get_train_sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._get_train_sample">
+<span class="sig-name descname"><span class="pre">_get_train_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._get_train_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._get_train_sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the trajectory and the n step return data, then sample from the n_step return data</p>
 </dd>
@@ -276,8 +279,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._init_collect">
-<code class="sig-name descname"><span class="pre">_init_collect</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_collect" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._init_collect">
+<span class="sig-name descname"><span class="pre">_init_collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collect mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init traj and unroll length, collect model.</p>
@@ -286,8 +289,8 @@ Init traj and unroll length, collect model.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._init_eval">
-<code class="sig-name descname"><span class="pre">_init_eval</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_eval" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._init_eval">
+<span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Evaluate mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init eval model with argmax strategy.</p>
@@ -296,8 +299,8 @@ Init eval model with argmax strategy.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._init_learn">
-<code class="sig-name descname"><span class="pre">_init_learn</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_learn" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._init_learn">
+<span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._init_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Learn mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init the optimizer, algorithm config, main and target models.</p>
@@ -306,8 +309,8 @@ Init the optimizer, algorithm config, main and target models.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.policy.a2c.A2CPolicy._process_transition">
-<code class="sig-name descname"><span class="pre">_process_transition</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._process_transition" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.policy.a2c.A2CPolicy._process_transition">
+<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/a2c.html#A2CPolicy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.a2c.A2CPolicy._process_transition" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Generate dict type transition data from inputs.</p>
 </dd>

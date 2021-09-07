@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Policy" href="../policy/index.html" />
@@ -198,8 +201,8 @@
 <div class="section" id="baseenvmanager">
 <h3>BaseEnvManager<a class="headerlink" href="#baseenvmanager" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></code><code class="sig-name descname"><span class="pre">BaseEnvManager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">BaseEnvManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Create a BaseEnvManager to manage multiple environments.</p>
 </dd>
@@ -209,8 +212,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Release the environment resources.</p>
 </dd>
@@ -218,8 +221,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">
-<code class="sig-name descname"><span class="pre">enable_save_replay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.enable_save_replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">
+<span class="sig-name descname"><span class="pre">enable_save_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.enable_save_replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set each env’s replay save path.</p>
 </dd>
@@ -231,8 +234,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info">
-<code class="sig-name descname"><span class="pre">env_info</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.env_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info">
+<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.env_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
 </dd>
@@ -244,8 +247,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.launch">
-<code class="sig-name descname"><span class="pre">launch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.launch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.launch">
+<span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.launch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set up the environments and their parameters.</p>
 </dd>
@@ -256,9 +259,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">ready_obs</span></code><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ready_obs</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict[int,</span> <span class="pre">Any]</span></em><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Get the next observations(in <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> type) and corresponding env id.</p>
 </dd>
@@ -273,8 +276,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reset the environments their parameters.</p>
 </dd>
@@ -286,8 +289,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">
-<code class="sig-name descname"><span class="pre">seed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
 </dd>
@@ -299,8 +302,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.base_env_manager.BaseEnvManager.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Step all environments. Reset an env if done.</p>
 </dd>
@@ -328,8 +331,8 @@
 <div class="section" id="create-env-manager">
 <h3>create_env_manager<a class="headerlink" href="#create-env-manager" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
-<dt id="ding.envs.env_manager.base_env_manager.create_env_manager">
-<code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></code><code class="sig-name descname"><span class="pre">create_env_manager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#create_env_manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.create_env_manager" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.create_env_manager">
+<span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">create_env_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#create_env_manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.create_env_manager" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Create an env manager according to manager cfg and env function.</p>
 </dd>
@@ -349,8 +352,8 @@
 <div class="section" id="get-env-manager-cls">
 <h3>get_env_manager_cls<a class="headerlink" href="#get-env-manager-cls" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
-<dt id="ding.envs.env_manager.base_env_manager.get_env_manager_cls">
-<code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></code><code class="sig-name descname"><span class="pre">get_env_manager_cls</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">type</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#get_env_manager_cls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.get_env_manager_cls" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.get_env_manager_cls">
+<span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">get_env_manager_cls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">type</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#get_env_manager_cls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.get_env_manager_cls" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get an env manager class according to cfg.</p>
 </dd>
@@ -372,15 +375,15 @@
 <div class="section" id="shmbuffer">
 <h3>ShmBuffer<a class="headerlink" href="#shmbuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></code><code class="sig-name descname"><span class="pre">ShmBuffer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.generic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></span><span class="sig-name descname"><span class="pre">ShmBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.generic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Shared memory buffer to store numpy array.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill">
-<code class="sig-name descname"><span class="pre">fill</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_arr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill">
+<span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_arr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Fill the shared memory buffer with a numpy array. (Replace the original one.)</p>
 </dd>
@@ -392,8 +395,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">
-<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">numpy.ndarray</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBuffer.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the array stored in the buffer.</p>
 </dd>
@@ -410,15 +413,15 @@
 <div class="section" id="shmbuffercontainer">
 <h3>ShmBufferContainer<a class="headerlink" href="#shmbuffercontainer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></code><code class="sig-name descname"><span class="pre">ShmBufferContainer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.generic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></span><span class="sig-name descname"><span class="pre">ShmBufferContainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.generic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Support multiple shared memory buffers. Each key-value is name-buffer.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill">
-<code class="sig-name descname"><span class="pre">fill</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_arr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill">
+<span class="sig-name descname"><span class="pre">fill</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_arr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer.fill"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Fill the one or many shared memory buffer.</p>
 </dd>
@@ -430,8 +433,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get">
-<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#ShmBufferContainer.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the one or many arrays stored in the buffer.</p>
 </dd>
@@ -448,11 +451,11 @@
 <div class="section" id="syncsubprocessenvmanager">
 <h3>SyncSubprocessEnvManager<a class="headerlink" href="#syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></code><code class="sig-name descname"><span class="pre">SyncSubprocessEnvManager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#SyncSubprocessEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></span><span class="sig-name descname"><span class="pre">SyncSubprocessEnvManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#SyncSubprocessEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>CLose the env manager and release all related resources.</p>
 </dd>
@@ -460,8 +463,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay">
-<code class="sig-name descname"><span class="pre">enable_save_replay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay">
+<span class="sig-name descname"><span class="pre">enable_save_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set each env’s replay save path.</p>
 </dd>
@@ -473,8 +476,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info">
-<code class="sig-name descname"><span class="pre">env_info</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info">
+<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
 </dd>
@@ -486,8 +489,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch">
-<code class="sig-name descname"><span class="pre">launch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch">
+<span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set up the environments and their parameters.</p>
 </dd>
@@ -498,9 +501,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.ready_obs">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">ready_obs</span></code><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.ready_obs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ready_obs</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict[int,</span> <span class="pre">Any]</span></em><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Get the next observations.</p>
 </dd>
@@ -517,8 +520,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reset the environments their parameters.</p>
 </dd>
@@ -530,8 +533,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed">
-<code class="sig-name descname"><span class="pre">seed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
 </dd>
@@ -543,8 +546,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#SyncSubprocessEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#SyncSubprocessEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Step all environments. Reset an env if done.</p>
 </dd>
@@ -579,8 +582,8 @@
 <div class="section" id="asyncsubprocessenvmanager">
 <h3>AsyncSubprocessEnvManager<a class="headerlink" href="#asyncsubprocessenvmanager" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></code><code class="sig-name descname"><span class="pre">AsyncSubprocessEnvManager</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.subprocess_env_manager.</span></span><span class="sig-name descname"><span class="pre">AsyncSubprocessEnvManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Create an AsyncSubprocessEnvManager to manage multiple environments.
 Each Environment is run by a respective subprocess.</p>
@@ -589,8 +592,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>CLose the env manager and release all related resources.</p>
 </dd>
@@ -598,8 +601,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay">
-<code class="sig-name descname"><span class="pre">enable_save_replay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.enable_save_replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay">
+<span class="sig-name descname"><span class="pre">enable_save_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.enable_save_replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set each env’s replay save path.</p>
 </dd>
@@ -611,8 +614,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info">
-<code class="sig-name descname"><span class="pre">env_info</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info">
+<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">collections.namedtuple</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
 </dd>
@@ -624,8 +627,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch">
-<code class="sig-name descname"><span class="pre">launch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch">
+<span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set up the environments and their parameters.</p>
 </dd>
@@ -636,9 +639,9 @@ Each Environment is run by a respective subprocess.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.ready_obs">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">ready_obs</span></code><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.ready_obs">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ready_obs</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict[int,</span> <span class="pre">Any]</span></em><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Get the next observations.</p>
 </dd>
@@ -655,8 +658,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Reset the environments their parameters.</p>
 </dd>
@@ -668,8 +671,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed">
-<code class="sig-name descname"><span class="pre">seed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
 </dd>
@@ -681,8 +684,8 @@ Each Environment is run by a respective subprocess.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Step all environments. Reset an env if done.</p>
 </dd>

@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="Coordinator" href="../coordinator/index.html" />
@@ -196,8 +199,8 @@
 <div class="section" id="ibuffer">
 <h3>IBuffer<a class="headerlink" href="#ibuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.base_buffer.</span></code><code class="sig-name descname"><span class="pre">IBuffer</span></code><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.base_buffer.</span></span><span class="sig-name descname"><span class="pre">IBuffer</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Buffer interface</p>
 </dd>
@@ -205,8 +208,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.clear">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.clear">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.clear" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear all the data and reset the related variables.</p>
 </dd>
@@ -214,8 +217,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.count">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">count</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.count" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.count">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.count" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Count how many valid datas there are in the buffer.</p>
 </dd>
@@ -227,8 +230,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.default_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">default_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.default_config" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.default_config" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Default config of this buffer class.</p>
 </dd>
@@ -240,8 +243,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.load_state_dict">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.load_state_dict">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Load state dict to reproduce the buffer.</p>
 </dd>
@@ -253,8 +256,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.push">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.push" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.push">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.push" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Push a data into buffer.</p>
 </dd>
@@ -271,8 +274,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.sample">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.sample">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>.</p>
 </dd>
@@ -289,8 +292,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.state_dict">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.state_dict">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Provide a state dict to keep a record of current buffer.</p>
 </dd>
@@ -302,8 +305,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.base_buffer.IBuffer.update">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer.update">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/base_buffer.html#IBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.base_buffer.IBuffer.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update data info, e.g. priority.</p>
 </dd>
@@ -320,8 +323,8 @@
 <div class="section" id="naivereplaybuffer">
 <h3>NaiveReplayBuffer<a class="headerlink" href="#naivereplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.naive_buffer.</span></code><code class="sig-name descname"><span class="pre">NaiveReplayBuffer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.naive_buffer.</span></span><span class="sig-name descname"><span class="pre">NaiveReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Naive replay buffer, can store and sample data.
 An naive implementation of replay buffer with no priority or any other advanced features.
@@ -334,8 +337,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.clear">
-<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear all the data and reset the related variables.</p>
 </dd>
@@ -343,8 +346,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear the buffer; Join the buffer’s used_data_remover thread if enables track_used_data.</p>
 </dd>
@@ -352,8 +355,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.count">
-<code class="sig-name descname"><span class="pre">count</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.count">
+<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Count how many valid datas there are in the buffer.</p>
 </dd>
@@ -365,8 +368,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.default_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">default_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Default config of this buffer class.</p>
 </dd>
@@ -378,8 +381,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.load_state_dict">
-<code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Load state dict to reproduce the buffer.</p>
 </dd>
@@ -391,8 +394,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.push">
-<code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.push">
+<span class="sig-name descname"><span class="pre">push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Push a data into buffer.</p>
 </dd>
@@ -413,8 +416,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
@@ -432,8 +435,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start">
-<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start the buffer’s used_data_remover thread if enables track_used_data.</p>
 </dd>
@@ -441,8 +444,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.state_dict">
-<code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Provide a state dict to keep a record of current buffer.</p>
 </dd>
@@ -454,8 +457,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.update">
-<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/naive_buffer.html#NaiveReplayBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Naive Buffer does not need to update any info, but this method is preserved for compatibility.</p>
 </dd>
@@ -468,8 +471,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 <div class="section" id="advancedreplaybuffer">
 <h3>AdvancedReplayBuffer<a class="headerlink" href="#advancedreplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.advanced_buffer.</span></code><code class="sig-name descname"><span class="pre">AdvancedReplayBuffer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.advanced_buffer.</span></span><span class="sig-name descname"><span class="pre">AdvancedReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Prioritized replay buffer derived from <code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code>.
 This replay buffer adds:</p>
@@ -488,8 +491,8 @@ This replay buffer adds:</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.clear">
-<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear all the data and reset the related variables.</p>
 </dd>
@@ -497,8 +500,8 @@ This replay buffer adds:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear the buffer; Join the buffer’s used_data_remover thread if enables track_used_data.
 Join periodic throughtput monitor, flush tensorboard logger.</p>
@@ -507,8 +510,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.count">
-<code class="sig-name descname"><span class="pre">count</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.count">
+<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Count how many valid datas there are in the buffer.</p>
 </dd>
@@ -520,8 +523,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.default_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">default_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Default config of this buffer class.</p>
 </dd>
@@ -533,8 +536,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.load_state_dict">
-<code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deepcopy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deepcopy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Load state dict to reproduce the buffer.</p>
 </dd>
@@ -546,8 +549,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push">
-<code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push">
+<span class="sig-name descname"><span class="pre">push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Push a data into buffer.</p>
 </dd>
@@ -564,8 +567,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
@@ -588,8 +591,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.start">
-<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start the buffer’s used_data_remover thread if enables track_used_data.</p>
 </dd>
@@ -597,8 +600,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.state_dict">
-<code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Provide a state dict to keep a record of current buffer.</p>
 </dd>
@@ -610,8 +613,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.update">
-<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/advanced_buffer.html#AdvancedReplayBuffer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update a data’s priority. Use <cite>repaly_buffer_idx</cite> to locate, and use <cite>replay_unique_id</cite> to verify.</p>
 </dd>
@@ -632,8 +635,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 <div class="section" id="episodereplaybuffer">
 <h3>EpisodeReplayBuffer<a class="headerlink" href="#episodereplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.episode_buffer.</span></code><code class="sig-name descname"><span class="pre">EpisodeReplayBuffer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/episode_buffer.html#EpisodeReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.episode_buffer.</span></span><span class="sig-name descname"><span class="pre">EpisodeReplayBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/episode_buffer.html#EpisodeReplayBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Episode replay buffer is a buffer to store complete episodes, i.e. Each element in episode buffer is an episode.
 Some algorithms do not want to sample <cite>batch_size</cite> complete episodes, however, they want some transitions with
@@ -643,8 +646,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">SummaryWriter</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'buffer'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize the buffer</p>
 </dd>
@@ -659,8 +662,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.clear">
-<code class="sig-name descname"><span class="pre">clear</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.clear" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear all the data and reset the related variables.</p>
 </dd>
@@ -668,8 +671,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clear the buffer; Join the buffer’s used_data_remover thread if enables track_used_data.</p>
 </dd>
@@ -677,8 +680,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.count">
-<code class="sig-name descname"><span class="pre">count</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.count">
+<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.count" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Count how many valid datas there are in the buffer.</p>
 </dd>
@@ -690,8 +693,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.default_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">default_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.default_config" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Default config of this buffer class.</p>
 </dd>
@@ -703,8 +706,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.load_state_dict">
-<code class="sig-name descname"><span class="pre">load_state_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_state_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.load_state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Load state dict to reproduce the buffer.</p>
 </dd>
@@ -716,8 +719,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.push">
-<code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.push">
+<span class="sig-name descname"><span class="pre">push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_collector_envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.push" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Push a data into buffer.</p>
 </dd>
@@ -738,8 +741,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample">
-<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_learner_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">slice</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample data with length <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p>
 </dd>
@@ -757,8 +760,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.start">
-<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start the buffer’s used_data_remover thread if enables track_used_data.</p>
 </dd>
@@ -766,8 +769,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.state_dict">
-<code class="sig-name descname"><span class="pre">state_dict</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.state_dict" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Provide a state dict to keep a record of current buffer.</p>
 </dd>
@@ -779,8 +782,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.update">
-<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Naive Buffer does not need to update any info, but this method is preserved for compatibility.</p>
 </dd>
@@ -826,8 +829,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 <div class="section" id="useddataremover">
 <h3>UsedDataRemover<a class="headerlink" href="#useddataremover" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.utils.UsedDataRemover">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></code><code class="sig-name descname"><span class="pre">UsedDataRemover</span></code><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.UsedDataRemover">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></span><span class="sig-name descname"><span class="pre">UsedDataRemover</span></span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>UsedDataRemover is a tool to remove file datas that will no longer be used anymore.</p>
 </dd>
@@ -835,8 +838,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.utils.UsedDataRemover.add_used_data">
-<code class="sig-name descname"><span class="pre">add_used_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.add_used_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.add_used_data" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.UsedDataRemover.add_used_data">
+<span class="sig-name descname"><span class="pre">add_used_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.add_used_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.add_used_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Delete all datas in <cite>self._used_data</cite>. Then join the <cite>delete_used_data</cite> thread.</p>
 </dd>
@@ -848,8 +851,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.utils.UsedDataRemover.close">
-<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.close" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.UsedDataRemover.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Delete all datas in <cite>self._used_data</cite>. Then join the <cite>delete_used_data</cite> thread.</p>
 </dd>
@@ -857,8 +860,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.worker.replay_buffer.utils.UsedDataRemover.start">
-<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.start" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.UsedDataRemover.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#UsedDataRemover.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.UsedDataRemover.start" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Start the <cite>delete_used_data</cite> thread.</p>
 </dd>
@@ -871,8 +874,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 <div class="section" id="sampleddataattrmonitor">
 <h3>SampledDataAttrMonitor<a class="headerlink" href="#sampleddataattrmonitor" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.utils.SampledDataAttrMonitor">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></code><code class="sig-name descname"><span class="pre">SampledDataAttrMonitor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expire</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#SampledDataAttrMonitor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.SampledDataAttrMonitor" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.SampledDataAttrMonitor">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></span><span class="sig-name descname"><span class="pre">SampledDataAttrMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseTime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expire</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#SampledDataAttrMonitor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.SampledDataAttrMonitor" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>SampledDataAttrMonitor is to monitor read-out indicators for <code class="docutils literal notranslate"><span class="pre">expire</span></code> times recent read-outs.
 Indicators include: read out time; average and max of read out data items’ use; average, max and min of
@@ -889,8 +892,8 @@ read out data items’ priorityl; average and max of staleness.</p>
 <div class="section" id="periodicthruputmonitor">
 <h3>PeriodicThruputMonitor<a class="headerlink" href="#periodicthruputmonitor" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.worker.replay_buffer.utils.PeriodicThruputMonitor">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></code><code class="sig-name descname"><span class="pre">PeriodicThruputMonitor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#PeriodicThruputMonitor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.PeriodicThruputMonitor" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.PeriodicThruputMonitor">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.replay_buffer.utils.</span></span><span class="sig-name descname"><span class="pre">PeriodicThruputMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/replay_buffer/utils.html#PeriodicThruputMonitor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.replay_buffer.utils.PeriodicThruputMonitor" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>PeriodicThruputMonitor is a tool to record and print logs(text &amp; tensorboard) how many datas are
 pushed/sampled/removed/valid in a period of time. For tensorboard, you can view it in ‘buffer_{$NAME}_sec’.</p>

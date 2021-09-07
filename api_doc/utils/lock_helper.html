@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="utils.log_helper" href="log_helper.html" />
@@ -209,8 +212,8 @@
 <div class="section" id="lockcontext">
 <h3>LockContext<a class="headerlink" href="#lockcontext" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.utils.lock_helper.LockContext">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.utils.lock_helper.</span></code><code class="sig-name descname"><span class="pre">LockContext</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type_:</span> <span class="pre">ding.utils.lock_helper.LockContextType</span> <span class="pre">=</span> <span class="pre">&lt;LockContextType.THREAD_LOCK:</span> <span class="pre">1&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.lock_helper.</span></span><span class="sig-name descname"><span class="pre">LockContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type_:</span> <span class="pre">ding.utils.lock_helper.LockContextType</span> <span class="pre">=</span> <span class="pre">&lt;LockContextType.THREAD_LOCK:</span> <span class="pre">1&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Generate a LockContext in order to make sure the thread safety.</p>
 </dd>
@@ -223,8 +226,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.utils.lock_helper.LockContext.__enter__">
-<code class="sig-name descname"><span class="pre">__enter__</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__enter__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__enter__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Entering the context and acquire lock</p>
 </dd>
@@ -232,8 +235,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.lock_helper.LockContext.__exit__">
-<code class="sig-name descname"><span class="pre">__exit__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__exit__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__exit__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Quiting the context and release lock</p>
 </dd>
@@ -241,8 +244,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.utils.lock_helper.LockContext.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type_:</span> <span class="pre">ding.utils.lock_helper.LockContextType</span> <span class="pre">=</span> <span class="pre">&lt;LockContextType.THREAD_LOCK:</span> <span class="pre">1&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type_:</span> <span class="pre">ding.utils.lock_helper.LockContextType</span> <span class="pre">=</span> <span class="pre">&lt;LockContextType.THREAD_LOCK:</span> <span class="pre">1&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init the lock according to given type</p>
 </dd>

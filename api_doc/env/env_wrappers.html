@@ -21,6 +21,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
@@ -32,6 +33,8 @@
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="envs.env_manager" href="env_manager.html" />
@@ -199,8 +202,8 @@
 <div class="section" id="noopresetenv">
 <h3>NoopResetEnv<a class="headerlink" href="#noopresetenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.NoopResetEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">NoopResetEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">NoopResetEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Sample initial states by taking random number of no-ops on reset.         No-op is assumed to be action 0.</p>
 </dd>
@@ -213,8 +216,8 @@
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.NoopResetEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noop_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
 </dd>
@@ -227,8 +230,8 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.NoopResetEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged</p>
 </dd>
@@ -245,8 +248,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.NoopResetEnv.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.NoopResetEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#NoopResetEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.NoopResetEnv.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and returns an initial observation.</p>
 </dd>
@@ -263,8 +266,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="maxandskipenv">
 <h3>MaxAndSkipEnv<a class="headerlink" href="#maxandskipenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.MaxAndSkipEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">MaxAndSkipEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">MaxAndSkipEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return only every <cite>skip</cite>-th frame (frameskipping) using most         recent raw observations (for max pooling across time steps)</p>
 </dd>
@@ -277,8 +280,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.MaxAndSkipEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
 </dd>
@@ -291,8 +294,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.MaxAndSkipEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged</p>
 </dd>
@@ -304,8 +307,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.MaxAndSkipEnv.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.MaxAndSkipEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#MaxAndSkipEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.MaxAndSkipEnv.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action,                  sum reward, and max over last observations.</p>
 </dd>
@@ -329,8 +332,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="warpframe">
 <h3>WarpFrame<a class="headerlink" href="#warpframe" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.WarpFrame">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">WarpFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrame">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">WarpFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Warp frames to 84x84 as done in the Nature paper and later work.</p>
 </dd>
@@ -343,8 +346,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.WarpFrame.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrame.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
 </dd>
@@ -356,8 +359,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.WarpFrame.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrame.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case only                  observation space wrapped to (4, 84, 84); others unchanged.</p>
 </dd>
@@ -369,8 +372,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.WarpFrame.observation">
-<code class="sig-name descname"><span class="pre">observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.observation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.WarpFrame.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#WarpFrame.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.WarpFrame.observation" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Returns the current observation from a frame</p>
 </dd>
@@ -391,8 +394,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="scaledfloatframe">
 <h3>ScaledFloatFrame<a class="headerlink" href="#scaledfloatframe" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.ScaledFloatFrame">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">ScaledFloatFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrame">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ScaledFloatFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Normalize observations to 0~1.</p>
 </dd>
@@ -400,8 +403,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ScaledFloatFrame.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrame.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
 </dd>
@@ -413,8 +416,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ScaledFloatFrame.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrame.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -426,8 +429,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ScaledFloatFrame.observation">
-<code class="sig-name descname"><span class="pre">observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.observation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ScaledFloatFrame.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ScaledFloatFrame.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ScaledFloatFrame.observation" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Returns the scaled observation</p>
 </dd>
@@ -448,8 +451,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="cliprewardenv">
 <h3>ClipRewardEnv<a class="headerlink" href="#cliprewardenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.ClipRewardEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">ClipRewardEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ClipRewardEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>clips the reward to {+1, 0, -1} by its sign.</p>
 </dd>
@@ -462,8 +465,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ClipRewardEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
 </dd>
@@ -475,8 +478,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ClipRewardEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -488,8 +491,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ClipRewardEnv.reward">
-<code class="sig-name descname"><span class="pre">reward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.reward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ClipRewardEnv.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ClipRewardEnv.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ClipRewardEnv.reward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0.</p>
 </dd>
@@ -510,8 +513,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="framestack">
 <h3>FrameStack<a class="headerlink" href="#framestack" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.FrameStack">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">FrameStack</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">FrameStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Stack n_frames last frames.</p>
 </dd>
@@ -525,8 +528,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FrameStack.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; setup the properties.</p>
 </dd>
@@ -539,8 +542,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FrameStack._get_ob">
-<code class="sig-name descname"><span class="pre">_get_ob</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack._get_ob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack._get_ob" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack._get_ob">
+<span class="sig-name descname"><span class="pre">_get_ob</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack._get_ob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack._get_ob" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>The original wrapper use <cite>LazyFrames</cite> but since we use np buffer, it has no effect</p>
 </dd>
@@ -548,8 +551,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FrameStack.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -561,8 +564,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FrameStack.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and append new observation to frames</p>
 </dd>
@@ -574,8 +577,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FrameStack.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FrameStack.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FrameStack.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FrameStack.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and max over last observations, and append new observation to frames</p>
 </dd>
@@ -599,8 +602,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="obstransposewrapper">
 <h3>ObsTransposeWrapper<a class="headerlink" href="#obstransposewrapper" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.ObsTransposeWrapper">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">ObsTransposeWrapper</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ObsTransposeWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Wrapper to transpose env, usually used in atari environments</p>
 </dd>
@@ -613,8 +616,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsTransposeWrapper.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties.</p>
 </dd>
@@ -626,8 +629,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsTransposeWrapper.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case with                  obs_space transposed and others unchanged.</p>
 </dd>
@@ -639,8 +642,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsTransposeWrapper.observation">
-<code class="sig-name descname"><span class="pre">observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.observation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsTransposeWrapper.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">,</span> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsTransposeWrapper.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsTransposeWrapper.observation" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Returns the transposed observation</p>
 </dd>
@@ -661,8 +664,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="runningmeanstd">
 <h3>RunningMeanStd<a class="headerlink" href="#runningmeanstd" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.RunningMeanStd">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">RunningMeanStd</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RunningMeanStd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Wrapper to update new variable, new mean, and new count</p>
 </dd>
@@ -675,8 +678,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate                  signature; setup the properties.</p>
 </dd>
@@ -689,9 +692,9 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.mean">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">mean</span></code><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.mean" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.mean">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">mean</span></span><em class="property"><span class="pre">:</span> <span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.mean" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Property <code class="docutils literal notranslate"><span class="pre">mean</span></code> gotten  from <code class="docutils literal notranslate"><span class="pre">self._mean</span></code></p>
 </dd>
@@ -699,8 +702,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -712,17 +715,17 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties:                  <code class="docutils literal notranslate"><span class="pre">_mean</span></code>, <code class="docutils literal notranslate"><span class="pre">_var</span></code>, <code class="docutils literal notranslate"><span class="pre">_count</span></code></p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.std">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">std</span></code><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.std" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.std">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">std</span></span><em class="property"><span class="pre">:</span> <span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.std" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Property <code class="docutils literal notranslate"><span class="pre">std</span></code> calculated  from <code class="docutils literal notranslate"><span class="pre">self._var</span></code> and the epsilon value of <code class="docutils literal notranslate"><span class="pre">self._epsilon</span></code></p>
 </dd>
@@ -730,8 +733,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RunningMeanStd.update">
-<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.update" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RunningMeanStd.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RunningMeanStd.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RunningMeanStd.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update mean, variable, and count</p>
 </dd>
@@ -748,8 +751,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="obsnormenv">
 <h3>ObsNormEnv<a class="headerlink" href="#obsnormenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.ObsNormEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">ObsNormEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">ObsNormEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Normalize observations according to running mean and std.</p>
 </dd>
@@ -762,8 +765,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsNormEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties according to running mean and std.</p>
 </dd>
@@ -775,8 +778,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsNormEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -788,8 +791,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsNormEnv.observation">
-<code class="sig-name descname"><span class="pre">observation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.observation" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv.observation">
+<span class="sig-name descname"><span class="pre">observation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.observation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.observation" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get obeservation</p>
 </dd>
@@ -805,8 +808,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsNormEnv.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties.</p>
 </dd>
@@ -822,8 +825,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.ObsNormEnv.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.ObsNormEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#ObsNormEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.ObsNormEnv.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and update <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, and also update the <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> property                      once after integrating with the input <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
 </dd>
@@ -847,8 +850,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="rewardnormenv">
 <h3>RewardNormEnv<a class="headerlink" href="#rewardnormenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.RewardNormEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">RewardNormEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RewardNormEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Normalize reward according to running std.</p>
 </dd>
@@ -861,8 +864,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RewardNormEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_discount</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;                  setup the properties according to running mean and std.</p>
 </dd>
@@ -874,8 +877,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RewardNormEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -887,8 +890,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RewardNormEnv.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties (<cite>NumType</cite> ones to 0,                 and <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> as reset rms wrapper)</p>
 </dd>
@@ -900,8 +903,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RewardNormEnv.reward">
-<code class="sig-name descname"><span class="pre">reward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.reward" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reward</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.reward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Normalize reward if <code class="docutils literal notranslate"><span class="pre">data_count</span></code> is more than 30</p>
 </dd>
@@ -917,8 +920,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RewardNormEnv.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RewardNormEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RewardNormEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RewardNormEnv.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward,                  and update <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, and also update the <code class="docutils literal notranslate"><span class="pre">self.rms</span></code> and <code class="docutils literal notranslate"><span class="pre">self.cum_reward</span></code>                      properties once after integrating with the input <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
 </dd>
@@ -942,8 +945,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="ramwrapper">
 <h3>RamWrapper<a class="headerlink" href="#ramwrapper" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.RamWrapper">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">RamWrapper</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">RamWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Wrapper ram env into image-like env</p>
 </dd>
@@ -957,8 +960,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RamWrapper.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature;</p>
 </dd>
@@ -970,8 +973,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RamWrapper.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case only observation                 space wrapped to (128,1,1); others unchanged.</p>
 </dd>
@@ -983,8 +986,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RamWrapper.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties.</p>
 </dd>
@@ -996,8 +999,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.RamWrapper.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.RamWrapper.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#RamWrapper.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.RamWrapper.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward and                 reshape the observation.</p>
 </dd>
@@ -1021,8 +1024,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="episodiclifeenv">
 <h3>EpisodicLifeEnv<a class="headerlink" href="#episodiclifeenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.EpisodicLifeEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">EpisodicLifeEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">EpisodicLifeEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Make end-of-life == end-of-episode, but only reset on true game over. It helps             the value estimation.</p>
 </dd>
@@ -1035,8 +1038,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.EpisodicLifeEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature; set                 lives to 0 at set done.</p>
 </dd>
@@ -1048,8 +1051,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.EpisodicLifeEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -1061,8 +1064,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.EpisodicLifeEnv.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Calls the Gym environment reset, only when lives are exhausted. This way all states are                 still reachable even though lives are episodic, and the learner need not know about                     any of this behind-the-scenes.</p>
 </dd>
@@ -1074,8 +1077,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.EpisodicLifeEnv.step">
-<code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.step" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.EpisodicLifeEnv.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#EpisodicLifeEnv.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.EpisodicLifeEnv.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Step the environment with the given action. Repeat action, sum reward; set                 <code class="docutils literal notranslate"><span class="pre">self.was_real_done</span></code> as done, and step according to lives i.e. check                     current lives, make loss of life terminal, then update lives to                         handle bonus lives.</p>
 </dd>
@@ -1099,8 +1102,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 <div class="section" id="fireresetenv">
 <h3>FireResetEnv<a class="headerlink" href="#fireresetenv" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
-<dt id="ding.envs.env_wrappers.FireResetEnv">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></code><code class="sig-name descname"><span class="pre">FireResetEnv</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetEnv">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_wrappers.</span></span><span class="sig-name descname"><span class="pre">FireResetEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Take action on reset for environments that are fixed until firing.             Related discussion: <a class="reference external" href="https://github.com/openai/baselines/issues/240">https://github.com/openai/baselines/issues/240</a></p>
 </dd>
@@ -1112,8 +1115,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd>
 </dl>
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FireResetEnv.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.__init__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetEnv.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
 </dd>
@@ -1125,8 +1128,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FireResetEnv.new_shape">
-<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">new_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.new_shape" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetEnv.new_shape">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">new_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.new_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.new_shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get new shape of observation, acton, and reward; in this case unchanged.</p>
 </dd>
@@ -1138,8 +1141,8 @@ Same case applies for the <code class="docutils literal notranslate"><span class
 </dd></dl>
 
 <dl class="py method">
-<dt id="ding.envs.env_wrappers.FireResetEnv.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="ding.envs.env_wrappers.FireResetEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_wrappers/env_wrappers.html#FireResetEnv.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_wrappers.FireResetEnv.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Resets the state of the environment and reset properties i.e. reset with action 1</p>
 </dd>
