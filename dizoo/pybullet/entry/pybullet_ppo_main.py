@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -22,7 +22,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         PPOPolicy,
         BaseLearner,
         SampleCollector,
-        BaseSerialEvaluator,
+        InteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
@@ -43,7 +43,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    evaluator = InteractionSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
 
     for _ in range(max_iterations):
         if evaluator.should_eval(learner.train_iter):

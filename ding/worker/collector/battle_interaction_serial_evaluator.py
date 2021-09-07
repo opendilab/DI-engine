@@ -9,10 +9,10 @@ import torch
 from ding.utils import build_logger, EasyTimer, deep_merge_dicts, lists_to_dicts, dicts_to_lists
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-from .base_serial_collector import CachePool
+from .base_serial_evaluator import ISerialEvaluator
 
 
-class OnevOneEvaluator(object):
+class BattleInteractionSerialEvaluator(ISerialEvaluator):
     """
     Overview:
         1v1 battle evaluator class.

@@ -3,7 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator
+from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -17,7 +17,7 @@ def wrapped_cartpole_env():
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg = compile_config(
-        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleCollector, BaseSerialEvaluator, save_cfg=True
+        cfg, BaseEnvManager, PPOPolicy, BaseLearner, SampleCollector, InteractionSerialEvaluator, save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
@@ -34,7 +34,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     collector = SampleCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
 

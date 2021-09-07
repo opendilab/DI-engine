@@ -13,7 +13,7 @@ from easydict import EasyDict
 from ding.utils import deep_merge_dicts
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
 from ding.policy import get_policy_cls
-from ding.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, AdvancedReplayBuffer, \
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, Coordinator, AdvancedReplayBuffer, \
     get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
 from ding.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
@@ -308,7 +308,7 @@ def compile_config(
         policy: type = None,
         learner: type = BaseLearner,
         collector: type = None,
-        evaluator: type = BaseSerialEvaluator,
+        evaluator: type = InteractionSerialEvaluator,
         buffer: type = AdvancedReplayBuffer,
         env: type = None,
         reward_model: type = None,
@@ -328,7 +328,7 @@ def compile_config(
         - policy (:obj:`type`): Policy class which is to be used in the following pipeline
         - learner (:obj:`type`): Input learner class, defaults to BaseLearner
         - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector
-        - evaluator (:obj:`type`): Input evaluator class, defaults to BaseSerialEvaluator
+        - evaluator (:obj:`type`): Input evaluator class, defaults to InteractionSerialEvaluator
         - buffer (:obj:`type`): Input buffer class, defaults to BufferManager
         - env (:obj:`type`): Environment class which is to be used in the following pipeline
         - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward

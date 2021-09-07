@@ -3,7 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DQNPolicy
 from ding.model import DQN
@@ -24,7 +24,7 @@ def main(cfg, seed=0):
         DQNPolicy,
         BaseLearner,
         SampleCollector,
-        BaseSerialEvaluator,
+        InteractionSerialEvaluator,
         AdvancedReplayBuffer,
         save_cfg=True
     )
@@ -47,7 +47,7 @@ def main(cfg, seed=0):
     collector = SampleCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger, exp_name=cfg.exp_name)
@@ -77,7 +77,7 @@ def main(cfg, seed=0):
     # evaluate
     evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)

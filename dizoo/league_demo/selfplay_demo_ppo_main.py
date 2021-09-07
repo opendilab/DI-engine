@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, Episode1v1Collector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -46,7 +46,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         PPOPolicy,
         BaseLearner,
         Episode1v1Collector,
-        OnevOneEvaluator,
+        BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
@@ -90,7 +90,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     # collect_mode ppo use multimonial sample for selecting action
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
-    evaluator1 = OnevOneEvaluator(
+    evaluator1 = BattleInteractionSerialEvaluator(
         evaluator1_cfg,
         evaluator_env1, [policy1.collect_mode, eval_policy1],
         tb_logger,
@@ -99,7 +99,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value[1]
-    evaluator2 = OnevOneEvaluator(
+    evaluator2 = BattleInteractionSerialEvaluator(
         evaluator2_cfg,
         evaluator_env2, [policy1.collect_mode, eval_policy2],
         tb_logger,

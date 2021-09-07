@@ -5,7 +5,7 @@ from easydict import EasyDict
 from functools import partial
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, EpisodeCollector, BaseSerialEvaluator, EpisodeReplayBuffer
+from ding.worker import BaseLearner, EpisodeCollector, InteractionSerialEvaluator, EpisodeReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DQNPolicy
 from ding.model import DQN
@@ -23,7 +23,7 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
         DQNPolicy,
         BaseLearner,
         EpisodeCollector,
-        BaseSerialEvaluator,
+        InteractionSerialEvaluator,
         EpisodeReplayBuffer,
         save_cfg=True
     )
@@ -50,7 +50,7 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
     collector = EpisodeCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = EpisodeReplayBuffer(

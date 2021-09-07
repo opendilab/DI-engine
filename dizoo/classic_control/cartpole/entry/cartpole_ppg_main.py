@@ -5,7 +5,7 @@ from easydict import EasyDict
 from copy import deepcopy
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPGPolicy
 from ding.model import PPG
@@ -24,7 +24,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         PPGPolicy,
         BaseLearner,
         SampleCollector,
-        BaseSerialEvaluator, {
+        InteractionSerialEvaluator, {
             'policy': AdvancedReplayBuffer,
             'value': AdvancedReplayBuffer
         },
@@ -45,7 +45,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     collector = SampleCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     policy_buffer = AdvancedReplayBuffer(

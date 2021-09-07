@@ -3,7 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DDPGPolicy
 from ding.model import QAC
@@ -19,7 +19,7 @@ def main(cfg, seed=0):
         DDPGPolicy,
         BaseLearner,
         SampleCollector,
-        BaseSerialEvaluator,
+        InteractionSerialEvaluator,
         AdvancedReplayBuffer,
         save_cfg=True
     )
@@ -48,7 +48,7 @@ def main(cfg, seed=0):
     collector = SampleCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger, exp_name=cfg.exp_name)
