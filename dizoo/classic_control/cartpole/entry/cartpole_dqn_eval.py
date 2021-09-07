@@ -4,7 +4,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DQNPolicy
 from ding.model import DQN
@@ -24,7 +24,7 @@ def main(cfg, seed=0):
         BaseEnvManager,
         DQNPolicy,
         BaseLearner,
-        SampleCollector,
+        SampleSerialCollector,
         InteractionSerialEvaluator,
         AdvancedReplayBuffer,
         save_cfg=True

@@ -3,7 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, InteractionSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOOffPolicy
 from ding.model import VAC
@@ -21,7 +21,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseEnvManager,
         PPOOffPolicy,
         BaseLearner,
-        SampleCollector,
+        SampleSerialCollector,
         InteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
@@ -38,7 +38,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     policy = PPOOffPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    collector = SampleCollector(
+    collector = SampleSerialCollector(
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
     evaluator = InteractionSerialEvaluator(

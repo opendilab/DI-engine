@@ -4,7 +4,7 @@ import torch
 from functools import partial
 
 from ding.config import compile_config, read_config
-from ding.worker import SampleCollector, InteractionSerialEvaluator
+from ding.worker import SampleSerialCollector, InteractionSerialEvaluator
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
@@ -135,7 +135,7 @@ def collect_demo_data(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
+    collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
     # Let's collect some expert demostrations
     exp_data = collector.collect(n_sample=collect_count)

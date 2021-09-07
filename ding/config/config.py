@@ -13,8 +13,9 @@ from easydict import EasyDict
 from ding.utils import deep_merge_dicts
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
 from ding.policy import get_policy_cls
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, Coordinator, AdvancedReplayBuffer, \
-    get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, Coordinator, \
+    AdvancedReplayBuffer, get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, \
+    get_serial_collector_cls
 from ding.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
 

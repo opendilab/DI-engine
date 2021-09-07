@@ -79,7 +79,7 @@ def setup_1v1commander():
         learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
         collector=dict(
             type='zergling',
-            import_names=['ding.worker.collector.zergling_collector'],
+            import_names=['ding.worker.collector.zergling_parallel_collector'],
         ),
         commander=dict(
             type='one_vs_one',

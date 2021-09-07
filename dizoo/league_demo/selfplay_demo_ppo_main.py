@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -45,7 +45,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        Episode1v1Collector,
+        BattleEpisodeSerialCollector,
         BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
@@ -81,7 +81,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     learner2 = BaseLearner(
         cfg.policy.learn.learner, policy2.learn_mode, tb_logger, exp_name=cfg.exp_name, instance_name='learner2'
     )
-    collector = Episode1v1Collector(
+    collector = BattleEpisodeSerialCollector(
         cfg.policy.collect.collector,
         collector_env, [policy1.collect_mode, policy2.collect_mode],
         tb_logger,
