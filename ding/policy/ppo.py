@@ -35,6 +35,7 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
+        multi_agent=False,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -124,7 +125,7 @@ class PPOPolicy(Policy):
         self._adv_norm = self._cfg.learn.adv_norm
         self._value_norm = self._cfg.learn.value_norm
         if self._value_norm:
-            self._running_mean_std = RunningMeanStd(epsilon=1e-4)
+            self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
         self._recompute_adv = self._cfg.recompute_adv
@@ -321,7 +322,7 @@ class PPOPolicy(Policy):
             data[-1]['done'] = False
 
         if data[-1]['done']:
-            last_value = torch.zeros(1)
+            last_value = torch.zeros_like(data[-1]['value'])
         else:
             with torch.no_grad():
                 last_value = self._collect_model.forward(
@@ -382,7 +383,10 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
+        if self._cfg.multi_agent:
+            return 'mappo', ['ding.model.template.mappo']
+        else:
+            return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         variables = super()._monitor_vars_learn() + [
