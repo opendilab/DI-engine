@@ -231,13 +231,13 @@ start, close, _create_collector</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.comm.base_comm_collector.BaseCommCollector._create_collector">
-<span class="sig-name descname"><span class="pre">_create_collector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">ding.worker.collector.base_parallel_collector.BaseParallelCollector</span><a class="reference internal" href="../../../_modules/ding/worker/collector/comm/base_comm_collector.html#BaseCommCollector._create_collector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.comm.base_comm_collector.BaseCommCollector._create_collector" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_create_collector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">ding.worker.collector.base_parallel_collector.BaseCollector</span><a class="reference internal" href="../../../_modules/ding/worker/collector/comm/base_comm_collector.html#BaseCommCollector._create_collector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.comm.base_comm_collector.BaseCommCollector._create_collector" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Receive <code class="docutils literal notranslate"><span class="pre">task_info</span></code> passed from coordinator and create a collector.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>task_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Task info dict from coordinator. Should be like         Returns:</p></li>
-<li><p>collector (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseParallelCollector</span></code>): Created base collector.</p></li>
+<li><p>collector (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseCollector</span></code>): Created base collector.</p></li>
 </ul>
 </dd>
 <dt>Note:</dt><dd><p>Four methods(‘send_metadata’, ‘send_stepdata’, ‘get_policy_update_info’), and policy are set.

@@ -202,6 +202,140 @@
 <p>Please Reference ding/worker/collector/base_serial_evaluator.py for usage</p>
 <div class="section" id="baseserialevaluator">
 <h3>BaseSerialEvaluator<a class="headerlink" href="#baseserialevaluator" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.collector.base_serial_evaluator.</span></span><span class="sig-name descname"><span class="pre">BaseSerialEvaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'evaluator'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base class for serial evaluator.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__init__, reset, reset_policy, reset_env, close, should_eval, eval</p>
+</dd>
+<dt>Property:</dt><dd><p>env, policy</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__del__">
+<span class="sig-name descname"><span class="pre">__del__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.__del__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__del__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Execute the close command and close the evaluator. __del__ is automatically called                 to destroy the evaluator instance when the evaluator finishes its work</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default_experiment'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'evaluator'</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init method. Load config and use <code class="docutils literal notranslate"><span class="pre">self._cfg</span></code> setting to build common serial evaluator components,
+e.g. logger helper, timer.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Configuration EasyDict.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.close" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Close the evaluator. If end_flag is False, close the environment, flush the tb_logger                and close the tb_logger.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">easydict.EasyDict</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get evaluator’s default config. We merge evaluator’s default config with other default configs                and user’s config to get the final config.</p>
+</dd>
+<dt>Return:</dt><dd><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): evaluator’s default config</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_ckpt_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">envstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_episode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.eval" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Evaluate policy and store the best policy based on whether it reaches the highest historical reward.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>save_ckpt_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Saving ckpt function, which will be triggered by getting the best reward.</p></li>
+<li><p>train_iter (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Current training iteration.</p></li>
+<li><p>envstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Current env interaction step.</p></li>
+<li><p>n_episode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of evaluation episodes.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>stop_flag (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether this training program can be ended.</p></li>
+<li><p>eval_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Current eval_reward.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s policy and environment. Use new policy and environment to collect data.
+If _env is None, reset the old environment.
+If _env is not None, replace the old environment in the evaluator with the new passed in                 environment and launch.
+If _policy is None, reset the old policy.
+If _policy is not None, replace the old policy in the evaluator with the new passed in policy.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[namedtuple]</span></code>): the api namedtuple of eval_mode policy</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[BaseEnvManager]</span></code>): instance of the subclass of vectorized                 env_manager(BaseEnvManager)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_env">
+<span class="sig-name descname"><span class="pre">reset_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_env" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s environment. In some case, we need evaluator use the same policy in different                 environments. We can use reset_env to reset the environment.
+If _env is None, reset the old environment.
+If _env is not None, replace the old environment in the evaluator with the                 new passed in environment and launch.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[BaseEnvManager]</span></code>): instance of the subclass of vectorized                 env_manager(BaseEnvManager)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_policy">
+<span class="sig-name descname"><span class="pre">reset_policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_policy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.reset_policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.reset_policy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset evaluator’s policy. In some case, we need evaluator work in this same environment but use                different policy. We can use reset_policy to reset the policy.
+If _policy is None, reset the old policy.
+If _policy is not None, replace the old policy in the evaluator with the new passed in policy.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[namedtuple]</span></code>): the api namedtuple of eval_mode policy</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.should_eval">
+<span class="sig-name descname"><span class="pre">should_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_iter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#BaseSerialEvaluator.should_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator.should_eval" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Determine whether you need to start the evaluation mode, if the number of training has reached                the maximum number of times to start the evaluator, return True</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="vectorevalmonitor">
 <h3>VectorEvalMonitor<a class="headerlink" href="#vectorevalmonitor" title="Permalink to this headline">¶</a></h3>
