@@ -12,20 +12,23 @@ class QAC(nn.Module):
     Overview:
         The QAC model.
     Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_discriminator``
     """
-    mode = ['compute_actor', 'compute_critic']
+    mode = ['compute_actor', 'compute_critic', 'compute_discriminator']
 
     def __init__(
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
+            num_skills: int,
             actor_head_type: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
             critic_head_hidden_size: int = 64,
             critic_head_layer_num: int = 1,
+            discriminator_head_hidden_size: int = 100,
+            discriminator_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
@@ -100,13 +103,25 @@ class QAC(nn.Module):
                 nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
                 RegressionHead(
                     critic_head_hidden_size,
-                    1,
+                    1, #output size
                     critic_head_layer_num,
                     final_tanh=False,
                     activation=activation,
                     norm_type=norm_type
                 )
             )
+        self.discriminator = nn.Sequential(
+                nn.Linear(obs_shape + action_shape, discriminator_head_hidden_size), activation,
+                RegressionHead(
+                    critic_head_hidden_size,
+                    num_skills, #output size
+                    discriminator_head_layer_num,
+                    final_tanh=False,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
@@ -248,3 +263,12 @@ class QAC(nn.Module):
         else:
             x = self.critic(x)['pred']
         return {'q_value': x}
+
+    def compute_discriminator(self, inputs: Dict) -> Dict:
+        obs, action = inputs['obs'], inputs['action']
+        assert len(obs.shape) == 2
+        if len(action.shape) == 1:  # (B, ) -> (B, 1)
+            action = action.unsqueeze(1)
+        x = torch.cat([obs, action], dim=1)
+        x = self.critic(x)['pred']
+        return {'q_discriminator': x}
