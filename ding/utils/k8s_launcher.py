@@ -64,8 +64,9 @@ class K8sLauncher(object):
         args = ['k3d', 'cluster', 'create', f'{self.name}', f'--servers={self.servers}', f'--agents={self.agents}']
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
-        if err.decode('utf-8') != '':
-            raise RuntimeError(f'Failed to create cluster {self.name}: {err.decode("utf8")}')
+        err_str = err.decode('utf-8').strip()
+        if err_str != '' and 'WARN' not in err_str:
+            raise RuntimeError(f'Failed to create cluster {self.name}: {err_str}')
 
         # preload images
         self.preload_images(self._images)
@@ -77,8 +78,10 @@ class K8sLauncher(object):
         args = ['k3d', 'cluster', 'delete', f'{self.name}']
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
-        if err.decode('utf-8') != '':
-            raise RuntimeError(f'Failed to delete cluster {self.name}: {err.decode("utf8")}')
+        err_str = err.decode('utf-8').strip()
+        if err_str != '' and 'WARN' not in err_str and \
+            'NotFound' not in err_str:
+            raise RuntimeError(f'Failed to delete cluster {self.name}: {err_str}')
 
     def preload_images(self, images: list) -> None:
         if self.type != K8sType.K3s:
@@ -88,5 +91,6 @@ class K8sLauncher(object):
 
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
-        if err.decode('utf-8') != '' and 'WARN' not in err.decode('utf-8'):
-            raise RuntimeError(f'Failed to preload images: {err.decode("utf8")}')
+        err_str = err.decode('utf-8').strip()
+        if err_str != '' and 'WARN' not in err_str:
+            raise RuntimeError(f'Failed to preload images: {err_str}')

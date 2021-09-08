@@ -1,5 +1,6 @@
 import pytest
 import os
+import time
 from ding.utils import K8sLauncher, OrchestratorLauncher
 from kubernetes import config, client
 
@@ -40,7 +41,8 @@ def test_create_and_delete_k8s_cluster():
     # delete orchestrator
     olauncher.delete_orchestrator()
 
-    # check crds are installed
+    # sleep for a few seconds and check crds are deleted
+    time.sleep(0.25)
     ret = extensionv1.list_custom_resource_definition()
     found = 0
     for crd in ret.items:
