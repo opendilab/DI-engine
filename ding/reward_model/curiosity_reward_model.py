@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
+from ding.torch_utils import one_hot 
 from .base_reward_model import BaseRewardModel
 
 def collect_states(iterator: list) -> Tuple[list, list, list] : 
@@ -59,18 +60,34 @@ class ICMNetwork(nn.Module):
         )
 
     def forward(self, state: torch.Tensor, next_state: torch.Tensor, action_long: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        r"""
+        Overview:
+            Use observation, next_observation and action to genearte ICM module 
+            Parameter updates with ICMNetwork forward setup.
+        Arguments:
+            - state (:obj:`torch.Tensor`):
+                The current state batch, (B,N=observation_size)``.
+            - next_state (:obj:`torch.Tensor`):
+                The next state batch, (B,N=observation_size)``.
+            - action_long (:obj:`torch.Tensor`):
+                The action, (B,M=action_size)``. 
+        Returns:
+            - real_next_state_feature (:obj:`torch.Tensor`):
+                Run with the encoder. Return the real next_state's embedded feature.
+            - pred_next_state_feature (:obj:`torch.Tensor`):
+                Run with the encoder and residual network. Return the predicted next_state's embedded feature.
+            - pred_action_logit (:obj:`Dict`):
+                Run with the encoder. Return the predicted action logit.
+        """
         state = torch.FloatTensor(state)
         next_state = torch.FloatTensor(next_state)
         action_long = torch.LongTensor(action_long)
-        action_onehot = torch.FloatTensor(len(action_long), self.action_shape)
-        action_onehot.zero_()
-        action_onehot.scatter_(1, action_long.view(len(action_long), -1), 1)
-        action = action_onehot
+        action = one_hot(action_long, num = self.action_shape).squeeze(1)
         encode_state = self.feature(state)
         encode_next_state = self.feature(next_state)
-        # get pred action
-        pred_action = torch.cat((encode_state, encode_next_state), 1)
-        pred_action = self.inverse_net(pred_action)
+        # get pred action logit
+        pred_action_logit = torch.cat((encode_state, encode_next_state), 1)
+        pred_action_logit = self.inverse_net(pred_action_logit)
         # ---------------------
 
         # get pred next state
@@ -82,11 +99,9 @@ class ICMNetwork(nn.Module):
             pred_next_state_feature = self.residual[i * 2](torch.cat((pred_next_state_feature_orig, action), 1))
             pred_next_state_feature_orig = self.residual[i * 2 + 1](
                 torch.cat((pred_next_state_feature, action), 1)) + pred_next_state_feature_orig
-
         pred_next_state_feature = self.forward_net_2(torch.cat((pred_next_state_feature_orig, action), 1))
-
         real_next_state_feature = encode_next_state
-        return real_next_state_feature, pred_next_state_feature, pred_action
+        return real_next_state_feature, pred_next_state_feature, pred_action_logit
 
 
 @REWARD_MODEL_REGISTRY.register('curiosity')
@@ -100,6 +115,7 @@ class ICMRewardModel(BaseRewardModel):
         batch_size=64,
         hidden_size_list=[64, 64, 128],
         update_per_collect=100,
+        reverse_scale = 1,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -119,7 +135,7 @@ class ICMRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
         self.ce = nn.CrossEntropyLoss(reduction="mean")
         self.forward_mse = nn.MSELoss()
-        self.reverse_scale = 1
+        self.reverse_scale = config.reverse_scale 
 
     def _train(self) -> None:
         train_data_list = [i for i in range(0, len(self.train_states))]
@@ -130,8 +146,8 @@ class ICMRewardModel(BaseRewardModel):
         data_next_states: torch.Tensor = torch.stack(data_next_states).to(self.device)
         data_actions: list = [self.train_actions[i] for i in train_data_index]
         data_actions: torch.Tensor = torch.stack(data_actions).to(self.device)
-        real_next_state_feature, pred_next_state_feature, pred_action = self.reward_model(data_states, data_next_states, data_actions)
-        inverse_loss = self.ce(pred_action, data_actions.squeeze(dim=1).long())
+        real_next_state_feature, pred_next_state_feature, pred_action_logit = self.reward_model(data_states, data_next_states, data_actions)
+        inverse_loss = self.ce(pred_action_logit, data_actions.squeeze(dim=1).long())
         forward_loss = self.forward_mse(pred_next_state_feature, real_next_state_feature.detach())
         loss = self.reverse_scale * inverse_loss + forward_loss 
         self.opt.zero_grad()
