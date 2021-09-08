@@ -7,174 +7,11 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_tensor, to_ndarray, to_list
-from .pybullet_wrappers import wrap_pybullet
+from .d4rl_wrappers import wrap_d4rl
 from ding.utils import ENV_REGISTRY
 
-Pybullet_INFO_DICT = {
-    # pybullet env
-    'InvertedPendulumMuJoCoEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(4, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'InvertedDoublePendulumMuJoCoEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(11, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'Walker2DMuJoCoEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(17, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(6, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'Walker2DPyBulletEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(22, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(6, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'HalfCheetahMuJoCoEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(17, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(6, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'HalfCheetahPyBulletEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(26, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(6, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'AntMuJoCoEnv-v0': BaseEnvInfo(
+D4RL_INFO_DICT = {
+    'Ant-v3': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(111, ),
@@ -201,34 +38,7 @@ Pybullet_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
-    'AntPyBulletEnv-v0': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(28, ),
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf"),
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(8, ),
-            value={
-                'min': -1.0,
-                'max': 1.0,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'HopperMuJoCoEnv-v0': BaseEnvInfo(
+    'Hopper-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11, ),
@@ -255,10 +65,227 @@ Pybullet_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
-    'HopperPyBulletEnv-v0': BaseEnvInfo(
+    'Walker2d-v2': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            shape=(15, ),
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'HalfCheetah-v3': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'Hopper-v3': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(3, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'InvertedPendulum-v2': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(4, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'InvertedDoublePendulum-v2': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'Reacher-v2': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(2, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'Walker2d-v3': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    # D4RL
+    'hopper-medium-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(3, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'hopper-expert-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(11, ),
             value={
                 'min': np.float64("-inf"),
                 'max': np.float64("inf"),
@@ -285,8 +312,8 @@ Pybullet_INFO_DICT = {
 }
 
 
-@ENV_REGISTRY.register('pybullet')
-class PybulletEnv(BaseEnv):
+@ENV_REGISTRY.register('d4rl')
+class D4RLEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
@@ -331,8 +358,8 @@ class PybulletEnv(BaseEnv):
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
-        if self._cfg.env_id in Pybullet_INFO_DICT:
-            info = copy.deepcopy(Pybullet_INFO_DICT[self._cfg.env_id])
+        if self._cfg.env_id in D4RL_INFO_DICT:
+            info = copy.deepcopy(D4RL_INFO_DICT[self._cfg.env_id])
             info.use_wrappers = self._make_env(only_info=True)
             obs_shape, act_shape, rew_shape = update_shape(
                 info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
@@ -342,11 +369,11 @@ class PybulletEnv(BaseEnv):
             info.rew_space.shape = rew_shape
             return info
         else:
-            raise NotImplementedError('{} not found in Pybullet_INFO_DICT [{}]'\
-                .format(self._cfg.env_id, Pybullet_INFO_DICT.keys()))
+            raise NotImplementedError('{} not found in D4RL_INFO_DICT [{}]' \
+                                      .format(self._cfg.env_id, D4RL_INFO_DICT.keys()))
 
     def _make_env(self, only_info=False):
-        return wrap_pybullet(
+        return wrap_d4rl(
             self._cfg.env_id,
             norm_obs=self._cfg.get('norm_obs', None),
             norm_reward=self._cfg.get('norm_reward', None),
@@ -354,7 +381,7 @@ class PybulletEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "DI-engine Pybullet Env({})".format(self._cfg.env_id)
+        return "DI-engine D4RL Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:

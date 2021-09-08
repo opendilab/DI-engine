@@ -165,7 +165,10 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-def default_decollate(batch: Union[torch.Tensor, Sequence, Mapping], ignore: List[str] = ['prev_state']) -> List[Any]:
+def default_decollate(
+        batch: Union[torch.Tensor, Sequence, Mapping],
+        ignore: List[str] = ['prev_state', 'prev_actor_state', 'prev_critic_state']
+) -> List[Any]:
     """
     Overview:
         Drag out batch_size collated data's batch size to decollate it,
