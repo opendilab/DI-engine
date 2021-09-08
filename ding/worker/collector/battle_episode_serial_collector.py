@@ -11,10 +11,10 @@ from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF,
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('episode_1v1')
-class Episode1v1Collector(ISerialCollector):
+class BattleEpisodeSerialCollector(ISerialCollector):
     """
     Overview:
-        Episode collector(n_episode)
+        Episode collector(n_episode) with two policy battle
     Interfaces:
         __init__, reset, reset_env, reset_policy, collect, close
     Property:
