@@ -24,7 +24,7 @@ jobs:
           python -m pip install .
           python -m pip install ".[test,k8s]"
           ./hack/install-k8s-tools.sh
-          pytest -s ding/utils/tests/test_k8s_launcher.py
+          make unittest
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
