@@ -155,7 +155,7 @@ def main(cfg: dict, seed: int) -> None:
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, 0)
+            stop, reward = evaluator.eval(learner.save_checkpoint, epoch, 0)
             if stop:
                 break
         for i, train_data in enumerate(learn_dataloader):

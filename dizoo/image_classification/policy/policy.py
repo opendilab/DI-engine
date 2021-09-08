@@ -82,7 +82,10 @@ class ImageClassificationPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            return self._eval_model.forward(data)
+            output = self._eval_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        return output
 
     def _init_collect(self):
         pass

@@ -181,14 +181,16 @@ class MetricSerialEvaluator(ISerialEvaluator):
         eval_results = []
 
         with self._timer:
+            self._logger.info("Evaluation begin...")
             for batch_idx, batch_data in enumerate(self._dataloader):
                 inputs, label = to_tensor(batch_data)
                 policy_output = self._policy.forward(inputs)
                 eval_results.append(self._metric.eval(policy_output, label))
             avg_eval_result = self._metric.reduce_mean(eval_results)
             if self._cfg.multi_gpu:
+                device = self._policy.get_attribute('device')
                 for k in avg_eval_result.keys():
-                    value_tensor = torch.FloatTensor(avg_eval_result[k])
+                    value_tensor = torch.FloatTensor([avg_eval_result[k]]).to(device)
                     allreduce(value_tensor)
                     avg_eval_result[k] = value_tensor.item()
 
