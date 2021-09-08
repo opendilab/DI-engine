@@ -21,19 +21,11 @@ cartpole_r2d2_config = dict(
             encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.997,
-<<<<<<< HEAD
         burnin_step=2,#2,
         nstep=2,
         # (int) the trajectory length to unroll the RNN network minus
         # the timestep of burnin operation
         unroll_len=40,#40,
-=======
-        burnin_step=5,
-        nstep=5,
-        # (int) the trajectory length to unroll the RNN network minus
-        # the timestep of burnin operation
-        unroll_len=40,
->>>>>>> 13a9ce3543b5185b006855be9002ce89a0385c32
         learn=dict(
             update_per_collect=20,#20, # 4
             batch_size=64,
