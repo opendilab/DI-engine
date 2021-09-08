@@ -23,8 +23,10 @@ class OrchestratorLauncher(object):
         self.cert_manager_version = cert_manager_version
         self.cert_manager_registry = cert_manager_registry
 
-        self.installer = f'https://raw.githubusercontent.com/opendilab/DI-orchestrator/{self.version}/config/di-manager.yaml'
-        self.cert_manager = f'https://github.com/jetstack/cert-manager/releases/download/{self.cert_manager_version}/cert-manager.yaml'
+        self.installer = 'https://raw.githubusercontent.com/opendilab/' + \
+        f'DI-orchestrator/{self.version}/config/di-manager.yaml'
+        self.cert_manager = 'https://github.com/jetstack/' + \
+        f'cert-manager/releases/download/{self.cert_manager_version}/cert-manager.yaml'
         self._images = [
             f'{self.registry}/di-operator:{self.version}',
             f'{self.registry}/di-webhook:{self.version}',
@@ -44,7 +46,7 @@ class OrchestratorLauncher(object):
             raise FileNotFoundError("No kubectl tools found, please install by executing ./hack/install-k8s-tools.sh")
 
     def create_orchestrator(self) -> None:
-        print(f'Creating orchestrator...')
+        print('Creating orchestrator...')
         if self.cluster is not None:
             self.cluster.preload_images(self._images)
 
@@ -56,7 +58,7 @@ class OrchestratorLauncher(object):
                 raise RuntimeError(f'Failed to launch di-orchestrator: {err.decode("utf8")}')
 
     def delete_orchestrator(self) -> None:
-        print(f'Deleting orchestrator...')
+        print('Deleting orchestrator...')
         args = ['kubectl', 'delete', '-f', f'{self.installer}']
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()

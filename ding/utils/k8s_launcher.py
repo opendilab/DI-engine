@@ -58,7 +58,7 @@ class K8sLauncher(object):
             raise FileNotFoundError("No k3d tools found, please install by executing ./hack/install-k8s-tools.sh")
 
     def create_cluster(self) -> None:
-        print(f'Creating k8s cluster...')
+        print('Creating k8s cluster...')
         if self.type != K8sType.K3s:
             return
         args = ['k3d', 'cluster', 'create', f'{self.name}', f'--servers={self.servers}', f'--agents={self.agents}']
@@ -71,7 +71,7 @@ class K8sLauncher(object):
         self.preload_images(self._images)
 
     def delete_cluster(self) -> None:
-        print(f'Deleting k8s cluster...')
+        print('Deleting k8s cluster...')
         if self.type != K8sType.K3s:
             return
         args = ['k3d', 'cluster', 'delete', f'{self.name}']
@@ -88,5 +88,5 @@ class K8sLauncher(object):
 
         proc = subprocess.Popen(args, stderr=subprocess.PIPE)
         _, err = proc.communicate()
-        if err.decode('utf-8') != '' and not 'WARN' in err.decode('utf-8'):
+        if err.decode('utf-8') != '' and 'WARN' not in err.decode('utf-8'):
             raise RuntimeError(f'Failed to preload images: {err.decode("utf8")}')
