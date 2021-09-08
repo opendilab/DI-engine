@@ -80,7 +80,7 @@ class K8sLauncher(object):
         _, err = proc.communicate()
         err_str = err.decode('utf-8').strip()
         if err_str != '' and 'WARN' not in err_str and \
-            'NotFound' not in err_str:
+                'NotFound' not in err_str:
             raise RuntimeError(f'Failed to delete cluster {self.name}: {err_str}')
 
     def preload_images(self, images: list) -> None:

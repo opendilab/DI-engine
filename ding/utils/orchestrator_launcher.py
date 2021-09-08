@@ -74,7 +74,7 @@ class OrchestratorLauncher(object):
             _, err = proc.communicate()
             err_str = err.decode('utf-8').strip()
             if err_str != '' and 'WARN' not in err_str and \
-                'NotFound' not in err_str:
+                    'NotFound' not in err_str:
                 raise RuntimeError(f'Failed to delete di-orchestrator: {err_str}')
 
 
@@ -84,7 +84,7 @@ def watch_pod_events(namespace: str, pod: str, timeout: int = 60, phase: str = "
     w = watch.Watch()
     for event in w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=timeout):
         if event['object'].metadata.name.startswith(pod) and \
-            event['object'].status.phase == phase:
+                event['object'].status.phase == phase:
             print(f'pod {pod} matched the desired phase: {phase}, sleep for a few seconds')
             time.sleep(5)
             w.stop()
