@@ -4,7 +4,7 @@ print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_config = dict(
-    exp_name='cartpole_r2d2_bs2_n2_ul40_upc20_tuf2500_ed1e4_rbs5e3_ehs128-128-64_debug',
+    exp_name='cartpole_r2d2_bs2_n2_ul40_upc4_tuf200_ed1e4_rbs5e3_ehs128-128-64_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -21,24 +21,16 @@ cartpole_r2d2_config = dict(
             encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.997,
-<<<<<<< HEAD
         burnin_step=2,#2,
         nstep=2,
         # (int) the trajectory length to unroll the RNN network minus
         # the timestep of burnin operation
         unroll_len=40,#40,
-=======
-        burnin_step=5,
-        nstep=5,
-        # (int) the trajectory length to unroll the RNN network minus
-        # the timestep of burnin operation
-        unroll_len=40,
->>>>>>> 13a9ce3543b5185b006855be9002ce89a0385c32
         learn=dict(
-            update_per_collect=20,#20, # 4
+            update_per_collect=4,
             batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500,#500, # 100
+            target_update_freq=200,
         ),
         collect=dict(
             n_sample=32,
