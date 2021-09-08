@@ -68,13 +68,14 @@ class OrchestratorLauncher(object):
 
     def delete_orchestrator(self) -> None:
         print('Deleting orchestrator...')
-        args = ['kubectl', 'delete', '-f', f'{self.installer}']
-        proc = subprocess.Popen(args, stderr=subprocess.PIPE)
-        _, err = proc.communicate()
-        err_str = err.decode('utf-8').strip()
-        if err_str != '' and 'WARN' not in err_str and \
-            'NotFound' not in err_str:
-            raise RuntimeError(f'Failed to delete di-orchestrator: {err_str}')
+        for item in [self.cert_manager, self.installer]:
+            args = ['kubectl', 'delete', '-f', f'{item}']
+            proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+            _, err = proc.communicate()
+            err_str = err.decode('utf-8').strip()
+            if err_str != '' and 'WARN' not in err_str and \
+                'NotFound' not in err_str:
+                raise RuntimeError(f'Failed to delete di-orchestrator: {err_str}')
 
 
 def watch_pod_events(namespace: str, pod: str, timeout: int = 60, phase: str = "Running") -> None:
