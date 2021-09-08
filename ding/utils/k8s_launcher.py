@@ -2,15 +2,18 @@ import yaml
 import subprocess
 from enum import Enum, unique
 
+
 @unique
 class K8sType(Enum):
     Local = 1
     K3s = 2
 
+
 class K8sLauncher(object):
     """
     Overview: object to manage the K8s cluster
     """
+
     def __init__(self, config_path: str) -> None:
         self.name = None
         self.servers = 1
@@ -44,7 +47,7 @@ class K8sLauncher(object):
                 if type(data.get('preload_images')) is not list:
                     raise TypeError(f"preload_images' type is expected list, actual {type(data.get('preload_images'))}")
                 self._images = data.get('preload_images')
-    
+
     def _check_k3d_tools(self) -> None:
         if self.type != K8sType.K3s:
             return
@@ -63,7 +66,7 @@ class K8sLauncher(object):
         _, err = proc.communicate()
         if err.decode('utf-8') != '':
             raise RuntimeError(f'Failed to create cluster {self.name}: {err.decode("utf8")}')
-        
+
         # preload images
         self.preload_images(self._images)
 

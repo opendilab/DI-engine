@@ -1,12 +1,21 @@
 import subprocess
 from ding.utils import K8sLauncher
 
+
 class OrchestratorLauncher(object):
     """
     Overview: object to manage di-orchestrator in existing k8s cluster
     """
-    def __init__(self, version: str, name: str='di-orchestrator', cluster: K8sLauncher=None, registry: str='diorchestrator', 
-        cert_manager_version: str='v1.3.1', cert_manager_registry: str='quay.io/jetstack') -> None:
+
+    def __init__(
+            self,
+            version: str,
+            name: str = 'di-orchestrator',
+            cluster: K8sLauncher = None,
+            registry: str = 'diorchestrator',
+            cert_manager_version: str = 'v1.3.1',
+            cert_manager_registry: str = 'quay.io/jetstack'
+    ) -> None:
         self.name = name
         self.version = version
         self.cluster = cluster

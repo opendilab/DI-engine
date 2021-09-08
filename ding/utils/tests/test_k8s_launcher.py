@@ -13,11 +13,11 @@ def test_create_and_delete_k8s_cluster():
 
     # create cluster
     launcher.create_cluster()
-    
+
     # check that cluster is successfully created
     config.load_kube_config()
     current_context = config.list_kube_config_contexts()[1]
-    assert current_context['context']['cluster'].startswith(f"k3d-{cluster_name}") 
+    assert current_context['context']['cluster'].startswith(f"k3d-{cluster_name}")
 
     # create orchestrator
     olauncher = OrchestratorLauncher('v0.2.0-rc.0', cluster=launcher)
@@ -46,8 +46,8 @@ def test_create_and_delete_k8s_cluster():
     for crd in ret.items:
         found = found + 1 if crd.metadata.name == 'aggregatorconfigs.diengine.opendilab.org' else found
         found = found + 1 if crd.metadata.name == 'dijobs.diengine.opendilab.org' else found
-    assert found == 0   
-    
+    assert found == 0
+
     # delete cluster
     launcher.delete_cluster()
     try:
@@ -56,4 +56,4 @@ def test_create_and_delete_k8s_cluster():
         print("No k8s cluster found, skipped...")
     else:
         current_context = config.list_kube_config_contexts()[1]
-        assert not current_context['context']['cluster'].startswith(f"k3d-{cluster_name}") 
+        assert not current_context['context']['cluster'].startswith(f"k3d-{cluster_name}")
