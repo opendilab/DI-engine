@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -54,8 +54,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        Episode1v1Collector,
-        OnevOneEvaluator,
+        BattleEpisodeSerialCollector,
+        BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
@@ -100,7 +100,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_learner'
         )
-        collectors[player_id] = Episode1v1Collector(
+        collectors[player_id] = BattleEpisodeSerialCollector(
             cfg.policy.collect.collector,
             collector_env,
             tb_logger=tb_logger,
@@ -120,7 +120,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     # collect_mode ppo use multimonial sample for selecting action
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
-    evaluator1 = OnevOneEvaluator(
+    evaluator1 = BattleInteractionSerialEvaluator(
         evaluator1_cfg,
         evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
         tb_logger,
@@ -129,7 +129,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value[1]
-    evaluator2 = OnevOneEvaluator(
+    evaluator2 = BattleInteractionSerialEvaluator(
         evaluator2_cfg,
         evaluator_env2, [policies[main_key].collect_mode, eval_policy2],
         tb_logger,
@@ -138,7 +138,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator3_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator3_cfg.stop_value = 99999999  # stop_value of evaluator3 is a placeholder
-    evaluator3 = OnevOneEvaluator(
+    evaluator3 = BattleInteractionSerialEvaluator(
         evaluator3_cfg,
         evaluator_env3, [policies[main_key].collect_mode, eval_policy3],
         tb_logger,

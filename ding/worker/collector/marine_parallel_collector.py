@@ -1,28 +1,29 @@
 from typing import Dict, Any, List
+import copy
 import time
 import uuid
 from collections import namedtuple
 from threading import Thread
 from functools import partial
-
 import numpy as np
 import torch
 from easydict import EasyDict
 
 from ding.policy import create_policy, Policy
-from ding.envs import get_vec_env_setting, create_env_manager, BaseEnvManager
+from ding.envs import get_vec_env_setting, create_env_manager
 from ding.utils import get_data_compressor, pretty_print, PARALLEL_COLLECTOR_REGISTRY
-from .base_parallel_collector import BaseCollector
+from ding.envs import BaseEnvTimestep, BaseEnvManager
+from .base_parallel_collector import BaseParallelCollector
 from .base_serial_collector import CachePool, TrajBuffer
 
 INF = float("inf")
 
 
-@PARALLEL_COLLECTOR_REGISTRY.register('zergling')
-class ZerglingCollector(BaseCollector):
+@PARALLEL_COLLECTOR_REGISTRY.register('marine')
+class MarineParallelCollector(BaseParallelCollector):
     """
     Feature:
-      - one policy, many envs
+      - one policy or two policies, many envs
       - async envs(step + reset)
       - batch network eval
       - different episode length env
@@ -57,29 +58,43 @@ class ZerglingCollector(BaseCollector):
 
         # create policy
         if self._eval_flag:
-            policy = create_policy(self._cfg.policy, enable_field=['eval']).eval_mode
+            assert len(self._cfg.policy) == 1
+            policy = [create_policy(self._cfg.policy[0], enable_field=['eval']).eval_mode]
+            self.policy = policy
+            self._policy_is_active = [None]
+            self._policy_iter = [None]
+            self._traj_buffer_length = self._traj_len if self._traj_len != INF else None
+            self._traj_buffer = {env_id: [TrajBuffer(self._traj_len)] for env_id in range(self._env_num)}
         else:
-            policy = create_policy(self._cfg.policy, enable_field=['collect']).collect_mode
-        self.policy = policy
+            assert len(self._cfg.policy) == 2
+            policy = [create_policy(self._cfg.policy[i], enable_field=['collect']).collect_mode for i in range(2)]
+            self.policy = policy
+            self._policy_is_active = [None for _ in range(2)]
+            self._policy_iter = [None for _ in range(2)]
+            self._traj_buffer_length = self._traj_len if self._traj_len != INF else None
+            self._traj_buffer = {
+                env_id: [TrajBuffer(self._traj_buffer_length) for _ in range(len(policy))]
+                for env_id in range(self._env_num)
+            }
+        # self._first_update_policy = True
 
         self._episode_result = [[] for k in range(self._env_num)]
         self._obs_pool = CachePool('obs', self._env_num)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
-        self._traj_buffer = {env_id: TrajBuffer(self._traj_len) for env_id in range(self._env_num)}
         self._total_step = 0
         self._total_sample = 0
         self._total_episode = 0
 
     @property
-    def policy(self) -> Policy:
+    def policy(self) -> List[Policy]:
         return self._policy
 
     # override
     @policy.setter
-    def policy(self, _policy: Policy) -> None:
+    def policy(self, _policy: List[Policy]) -> None:
         self._policy = _policy
-        self._n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
-        self._n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        self._n_episode = _policy[0].get_attribute('cfg').collect.get('n_episode', None)
+        self._n_sample = _policy[0].get_attribute('cfg').collect.get('n_sample', None)
         assert any(
             [t is None for t in [self._n_sample, self._n_episode]]
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"
@@ -132,13 +147,27 @@ class ZerglingCollector(BaseCollector):
 
     # override
     def _policy_inference(self, obs: Dict[int, Any]) -> Dict[int, Any]:
-        self._obs_pool.update(obs)
-        if self._eval_flag:
-            policy_output = self._policy.forward(obs)
+        env_ids = list(obs.keys())
+        if len(self._policy) > 1:
+            assert not self._eval_flag
+            obs = [{id: obs[id][i] for id in env_ids} for i in range(len(self._policy))]
         else:
-            policy_output = self._policy.forward(obs, **self._cfg.collect_setting)
-        self._policy_output_pool.update(policy_output)
-        actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+            assert self._eval_flag
+            obs = [obs]
+        self._obs_pool.update(obs)
+        policy_outputs = []
+        for i in range(len(self._policy)):
+            if self._eval_flag:
+                policy_output = self._policy[i].forward(obs[i])
+            else:
+                policy_output = self._policy[i].forward(obs[i], **self._cfg.collect_setting)
+            policy_outputs.append(policy_output)
+        self._policy_output_pool.update(policy_outputs)
+        actions = {}
+        for env_id in env_ids:
+            action = [policy_outputs[i][env_id]['action'] for i in range(len(self._policy))]
+            action = torch.stack(action).squeeze()
+            actions[env_id] = action
         return actions
 
     # override
@@ -147,56 +176,60 @@ class ZerglingCollector(BaseCollector):
 
     # override
     def _process_timestep(self, timestep: Dict[int, namedtuple]) -> None:
-        send_data_time = []
         for env_id, t in timestep.items():
             if t.info.get('abnormal', False):
-                # if there is a abnormal timestep, reset all the related variable, also this env has been reset
-                self._traj_buffer[env_id].clear()
+                # If there is an abnormal timestep, reset all the related variables, also this env has been reset
+                for c in self._traj_buffer[env_id]:
+                    c.clear()
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
-                self._policy.reset([env_id])
+                for p in self._policy:
+                    p.reset([env_id])
                 continue
             self._total_step += 1
-            if t.done:  # must be executed before send_metadata
+            t = [BaseEnvTimestep(t.obs[i], t.reward[i], t.done, t.info) for i in range(len(self._policy))]
+            if t[0].done:
                 self._total_episode += 1
             if not self._eval_flag:
-                transition = self._policy.process_transition(
-                    self._obs_pool[env_id], self._policy_output_pool[env_id], t
-                )
-                self._traj_buffer[env_id].append(transition)
-            if (not self._eval_flag) and (t.done or len(self._traj_buffer[env_id]) == self._traj_len):
-                train_sample = self._policy.get_train_sample(self._traj_buffer[env_id])
-                for s in train_sample:
-                    s = self._compressor(s)
-                    self._total_sample += 1
-                    with self._timer:
-                        metadata = self._get_metadata(s, env_id)
-                        object_ref = self.send_stepdata(metadata['data_id'], s)
-                        if object_ref:
-                            metadata['object_ref'] = object_ref
-                        self.send_metadata(metadata)
-                    send_data_time.append(self._timer.value)
-                self._traj_buffer[env_id].clear()
-            if t.done:
+                for i in range(len(self._policy)):
+                    if self._policy_is_active[i]:
+                        # Only active policy will store transition into replay buffer.
+                        transition = self._policy[i].process_transition(
+                            self._obs_pool[env_id][i], self._policy_output_pool[env_id][i], t[i]
+                        )
+                        self._traj_buffer[env_id][i].append(transition)
+                full_indices = []
+                for i in range(len(self._traj_buffer[env_id])):
+                    if len(self._traj_buffer[env_id][i]) == self._traj_len:
+                        full_indices.append(i)
+                if t[0].done or len(full_indices) > 0:
+                    for i in full_indices:
+                        train_sample = self._policy[i].get_train_sample(self._traj_buffer[env_id][i])
+                        for s in train_sample:
+                            s = self._compressor(s)
+                            self._total_sample += 1
+                            metadata = self._get_metadata(s, env_id)
+                            self.send_stepdata(metadata['data_id'], s)
+                            self.send_metadata(metadata)
+                        self._traj_buffer[env_id][i].clear()
+            if t[0].done:
                 # env reset is done by env_manager automatically
                 self._obs_pool.reset(env_id)
                 self._policy_output_pool.reset(env_id)
-                self._policy.reset([env_id])
-                reward = t.info['final_eval_reward']
-                if isinstance(reward, torch.Tensor):
-                    reward = reward.item()
-                self._episode_result[env_id].append(reward)
+                for p in self._policy:
+                    p.reset([env_id])
+                reward = t[0].info['final_eval_reward']
+                # Only left player's reward will be recorded.
+                left_reward = reward[0]
+                if isinstance(left_reward, torch.Tensor):
+                    left_reward = left_reward.item()
+                self._episode_result[env_id].append(left_reward)
                 self.debug(
-                    "env {} finish episode, final reward: {}, collected episode {}".format(
+                    "Env {} finish episode, final reward: {}, collected episode: {}.".format(
                         env_id, reward, len(self._episode_result[env_id])
                     )
                 )
-        self.debug(
-            "send {} train sample with average time: {:.6f}".format(
-                len(send_data_time),
-                sum(send_data_time) / (1e-6 + len(send_data_time))
-            )
-        )
+            self._total_step += 1
         dones = [t.done for t in timestep.values()]
         if any(dones):
             collector_info = self._get_collector_info()
@@ -205,12 +238,22 @@ class ZerglingCollector(BaseCollector):
     # override
     def get_finish_info(self) -> dict:
         duration = max(time.time() - self._start_time, 1e-8)
-        episode_result = sum(self._episode_result, [])
+        game_result = copy.deepcopy(self._episode_result)
+        for i, env_result in enumerate(game_result):
+            for j, rew in enumerate(env_result):
+                if rew < 0:
+                    game_result[i][j] = "losses"
+                elif rew == 0:
+                    game_result[i][j] = "draws"
+                else:
+                    game_result[i][j] = "wins"
+
         finish_info = {
+            # 'finished_task': True,  # flag
             'eval_flag': self._eval_flag,
+            # 'episode_num': self._episode_num,
             'env_num': self._env_num,
             'duration': duration,
-            'train_iter': self._policy_iter,
             'collector_done': self._env_manager.done,
             'predefined_episode_count': self._predefined_episode_count,
             'real_episode_count': self._total_episode,
@@ -221,10 +264,11 @@ class ZerglingCollector(BaseCollector):
             'avg_time_per_train_sample': duration / max(1, self._total_sample),
             'avg_step_per_episode': self._total_step / max(1, self._total_episode),
             'avg_sample_per_episode': self._total_sample / max(1, self._total_episode),
-            'reward_mean': np.mean(episode_result) if len(episode_result) > 0 else 0,
-            'reward_std': np.std(episode_result) if len(episode_result) > 0 else 0,
-            'reward_raw': episode_result,
-            'finish_time': time.time()
+            'reward_mean': np.mean(self._episode_result),
+            'reward_std': np.std(self._episode_result),
+            'reward_raw': self._episode_result,
+            'finish_time': time.time(),
+            'game_result': game_result,
         }
         if not self._eval_flag:
             finish_info['collect_setting'] = self._cfg.collect_setting
@@ -234,19 +278,26 @@ class ZerglingCollector(BaseCollector):
     # override
     def _update_policy(self) -> None:
         path = self._cfg.policy_update_path
-        while True:
-            try:
-                policy_update_info = self.get_policy_update_info(path)
-                break
-            except Exception as e:
-                self.error('Policy update error: {}'.format(e))
-                time.sleep(1)
-        if policy_update_info is None:
-            return
-
-        self._policy_iter = policy_update_info.pop('iter')
-        self._policy.load_state_dict(policy_update_info)
-        self.debug('update policy with {}(iter{}) in {}'.format(path, self._policy_iter, time.time()))
+        self._policy_is_active = self._cfg.policy_update_flag
+        for i in range(len(path)):
+            # if not self._first_update_policy and not self._policy_is_active[i]:
+            if not self._policy_is_active[i]:
+                # For the first time, all policies should be updated(i.e. initialized);
+                # For other times, only active player's policies should be updated.
+                continue
+            while True:
+                try:
+                    policy_update_info = self.get_policy_update_info(path[i])
+                    break
+                except Exception as e:
+                    self.error('Policy {} update error: {}'.format(i + 1, e))
+                    time.sleep(1)
+            if policy_update_info is None:
+                continue
+            self._policy_iter[i] = policy_update_info.pop('iter')
+            self._policy[i].load_state_dict(policy_update_info)
+            self.debug('Update policy {} with {}(iter{}) in {}'.format(i + 1, path, self._policy_iter, time.time()))
+        # self._first_update_policy = False
 
     # ******************************** thread **************************************
 
@@ -292,4 +343,4 @@ class ZerglingCollector(BaseCollector):
         }
 
     def __repr__(self) -> str:
-        return "ZerglingCollector"
+        return "MarineParallelCollector"
