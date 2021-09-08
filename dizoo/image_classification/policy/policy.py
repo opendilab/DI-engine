@@ -1,4 +1,5 @@
 import math
+import torch
 import torch.nn as nn
 from torch.optim import SGD
 from torch.optim.lr_scheduler import LambdaLR
@@ -77,7 +78,11 @@ class ImageClassificationPolicy(Policy):
         self._eval_model = model_wrap(self._model, 'base')
 
     def _forward_eval(self, data):
-        pass
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            return self._eval_model.forward(data)
 
     def _init_collect(self):
         pass

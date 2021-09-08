@@ -5,8 +5,8 @@ imagenet_res18_config = dict(
     policy=dict(
         cuda=True,
         learn=dict(
-            multi_gpu=True,
-            bp_update_sync=False,
+            multi_gpu=False,
+            bp_update_sync=True,
             train_epoch=200,
             batch_size=32,
             learning_rate=0.01,
@@ -27,7 +27,18 @@ imagenet_res18_config = dict(
             learn_data_path='/mnt/lustre/share/images/train',
             eval_data_path='/mnt/lustre/share/images/val',
         ),
-        eval=dict(batch_size=4, )
+        eval=dict(
+            batch_size=32,
+            evaluator=dict(
+                eval_freq=1,
+                multi_gpu=True,
+                stop_value=dict(
+                    loss=0.5,
+                    acc1=75.0,
+                    acc5=95.0
+                )
+            )
+        ),
     ),
     env=dict(),
 )

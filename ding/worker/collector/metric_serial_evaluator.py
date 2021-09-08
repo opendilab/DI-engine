@@ -1,19 +1,42 @@
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Any, List
+from abc import ABC, abstractmethod
 from collections import namedtuple
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
-from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray
-from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
+from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY, allreduce
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
-@SERIAL_EVALUATOR_REGISTRY.register('interaction')
-class InteractionSerialEvaluator(ISerialEvaluator):
+class IMetric(ABC):
+
+    @abstractmethod
+    def eval(self, inputs: Any, label: Any) -> dict:
+        raise NotImplementedError
+
+    @abstractmethod
+    def reduce_mean(self, inputs: List[Any]) -> Any:
+        raise NotImplementedError
+
+    @abstractmethod
+    def gt(self, metric1: Any, metric2: Any) -> bool:
+        """
+        Overview:
+            Whether metric1 is greater than metric2 (>=)
+
+        .. note::
+            If metric2 is None, return True
+        """
+        raise NotImplementedError
+
+
+@SERIAL_EVALUATOR_REGISTRY.register('metric')
+class MetricSerialEvaluator(ISerialEvaluator):
     """
     Overview:
-        Interaction serial evaluator class, policy interacts with env.
+        Metric serial evaluator class, policy is evaluated by objective metric(env).
     Interfaces:
         __init__, reset, reset_policy, reset_env, close, should_eval, eval
     Property:
@@ -28,7 +51,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     def __init__(
             self,
             cfg: dict,
-            env: BaseEnvManager = None,
+            env: Tuple[DataLoader, IMetric] = None,
             policy: namedtuple = None,
             tb_logger: 'SummaryWriter' = None,  # noqa
             exp_name: Optional[str] = 'default_experiment',
@@ -56,27 +79,19 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self.reset(policy, env)
 
         self._timer = EasyTimer()
-        self._default_n_episode = cfg.n_episode
         self._stop_value = cfg.stop_value
 
-    def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
+    def reset_env(self, _env: Optional[Tuple[DataLoader, IMetric]] = None) -> None:
         """
         Overview:
             Reset evaluator's environment. In some case, we need evaluator use the same policy in different \
                 environments. We can use reset_env to reset the environment.
-            If _env is None, reset the old environment.
-            If _env is not None, replace the old environment in the evaluator with the \
-                new passed in environment and launch.
+            If _env is not None, replace the old environment in the evaluator with the new one
         Arguments:
-            - env (:obj:`Optional[BaseEnvManager]`): instance of the subclass of vectorized \
-                env_manager(BaseEnvManager)
+            - env (:obj:`Optional[Tuple[DataLoader, IMetric]]`): Instance of the DataLoader and Metric
         """
         if _env is not None:
-            self._env = _env
-            self._env.launch()
-            self._env_num = self._env.env_num
-        else:
-            self._env.reset()
+            self._dataloader, self._metric = _env
 
     def reset_policy(self, _policy: Optional[namedtuple] = None) -> None:
         """
@@ -88,31 +103,27 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         Arguments:
             - policy (:obj:`Optional[namedtuple]`): the api namedtuple of eval_mode policy
         """
-        assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
             self._policy = _policy
         self._policy.reset()
 
-    def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
+    def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[Tuple[DataLoader, IMetric]] = None) -> None:
         """
         Overview:
             Reset evaluator's policy and environment. Use new policy and environment to collect data.
-            If _env is None, reset the old environment.
-            If _env is not None, replace the old environment in the evaluator with the new passed in \
-                environment and launch.
+            If _env is not None, replace the old environment in the evaluator with the new one
             If _policy is None, reset the old policy.
             If _policy is not None, replace the old policy in the evaluator with the new passed in policy.
         Arguments:
             - policy (:obj:`Optional[namedtuple]`): the api namedtuple of eval_mode policy
-            - env (:obj:`Optional[BaseEnvManager]`): instance of the subclass of vectorized \
-                env_manager(BaseEnvManager)
+            - env (:obj:`Optional[Tuple[DataLoader, IMetric]]`): Instance of the DataLoader and Metric
         """
         if _env is not None:
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
-        self._max_eval_reward = float("-inf")
-        self._last_eval_iter = 0
+        self._max_avg_eval_result = None
+        self._last_eval_iter = -1
         self._end_flag = False
 
     def close(self) -> None:
@@ -154,8 +165,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             save_ckpt_fn: Callable = None,
             train_iter: int = -1,
             envstep: int = -1,
-            n_episode: Optional[int] = None
-    ) -> Tuple[bool, float]:
+    ) -> Tuple[bool, Any]:
         '''
         Overview:
             Evaluate policy and store the best policy based on whether it reaches the highest historical reward.
@@ -163,86 +173,52 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - save_ckpt_fn (:obj:`Callable`): Saving ckpt function, which will be triggered by getting the best reward.
             - train_iter (:obj:`int`): Current training iteration.
             - envstep (:obj:`int`): Current env interaction step.
-            - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
-            - eval_reward (:obj:`float`): Current eval_reward.
+            - eval_metric (:obj:`float`): Current evaluation metric result.
         '''
-        if n_episode is None:
-            n_episode = self._default_n_episode
-        assert n_episode is not None, "please indicate eval n_episode"
-        envstep_count = 0
-        info = {}
-        eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
-        self._env.reset()
         self._policy.reset()
+        eval_results = []
 
         with self._timer:
-            while not eval_monitor.is_finished():
-                obs = self._env.ready_obs
-                obs = to_tensor(obs, dtype=torch.float32)
-                policy_output = self._policy.forward(obs)
-                actions = {i: a['action'] for i, a in policy_output.items()}
-                actions = to_ndarray(actions)
-                timesteps = self._env.step(actions)
-                timesteps = to_tensor(timesteps, dtype=torch.float32)
-                for env_id, t in timesteps.items():
-                    if t.info.get('abnormal', False):
-                        # If there is an abnormal timestep, reset all the related variables(including this env).
-                        self._policy.reset([env_id])
-                        continue
-                    if t.done:
-                        # Env reset is done by env_manager automatically.
-                        self._policy.reset([env_id])
-                        reward = t.info['final_eval_reward']
-                        if 'episode_info' in t.info:
-                            eval_monitor.update_info(env_id, t.info['episode_info'])
-                        eval_monitor.update_reward(env_id, reward)
-                        self._logger.info(
-                            "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
-                                env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
-                            )
-                        )
-                    envstep_count += 1
+            for batch_idx, batch_data in enumerate(self._dataloader):
+                inputs, label = to_tensor(batch_data)
+                policy_output = self._policy.forward(inputs)
+                eval_results.append(self._metric.eval(policy_output, label))
+            avg_eval_result = self._metric.reduce_mean(eval_results)
+            if self._cfg.multi_gpu:
+                for k in avg_eval_result.keys():
+                    value_tensor = torch.FloatTensor(avg_eval_result[k])
+                    allreduce(value_tensor)
+                    avg_eval_result[k] = value_tensor.item()
+
         duration = self._timer.value
-        episode_reward = eval_monitor.get_episode_reward()
         info = {
             'train_iter': train_iter,
             'ckpt_name': 'iteration_{}.pth.tar'.format(train_iter),
-            'episode_count': n_episode,
-            'envstep_count': envstep_count,
-            'avg_envstep_per_episode': envstep_count / n_episode,
+            'data_length': len(self._dataloader),
             'evaluate_time': duration,
-            'avg_envstep_per_sec': envstep_count / duration,
-            'avg_time_per_episode': n_episode / duration,
-            'reward_mean': np.mean(episode_reward),
-            'reward_std': np.std(episode_reward),
-            'reward_max': np.max(episode_reward),
-            'reward_min': np.min(episode_reward),
-            # 'each_reward': episode_reward,
+            'avg_time_per_data': duration / len(self._dataloader),
         }
-        episode_info = eval_monitor.get_episode_info()
-        if episode_info is not None:
-            info.update(episode_info)
+        info.update(avg_eval_result)
         self._logger.info(self._logger.get_tabulate_vars_hor(info))
         # self._logger.info(self._logger.get_tabulate_vars(info))
         for k, v in info.items():
-            if k in ['train_iter', 'ckpt_name', 'each_reward']:
+            if k in ['train_iter', 'ckpt_name']:
                 continue
             if not np.isscalar(v):
                 continue
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
-        eval_reward = np.mean(episode_reward)
-        if eval_reward > self._max_eval_reward:
+        if self._metric.gt(avg_eval_result, self._max_avg_eval_result):
             if save_ckpt_fn:
                 save_ckpt_fn('ckpt_best.pth.tar')
-            self._max_eval_reward = eval_reward
-        stop_flag = eval_reward >= self._stop_value and train_iter > 0
+            self._max_avg_eval_result = avg_eval_result
+        stop_flag = self._metric.gt(avg_eval_result, self._stop_value) and train_iter > 0
         if stop_flag:
             self._logger.info(
                 "[DI-engine serial pipeline] " +
-                "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
+                "Current eval_reward: {} is greater than stop_value: {}".format(avg_eval_result, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, eval_reward
+        return stop_flag, avg_eval_result

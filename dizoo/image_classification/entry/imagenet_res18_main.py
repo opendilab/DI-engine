@@ -1,11 +1,11 @@
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, List
 import time
 import os
 import torch
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 
-from ding.worker import BaseLearner, LearnerHook
+from ding.worker import BaseLearner, LearnerHook, MetricSerialEvaluator, IMetric
 from ding.config import read_config, compile_config
 from ding.torch_utils import resnet18
 from ding.utils import set_pkg_seed, get_rank, dist_init
@@ -70,8 +70,51 @@ class ImageClsLogShowHook(LearnerHook):
             engine.log_buffer[k].clear()
 
 
+class ImageClassificationMetric(IMetric):
+
+    def __init__(self) -> None:
+        self.loss = torch.nn.CrossEntropyLoss()
+
+    @staticmethod
+    def accuracy(inputs: torch.Tensor, label: torch.Tensor, topk: Tuple = (1, 5)) -> dict:
+        """Computes the accuracy over the k top predictions for the specified values of k"""
+        maxk = max(topk)
+        batch_size = label.size(0)
+        _, pred = inputs.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(label.reshape(1, -1).expand_as(pred))
+        return {'acc{}'.format(k): correct[:k].reshape(-1).float().sum(0) * 100. / batch_size for k in topk}
+
+    def eval(self, inputs: torch.Tensor, label: torch.Tensor) -> dict:
+        """
+        Returns:
+            - eval_result (:obj:`dict`): {'loss': xxx, 'acc1': xxx, 'acc5': xxx}
+        """
+        loss = self.loss(inputs, label)
+        output = self.accuracy(inputs, label)
+        output['loss'] = loss
+        for k in output:
+            output[k] = output[k].item()
+        return output
+
+    def reduce_mean(self, inputs: List[dict]) -> dict:
+        L = len(inputs)
+        output = {}
+        for k in inputs[0].keys():
+            output[k] = sum([t[k] for t in inputs]) / L
+        return output
+
+    def gt(self, metric1: dict, metric2: dict) -> bool:
+        if metric2 is None:
+            return True
+        for k in metric1:
+            if metric1[k] < metric2[k]:
+                return False
+        return True
+
+
 def main(cfg: dict, seed: int) -> None:
-    cfg = compile_config(cfg, seed=seed, policy=ImageClassificationPolicy)
+    cfg = compile_config(cfg, seed=seed, policy=ImageClassificationPolicy, evaluator=MetricSerialEvaluator)
     if cfg.policy.learn.multi_gpu:
         rank, world_size = dist_init()
     else:
@@ -90,7 +133,7 @@ def main(cfg: dict, seed: int) -> None:
     else:
         learn_sampler, eval_sampler = None, None
     learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler, num_workers=3)
-    eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler, num_workers=3)
+    eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler, num_workers=2)
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -99,7 +142,10 @@ def main(cfg: dict, seed: int) -> None:
         name='image_cls_log_show_hook', priority=0, position='after_iter', freq=cfg.policy.learn.learner.log_show_freq
     )
     learner.register_hook(log_show_hook)
-    evaluator = None
+    eval_metric = ImageClassificationMetric()
+    evaluator = MetricSerialEvaluator(
+        cfg.policy.eval.evaluator, [eval_dataloader, eval_metric], policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
     # ==========
     # Main loop
     # ==========
@@ -107,14 +153,17 @@ def main(cfg: dict, seed: int) -> None:
     end = time.time()
 
     for epoch in range(cfg.policy.learn.train_epoch):
+        # Evaluate policy performance
+        if evaluator.should_eval(learner.train_iter):
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, 0)
+            if stop:
+                break
         for i, train_data in enumerate(learn_dataloader):
             learner.data_time = time.time() - end
             learner.epoch_info = (epoch, i, len(learn_dataloader))
             learner.train(train_data)
             end = time.time()
         learner.policy.get_attribute('lr_scheduler').step()
-        # Evaluate policy performance
-        # evaluator.eval()
 
     learner.call_hook('after_run')
 

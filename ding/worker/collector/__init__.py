@@ -8,6 +8,7 @@ from .battle_episode_serial_collector import BattleEpisodeSerialCollector
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 from .interaction_serial_evaluator import InteractionSerialEvaluator
 from .battle_interaction_serial_evaluator import BattleInteractionSerialEvaluator
+from .metric_serial_evaluator import MetricSerialEvaluator, IMetric
 # parallel
 from .base_parallel_collector import BaseParallelCollector, create_parallel_collector, get_parallel_collector_cls
 from .zergling_parallel_collector import ZerglingParallelCollector
