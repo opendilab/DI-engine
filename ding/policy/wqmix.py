@@ -183,19 +183,27 @@ class WQMIXPolicy(Policy):
         #  forward
         # ====================
         self._learn_model.train()
-        # for hidden_state plugin, we need to reset the main model and target model
-        self._learn_model.reset(state=data['prev_state'][0])
 
         inputs = {'obs': data['obs'], 'action': data['action']}
-        total_q = self._learn_model.forward(inputs, single_step=False, Q_star=False)['total_q']
-        total_q_star = self._learn_model.forward(inputs, single_step=False, Q_star=True)['total_q']
+
+        # for hidden_state plugin, we need to reset the main model and target model
+        self._learn_model.reset(state=data['prev_state'][0])
+        total_q = self._learn_model.forward(inputs, single_step=False, q_star=False)['total_q']
+
+        self._learn_model.reset(state=data['prev_state'][0])
+        total_q_star = self._learn_model.forward(inputs, single_step=False, q_star=True)['total_q']
 
         next_inputs = {'obs': data['next_obs']}
-        logit_detach = self._learn_model.forward(next_inputs, single_step=False, Q_star=False)['logit'].clone().detach()
-        next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
+
+        self._learn_model.reset(state=data['prev_state'][1])  # TODO(pu)
+        next_logit_detach = self._learn_model.forward(
+            next_inputs, single_step=False, q_star=False
+        )['logit'].clone().detach()
+        next_inputs = {'obs': data['next_obs'], 'action': next_logit_detach.argmax(dim=-1)}
 
         with torch.no_grad():
-            target_total_q = self._learn_model.forward(next_inputs, single_step=False, Q_star=True)['total_q']
+            self._learn_model.reset(state=data['prev_state'][1])  # TODO(pu)
+            target_total_q = self._learn_model.forward(next_inputs, single_step=False, q_star=True)['total_q']
 
         with torch.no_grad():
             if data['done'] is not None:
@@ -204,8 +212,8 @@ class WQMIXPolicy(Policy):
                 target_v = self._gamma * target_total_q + data['reward']
 
         td_error = (total_q - target_v).clone().detach()
-        _data = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
-        _, td_error_per_sample = v_1step_td_error(_data, self._gamma)
+        data_ = v_1step_td_data(total_q, target_total_q, data['reward'], data['done'], data['weight'])
+        _, td_error_per_sample = v_1step_td_error(data_, self._gamma)
 
         data_star = v_1step_td_data(total_q_star, target_total_q, data['reward'], data['done'], data['weight'])
         loss_star, td_error_per_sample_star_ = v_1step_td_error(data_star, self._gamma)
@@ -214,21 +222,21 @@ class WQMIXPolicy(Policy):
         # Weighting
         alpha_to_use = self._cfg.learn.alpha
         if self._cfg.learn.wqmix_ow:  # Optimistically-Weighted
-            ws = torch.ones_like(td_error) * alpha_to_use
+            ws = torch.full_like(td_error, alpha_to_use)
             # if td_error < 0, i.e. Q < y_i, then w =1; if not, w = alpha_to_use
-            ws = torch.where(td_error < 0, torch.ones_like(td_error) * 1, ws)
+            ws = torch.where(td_error < 0, torch.ones_like(td_error), ws)
         else:  # Centrally-Weighted
             inputs = {'obs': data['obs']}
-            logit_detach = self._learn_model.forward(inputs, single_step=False, Q_star=False)['logit'].clone().detach()
+            logit_detach = self._learn_model.forward(inputs, single_step=False, q_star=False)['logit'].clone().detach()
             cur_max_actions = logit_detach.argmax(dim=-1)
             inputs = {'obs': data['obs'], 'action': cur_max_actions}
-            max_action_qtot = self._learn_model.forward(inputs, single_step=False, Q_star=True)['total_q']  # Q_star
+            max_action_qtot = self._learn_model.forward(inputs, single_step=False, q_star=True)['total_q']  # Q_star
             # Only if the action of each agent is optimal, then the joint action is optimal
             is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0]  # shape (H,B,N) -> (H,B)
             qtot_larger = target_v > max_action_qtot
-            ws = torch.ones_like(td_error) * alpha_to_use
+            ws = torch.full_like(td_error, alpha_to_use)
             # if y_i > Q_star or u =  u_star,  then w =1; if not, w = alpha_to_use
-            ws = torch.where(is_max_action | qtot_larger, torch.ones_like(td_error) * 1, ws)
+            ws = torch.where(is_max_action | qtot_larger, torch.ones_like(td_error), ws)
 
         if data['weight'] is None:
             data['weight'] = torch.ones_like(data['reward'])
@@ -241,11 +249,11 @@ class WQMIXPolicy(Policy):
         self._optimizer_star.zero_grad()
         loss_weighted.backward(retain_graph=True)
         loss_star.backward()
-        grad_norm = torch.nn.utils.clip_grad_norm_(
+        grad_norm_q = torch.nn.utils.clip_grad_norm_(
             list(self._model._q_network.parameters()) + list(self._model._mixer.parameters()),
             self._cfg.learn.clip_value
         )  # Q
-        grad_norm = torch.nn.utils.clip_grad_norm_(
+        grad_norm_q_star = torch.nn.utils.clip_grad_norm_(
             list(self._model._q_network_star.parameters()) + list(self._model._mixer_star.parameters()),
             self._cfg.learn.clip_value
         )  # Q_star
@@ -261,7 +269,8 @@ class WQMIXPolicy(Policy):
             'total_q': total_q.mean().item() / self._cfg.model.agent_num,
             'target_reward_total_q': target_v.mean().item() / self._cfg.model.agent_num,
             'target_total_q': target_total_q.mean().item() / self._cfg.model.agent_num,
-            'grad_norm': grad_norm,
+            'grad_norm_q': grad_norm_q,
+            'grad_norm_q_star': grad_norm_q_star,
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
