@@ -35,7 +35,7 @@ class ICMNetwork(nn.Module):
     Pathak, Agrawal, Efros, and Darrell - UC Berkeley - ICML 2017.
     https://arxiv.org/pdf/1705.05363.pdf
 
-    1) Embedding observations into a latent space 
+    1) Embedding observations into a latent space
     2) Predicting the action logit given two consecutive embedded observations
     3) Predicting the next embedded obs, given the embeded former observation and action
     """
@@ -68,7 +68,7 @@ class ICMNetwork(nn.Module):
                 action_long: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         r"""
         Overview:
-            Use observation, next_observation and action to genearte ICM module 
+            Use observation, next_observation and action to genearte ICM module
             Parameter updates with ICMNetwork forward setup.
         Arguments:
             - state (:obj:`torch.Tensor`):
@@ -76,7 +76,7 @@ class ICMNetwork(nn.Module):
             - next_state (:obj:`torch.Tensor`):
                 The next state batch, (B,N=observation_size)``.
             - action_long (:obj:`torch.Tensor`):
-                The action, (B,M=action_size)``. 
+                The action, (B,M=action_size)``.
         Returns:
             - real_next_state_feature (:obj:`torch.Tensor`):
                 Run with the encoder. Return the real next_state's embedded feature.
