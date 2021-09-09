@@ -1,7 +1,7 @@
 import subprocess
 import time
 from ding.utils import K8sLauncher
-from kubernetes import config, client, watch
+from .default_helper import one_time_warning
 
 
 class OrchestratorLauncher(object):
@@ -49,7 +49,9 @@ class OrchestratorLauncher(object):
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, _ = proc.communicate()
         if out.decode('utf-8') == '':
-            raise FileNotFoundError("No kubectl tools found, please install by executing ./hack/install-k8s-tools.sh")
+            raise FileNotFoundError(
+                "No kubectl tools found, please install by executing ./ding/scripts/install-k8s-tools.sh"
+            )
 
     def create_orchestrator(self) -> None:
         print('Creating orchestrator...')
@@ -79,6 +81,12 @@ class OrchestratorLauncher(object):
 
 
 def watch_pod_events(namespace: str, pod: str, timeout: int = 60, phase: str = "Running") -> None:
+    try:
+        from kubernetes import config, client, watch
+    except ModuleNotFoundError:
+        one_time_warning("You have not installed kubernetes package! Please try 'pip install DI-engine[k8s]'.")
+        exit(-1)
+
     config.load_kube_config()
     v1 = client.CoreV1Api()
     w = watch.Watch()

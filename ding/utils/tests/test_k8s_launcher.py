@@ -1,12 +1,11 @@
 import pytest
 import os
-import time
 from ding.utils import K8sLauncher, OrchestratorLauncher
-from kubernetes import config, client
+from kubernetes import config, client, watch
 
 
 @pytest.mark.unittest
-def test_create_and_delete_k8s_cluster():
+def test_operate_k8s_cluster():
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
     launcher = K8sLauncher(config_path)
@@ -25,9 +24,10 @@ def test_create_and_delete_k8s_cluster():
     olauncher.create_orchestrator()
 
     # check orchestrator is successfully created
+    expected_deployments, expected_crds = 3, 2
     appv1 = client.AppsV1Api()
     ret = appv1.list_namespaced_deployment("di-system")
-    assert len(ret.items) == 3
+    assert len(ret.items) == expected_deployments
 
     # check crds are installed
     extensionv1 = client.ApiextensionsV1Api()
@@ -36,13 +36,20 @@ def test_create_and_delete_k8s_cluster():
     for crd in ret.items:
         found = found + 1 if crd.metadata.name == 'aggregatorconfigs.diengine.opendilab.org' else found
         found = found + 1 if crd.metadata.name == 'dijobs.diengine.opendilab.org' else found
-    assert found == 2
+    assert found == expected_crds
 
     # delete orchestrator
     olauncher.delete_orchestrator()
 
     # sleep for a few seconds and check crds are deleted
-    time.sleep(0.25)
+    timeout = 10
+    deleted_crds = 0
+    w = watch.Watch()
+    for event in w.stream(extensionv1.list_custom_resource_definition, timeout_seconds=timeout):
+        if event['type'] == "DELETED":
+            deleted_crds += 1
+        if deleted_crds == expected_crds:
+            w.stop()
     ret = extensionv1.list_custom_resource_definition()
     found = 0
     for crd in ret.items:
