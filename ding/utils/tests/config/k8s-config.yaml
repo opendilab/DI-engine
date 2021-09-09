@@ -1,0 +1,7 @@
+type: k3s # k3s or local
+name: di-cluster
+servers: 1 # # of k8s masters
+agents: 0 # # of k8s nodes
+preload_images: 
+- busybox:latest
+- hello-world:latest
