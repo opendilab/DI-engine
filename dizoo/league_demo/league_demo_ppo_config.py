@@ -34,14 +34,14 @@ league_demo_ppo_config = dict(
         ),
         scheduler=dict(
             schedule_flag = True,
-            schedule_parameter='entropy_weight',
-            schedule_mode='reduce',
-            factor=0.05,
-            change_range=[-1,1],
-            threshold=0.1,
-            optimize_mode='max',
-            patience=1,
-            cooldown=0,
+            schedule_parameter='learning_rate',
+            # schedule_mode='reduce',
+            # factor=0.05,
+            # change_range=[-1,1],
+            # threshold=0.1,
+            # optimize_mode='max',
+            # patience=1,
+            # cooldown=0,
         ),
         other=dict(
             league=dict(

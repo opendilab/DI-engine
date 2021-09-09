@@ -14,8 +14,9 @@ from ding.utils import set_pkg_seed
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
-from dizoo.league_demo.league_scheduler import Scheduler
-
+from ding.utils.scheduler_module import Scheduler
+from easydict import EasyDict
+from ding.utils.default_helper import deep_merge_dicts
 
 class EvalPolicy1:
 
@@ -136,7 +137,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
 
-    para_scheduler = Scheduler(cfg)
+    user_scheduler_config = cfg.policy.get('scheduler',{})
+    merged_scheduler_config = EasyDict(deep_merge_dicts(Scheduler.config, user_scheduler_config))
+    para_scheduler = Scheduler(cfg, merged_scheduler_config)
+
     for run_iter in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward, episode_info = evaluator1.eval(
@@ -162,10 +166,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         
         if stop_flag1 and stop_flag2:
             break
-        
-        if cfg.policy.scheduler.schedule_flag:
-            metrics = main_player.rating.exposure
-            para_scheduler.step(metrics, cfg)
+
+        if merged_scheduler_config.schedule_flag:
+            metrics = float(main_player.rating.exposure)
+            para_scheduler.step(metrics,cfg.policy)
 
         for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
             tb_logger.add_scalar(
