@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_fourromms_ppo_rnd', #exp_name='minigrid_empty8_ppo_rnd',
+    exp_name='minigrid_empty8_ppo_rnd', #exp_name='minigrid_empty8_ppo_rnd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -56,4 +56,4 @@ minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
 create_config = minigrid_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_reward_model([main_config, create_config], seed=10)
+    serial_pipeline_reward_model([main_config, create_config], seed=0)
