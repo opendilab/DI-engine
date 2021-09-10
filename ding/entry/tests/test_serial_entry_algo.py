@@ -2,8 +2,11 @@ import pytest
 import time
 import os
 import torch
+import subprocess
 from copy import deepcopy
+from kubernetes import config, client, watch, dynamic
 
+from ding.utils import K8sLauncher, OrchestratorLauncher
 from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
@@ -355,3 +358,59 @@ def test_cql():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("26. cql\n")
+
+
+@pytest.mark.algotest
+def test_running_on_orchestrator():
+    cluster_name = 'test-k8s-launcher'
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
+    # create cluster
+    launcher = K8sLauncher(config_path)
+    launcher.name = cluster_name
+    launcher.create_cluster()
+
+    # create orchestrator
+    olauncher = OrchestratorLauncher('v0.2.0-rc.0', cluster=launcher)
+    olauncher.create_orchestrator()
+
+    # create dijob
+    namespace = 'default'
+    timeout = 20 * 60
+    file_path = os.path.dirname(__file__)
+    agconfig_path = os.path.join(file_path, 'config', 'agconfig.yaml')
+    dijob_path = os.path.join(file_path, 'config', 'dijob-cartpole.yaml')
+    create_object_from_config(agconfig_path, 'di-system')
+    create_object_from_config(dijob_path, namespace)
+
+    # watch for dijob to converge
+    config.load_kube_config()
+    w = watch.Watch()
+
+    dyclient = dynamic.DynamicClient(client.ApiClient(configuration=config.load_kube_config()))
+    dijobapi = dyclient.resources.get(api_version='diengine.opendilab.org/v1alpha1', kind='DIJob')
+
+    for event in w.stream(dijobapi.get, namespace=namespace, timeout_seconds=timeout):
+        if event['object'].metadata.name == 'cartpole-dqn' and \
+            event['object'].status.phase == 'Succeeded':
+            print(f'DIJob cartpole-dqn succeeded')
+            w.stop()
+
+    v1 = client.CoreV1Api()
+    for event in w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=timeout):
+        if event['object'].metadata.name == 'cartpole-dqn-coordinator' and \
+            event['object'].status.phase == 'Succeeded':
+            print(f'cartpole-dqn-coordinator succeeded')
+            w.stop()
+
+    # delete orchestrator
+    # olauncher.delete_orchestrator()
+    # launcher.delete_cluster()
+
+
+def create_object_from_config(config_path: str, namespace: str = 'default'):
+    args = ['kubectl', 'apply', '-n', namespace, '-f', config_path]
+    proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+    _, err = proc.communicate()
+    err_str = err.decode('utf-8').strip()
+    if err_str != '' and 'WARN' not in err_str and 'already exists' not in err_str:
+        raise RuntimeError(f'Failed to create object: {err.decode("utf-8")}')

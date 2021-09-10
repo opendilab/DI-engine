@@ -5,10 +5,11 @@ name: algo_test
 
 on:
   push:
-    paths:
-      - "ding/policy/*"
-      - "ding/model/*"
-      - "ding/rl_utils/*"
+    branches: [main]
+    # paths:
+    #   - "ding/policy/*"
+    #   - "ding/model/*"
+    #   - "ding/rl_utils/*"
   pull_request:
     paths:
       - "ding/policy/*"
@@ -35,5 +36,7 @@ jobs:
           DURATIONS: 600
         run: |
           python -m pip install .
-          python -m pip install ".[test]"
-          make algotest
+          python -m pip install ".[test,k8s]"
+          # make algotest
+          ./ding/scripts/install-k8s-tools.sh
+          pytest -s ding/entry/tests/test_serial_entry_algo.py::test_running_on_orchestrator

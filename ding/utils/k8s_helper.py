@@ -159,6 +159,9 @@ class K8sLauncher(object):
         _, err = proc.communicate()
         err_str = err.decode('utf-8').strip()
         if err_str != '' and 'WARN' not in err_str:
+            if 'already exists' in err_str:
+                print('K8s cluster already exists')
+                return
             raise RuntimeError(f'Failed to create cluster {self.name}: {err_str}')
 
         # preload images
@@ -177,7 +180,7 @@ class K8sLauncher(object):
             raise RuntimeError(f'Failed to delete cluster {self.name}: {err_str}')
 
     def preload_images(self, images: list) -> None:
-        if self.type != K8sType.K3s:
+        if self.type != K8sType.K3s or len(images) == 0:
             return
         args = ['k3d', 'image', 'import', f'--cluster={self.name}']
         args += images
