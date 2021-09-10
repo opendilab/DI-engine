@@ -116,14 +116,14 @@ def serial_pipeline_reward_model_ngu(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
-            rnd_reward_model.collect_data(new_data)  #TODO
-            episodic_reward_model.collect_data(new_data)  #TODO
+            rnd_reward_model.collect_data(new_data)  # TODO(pu):
+            episodic_reward_model.collect_data(new_data)  # TODO(pu):
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
-        rnd_reward_model.train()  # pu TODO
-        rnd_reward_model.clear_data()  # pu TODO
-        episodic_reward_model.train()  # pu TODO
-        episodic_reward_model.clear_data()  # pu TODO
+        rnd_reward_model.train()
+        rnd_reward_model.clear_data()
+        episodic_reward_model.train()
+        episodic_reward_model.clear_data()  # TODO(pu):
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -136,9 +136,9 @@ def serial_pipeline_reward_model_ngu(
                 )
                 break
             # update train_data reward
-            rnd_reward = rnd_reward_model.estimate(train_data)  # pu TODO
-            episodic_reward = episodic_reward_model.estimate(train_data)  # pu TODO
-            train_data = fusion_reward(
+            rnd_reward = rnd_reward_model.estimate(train_data)
+            episodic_reward = episodic_reward_model.estimate(train_data)
+            train_data, estimate_cnt = fusion_reward(
                 train_data,
                 rnd_reward,
                 episodic_reward,

@@ -49,7 +49,7 @@ class InverseNetwork(nn.Module):
                 format(obs_shape)
             )
         self.inverse_net = nn.Sequential(
-            nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(), nn.Linear(512, action_shape)
+            nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
         )
         # for param in self.target.parameters():
         #     param.requires_grad = False
@@ -150,6 +150,36 @@ class EpisodicRewardModel(BaseRewardModel):
             self._train()
         self.clear_data()
 
+    # def _compute_intrinsic_reward(
+    #         self,
+    #         episodic_memory: List,
+    #         current_controllable_state: torch.Tensor,
+    #         k=10,
+    #         kernel_cluster_distance=0.008,
+    #         kernel_epsilon=0.001,
+    #         c=0.001,
+    #         sm=8,
+    # ) -> torch.Tensor:  #kernel_epsilon=0.0001
+    #     # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
+    #     state_dist = [(c_state, torch.dist(c_state, current_controllable_state)) for c_state in episodic_memory]
+    #     state_dist.sort(key=lambda x: x[1])
+    #     state_dist = state_dist[:k]
+    #     dist = [d[1].item() for d in state_dist]
+    #     dist = np.array(dist)
+
+    #     self._running_mean_std_episodic_dist.update(dist)  #.cpu().numpy() # TODO
+    #     dist = dist / self._running_mean_std_episodic_dist.mean  # TODO
+
+    #     # dist = np.max(dist - kernel_cluster_distance, 0) #TODO
+
+    #     kernel = kernel_epsilon / (dist + kernel_epsilon)
+    #     s = np.sqrt(np.clip(np.sum(kernel), 0, None)) + c
+
+    #     if np.isnan(s) or s > sm:
+    #         print('np.isnan(s) or s > sm!:',s.max(),s.min())
+    #         return torch.tensor(0)  # todo
+    #     return torch.tensor(1 / s)
+    
     def _compute_intrinsic_reward(
             self,
             episodic_memory: List,
@@ -160,25 +190,19 @@ class EpisodicRewardModel(BaseRewardModel):
             c=0.001,
             sm=8,
     ) -> torch.Tensor:  #kernel_epsilon=0.0001
-        # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
-        state_dist = [(c_state, torch.dist(c_state, current_controllable_state)) for c_state in episodic_memory]
-        state_dist.sort(key=lambda x: x[1])
-        state_dist = state_dist[:k]
-        dist = [d[1].item() for d in state_dist]
-        dist = np.array(dist)
+        state_dist   = torch.cdist(current_controllable_state.unsqueeze(0),episodic_memory,p=2).squeeze(0).sort()[0][:k]
 
-        self._running_mean_std_episodic_dist.update(dist)  #.cpu().numpy() # TODO
-        dist = dist / self._running_mean_std_episodic_dist.mean  # TODO
+        self._running_mean_std_episodic_dist.update( state_dist.cpu().numpy()) # TODO
+        state_dist  =  state_dist  / self._running_mean_std_episodic_dist.mean  # TODO
 
         # dist = np.max(dist - kernel_cluster_distance, 0) #TODO
+        kernel = kernel_epsilon / ( state_dist  + kernel_epsilon)
+        s = torch.sqrt(torch.clip(torch.sum(kernel), 0, None)) + c
 
-        kernel = kernel_epsilon / (dist + kernel_epsilon)
-        s = np.sqrt(np.clip(np.sum(kernel), 0, None)) + c
-
-        if np.isnan(s) or s > sm:
-            print('np.isnan(s) or s > sm!')
+        if torch.isnan(s) or s > sm:
+            print('np.isnan(s) or s > sm!:',s.max(),s.min())
             return torch.tensor(0)  # todo
-        return torch.tensor(1 / s)
+        return 1 / s # torch.tensor(1 / s)
 
     def estimate(self, data: list) -> None:
         """
@@ -218,8 +242,10 @@ class EpisodicRewardModel(BaseRewardModel):
                         episodic_reward[i].append(torch.tensor(0))
                     else:
                         episodic_memory = cur_obs_embedding[i][:j]
-                        reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j])
+                        reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
+
+            
             # 32,42,1  list(list(tensor)) - > tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
@@ -227,8 +253,9 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  #torch.Size([32, 42]) -> torch.Size([32*42]
 
             self.estimate_cnt_episodic += 1
-            self.tb_logger.add_scalar('episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic)
-            self.tb_logger.add_scalar('episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic)
+            self.tb_logger.add_scalar('episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic)
+            self.tb_logger.add_scalar('episodic_reward/episodic_reward_mean', episodic_reward.mean(), self.estimate_cnt_episodic)
+            self.tb_logger.add_scalar('episodic_reward/episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic)
             # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-8)
 
             # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
@@ -338,8 +365,9 @@ class RndRewardModel(BaseRewardModel):
             self._running_mean_std_rnd.update(reward.cpu().numpy())
             reward = 1 + (reward - self._running_mean_std_rnd.mean) / self._running_mean_std_rnd.std  # TODO
             self.estimate_cnt_rnd += 1
-            self.tb_logger.add_scalar('rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
-            self.tb_logger.add_scalar('rnd_reward_min', reward.min(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', reward.min(), self.estimate_cnt_rnd)
             # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return reward  # torch.Size([1344])
 
@@ -370,8 +398,9 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
     device = data[0]['reward'][0].device
     intrinsic_reward_type = 'add'
     intrisic_reward = episodic_reward * torch.clamp(inter_episodic_reward, min=1, max=5)
-    tb_logger.add_scalar('intrinsic_reward_max', intrisic_reward.max(), estimate_cnt)
-    tb_logger.add_scalar('intrinsic_reward_min', intrisic_reward.min(), estimate_cnt)
+    tb_logger.add_scalar('intrinsic_reward/intrinsic_reward_max', intrisic_reward.max(), estimate_cnt)
+    tb_logger.add_scalar('intrinsic_reward/intrinsic_reward_mean', intrisic_reward.mean(), estimate_cnt)
+    tb_logger.add_scalar('intrinsic_reward/intrinsic_reward_min', intrisic_reward.min(), estimate_cnt)
 
     if not isinstance(data[0], (list, dict)):
         intrisic_reward = intrisic_reward.to(device)
@@ -399,4 +428,4 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
         #                 data[i]['reward'][j]+=reward[i*eps_len+j]
         #             elif self.intrinsic_reward_type == 'assign':
         #                 data[i]['reward'][j]=reward[i*eps_len+j]
-    return data
+    return data, estimate_cnt

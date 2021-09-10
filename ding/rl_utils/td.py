@@ -47,25 +47,27 @@ def nstep_return(data: namedtuple, gamma: float, nstep: int, value_gamma: Option
         return_ = reward + value_gamma * next_value * (1 - done)
     return return_
 
+
 def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
     reward_list = []
-    for j in range(reward.shape[1]): # batch_size
+    for j in range(reward.shape[1]):  # batch_size
         reward_factor = torch.ones(nstep).to(device)
         for i in range(1, nstep):
             reward_factor[i] = gamma[j] * reward_factor[i - 1]
-        reward_tmp = torch.matmul(reward_factor, reward[:,i])
+        reward_tmp = torch.matmul(reward_factor, reward[:, i])
 
         if value_gamma is None:
-            return_ = reward_tmp  + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
+            return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
         else:
-            return_ = reward_tmp  + value_gamma * next_value[j] * (1 - done[j])
+            return_ = reward_tmp + value_gamma * next_value[j] * (1 - done[j])
 
         reward_list.append(return_)
-        
+
     return to_tensor(reward_list)
+
 
 dist_1step_td_data = namedtuple(
     'dist_1step_td_data', ['dist', 'next_dist', 'act', 'next_act', 'reward', 'done', 'weight']

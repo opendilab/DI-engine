@@ -241,6 +241,7 @@ class EpsGreedySampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class EpsGreedySampleNGUWrapper(IModelWrapper):
     r"""
     Overview:
@@ -252,7 +253,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         kwargs.pop('eps')
-        eps ={i: 0.4 ** ( 1 + 8*i/(args[0]['obs'].shape[0]-1)) for i in range(args[0]['obs'].shape[0])} # TODO
+        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}  # TODO
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
@@ -279,6 +280,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
             action, logit = action[0], logit[0]
         output['action'] = action
         return output
+
 
 class EpsGreedySampleWrapperSql(IModelWrapper):
     r"""
@@ -458,7 +460,7 @@ wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
-    'eps_greedy_sample': EpsGreedySampleWrapper, 
+    'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'multinomial_sample': MultinomialSampleWrapper,
