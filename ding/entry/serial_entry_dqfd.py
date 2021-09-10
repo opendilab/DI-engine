@@ -107,7 +107,7 @@ def serial_pipeline_dqfd(
     learner.call_hook('before_run')
     expert_data = expert_collector.collect(n_sample=10000, policy_kwargs={'eps': -1})
     for i in range(len(expert_data)):
-        expert_data[i]['Is_expert'] = 1
+        expert_data[i]['is_expert'] = 1
     expert_buffer.push(expert_data, cur_collector_envstep=0)
     for _ in range(cfg.policy.learn.per_train_iter_k):
         if evaluator.should_eval(learner.train_iter):
@@ -136,7 +136,7 @@ def serial_pipeline_dqfd(
         collect_kwargs = commander.step()
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
-            new_data[i]['Is_expert'] = 0
+            new_data[i]['is_expert'] = 0
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
@@ -149,7 +149,7 @@ def serial_pipeline_dqfd(
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
-            new_data[i]['Is_expert'] = 0
+            new_data[i]['is_expert'] = 0
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
