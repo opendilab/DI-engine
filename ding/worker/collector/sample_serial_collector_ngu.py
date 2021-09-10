@@ -246,6 +246,13 @@ class SampleCollectorNGU(ISerialCollector):
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
+                
+                import os
+                path = './video'
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                self._env.enable_save_replay(path)
+
                 prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
                 prev_reward_e = to_ndarray(prev_reward_e)
                 prev_action = actions

@@ -5,9 +5,9 @@ import torch
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
-nstep = 5 #5
+nstep = 2 #5
 lunarlander_ngu_config = dict(
-    exp_name='lunarlander_ngu_bs2_n5_ul40_upc4_tuf100_ed1e4_rbs5e4_debug',
+    exp_name='lunarlander_ngu_bs2_n2_ul40_upc4_tuf100_ed1e4_rbs5e4_debug',
     env=dict(
         collector_env_num=collector_env_num, 
         evaluator_env_num=evaluator_env_num,
@@ -15,7 +15,7 @@ lunarlander_ngu_config = dict(
         stop_value=195,
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  #add',  # 'assign'
+        intrinsic_reward_type='add', # 'assign'
         learning_rate=0.001,
         obs_shape=8,
         action_shape = 4,
@@ -26,7 +26,7 @@ lunarlander_ngu_config = dict(
         type='rnd',
     ),
     episodic_reward_model=dict(
-        intrinsic_reward_type='add',  #add',  # 'assign'
+        intrinsic_reward_type='add',  
         learning_rate=0.001,
         obs_shape=8,
         action_shape = 4,
@@ -52,14 +52,14 @@ lunarlander_ngu_config = dict(
             collector_env_num=collector_env_num,#TODO
         ),
         learn=dict(
-            update_per_collect=4,#20,  #4,
+            update_per_collect=4, # 4
             batch_size=64,#32, 
             learning_rate=0.0005,
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
-            target_update_freq=100,  #100,
+            target_update_freq=100, #100,  
         ),
         collect=dict(
             # n_sample=128,
