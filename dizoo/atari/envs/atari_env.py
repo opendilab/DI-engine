@@ -121,7 +121,7 @@ ATARIENV_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
-    'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
+    'MontezumaRevengeNoFrameskip-v4': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
