@@ -106,6 +106,6 @@ def wait_to_be_ready(namespace: str, component: str, timeout: int = 120) -> None
         # print("Event: %s %s %s" % (event['type'], event['object'].kind, event['object'].metadata.name))
         if event['object'].metadata.name.startswith(component) and \
             event['object'].status.ready_replicas is not None and \
-            event['object'].status.ready_replicas >= 1:
+                event['object'].status.ready_replicas >= 1:
             print(f'component {component} is ready for serving')
             w.stop()
