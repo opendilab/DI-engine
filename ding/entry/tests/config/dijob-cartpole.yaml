@@ -2,6 +2,8 @@ apiVersion: diengine.opendilab.org/v1alpha1
 kind: DIJob
 metadata:
   name: cartpole-dqn
+  labels: 
+    run-dijob-type: test
 spec:
   group: xxx
   priorityClassName: ""

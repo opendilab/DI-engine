@@ -85,8 +85,11 @@ def create_components_from_config(config: str) -> None:
     proc = subprocess.Popen(args, stderr=subprocess.PIPE)
     _, err = proc.communicate()
     err_str = err.decode('utf-8').strip()
-    if err_str != '' and 'WARN' not in err_str and 'already exists' not in err_str:
-        raise RuntimeError(f'Failed to launch components: {err_str}')
+    if err_str != '' and 'WARN' not in err_str:
+        if 'already exists' in err_str:
+            print(f'Components already exists: {config}')
+        else:
+            raise RuntimeError(f'Failed to launch components: {err_str}')
 
 
 def wait_to_be_ready(namespace: str, component: str, timeout: int = 120) -> None:
@@ -100,7 +103,7 @@ def wait_to_be_ready(namespace: str, component: str, timeout: int = 120) -> None
     appv1 = client.AppsV1Api()
     w = watch.Watch()
     for event in w.stream(appv1.list_namespaced_deployment, namespace, timeout_seconds=timeout):
-        print("Event: %s %s %s" % (event['type'], event['object'].kind, event['object'].metadata.name))
+        # print("Event: %s %s %s" % (event['type'], event['object'].kind, event['object'].metadata.name))
         if event['object'].metadata.name.startswith(component) and \
             event['object'].status.ready_replicas is not None and \
             event['object'].status.ready_replicas >= 1:

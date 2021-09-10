@@ -161,8 +161,8 @@ class K8sLauncher(object):
         if err_str != '' and 'WARN' not in err_str:
             if 'already exists' in err_str:
                 print('K8s cluster already exists')
-                return
-            raise RuntimeError(f'Failed to create cluster {self.name}: {err_str}')
+            else:
+                raise RuntimeError(f'Failed to create cluster {self.name}: {err_str}')
 
         # preload images
         self.preload_images(self._images)

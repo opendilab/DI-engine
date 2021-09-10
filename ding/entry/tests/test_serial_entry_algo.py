@@ -375,6 +375,7 @@ def test_running_on_orchestrator():
 
     # create dijob
     namespace = 'default'
+    name = 'cartpole-dqn'
     timeout = 20 * 60
     file_path = os.path.dirname(__file__)
     agconfig_path = os.path.join(file_path, 'config', 'agconfig.yaml')
@@ -384,27 +385,21 @@ def test_running_on_orchestrator():
 
     # watch for dijob to converge
     config.load_kube_config()
-    w = watch.Watch()
-
     dyclient = dynamic.DynamicClient(client.ApiClient(configuration=config.load_kube_config()))
     dijobapi = dyclient.resources.get(api_version='diengine.opendilab.org/v1alpha1', kind='DIJob')
 
-    for event in w.stream(dijobapi.get, namespace=namespace, timeout_seconds=timeout):
-        if event['object'].metadata.name == 'cartpole-dqn' and \
-            event['object'].status.phase == 'Succeeded':
-            print(f'DIJob cartpole-dqn succeeded')
-            w.stop()
+    wait_for_dijob_condition(dijobapi, name, namespace, 'Succeeded', timeout)
 
     v1 = client.CoreV1Api()
-    for event in w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=timeout):
-        if event['object'].metadata.name == 'cartpole-dqn-coordinator' and \
-            event['object'].status.phase == 'Succeeded':
-            print(f'cartpole-dqn-coordinator succeeded')
-            w.stop()
+    logs = v1.read_namespaced_pod_log(f'{name}-coordinator', namespace, tail_lines=20)
+    print(f'\ncoordinator logs:\n {logs} \n')
 
+    # delete dijob
+    dijobapi.delete(name=name, namespace=namespace, body={})
     # delete orchestrator
-    # olauncher.delete_orchestrator()
-    # launcher.delete_cluster()
+    olauncher.delete_orchestrator()
+    # delete k8s cluster
+    launcher.delete_cluster()
 
 
 def create_object_from_config(config_path: str, namespace: str = 'default'):
@@ -413,4 +408,25 @@ def create_object_from_config(config_path: str, namespace: str = 'default'):
     _, err = proc.communicate()
     err_str = err.decode('utf-8').strip()
     if err_str != '' and 'WARN' not in err_str and 'already exists' not in err_str:
-        raise RuntimeError(f'Failed to create object: {err.decode("utf-8")}')
+        raise RuntimeError(f'Failed to create object: {err_str}')
+
+
+def delete_object_from_config(config_path: str, namespace: str = 'default'):
+    args = ['kubectl', 'delete', '-n', namespace, '-f', config_path]
+    proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+    _, err = proc.communicate()
+    err_str = err.decode('utf-8').strip()
+    if err_str != '' and 'WARN' not in err_str and 'NotFound' not in err_str:
+        raise RuntimeError(f'Failed to delete object: {err_str}')
+
+
+def wait_for_dijob_condition(dijobapi, name: str, namespace: str, phase: str, timeout: int = 60, interval: int = 1):
+    start = time.time()
+    dijob = dijobapi.get(name=name, namespace=namespace)
+    while not dijob.status.phase == phase and time.time() - start < timeout:
+        time.sleep(interval)
+        dijob = dijobapi.get(name=name, namespace=namespace)
+
+    if dijob.status.phase == phase:
+        return
+    raise TimeoutError(f'Timeout waiting for DIJob: {name} to be {phase}')
