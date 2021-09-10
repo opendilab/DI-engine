@@ -262,7 +262,7 @@ q_nstep_td_data = namedtuple(
 dqfd_nstep_td_data = namedtuple(
     'dqfd_nstep_td_data', [
         'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight', 'new_n_q_one_step',
-        'next_n_action_one_step', 'Is_expert'
+        'next_n_action_one_step', 'is_expert'
     ]
 )
 
@@ -363,7 +363,7 @@ def dqfd_nstep_td_error(
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight'\
-                , 'new_n_q_one_step', 'next_n_action_one_step', 'Is_expert']
+                , 'new_n_q_one_step', 'next_n_action_one_step', 'is_expert']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
@@ -375,7 +375,7 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, weight, new_n_q_one_step, next_n_action_one_step, Is_expert = data
+    q, next_n_q, action, next_n_action, reward, done, weight, new_n_q_one_step, next_n_action_one_step, is_expert = data
     assert len(action.shape) == 1, action.shape
     if weight is None:
         weight = torch.ones_like(action)
@@ -412,7 +412,7 @@ def dqfd_nstep_td_error(
     # calculate the supervised loss
     device = q_s_a.device
     max_action = torch.argmax(q, dim=-1)
-    Js = Is_expert * (
+    Js = is_expert * (
         q[batch_range, max_action.type(torch.int64)] +
         0.8 * torch.from_numpy((action == max_action).numpy().astype(int)).float().to(device) - q_s_a
     )
