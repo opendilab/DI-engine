@@ -423,7 +423,7 @@ def delete_object_from_config(config_path: str, namespace: str = 'default'):
 def wait_for_dijob_condition(dijobapi, name: str, namespace: str, phase: str, timeout: int = 60, interval: int = 1):
     start = time.time()
     dijob = dijobapi.get(name=name, namespace=namespace)
-    while not dijob.status.phase == phase and time.time() - start < timeout:
+    while (dijob.status is None or dijob.status.phase != phase) and time.time() - start < timeout:
         time.sleep(interval)
         dijob = dijobapi.get(name=name, namespace=namespace)
 
