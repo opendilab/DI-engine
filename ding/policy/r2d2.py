@@ -155,9 +155,11 @@ class R2D2Policy(Policy):
             update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._target_model = model_wrap(
-            self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size
+            self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size, save_prev_state=True
         )
-        self._learn_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size)
+        self._learn_model = model_wrap(
+            self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size, save_prev_state=True
+        )
         self._learn_model = model_wrap(self._learn_model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -187,7 +189,7 @@ class R2D2Policy(Policy):
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['done'] = data['done'][bs:-self._nstep].float()
+            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
@@ -195,7 +197,7 @@ class R2D2Policy(Policy):
         if 'value_gamma' not in data:
             data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:-self._nstep]
+            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
         data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
 
         data['action'] = data['action'][bs:-self._nstep]
@@ -203,6 +205,9 @@ class R2D2Policy(Policy):
 
         # the burnin_obs is used to calculate the init hidden state for the calculation of the q_value
         data['burnin_obs'] = data['obs'][:bs]
+        # data['burnin_obs_target'] is to calculate the accurate initial hidden state of LSTM for
+        # caculating the target Q. Or an approximate way, we can use data['burnin_obs']
+        data['burnin_obs_target'] = data['obs'][:bs + self._nstep]
         # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
         # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
         data['main_obs'] = data['obs'][bs:-self._nstep]
@@ -230,19 +235,44 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
         if len(data['burnin_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_obs'], 'enable_fast_timestep': True}
-                _ = self._learn_model.forward(inputs)
-                _ = self._target_model.forward(inputs)
+                tmp = self._learn_model.forward(inputs)
+                tmp_target = self._target_model.forward(inputs)
+
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
-        q_value = self._learn_model.forward(inputs)['logit']
+        q_value = self._learn_model.forward(inputs)['logit']  # don't need reset, pass the prev_state inherently
+
+        # Note belowing reset way is not correct, because tmp['prev_state'] equals data['prev_state'][0]
+        # self._learn_model.reset(data_id=None, state=tmp['prev_state'])
+        # self._target_model.reset(data_id=None, state=tmp_target['prev_state'])
+
+        # reset way 1
+        # ding/model/wrapper/model_wrappers.py class HiddenStateWrapper() should add line 106
+        # ding/utils/data/collate_fn.py def default_decollate() list ignore add 'cur_state'
+        # need reset, pass the prev_state manaually
+        self._learn_model.reset(data_id=None, state=tmp['cur_state'])
+        self._target_model.reset(data_id=None, state=tmp_target['cur_state'])
+
+        # reset way 2
+        # need reunroll the network for get the hidden state of LSTM inherently
+        # self._learn_model.reset(data_id=None, state=data['prev_state'][0]) # take out timestep=0
+        # self._target_model.reset(data_id=None, state=data['prev_state'][0])
+        # if len(data['burnin_obs']) != 0:
+        #     with torch.no_grad():
+        #         # Or an approximate way, we can use data['burnin_obs']
+        #         inputs = {'obs': data['burnin_obs_target'], 'enable_fast_timestep': True}
+        #         _ = self._learn_model.forward(inputs)
+        #         _ = self._target_model.forward(inputs)
+
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
-            target_q_value = self._target_model.forward(next_inputs)['logit']
-            target_q_action = self._learn_model.forward(next_inputs)['action']
+            target_q_value = self._target_model.forward(next_inputs)[
+                'logit']  # don't need reset, pass the prev_state inherently, has one timestep gap
+            target_q_action = self._learn_model.forward(next_inputs)['action']  # argmax_action double_dqn
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
