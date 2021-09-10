@@ -187,7 +187,7 @@ class DQFDPolicy(DQNPolicy):
 
         data_n = dqfd_nstep_td_data(
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight'],
-            target_q_value_one_step, target_q_action_one_step, data['Is_expert']
+            target_q_value_one_step, target_q_action_one_step, data['is_expert']
         )
         value_gamma = data.get('value_gamma')
         loss, td_error_per_sample = dqfd_nstep_td_error(
