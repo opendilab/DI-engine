@@ -158,7 +158,7 @@ class Scheduler(object):
             'multi': lambda x, y, z: min(x * y, z[1]) if y >= 1 else max(x * y, z[0]),
             'div': lambda x, y, z: max(x / y, z[0]) if y >= 1 else min(x / y, z[1]),
         }
-        
+
         schedule_mode_list = list(schedule_fn.keys())
 
         if self.schedule_parameter == 'entropy_weight':

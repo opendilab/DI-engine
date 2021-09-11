@@ -3,6 +3,7 @@ import pytest
 from ding.utils.scheduler_module import Scheduler
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 
+
 @pytest.mark.unittest
 class TestSchedulerModule():
 
