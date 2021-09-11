@@ -4,7 +4,7 @@ print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_config = dict(
-    exp_name='cartpole_r2d2_bs2_n2_ul40_upc4_tuf200_ed1e4_rbs5e3_ehs128-128-64_debug',
+    exp_name='cartpole_r2d2_bs2_n2_ul40_upc4_tuf200_ed1e4_rbs5e3',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
