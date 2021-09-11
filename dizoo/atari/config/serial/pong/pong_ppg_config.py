@@ -70,6 +70,4 @@ pong_ppg_create_config = dict(
     policy=dict(type='ppg'),
 )
 create_config = EasyDict(pong_ppg_create_config)
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+# PPG needs to use specific entry, like `cartpole_ppg_main.py`

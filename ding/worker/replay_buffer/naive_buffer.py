@@ -95,14 +95,16 @@ class NaiveReplayBuffer(IBuffer):
         else:
             self._append(data, cur_collector_envstep)
 
-    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
-        r"""
+    def sample(self, size: int, cur_learner_iter: int, sample_range: slice = None) -> Optional[list]:
+        """
         Overview:
             Sample data with length ``size``.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration. \
                 Not used in naive buffer, but preserved for compatibility.
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
@@ -112,7 +114,7 @@ class NaiveReplayBuffer(IBuffer):
         if not can_sample:
             return None
         with self._lock:
-            indices = self._get_indices(size)
+            indices = self._get_indices(size, sample_range)
             result = self._sample_with_indices(indices, cur_learner_iter)
             return result
 
@@ -234,12 +236,14 @@ class NaiveReplayBuffer(IBuffer):
         """
         self.close()
 
-    def _get_indices(self, size: int) -> list:
+    def _get_indices(self, size: int, sample_range: slice = None) -> list:
         r"""
         Overview:
             Get the sample index list.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
         Returns:
             - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
         """
@@ -248,7 +252,11 @@ class NaiveReplayBuffer(IBuffer):
             tail = self._replay_buffer_size
         else:
             tail = self._tail
-        indices = list(np.random.choice(a=tail, size=size, replace=False))
+        if sample_range is None:
+            indices = list(np.random.choice(a=tail, size=size, replace=False))
+        else:
+            indices = list(range(tail))[sample_range]
+            indices = list(np.random.choice(indices, size=size, replace=False))
         return indices
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:

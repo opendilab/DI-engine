@@ -129,6 +129,13 @@ class TestAdvancedBuffer:
             if v > advanced_buffer._max_use:
                 assert advanced_buffer._data[k] is None
 
+        for _ in range(64):
+            data = generate_data()
+            data['priority'] = None
+            advanced_buffer.push(data, 0)
+        batch = advanced_buffer.sample(10, 0, sample_range=slice(-20, -2))
+        assert len(batch) == 10
+
     def test_head_tail(self):
         buffer_cfg = deep_merge_dicts(
             AdvancedReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64, max_use=4))
