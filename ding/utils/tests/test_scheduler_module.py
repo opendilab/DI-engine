@@ -63,6 +63,20 @@ class TestSchedulerModule():
         # recover the correct value for later test function
         self.test_merged_scheduler_config.change_range = [-1, 1]
 
+    def test_init_patience(self):
+        self.test_merged_scheduler_config.patience = "hello_test"
+        with pytest.raises(AssertionError) as excinfo:
+            test_scheduler = Scheduler(self.test_policy_config, self.test_merged_scheduler_config)
+        assert 'integer' in str(excinfo.value)
+
+        self.test_merged_scheduler_config.patience = -1
+        with pytest.raises(AssertionError) as excinfo:
+            test_scheduler = Scheduler(self.test_policy_config, self.test_merged_scheduler_config)
+        assert 'greater' in str(excinfo.value)
+
+        # recover the correct value for later test function
+        self.test_merged_scheduler_config.patience = 1
+
     def test_is_better(self):
         test_scheduler = Scheduler(self.test_policy_config, self.test_merged_scheduler_config)
         assert test_scheduler.is_better(-1) is True
