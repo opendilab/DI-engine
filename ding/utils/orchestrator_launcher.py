@@ -25,6 +25,8 @@ class OrchestratorLauncher(object):
         self.cert_manager_version = cert_manager_version
         self.cert_manager_registry = cert_manager_registry
 
+        self._namespace = 'di-system'
+        self._webhook = 'di-webhook'
         self._cert_manager_namespace = 'cert-manager'
         self._cert_manager_webhook = 'cert-manager-webhook'
 
@@ -58,15 +60,13 @@ class OrchestratorLauncher(object):
         if self.cluster is not None:
             self.cluster.preload_images(self._images)
 
-        for item in [self.cert_manager, self.installer]:
-            if item is self.installer:
-                watch_pod_events(self._cert_manager_namespace, self._cert_manager_webhook)
-            args = ['kubectl', 'create', '-f', f'{item}']
-            proc = subprocess.Popen(args, stderr=subprocess.PIPE)
-            _, err = proc.communicate()
-            err_str = err.decode('utf-8').strip()
-            if err_str != '' and 'WARN' not in err_str:
-                raise RuntimeError(f'Failed to launch di-orchestrator: {err_str}')
+        # create and wait for cert-manager to be available
+        create_components_from_config(self.cert_manager)
+        wait_to_be_ready(self._cert_manager_namespace, self._cert_manager_webhook)
+
+        # create and wait for di-orchestrator to be available
+        create_components_from_config(self.installer)
+        wait_to_be_ready(self._namespace, self._webhook)
 
     def delete_orchestrator(self) -> None:
         print('Deleting orchestrator...')
@@ -80,7 +80,19 @@ class OrchestratorLauncher(object):
                 raise RuntimeError(f'Failed to delete di-orchestrator: {err_str}')
 
 
-def watch_pod_events(namespace: str, pod: str, timeout: int = 60, phase: str = "Running") -> None:
+def create_components_from_config(config: str) -> None:
+    args = ['kubectl', 'create', '-f', f'{config}']
+    proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+    _, err = proc.communicate()
+    err_str = err.decode('utf-8').strip()
+    if err_str != '' and 'WARN' not in err_str:
+        if 'already exists' in err_str:
+            print(f'Components already exists: {config}')
+        else:
+            raise RuntimeError(f'Failed to launch components: {err_str}')
+
+
+def wait_to_be_ready(namespace: str, component: str, timeout: int = 120) -> None:
     try:
         from kubernetes import config, client, watch
     except ModuleNotFoundError:
@@ -88,11 +100,12 @@ def watch_pod_events(namespace: str, pod: str, timeout: int = 60, phase: str = "
         exit(-1)
 
     config.load_kube_config()
-    v1 = client.CoreV1Api()
+    appv1 = client.AppsV1Api()
     w = watch.Watch()
-    for event in w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=timeout):
-        if event['object'].metadata.name.startswith(pod) and \
-                event['object'].status.phase == phase:
-            print(f'pod {pod} matched the desired phase: {phase}, sleep for a few seconds')
-            time.sleep(5)
+    for event in w.stream(appv1.list_namespaced_deployment, namespace, timeout_seconds=timeout):
+        # print("Event: %s %s %s" % (event['type'], event['object'].kind, event['object'].metadata.name))
+        if event['object'].metadata.name.startswith(component) and \
+            event['object'].status.ready_replicas is not None and \
+                event['object'].status.ready_replicas >= 1:
+            print(f'component {component} is ready for serving')
             w.stop()
