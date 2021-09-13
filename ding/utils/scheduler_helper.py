@@ -12,8 +12,6 @@ class Scheduler(object):
     Args:
         - schedule_flag (:obj:`bool`): Indicates whether to use scheduler in training pipeline.
             Default: False
-        - schedule_parameter (:obj:`str`): One of 'entropy_weight', 'learning_rate'.
-            Default: 'entropy_weight'
         - schedule_mode (:obj:`str`): One of 'reduce', 'add','multi','div'. The schecule_mode
             decides the way of updating the parameters.  Default:'reduce'.
         - factor (:obj:`float`) : Amount (greater than 0) by which the parameter will be
@@ -33,14 +31,13 @@ class Scheduler(object):
         - cooldown (:obj:`int`): Number of epochs to wait before resuming
             normal operation after the parameter has been updated. Default: 0.
     Interfaces:
-        __init__, update_para, step
+        __init__, update_param, step
     Property:
         in_cooldown, is_better
     """
 
     config = dict(
         schedule_flag=False,
-        schedule_parameter='entropy_weight',
         schedule_mode='reduce',
         factor=0.05,
         change_range=[-1, 1],
@@ -50,17 +47,15 @@ class Scheduler(object):
         cooldown=0,
     )
 
-    def __init__(self, policy_config: EasyDict, merged_scheduler_config: EasyDict) -> None:
+    def __init__(self, merged_scheduler_config: EasyDict) -> None:
         '''
         Overview:
             Initialize the scheduler.
         Args:
-            - policy_cfg (:obj:`EasyDict`): the config of the policy, indexed by cfg.policy
             - merged_scheduler_config (:obj:`EasyDict`): the scheduler config, which merges the user
                 config and defaul config
         '''
 
-        schedule_parameter = merged_scheduler_config.schedule_parameter
         schedule_mode = merged_scheduler_config.schedule_mode
         factor = merged_scheduler_config.factor
         change_range = merged_scheduler_config.change_range
@@ -68,11 +63,6 @@ class Scheduler(object):
         optimize_mode = merged_scheduler_config.optimize_mode
         patience = merged_scheduler_config.patience
         cooldown = merged_scheduler_config.cooldown
-
-        assert schedule_parameter in [
-            'entropy_weight', 'learning_rate'
-        ], 'The parameter to be scheduled should be one of [\'entropy_weight\', \'learning_rate\']'
-        self.schedule_parameter = schedule_parameter
 
         assert schedule_mode in [
             'reduce', 'add', 'multi', 'div'
@@ -89,16 +79,6 @@ class Scheduler(object):
             isinstance(change_range[1], (float, int))
         ), 'The change_range should be a list with 2 float/int numbers'
         assert change_range[0] < change_range[1], 'The first num should be smaller than the second num'
-        if schedule_parameter == 'entropy_weight':
-            assert (
-                change_range[0] <= policy_config.learn.entropy_weight
-                and change_range[1] >= policy_config.learn.entropy_weight
-            ), 'The change range should cover the initial entropy weight value'
-        elif schedule_parameter == 'learning_rate':
-            assert (
-                change_range[0] <= policy_config.learn.learning_rate
-                and change_range[1] >= policy_config.learn.learning_rate
-            ), 'The change range should cover the initial learning rate value'
         self.change_range = change_range
 
         assert isinstance(threshold, (float, int)), 'The threshold should be a float/int number'
@@ -119,13 +99,15 @@ class Scheduler(object):
         self.last_metrics = None
         self.bad_epochs_num = 0
 
-    def step(self, metrics: float, policy_cfg: EasyDict) -> None:
+    def step(self, metrics: float, param: float) -> float:
         '''
         Overview:
             Decides whether to update the scheduled parameter
         Args:
             - metrics (:obj:`float`): current input metrics
-            - policy_cfg (:obj:`EasyDict`): the config of the policy
+            - param (:obj:`float`): parameter need to be updated
+        Returns:
+            - step_param (:obj:`float`): parameter after one step
         '''
         assert isinstance(metrics, float), 'The metrics should be converted to a float number'
         cur_metrics = metrics
@@ -141,16 +123,19 @@ class Scheduler(object):
             self.bad_epochs_num = 0  # ignore any bad epochs in cooldown
 
         if self.bad_epochs_num > self.patience:
-            self.update_para(policy_cfg)
+            param = self.update_param(param)
             self.cooldown_counter = self.cooldown
             self.bad_epochs_num = 0
+        return param
 
-    def update_para(self, policy_cfg: EasyDict) -> None:
+    def update_param(self, param: float) -> float:
         '''
         Overview:
             update the scheduling parameter
         Args:
-            - policy_cfg (:obj:`EasyDict`): the config of the policy
+            - param (:obj:`float`): parameter need to be updated
+        Returns:
+            - updated param (:obj:`float`): parameter after updating
         '''
         schedule_fn = {
             'reduce': lambda x, y, z: max(x - y, z[0]),
@@ -161,19 +146,10 @@ class Scheduler(object):
 
         schedule_mode_list = list(schedule_fn.keys())
 
-        if self.schedule_parameter == 'entropy_weight':
-            if self.schedule_mode in schedule_mode_list:
-                policy_cfg.learn.entropy_weight = schedule_fn[
-                    self.schedule_mode](policy_cfg.learn.entropy_weight, self.factor, self.change_range)
-            else:
-                raise KeyError("invalid schedule_mode({}) in {}".format(self.schedule_mode, schedule_mode_list))
-
-        if self.schedule_parameter == 'learning_rate':
-            if self.schedule_mode in schedule_mode_list:
-                policy_cfg.learn.learning_rate = schedule_fn[
-                    self.schedule_mode](policy_cfg.learn.learning_rate, self.factor, self.change_range)
-            else:
-                raise KeyError("invalid schedule_mode({}) in {}".format(self.schedule_mode, schedule_mode_list))
+        if self.schedule_mode in schedule_mode_list:
+            return schedule_fn[self.schedule_mode](param, self.factor, self.change_range)
+        else:
+            raise KeyError("invalid schedule_mode({}) in {}".format(self.schedule_mode, schedule_mode_list))
 
     @property
     def in_cooldown(self) -> bool:

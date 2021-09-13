@@ -29,20 +29,18 @@ league_demo_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.0,
             clip_ratio=0.2,
+            scheduler=dict(
+                schedule_flag=False,
+                schedule_mode='reduce',
+                factor=0.005,
+                change_range=[0, 1],
+                threshold=0.5,
+                patience=50,
+                # cooldown=0,
+            ),
         ),
         collect=dict(
             n_episode=128, unroll_len=1, discount_factor=1.0, gae_lambda=1.0, collector=dict(get_train_sample=True, )
-        ),
-        scheduler=dict(
-            schedule_flag=True,
-            schedule_parameter='learning_rate',
-            # schedule_mode='reduce',
-            # factor=0.05,
-            # change_range=[-1,1],
-            # threshold=0.1,
-            # optimize_mode='max',
-            # patience=1,
-            # cooldown=0,
         ),
         other=dict(
             league=dict(
