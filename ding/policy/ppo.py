@@ -324,16 +324,28 @@ class PPOPolicy(Policy):
         if data[-1]['done']:
             last_value = torch.zeros_like(data[-1]['value'])
         else:
-            with torch.no_grad():
-                last_value = self._collect_model.forward(
-                    data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
-                )['value']
+            if self._cfg.multi_agent:
+                with torch.no_grad():
+                    last_value = self._collect_model.forward(
+                        {
+                            'agent_state': data[-1]['next_obs']['agent_state'].unsqueeze(0),
+                            'global_state': data[-1]['next_obs']['global_state'].unsqueeze(0),
+                            'action_mask': data[-1]['next_obs']['action_mask'].unsqueeze(0)
+                        },
+                        mode='compute_actor_critic'
+                    )['value']
+                    #last_value = last_value.squeeze(0)
+            else:
+                with torch.no_grad():
+                    last_value = self._collect_model.forward(
+                        data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
+                    )['value']
         if self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
         data = get_gae(
-            data, to_device(last_value, self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=self._cuda
+            data, to_device(last_value.squeeze(0), self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=self._cuda
         )
         if self._value_norm:
             for i in range(len(data)):
