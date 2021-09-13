@@ -70,7 +70,7 @@ qbert_dqn_create_config = dict(
     learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
         type='zergling',
-        import_names=['ding.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_parallel_collector'],
     ),
     commander=dict(
         type='solo',

@@ -46,11 +46,13 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
     value, next_value, reward, done = data
     if done is None:
         done = torch.zeros_like(reward, device=reward.device)
-
+    if len(value.shape) == len(reward.shape) + 1:  # for some marl case: value(T, B, A), reward(T, B)
+        reward = reward.unsqueeze(-1)
+        done = done.unsqueeze(-1)
     delta = reward + (1 - done) * gamma * next_value - value
     factor = gamma * lambda_
-    adv = torch.zeros_like(reward, device=reward.device)
-    gae_item = 0.
+    adv = torch.zeros_like(value, device=value.device)
+    gae_item = torch.zeros_like(value[0])
 
     for t in reversed(range(reward.shape[0])):
         gae_item = delta[t] + factor * gae_item * (1 - done[t])

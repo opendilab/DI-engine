@@ -5,7 +5,7 @@ import pytest
 from functools import partial
 import copy
 
-from ding.worker import SampleCollector, NaiveReplayBuffer
+from ding.worker import SampleSerialCollector, NaiveReplayBuffer
 from ding.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
     BaseEnvManager
 from ding.utils import deep_merge_dicts, set_pkg_seed
@@ -48,10 +48,10 @@ def compare_test(cfg, out_str, seed):
         collector_env.seed(seed)
 
         # cfg.policy.collect.collector = deep_merge_dicts(
-        #     SampleCollector.default_config(), cfg.policy.collect.collector)
+        #     SampleSerialCollector.default_config(), cfg.policy.collect.collector)
         policy = FakePolicy(cfg.policy)
-        collector_cfg = deep_merge_dicts(SampleCollector.default_config(), cfg.policy.collect.collector)
-        collector = SampleCollector(collector_cfg, collector_env, policy.collect_mode)
+        collector_cfg = deep_merge_dicts(SampleSerialCollector.default_config(), cfg.policy.collect.collector)
+        collector = SampleSerialCollector(collector_cfg, collector_env, policy.collect_mode)
         buffer_cfg = deep_merge_dicts(cfg.policy.other.replay_buffer, NaiveReplayBuffer.default_config())
         replay_buffer = NaiveReplayBuffer(buffer_cfg)
 
