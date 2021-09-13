@@ -194,13 +194,12 @@ class WQMIXPolicy(Policy):
         total_q_star = self._learn_model.forward(inputs, single_step=False, q_star=True)['total_q']
 
         next_inputs = {'obs': data['next_obs']}
-
         self._learn_model.reset(state=data['prev_state'][1])  # TODO(pu)
         next_logit_detach = self._learn_model.forward(
             next_inputs, single_step=False, q_star=False
         )['logit'].clone().detach()
-        next_inputs = {'obs': data['next_obs'], 'action': next_logit_detach.argmax(dim=-1)}
 
+        next_inputs = {'obs': data['next_obs'], 'action': next_logit_detach.argmax(dim=-1)}
         with torch.no_grad():
             self._learn_model.reset(state=data['prev_state'][1])  # TODO(pu)
             target_total_q = self._learn_model.forward(next_inputs, single_step=False, q_star=True)['total_q']
@@ -227,9 +226,11 @@ class WQMIXPolicy(Policy):
             ws = torch.where(td_error < 0, torch.ones_like(td_error), ws)
         else:  # Centrally-Weighted
             inputs = {'obs': data['obs']}
+            self._learn_model.reset(state=data['prev_state'][0])  # TODO(pu)
             logit_detach = self._learn_model.forward(inputs, single_step=False, q_star=False)['logit'].clone().detach()
             cur_max_actions = logit_detach.argmax(dim=-1)
             inputs = {'obs': data['obs'], 'action': cur_max_actions}
+            self._learn_model.reset(state=data['prev_state'][0])  # TODO(pu)
             max_action_qtot = self._learn_model.forward(inputs, single_step=False, q_star=True)['total_q']  # Q_star
             # Only if the action of each agent is optimal, then the joint action is optimal
             is_max_action = (data['action'] == cur_max_actions).min(dim=2)[0]  # shape (H,B,N) -> (H,B)
