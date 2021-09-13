@@ -4,7 +4,6 @@ import os
 import torch
 import subprocess
 from copy import deepcopy
-from kubernetes import config, client, watch, dynamic
 
 from ding.utils import K8sLauncher, OrchestratorLauncher
 from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data
@@ -362,6 +361,7 @@ def test_cql():
 
 @pytest.mark.algotest
 def test_running_on_orchestrator():
+    from kubernetes import config, client, dynamic
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
     # create cluster
