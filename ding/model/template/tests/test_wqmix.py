@@ -5,6 +5,7 @@ from ding.model.template.wqmix import MixerStar, WQMix
 
 args = [True, False]
 
+
 @pytest.mark.unittest
 def test_mixer_star():
     agent_num, bs, embedding_dim = 4, 3, 32
@@ -18,7 +19,7 @@ def test_mixer_star():
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('is_qstar', args)
+@pytest.mark.parametrize('is_q_star', args)
 def test_wqmix(is_q_star):
     agent_num, bs, T = 4, 3, 8
     obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
