@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-    exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5',
+    exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e7_rbs1e5',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -48,7 +48,7 @@ minigrid_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=10000,
+                decay=1e7,
             ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
