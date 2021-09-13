@@ -18,6 +18,6 @@ def test_sqil():
     config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline_sqil(config, seed=0, max_iterations=1)
+        serial_pipeline_sqil(config, [cartpole_sql_config, cartpole_sql_create_config], seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"

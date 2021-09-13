@@ -501,7 +501,7 @@ parallel_test_create_config = dict(
     ),
     collector=dict(
         type='zergling',
-        import_names=['ding.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_parallel_collector'],
     ),
     commander=dict(
         type='naive',
