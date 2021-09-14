@@ -1,19 +1,19 @@
-from typing import Union, Tuple
-from easydict import EasyDict
-
+import copy
 import random
+from typing import Tuple
+from typing import Union, Dict, List
+
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
+import torch.optim as optim
+from easydict import EasyDict
 
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
-from .base_reward_model import BaseRewardModel
-from typing import Union, Optional, Dict, Callable, List
-import numpy as np
-import copy
 from ding.utils import RunningMeanStd
+from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from .base_reward_model import BaseRewardModel
 
 
 def collect_states(iterator):  # get total_states
@@ -46,7 +46,7 @@ class InverseNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
@@ -112,7 +112,7 @@ class EpisodicRewardModel(BaseRewardModel):
         train_data = {'obs': train_obs, 'next_obs': train_next_obs}
         pred_action_logits, pred_action_probs = self.episodic_reward_model(train_data)
 
-        inverse_loss = F.cross_entropy(pred_action_logits, train_action.squeeze(-1))  #.mean(dim=1)
+        inverse_loss = F.cross_entropy(pred_action_logits, train_action.squeeze(-1))  # .mean(dim=1)
         self.opt.zero_grad()
         inverse_loss.backward()
         self.opt.step()
@@ -188,7 +188,7 @@ class EpisodicRewardModel(BaseRewardModel):
             kernel_epsilon=0.001,
             c=0.001,
             sm=8,
-    ) -> torch.Tensor:  #kernel_epsilon=0.0001
+    ) -> torch.Tensor:  # kernel_epsilon=0.0001
         state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
 
         self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())  # TODO
@@ -198,8 +198,11 @@ class EpisodicRewardModel(BaseRewardModel):
         kernel = kernel_epsilon / (state_dist + kernel_epsilon)
         s = torch.sqrt(torch.clamp(torch.sum(kernel), min=0, max=None)) + c
 
-        if torch.isnan(s) or s > sm:
-            print('np.isnan(s) or s > sm!:', s.max(), s.min())
+        # if s > sm:
+        #     print('s > sm!:', s.max(), s.min())
+        #     return torch.tensor(0)  # todo
+        if torch.isnan(s):
+            print('torch.isnan(s):', s.max(), s.min())
             return torch.tensor(0)  # todo
         return 1 / s  # torch.tensor(1 / s)
 
@@ -249,7 +252,7 @@ class EpisodicRewardModel(BaseRewardModel):
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # -1) TODO image
-            episodic_reward = episodic_reward.view(-1)  #torch.Size([32, 42]) -> torch.Size([32*42]
+            episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             self.estimate_cnt_episodic += 1
             self.tb_logger.add_scalar(
@@ -265,7 +268,7 @@ class EpisodicRewardModel(BaseRewardModel):
             # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
             # episodic_reward =  episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO
             episodic_reward = (episodic_reward - episodic_reward.min()) / (
-                episodic_reward.max() - episodic_reward.min() + 1e-8
+                    episodic_reward.max() - episodic_reward.min() + 1e-8
             )  # normalize to [0,1]
         return episodic_reward
 
@@ -293,7 +296,7 @@ class RndNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         for param in self.target.parameters():
             param.requires_grad = False
@@ -394,7 +397,7 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
         )
         for i in range(collector_env_num)
     }
-    batch_size = len(data)  #32
+    batch_size = len(data)  # 32
     # batch_size = int(len(episodic_reward) / len(data[0]['reward']))
     timesteps = len(data[0]['reward'])  # 42
     device = data[0]['reward'][0].device
@@ -416,7 +419,7 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
         # reward = torch.chunk(reward, int(reward.shape[0]/len(data[0]['reward'])), dim=0)
 
         for i in range(batch_size):  # if nstep 64 batch_size
-            for j in range(timesteps):  #24 24=20+2*2 eps_len
+            for j in range(timesteps):  # 24 24=20+2*2 eps_len
                 if j < timesteps - nstep:
                     bonus = torch.cat([intrisic_reward[i * timesteps + j + k] for k in range(nstep)], dim=0)
                     if intrinsic_reward_type == 'add':
