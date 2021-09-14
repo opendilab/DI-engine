@@ -1,13 +1,14 @@
-from typing import Any, Optional, Callable
-from collections import namedtuple
 import copy
+from collections import namedtuple
+from typing import Any, Optional, Callable
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.rl_utils.value_rescale import value_transform, value_inv_transform
+
 from ding.hpc_rl import hpc_wrapper
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.rl_utils.value_rescale import value_transform, value_inv_transform
+from ding.torch_utils import to_tensor
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
 
@@ -52,12 +53,12 @@ def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Opti
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
-    reward_list = []
-    for j in range(reward.shape[1]):  # batch_size
+    return_list = []
+    for j in range(done.shape[0]):  # reward.shape[1]):  # batch_size
         reward_factor = torch.ones(nstep).to(device)
         for i in range(1, nstep):
             reward_factor[i] = gamma[j] * reward_factor[i - 1]
-        reward_tmp = torch.matmul(reward_factor, reward[:, i])
+        reward_tmp = torch.matmul(reward_factor, reward[:, j])
 
         if value_gamma is None:
             return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
@@ -65,9 +66,11 @@ def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Opti
             return_ = reward_tmp + value_gamma * next_value[j] * (1 - done[j])
 
         # return return_
-        reward_list.append(return_)
+        return_list.append(return_.unsqueeze(0))
+    # return_list = to_tensor(return_list)
+    return_ = torch.cat(return_list, dim=0)
 
-    return to_tensor(reward_list)
+    return return_
 
 
 dist_1step_td_data = namedtuple(
@@ -357,7 +360,7 @@ def q_nstep_td_error(
 @hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error_ngu(
         data: namedtuple,
-        gamma: Any,  #float,
+        gamma: Any,  # float,
         nstep: int = 1,
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
@@ -427,13 +430,13 @@ def shape_fn_qntd_rescale(args, kwargs):
     shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
 )
 def q_nstep_td_error_with_rescale(
-    data: namedtuple,
-    gamma: float,
-    nstep: int = 1,
-    value_gamma: Optional[torch.Tensor] = None,
-    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-    trans_fn: Callable = value_transform,
-    inv_trans_fn: Callable = value_inv_transform,
+        data: namedtuple,
+        gamma: float,
+        nstep: int = 1,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+        trans_fn: Callable = value_transform,
+        inv_trans_fn: Callable = value_inv_transform,
 ) -> torch.Tensor:
     """
     Overview:
@@ -480,13 +483,13 @@ def q_nstep_td_error_with_rescale(
     shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
 )
 def q_nstep_td_error_with_rescale_ngu(
-    data: namedtuple,
-    gamma: Any,
-    nstep: int = 1,
-    value_gamma: Optional[torch.Tensor] = None,
-    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-    trans_fn: Callable = value_transform,
-    inv_trans_fn: Callable = value_inv_transform,
+        data: namedtuple,
+        gamma: Any,
+        nstep: int = 1,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+        trans_fn: Callable = value_transform,
+        inv_trans_fn: Callable = value_inv_transform,
 ) -> torch.Tensor:
     """
     Overview:
@@ -652,7 +655,7 @@ def q_nstep_sql_td_error(
     # However, algorithms may face the danger of explosion for other alphas.
     # The hardcodes above are to prevent this situation from happening
     record_target_v = copy.deepcopy(target_v)
-    #print(target_v)
+    # print(target_v)
     if cum_reward:
         if value_gamma is None:
             target_v = reward + (gamma ** nstep) * target_v * (1 - done)
@@ -809,7 +812,7 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
         return_ = generalized_lambda_returns(value, reward, gamma, lambda_)
     # discard the value at T as it should be considered in the next slice
     loss = 0.5 * \
-        (F.mse_loss(return_, value[:-1], reduction='none') * weight).mean()
+           (F.mse_loss(return_, value[:-1], reduction='none') * weight).mean()
     return loss
 
 
@@ -876,7 +879,7 @@ def multistep_forward_view(
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = rewards[t, :] \
-            + discounts[t, :] * result[t + 1, :] \
-            + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+                       + discounts[t, :] * result[t + 1, :] \
+                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
     return result

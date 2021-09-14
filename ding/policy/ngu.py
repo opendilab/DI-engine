@@ -11,6 +11,12 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
+index_to_gamma = {
+    i: 1 - torch.exp(
+        ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1)
+    )
+    for i in range(8)  # TODO
+}
 
 @POLICY_REGISTRY.register('ngu')
 class NGUPolicy(Policy):
@@ -197,10 +203,11 @@ class NGUPolicy(Policy):
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
         # below is two different implementation ways
-        if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
-        else:
-            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
+        # if 'value_gamma' not in data:
+        #     data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+        # else:
+        #     data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
+        data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
 
         # split obs into three parts 'burnin_obs' [0:bs], 'main_obs' [bs:bs+nstep], 'target_obs' [bs+nstep:]
@@ -295,13 +302,7 @@ class NGUPolicy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        index_to_gamma = {
-            i: 1 - torch.exp(
-                ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1)
-            )
-            for i in range(8)  # TODO
-        }
-        self._gamma = [index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B, 1  75,64 -> 64
+        self._gamma = [index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B  75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
@@ -439,7 +440,8 @@ class NGUPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        data = get_nstep_return_data(data, self._nstep, gamma=index_to_gamma[int(data[0]['beta'])].item())
         return get_train_sample(data, self._unroll_len_add_burnin_step)
 
     def _init_eval(self) -> None:
