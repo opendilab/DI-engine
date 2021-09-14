@@ -4,7 +4,7 @@ import torch
 import copy
 
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale,  q_nstep_td_error_ngu, q_nstep_td_error_with_rescale_ngu, get_nstep_return_data, \
     get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
@@ -78,10 +78,13 @@ class NGUPolicy(Policy):
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
-        nstep=3,
+        nstep=5,
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
-        burnin_step=2,
+        burnin_step=20,
+        # (int) the trajectory length to unroll the RNN network minus
+        # the timestep of burnin operation
+        unroll_len=80,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -154,9 +157,11 @@ class NGUPolicy(Policy):
             update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._target_model = model_wrap(
-            self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size
+            self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size, save_prev_state=True
         )
-        self._learn_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size)
+        self._learn_model = model_wrap(
+            self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size, save_prev_state=True
+        )
         self._learn_model = model_wrap(self._learn_model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -180,18 +185,28 @@ class NGUPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
-        ignore_done = self._cfg.learn.ignore_done
 
+        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            # data['done'] = data['done'][bs:self._unroll_len_add_burnin_step ].float()
-            data['done'] = data['done'][bs:-self._nstep].float()
+            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
+
+        # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # below is two different implementation ways
         if 'value_gamma' not in data:
             data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:-self._nstep]
+            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+
+        # split obs into three parts 'burnin_obs' [0:bs], 'main_obs' [bs:bs+nstep], 'target_obs' [bs+nstep:]
+        data['burnin_obs'] = data['obs'][:bs]
+        data['main_obs'] = data['obs'][bs:-self._nstep]
+        data['target_obs'] = data['obs'][bs + self._nstep:]
 
         data['burnin_action'] = data['action'][:bs]
         data['main_action'] = data['action'][bs:-self._nstep]
@@ -201,16 +216,11 @@ class NGUPolicy(Policy):
         data['main_reward'] = data['reward'][bs:-self._nstep]
         data['target_reward'] = data['reward'][bs + self._nstep:]
 
-        # split obs into three parts ['burnin_obs'(0~bs), 'main_obs'(bs~bs+nstep), 'target_obs'(bs+nstep~bss+2nstep)]
-        data['burnin_obs'] = data['obs'][:bs]
-        data['main_obs'] = data['obs'][bs:-self._nstep]
-        data['target_obs'] = data['obs'][bs + self._nstep:]
-
         data['burnin_beta'] = data['beta'][:bs]
         data['main_beta'] = data['beta'][bs:-self._nstep]
         data['target_beta'] = data['beta'][bs + self._nstep:]
 
-        # Must be after the previous slicing operation
+        # Must be here after the previous slicing operation
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
 
@@ -235,6 +245,7 @@ class NGUPolicy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
+        # take out the hidden state in timestep=0
         self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
@@ -246,27 +257,37 @@ class NGUPolicy(Policy):
                     'reward': data['burnin_reward'],
                     'beta': data['burnin_beta'],
                     'enable_fast_timestep': True
-                }  #'prev_state':[None for i in range(32)]
+                }
                 tmp = self._learn_model.forward(inputs)
                 tmp_target = self._target_model.forward(inputs)
+
         inputs = {
             'obs': data['main_obs'],
             'action': data['main_action'],
             'reward': data['main_reward'],
             'beta': data['main_beta'],
             'enable_fast_timestep': True
-        }  #'prev_state':tmp['hidden_state'][-1].unsqueeze(0),
-        q_value = self._learn_model.forward(inputs)['logit']
+        }
+        q_value = self._learn_model.forward(inputs)['logit']  # don't need reset, pass the prev_state inherently
+
+        # reset way 1
+        # ding/model/wrapper/model_wrappers.py class HiddenStateWrapper() should add line 106
+        # ding/utils/data/collate_fn.py def default_decollate() list ignore add 'cur_state'
+        # need reset, pass the prev_state manaually
+        self._learn_model.reset(data_id=None, state=tmp['cur_state'])
+        self._target_model.reset(data_id=None, state=tmp_target['cur_state'])
+
         next_inputs = {
             'obs': data['target_obs'],
             'action': data['target_action'],
             'reward': data['target_reward'],
             'beta': data['target_beta'],
             'enable_fast_timestep': True
-        }  #'prev_state':tmp_target['hidden_state'][-1].unsqueeze(0),
+        }
         with torch.no_grad():
+            # the hidden state has one timestep gap. We can also not reset, pass the prev_state inherently.
             target_q_value = self._target_model.forward(next_inputs)['logit']
-            target_q_action = self._learn_model.forward(next_inputs)['action']
+            target_q_action = self._learn_model.forward(next_inputs)['action']  # argmax_action double_dqn
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
@@ -274,18 +295,25 @@ class NGUPolicy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        # self._gamma=  data['gamma']
+        index_to_gamma = {
+            i: 1 - torch.exp(
+                ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1)
+            )
+            for i in range(8)  # TODO
+        }
+        self._gamma = [index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B, 1  75,64 -> 64
+
         # reward torch.Size([4, 5, 64])
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
             if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error_with_rescale_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
             else:
-                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
@@ -296,10 +324,18 @@ class NGUPolicy(Policy):
         self._optimizer.step()
         # after update
         self._target_model.update(self._learn_model.state_dict())
+
+        batch_range = torch.arange(action.shape[1])  # T,B,1 -> B
+        max_target_q_s_a = target_q_value[0][batch_range, target_q_action[0]]  # B,
+        q_s_a = q_value[0][batch_range, action[0]]  # B,
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            # timestep 0
+            'max_target_q_s_a_value': max_target_q_s_a.mean(),  # TODO
+            'q_s_a_value': q_s_a.mean(),  # TODO
+            'mean_q_s_a_value': q_value[0].mean(),  # TODO mean in B and A
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
