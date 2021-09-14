@@ -53,7 +53,8 @@ class MixerStar(nn.Module):
         Returns:
             - q_tot (:obj:`torch.FloatTensor`): the total mixed q_value
         Shapes:
-            - agent_qs (:obj:`torch.FloatTensor`): :math:`(T,B, N)`, where T is timestep, B is batch size and N is agent_num
+            - agent_qs (:obj:`torch.FloatTensor`): :math:`(T,B, N)`, where T is timestep,
+              B is batch size and N is agent_num
             - states (:obj:`torch.FloatTensor`): :math:`(T, B, M)`, where M is embedding_size
             - q_tot (:obj:`torch.FloatTensor`): :math:`(T, B, )`
         """
