@@ -12,11 +12,11 @@ from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 index_to_gamma = {
-    i: 1 - torch.exp(
-        ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1)
-    )
+    i:
+    1 - torch.exp(((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1))
     for i in range(8)  # TODO
 }
+
 
 @POLICY_REGISTRY.register('ngu')
 class NGUPolicy(Policy):

@@ -365,7 +365,10 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
     index_neg_one = torch.eq(val_reshape, -1).long()
     if index_neg_one.sum() != 0:  # if -1 exists in val
         # convert the original value -1 to 0
-        val_reshape = torch.where(val_reshape != -1, val_reshape, torch.zeros(val_reshape.shape,device=val.device).long())
+        val_reshape = torch.where(
+            val_reshape != -1, val_reshape,
+            torch.zeros(val_reshape.shape, device=val.device).long()
+        )
     try:
         ret.scatter_(1, val_reshape, 1)
         if index_neg_one.sum() != 0:  # if -1 exists in val

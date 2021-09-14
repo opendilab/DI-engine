@@ -46,7 +46,7 @@ class InverseNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                    format(obs_shape)
+                format(obs_shape)
             )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
@@ -187,20 +187,19 @@ class EpisodicRewardModel(BaseRewardModel):
             kernel_cluster_distance=0.008,
             kernel_epsilon=0.001,
             c=0.001,
-            sm=8,
-    ) -> torch.Tensor:  # kernel_epsilon=0.0001
+            siminarity_max=8,
+    ) -> torch.Tensor:  # kernel_epsilon=0.0001 # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
         state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
-
         self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())  # TODO
-        state_dist = state_dist / self._running_mean_std_episodic_dist.mean  # TODO
+        state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)  # TODO
 
         # dist = np.max(dist - kernel_cluster_distance, 0) #TODO
         kernel = kernel_epsilon / (state_dist + kernel_epsilon)
         s = torch.sqrt(torch.clamp(torch.sum(kernel), min=0, max=None)) + c
 
-        # if s > sm:
-        #     print('s > sm!:', s.max(), s.min())
-        #     return torch.tensor(0)  # todo
+        if s > siminarity_max:
+            print('s > siminarity_max:', s.max(), s.min())
+            return torch.tensor(0)  # todo
         if torch.isnan(s):
             print('torch.isnan(s):', s.max(), s.min())
             return torch.tensor(0)  # todo
@@ -220,7 +219,7 @@ class EpisodicRewardModel(BaseRewardModel):
             obs = torch.stack(
                 obs, dim=0
             ).view(batch_size * timesteps, self.cfg.obs_shape).to(self.device)  # -1) TODO image
-        else:  #:len(self.cfg.obs_shape) == 3
+        else:  # len(self.cfg.obs_shape) == 3
             obs = torch.stack(
                 obs, dim=0
             ).view(batch_size * timesteps, *self.cfg.obs_shape).to(self.device)  # -1) TODO image
@@ -268,7 +267,7 @@ class EpisodicRewardModel(BaseRewardModel):
             # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
             # episodic_reward =  episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO
             episodic_reward = (episodic_reward - episodic_reward.min()) / (
-                    episodic_reward.max() - episodic_reward.min() + 1e-8
+                episodic_reward.max() - episodic_reward.min() + 1e-8
             )  # normalize to [0,1]
         return episodic_reward
 
@@ -296,7 +295,7 @@ class RndNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                    format(obs_shape)
+                format(obs_shape)
             )
         for param in self.target.parameters():
             param.requires_grad = False
