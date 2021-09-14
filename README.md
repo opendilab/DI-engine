@@ -38,8 +38,7 @@ Updated on 2021.08.03 DI-engine-v0.1.1 (beta)
 
 
 ## Introduction to DI-engine (beta)
-DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms, such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in 
-inverse RL, and RND in exploration problems. Various training pipelines and customized decision AI applications are also supported. Have fun with exploration and exploitation.
+DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms, such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems. Various training pipelines and customized decision AI applications are also supported. Have fun with exploration and exploitation.
 
 ### Application
 - [DI-star](https://github.com/opendilab/DI-star)
@@ -78,7 +77,7 @@ The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-en
 
 [3 Minutes Kickoff(colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
 
-[3分钟上手中文版(kaggle)](https://www.kaggle.com/shenzhenperson/di-engine)
+[3 分钟上手中文版(kaggle)](https://www.kaggle.com/shenzhenperson/di-engine)
 
 **Bonus: Train RL agent in one line code:**
 ```bash
@@ -172,8 +171,9 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 
 We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides. And our roadmap can be accessed by [this link](https://github.com/opendilab/DI-engine/projects/1).
 
-And users can join our [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ) for more detailed discussion.
+And users can join our [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ) or our [forum](https://github.com/opendilab/DI-engine/discussions) for more detailed discussion.
 
+For future plans or milestones, please refer to our [GitHub Projects](https://github.com/opendilab/DI-engine/projects).
 
 ## Citation
 ```latex
