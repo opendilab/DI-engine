@@ -16,7 +16,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 from ding.reward_model import create_reward_model
-
+import copy
 
 def serial_pipeline_max_entropy(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -123,6 +123,7 @@ def serial_pipeline_max_entropy(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        train_data = copy.deepcopy(new_data)
         expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
             device_1 = new_data[i]['obs'].device
@@ -141,7 +142,9 @@ def serial_pipeline_max_entropy(
             reward_model.train(expert_demo, samp)
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            train_data = train_data
+            #print(train_data)
             for i in range(len(train_data)):
                 #print(train_data[i]['obs'])
                 with torch.no_grad():
