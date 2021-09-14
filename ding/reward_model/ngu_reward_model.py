@@ -179,7 +179,6 @@ class EpisodicRewardModel(BaseRewardModel):
     #         print('np.isnan(s) or s > sm!:',s.max(),s.min())
     #         return torch.tensor(0)  # todo
     #     return torch.tensor(1 / s)
-
     def _compute_intrinsic_reward(
             self,
             episodic_memory: List,

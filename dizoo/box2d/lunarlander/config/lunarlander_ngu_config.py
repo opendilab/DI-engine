@@ -5,9 +5,9 @@ import torch
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
-nstep = 5 #5
+nstep = 5
 lunarlander_ngu_config = dict(
-    exp_name='lunarlander_ngu_bs2_n5_ul40_upc4_tuf100_ed1e4_rbs5e4_debug',
+    exp_name='lunarlander_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e4_rbs1e5_debug',
     env=dict(
         collector_env_num=collector_env_num, 
         evaluator_env_num=evaluator_env_num,
@@ -15,7 +15,7 @@ lunarlander_ngu_config = dict(
         stop_value=195,
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  #add',  # 'assign'
+        intrinsic_reward_type='add', # 'assign'
         learning_rate=0.001,
         obs_shape=8,
         action_shape = 4,
@@ -26,7 +26,7 @@ lunarlander_ngu_config = dict(
         type='rnd',
     ),
     episodic_reward_model=dict(
-        intrinsic_reward_type='add',  #add',  # 'assign'
+        intrinsic_reward_type='add',  
         learning_rate=0.001,
         obs_shape=8,
         action_shape = 4,
@@ -41,10 +41,10 @@ lunarlander_ngu_config = dict(
         on_policy=False,
         cuda=True,
         priority=False,
-        discount_factor=0.99,#0.999,
-        burnin_step=2, #TODO
+        discount_factor=0.997,
+        burnin_step=20, 
         nstep=nstep,
-        unroll_len=40,  # 80
+        unroll_len=80,  
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -52,20 +52,18 @@ lunarlander_ngu_config = dict(
             collector_env_num=collector_env_num,#TODO
         ),
         learn=dict(
-            update_per_collect=4,#20,  #4,
+            update_per_collect=8, 
             batch_size=64,#32, 
             learning_rate=0.0005,
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
-            target_update_freq=100,  #100,
+            target_update_freq=2500, 
         ),
         collect=dict(
             # n_sample=128,
             n_sample=32,
-            # unroll_len=1,
-            # unroll_len=40,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -76,7 +74,7 @@ lunarlander_ngu_config = dict(
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=50000, )  #10000
+            replay_buffer=dict(replay_buffer_size=100000, )  #10000
         ),
     ),
 )
