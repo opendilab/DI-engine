@@ -4,8 +4,8 @@ import torch
 import copy
 
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale,  q_nstep_td_error_ngu, q_nstep_td_error_with_rescale_ngu, get_nstep_return_data, \
-    get_train_sample
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, q_nstep_td_error_ngu, \
+    q_nstep_td_error_with_rescale_ngu, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate

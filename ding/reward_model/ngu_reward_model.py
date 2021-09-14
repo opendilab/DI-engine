@@ -133,7 +133,7 @@ class EpisodicRewardModel(BaseRewardModel):
             self.train_obs = torch.stack(
                 self.train_obs, dim=0
             ).view(len(self.train_obs) * len(self.train_obs[0]), self.cfg.obs_shape)  # -1) TODO image
-        else:  #:len(self.cfg.obs_shape) == 3
+        else:  # len(self.cfg.obs_shape) == 3
             self.train_obs = torch.stack(
                 self.train_obs, dim=0
             ).view(self.train_obs.shape[0] * self.train_obs.shape[1], *self.cfg.obs_shape)  # -1) TODO image
@@ -188,7 +188,8 @@ class EpisodicRewardModel(BaseRewardModel):
             kernel_epsilon=0.001,
             c=0.001,
             siminarity_max=8,
-    ) -> torch.Tensor:  # kernel_epsilon=0.0001 # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
+    ) -> torch.Tensor:  # kernel_epsilon=0.0001
+        # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
         state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
         self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())  # TODO
         state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)  # TODO
@@ -263,7 +264,8 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic
             )
-            # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-8)
+            # episodic_reward = (episodic_reward - episodic_reward.min()) / \
+            # (episodic_reward.max() - episodic_reward.min() + 1e-8)
             # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
             # episodic_reward =  episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO
             episodic_reward = (episodic_reward - episodic_reward.min()) / (
