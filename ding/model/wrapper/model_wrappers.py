@@ -104,6 +104,11 @@ class HiddenStateWrapper(IModelWrapper):
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
             output['prev_state'] = prev_state
+
+            # TODO(pu): for r2d2, we need record the current hidden state including h and c
+            state_id = [i for i in range(self._state_num)]
+            state_info = {idx: self._state[idx] for idx in state_id}
+            output['cur_state'] = list(state_info.values())
         return output
 
     def reset(self, *args, **kwargs):
@@ -241,6 +246,7 @@ class EpsGreedySampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class EpsGreedySampleNGUWrapper(IModelWrapper):
     r"""
     Overview:
@@ -252,7 +258,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         kwargs.pop('eps')
-        eps ={i: 0.4 ** ( 1 + 8*i/(args[0]['obs'].shape[0]-1)) for i in range(args[0]['obs'].shape[0])} # TODO
+        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}  # TODO
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
@@ -279,6 +285,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
             action, logit = action[0], logit[0]
         output['action'] = action
         return output
+
 
 class EpsGreedySampleWrapperSql(IModelWrapper):
     r"""
@@ -458,7 +465,7 @@ wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
-    'eps_greedy_sample': EpsGreedySampleWrapper, 
+    'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'multinomial_sample': MultinomialSampleWrapper,

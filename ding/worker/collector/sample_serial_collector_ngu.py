@@ -246,7 +246,7 @@ class SampleCollectorNGU(ISerialCollector):
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
-                prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
+                prev_reward_e = {env_id: timestep.reward.astype('float32') for env_id, timestep in timesteps.items()}
                 prev_reward_e = to_ndarray(prev_reward_e)
                 prev_action = actions
 
