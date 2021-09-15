@@ -33,16 +33,18 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
-        
         value_gamma = data.get('value_gamma')
         if isinstance(q_value, list):
             tl_num = len(q_value)
             loss, td_error_per_sample = [], []
             for i in range(tl_num):
                 td_data = q_nstep_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], target_q_action[i], data['reward'], data['done'], data['weight']
+                    q_value[i], target_q_value[i], data['action'][i], target_q_action[i], data['reward'], data['done'],
+                    data['weight']
                 )
-                loss_, td_error_per_sample_ = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+                loss_, td_error_per_sample_ = q_nstep_td_error(
+                    td_data, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+                )
                 loss.append(loss_)
                 td_error_per_sample.append(td_error_per_sample_.abs())
             loss = sum(loss) / (len(loss) + 1e-8)
@@ -51,7 +53,9 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
             data_n = q_nstep_td_data(
                 q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
             )
-            loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+            loss, td_error_per_sample = q_nstep_td_error(
+                data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+            )
 
         # ====================
         # Q-learning update

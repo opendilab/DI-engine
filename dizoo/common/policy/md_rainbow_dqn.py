@@ -46,14 +46,20 @@ class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
             target_q_dist = self._target_model.forward(data['next_obs'])['distribution']
             self._reset_noise(self._learn_model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
-        
+
         value_gamma = data.get('value_gamma', None)
         if isinstance(q_dist, torch.Tensor):
             td_data = dist_nstep_td_data(
                 q_dist, target_q_dist, data['action'], target_q_action, data['reward'], data['done'], data['weight']
             )
             loss, td_error_per_sample = dist_nstep_td_error(
-                td_data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep, value_gamma=value_gamma
+                td_data,
+                self._gamma,
+                self._v_min,
+                self._v_max,
+                self._n_atom,
+                nstep=self._nstep,
+                value_gamma=value_gamma
             )
         else:
             tl_num = len(q_dist)
@@ -65,7 +71,13 @@ class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
                     data['weight']
                 )
                 td_loss, td_error_per_sample = dist_nstep_td_error(
-                    td_data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep, value_gamma=value_gamma
+                    td_data,
+                    self._gamma,
+                    self._v_min,
+                    self._v_max,
+                    self._n_atom,
+                    nstep=self._nstep,
+                    value_gamma=value_gamma
                 )
                 losses.append(td_loss)
                 td_error_per_samples.append(td_error_per_sample)

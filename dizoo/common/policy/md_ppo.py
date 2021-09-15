@@ -34,8 +34,8 @@ class MultiDiscretePPOOffPolicy(PPOOffPolicy):
                 loss, info = [], []
                 for i in range(action_num):
                     data_ = ppo_data(
-                        output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv, return_,
-                        data['weight']
+                        output['logit'][i], data['logit'][i], data['action'][i], output['value'], data['value'], adv,
+                        return_, data['weight']
                     )
                     ppo_loss, ppo_info = ppo_error(data_, self._clip_ratio)
                     loss.append(ppo_loss)
@@ -44,7 +44,7 @@ class MultiDiscretePPOOffPolicy(PPOOffPolicy):
                 value_loss = sum([item.value_loss for item in loss]) / action_num
                 entropy_loss = sum([item.entropy_loss for item in loss]) / action_num
             else:
-            # Calculate ppo error
+                # Calculate ppo error
                 ppodata = ppo_data(
                     output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
                     data['weight']
@@ -59,12 +59,14 @@ class MultiDiscretePPOOffPolicy(PPOOffPolicy):
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-            
+
             if isinstance(data['logit'], list):
                 action_num = len(data['logit'])
                 loss, info = [], []
                 for i in range(action_num):
-                    ppodata = ppo_policy_data(output['logit'][i], data['logit'][i], data['action'][i], adv, data['weight'])
+                    ppodata = ppo_policy_data(
+                        output['logit'][i], data['logit'][i], data['action'][i], adv, data['weight']
+                    )
                     ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
                     loss.append(ppo_policy_loss)
                     info.append(ppo_info)
@@ -72,7 +74,7 @@ class MultiDiscretePPOOffPolicy(PPOOffPolicy):
                 entropy_loss = sum([item.entropy_loss for item in loss]) / action_num
 
             else:
-            # Calculate ppo error
+                # Calculate ppo error
                 ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
                 ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
             wv, we = self._value_weight, self._entropy_weight
