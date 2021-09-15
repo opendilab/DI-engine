@@ -210,20 +210,27 @@ class NGUPolicy(Policy):
         data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
 
+        # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
+        # target_q_value, and target_q_action
+        data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
+        data['burnin_nstep_action'] = data['action'][:bs + self._nstep]
+        data['burnin_nstep_reward'] = data['reward'][:bs + self._nstep]
+        data['burnin_nstep_beta'] = data['beta'][:bs + self._nstep]
+
         # split obs into three parts 'burnin_obs' [0:bs], 'main_obs' [bs:bs+nstep], 'target_obs' [bs+nstep:]
-        data['burnin_obs'] = data['obs'][:bs]
+        # data['burnin_obs'] = data['obs'][:bs]
         data['main_obs'] = data['obs'][bs:-self._nstep]
         data['target_obs'] = data['obs'][bs + self._nstep:]
 
-        data['burnin_action'] = data['action'][:bs]
+        # data['burnin_action'] = data['action'][:bs]
         data['main_action'] = data['action'][bs:-self._nstep]
         data['target_action'] = data['action'][bs + self._nstep:]
 
-        data['burnin_reward'] = data['reward'][:bs]
+        # data['burnin_reward'] = data['reward'][:bs]
         data['main_reward'] = data['reward'][bs:-self._nstep]
         data['target_reward'] = data['reward'][bs + self._nstep:]
 
-        data['burnin_beta'] = data['beta'][:bs]
+        # data['burnin_beta'] = data['beta'][:bs]
         data['main_beta'] = data['beta'][bs:-self._nstep]
         data['target_beta'] = data['beta'][bs + self._nstep:]
 
@@ -256,17 +263,17 @@ class NGUPolicy(Policy):
         self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
-        if len(data['burnin_obs']) != 0:
+        if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
                 inputs = {
-                    'obs': data['burnin_obs'],
-                    'action': data['burnin_action'],
-                    'reward': data['burnin_reward'],
-                    'beta': data['burnin_beta'],
+                    'obs': data['burnin_nstep_obs'],
+                    'action': data['burnin_nstep_action'],
+                    'reward': data['burnin_nstep_reward'],
+                    'beta': data['burnin_nstep_beta'],
                     'enable_fast_timestep': True
                 }
-                tmp = self._learn_model.forward(inputs)
-                tmp_target = self._target_model.forward(inputs)
+                tmp = self._learn_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep])
+                tmp_target = self._target_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep])
 
         inputs = {
             'obs': data['main_obs'],
@@ -275,14 +282,11 @@ class NGUPolicy(Policy):
             'beta': data['main_beta'],
             'enable_fast_timestep': True
         }
-        q_value = self._learn_model.forward(inputs)['logit']  # don't need reset, pass the prev_state inherently
+        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][0])
+        q_value = self._learn_model.forward(inputs)['logit']
 
-        # reset way 1
-        # ding/model/wrapper/model_wrappers.py class HiddenStateWrapper() should add line 106
-        # ding/utils/data/collate_fn.py def default_decollate() list ignore add 'cur_state'
-        # need reset, pass the prev_state manaually
-        self._learn_model.reset(data_id=None, state=tmp['cur_state'])
-        self._target_model.reset(data_id=None, state=tmp_target['cur_state'])
+        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][1])
+        self._target_model.reset(data_id=None, state=tmp_target['saved_hidden_state'][1])
 
         next_inputs = {
             'obs': data['target_obs'],
@@ -292,9 +296,9 @@ class NGUPolicy(Policy):
             'enable_fast_timestep': True
         }
         with torch.no_grad():
-            # the hidden state has one timestep gap. We can also not reset, pass the prev_state inherently.
             target_q_value = self._target_model.forward(next_inputs)['logit']
-            target_q_action = self._learn_model.forward(next_inputs)['action']  # argmax_action double_dqn
+            # argmax_action double_dqn
+            target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
