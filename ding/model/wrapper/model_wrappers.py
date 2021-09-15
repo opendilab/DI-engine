@@ -104,11 +104,6 @@ class HiddenStateWrapper(IModelWrapper):
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
             output['prev_state'] = prev_state
-
-            # TODO(pu): for r2d2, we need record the current hidden state including h and c
-            state_id = [i for i in range(self._state_num)]
-            state_info = {idx: self._state[idx] for idx in state_id}
-            output['cur_state'] = list(state_info.values())
         return output
 
     def reset(self, *args, **kwargs):
