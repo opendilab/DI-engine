@@ -16,9 +16,9 @@ BSUITE_INFO_DICT = {
     'memory_len': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
-            (1, 3),
+            (3, ),
             {
-                'min': 0.,
+                'min': -1.,
                 'max': 1.,
                 'dtype': np.float32,
             },
@@ -50,7 +50,7 @@ class BSuiteEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
-        self.env_id = cfg.env_id
+        self.env_id = cfg.env.env_id
         self.env_name = self.env_id.split('/')[0]
 
     def reset(self) -> np.ndarray:
@@ -65,6 +65,8 @@ class BSuiteEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
+        if obs.shape[0] == 1:
+            obs = obs[0]
         obs = to_ndarray(obs).astype(np.float32)
         return obs
 
@@ -78,27 +80,30 @@ class BSuiteEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: np.int32) -> BaseEnvTimestep:
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
+        if obs.shape[0] == 1:
+            obs = obs[0]
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
-        settings_info = sweep.SETTINGS[self.env_id]  # additional info that are specific to each env configuration
         if self.env_name in BSUITE_INFO_DICT:
             info = copy.deepcopy(BSUITE_INFO_DICT[self.env_name])
-            for k, v in settings_info.items():
-                info[k] = v
-            info['num_episodes'] = self._env.bsuite_num_episodes
             return info
         else:
             raise NotImplementedError('{} not found in BSUITE_INFO_DICT [{}]'\
                 .format(self.env_name, BSUITE_INFO_DICT.keys()))
+
+    def config_info(self) -> dict:
+        config_info = sweep.SETTINGS[self.env_id]  # additional info that are specific to each env configuration
+        config_info['num_episodes'] = self._env.bsuite_num_episodes
+        return config_info
 
     def __repr__(self) -> str:
         return "DI-engine BSuite Env({})".format(self.env_id)
