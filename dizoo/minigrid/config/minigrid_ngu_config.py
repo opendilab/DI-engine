@@ -8,7 +8,7 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e4_rbs1e5',
+    exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e6_rbs1e5',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -29,8 +29,9 @@ minigrid_ppo_rnd_config = dict(
         learning_rate=0.001,
         obs_shape=2739,
         action_shape=7,
-        batch_size=32,
-        update_per_collect=10,
+        batch_size=64,
+        update_per_collect=50,  # 32*100/64=50
+        clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd',
@@ -40,8 +41,8 @@ minigrid_ppo_rnd_config = dict(
         learning_rate=0.001,
         obs_shape=2739,
         action_shape=7,
-        batch_size=32,
-        update_per_collect=10,
+        batch_size=64,
+        update_per_collect=50,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
@@ -61,7 +62,6 @@ minigrid_ppo_rnd_config = dict(
             # encoder_hidden_size_list=[128, 128, 64],
             encoder_hidden_size_list=[256, 128, 64, 64],
             collector_env_num=collector_env_num,  # TODO
-            # encoder_hidden_size_list=[256, 64], #TODO
         ),
         learn=dict(
             update_per_collect=8,  # 20,  #4,
@@ -74,10 +74,7 @@ minigrid_ppo_rnd_config = dict(
             target_update_freq=2500,  # 500,
         ),
         collect=dict(
-            # n_sample=128,
             n_sample=32,
-            # unroll_len=1,
-            # unroll_len=40,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -86,7 +83,7 @@ minigrid_ppo_rnd_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=10000,
+                decay=1e6,
             ),
             replay_buffer=dict(replay_buffer_size=100000, )
         ),

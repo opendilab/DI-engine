@@ -1,22 +1,21 @@
-from typing import Union, Optional, List, Any, Tuple
-import os
-import torch
 import logging
+import os
 from functools import partial
+from typing import Union, Optional, List, Any, Tuple
+
+import torch
 from tensorboardX import SummaryWriter
 
-from ding.envs import get_vec_env_setting, create_env_manager
-# from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
-#     create_serial_collector
-from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
-from ding.worker.collector.sample_serial_collector_ngu import SampleCollectorNGU as SampleCollector  # TODO
-
 from ding.config import read_config, compile_config
+from ding.envs import get_vec_env_setting, create_env_manager
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.reward_model.ngu_reward_model import fusion_reward
 from ding.utils import set_pkg_seed
+# from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
+#     create_serial_collector
+from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
 
 
 def serial_pipeline_reward_model_ngu(
@@ -105,7 +104,7 @@ def serial_pipeline_reward_model_ngu(
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
     estimate_cnt = 0
-    for _ in range(max_iterations):
+    for iter in range(max_iterations):
         collect_kwargs = commander.step()  # {'eps': 0.95}
         # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
         # Evaluate policy performance
@@ -123,7 +122,9 @@ def serial_pipeline_reward_model_ngu(
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         rnd_reward_model.train()
-        rnd_reward_model.clear_data()
+        # if iter % 10 == 0:  # TODO(pu):
+        if iter % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+            rnd_reward_model.clear_data()
         episodic_reward_model.train()
         episodic_reward_model.clear_data()  # TODO(pu):
         # Learn policy from collected data

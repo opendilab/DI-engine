@@ -1,6 +1,8 @@
-from easydict import EasyDict
-from ding.entry import serial_pipeline_reward_model_ngu
 import torch
+from easydict import EasyDict
+
+from ding.entry import serial_pipeline_reward_model_ngu
+
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
@@ -15,25 +17,26 @@ cartpole_ngu_config = dict(
         # replay_path='eval_replay', #TODO
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add', # 'assign'
+        intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
         obs_shape=4,
-        action_shape = 2,
-        batch_size=32,
-        update_per_collect=10,
+        action_shape=2,
+        batch_size=64,
+        update_per_collect=50,  # 32*100/64=50
+        clear_buffer_per_iters=10,
         nstep=nstep,
-        hidden_size_list = [128, 128, 64],
+        hidden_size_list=[128, 128, 64],
         type='rnd',
     ),
     episodic_reward_model=dict(
-        intrinsic_reward_type='add',  
+        intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=4,
-        action_shape = 2,
-        batch_size=32,
-        update_per_collect=10,
+        action_shape=2,
+        batch_size=64,
+        update_per_collect=50,
         nstep=nstep,
-        hidden_size_list = [128, 128, 64],
+        hidden_size_list=[128, 128, 64],
         type='episodic',
     ),
     policy=dict(
@@ -74,8 +77,8 @@ cartpole_ngu_config = dict(
             eps=dict(
                 type='exp',
                 start=0.95,
-                end=0.05, 
-                decay=10000, 
+                end=0.05,
+                decay=10000,
             ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
@@ -93,7 +96,7 @@ cartpole_ngu_create_config = dict(
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(
-        type='sample_ngu', 
+        type='sample_ngu',
     )
 )
 cartpole_ngu_create_config = EasyDict(cartpole_ngu_create_config)

@@ -46,7 +46,7 @@ class InverseNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
@@ -102,7 +102,7 @@ class EpisodicRewardModel(BaseRewardModel):
     def _train(self) -> None:
         # sample episode's timestep index
         train_index = np.random.randint(
-            low=0, high=self.train_obs.shape[0], size=64
+            low=0, high=self.train_obs.shape[0], size=self.cfg.batch_size  # 64
         )  # self.cfg.reward_model_batch_size)
 
         train_obs: torch.Tensor = self.train_obs[train_index].to(self.device)  # shape reward_model_batch_size, obs_dim
@@ -124,7 +124,7 @@ class EpisodicRewardModel(BaseRewardModel):
         self.train_next_obs = copy.deepcopy(self.train_obs)
         self.train_obs = [
             torch.stack(episode_obs[:-1], dim=0) for episode_obs in self.train_obs
-        ]  # self.train_obs list(list) 32,42 batch_size,timesteps,dim
+        ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
         self.train_next_obs = [torch.stack(episode_obs[1:], dim=0) for episode_obs in self.train_next_obs]
         self.train_action = [torch.stack(episode_action[:-1], dim=0) for episode_action in self.train_action]
 
@@ -144,11 +144,9 @@ class EpisodicRewardModel(BaseRewardModel):
         self.train_action = torch.stack(
             self.train_action, dim=0
         ).view(len(self.train_action) * len(self.train_action[0]), -1)
-        # train_obs: list = random.sample(self.train_obs, self.cfg.batch_size)
-        # train_obs: list = random.sample(self.train_data, self.cfg.batch_size)
-        for _ in range(self.cfg.update_per_collect):  # self.cfg.update_per_collect_intrinsic_reward
+        for _ in range(self.cfg.update_per_collect):# * self.cfg.clear_buffer_per_iters):  # TODO(pu)
             self._train()
-        self.clear_data()
+        # self.clear_data()
 
     # def _compute_intrinsic_reward(
     #         self,
@@ -269,7 +267,7 @@ class EpisodicRewardModel(BaseRewardModel):
             # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
             # episodic_reward =  episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO
             episodic_reward = (episodic_reward - episodic_reward.min()) / (
-                episodic_reward.max() - episodic_reward.min() + 1e-8
+                    episodic_reward.max() - episodic_reward.min() + 1e-8
             )  # normalize to [0,1]
         return episodic_reward
 
@@ -297,7 +295,7 @@ class RndNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         for param in self.target.parameters():
             param.requires_grad = False
@@ -331,18 +329,13 @@ class RndRewardModel(BaseRewardModel):
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
+        self.train_data_total = []
         self.train_data = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.estimate_cnt_rnd = 0
 
     def _train(self) -> None:
-        if isinstance(self.train_data[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
-            # tmp = []
-            # for i in range(len(self.train_data)):
-            #     tmp += self.train_data[i]
-            # self.train_data = tmp
-            self.train_data = sum(self.train_data, [])
-        train_data: list = random.sample(self.train_data, self.cfg.batch_size)
+        train_data: list = random.sample(self.train_data_cur, self.cfg.batch_size)
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
         predict_feature, target_feature = self.reward_model(train_data)
         loss = F.mse_loss(predict_feature, target_feature.detach())
@@ -352,9 +345,16 @@ class RndRewardModel(BaseRewardModel):
 
     def train(self) -> None:
         self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
+        if isinstance(self.train_data_total[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
+            # tmp = []
+            # for i in range(len(self.train_data)):
+            #     tmp += self.train_data[i]
+            # self.train_data = tmp
+            self.train_data_cur = sum(self.train_data_total, [])
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        self.clear_data()
+        self.train_data_cur.clear()
+        # self.clear_data() # TODO
 
     def estimate(self, data: list) -> None:
         """
@@ -369,7 +369,8 @@ class RndRewardModel(BaseRewardModel):
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
             self._running_mean_std_rnd.update(reward.cpu().numpy())
-            reward = 1 + (reward - self._running_mean_std_rnd.mean) / self._running_mean_std_rnd.std  # TODO
+            # TODO -> mean 1 std 1
+            reward = 1 + (reward - self._running_mean_std_rnd.mean) / self._running_mean_std_rnd.std
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
@@ -378,10 +379,10 @@ class RndRewardModel(BaseRewardModel):
         return reward  # torch.Size([1344])
 
     def collect_data(self, data: list) -> None:
-        self.train_data.extend(collect_states(data))
+        self.train_data_total.extend(collect_states(data))
 
     def clear_data(self) -> None:
-        self.train_data.clear()
+        self.train_data_total.clear()
 
 
 def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector_env_num, tb_logger, estimate_cnt):
