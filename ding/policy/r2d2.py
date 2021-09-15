@@ -258,16 +258,9 @@ class R2D2Policy(Policy):
 
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
-<<<<<<< HEAD
-            # don't need reset again, pass the prev_state inherently
             target_q_value = self._target_model.forward(next_inputs)['logit']
             # argmax_action double_dqn
             target_q_action = self._learn_model.forward(next_inputs)['action']
-=======
-            target_q_value = self._target_model.forward(next_inputs)[
-                'logit']  # the hidden state has one timestep gap. We can also not reset, pass the prev_state inherently.
-            target_q_action = self._learn_model.forward(next_inputs)['action']  # argmax_action double_dqn
->>>>>>> 3b0e5326485e569f84e41b140c3870c4ff5c2748
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # T, B, nstep -> T, nstep, B
