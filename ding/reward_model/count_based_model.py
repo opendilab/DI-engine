@@ -16,7 +16,7 @@ from .base_reward_model import BaseRewardModel
 class CountbasedRewardModel(BaseRewardModel):
     """
     Overview:
-        The Pdeil reward model class
+        The Count based reward model class
     Interface:
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``, ``_batch_mn_pdf``
@@ -33,7 +33,7 @@ class CountbasedRewardModel(BaseRewardModel):
         n_gated=2,
         gated_channels=16,
         head_channels=64,
-        q_level=256,
+        q_level=8,
     )
 
     def __init__(
@@ -74,7 +74,7 @@ class CountbasedRewardModel(BaseRewardModel):
             )
             self._counter.to(self.device)
             self.intrinsic_reward_type = cfg.intrinsic_reward_type
-            self.index_range = np.arange(cfg.img_height * cfg.img_width)
+            self.index_range = np.arange(cfg.in_channels * cfg.img_height * cfg.img_width)
             assert self.intrinsic_reward_type in ['add', 'new', 'assign']
             self.opt = optim.RMSprop(
                 self._counter.parameters(),
@@ -83,20 +83,22 @@ class CountbasedRewardModel(BaseRewardModel):
                 eps=1e-4,
             )
 
-    def _train(self, train_data, t):
+    def _execute_gain_training(self, train_data: torch.Tensor, train_iter: int):
         '''
         Overview:
             Using input data to train the network while estimating intrintic reward.
         Arguments:
-            train_data (:obj:'torch.Tensor'): Observation with shape [1, 1, 42, 42].
+            train_data (:obj:`torch.Tensor`): Observation with shape [1, 1, 42, 42].
         '''
         flattened_logits, target_pixel_loss, _ = self._counter(train_data)
 
         # flattened_logits shape: [BHWC, D]; target_pixel_loss shape: [BHWC]
         loss = nn.CrossEntropyLoss(reduction='none')(
-            flattened_logits, target_pixel_loss.long()
+            flattened_logits, target_pixel_loss
         ).mean()
-        self.tb_logger.add_scalar('reward_model/red_loss', loss, t)
+
+        self.tb_logger.add_scalar('reward_model/reward_model_loss', loss, train_iter)
+        
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
@@ -104,11 +106,11 @@ class CountbasedRewardModel(BaseRewardModel):
     def train(self) -> None:
         """
         Overview:
-            Training the Pdeil reward model.
+            Training the PixelCNN reward model.
         """
         pass
 
-    def estimate(self, data, t) -> None:
+    def estimate(self, data: list, train_iter: int) -> None:
         """
         Overview:
             Estimate reward by rewriting the reward keys.
@@ -120,23 +122,26 @@ class CountbasedRewardModel(BaseRewardModel):
         """
         if self._counter_type == 'PixelCNN':
             obs = self._collect_states(data)
-            for o, item in zip(obs, data):
-                o = o.unsqueeze(0).to(self.device)
 
-                prob = (self._probs(o) + 1e-8).sum().item()
+            probs = self._get_pseudo_count(obs)
+            probs = torch.sum(probs, 1)
+
+            self._execute_gain_training(obs, train_iter)
+
+            with torch.no_grad():
+                recoding_probs = self._get_pseudo_count(obs).detach()
+            recoding_probs = torch.sum(recoding_probs, 1)
+
+
+            batch = obs.shape[0]
+            reward_mean = 0
+            for i, item in enumerate(data):
+                pred_gain = max(0, torch.log(recoding_probs[i]) - torch.log(probs[i]))
                 
-                self._train(o, t)
-
-                with torch.no_grad():
-                    recoding_prob = (self._probs(o) + 1e-8).sum().item()
-
-                pred_gain = max(0, np.log(recoding_prob) - np.log(prob))
-
                 intrinsic_reward = pow(
-                    exp(self.cfg.bonus_coeffient * pow(t+1, -0.5) * pred_gain) - 1, 0.5
+                    exp(self.cfg.bonus_coeffient * pow(train_iter + 1, -0.5) * pred_gain) - 1, 0.5
                 )
-
-                self.tb_logger.add_scalar('reward_model/intinsic_rew', intrinsic_reward, t)
+                reward_mean += intrinsic_reward
 
                 if self.intrinsic_reward_type == 'add':
                     item['reward'] += intrinsic_reward
@@ -144,34 +149,47 @@ class CountbasedRewardModel(BaseRewardModel):
                     item['intrinsic_reward'] = intrinsic_reward
                 elif self.intrinsic_reward_type == 'assign':
                     item['reward'] = intrinsic_reward
+            
+            reward_mean /= batch
+            self.tb_logger.add_scalar('reward_model/intrinsic_reward', reward_mean, train_iter)
+            
 
-    def _probs(self, obs):
+    def _get_pseudo_count(self, obs: torch.Tensor):
         '''
         Overview:
             Compute the pseudo-count of given obs.
         Arguments:
-            obs (:obj:'torch.Tensor'): Observation with shape [1, 1, 42, 42].
+            obs (:obj:`torch.Tensor`): Observation with shape [1, 1, 42, 42].
         '''
         _, indexes, target = self._counter(obs)
-        pred_prob = target[self.index_range, indexes.long()]
-        return pred_prob
+        batch = obs.shape[0]
+        indexes = torch.reshape(indexes, [batch, -1])
 
-    def _collect_states(self, data):
+        pred_prob = [target[self.index_range, indexes[i]] + 1e-8 for i in range(batch)]
+
+        return torch.stack(pred_prob)
+
+    def _collect_states(self, data: list):
         '''
         Overview:
             Get item 'obs' from data and reshape obs to [1, 42, 42], where shape format is [C, H, W].
         Arguments:
-            - data (:obj:'list'): Raw training data (e.g. som form of states actions, obs, etc)
+            - data (:obj:`list`): Raw training data (e.g. som form of states actions, obs, etc)
         Effects:
             This is function to get item 'obs' from input data and reshape it to [1, 42, 42] where shape format is [C, H, W].
         '''
-        obs = []
-        for item in data:
-            state = item['obs']
-            state = state.unsqueeze(0)
-            state = nn.functional.interpolate(state, 42)
-            state = state.squeeze(0)
-            obs.append(state)
+        obs = [item['obs'] for item in data]
+        obs = torch.stack(obs).to(self.device)
+
+        obs = nn.functional.interpolate(obs, 42)
+
+        obs = obs.permute(0, 2, 3, 1)
+        # quantize the input
+        obs = torch.clip(
+            ((obs * self.cfg.q_level).type(torch.int64)), 0, self.cfg.q_level - 1
+        )
+        obs = obs.permute(0, 3, 1, 2)
+
         return obs
         
     def collect_data(self, data: list) -> None:
@@ -293,14 +311,14 @@ class GatedPixelCNNLayer(nn.Module):
             - vstack_input (:obj:`torch.Tensor`): Observation inputs for vertical convolution.
             - hstack_input (:obj:`torch.Tensor`): Observation inputs for horizontal convolution.
         Returns:
-            - vstack (:obj:'torch.Tensor'): result after vertical convolution.
-            - hstack (:obj:'torch.Tensor'): result after horizonal convolution.
-            - skip (:onj:'torch.Tensor'): the skip connection to the pre-logits layer.
+            - vstack (:obj:`torch.Tensor`): result after vertical convolution.
+            - hstack (:obj:`torch.Tensor`): result after horizonal convolution.
+            - skip (:onj:`torch.Tensor`): the skip connection to the pre-logits layer.
         Shapes:
             - vstack_input (:obj:`torch.Tensor`): :math:`(B, C, H, W)`.
-            - vstack (:obj:`torch.Tensor`): :math:`(B, gated_channels(defaultL:16), H, W)'.
-            - hstack (:obj:`torch.Tensor`): :math:`(B, gated_channels, H, W)'.
-            - skip (:obj:`torch.Tensor`): :math:`(B, gated_channels(defaultL:16), H, W)'.
+            - vstack (:obj:`torch.Tensor`): :math:`(B, gated_channels(defaultL:16), H, W)`.
+            - hstack (:obj:`torch.Tensor`): :math:`(B, gated_channels, H, W)`.
+            - skip (:obj:`torch.Tensor`): :math:`(B, gated_channels(defaultL:16), H, W)`.
         Examples:
             >>> model = GatedPixelCNNLayer()     # default parameters: B=1, C=1, H=W=42, D=256.
             >>> vstack_input, hstack_input = torch.rand(1, 1, 42, 42), torch.rand(1, 1, 42, 42).
@@ -318,7 +336,7 @@ class GatedPixelCNNLayer(nn.Module):
         vstack = self._activation(vstack)
 
         # Compute horizontal stack.
-        hstack = link + self._hstack_1xN(hstack_input)[:, :, :, :w]
+        hstack = link + self._hstack_1xN(hstack_input)[..., :w]
         hstack = self._activation(hstack)
         skip = self._hstack_skip(hstack)
         hstack = self._hstack_residual(hstack)
@@ -353,6 +371,7 @@ class GatedPixelCNN(nn.Module):
                 in the head after all the gated channels.
             q_level: The number of levels to quantisize value of each channel of each pixel into
         """
+        assert in_channels == out_channels
         super().__init__()
         self._input = GatedPixelCNNLayer(
             in_channels=in_channels,
@@ -382,6 +401,7 @@ class GatedPixelCNN(nn.Module):
                 in_channels=head_channels, out_channels=q_level * out_channels, kernel_size=1
             ),
         )
+        self.num_channels = in_channels
         self.q_level = q_level
 
     def forward(self, x):
@@ -395,10 +415,10 @@ class GatedPixelCNN(nn.Module):
             - target_pixel_loss (:obj:'torch.Tensor'): target pixel which comes from input x.
             - flattened_output (:onj:'torch.Tensor'): probability distribution of flattened_logits with a softmax function.
         Shapes:
-            - x (:obj:`torch.Tensor`): :math:`(B, C, H, W)'.
-            - flattened_logit (:obj:`torch.Tensor`): :math:`(B*H*W*C, D)'.
-            - target_pixel_loss (:obj:'torch.Tensor'): :math:'(B*H*W*C)'.
-            - flattened_output (:obj:'torcg.Tensor'): :math:'(B*H*W*C, D)'. 
+            - x (:obj:`torch.Tensor`): :math:`(B, C, H, W)`.
+            - flattened_logit (:obj:`torch.Tensor`): :math:`(B*H*W*C, D)`.
+            - target_pixel_loss (:obj:`torch.Tensor`): :math:`(B*H*W*C)`.
+            - flattened_output (:obj:`torcg.Tensor`): :math:`(B*H*W*C, D)`. 
         Examples:
             >>> model = GatedPixelCNN()     # default parameters: B=1, C=1, H=W=42, D=256.
             >>> inputs = torch.rand(1, 1, 42, 42)
@@ -407,8 +427,9 @@ class GatedPixelCNN(nn.Module):
             >>> assert isinstance(target_pixel_loss, torch.Tensor) and target_pixel_loss.shape == torch.Size([1764])
             >>> assert isinstance(flattened_output, torch.Tensor) and flattened_output.shape == torch.Size([1764, 256])
         """
+        x_ = x.type(torch.float32)
         # shape [B, C, H, W]
-        vstack, hstack, skip_connections = self._input(x, x)
+        vstack, hstack, skip_connections = self._input(x_, x_)
         
         # shape [B, gated_channels(default:16), H, W]
         for gated_layer in self._gated_layers:
@@ -418,13 +439,21 @@ class GatedPixelCNN(nn.Module):
         # shape [B, DC, H, W]
         logits = self._head(skip_connections)
 
+
         # shape [B, DC, H, W] -> [B, H, W, DC]
         logits, x = logits.permute(0, 2, 3, 1), x.permute(0, 2, 3, 1)
+
+        if self.num_channels > 1:
+            # shape [B, H, W, DC] -> [B, H, W, D, C]
+            logits = torch.reshape(logits, [-1, 42, 42, self.q_level, self.num_channels])
+            
+            # shape [B, H, W, D, C] -> [B, H, W, C, D]
+            logits = logits.permute(0, 1, 2 ,4, 3)
 
         # shape [B, H, W, DC] -> [BHWC, D]
         flattened_logits = torch.reshape(logits, [-1, self.q_level])
         
-        # shape [B, H, W, DC] -> [BHWC]
+        # shape [B, H, W, C] -> [BHWC]
         target_pixel_loss = torch.reshape(x, [-1])
         
         # shape [BHWC, D], values [probability distribution]
