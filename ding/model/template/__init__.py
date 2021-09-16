@@ -1,6 +1,7 @@
 # general
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
 from .qac import QAC
+from .qac_diayn import QAC_DIAYN
 from .vac import VAC
 # algorithm-specific
 from .ppg import PPG
