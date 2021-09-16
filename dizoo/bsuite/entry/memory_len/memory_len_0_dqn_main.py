@@ -1,5 +1,4 @@
 import os
-import gym
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
@@ -15,7 +14,7 @@ from dizoo.bsuite.config.serial.memory_len.memory_len_0_dqn_config import memory
 
 def main(cfg, seed=0):
 
-    def wrapped_memory_len_env():
+    def memory_len_env():
         return BSuiteEnv(cfg)
 
     cfg = compile_config(
@@ -29,8 +28,8 @@ def main(cfg, seed=0):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_memory_len_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_memory_len_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(env_fn=[memory_len_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[memory_len_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
@@ -75,8 +74,7 @@ def main(cfg, seed=0):
                 break
             learner.train(train_data, collector.envstep)
     # evaluate
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_memory_len_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
+    evaluator_env = BaseEnvManager(env_fn=[memory_len_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )

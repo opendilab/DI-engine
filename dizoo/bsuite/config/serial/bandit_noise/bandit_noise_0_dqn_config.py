@@ -1,20 +1,20 @@
 from easydict import EasyDict
 
-memory_len_0_dqn_config = dict(
-    exp_name='memory_len_0_dqn',
+bandit_noise_0_dqn_config = dict(
+    exp_name='bandit_noise_0_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=1,
         n_evaluator_episode=10,
-        env_id='memory_len/0',
-        stop_value=1.,
+        env_id='bandit_noise/0',
+        stop_value=0.8,
     ),
     policy=dict(
         load_path='',
         cuda=True,
         model=dict(
-            obs_shape=3,
-            action_shape=2,
+            obs_shape=1,
+            action_shape=11,
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
@@ -37,9 +37,9 @@ memory_len_0_dqn_config = dict(
         ),
     ),
 )
-memory_len_0_dqn_config = EasyDict(memory_len_0_dqn_config)
-main_config = memory_len_0_dqn_config
-memory_len_0_dqn_create_config = dict(
+bandit_noise_0_dqn_config = EasyDict(bandit_noise_0_dqn_config)
+main_config = bandit_noise_0_dqn_config
+bandit_noise_0_dqn_create_config = dict(
     env=dict(
         type='bsuite',
         import_names=['dizoo.bsuite.envs.bsuite_env'],
@@ -47,5 +47,5 @@ memory_len_0_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-memory_len_0_dqn_create_config = EasyDict(memory_len_0_dqn_create_config)
-create_config = memory_len_0_dqn_create_config
+bandit_noise_0_dqn_create_config = EasyDict(bandit_noise_0_dqn_create_config)
+create_config = bandit_noise_0_dqn_create_config

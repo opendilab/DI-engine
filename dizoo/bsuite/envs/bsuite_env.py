@@ -40,6 +40,34 @@ BSUITE_INFO_DICT = {
             },
         ),
         use_wrappers=None,
+    ),
+    'bandit_noise': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            (1, ),
+            {
+                'min': 1.,
+                'max': 1.,
+                'dtype': np.float32,
+            },
+        ),
+        act_space=EnvElementInfo(
+            (11, ),
+            {
+                'min': 0,
+                'max': 10,
+                'dtype': int,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            (1, ),
+            {
+                'min': np.inf,
+                'max': -np.inf,
+                'dtype': np.float64,
+            },
+        ),
+        use_wrappers=None,
     )
 }
 
@@ -82,6 +110,8 @@ class BSuiteEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        if action.shape[0] == 1:
+            action = action[0]
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
