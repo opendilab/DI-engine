@@ -243,18 +243,18 @@ class R2D2Policy(Policy):
         if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
-                tmp = self._learn_model.forward(
+                burnin_output = self._learn_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
-                tmp_target = self._target_model.forward(
+                burnin_output_target = self._target_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
 
-        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][0])
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._learn_model.forward(inputs)['logit']
-        self._learn_model.reset(data_id=None, state=tmp['saved_hidden_state'][1])
-        self._target_model.reset(data_id=None, state=tmp_target['saved_hidden_state'][1])
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
+        self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
 
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
