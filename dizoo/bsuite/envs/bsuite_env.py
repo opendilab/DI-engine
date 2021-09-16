@@ -52,10 +52,38 @@ BSUITE_INFO_DICT = {
             },
         ),
         act_space=EnvElementInfo(
-            (11, ),
+            (1, ),
             {
                 'min': 0,
                 'max': 10,
+                'dtype': int,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            (1, ),
+            {
+                'min': np.inf,
+                'max': -np.inf,
+                'dtype': np.float64,
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'cartpole_swingup': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            (8, ),
+            {
+                'min': -1.,
+                'max': 1.,
+                'dtype': np.float32,
+            },
+        ),
+        act_space=EnvElementInfo(
+            (1, ),
+            {
+                'min': 0,
+                'max': 2,
                 'dtype': int,
             },
         ),
