@@ -3,6 +3,7 @@ from click.core import Context, Option
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .predefined_config import get_predefined_config
+import ipdb
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
@@ -52,7 +53,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-m',
     '--mode',
-    type=click.Choice(['serial', 'serial_sqil', 'parallel', 'dist', 'eval']),
+    type=click.Choice(['serial', 'serial_sqil', 'serial_diayn', 'parallel', 'dist', 'eval']),
     help='serial-train or parallel-train or dist-train or eval'
 )
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')
@@ -144,13 +145,18 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline(config, seed, max_iterations=train_iter)
-    if mode == 'serial_sqil':
+    elif mode == 'serial_sqil':
         if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
         or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
             from .serial_entry_sqil import serial_pipeline_sqil
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline_sqil(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_diayn':
+        from .serial_entry_diayn import serial_pipeline_diayn
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_diayn(config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)

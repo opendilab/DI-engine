@@ -15,11 +15,12 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 from .sac import SACPolicy
 
+
 @POLICY_REGISTRY.register('diayn')
-class DIAYNPolicy(SACpolicy):
+class DIAYNPolicy(SACPolicy):
     r"""
        Overview:
-           Policy class of SAC algorithm.
+           Policy class of DIAYN algorithm.
 
        Config:
            == ====================  ========    =============  ================================= =======================
@@ -69,7 +70,7 @@ class DIAYNPolicy(SACpolicy):
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='sac',
+        type='diayn',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool type) on_policy: Determine whether on-policy or off-policy.
@@ -100,7 +101,7 @@ class DIAYNPolicy(SACpolicy):
             # number of skills to learn
             num_skills=20,
             #(`bool`): Whether to pass actions to the discriminator.
-            include_actions = False
+            #include_actions = False,
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -126,7 +127,7 @@ class DIAYNPolicy(SACpolicy):
             learning_rate_value=3e-4,
             # (float type) learning_rate_value: Learning rate for discriminator network.
             # Default to 3e-4.
-            learning_rate_discriminator = 3e-4,
+            learning_rate_discriminator=3e-4,
             # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
             # Default to 3e-4.
             learning_rate_alpha=3e-4,
@@ -142,7 +143,8 @@ class DIAYNPolicy(SACpolicy):
             # If auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
             # Default to 0.2.
             alpha=0.2,
-
+            # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
+            log_space=True,
             # (bool type) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
             # Temperature parameter determines the relative importance of the entropy term against the reward.
             # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
@@ -167,6 +169,8 @@ class DIAYNPolicy(SACpolicy):
             n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            # number of skills to learn
+            num_skills=20,
         ),
         eval=dict(),
         other=dict(
@@ -196,7 +200,10 @@ class DIAYNPolicy(SACpolicy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_network = False  # TODO self._cfg.model.value_network
         self._twin_critic = self._cfg.model.twin_critic
-        self._p_z = np.full(self._cfg.model.num_skills, 1.0 / self._cfg.model.num_skills)   #uniform distributed probabilities
+        self._p_z = np.full(
+            self._cfg.model.num_skills, 1.0 / self._cfg.model.num_skills
+        )  # self._p_z = np.full(self._cfg.model.num_skills, 1.0 / self._cfg.model.num_skills)
+        # uniform distributed probabilities
         # Weight Init
         init_w = self._cfg.learn.init_w
         self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
@@ -234,13 +241,20 @@ class DIAYNPolicy(SACpolicy):
         self._gamma = self._cfg.learn.discount_factor
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
-            self._target_entropy = -np.prod(self._cfg.model.action_shape)
-            self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
-            self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
-            self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
-            self._auto_alpha = True
-            assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
-            self._alpha = self._log_alpha.detach().exp()
+            self._target_entropy = self._cfg.learn.get('target_entropy', -np.prod(self._cfg.model.action_shape))
+            if self._cfg.learn.log_space:
+                self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
+                self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
+                self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+                assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
+                self._alpha = self._log_alpha.detach().exp()
+                self._auto_alpha = True
+                self._log_space = True
+            else:
+                self._alpha = torch.FloatTensor([self._cfg.learn.alpha]).to(self._device).requires_grad_()
+                self._alpha_optim = torch.optim.Adam([self._alpha], lr=self._cfg.learn.learning_rate_alpha)
+                self._auto_alpha = True
+                self._log_space = False
         else:
             self._alpha = torch.tensor(
                 [self._cfg.learn.alpha], requires_grad=False, device=self._device, dtype=torch.float32
@@ -304,7 +318,7 @@ class DIAYNPolicy(SACpolicy):
 
                 dist = Independent(Normal(mu, sigma), 1)
                 pred = dist.rsample()
-                next_action = torch.tanh(pred)   #这个东西是pi的output
+                next_action = torch.tanh(pred)  # 这个东西是pi的output
                 y = 1 - next_action.pow(2) + 1e-6
                 next_log_prob = dist.log_prob(pred).unsqueeze(-1)
                 next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
@@ -321,30 +335,41 @@ class DIAYNPolicy(SACpolicy):
         target_value = next_v_value if self._value_network else target_q_value
 
         # =================
-        # Calculate a new reward function 
+        # Calculate a new reward function
         # =================
         # get z_one_hot : this is know before learning
+        '''
         if self._include_actions:
             logits = self._learn_model.forward(next_obs, mode='compute_discriminator')['q_discriminator']
         else:
-            logits = self._learn_model.forward(next_obs, mode='compute_discriminator')['q_discriminator']
-        reward_pl = -1 * torch.nn.CrossEntropyLoss(target=z_one_hot_reduce, input=logits, reduction='none') # z_one_hot_reduce is z_one_hot without one hot (N, C) --> (N)
-        p_z = torch.sum(torch.myl(self._p_z, z_one_hot), axis=1) # This is dot product, the result is a batchsize * 50 tensor. z_one_hot : array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]], dtype=float32)
-        log_p_z = torch.log(p_z + 10**-10) 
+        '''
+        next_obs_without_skills = next_obs[:, 0:self._cfg.model.obs_shape]
+        sklls_batch = next_obs[:, self._cfg.model.obs_shape:]
+        logits = self._learn_model.forward(next_obs_without_skills, mode='compute_discriminator')['q_discriminator']
+        loss = torch.nn.CrossEntropyLoss(reduction='none')
+        reward_revised = -1 * loss(
+            logits,
+            torch.nonzero(sklls_batch)[:, 1]
+        )  # another way to write : .squeeze(-1) * torch.ones(size=(logits.shape[0],))
+        # CrossEntropyLoss() gives up Negtive Log Likehood--> we add a -1 in the front
+        p_z = torch.sum(
+            torch.from_numpy(self._p_z).float() * sklls_batch
+        )  # This is dot product, the result is a batchsize * no of skills tensor.
+        log_p_z = torch.log(p_z + 10 ** -10)
         # This reward function will be used to replace the reward from the data
-        reward_pl -= log_p_z
+        reward_revised -= log_p_z
         # =================
         # q network
         # =================
         # compute q loss
         if self._twin_critic:
-            q_data0 = v_1step_td_data(q_value[0], target_value, reward_pl, done, data['weight'])
+            q_data0 = v_1step_td_data(q_value[0], target_value, reward_revised, done, data['weight'])
             loss_dict['critic_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
-            q_data1 = v_1step_td_data(q_value[1], target_value, reward_pl, done, data['weight'])
+            q_data1 = v_1step_td_data(q_value[1], target_value, reward_revised, done, data['weight'])
             loss_dict['twin_critic_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
             td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
-            q_data = v_1step_td_data(q_value, target_value, reward_pl, done, data['weight'])
+            q_data = v_1step_td_data(q_value, target_value, reward_revised, done, data['weight'])
             loss_dict['critic_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
         # update q network
@@ -397,13 +422,22 @@ class DIAYNPolicy(SACpolicy):
 
         # compute alpha loss
         if self._auto_alpha:
-            log_prob = log_prob.detach() + self._target_entropy
-            loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
+            if self._log_space:
+                log_prob = log_prob + self._target_entropy
+                loss_dict['alpha_loss'] = -(self._log_alpha * log_prob.detach()).mean()
 
-            self._alpha_optim.zero_grad()
-            loss_dict['alpha_loss'].backward()
-            self._alpha_optim.step()
-            self._alpha = self._log_alpha.detach().exp()
+                self._alpha_optim.zero_grad()
+                loss_dict['alpha_loss'].backward()
+                self._alpha_optim.step()
+                self._alpha = self._log_alpha.detach().exp()
+            else:
+                log_prob = log_prob + self._target_entropy
+                loss_dict['alpha_loss'] = -(self._alpha * log_prob.detach()).mean()
+
+                self._alpha_optim.zero_grad()
+                loss_dict['alpha_loss'].backward()
+                self._alpha_optim.step()
+                self._alpha = max(0, self._alpha)
 
         loss_dict['total_loss'] = sum(loss_dict.values())
 
@@ -413,18 +447,23 @@ class DIAYNPolicy(SACpolicy):
         # =================
         # discriminator network
         # =================
+        '''
         if self._include_actions:
             logits = self._learn_model.forward(next_obs, mode='compute_discriminator')['q_discriminator']
         else:
-            logits = self._learn_model.forward(next_obs, mode='compute_discriminator')['q_discriminator']
-        discriminator_loss = torch.nn.CrossEntropyLoss(target=z_one_hot_reduce, input=logits, reduction='mean') # z_one_hot_reduce is z_one_hot without one hot (N, C) --> (N)
+        '''
+        loss_discriminator = torch.nn.CrossEntropyLoss(reduction='mean')
+        logits = self._learn_model.forward(next_obs_without_skills, mode='compute_discriminator')['q_discriminator']
+        discriminator_loss = loss_discriminator(
+            logits,
+            torch.nonzero(sklls_batch)[:, 1]
+        )  # z_one_hot_reduce is z_one_hot without one hot (N, C) --> (N)
         loss_dict['discriminator_loss'] = discriminator_loss
 
         # update discriminator network
         self._optimizer_discriminator.zero_grad()
         loss_dict['discriminator_loss'].backward()
         self._optimizer_discriminator.step()
-
 
         # =============
         # after update
@@ -458,7 +497,8 @@ class DIAYNPolicy(SACpolicy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        if self._value_network:
+            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
@@ -471,17 +511,6 @@ class DIAYNPolicy(SACpolicy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        # TODO remove noise
-        # self._collect_model = model_wrap(
-        #     self._model,
-        #     wrapper_name='action_noise',
-        #     noise_type='gauss',
-        #     noise_kwargs={
-        #         'mu': 0.0,
-        #         'sigma': self._cfg.collect.noise_sigma
-        #     },
-        #     noise_range=None
-        # )
         self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 
@@ -521,9 +550,10 @@ class DIAYNPolicy(SACpolicy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
+        shape = timestep.obs.shape[0]
         transition = {
             'obs': obs,
-            'next_obs': timestep.obs,
+            'next_obs': np.concatenate((timestep.obs, obs[shape:]), axis=None),
             'action': model_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
@@ -566,7 +596,7 @@ class DIAYNPolicy(SACpolicy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'qac_diayn', ['ding.model.template.qac_diayn']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

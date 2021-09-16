@@ -23,6 +23,7 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+from .diayn import DIAYNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -150,6 +151,11 @@ class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_command')
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('diayn_command')
+class DIAYNCommandModePolicy(DIAYNPolicy, DummyCommandModePolicy):
     pass
 
 
