@@ -1,6 +1,6 @@
 from easydict import EasyDict
 import torch
-print(torch.cuda.is_available(), torch.__version__)
+
 collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2_config = dict(
@@ -21,12 +21,12 @@ cartpole_r2d2_config = dict(
             encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=10,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
+        unroll_len=20,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -43,13 +43,13 @@ cartpole_r2d2_config = dict(
             n_sample=32,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, ),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=20)),
         other=dict(
             eps=dict(
                 type='exp',
                 start=0.95,
-                end=0.05, 
-                decay=10000, 
+                end=0.05,
+                decay=10000,
             ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
