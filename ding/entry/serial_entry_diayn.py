@@ -11,7 +11,6 @@ from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseS
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
-import ipdb
 
 
 def serial_pipeline_diayn(

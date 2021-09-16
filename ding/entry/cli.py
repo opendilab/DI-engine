@@ -3,7 +3,6 @@ from click.core import Context, Option
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .predefined_config import get_predefined_config
-import ipdb
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
