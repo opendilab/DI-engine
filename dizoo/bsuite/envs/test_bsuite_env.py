@@ -5,7 +5,7 @@ from easydict import EasyDict
 from dizoo.bsuite.envs import BSuiteEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestBSuiteEnv:
 
     def test_memory_len(self):
@@ -28,19 +28,19 @@ class TestBSuiteEnv:
         print(memory_len_env.info(), 'final_eval_reward: {}'.format(timestep.info['final_eval_reward']))
         memory_len_env.close()
 
-    def test_bandit_noise(self):
-        cfg = {'env': {'env_id': 'bandit_noise/0'}}
+    def test_cartpole_swingup(self):
+        cfg = {'env': {'env_id': 'cartpole_swingup/0'}}
         cfg = EasyDict(cfg)
         bandit_noise_env = BSuiteEnv(cfg)
         bandit_noise_env.seed(0)
         obs = bandit_noise_env.reset()
-        assert obs.shape == (1, )
+        assert obs.shape == (8, )
         print(bandit_noise_env.info())
         act_dim = bandit_noise_env.info().act_space.shape[0]
         while True:
             random_action = np.random.choice(range(act_dim), size=(1, ))
             timestep = bandit_noise_env.step(random_action)
-            assert timestep.obs.shape == (1, )
+            assert timestep.obs.shape == (8, )
             assert timestep.reward.shape == (1, )
             if timestep.done:
                 assert 'final_eval_reward' in timestep.info, timestep.info
