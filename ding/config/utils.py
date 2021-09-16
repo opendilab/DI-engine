@@ -334,6 +334,23 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                                         f.write("                {}={},\n".format(k4, v4))
                                 f.write("            ),\n")
                         f.write("        ),\n")
+                    elif (k2 == 'eval'):
+                        f.write("        eval=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (k3 != 'evaluator'):
+                                if (isinstance(v3, str)):
+                                    f.write("            {}='{}',\n".format(k3, v3))
+                                else:
+                                    f.write("            {}={},\n".format(k3, v3))
+                            if (k3 == 'evaluator'):
+                                f.write("            evaluator=dict(\n")
+                                for k4, v4 in v3.items():
+                                    if (isinstance(v4, str)):
+                                        f.write("                {}='{}',\n".format(k4, v4))
+                                    else:
+                                        f.write("                {}={},\n".format(k4, v4))
+                                f.write("            ),\n")
+                        f.write("        ),\n")
                     elif (k2 == 'model'):
                         f.write("        model=dict(\n")
                         for k3, v3 in v2.items():
@@ -349,12 +366,59 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                                 f.write("            replay_buffer=dict(\n")
                                 for k4, v4 in v3.items():
                                     if (k4 != 'monitor' and k4 != 'thruput_controller'):
-                                        if (isinstance(v4, str)):
-                                            f.write("                {}='{}',\n".format(k4, v4))
-                                        elif v4 == float('inf'):
-                                            f.write("                {}=float('{}'),\n".format(k4, v4))
+                                        if (isinstance(v4, dict)):
+                                            f.write("                {}=dict(\n".format(k4))
+                                            for k5, v5 in v4.items():
+                                                if (isinstance(v5, str)):
+                                                    f.write("                    {}='{}',\n".format(k5, v5))
+                                                elif v5 == float('inf'):
+                                                    f.write("                    {}=float('{}'),\n".format(k5, v5))
+                                                elif (isinstance(v5, dict)):
+                                                    f.write("                    {}=dict(\n".format(k5))
+                                                    for k6, v6 in v5.items():
+                                                        if (isinstance(v6, str)):
+                                                            f.write("                        {}='{}',\n".format(k6, v6))
+                                                        elif v6 == float('inf'):
+                                                            f.write(
+                                                                "                        {}=float('{}'),\n".format(
+                                                                    k6, v6
+                                                                )
+                                                            )
+                                                        elif (isinstance(v6, dict)):
+                                                            f.write("                        {}=dict(\n".format(k6))
+                                                            for k7, v7 in v6.items():
+                                                                if (isinstance(v7, str)):
+                                                                    f.write(
+                                                                        "                            {}='{}',\n".format(
+                                                                            k7, v7
+                                                                        )
+                                                                    )
+                                                                elif v7 == float('inf'):
+                                                                    f.write(
+                                                                        "                            {}=float('{}'),\n".
+                                                                        format(k7, v7)
+                                                                    )
+                                                                else:
+                                                                    f.write(
+                                                                        "                            {}={},\n".format(
+                                                                            k7, v7
+                                                                        )
+                                                                    )
+                                                            f.write("                        ),\n")
+                                                        else:
+                                                            f.write("                        {}={},\n".format(k6, v6))
+                                                    f.write("                    ),\n")
+                                                else:
+                                                    f.write("                    {}={},\n".format(k5, v5))
+                                            f.write("                ),\n")
                                         else:
-                                            f.write("                {}={},\n".format(k4, v4))
+                                            if (isinstance(v4, str)):
+                                                f.write("                {}='{}',\n".format(k4, v4))
+                                            elif v4 == float('inf'):
+                                                f.write("                {}=float('{}'),\n".format(k4, v4))
+
+                                            else:
+                                                f.write("                {}={},\n".format(k4, v4))
                                     else:
                                         if (k4 == 'monitor'):
                                             f.write("                monitor=dict(\n")
@@ -454,7 +518,7 @@ parallel_test_create_config = dict(
     ),
     collector=dict(
         type='zergling',
-        import_names=['ding.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_parallel_collector'],
     ),
     commander=dict(
         type='naive',
