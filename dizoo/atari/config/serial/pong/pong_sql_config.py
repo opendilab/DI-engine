@@ -43,7 +43,7 @@ pong_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility=True),
+    env_manager=dict(type='base'),
     policy=dict(type='sql'),
 )
 pong_sql_create_config = EasyDict(pong_sql_create_config)

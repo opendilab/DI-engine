@@ -24,8 +24,7 @@ pong_sqil_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.12),
-        collect=dict(n_sample=96, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=96, demonstration_info_path='path'),
         other=dict(
             eps=dict(
                 type='exp',
@@ -44,7 +43,7 @@ pong_sqil_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility=True),
+    env_manager=dict(type='base'),
     policy=dict(type='sql'),
 )
 pong_sqil_create_config = EasyDict(pong_sqil_create_config)

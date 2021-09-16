@@ -10,7 +10,7 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, force_reproducibility=True)
     ),
     policy=dict(
         cuda=True,
@@ -28,8 +28,7 @@ qbert_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=100, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=100, demonstration_info_path='path'),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -49,7 +48,7 @@ qbert_dqn_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess', force_reproducibility=True),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
