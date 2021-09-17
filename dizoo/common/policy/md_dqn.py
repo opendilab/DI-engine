@@ -9,8 +9,29 @@ from ding.torch_utils import to_device
 
 @POLICY_REGISTRY.register('md_dqn')
 class MultiDiscreteDQNPolicy(DQNPolicy):
+    r"""
+    Overview:
+        Policy class of Multi-discrete action space DQN algorithm.
+    """
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        """
+        Overview:
+            Forward computation of learn mode(updating policy). It supports both single and multi-discrete action \
+                space. It depends on whether the ``q_value`` is a list.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: ``value_gamma``, ``IS``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``, ``priority``
+            - optional: ``action_distribution``
+        """
         data = default_preprocess_learn(
             data,
             use_priority=self._priority,

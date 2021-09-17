@@ -9,20 +9,25 @@ from ding.policy.common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('md_rainbow_dqn')
 class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
+    r"""
+    Overview:
+        Multi-discrete action space Rainbow DQN algorithms.
+    """
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         """
         Overview:
-            Forward and backward function of learn mode, acquire the data and calculate the loss and\
+            Forward and backward function of learn mode, acquire the data and calculate the loss and \
             optimize learner model
 
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least ['obs', 'next_obs', 'reward', 'action']
 
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
+            - info_dict (:obj:`Dict[str, Any]`): Including cur_lr, total_loss and priority
                 - cur_lr (:obj:`float`): current learning rate
                 - total_loss (:obj:`float`): the calculated loss
+                - priority (:obj:`list`): the priority of samples
         """
         data = default_preprocess_learn(
             data,
@@ -96,5 +101,5 @@ class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'priority': td_error_per_sample.abs().tolist(),
+            'priority': td_error_per_sample_mean.abs().tolist(),
         }
