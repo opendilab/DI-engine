@@ -1,6 +1,6 @@
 import pytest
 
-from .bases import _TestInteractionBase
+from .bases import _TestInteractionBase, _random_slave_channel_and_port, _slave_endpoint, _get_master_endpoint
 from ..test_utils import random_port, random_channel
 from ...exception import SlaveErrorCode, SlaveChannelInvalid
 
@@ -10,8 +10,8 @@ class TestInteractionErrors(_TestInteractionBase):
 
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_connection(self):
-        _slave_port, _slave_channel = self._random_slave_channel_and_port()
-        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _slave_channel)
+        _slave_port, _slave_channel = _random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = _slave_endpoint(_slave_port, _slave_channel)
 
         slave_thread.start()
         open_slave_event.wait()
@@ -19,7 +19,7 @@ class TestInteractionErrors(_TestInteractionBase):
         try:
             _master_port = random_port()
             _master_channel = random_channel(excludes=[_slave_channel])
-            master = self._get_master_endpoint(_master_port, _master_channel)
+            master = _get_master_endpoint(_master_port, _master_channel)
             with master:
                 assert master.ping()
 
