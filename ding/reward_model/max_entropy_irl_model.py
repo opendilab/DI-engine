@@ -41,6 +41,7 @@ class MaxEntropyModel(BaseRewardModel):
         batch_size = 64,
         hidden_size = 128,
         update_per_collect=100,
+        freq = 50,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -53,7 +54,7 @@ class MaxEntropyModel(BaseRewardModel):
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.parameters(), lr = config.learning_rate)
 
-    def train(self, expert_demo: torch.Tensor, samp: torch.Tensor):
+    def train(self, expert_demo: torch.Tensor, samp: torch.Tensor, iter, step):
         #print(len(samp))
         #print(len(expert_demo))
         samp.extend(expert_demo)
@@ -76,6 +77,9 @@ class MaxEntropyModel(BaseRewardModel):
         self.opt.zero_grad()
         loss_IOC.backward()
         self.opt.step()
+        if iter%self.cfg.freq == 0:
+            self.tb_logger.add_scalar('reward_model/loss_iter', loss_IOC, iter)
+            self.tb_logger.add_scalar('reward_model/loss_step', loss_IOC, step)
 
     def cal_reward(self, samp):
         cost_samp = self.reward_model(samp)
@@ -102,3 +106,6 @@ class MaxEntropyModel(BaseRewardModel):
         """
         # if online_net is trained continuously, there should be some implementations in clear_data method
         pass
+
+    def save_model(self, path = 'reward_model.pth.tar'):
+        torch.save(self.reward_model.state_dict(), path)

@@ -17,6 +17,7 @@ from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 from ding.reward_model import create_reward_model
 import copy
+import os
 
 def serial_pipeline_max_entropy(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -139,7 +140,7 @@ def serial_pipeline_max_entropy(
         for i in range(cfg.reward_model.update_per_collect):
             expert_demo = expert_buffer.sample(cfg.reward_model.batch_size, learner.train_iter)
             samp = replay_buffer.sample(cfg.reward_model.batch_size, learner.train_iter)
-            reward_model.train(expert_demo, samp)
+            reward_model.train(expert_demo, samp, learner.train_iter, collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
@@ -162,7 +163,17 @@ def serial_pipeline_max_entropy(
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.
             replay_buffer.clear()
-
+        dirname = cfg.exp_name+'reward_model'
+        if not os.path.exists(dirname):
+            try:
+                os.mkdir(dirname)
+            except FileExistsError:
+                pass
+        if learner.train_iter%cfg.reward_model.freq == 0:
+            path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(learner.train_iter))
+            reward_model.save_model(path)
+    path = os.path.join(dirname, 'final_model.pth.tar')
+    reward_model.save_model(path)
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
