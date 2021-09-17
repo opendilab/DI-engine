@@ -14,7 +14,7 @@ Prerequisites
      - macOS
      - Windows10
 
-   Python version: 3.6, 3.7, 3.8 (You can refer to `Python Installation Guide <https://pytorch.org/get-started/locally/#linux-python>`_ in PyTorch doc. Please pay attention to the correct Python version.) 
+   Python version: 3.6, 3.7, 3.8 (You can refer to `Python Installation Guide <https://pytorch.org/get-started/locally/#linux-python>`_ in PyTorch doc. Please pay attention to the correct Python version.)
 
    PyTorch version: >=1.3.1, <=1.8.0 (You can use any proper version in this range, see `PyTorch Installation <https://pytorch.org/get-started/locally/>`_)
 
@@ -35,7 +35,7 @@ You can simply install DI-engine from PyPI with the following command:
 .. tip::
 
     If you encounter timeout in downloading packages, you can try to indicate the corresponding pip source according to your area.
-    
+
 
 And if you prefer to use Anaconda or Miniconda, the next command is suggested:
 
@@ -53,7 +53,7 @@ Also, you can install DI-engine from the source codes in github(master branch re
 
 .. tip::
 
-   If you use ``--user`` option in installation, some executable command will be installed in user path(e.g. ``~/.local/bin``), and you should ensure this path has already been added into environment variable(e.g. 
+   If you use ``--user`` option in installation, some executable command will be installed in user path(e.g. ``~/.local/bin``), and you should ensure this path has already been added into environment variable(e.g.
    $PATH in Linux).
 
 If you want to install the extra package required by some functions in DI-engine(such as concrete env, unittest and doc), you can execute
@@ -72,11 +72,11 @@ If you complete installation with the similar output in your terminal, the insta
     Successfully installed DI-engine
 
 .. tip::
-    Some shells such as Zsh require quotation marks around package names, i.e. pip install 'DI-engine[test]' 
+    Some shells such as Zsh require quotation marks around package names, i.e. pip install 'DI-engine[test]'
 
 
 .. note::
-    
+
    The whole installation procedure often lasts about 30 seconds(depends on the download speed of packages), if there are some failed packages, you can also refer to ``setup.py`` and install the specific
    package manually.
 
@@ -89,7 +89,9 @@ To contribute to DI-engine, with support for running tests and building the docu
     # source r0.3.2  # maybe you need activate virtual environment first
 
     git clone https://github.com/opendilab/DI-engine.git
-    pip install -e .[doc, test, common_env] --user
+    pip install -e .[doc,test,common_env] --user
+
+If you encounter problems related to ``swig``, please install it through `the official website <http://www.swig.org/>`_ manual and make sure that ``swig`` is in your PATH.
 
 Check install
 ****************
