@@ -154,7 +154,7 @@ def test_c51():
         f.write("10. c51\n")
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     try:
