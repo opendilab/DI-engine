@@ -5,6 +5,6 @@ Developer Guide
    :maxdepth: 2
 
    git_guide_en
-   doc_contribution
-   code_comment
+   doc_contribution_en
+   code_comment_en
    
