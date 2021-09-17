@@ -107,6 +107,9 @@ setup(
         'procgen_env': [
             'procgen',
         ],
+        'bsuite_env': [
+            'bsuite',
+        ],
         'minigrid_env': [
             'gym-minigrid',
         ],
