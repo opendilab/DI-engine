@@ -3,7 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot(data: list[dict], xlabel: str, ylabel: str, title: str):
+def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str='./picture.jpg'):
     """
     Overview: 
         Draw training polyline
@@ -19,9 +19,9 @@ def plot(data: list[dict], xlabel: str, ylabel: str, title: str):
     sns.set(style="darkgrid", font_scale=1.5)
     for nowdata in data:
         for k,v in nowdata.items():
-            if k=='step':
+            if k=='x':
                 step = v
-            if k=='value':
+            if k=='y':
                 value = v
             if k=='label':
                 label = v
@@ -29,4 +29,5 @@ def plot(data: list[dict], xlabel: str, ylabel: str, title: str):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+    plt.savefig(pth)
     plt.show()
