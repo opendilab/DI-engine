@@ -26,32 +26,86 @@ def compute_adv(data,last_value,cfg):
     #     )
     data = get_gae(
         data, to_device(last_value, 'cpu') , gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False
-    )
+    ) # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
     if not cfg.nstep_return:
         return get_train_sample(data, cfg.collect.unroll_len)
     else:
         return get_nstep_return_data(data, cfg.nstep)
 
-def split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
-    split_traj_and_compute_adv_data=[]
+def list_data_split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
+    # data shape: list of transitions dict [{'value':,'reward':,'adv':},...,{'value':,'reward':,'adv':}] 
+    processed_data=[]
     start_index=0
-    traj_cnt=0
+    timesteps=0
     for i in range(len(data)):
-        traj_cnt+=1
+        timesteps+=1
         if data[i]['done']==True:
-        # if data['done'][i]==True:
-            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1)[0],cfg)
-            split_traj_and_compute_adv_data.extend(traj_data)
+            # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
+            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1)[0],cfg)  
+            processed_data.extend(traj_data)
             start_index=i+1
-            traj_cnt=0
+            timesteps=0
             continue
-        if traj_cnt == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
-            traj_data=compute_adv(data[start_index:i+1],next_value[i],cfg)
-            split_traj_and_compute_adv_data.extend(traj_data)
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
+            # for example, if i = 63, traj_data take the timestep [t=0,...,t=62], last value: next_value[62] 
+            # throw away timestep t=63, because we don't kown the value of timestep 64
+            # owing to self._traj_len=64
+            traj_data=compute_adv(data[start_index:i], next_value[i-1], cfg)
+            ##### 
+            # below is wrong, because the next_value[i] for example, i=63, 
+            # next_value[63] is the value of init timestep in next episode
+            # traj_data=compute_adv(data[start_index:i+1], next_value[i], cfg) 
+            #####
+            processed_data.extend(traj_data)
             start_index=i+1
-            traj_cnt=0
+            timesteps=0
             continue
-    return split_traj_and_compute_adv_data+data[start_index:i+1] # add the remaining data 
+    return processed_data+data[start_index:i+1] # add the remaining data 
+
+def dict_data_split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
+     # data shape: dict of torch.FloatTensor of thansitions {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
+    # traj mean episode transitions or truncated episode transitions because the restrict of max_traj_len
+    processed_data=[]
+    start_index=0
+    timesteps=0
+    for i in range(data['reward'].shape[0]):
+        timesteps+=1
+        traj_data=[]
+        if data['done'][i]==True:
+            for k in range(start_index,i+1):
+                # traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
+                traj_data.append( {key:data[key][k] for key in data.keys()} )
+           
+            # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
+            traj_data=compute_adv(traj_data,torch.zeros(1)[0],cfg)
+            processed_data.extend(traj_data)
+            start_index=i+1
+            timesteps=0
+            continue
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
+            for k in range(start_index,i): #
+                # for example, if i = 63, traj_data take the timestep [k=0,...,k=62], last value: next_value[62] 
+                # throw away timestep t=63, because we don't kown the value of timestep 64
+                # owing to self._traj_len=64
+                traj_data.append( {key:data[key][k] for key in data.keys()} ) 
+            traj_data=compute_adv(traj_data, next_value[i-1], cfg)
+
+            ##### 
+            # below is wrong, because the next_value[i] for example, i=63, 
+            # next_value[63] is the value of init timestep in next episode
+            # for k in range(start_index,i+1): #
+            #     traj_data.append( {key:data[key][k] for key in data.keys()} ) 
+            # traj_data=compute_adv(traj_data, next_value[i], cfg)
+            #####
+            processed_data.extend(traj_data)
+            start_index=i+1
+            timesteps=0
+            continue
+    remaining_traj_data = [] # because of the limit of max_sample
+    for k in range(start_index,i+1):
+        remaining_traj_data.append( {key:data[key][k] for key in data.keys()} )
+        # remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
+    return processed_data + remaining_traj_data # add the remaining data, return shape list of dict
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
@@ -207,32 +261,49 @@ class PPOPolicy(Policy):
                         next_value *= self._running_mean_std.std
 
                     # gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                    # # GAE need (T, B) shape input and return (T, B) output
-                    # #  TODO(pu) bug? data['reward'] should be (T,B), where T is trajectory length and B is batch size, 
-                    # # but the input data may be a concatenate of many episodes with diffrent length!
+                    # # gae function need (T, B) shape input and return (T, B) output
+                    # #  TODO(pu) data['reward'] should be torch.FloatTensor(T,B), where T is trajectory length and B is batch size, 
+                    # # but the input data may be a concatenate of many episodes with diffrent length! 
+                    # # value.shape=[512], data['reward'].shape=[512]
                     # data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda) 
 
+                    # way 1
+                    # data['value']=value
+                    # data['weight']=[None for i in range(data['reward'].shape[0])]
+                    # processed_data=dicts_to_lists(data)
+                    # processed_data = list_data_split_traj_and_compute_adv(processed_data, next_value ,self._cfg) # TODO
+                    # processed_data=lists_to_dicts(processed_data)
+                    # for k,v in processed_data.items():
+                    #     if isinstance(v[0],torch.Tensor):
+                    #         processed_data[k]=torch.stack(v,dim=0)
+                    # processed_data['weight'] = None
+
+                    # way 2
                     data['value']=value
                     data['weight']=[None for i in range(data['reward'].shape[0])]
-                    data=dicts_to_lists(data)
-                    data = split_traj_and_compute_adv(data, next_value ,self._cfg) # TODO
-                    data=lists_to_dicts(data)
-                    for k,v in data.items():
+                    # NOTE: processed_data have less transition than data, because we throw away the last timestep 
+                    # transition in each traj in fun dict_data_split_traj_and_compute_adv() to compute the adv
+                    # 64*8 -> 63*8
+                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value ,self._cfg) # TODO
+                    processed_data = lists_to_dicts(processed_data)
+                    for k,v in processed_data.items():
                         if isinstance(v[0],torch.Tensor):
-                            data[k]=torch.stack(v,dim=0)
-                    data['weight'] = None
+                            processed_data[k]=torch.stack(v,dim=0)
+                    processed_data['weight'] = None
 
-                    unnormalized_returns = value + data['adv']
+                    unnormalized_returns = processed_data['value'] + processed_data['adv']
 
                     if self._value_norm:
-                        data['value'] = value / self._running_mean_std.std
-                        data['return'] = unnormalized_returns / self._running_mean_std.std
+                        processed_data['value'] = processed_data['value'] / self._running_mean_std.std
+                        processed_data['return'] = unnormalized_returns / self._running_mean_std.std
                         self._running_mean_std.update(unnormalized_returns.cpu().numpy())
                     else:
-                        data['value'] = value
-                        data['return'] = unnormalized_returns
+                        processed_data['value'] = processed_data['value']
+                        processed_data['return'] = unnormalized_returns
+            else:
+                processed_data = data
             
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True): # self._cfg.learn.batch_size=64
+            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size, shuffle=True): # self._cfg.learn.batch_size=64
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:

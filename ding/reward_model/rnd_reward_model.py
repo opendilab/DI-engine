@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
+from ding.utils import RunningMeanStd
 
 
 def collect_states(iterator):  # get total_states
@@ -69,6 +70,8 @@ class RndRewardModel(BaseRewardModel):
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_data = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
+        self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
+        self.estimate_cnt_rnd = 0
 
     def _train(self) -> None:
         train_data: list = random.sample(self.train_data, self.cfg.batch_size)
@@ -93,7 +96,14 @@ class RndRewardModel(BaseRewardModel):
         with torch.no_grad():
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
+            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8) # to [0,1]
+            self._running_mean_std_rnd.update(reward.cpu().numpy())
+            reward = reward / self._running_mean_std_rnd.std # TODO(pu)
+            self.estimate_cnt_rnd += 1
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', reward.min(), self.estimate_cnt_rnd)
+
             reward = reward.to(data[0]['reward'].device)
             reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
