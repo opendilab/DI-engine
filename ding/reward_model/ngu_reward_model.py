@@ -98,6 +98,8 @@ class EpisodicRewardModel(BaseRewardModel):
         self.train_action = []
         self.opt = optim.Adam(self.episodic_reward_model.parameters(), config.learning_rate)
         self.estimate_cnt_episodic = 0
+        self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
+        self._running_mean_std_episodic_reward = RunningMeanStd(epsilon=1e-4)
 
     def _train(self) -> None:
         # sample episode's timestep index
@@ -118,8 +120,6 @@ class EpisodicRewardModel(BaseRewardModel):
         self.opt.step()
 
     def train(self) -> None:
-        self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
-        self._running_mean_std_episodic_reward = RunningMeanStd(epsilon=1e-4)
         # stack episode dim
         self.train_next_obs = copy.deepcopy(self.train_obs)
         self.train_obs = [
@@ -144,7 +144,7 @@ class EpisodicRewardModel(BaseRewardModel):
         self.train_action = torch.stack(
             self.train_action, dim=0
         ).view(len(self.train_action) * len(self.train_action[0]), -1)
-        for _ in range(self.cfg.update_per_collect):# * self.cfg.clear_buffer_per_iters):  # TODO(pu)
+        for _ in range(self.cfg.update_per_collect):  # * self.cfg.clear_buffer_per_iters):  # TODO(pu)
             self._train()
         # self.clear_data()
 
@@ -253,6 +253,9 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             self.estimate_cnt_episodic += 1
+            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
+            episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
+
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic
             )
@@ -262,13 +265,6 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic
             )
-            # episodic_reward = (episodic_reward - episodic_reward.min()) / \
-            # (episodic_reward.max() - episodic_reward.min() + 1e-8)
-            # self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy()) #.cpu().numpy() # TODO
-            # episodic_reward =  episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO
-            episodic_reward = (episodic_reward - episodic_reward.min()) / (
-                    episodic_reward.max() - episodic_reward.min() + 1e-8
-            )  # normalize to [0,1]
         return episodic_reward
 
     def collect_data(self, data: list) -> None:
@@ -333,6 +329,7 @@ class RndRewardModel(BaseRewardModel):
         self.train_data = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.estimate_cnt_rnd = 0
+        self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
 
     def _train(self) -> None:
         train_data: list = random.sample(self.train_data_cur, self.cfg.batch_size)
@@ -344,7 +341,6 @@ class RndRewardModel(BaseRewardModel):
         self.opt.step()
 
     def train(self) -> None:
-        self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
         if isinstance(self.train_data_total[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
             # tmp = []
             # for i in range(len(self.train_data)):
