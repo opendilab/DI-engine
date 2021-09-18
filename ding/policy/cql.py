@@ -8,11 +8,13 @@ import torch.nn.functional as F
 from torch.distributions import Normal, Independent
 
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
+    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
+from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
 
 
@@ -156,7 +158,12 @@ class CQLPolicy(Policy):
             ignore_done=False,
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
+            # (int) The numbers of action sample each at every state s from a uniform-at-random
             num_actions=10,
+            # (bool) Whether use lagrange multiplier in q value loss.
+            with_lagrange=False,
+            # (float) The threshold for difference in Q-values
+            lagrange_thresh=-1,
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -196,12 +203,9 @@ class CQLPolicy(Policy):
         self._twin_critic = self._cfg.model.twin_critic
         self._num_actions = self._cfg.learn.num_actions
 
-        self._data_type = self._cfg.learn.data_type
-        self._data_path = self._cfg.learn.data_path
         self._min_q_version = 3
-        self._temp = 1.
         self._min_q_weight = self._cfg.learn.min_q_weight
-        self._with_lagrange = True
+        self._with_lagrange = self._cfg.learn.with_lagrange
         self._lagrange_thresh = self._cfg.learn.lagrange_thresh
         if self._with_lagrange:
             self.target_action_gap = self._lagrange_thresh
@@ -325,17 +329,16 @@ class CQLPolicy(Policy):
                 next_action = torch.tanh(pred)
                 y = 1 - next_action.pow(2) + 1e-6
                 next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-                next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
+                next_log_prob = next_log_prob - torch.log(y).sum(-1)
 
                 next_data = {'obs': next_obs, 'action': next_action}
                 target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
                 # the value of a policy according to the maximum entropy objective
                 if self._twin_critic:
                     # find min one as target q value
-                    target_q_value = torch.min(target_q_value[0],
-                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
+                    target_q_value = torch.min(target_q_value[0], target_q_value[1]) - self._alpha * next_log_prob
                 else:
-                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
+                    target_q_value = target_q_value - self._alpha * next_log_prob
         target_value = next_v_value if self._value_network else target_q_value
 
         # =================
@@ -360,12 +363,17 @@ class CQLPolicy(Policy):
         random_actions_tensor = torch.FloatTensor(curr_actions_tensor.shape).uniform_(-1,
                                                                                       1).to(curr_actions_tensor.device)
 
-        q_pred = self._get_q_value({'obs': obs, 'action': data['action']})
-        q_rand = self._get_q_value({'obs': obs, 'action': random_actions_tensor})
+        obs_repeat = obs.unsqueeze(1).repeat(1, self._num_actions,
+                                             1).view(obs.shape[0] * self._num_actions, obs.shape[1])
+        act_repeat = data['action'].unsqueeze(1).repeat(1, self._num_actions, 1).view(
+            data['action'].shape[0] * self._num_actions, data['action'].shape[1]
+        )
+        q_pred = self._get_q_value({'obs': obs_repeat, 'action': act_repeat})
+        q_rand = self._get_q_value({'obs': obs_repeat, 'action': random_actions_tensor})
         # q2_rand = self._get_q_value(obs, random_actions_tensor, network=self.qf2)
-        q_curr_actions = self._get_q_value({'obs': obs, 'action': curr_actions_tensor})
+        q_curr_actions = self._get_q_value({'obs': obs_repeat, 'action': curr_actions_tensor})
         # q2_curr_actions = self._get_tensor_values(obs, curr_actions_tensor, network=self.qf2)
-        q_next_actions = self._get_q_value({'obs': obs, 'action': new_curr_actions_tensor})
+        q_next_actions = self._get_q_value({'obs': obs_repeat, 'action': new_curr_actions_tensor})
         # q2_next_actions = self._get_tensor_values(obs, new_curr_actions_tensor, network=self.qf2)
 
         cat_q1 = torch.stack([q_rand[0], q_pred[0], q_next_actions[0], q_curr_actions[0]], 1)
@@ -388,14 +396,8 @@ class CQLPolicy(Policy):
                 ], 1
             )
 
-        min_qf1_loss = torch.logsumexp(
-            cat_q1 / self._temp,
-            dim=1,
-        ).mean() * self._min_q_weight * self._temp
-        min_qf2_loss = torch.logsumexp(
-            cat_q2 / self._temp,
-            dim=1,
-        ).mean() * self._min_q_weight * self._temp
+        min_qf1_loss = torch.logsumexp(cat_q1, dim=1).mean() * self._min_q_weight
+        min_qf2_loss = torch.logsumexp(cat_q2, dim=1).mean() * self._min_q_weight
         """Subtract the log likelihood of data"""
         min_qf1_loss = min_qf1_loss - q_pred[0].mean() * self._min_q_weight
         min_qf2_loss = min_qf2_loss - q_pred[1].mean() * self._min_q_weight
@@ -411,7 +413,8 @@ class CQLPolicy(Policy):
             self.alpha_prime_optimizer.step()
 
         loss_dict['critic_loss'] += min_qf1_loss
-        loss_dict['twin_critic_loss'] += min_qf2_loss
+        if self._twin_critic:
+            loss_dict['twin_critic_loss'] += min_qf2_loss
 
         # update q network
         self._optimizer_q.zero_grad()
@@ -642,7 +645,7 @@ class CQLPolicy(Policy):
         # evaluate to get action distribution
         obs = data['obs']
         obs = obs.unsqueeze(1).repeat(1, num_actions, 1).view(obs.shape[0] * num_actions, obs.shape[1])
-        (mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
+        (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
         dist = Independent(Normal(mu, sigma), 1)
         pred = dist.rsample()
         action = torch.tanh(pred)
@@ -650,12 +653,254 @@ class CQLPolicy(Policy):
         # evaluate action log prob depending on Jacobi determinant.
         y = 1 - action.pow(2) + epsilon
         log_prob = dist.log_prob(pred).unsqueeze(-1)
-        log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
+        log_prob = log_prob - torch.log(y).sum(-1)
 
-        return action, log_prob.squeeze(-1)
+        return action, log_prob
 
     def _get_q_value(self, data: Dict, keep=True) -> Tensor:
         new_q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
         if self._twin_critic and not keep:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         return new_q_value
+
+
+@POLICY_REGISTRY.register('cql_discrete')
+class CQLDISCRETEPolicy(DQNPolicy):
+    r"""
+        Overview:
+            Policy class of CQL algorithm in discrete environments.
+
+        Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      qrdqn          | RL policy register name, refer to      | this arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
+                                                        | or off-policy
+        4  ``priority``         bool     True           | Whether use priority(PER)              | priority sample,
+                                                                                                 | update priority
+        6  | ``other.eps``      float    0.05           | Start value for epsilon decay. It's
+           | ``.start``                                 | small because rainbow use noisy net.
+        7  | ``other.eps``      float    0.05           | End value for epsilon decay.
+           | ``.end``
+        8  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | may be 1 when sparse
+           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
+        9  ``nstep``            int      3,             | N-step reward discount sum for target
+                                         [3, 5]         | q_value estimation
+        10 | ``learn.update``   int      3              | How many updates(iterations) to train  | this args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        11 ``learn.kappa``      float    /              | Threshold of Huber loss
+        == ==================== ======== ============== ======================================== =======================
+        """
+
+    config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        type='qrdqn',
+        # (bool) Whether to use cuda for network.
+        cuda=False,
+        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
+        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        priority=False,
+        # (float) Reward's future discount factor, aka. gamma.
+        discount_factor=0.97,
+        # (int) N-step reward for target q_value estimation
+        nstep=1,
+        learn=dict(
+            # (bool) Whether to use multi gpu
+            multi_gpu=False,
+            # How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
+            update_per_collect=3,
+            batch_size=64,
+            learning_rate=0.001,
+            # ==============================================================
+            # The following configs are algorithm-specific
+            # ==============================================================
+            # (int) Frequence of target network update.
+            target_update_freq=100,
+            # (bool) Whether ignore done(usually for max step termination env)
+            ignore_done=False,
+            min_q_weight=1.0,
+        ),
+        # collect_mode config
+        collect=dict(
+            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # n_sample=8,
+            # (int) Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+        ),
+        eval=dict(),
+        # other config
+        other=dict(
+            # Epsilon greedy with decay.
+            eps=dict(
+                # (str) Decay type. Support ['exp', 'linear'].
+                type='exp',
+                start=0.95,
+                end=0.1,
+                # (int) Decay length(env step)
+                decay=10000,
+            ),
+            replay_buffer=dict(replay_buffer_size=10000, )
+        ),
+    )
+
+    def _init_learn(self) -> None:
+        r"""
+            Overview:
+                Learn mode init method. Called by ``self.__init__``.
+                Init the optimizer, algorithm config, main and target models.
+            """
+        self._min_q_weight = self._cfg.learn.min_q_weight
+        self._priority = self._cfg.priority
+        # Optimizer
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+
+        self._gamma = self._cfg.discount_factor
+        self._nstep = self._cfg.nstep
+
+        # use wrapper instead of plugin
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='assign',
+            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+        )
+        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._learn_model.reset()
+        self._target_model.reset()
+
+    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+        r"""
+            Overview:
+                Forward and backward function of learn mode.
+            Arguments:
+                - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            Returns:
+                - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            """
+        data = default_preprocess_learn(
+            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
+        )
+        if self._cuda:
+            data = to_device(data, self._device)
+        # ====================
+        # Q-learning forward
+        # ====================
+        self._learn_model.train()
+        self._target_model.train()
+        # Current q value (main model)
+        ret = self._learn_model.forward(data['obs'])
+        q_value, tau = ret['q'], ret['tau']
+        # Target q value
+        with torch.no_grad():
+            target_q_value = self._target_model.forward(data['next_obs'])['q']
+            # Max q value action (main model)
+            target_q_action = self._learn_model.forward(data['next_obs'])['action']
+
+        #TODO(zym) add cql loss
+        # 1. chose action and q in dataset.
+        # 2. compute value loss(negative_sampling - dataset_expec)
+        replay_action_one_hot = F.one_hot(data['action'], self._cfg.model.action_shape)
+        replay_chosen_q = (q_value.mean(-1) * replay_action_one_hot).sum(dim=1)
+        # add cql
+        dataset_expec = replay_chosen_q.mean()
+        negative_sampling = torch.logsumexp(q_value.mean(-1), dim=1).mean()
+        min_q_loss = negative_sampling - dataset_expec
+
+        data_n = qrdqn_nstep_td_data(
+            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], tau, data['weight']
+        )
+        value_gamma = data.get('value_gamma')
+        loss, td_error_per_sample = qrdqn_nstep_td_error(
+            data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+        )
+
+        loss += self._min_q_weight * min_q_loss
+
+        # ====================
+        # Q-learning update
+        # ====================
+        self._optimizer.zero_grad()
+        loss.backward()
+        if self._cfg.learn.multi_gpu:
+            self.sync_gradients(self._learn_model)
+        self._optimizer.step()
+
+        # =============
+        # after update
+        # =============
+        self._target_model.update(self._learn_model.state_dict())
+        return {
+            'cur_lr': self._optimizer.defaults['lr'],
+            'total_loss': loss.item(),
+            'priority': td_error_per_sample.abs().tolist(),
+            # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
+            # '[histogram]action_distribution': data['action'],
+        }
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
+    def _init_collect(self) -> None:
+        r"""
+            Overview:
+                Collect mode init method. Called by ``self.__init__``.
+                Init traj and unroll length, collect model.
+                Enable the eps_greedy_sample
+            """
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._gamma = self._cfg.discount_factor  # necessary for parallel
+        self._nstep = self._cfg.nstep  # necessary for parallel
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+        r"""
+            Overview:
+                Forward function for collect mode with eps_greedy
+            Arguments:
+                - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            Returns:
+                - data (:obj:`dict`): The collected data
+            """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            output = self._collect_model.forward(data, eps=eps)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        r"""
+            Overview:
+                Get the trajectory and the n step return data, then sample from the n_step return data
+            Arguments:
+                - data (:obj:`list`): The trajectory's cache
+            Returns:
+                - samples (:obj:`dict`): The training samples generated
+            """
+        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        return get_train_sample(data, self._unroll_len)
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qrdqn', ['ding.model.template.q_learning']
