@@ -23,6 +23,7 @@ def generate(args):
                       seed=args.seed, expert_data_path=main_config.policy.learn.save_path, state_dict=state_dict)
 
 def train_expert(args):
+    from dizoo.atari.config.serial.pong.pong_qrdqn_config import main_config, create_config
     config = deepcopy([main_config, create_config])
     serial_pipeline(config, seed=args.seed)
 
