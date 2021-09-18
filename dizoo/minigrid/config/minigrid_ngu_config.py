@@ -8,24 +8,20 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e6_rbs1e5',
+    exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
+    # exp_name='minigrid_fourrooms_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
+    # exp_name='minigrid_doorkey_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
+        # env_id='MiniGrid-DoorKey-16x16-v0',
         stop_value=0.96,
     ),
-    # reward_model=dict(
-    #     intrinsic_reward_type='add',  #add',  # 'assign'
-    #     learning_rate=0.001,
-    #     obs_shape=2739,
-    #     batch_size=32,
-    #     update_per_collect=10,
-    #     nstep=nstep,
-    # ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  # add',  # 'assign'
+        intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
         obs_shape=2739,
         action_shape=7,
@@ -37,7 +33,7 @@ minigrid_ppo_rnd_config = dict(
         type='rnd',
     ),
     episodic_reward_model=dict(
-        intrinsic_reward_type='add',  # add',  # 'assign'
+        intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=2739,
         action_shape=7,
@@ -53,25 +49,24 @@ minigrid_ppo_rnd_config = dict(
         cuda=True,
         priority=False,
         discount_factor=0.997,
-        burnin_step=20,  # TODO
+        burnin_step=20,
         nstep=nstep,
-        unroll_len=80,  # 80
+        unroll_len=80,
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            # encoder_hidden_size_list=[128, 128, 64],
             encoder_hidden_size_list=[256, 128, 64, 64],
-            collector_env_num=collector_env_num,  # TODO
+            collector_env_num=collector_env_num,
         ),
         learn=dict(
-            update_per_collect=8,  # 20,  #4,
-            batch_size=64,  # 32,  #64,
+            update_per_collect=8,
+            batch_size=64,
             learning_rate=0.0005,
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
-            target_update_freq=2500,  # 500,
+            target_update_freq=2500,
         ),
         collect=dict(
             n_sample=32,
@@ -83,7 +78,7 @@ minigrid_ppo_rnd_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=1e6,
+                decay=1e7,
             ),
             replay_buffer=dict(replay_buffer_size=100000, )
         ),
@@ -103,7 +98,7 @@ minigrid_ppo_rnd_create_config = dict(
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(
-        type='sample_ngu',  # TODO
+        type='sample_ngu',
     )
 )
 minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
