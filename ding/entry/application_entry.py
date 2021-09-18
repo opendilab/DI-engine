@@ -137,8 +137,9 @@ def collect_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
+    policy_kwargs= None if cfg.policy.model.get('head', None) else {'eps': 0.05}
     # Let's collect some expert demostrations
-    exp_data = collector.collect(n_sample=collect_count)
+    exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
     with open(expert_data_path, 'wb') as f:
