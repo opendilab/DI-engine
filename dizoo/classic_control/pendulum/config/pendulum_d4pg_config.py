@@ -17,7 +17,7 @@ pendulum_d4pg_config = dict(
         model=dict(
             obs_shape=3,
             action_shape=1,
-            actor_head_type='regression',
+            actor_head_type='categorical',
         ),
         learn=dict(
             update_per_collect=2,

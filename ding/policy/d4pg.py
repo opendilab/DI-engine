@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
+
+import numpy as np
 import torch
 import copy
 
@@ -69,7 +71,7 @@ class D4PGPolicy(Policy):
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='d4pg',
         # (bool) Whether to use cuda for network.
-        cuda=False,
+        cuda=True,
         # (bool type) on_policy: Determine whether on-policy or off-policy.
         # on-policy setting influences the behaviour of buffer.
         # Default False in D4PG.
@@ -79,8 +81,19 @@ class D4PGPolicy(Policy):
         priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=True,
-        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
+        # (int) Number of training samples (randomly collected) in replay buffer when training starts.
         # Default 25000 in D4PG.
+        model=dict(
+            # (float) Value of the smallest atom in the support set.
+            # Default to -10.0.
+            v_min=-10,
+            # (float) Value of the smallest atom in the support set.
+            # Default to 10.0.
+            v_max=10,
+            # (int) Number of atoms in the support set of the
+            # value distribution. Default to 51.
+            n_atom=51,
+        ),
         random_collect_size=25000,
         # (int) N-step reward for target q_value estimation
         nstep=3,
@@ -156,6 +169,9 @@ class D4PGPolicy(Policy):
         self._gamma = self._cfg.learn.discount_factor
         self._nstep = self._cfg.nstep
         self._actor_update_freq = self._cfg.learn.actor_update_freq
+        self._v_max = self._cfg.model.v_max
+        self._v_min = self._cfg.model.v_min
+        self._n_atom = self._cfg.model.n_atom
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
@@ -211,19 +227,29 @@ class D4PGPolicy(Policy):
         if self._use_reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
-        q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
+        q = self._learn_model.forward(data, mode='compute_critic')
+        q_dist = q['distribution']
+        #print(q_dist.shape)
+        q_value = q['logit']
+        #print(q_value.shape)
         q_value_dict = {}
         q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
             next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            target_q_dist = self._target_model.forward(next_data, mode='compute_critic')['distribution']
 
         value_gamma = data.get('value_gamma')
-        td_data = v_nstep_td_data(q_value, target_q_value, reward, data['done'], data['weight'], value_gamma)
-        critic_loss, td_error_per_sample = v_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
+
+        a = np.zeros_like(next_action)
+
+        td_data = dist_nstep_td_data(q_dist, target_q_dist, a, a, reward, data['done'], data['weight'])
+        critic_loss, td_error_per_sample = dist_nstep_td_error(
+            td_data, self._gamma, self._v_min, self._v_max, self._n_atom, nstep=self._nstep, value_gamma=value_gamma
+        )
         loss_dict['critic_loss'] = critic_loss
+        #print(critic_loss)
         # ================
         # critic update
         # ================
@@ -239,7 +265,9 @@ class D4PGPolicy(Policy):
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
             actor_data['obs'] = data['obs']
-            actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
+            actor_loss = -self._learn_model.forward(data, mode='compute_critic')['logit'].mean()
+            print(actor_loss)
+            #print(actor_data['action'])
 
             loss_dict['actor_loss'] = actor_loss
             # actor update
@@ -381,7 +409,7 @@ class D4PGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'qac_dist', ['ding.model.template.qac_dist']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
