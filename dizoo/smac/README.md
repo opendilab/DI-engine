@@ -45,4 +45,4 @@
 |  mappo |    0      |  8.3h    | **1**  | **9h** |       dizoo/smac/config/smac_MMM2_mappo_config.py            |
 
 comment: The time in the table is the time to run 2M env step.
-comment: The IPPO and MAPPO were experimented with DI-engine and the epymarl open source library. The epymarl library commit id is ee85dd0.
+The IPPO and MAPPO were experimented with DI-engine and the epymarl open source library. The epymarl library commit id is ee85dd0.
