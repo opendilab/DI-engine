@@ -1,30 +1,31 @@
 from easydict import EasyDict
 
-halfcheetah_sac_default_config = dict(
-    exp_name='HalfCheetah-v3',
+num_skills = 5
+ant_sac_default_config = dict(
+    exp_name='Ant-v3',
     env=dict(
-        env_id='HalfCheetah-v3',
+        env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=12000,
+        stop_value=6000,
     ),
     policy=dict(
         cuda=True,
         on_policy=False,
         random_collect_size=10000,
         model=dict(
-            obs_shape=17,
-            action_shape=6,
+            obs_shape=111,
+            action_shape=8,
             twin_critic=True,
             actor_head_type='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
             # number of skills to learn
-            num_skills=5,
+            num_skills=num_skills,
         ),
         learn=dict(
             update_per_collect=1,
@@ -32,7 +33,7 @@ halfcheetah_sac_default_config = dict(
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
-            ignore_done=True,
+            ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
@@ -43,7 +44,7 @@ halfcheetah_sac_default_config = dict(
             n_sample=1,
             unroll_len=1,
             # number of skills to learn
-            num_skills=5, # note that the num_skills here should be the same as the one above.
+            num_skills=num_skills, # note that the num_skills here should be the same as the one above.
         ),
         command=dict(),
         eval=dict(),
@@ -51,10 +52,10 @@ halfcheetah_sac_default_config = dict(
     ),
 )
 
-halfcheetah_sac_default_config = EasyDict(halfcheetah_sac_default_config)
-main_config = halfcheetah_sac_default_config
+ant_sac_default_config = EasyDict(ant_sac_default_config)
+main_config = ant_sac_default_config
 
-halfcheetah_sac_default_create_config = dict(
+ant_sac_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -66,5 +67,5 @@ halfcheetah_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_sac_default_create_config = EasyDict(halfcheetah_sac_default_create_config)
-create_config = halfcheetah_sac_default_create_config
+ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
+create_config = ant_sac_default_create_config

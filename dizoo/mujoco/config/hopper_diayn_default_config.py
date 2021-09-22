@@ -1,9 +1,10 @@
 from easydict import EasyDict
 
-ant_sac_default_config = dict(
-    exp_name='Ant-v3',
+num_skills = 5
+hopper_diayn_config = dict(
+    exp_name='hopper_diayn',
     env=dict(
-        env_id='Ant-v3',
+        env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -17,14 +18,14 @@ ant_sac_default_config = dict(
         on_policy=False,
         random_collect_size=10000,
         model=dict(
-            obs_shape=111,
-            action_shape=8,
+            obs_shape=11,
+            action_shape=3,
             twin_critic=True,
             actor_head_type='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
             # number of skills to learn
-            num_skills=5,
+            num_skills=num_skills,
         ),
         learn=dict(
             update_per_collect=1,
@@ -43,7 +44,7 @@ ant_sac_default_config = dict(
             n_sample=1,
             unroll_len=1,
             # number of skills to learn
-            num_skills=5, # note that the num_skills here should be the same as the one above.
+            num_skills=num_skills, # note that the num_skills here should be the same as the one above.
         ),
         command=dict(),
         eval=dict(),
@@ -51,10 +52,10 @@ ant_sac_default_config = dict(
     ),
 )
 
-ant_sac_default_config = EasyDict(ant_sac_default_config)
-main_config = ant_sac_default_config
+hopper_diayn_config = EasyDict(hopper_diayn_config)
+main_config = hopper_diayn_config
 
-ant_sac_default_create_config = dict(
+hopper_diayn_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -66,5 +67,5 @@ ant_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
-create_config = ant_sac_default_create_config
+hopper_diayn_create_config = EasyDict(hopper_diayn_create_config)
+create_config = hopper_diayn_create_config
