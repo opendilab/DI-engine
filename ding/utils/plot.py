@@ -3,7 +3,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str='./picture.jpg'):
+
+def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture.jpg'):
     """
     Overview: 
         Draw training polyline
@@ -18,12 +19,12 @@ def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str='./picture.j
     """
     sns.set(style="darkgrid", font_scale=1.5)
     for nowdata in data:
-        for k,v in nowdata.items():
-            if k=='x':
+        for k, v in nowdata.items():
+            if k == 'x':
                 step = v
-            if k=='y':
+            if k == 'y':
                 value = v
-            if k=='label':
+            if k == 'label':
                 label = v
         sns.lineplot(x=step, y=value, label=label)
     plt.xlabel(xlabel)
