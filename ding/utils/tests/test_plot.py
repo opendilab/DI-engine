@@ -1,11 +1,11 @@
 import random
 import numpy as np
 import os
-#import pytest
+import pytest
 
 from ding.utils.plot_helper import plot
 
-#@pytest.mark.unittest
+@pytest.mark.unittest
 def test_plot():
     rewards1 = np.array([0, 0.1,0,0.2,0.4,0.5,0.6,0.9,0.9,0.9])
     rewards2 = np.array([0, 0,0.1,0.4,0.5,0.5,0.55,0.8,0.9,1])
