@@ -6,7 +6,7 @@ import seaborn as sns
 
 def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture.jpg'):
     """
-    Overview: 
+    Overview:
         Draw training polyline
     Interface:
         data (:obj:`List[Dict]`): the data we will use to draw polylines
