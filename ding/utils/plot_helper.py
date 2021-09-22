@@ -18,16 +18,9 @@ def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str='./picture.j
     """
     sns.set(style="darkgrid", font_scale=1.5)
     for nowdata in data:
-        for k,v in nowdata.items():
-            if k=='x':
-                step = v
-            if k=='y':
-                value = v
-            if k=='label':
-                label = v
+        step, value, label = nowdata['x'], nowdata['y'], nowdata['label']
         sns.lineplot(x=step, y=value, label=label)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
     plt.savefig(pth)
-    plt.show()

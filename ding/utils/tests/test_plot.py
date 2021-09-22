@@ -1,15 +1,15 @@
 import random
 import numpy as np
 import os
-import pytest
+#import pytest
 
-from ding.utils.plot import plot
+from ding.utils.plot_helper import plot
 
-@pytest.mark.unittest
+#@pytest.mark.unittest
 def test_plot():
     rewards1 = np.array([0, 0.1,0,0.2,0.4,0.5,0.6,0.9,0.9,0.9])
     rewards2 = np.array([0, 0,0.1,0.4,0.5,0.5,0.55,0.8,0.9,1])
-    rewards=np.concatenate((rewards1,rewards2)) # 合并数组
+    rewards=np.concatenate((rewards1,rewards2)) # concatenation array
     episode1=range(len(rewards1))
     episode2=range(len(rewards2))
     episode=np.concatenate((episode1,episode2))
@@ -18,9 +18,9 @@ def test_plot():
     data1['y']=rewards
     data1['label']='line1'
 
-    rewards3 = np.array([random.random() for _ in range(10)])
-    rewards4 = np.array([random.random() for _ in range(10)])
-    rewards=np.concatenate((rewards3,rewards4)) # 合并数组
+    rewards3 = np.random.random(10)
+    rewards4 = np.random.random(10)
+    rewards=np.concatenate((rewards3,rewards4)) # concatenation array
     episode3=range(len(rewards1))
     episode4=range(len(rewards2))
     episode=np.concatenate((episode3,episode4))
