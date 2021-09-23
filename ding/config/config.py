@@ -3,11 +3,11 @@ import os.path as osp
 import json
 import shutil
 import sys
-import time
 import tempfile
-from importlib import import_module
-from typing import Optional, Tuple, NoReturn
+import warnings
 import yaml
+from importlib import import_module
+from typing import Callable, Optional, Tuple, NoReturn
 from easydict import EasyDict
 
 from ding.utils import deep_merge_dicts
@@ -20,7 +20,7 @@ from ding.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
 
 
-class Config(object):
+class Config(dict):
     r"""
     Overview:
         Base class for config.
@@ -30,34 +30,33 @@ class Config(object):
         cfg_dict
     """
 
-    def __init__(
-            self,
-            cfg_dict: Optional[dict] = None,
-            cfg_text: Optional[str] = None,
-            filename: Optional[str] = None
-    ) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         """
         Overview:
             Init method. Create config including dict type config and text type config.
         Arguments:
             - cfg_dict (:obj:`Optional[dict]`): dict type config
-            - cfg_text (:obj:`Optional[str]`): text type config
-            - filename (:obj:`Optional[str]`): config file name
         """
-        if cfg_dict is None:
-            cfg_dict = {}
-        if not isinstance(cfg_dict, dict):
-            raise TypeError("invalid type for cfg_dict: {}".format(type(cfg_dict)))
-        self._cfg_dict = cfg_dict
-        if cfg_text:
-            text = cfg_text
-        elif filename:
-            with open(filename, 'r') as f:
-                text = f.read()
-        else:
-            text = '.'
-        self._text = text
-        self._filename = filename
+        # With the code below, you can access dict via attributes,
+        # This idea comes from https://stackoverflow.com/questions/4984647/accessing-dict-keys-like-an-attribute/14620633#14620633
+        super(Config, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+        self._validators = []
+
+    def register_validator(self, fn: Callable) -> None:
+        """
+        Each validator will receive the config instance as the unique argument.
+        You can customize your validator in policy or env by implementing the `validate_config` interfaces
+        """
+        self._validators.append(fn)
+
+    def validate(self) -> Tuple[bool, str]:
+        for fn in self._validators:
+            try:
+                fn(self)
+            except Exception as e:
+                return False, str(e)
+        return True, ""
 
     @staticmethod
     def file_to_dict(filename: str) -> 'Config':  # noqa
@@ -69,19 +68,18 @@ class Config(object):
         Returns:
             - cfg_dict (:obj:`Config`): config class
         """
-        cfg_dict, cfg_text = Config._file_to_dict(filename)
-        return Config(cfg_dict, cfg_text, filename=filename)
+        cfg_dict = Config._file_to_dict(filename)
+        return Config(cfg_dict)
 
     @staticmethod
     def _file_to_dict(filename: str) -> Tuple[dict, str]:
         """
         Overview:
-            Read config file and convert the config file to dict type config and text type config.
+            Read config file and convert the config file to dict type config.
         Arguments:
             - filename (:obj:`Optional[str]`): config file name.
         Returns:
             - cfg_dict (:obj:`Optional[dict]`): dict type config
-            - cfg_text (:obj:`Optional[str]`): text type config
         """
         filename = osp.abspath(osp.expanduser(filename))
         # TODO check exist
@@ -101,18 +99,10 @@ class Config(object):
             del sys.modules[temp_module_name]
             sys.path.pop(0)
 
-        cfg_text = filename + '\n'
-        with open(filename, 'r') as f:
-            cfg_text += f.read()
-
-        return cfg_dict, cfg_text
-
-    @property
-    def cfg_dict(self) -> dict:
-        return self._cfg_dict
+        return cfg_dict
 
 
-def read_config_yaml(path: str) -> EasyDict:
+def read_config_yaml(path: str) -> Config:
     """
     Overview:
         read configuration from path
@@ -124,7 +114,7 @@ def read_config_yaml(path: str) -> EasyDict:
     with open(path, "r") as f:
         config_ = yaml.safe_load(f)
 
-    return EasyDict(config_)
+    return Config(config_)
 
 
 def save_config_yaml(config_: dict, path: str) -> NoReturn:
@@ -168,7 +158,7 @@ def read_config_directly(path: str) -> dict:
     """
     suffix = path.split('.')[-1]
     if suffix == 'py':
-        return Config.file_to_dict(path).cfg_dict
+        return Config.file_to_dict(path)
     else:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
@@ -185,7 +175,7 @@ def read_config(path: str) -> Tuple[dict, dict]:
     """
     suffix = path.split('.')[-1]
     if suffix == 'py':
-        cfg = Config.file_to_dict(path).cfg_dict
+        cfg = Config.file_to_dict(path)
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
         assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
         return cfg['main_config'], cfg['create_config']
@@ -205,7 +195,7 @@ def read_config_with_system(path: str) -> Tuple[dict, dict, dict]:
     """
     suffix = path.split('.')[-1]
     if suffix == 'py':
-        cfg = Config.file_to_dict(path).cfg_dict
+        cfg = Config.file_to_dict(path)
         assert "main_config" in cfg, "Please make sure a 'main_config' variable is declared in config python file!"
         assert "create_config" in cfg, "Please make sure a 'create_config' variable is declared in config python file!"
         assert "system_config" in cfg, "Please make sure a 'system_config' variable is declared in config python file!"
@@ -236,7 +226,7 @@ def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: boo
             save_config_formatted(config_, formated_path)
 
 
-def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 'IBuffer') -> EasyDict:  # noqa
+def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 'IBuffer') -> Config:  # noqa
 
     def _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, buffer_cls):
 
@@ -257,7 +247,7 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
         user_buffer_cfg = user_cfg.policy.get('other', {}).get('replay_buffer', {})
         return _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, buffer_cls)
     else:
-        return_cfg = EasyDict()
+        return_cfg = Config()
         for buffer_name in policy_cfg.other.replay_buffer:  # Only traverse keys in policy_cfg
             if buffer_name == 'multi_buffer':
                 continue
@@ -271,10 +261,10 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
 
 
 def compile_collector_config(
-        policy_cfg: EasyDict,
-        user_cfg: EasyDict,
-        collector_cls: 'ISerialCollector'  # noqa
-) -> EasyDict:
+    policy_cfg: EasyDict,
+    user_cfg: EasyDict,
+    collector_cls: 'ISerialCollector'  # noqa
+) -> Config:
     policy_collector_cfg = policy_cfg.collect.collector
     user_collector_cfg = user_cfg.policy.get('collect', {}).get('collector', {})
     # step1: get collector class
@@ -291,33 +281,28 @@ def compile_collector_config(
     return collector_cfg
 
 
-policy_config_template = dict(
-    model=dict(),
-    learn=dict(learner=dict()),
-    collect=dict(collector=dict()),
-    eval=dict(evaluator=dict()),
-    other=dict(replay_buffer=dict()),
-)
-policy_config_template = EasyDict(policy_config_template)
-env_config_template = dict(manager=dict(), )
-env_config_template = EasyDict(env_config_template)
+# TODO
+# [ ] Combine serial/parallel config in one function
+# [ ] Apply validator on compile stage (current `compile_config` can only check for the top level properties)
+def compile(cfg: Config) -> Config:
+    pass
 
 
 def compile_config(
-        cfg: EasyDict,
-        env_manager: type = None,
-        policy: type = None,
-        learner: type = BaseLearner,
-        collector: type = None,
-        evaluator: type = InteractionSerialEvaluator,
-        buffer: type = AdvancedReplayBuffer,
-        env: type = None,
-        reward_model: type = None,
-        seed: int = 0,
-        auto: bool = False,
-        create_cfg: dict = None,
-        save_cfg: bool = True,
-        save_path: str = 'total_config.py',
+    cfg: Config,
+    env_manager: type = None,
+    policy: type = None,
+    learner: type = BaseLearner,
+    collector: type = None,
+    evaluator: type = InteractionSerialEvaluator,
+    buffer: type = AdvancedReplayBuffer,
+    env: type = None,
+    reward_model: type = None,
+    seed: int = 0,
+    auto: bool = False,
+    create_cfg: dict = None,
+    save_cfg: bool = True,
+    save_path: str = 'total_config.py',
 ) -> EasyDict:
     """
     Overview:
@@ -358,13 +343,12 @@ def compile_config(
             env_config = env.default_config()
         else:
             env_config = EasyDict()  # env does not have default_config
-        env_config = deep_merge_dicts(env_config_template, env_config)
+        env_config = deep_merge_dicts(env.env_config_template, env_config)
         env_config.update(create_cfg.env)
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         env_config.manager.update(create_cfg.env_manager)
-        print(env_config)
         policy_config = policy.default_config()
-        policy_config = deep_merge_dicts(policy_config_template, policy_config)
+        policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
         policy_config.collect.collector.update(create_cfg.collector)
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
@@ -380,12 +364,12 @@ def compile_config(
             env_config = env.default_config()
         else:
             env_config = EasyDict()  # env does not have default_config
-        env_config = deep_merge_dicts(env_config_template, env_config)
+        env_config = deep_merge_dicts(env.env_config_template, env_config)
         if env_manager is None:
             env_manager = BaseEnvManager  # for compatibility
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         policy_config = policy.default_config()
-        policy_config = deep_merge_dicts(policy_config_template, policy_config)
+        policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
         if reward_model is None:
             reward_model_config = EasyDict()
         else:
@@ -422,23 +406,26 @@ def compile_config(
                 pass
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
+    cfg = Config(cfg)
+    cfg.register_validator(env.validate_config)
+    cfg.register_validator(policy.validate_config)
     return cfg
 
 
 def compile_config_parallel(
-        cfg: EasyDict,
-        create_cfg: EasyDict,
-        system_cfg: EasyDict,
-        seed: int = 0,
-        save_cfg: bool = True,
-        save_path: str = 'total_config.py',
-        platform: str = 'local',
-        coordinator_host: Optional[str] = None,
-        learner_host: Optional[str] = None,
-        collector_host: Optional[str] = None,
-        coordinator_port: Optional[int] = None,
-        learner_port: Optional[int] = None,
-        collector_port: Optional[int] = None,
+    cfg: EasyDict,
+    create_cfg: EasyDict,
+    system_cfg: EasyDict,
+    seed: int = 0,
+    save_cfg: bool = True,
+    save_path: str = 'total_config.py',
+    platform: str = 'local',
+    coordinator_host: Optional[str] = None,
+    learner_host: Optional[str] = None,
+    collector_host: Optional[str] = None,
+    coordinator_port: Optional[int] = None,
+    learner_port: Optional[int] = None,
+    collector_port: Optional[int] = None,
 ) -> EasyDict:
     """
     Overview:
@@ -468,7 +455,7 @@ def compile_config_parallel(
         env_config = env.default_config()
     else:
         env_config = EasyDict()  # env does not have default_config
-    env_config = deep_merge_dicts(env_config_template, env_config)
+    env_config = deep_merge_dicts(env.env_config_template, env_config)
     env_config.update(create_cfg.env)
 
     env_manager = get_env_manager_cls(create_cfg.env_manager)
@@ -478,7 +465,7 @@ def compile_config_parallel(
     # policy
     policy = get_policy_cls(create_cfg.policy)
     policy_config = policy.default_config()
-    policy_config = deep_merge_dicts(policy_config_template, policy_config)
+    policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
     cfg.policy.update(create_cfg.policy)
 
     collector = get_parallel_collector_cls(create_cfg.collector)

@@ -11,12 +11,31 @@ from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_
 
 
 class Policy(ABC):
+    policy_config_template = EasyDict(
+        model=dict(),
+        learn=dict(learner=dict()),
+        collect=dict(collector=dict()),
+        eval=dict(evaluator=dict()),
+        other=dict(replay_buffer=dict()),
+        cfg_type=""
+    )
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
+
+    @classmethod
+    def validate_config(cls: type, config: dict) -> None:
+        if 'policy' not in config:
+            raise Exception("Missing `policy` config")
+        keys = config["policy"].keys()
+        valid_keys = set(cls.config.keys())
+        valid_keys = valid_keys.union(cls.policy_config_template.keys())
+        invalid_keys = keys - valid_keys
+        if len(invalid_keys) > 0:
+            raise Exception("Policy config contains invalid keys: {}".format(", ".join(invalid_keys)))
 
     learn_function = namedtuple(
         'learn_function', [
@@ -55,10 +74,10 @@ class Policy(ABC):
     total_field = set(['learn', 'collect', 'eval'])
 
     def __init__(
-            self,
-            cfg: dict,
-            model: Optional[Union[type, torch.nn.Module]] = None,
-            enable_field: Optional[List[str]] = None
+        self,
+        cfg: dict,
+        model: Optional[Union[type, torch.nn.Module]] = None,
+        enable_field: Optional[List[str]] = None
     ) -> None:
         self._cfg = cfg
         self._on_policy = self._cfg.on_policy

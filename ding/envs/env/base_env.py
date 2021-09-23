@@ -20,6 +20,13 @@ class BaseEnv(ABC, gym.Env):
             ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
 
+    env_config_template = EasyDict(manager=dict())
+
+    @classmethod
+    def validate_config(cls: type, config: dict) -> None:
+        if 'env' not in config:
+            raise Exception("Missing `env` config")
+
     @abstractmethod
     def __init__(self, cfg: dict) -> None:
         """
