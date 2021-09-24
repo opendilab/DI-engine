@@ -261,9 +261,9 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
 
 
 def compile_collector_config(
-    policy_cfg: EasyDict,
-    user_cfg: EasyDict,
-    collector_cls: 'ISerialCollector'  # noqa
+        policy_cfg: EasyDict,
+        user_cfg: EasyDict,
+        collector_cls: 'ISerialCollector'  # noqa
 ) -> Config:
     policy_collector_cfg = policy_cfg.collect.collector
     user_collector_cfg = user_cfg.policy.get('collect', {}).get('collector', {})
@@ -289,20 +289,20 @@ def compile(cfg: Config) -> Config:
 
 
 def compile_config(
-    cfg: Config,
-    env_manager: type = None,
-    policy: type = None,
-    learner: type = BaseLearner,
-    collector: type = None,
-    evaluator: type = InteractionSerialEvaluator,
-    buffer: type = AdvancedReplayBuffer,
-    env: type = None,
-    reward_model: type = None,
-    seed: int = 0,
-    auto: bool = False,
-    create_cfg: dict = None,
-    save_cfg: bool = True,
-    save_path: str = 'total_config.py',
+        cfg: Config,
+        env_manager: type = None,
+        policy: type = None,
+        learner: type = BaseLearner,
+        collector: type = None,
+        evaluator: type = InteractionSerialEvaluator,
+        buffer: type = AdvancedReplayBuffer,
+        env: type = None,
+        reward_model: type = None,
+        seed: int = 0,
+        auto: bool = False,
+        create_cfg: dict = None,
+        save_cfg: bool = True,
+        save_path: str = 'total_config.py',
 ) -> EasyDict:
     """
     Overview:
@@ -413,19 +413,19 @@ def compile_config(
 
 
 def compile_config_parallel(
-    cfg: EasyDict,
-    create_cfg: EasyDict,
-    system_cfg: EasyDict,
-    seed: int = 0,
-    save_cfg: bool = True,
-    save_path: str = 'total_config.py',
-    platform: str = 'local',
-    coordinator_host: Optional[str] = None,
-    learner_host: Optional[str] = None,
-    collector_host: Optional[str] = None,
-    coordinator_port: Optional[int] = None,
-    learner_port: Optional[int] = None,
-    collector_port: Optional[int] = None,
+        cfg: EasyDict,
+        create_cfg: EasyDict,
+        system_cfg: EasyDict,
+        seed: int = 0,
+        save_cfg: bool = True,
+        save_path: str = 'total_config.py',
+        platform: str = 'local',
+        coordinator_host: Optional[str] = None,
+        learner_host: Optional[str] = None,
+        collector_host: Optional[str] = None,
+        coordinator_port: Optional[int] = None,
+        learner_port: Optional[int] = None,
+        collector_port: Optional[int] = None,
 ) -> EasyDict:
     """
     Overview:

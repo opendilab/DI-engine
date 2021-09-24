@@ -74,10 +74,10 @@ class Policy(ABC):
     total_field = set(['learn', 'collect', 'eval'])
 
     def __init__(
-        self,
-        cfg: dict,
-        model: Optional[Union[type, torch.nn.Module]] = None,
-        enable_field: Optional[List[str]] = None
+            self,
+            cfg: dict,
+            model: Optional[Union[type, torch.nn.Module]] = None,
+            enable_field: Optional[List[str]] = None
     ) -> None:
         self._cfg = cfg
         self._on_policy = self._cfg.on_policy
