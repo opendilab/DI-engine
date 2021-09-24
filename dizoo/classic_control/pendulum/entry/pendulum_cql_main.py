@@ -7,6 +7,8 @@ from ding.entry import serial_pipeline_offline, collect_demo_data, eval, serial_
 
 def train_cql(args):
     from dizoo.classic_control.pendulum.config.pendulum_cql_config import main_config, create_config
+    main_config.exp_name = 'cql_sac'
+    main_config.policy.learn.data_path = './sac_pendulum/expert.pkl'
     config = deepcopy([main_config, create_config])
     serial_pipeline_offline(config, seed=args.seed)
 
@@ -35,7 +37,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', '-s', type=int, default=10)
     args = parser.parse_args()
 
-    train_expert(args)
-    eval_ckpt(args)
-    generate(args)
+    # train_expert(args)
+    # eval_ckpt(args)
+    # generate(args)
     train_cql(args)

@@ -306,17 +306,19 @@ class SACPolicy(Policy):
                 pred = dist.rsample()
                 next_action = torch.tanh(pred)
                 y = 1 - next_action.pow(2) + 1e-6
+                # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
                 next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-                next_log_prob = next_log_prob - torch.log(y).sum(-1)
+                next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
 
                 next_data = {'obs': next_obs, 'action': next_action}
                 target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
                 # the value of a policy according to the maximum entropy objective
                 if self._twin_critic:
                     # find min one as target q value
-                    target_q_value = torch.min(target_q_value[0], target_q_value[1]) - self._alpha * next_log_prob
+                    target_q_value = torch.min(target_q_value[0],
+                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
                 else:
-                    target_q_value = target_q_value - self._alpha * next_log_prob
+                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
         target_value = next_v_value if self._value_network else target_q_value
 
         # =================
@@ -346,6 +348,7 @@ class SACPolicy(Policy):
         pred = dist.rsample()
         action = torch.tanh(pred)
         y = 1 - action.pow(2) + 1e-6
+        # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
         log_prob = dist.log_prob(pred).unsqueeze(-1)
         log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
 

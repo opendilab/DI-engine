@@ -2,6 +2,7 @@ from typing import List, Dict
 import pickle
 import torch
 import numpy as np
+import logging
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
@@ -67,6 +68,43 @@ class D4RLDataset(Dataset):
             trans_data['done'] = dataset['terminals'][i]
             trans_data['collect_iter'] = 0
             self._data.append(trans_data)
+
+
+@DATASET_REGISTRY.register('hdf5')
+class HDF5Dataset(Dataset):
+
+    def __init__(self, cfg: dict) -> None:
+        try:
+            import h5py
+        except ImportError:
+            logging.warning("not found h5py env, please install it")
+        data_path = cfg.policy.learn.get('data_path', None)
+        data = h5py.File(data_path, 'r')
+        self._load_data(data)
+
+    def __len__(self) -> int:
+        return len(self._data['obs'])
+
+    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        return {k: self._data[k][idx] for k in self._data.keys()}
+
+    def _load_data(self, dataset: Dict[str, np.ndarray]) -> None:
+        self._data = {}
+        for k in dataset.keys():
+            logging.info(f'Load {k} data.')
+            self._data[k] = dataset[k][:]
+
+
+def hdf5_save(exp_data, expert_data_path):
+    import h5py
+    import numpy as np
+    dataset = dataset = h5py.File('%s_demos.hdf5' % expert_data_path.replace('.pkl', ''), 'w')
+    dataset.create_dataset('obs', data=np.array([d['obs'].numpy() for d in exp_data]), compression='gzip')
+    dataset.create_dataset('action', data=np.array([d['action'].numpy() for d in exp_data]), compression='gzip')
+    dataset.create_dataset('reward', data=np.array([d['reward'].numpy() for d in exp_data]), compression='gzip')
+    dataset.create_dataset('done', data=np.array([d['done'] for d in exp_data]), compression='gzip')
+    dataset.create_dataset('collect_iter', data=np.array([d['collect_iter'] for d in exp_data]), compression='gzip')
+    dataset.create_dataset('next_obs', data=np.array([d['next_obs'].numpy() for d in exp_data]), compression='gzip')
 
 
 def create_dataset(cfg, **kwargs) -> Dataset:

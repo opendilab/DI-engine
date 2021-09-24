@@ -9,6 +9,7 @@ from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
+from ding.utils.data import hdf5_save
 
 
 def eval(
@@ -137,11 +138,14 @@ def collect_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
-    policy_kwargs= None if cfg.policy.model.get('head', None) else {'eps': 0.05}
+    policy_kwargs = None if cfg.policy.model.get('actor_head_type', None) else {'eps': cfg.policy.other.eps.collect}
     # Let's collect some expert demostrations
     exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
-    with open(expert_data_path, 'wb') as f:
-        pickle.dump(exp_data, f)
+    if cfg.policy.learn.get('data_type', None) == 'hdf5':
+        hdf5_save(exp_data, expert_data_path)
+    else:
+        with open(expert_data_path, 'wb') as f:
+            pickle.dump(exp_data, f)
     print('Collect demo data successfully')

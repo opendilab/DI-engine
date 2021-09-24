@@ -21,18 +21,19 @@ pong_qrdqn_config = dict(
             encoder_hidden_size_list=[128, 128, 512],
             num_quantiles=64,
         ),
-        nstep=3,
+        nstep=1,
         discount_factor=0.99,
         learn=dict(
+            data_type='hdf5',
             update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            save_path='./default_experiment/expert.pkl',
+            save_path='./expert/expert.pkl',
             learner = dict(
-                load_path='./default_experiment/ckpt/ckpt_best.pth.tar',
+                load_path='./expert/ckpt/ckpt_best.pth.tar',
                 hook=dict(
-                    load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='./expert/ckpt/ckpt_best.pth.tar',
                     save_ckpt_after_run=False,
                 )
             ),
@@ -45,6 +46,7 @@ pong_qrdqn_config = dict(
                 start=1.,
                 end=0.05,
                 decay=250000,
+                collect=0.2,
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),

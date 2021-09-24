@@ -300,6 +300,9 @@ class CQLPolicy(Policy):
             ignore_done=self._cfg.learn.ignore_done,
             use_nstep=False
         )
+        if len(data.get('action').shape) == 1:
+            data['action'] = data['action'].reshape(-1, 1)
+
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -329,16 +332,17 @@ class CQLPolicy(Policy):
                 next_action = torch.tanh(pred)
                 y = 1 - next_action.pow(2) + 1e-6
                 next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-                next_log_prob = next_log_prob - torch.log(y).sum(-1)
+                next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
 
                 next_data = {'obs': next_obs, 'action': next_action}
                 target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
                 # the value of a policy according to the maximum entropy objective
                 if self._twin_critic:
                     # find min one as target q value
-                    target_q_value = torch.min(target_q_value[0], target_q_value[1]) - self._alpha * next_log_prob
+                    target_q_value = torch.min(target_q_value[0],
+                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
                 else:
-                    target_q_value = target_q_value - self._alpha * next_log_prob
+                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
         target_value = next_v_value if self._value_network else target_q_value
 
         # =================
@@ -653,9 +657,9 @@ class CQLPolicy(Policy):
         # evaluate action log prob depending on Jacobi determinant.
         y = 1 - action.pow(2) + epsilon
         log_prob = dist.log_prob(pred).unsqueeze(-1)
-        log_prob = log_prob - torch.log(y).sum(-1)
+        log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
 
-        return action, log_prob
+        return action, log_prob.squeeze(-1)
 
     def _get_q_value(self, data: Dict, keep=True) -> Tensor:
         new_q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
@@ -716,7 +720,7 @@ class CQLDISCRETEPolicy(DQNPolicy):
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=3,
+            update_per_collect=1,
             batch_size=64,
             learning_rate=0.001,
             # ==============================================================
@@ -805,14 +809,16 @@ class CQLDISCRETEPolicy(DQNPolicy):
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
-        #TODO(zym) add cql loss
-        # 1. chose action and q in dataset.
+        # add CQL
+        # 1. chose action and compute q in dataset.
         # 2. compute value loss(negative_sampling - dataset_expec)
         replay_action_one_hot = F.one_hot(data['action'], self._cfg.model.action_shape)
         replay_chosen_q = (q_value.mean(-1) * replay_action_one_hot).sum(dim=1)
-        # add cql
+
         dataset_expec = replay_chosen_q.mean()
+
         negative_sampling = torch.logsumexp(q_value.mean(-1), dim=1).mean()
+
         min_q_loss = negative_sampling - dataset_expec
 
         data_n = qrdqn_nstep_td_data(
@@ -842,6 +848,8 @@ class CQLDISCRETEPolicy(DQNPolicy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            'q_target': target_q_value.mean().item(),
+            'q_value': q_value.mean().item(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
@@ -904,3 +912,6 @@ class CQLDISCRETEPolicy(DQNPolicy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qrdqn', ['ding.model.template.q_learning']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_target', 'q_value']

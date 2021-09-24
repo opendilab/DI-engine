@@ -20,6 +20,7 @@ cartpole_qrdqn_config = dict(
         discount_factor=0.97,
         nstep=3,
         learn=dict(
+            data_type='hdf5',
             update_per_collect=3,
             batch_size=64,
             learning_rate=0.001,
@@ -44,6 +45,7 @@ cartpole_qrdqn_config = dict(
                 start=0.95,
                 end=0.1,
                 decay=10000,
+                collect=0.2,
             ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
