@@ -118,9 +118,9 @@ ding -m serial -e cartpole -p dqn -s 0
 |  26  |         [PER](https://arxiv.org/pdf/1511.05952.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [worker/replay_buffer](https://github.com/opendilab/DI-engine/blob/main/ding/worker/replay_buffer/advanced_buffer.py) |                        `rainbow demo`                        |
 |  27  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
 
-![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space, which is only label in normal DQL algorithms(1-15)
+![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space, which is only label in normal DRL algorithms(1-15)
 
-![continuous](https://img.shields.io/badge/-continous-green) means continuous action space, which is only label in normal DQL algorithms(1-15)
+![continuous](https://img.shields.io/badge/-continous-green) means continuous action space, which is only label in normal DRL algorithms(1-15)
 
 ![dist](https://img.shields.io/badge/-distributed-blue) means distributed training (collector-learner parallel) RL algorithm
 
