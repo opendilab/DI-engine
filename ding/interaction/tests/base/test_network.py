@@ -42,6 +42,7 @@ def run_test_app():
 
 @pytest.mark.unittest
 class TestInteractionBaseNetwork:
+
     @pytest.mark.execution_timeout(5.0, method='thread')
     def test_get_host_ip(self):
         app_process = Process(target=run_test_app)
