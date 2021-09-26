@@ -138,7 +138,9 @@ def collect_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
-    policy_kwargs = None if cfg.policy.model.get('actor_head_type', None) else {'eps': cfg.policy.other.eps.collect}
+    policy_kwargs = None if cfg.policy.model.get('actor_head_type', None) or not cfg.policy.other.get('eps', None) \
+        else {'eps': cfg.policy.other.eps.collect}
+
     # Let's collect some expert demostrations
     exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
