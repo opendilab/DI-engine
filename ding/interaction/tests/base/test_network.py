@@ -14,34 +14,38 @@ from ..test_utils import silence
 from ...base import get_host_ip, success_response, get_values_from_response, split_http_address, HttpEngine, \
     get_http_engine_class
 
+app = Flask('_test_get_host_ip')
+
+
+@app.route('/ping', methods=['GET'])
+def ping_method():
+    return success_response(message='PONG!')
+
+
+@app.route('/shutdown', methods=['DELETE'])
+def shutdown_method():
+    _shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if _shutdown_func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+
+    _shutdown_func()
+    return success_response(message='Shutdown request received, this server will be down later.')
+
+
+_APP_PORT = 17503
+
+
+def run_test_app():
+    with silence():
+        app.run(host='0.0.0.0', port=_APP_PORT)
+
 
 @pytest.mark.unittest
 class TestInteractionBaseNetwork:
 
     @pytest.mark.execution_timeout(5.0, method='thread')
     def test_get_host_ip(self):
-        app = Flask('_test_get_host_ip')
-
-        @app.route('/ping', methods=['GET'])
-        def ping_method():
-            return success_response(message='PONG!')
-
-        @app.route('/shutdown', methods=['DELETE'])
-        def shutdown_method():
-            _shutdown_func = request.environ.get('werkzeug.server.shutdown')
-            if _shutdown_func is None:
-                raise RuntimeError('Not running with the Werkzeug Server')
-
-            _shutdown_func()
-            return success_response(message='Shutdown request received, this server will be down later.')
-
-        _APP_PORT = 17503
-
-        def _run_app():
-            with silence():
-                app.run(host='0.0.0.0', port=_APP_PORT)
-
-        app_process = Process(target=_run_app)
+        app_process = Process(target=run_test_app)
         app_process.start()
 
         _local_ip = get_host_ip()
