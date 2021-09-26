@@ -28,6 +28,7 @@ class ACER(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
+            continuous_action_space = False,
     ) -> None:
         r"""
         Overview:
@@ -71,6 +72,19 @@ class ACER(nn.Module):
         self.actor_head = DiscreteHead(
             actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
         )
+
+        if not self.continuous_action_space:
+            # the action_shape of discrete action space is a list, indicating the num of action dim and action choice num K.
+            self.actor_head = DiscreteHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+        else: 
+            # when the action space is continuous, we relace the DiscreteHead with RegressioHead.
+            # the action_shape of continuous action space is a int, indicating the num of action dim.
+            self.actor_head = RegressionHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+            
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
         self.actor = nn.ModuleList(self.actor)
