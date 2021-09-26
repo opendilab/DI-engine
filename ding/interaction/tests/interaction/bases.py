@@ -22,7 +22,7 @@ def _run_slave(port, channel, open_slave_event, close_slave_event):
         close_slave_event.wait()
 
 
-def _slave_endpoint(port: int, channel: int, silence: bool = True):
+def _slave_endpoint(port: int, channel: int, silence: bool = False):
     open_slave_event = Event()
     close_slave_event = Event()
 
