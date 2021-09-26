@@ -2,13 +2,13 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-pong_cql_config = dict(
+qbert_cql_config = dict(
     env=dict(
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        stop_value=30000,
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
@@ -24,11 +24,12 @@ pong_cql_config = dict(
         nstep=1,
         discount_factor=0.99,
         learn=dict(
-            data_type='hdf5',
+            update_per_collect=10,
+            data_type='naive',
             data_path='./default_experiment/expert.pkl',
             train_epoch=30000,
             batch_size=32,
-            learning_rate=0.00005,
+            learning_rate=0.0001,
             target_update_freq=2000,
             min_q_weight=10.0,
         ),
@@ -39,15 +40,15 @@ pong_cql_config = dict(
                 type='exp',
                 start=1.,
                 end=0.05,
-                decay=250000,
+                decay=1000000,
             ),
-            replay_buffer=dict(replay_buffer_size=100000, ),
+            replay_buffer=dict(replay_buffer_size=400000, ),
         ),
     ),
 )
-pong_cql_config = EasyDict(pong_cql_config)
-main_config = pong_cql_config
-pong_cql_create_config = dict(
+main_config = EasyDict(qbert_cql_config)
+
+qbert_cql_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -55,8 +56,7 @@ pong_cql_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='cql_discrete'),
 )
-pong_cql_create_config = EasyDict(pong_cql_create_config)
-create_config = pong_cql_create_config
+create_config = EasyDict(qbert_cql_create_config)
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)
