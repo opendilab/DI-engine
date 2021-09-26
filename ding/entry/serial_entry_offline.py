@@ -10,7 +10,8 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
-from ding.utils import set_pkg_seed, create_dataset
+from ding.utils import set_pkg_seed
+from ding.utils.data import create_dataset
 
 from torch.utils.data import DataLoader
 

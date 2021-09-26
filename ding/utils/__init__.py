@@ -23,7 +23,6 @@ from .slurm_helper import find_free_port_slurm, node_to_host, node_to_partition
 from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, find_free_port
 from .time_helper import build_time_helper, EasyTimer, WatchDog
 from .type_helper import SequenceType
-from .data import create_dataset
 from .scheduler_helper import Scheduler
 
 if ding.enable_linklink:

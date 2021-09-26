@@ -32,6 +32,7 @@ main_config = dict(
             learning_rate=0.0005,
             target_update_theta=0.001,
             discount_factor=0.99,
+            double_q=True,
         ),
         collect=dict(
             n_sample=600,
