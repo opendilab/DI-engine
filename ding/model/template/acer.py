@@ -70,9 +70,16 @@ class ACER(nn.Module):
         self.critic_head = RegressionHead(
             critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
-        self.actor_head = DiscreteHead(
-            actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
-        )
+
+        if not self.continuous_action_space:
+            self.actor_head = DiscreteHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+        else:
+            self.actor_head = RegressionHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+            
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
         self.actor = nn.ModuleList(self.actor)
