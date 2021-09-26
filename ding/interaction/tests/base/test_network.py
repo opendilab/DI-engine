@@ -56,17 +56,17 @@ class TestInteractionBaseNetwork:
             _start_complete = False
             while not _start_complete and time.time() - _start_time < 5.0:
                 try:
-                    requests.get(_local_server_host.add_path('/ping'))
+                    response = requests.get(_local_server_host.add_path('/ping'))
+                    if response.ok:
+                        _start_complete = True
+                        break
+                    time.sleep(0.2)
                 except (requests.exceptions.BaseHTTPError, requests.exceptions.RequestException):
                     time.sleep(0.2)
-                else:
-                    _start_complete = True
 
             if not _start_complete:
                 pytest.fail('Test server start failed.')
 
-            response = requests.get(_local_server_host.add_path('/ping'))
-            assert response.ok
             assert get_values_from_response(response) == (
                 200,
                 True,
