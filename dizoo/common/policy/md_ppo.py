@@ -10,8 +10,22 @@ from ding.policy.common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('md_ppo')
 class MultiDiscretePPOPolicy(PPOPolicy):
+    r"""
+    Overview:
+        Policy class of Multi-discrete action space PPO algorithm.
+    """
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Forward and backward function of learn mode.
+        Arguments:
+            - data (:obj:`dict`): Dict type data
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`):
+              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
+                        adv_max, adv_mean, value_max, value_mean, approx_kl, clipfrac
+        """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
@@ -102,6 +116,10 @@ class MultiDiscretePPOPolicy(PPOPolicy):
 
 @POLICY_REGISTRY.register('md_ppo_offpolicy')
 class MultiDiscretePPOOffPolicy(PPOOffPolicy):
+    r"""
+    Overview:
+        Policy class of Multi-discrete action space off-policy PPO algorithm.
+    """
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
