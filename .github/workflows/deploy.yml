@@ -17,9 +17,10 @@ jobs:
       - name: Prepare
         id: prep
         env:
-          DOCKERIO_ORG: ding
+          DOCKERIO_ORG: swainz
+          TARGET: ding
         run: |
-          DOCKER_IMAGE=$DOCKERIO_ORG
+          DOCKER_IMAGE=$DOCKERIO_ORG/$TARGET
           VERSION=edge
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
