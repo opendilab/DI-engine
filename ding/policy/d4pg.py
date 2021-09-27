@@ -13,9 +13,6 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 import numpy as np
 
-from ding.rl_utils import v_nstep_td_data, v_nstep_td_error, get_nstep_return_data
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
-
 
 @POLICY_REGISTRY.register('d4pg_old')
 class D4PGPolicy(Policy):
@@ -34,20 +31,15 @@ class D4PGPolicy(Policy):
         3  | ``random_``         int         25000          | Number of randomly collected      | Default to 25000 for
            | ``collect_size``                               | training samples in replay        | DDPG/TD3, 10000 for
            |                                                | buffer when training starts.      | sac.
-        4  | ``model.twin_``     bool        False          | Whether to use two critic         | Default False for
-           | ``critic``                                     | networks or only one.             | DDPG, Clipped Double
-           |                                                |                                   | Q-learning method in
-           |                                                |                                   | TD3 paper.
         5  | ``learn.learning``  float       1e-3           | Learning rate for actor           |
            | ``_rate_actor``                                | network(aka. policy).             |
         6  | ``learn.learning``  float       1e-3           | Learning rates for critic         |
            | ``_rate_critic``                               | network (aka. Q-network).         |
-        7  | ``learn.actor_``    int         2              | When critic network updates       | Default 1 for DDPG,
-           | ``update_freq``                                | once, how many times will actor   | 2 for TD3. Delayed
-           |                                                | network update.                   | Policy Updates method
-           |                                                |                                   | in TD3 paper.
+        7  | ``learn.actor_``    int         1              | When critic network updates       | Default 1
+           | ``update_freq``                                | once, how many times will actor   |
+           |                                                | network update.                   |
         8  | ``learn.noise``     bool        False          | Whether to add noise on target    | Default False for
-           |                                                | network's action.                 | DDPG, True for TD3.
+           |                                                | network's action.                 | D4PG.
            |                                                |                                   | Target Policy Smoo-
            |                                                |                                   | thing Regularization
            |                                                |                                   | in TD3 paper.
@@ -58,16 +50,24 @@ class D4PGPolicy(Policy):
            |                                                |                                   | aging for target
            |                                                |                                   | networks.
         11 | ``collect.-``       float       0.1            | Used for add noise during co-     | Sample noise from dis
-           | ``noise_sigma``                                | llection, through controlling     | tribution, Ornstein-
-           |                                                | the sigma of distribution         | Uhlenbeck process in
-           |                                                |                                   | DDPG paper, Guassian
-           |                                                |                                   | process in ours.
+           | ``noise_sigma``                                | llection, through controlling     | tribution, Gaussian
+           |                                                | the sigma of distribution         | process.
+        12 | ``model.v_min``      float    -10              | Value of the smallest atom        |
+           |                                                | in the support set.               |
+        13 | ``model.v_max``      float    10               | Value of the largest atom         |
+           |                                                | in the support set.               |
+        14 | ``model.n_atom``     int      51               | Number of atoms in the support    |
+           |                                                | set of the value distribution.    |
+        15 | ``nstep``            int      3,               | N-step reward discount sum for    |
+           |                              [1, 5]            | target q_value estimation         |
+        16 | ``priority``         bool     True             | Whether use priority(PER)         | priority sample,
+                                                                                                | update priority
         == ====================  ========    =============  =================================   =======================
     """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='d4pg_old',
+        type='d4pg',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool type) on_policy: Determine whether on-policy or off-policy.
@@ -237,8 +237,9 @@ class D4PGPolicy(Policy):
             target_q_dist = self._target_model.forward(next_data, mode='compute_critic')['distribution']
 
         value_gamma = data.get('value_gamma')
-        a = np.zeros_like(next_action)
-        td_data = dist_nstep_td_data(q_dist, target_q_dist, a, a, reward, data['done'], data['weight'])
+        action_index = np.zeros_like(next_action)
+        # since the action is a scalar value, action index is set to 0 which is the only possible choice
+        td_data = dist_nstep_td_data(q_dist, target_q_dist, action_index, action_index, reward, data['done'], data['weight'])
         critic_loss, td_error_per_sample = dist_nstep_td_error(td_data, self._gamma, self._v_min, self._v_max,
                                                                self._n_atom,  nstep=self._nstep, value_gamma=value_gamma)
         loss_dict['critic_loss'] = critic_loss
@@ -270,7 +271,6 @@ class D4PGPolicy(Policy):
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
-        #print(critic_loss, actor_loss)
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],

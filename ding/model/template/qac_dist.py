@@ -34,12 +34,12 @@ class QACDIST(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the QAC Model according to arguments.
+            Init the QAC Distributional Model according to arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
-            - twin_critic (:obj:`bool`): Whether include twin critic.
+            - critic_head_type (:obj:`str`): Only ``categorical``.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
                 The num of layers used in the network to compute Q value output for actor's nn.
@@ -51,6 +51,9 @@ class QACDIST(nn.Module):
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+            - v_min (:obj:`int`): Value of the smallest atom
+            - v_max (:obj:`int`): Value of the largest atom
+            - n_atom (:obj:`int`): Number of atoms in the support
         """
         super(QACDIST, self).__init__()
         obs_shape: int = squeeze(obs_shape)
@@ -82,7 +85,7 @@ class QACDIST(nn.Module):
                 )
             )
         self.critic_head_type = critic_head_type
-        assert self.critic_head_type in ['categorical', 'mix_gaussians']
+        assert self.critic_head_type in ['categorical']
         if self.critic_head_type == 'categorical':
             self.critic = nn.Sequential(
                 nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
@@ -101,8 +104,8 @@ class QACDIST(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
-            Use bbservation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
+            Use observation and action tensor to predict output.
+            Parameter updates with QACDIST's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
                 - inputs (:obj:`torch.Tensor`):
@@ -122,7 +125,8 @@ class QACDIST(nn.Module):
                         Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
 
                 Forward with ``'compute_critic'``, Necessary Keys:
-                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+                    - logit (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+                    - distribution (:obj:`torch.Tensor`): Q value distribution tensor.
         Actor Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
             - action (:obj:`torch.Tensor`): :math:`(B, N0)`
@@ -131,7 +135,8 @@ class QACDIST(nn.Module):
         Critic Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``
 
         Actor Examples:
             >>> # Regression mode
@@ -150,10 +155,12 @@ class QACDIST(nn.Module):
 
         Critic Examples:
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atoms=51)
+            >>> q_value = model(inputs, mode='compute_critic') # q value
+            >>> q_value['logit'].shape
+            [4, 1]
+            >>> q_value['distribution'].shape
+            [4, 1, 51]
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -211,21 +218,25 @@ class QACDIST(nn.Module):
             - ``obs``, ``action`` encoded tensors.
             - mode (:obj:`str`): Name of the forward mode.
         Returns:
-            - outputs (:obj:`Dict`): Q-value output.
+            - outputs (:obj:`Dict`): Q-value output and distribution.
 
         ReturnKeys:
-            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+            - logit (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+            - distribution (:obj:`torch.Tensor`): Q value distribution tensor.
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, ``n_atom``)`.
 
         Examples:
-            >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-
+            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atom=51)
+            >>> q_value = model(inputs, mode='compute_critic') # q value
+            >>> q_value['logit'].shape
+            [4, 1]
+            >>> q_value['distribution'].shape
+            [4, 1, 51]
         """
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
