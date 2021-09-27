@@ -1,5 +1,4 @@
 from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
 import torch
 import copy
 
@@ -8,14 +7,13 @@ from ding.rl_utils import get_train_sample
 from ding.rl_utils import dist_nstep_td_data, dist_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
-from ding.utils.data import default_collate, default_decollate
-from .base_policy import Policy
+from .ddpg import DDPGPolicy
 from .common_utils import default_preprocess_learn
 import numpy as np
 
 
-@POLICY_REGISTRY.register('d4pg_old')
-class D4PGPolicy(Policy):
+@POLICY_REGISTRY.register('d4pg')
+class D4PGPolicy(DDPGPolicy):
     r"""
     Overview:
         Policy class of D4PG algorithm.
@@ -25,7 +23,7 @@ class D4PGPolicy(Policy):
         == ====================  ========    =============  =================================   =======================
         ID Symbol                Type        Default Value  Description                         Other(Shape)
         == ====================  ========    =============  =================================   =======================
-        1  ``type``              str         ddpg           | RL policy register name, refer    | this arg is optional,
+        1  ``type``              str         d4pg           | RL policy register name, refer    | this arg is optional,
                                                             | to registry ``POLICY_REGISTRY``   | a placeholder
         2  ``cuda``              bool        True           | Whether to use cuda for network   |
         3  | ``random_``         int         25000          | Number of randomly collected      | Default to 25000 for
@@ -281,80 +279,6 @@ class D4PGPolicy(Policy):
             **q_value_dict,
         }
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer_actor': self._optimizer_actor.state_dict(),
-            'optimizer_critic': self._optimizer_critic.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
-        self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        # collect model
-        self._collect_model = model_wrap(
-            self._model,
-            wrapper_name='action_noise',
-            noise_type='gauss',
-            noise_kwargs={
-                'mu': 0.0,
-                'sigma': self._cfg.collect.noise_sigma
-            },
-            noise_range=None
-        )
-        self._collect_model.reset()
-
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of collect mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step, i.e. next_obs).
-        Return:
-            - transition (:obj:`Dict[str, Any]`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return transition
-
     def _get_train_sample(self, traj: list) -> Union[None, List[Any]]:
         r"""
             Overview:
@@ -367,36 +291,6 @@ class D4PGPolicy(Policy):
         data = get_nstep_return_data(traj, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
 
-    def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model. Unlike learn and collect model, eval model does not need noise.
-        """
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of collect mode, similar to ``self._forward_collect``.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._eval_model.eval()
-        with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qac_dist', ['ding.model.template.qac_dist']
 
@@ -408,7 +302,7 @@ class D4PGPolicy(Policy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         ret = [
-            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value',
+            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
             'action'
         ]
         return ret

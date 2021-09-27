@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import BaseEnvManager, DingEnvWrapper
+from ding.envs import BaseEnvManager
 from ding.policy.d4pg import D4PGPolicy
 from ding.model.template.qac_dist import QACDIST
 from ding.utils import set_pkg_seed
