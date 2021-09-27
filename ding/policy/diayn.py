@@ -141,8 +141,8 @@ class DIAYNPolicy(SACPolicy):
             # (float type) alpha: Entropy regularization coefficient.
             # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
             # If auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
-            # Default to 0.2.
-            alpha=0.2,
+            # Default to 0.1: according to the DIAYN paper, alpha = 0.1 assure the algorithm has a better performance.
+            alpha=0.1,
             # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
             log_space=True,
             # (bool type) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
