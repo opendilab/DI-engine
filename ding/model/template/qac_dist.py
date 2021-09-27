@@ -20,8 +20,8 @@ class QACDIST(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            actor_head_type: str,
-            twin_critic: bool = False,
+            actor_head_type: str = "regression",
+            critic_head_type: str = "categorical",
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
             critic_head_hidden_size: int = 64,
@@ -56,21 +56,8 @@ class QACDIST(nn.Module):
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
         self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['categorical', 'gaussians']
-        if self.actor_head_type == 'categorical':
-            '''self.actor = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
-                DistributionHead(
-                    actor_head_hidden_size,
-                    1,
-                    actor_head_layer_num,
-                    n_atom=n_atom,
-                    v_min=v_min,
-                    v_max=v_max,
-                    activation=activation,
-                    norm_type=norm_type
-                )
-            )'''
+        assert self.actor_head_type in ['regression', 'reparameterization']
+        if self.actor_head_type == 'regression':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -94,7 +81,9 @@ class QACDIST(nn.Module):
                     norm_type=norm_type
                 )
             )
-        if self.actor_head_type == 'categorical':
+        self.critic_head_type = critic_head_type
+        assert self.critic_head_type in ['categorical', 'mix_gaussians']
+        if self.critic_head_type == 'categorical':
             self.critic = nn.Sequential(
                 nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
                 DistributionHead(
@@ -208,10 +197,8 @@ class QACDIST(nn.Module):
             >>> torch.Size([4, 64])
         """
         x = self.actor(inputs)
-        if self.actor_head_type == 'categorical':
-            #action = x['logit'].mean(-1)
+        if self.actor_head_type == 'regression':
             return {'action': x['pred']}
-            #return {'action': action}
         elif self.actor_head_type == 'reparameterization':
             return {'logit': [x['mu'], x['sigma']]}
 
@@ -240,7 +227,6 @@ class QACDIST(nn.Module):
             tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
 
         """
-
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
         if len(action.shape) == 1:  # (B, ) -> (B, 1)
@@ -248,4 +234,3 @@ class QACDIST(nn.Module):
         x = torch.cat([obs, action], dim=1)
         x = self.critic(x)
         return x
-

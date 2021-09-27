@@ -5,7 +5,7 @@ from tensorboardX import SummaryWriter
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
-from ding.policy import D4PGPolicy
+from ding.policy.d4pg import D4PGPolicy
 from ding.model.template.qac_dist import QACDIST
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.pendulum.envs import PendulumEnv
