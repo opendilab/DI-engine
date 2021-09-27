@@ -6,14 +6,16 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, Scheduler
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from easydict import EasyDict
+from ding.utils.default_helper import deep_merge_dicts
 
 
 class EvalPolicy1:
@@ -35,7 +37,6 @@ class EvalPolicy1:
 
 
 class EvalPolicy2:
-
     def forward(self, data: dict) -> dict:
         return {
             env_id: {
@@ -54,8 +55,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        Episode1v1Collector,
-        OnevOneEvaluator,
+        BattleEpisodeSerialCollector,
+        BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
@@ -83,6 +84,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     policies = {}
     learners = {}
     collectors = {}
+
     for player_id in league.active_players_ids:
         # default set the same arch model(different init weight)
         model = VAC(**cfg.policy.model)
@@ -100,13 +102,14 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_learner'
         )
-        collectors[player_id] = Episode1v1Collector(
+        collectors[player_id] = BattleEpisodeSerialCollector(
             cfg.policy.collect.collector,
             collector_env,
             tb_logger=tb_logger,
             exp_name=cfg.exp_name,
             instance_name=player_id + '_colllector',
         )
+
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
@@ -120,7 +123,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     # collect_mode ppo use multimonial sample for selecting action
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
-    evaluator1 = OnevOneEvaluator(
+    evaluator1 = BattleInteractionSerialEvaluator(
         evaluator1_cfg,
         evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
         tb_logger,
@@ -129,7 +132,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value[1]
-    evaluator2 = OnevOneEvaluator(
+    evaluator2 = BattleInteractionSerialEvaluator(
         evaluator2_cfg,
         evaluator_env2, [policies[main_key].collect_mode, eval_policy2],
         tb_logger,
@@ -138,7 +141,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator3_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator3_cfg.stop_value = 99999999  # stop_value of evaluator3 is a placeholder
-    evaluator3 = OnevOneEvaluator(
+    evaluator3 = BattleInteractionSerialEvaluator(
         evaluator3_cfg,
         evaluator_env3, [policies[main_key].collect_mode, eval_policy3],
         tb_logger,
@@ -157,6 +160,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         league.judge_snapshot(player_id, force=True)
     init_main_player_rating = league.metric_env.create_rating(mu=0)
 
+    schedule_flag = cfg.policy.learn.scheduler.schedule_flag
+    if schedule_flag:
+        user_scheduler_config = cfg.policy.learn.scheduler
+        merged_scheduler_config = EasyDict(deep_merge_dicts(Scheduler.config, user_scheduler_config))
+        param_scheduler = Scheduler(merged_scheduler_config)
+
     for run_iter in range(max_iterations):
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward, episode_info = evaluator1.eval(
@@ -168,6 +177,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
             )
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
+
         if evaluator2.should_eval(main_learner.train_iter):
             stop_flag2, reward, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
@@ -193,6 +203,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             )
         if stop_flag1 and stop_flag2:
             break
+
         for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
             tb_logger.add_scalar(
                 'league/{}_trueskill'.format(player_id),
@@ -230,6 +241,13 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 'result': [e['result'] for e in episode_info],
             }
             league.finish_job(job_finish_info)
+
+            if schedule_flag:
+                metrics = float(main_player.rating.exposure)
+                entropy_weight = learner.policy.get_attribute('entropy_weight')
+                entropy_weight = param_scheduler.step(metrics, entropy_weight)
+                learner.policy.set_attribute('entropy_weight', entropy_weight)
+
         if run_iter % 100 == 0:
             print(repr(league.payoff))
 

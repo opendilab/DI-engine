@@ -21,6 +21,9 @@ cartpole_r2d2_config = dict(
         discount_factor=0.997,
         burnin_step=5,
         nstep=5,
+        # (int) the trajectory length to unroll the RNN network minus
+        # the timestep of burnin operation
+        unroll_len=40,
         learn=dict(
             update_per_collect=4,
             batch_size=64,
