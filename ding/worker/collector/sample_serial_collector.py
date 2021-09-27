@@ -11,7 +11,7 @@ from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF,
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('sample')
-class SampleCollector(ISerialCollector):
+class SampleSerialCollector(ISerialCollector):
     """
     Overview:
         Sample collector(n_sample), a sample is one training sample for updating model,

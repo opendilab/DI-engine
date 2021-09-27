@@ -53,6 +53,7 @@ setup(
         'easydict==1.9',
         'tensorboardX>=2.1,<=2.2',
         'matplotlib',  # pypy incompatible
+        'seaborn',
         'yapf==0.29.0',
         'responses~=0.12.1',
         'flask~=1.1.2',
@@ -107,8 +108,17 @@ setup(
         'procgen_env': [
             'procgen',
         ],
+        'bsuite_env': [
+            'bsuite',
+        ],
         'minigrid_env': [
             'gym-minigrid',
+        ],
+        'd4rl_env': [
+            'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',
+        ],
+        'pybulletgym_env': [
+            'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
         ],
         'sc2_env': [
             'absl-py>=0.1.0',

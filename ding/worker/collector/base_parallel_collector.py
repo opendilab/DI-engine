@@ -15,7 +15,7 @@ from ding.utils import build_logger, EasyTimer, get_task_uid, import_module, pre
 from ding.torch_utils import build_log_buffer, to_tensor, to_ndarray
 
 
-class BaseCollector(ABC):
+class BaseParallelCollector(ABC):
     """
     Overview:
         Abstract baseclass for collector.
@@ -199,7 +199,7 @@ class BaseCollector(ABC):
         self._env_manager = _env_manager
 
 
-def create_parallel_collector(cfg: EasyDict) -> BaseCollector:
+def create_parallel_collector(cfg: EasyDict) -> BaseParallelCollector:
     import_module(cfg.get('import_names', []))
     return PARALLEL_COLLECTOR_REGISTRY.build(cfg.type, cfg=cfg)
 

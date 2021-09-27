@@ -65,7 +65,7 @@ class Adder(object):
                 extra advantage key 'adv'
         """
         if done:
-            last_value = torch.zeros(1)
+            last_value = torch.zeros_like(data[-1]['value'])
         else:
             last_data = data.pop()
             last_value = last_data['value']
