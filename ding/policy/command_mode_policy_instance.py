@@ -154,11 +154,6 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('cql_command')
-class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
-    pass
-
-
 @POLICY_REGISTRY.register('diayn_command')
 class DIAYNCommandModePolicy(DIAYNPolicy, DummyCommandModePolicy):
     pass

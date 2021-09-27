@@ -144,19 +144,13 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline(config, seed, max_iterations=train_iter)
-    elif mode == 'serial_onpolicy':
-        from .serial_entry_onpolicy import serial_pipeline_onpolicy
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
     elif mode == 'serial_sqil':
         if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
         or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
             from .serial_entry_sqil import serial_pipeline_sqil
         if config is None:
             config = get_predefined_config(env, policy)
-        expert_config = input("Enter the name of the config you used to generate your expert model: ")
-        serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+        serial_pipeline_sqil(config, seed, max_iterations=train_iter)
     elif mode == 'serial_diayn':
         from .serial_entry_diayn import serial_pipeline_diayn
         if config is None:
