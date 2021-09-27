@@ -36,7 +36,6 @@ coinrun_dqn_default_config = dict(
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),
-        cude = True,
     ),
 )
 coinrun_dqn_default_config = EasyDict(coinrun_dqn_default_config)

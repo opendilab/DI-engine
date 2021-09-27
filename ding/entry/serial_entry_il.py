@@ -5,7 +5,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 
-from ding.worker import BaseLearner, BaseSerialEvaluator
+from ding.worker import BaseLearner, InteractionSerialEvaluator
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
@@ -52,7 +52,7 @@ def serial_pipeline_il(
     dataset = NaiveRLDataset(data_path)
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     # ==========
