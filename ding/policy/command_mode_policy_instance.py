@@ -24,7 +24,7 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .diayn import DIAYNPolicy
-
+from .cql import CQLPolicy
 
 class EpsCommandModePolicy(CommandModePolicy):
 
@@ -156,6 +156,11 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('diayn_command')
 class DIAYNCommandModePolicy(DIAYNPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('cql_command')
+class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
 
