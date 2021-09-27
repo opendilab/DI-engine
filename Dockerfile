@@ -18,4 +18,6 @@ ADD dizoo dizoo
 ADD ding ding
 
 RUN python3 -m pip install --upgrade pip \
-    && python3 -m pip install --no-cache-dir .[fast,common_env]
+    && python3 -m pip install --no-cache-dir .[fast,common_env] \
+    && pip install autorom \
+    && AutoROM --accept-license
