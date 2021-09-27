@@ -40,8 +40,10 @@ setup(
         *find_packages(include=('dizoo'
                                 'dizoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
-                  for package_name in find_packages(include=('ding.*'))},
+    package_data={
+        package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
+        for package_name in find_packages(include=('ding.*'))
+    },
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
@@ -139,7 +141,6 @@ setup(
             'whichcraft',
             'joblib',
         ],
-
         'slimevolleygym_env': [
             'slimevolleygym',
         ],

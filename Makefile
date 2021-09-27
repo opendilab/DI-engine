@@ -32,6 +32,9 @@ cudatest:
 	pytest ${TEST_DIR} \
 		-sv -m cudatest
 
+dockertest:
+	docker run --rm -it -v $$(pwd):/ding opendilab/ding:nightly ./ding/scripts/docker-test.sh
+
 platformtest:
 	pytest ${PLATFORM_TEST_DIR} \
 		--cov-report term-missing \
