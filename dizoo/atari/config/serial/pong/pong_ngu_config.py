@@ -7,28 +7,23 @@ print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
-minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
-    # exp_name='minigrid_fourrooms_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
-    exp_name='minigrid_fourrooms_ngu_n5_bs10_ul40_upc4_tuf2500_ed1e6_rbs5e4',
-    # exp_name='minigrid_doorkey_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
+pong_ppo_rnd_config = dict(
+    exp_name='pong_ngu_n5_bs10_ul40_upc4_tuf2500_ed1e6_rbs5e4',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
-        # env_id='MiniGrid-DoorKey-16x16-v0',
-        stop_value=0.96,
+        env_id='PongNoFrameskip-v4',
+        stop_value=20,
+        frame_stack=4,
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
-        obs_shape=2739,
-        action_shape=7,
+        obs_shape=[4, 84, 84],
+        action_shape=6,
         batch_size=64,
-
-        update_per_collect=int(50/2),  # 32*100/64=50
+        update_per_collect=int(50 / 2),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
@@ -37,16 +32,14 @@ minigrid_ppo_rnd_config = dict(
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd',
-
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
         learning_rate=0.001,
-        obs_shape=2739,
-        action_shape=7,
+        obs_shape=[4, 84, 84],
+        action_shape=6,
         batch_size=64,
-
-        update_per_collect=int(50/2),  # 32*100/64=50
+        update_per_collect=int(50 / 2),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
@@ -65,13 +58,13 @@ minigrid_ppo_rnd_config = dict(
         nstep=nstep,
         unroll_len=40,
         model=dict(
-            obs_shape=2739,
-            action_shape=7,
+            obs_shape=[4, 84, 84],
+            action_shape=6,
             encoder_hidden_size_list=[256, 128, 64, 64],
             collector_env_num=collector_env_num,
         ),
         learn=dict(
-            update_per_collect=4,#8,
+            update_per_collect=4,
             batch_size=64,
             learning_rate=0.0005,
             value_weight=0.5,
@@ -92,16 +85,16 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e6,
             ),
-            replay_buffer=dict(replay_buffer_size=50000, )
+            replay_buffer=dict(replay_buffer_size=int(5e4), )
         ),
     ),
 )
-minigrid_ppo_rnd_config = EasyDict(minigrid_ppo_rnd_config)
-main_config = minigrid_ppo_rnd_config
-minigrid_ppo_rnd_create_config = dict(
+pong_ppo_rnd_config = EasyDict(pong_ppo_rnd_config)
+main_config = pong_ppo_rnd_config
+pong_ppo_rnd_create_config = dict(
     env=dict(
-        type='minigrid',
-        import_names=['dizoo.minigrid.envs.minigrid_env'],
+        type='atari',
+        import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
@@ -113,8 +106,8 @@ minigrid_ppo_rnd_create_config = dict(
         type='sample_ngu',
     )
 )
-minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
-create_config = minigrid_ppo_rnd_create_config
+pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
+create_config = pong_ppo_rnd_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

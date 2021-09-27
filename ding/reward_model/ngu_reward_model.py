@@ -100,6 +100,7 @@ class EpisodicRewardModel(BaseRewardModel):
         self.estimate_cnt_episodic = 0
         self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
         self._running_mean_std_episodic_reward = RunningMeanStd(epsilon=1e-4)
+        self.only_use_last_five_frames = config.only_use_last_five_frames_for_icm_rnd  # True
 
     def _train(self) -> None:
         # sample episode's timestep index
@@ -122,11 +123,19 @@ class EpisodicRewardModel(BaseRewardModel):
     def train(self) -> None:
         # stack episode dim
         self.train_next_obs = copy.deepcopy(self.train_obs)
-        self.train_obs = [
-            torch.stack(episode_obs[:-1], dim=0) for episode_obs in self.train_obs
-        ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
-        self.train_next_obs = [torch.stack(episode_obs[1:], dim=0) for episode_obs in self.train_next_obs]
-        self.train_action = [torch.stack(episode_action[:-1], dim=0) for episode_action in self.train_action]
+
+        if self.only_use_last_five_frames:
+            self.train_obs = [
+                torch.stack(episode_obs[-6:-1], dim=0) for episode_obs in self.train_obs
+            ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_next_obs = [torch.stack(episode_obs[-5:], dim=0) for episode_obs in self.train_next_obs]
+            self.train_action = [torch.stack(episode_action[-6:-1], dim=0) for episode_action in self.train_action]
+        else:
+            self.train_obs = [
+                torch.stack(episode_obs[:-1], dim=0) for episode_obs in self.train_obs
+            ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_next_obs = [torch.stack(episode_obs[1:], dim=0) for episode_obs in self.train_next_obs]
+            self.train_action = [torch.stack(episode_action[:-1], dim=0) for episode_action in self.train_action]
 
         # stack batch dim
         if isinstance(self.cfg.obs_shape, int):
@@ -137,6 +146,9 @@ class EpisodicRewardModel(BaseRewardModel):
             self.train_obs = torch.stack(
                 self.train_obs, dim=0
             ).view(self.train_obs.shape[0] * self.train_obs.shape[1], *self.cfg.obs_shape)  # -1) TODO image
+            self.train_obs = torch.stack(
+                self.train_obs, dim=0
+            ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # -1) TODO image
 
         self.train_next_obs = torch.stack(
             self.train_next_obs, dim=0
@@ -148,51 +160,22 @@ class EpisodicRewardModel(BaseRewardModel):
             self._train()
         # self.clear_data()
 
-    # def _compute_intrinsic_reward(
-    #         self,
-    #         episodic_memory: List,
-    #         current_controllable_state: torch.Tensor,
-    #         k=10,
-    #         kernel_cluster_distance=0.008,
-    #         kernel_epsilon=0.001,
-    #         c=0.001,
-    #         sm=8,
-    # ) -> torch.Tensor:  #kernel_epsilon=0.0001
-    #     # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
-    #     state_dist = [(c_state, torch.dist(c_state, current_controllable_state)) for c_state in episodic_memory]
-    #     state_dist.sort(key=lambda x: x[1])
-    #     state_dist = state_dist[:k]
-    #     dist = [d[1].item() for d in state_dist]
-    #     dist = np.array(dist)
-
-    #     self._running_mean_std_episodic_dist.update(dist)  #.cpu().numpy() # TODO
-    #     dist = dist / self._running_mean_std_episodic_dist.mean  # TODO
-
-    #     # dist = np.max(dist - kernel_cluster_distance, 0) #TODO
-
-    #     kernel = kernel_epsilon / (dist + kernel_epsilon)
-    #     s = np.sqrt(np.clip(np.sum(kernel), 0, None)) + c
-
-    #     if np.isnan(s) or s > sm:
-    #         print('np.isnan(s) or s > sm!:',s.max(),s.min())
-    #         return torch.tensor(0)  # todo
-    #     return torch.tensor(1 / s)
     def _compute_intrinsic_reward(
             self,
             episodic_memory: List,
             current_controllable_state: torch.Tensor,
             k=10,
             kernel_cluster_distance=0.008,
-            kernel_epsilon=0.001,
+            kernel_epsilon=0.0001,
             c=0.001,
             siminarity_max=8,
-    ) -> torch.Tensor:  # kernel_epsilon=0.0001
+    ) -> torch.Tensor:
         # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
         state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
-        self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())  # TODO
-        state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)  # TODO
+        self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())
+        state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)
 
-        # dist = np.max(dist - kernel_cluster_distance, 0) #TODO
+        state_dist = torch.clamp(state_dist - kernel_cluster_distance, min=0, max=None)
         kernel = kernel_epsilon / (state_dist + kernel_epsilon)
         s = torch.sqrt(torch.clamp(torch.sum(kernel), min=0, max=None)) + c
 
@@ -236,10 +219,11 @@ class EpisodicRewardModel(BaseRewardModel):
             for i in range(batch_size):
                 for j in range(timesteps):
                     if j <= 10:
-                        # if self._running_mean_std_episodic.mean is not None:
-                        #     episodic_reward[i].append(torch.tensor( self._running_mean_std_episodic.mean))
-                        # else:
-                        episodic_reward[i].append(torch.tensor(0.))
+                        if self._running_mean_std_episodic_reward.mean is not None:
+                            episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean))
+                        else:
+                            episodic_reward[i].append(torch.tensor(0.))
+                            # episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean))
                     else:
                         episodic_memory = cur_obs_embedding[i][:j]
                         reward = self._compute_intrinsic_reward(episodic_memory,
@@ -254,7 +238,6 @@ class EpisodicRewardModel(BaseRewardModel):
 
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
-            episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
 
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic
@@ -265,6 +248,11 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic
             )
+            self.tb_logger.add_scalar(
+                'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
+            )
+            episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
+            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return episodic_reward
 
     def collect_data(self, data: list) -> None:
@@ -330,10 +318,13 @@ class RndRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.estimate_cnt_rnd = 0
         self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
+        self.only_use_last_five_frames = config.only_use_last_five_frames_for_icm_rnd  # True
 
     def _train(self) -> None:
-        train_data: list = random.sample(self.train_data_cur, self.cfg.batch_size)
+        train_data: list = random.sample(list(self.train_data_cur), self.cfg.batch_size)
+
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
+
         predict_feature, target_feature = self.reward_model(train_data)
         loss = F.mse_loss(predict_feature, target_feature.detach())
         self.opt.zero_grad()
@@ -341,15 +332,29 @@ class RndRewardModel(BaseRewardModel):
         self.opt.step()
 
     def train(self) -> None:
-        if isinstance(self.train_data_total[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
+        # if isinstance(self.train_data_total[0], list):  # if self.train_data list( list(torch.tensor) ) rnn
+        if self.only_use_last_five_frames:
+            # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_obs = [torch.stack(episode_obs[-5:], dim=0) for episode_obs in self.train_data_total]
+            # stack batch dim
+            if isinstance(self.cfg.obs_shape, int):
+                self.train_data_cur = torch.stack(
+                    self.train_obs, dim=0
+                ).view(len(self.train_obs) * len(self.train_obs[0]), self.cfg.obs_shape)
+            else:  # len(self.cfg.obs_shape) == 3
+                self.train_data_cur = torch.stack(
+                    self.train_obs, dim=0
+                ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # TODO image
+        else:
             # tmp = []
             # for i in range(len(self.train_data)):
             #     tmp += self.train_data[i]
             # self.train_data = tmp
             self.train_data_cur = sum(self.train_data_total, [])
+
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        self.train_data_cur.clear()
+        # self.train_data_cur.clear()
         # self.clear_data() # TODO
 
     def estimate(self, data: list) -> None:
