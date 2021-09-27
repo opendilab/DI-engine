@@ -47,7 +47,7 @@ setup(
         'numpy>=1.10',
         'requests>=2.25.1',
         'six',
-        'gym>=0.15.3',  # pypy incompatible
+        'gym>=0.20.0',  # pypy incompatible
         'torch>=1.3.1,<=1.8.0',
         'pyyaml',
         'easydict==1.9',
@@ -88,11 +88,13 @@ setup(
         'fast': [
             'numpy-stl',
             'numba>=0.53.0',
+        ],
+        'dist': [
             'redis==3.5.3',
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'atari_py',
+            'ale-py',  # atari
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
