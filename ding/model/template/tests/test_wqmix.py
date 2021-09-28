@@ -24,7 +24,7 @@ def test_wqmix(is_q_star):
     agent_num, bs, T = 4, 3, 8
     obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
     embedding_dim = 64
-    wqmix_model = WQMix(agent_num, obs_dim, global_obs_dim, action_dim, [128, embedding_dim], 'gru', is_q_star)
+    wqmix_model = WQMix(agent_num, obs_dim, global_obs_dim, action_dim, [128, embedding_dim], 'gru')
     data = {
         'obs': {
             'agent_state': torch.randn(T, bs, agent_num, obs_dim),
@@ -34,7 +34,7 @@ def test_wqmix(is_q_star):
         'prev_state': [[None for _ in range(agent_num)] for _ in range(bs)],
         'action': torch.randint(0, action_dim, size=(T, bs, agent_num))
     }
-    output = wqmix_model(data, single_step=False)
+    output = wqmix_model(data, single_step=False, q_star=is_q_star)
     assert set(output.keys()) == set(['total_q', 'logit', 'next_state', 'action_mask'])
     assert output['total_q'].shape == (T, bs)
     assert output['logit'].shape == (T, bs, agent_num, action_dim)

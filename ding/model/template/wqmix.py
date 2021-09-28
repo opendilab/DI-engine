@@ -113,7 +113,7 @@ class WQMix(nn.Module):
         self._mixer_star = MixerStar(
             agent_num, global_obs_shape, mixing_embed_dim=256
         )  # the mixing network of Q_star is a feedforward network with 3 hidden layers of 256 dim
-        self._global_state_encoder = nn.Identity()  # nn.Sequential()
+        self._global_state_encoder = nn.Sequential()  # nn.Identity()
 
     def forward(self, data: dict, single_step: bool = True, q_star: bool = False) -> dict:
         """
