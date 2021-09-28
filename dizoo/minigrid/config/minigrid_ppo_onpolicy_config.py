@@ -23,13 +23,15 @@ minigrid_ppo_config = dict(
             encoder_hidden_size_list=[256, 128, 64, 64],
         ),
         learn=dict(
-            update_per_collect=4,
+            epoch_per_collect=10,
+            update_per_collect=1,  # 4,
             batch_size=64,
             learning_rate=0.0003,
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=False,
+            value_norm=True,
         ),
         collect=dict(
             collector_env_num=collector_env_num,
