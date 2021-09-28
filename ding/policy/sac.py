@@ -143,6 +143,8 @@ class SACPolicy(Policy):
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
             auto_alpha=True,
+            # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
+            log_space=True,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
             # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
@@ -225,13 +227,20 @@ class SACPolicy(Policy):
         self._gamma = self._cfg.learn.discount_factor
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
-            self._target_entropy = -np.prod(self._cfg.model.action_shape)
-            self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
-            self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
-            self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
-            self._auto_alpha = True
-            assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
-            self._alpha = self._log_alpha.detach().exp()
+            self._target_entropy = self._cfg.learn.get('target_entropy', -np.prod(self._cfg.model.action_shape))
+            if self._cfg.learn.log_space:
+                self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
+                self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
+                self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
+                assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
+                self._alpha = self._log_alpha.detach().exp()
+                self._auto_alpha = True
+                self._log_space = True
+            else:
+                self._alpha = torch.FloatTensor([self._cfg.learn.alpha]).to(self._device).requires_grad_()
+                self._alpha_optim = torch.optim.Adam([self._alpha], lr=self._cfg.learn.learning_rate_alpha)
+                self._auto_alpha = True
+                self._log_space = False
         else:
             self._alpha = torch.tensor(
                 [self._cfg.learn.alpha], requires_grad=False, device=self._device, dtype=torch.float32
@@ -375,13 +384,22 @@ class SACPolicy(Policy):
 
         # compute alpha loss
         if self._auto_alpha:
-            log_prob = log_prob.detach() + self._target_entropy
-            loss_dict['alpha_loss'] = -(self._log_alpha * log_prob).mean()
+            if self._log_space:
+                log_prob = log_prob + self._target_entropy
+                loss_dict['alpha_loss'] = -(self._log_alpha * log_prob.detach()).mean()
 
-            self._alpha_optim.zero_grad()
-            loss_dict['alpha_loss'].backward()
-            self._alpha_optim.step()
-            self._alpha = self._log_alpha.detach().exp()
+                self._alpha_optim.zero_grad()
+                loss_dict['alpha_loss'].backward()
+                self._alpha_optim.step()
+                self._alpha = self._log_alpha.detach().exp()
+            else:
+                log_prob = log_prob + self._target_entropy
+                loss_dict['alpha_loss'] = -(self._alpha * log_prob.detach()).mean()
+
+                self._alpha_optim.zero_grad()
+                loss_dict['alpha_loss'].backward()
+                self._alpha_optim.step()
+                self._alpha = max(0, self._alpha)
 
         loss_dict['total_loss'] = sum(loss_dict.values())
 
@@ -421,7 +439,8 @@ class SACPolicy(Policy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        if self._value_network:
+            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
@@ -434,17 +453,6 @@ class SACPolicy(Policy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        # TODO remove noise
-        # self._collect_model = model_wrap(
-        #     self._model,
-        #     wrapper_name='action_noise',
-        #     noise_type='gauss',
-        #     noise_kwargs={
-        #         'mu': 0.0,
-        #         'sigma': self._cfg.collect.noise_sigma
-        #     },
-        #     noise_range=None
-        # )
         self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 

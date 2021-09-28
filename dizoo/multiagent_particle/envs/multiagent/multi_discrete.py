@@ -11,7 +11,8 @@ class MultiDiscrete(gym.Space):
     """
     - The multi-discrete action space consists of a series of discrete action spaces with different parameters
     - It can be adapted to both a Discrete action space or a continuous (Box) action space
-    - It is useful to represent game controllers or keyboards where each key can be represented as a discrete action space
+    - It is useful to represent game controllers or keyboards where each key can be represented as a discrete
+        action space
     - It is parametrized by passing an array of arrays containing [min, max] for each discrete action space
        where the discrete action space can take any integers from `min` to `max` (both inclusive)
     Note: A value of 0 always need to represent the NOOP action.
