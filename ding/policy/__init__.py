@@ -16,6 +16,7 @@ from .ppg import PPGPolicy
 from .sqn import SQNPolicy
 
 from .qmix import QMIXPolicy
+from .wqmix import WQMIXPolicy
 from .coma import COMAPolicy
 from .collaq import CollaQPolicy
 from .atoc import ATOCPolicy
