@@ -1,5 +1,6 @@
 from .cli import cli
 from .serial_entry import serial_pipeline
+from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_il import serial_pipeline_il
 from .serial_entry_reward_model import serial_pipeline_reward_model
 from .serial_entry_reward_model_onpolicy import serial_pipeline_reward_model_onpolicy
