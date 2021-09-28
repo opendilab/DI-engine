@@ -41,6 +41,9 @@ def test_wqmix(is_q_star):
     assert len(output['next_state']) == bs and all([len(n) == agent_num for n in output['next_state']])
     print(output['next_state'][0][0][0].shape)
     loss = output['total_q'].sum()
-    is_differentiable(loss, wqmix_model)
+    if is_q_star:
+        is_differentiable(loss, [wqmix_model._q_network_star, wqmix_model._mixer_star])
+    else:
+        is_differentiable(loss, [wqmix_model._q_network, wqmix_model._mixer])
     data.pop('action')
-    output = wqmix_model(data, single_step=False)
+    output = wqmix_model(data, single_step=False, q_star=is_q_star)
