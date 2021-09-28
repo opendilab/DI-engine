@@ -5,11 +5,13 @@ print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
     exp_name='minigrid_empty8_ppo_onpolicy_rnd_ew0.1',
+    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_ew0.1',
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
         stop_value=0.96,
     ),
     reward_model=dict(
@@ -70,6 +72,7 @@ minigrid_ppo_rnd_create_config = dict(
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
     # policy=dict(type='ppo_offpolicy'),
     policy=dict(type='ppo'),
     reward_model=dict(type='rnd'),
