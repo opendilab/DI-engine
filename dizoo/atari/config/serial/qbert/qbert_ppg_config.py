@@ -49,14 +49,14 @@ qbert_ppg_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             replay_buffer=dict(
-                buffer_name=['policy', 'value'],
+                multi_buffer=True,
                 policy=dict(
                     replay_buffer_size=100000,
                     max_use=3,
                 ),
                 value=dict(
                     replay_buffer_size=100000,
-                    max_use=3,
+                    max_use=10,
                 ),
             ),
         ),
