@@ -308,17 +308,6 @@ def test_league():
         f.write("24. league\n")
 
 
-# @pytest.mark.algotest
-def test_wqmix():
-    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("25. wqmix\n")
-
-
 @pytest.mark.algotest
 def test_sqil():
     expert_policy_state_dict_path = './expert_policy.pth'
@@ -414,6 +403,17 @@ def test_running_on_orchestrator():
     launcher.delete_cluster()
 
 
+# @pytest.mark.algotest
+def test_wqmix():
+    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("27. wqmix\n")
+
+
 def create_object_from_config(config_path: str, namespace: str = 'default'):
     args = ['kubectl', 'apply', '-n', namespace, '-f', config_path]
     proc = subprocess.Popen(args, stderr=subprocess.PIPE)
@@ -442,4 +442,3 @@ def wait_for_dijob_condition(dijobapi, name: str, namespace: str, phase: str, ti
     if dijob.status.phase == phase:
         return
     raise TimeoutError(f'Timeout waiting for DIJob: {name} to be {phase}')
-
