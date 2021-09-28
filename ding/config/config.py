@@ -4,7 +4,6 @@ import json
 import shutil
 import sys
 import tempfile
-import warnings
 import yaml
 from importlib import import_module
 from typing import Callable, Optional, Tuple, NoReturn
@@ -339,16 +338,11 @@ def compile_config(
             env_manager = get_env_manager_cls(create_cfg.env_manager)
         if policy is None:
             policy = get_policy_cls(create_cfg.policy)
-        if 'default_config' in dir(env):
-            env_config = env.default_config()
-        else:
-            env_config = EasyDict()  # env does not have default_config
-        env_config = deep_merge_dicts(env.env_config_template, env_config)
+        env_config = env.default_config()
         env_config.update(create_cfg.env)
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         env_config.manager.update(create_cfg.env_manager)
         policy_config = policy.default_config()
-        policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
         policy_config.collect.collector.update(create_cfg.collector)
         policy_config.other.replay_buffer.update(create_cfg.replay_buffer)
@@ -360,16 +354,11 @@ def compile_config(
         else:
             reward_model_config = EasyDict()
     else:
-        if 'default_config' in dir(env):
-            env_config = env.default_config()
-        else:
-            env_config = EasyDict()  # env does not have default_config
-        env_config = deep_merge_dicts(env.env_config_template, env_config)
+        env_config = env.default_config()
         if env_manager is None:
             env_manager = BaseEnvManager  # for compatibility
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         policy_config = policy.default_config()
-        policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
         if reward_model is None:
             reward_model_config = EasyDict()
         else:
@@ -451,11 +440,7 @@ def compile_config_parallel(
         create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
     # env
     env = get_env_cls(create_cfg.env)
-    if 'default_config' in dir(env):
-        env_config = env.default_config()
-    else:
-        env_config = EasyDict()  # env does not have default_config
-    env_config = deep_merge_dicts(env.env_config_template, env_config)
+    env_config = env.default_config()
     env_config.update(create_cfg.env)
 
     env_manager = get_env_manager_cls(create_cfg.env_manager)
@@ -465,7 +450,6 @@ def compile_config_parallel(
     # policy
     policy = get_policy_cls(create_cfg.policy)
     policy_config = policy.default_config()
-    policy_config = deep_merge_dicts(policy.policy_config_template, policy_config)
     cfg.policy.update(create_cfg.policy)
 
     collector = get_parallel_collector_cls(create_cfg.collector)

@@ -7,11 +7,11 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, POLICY_REGISTRY
+from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, POLICY_REGISTRY, deep_merge_dicts
 
 
 class Policy(ABC):
-    policy_config_template = EasyDict(
+    config = dict(
         model=dict(),
         learn=dict(learner=dict()),
         collect=dict(collector=dict()),
@@ -22,7 +22,9 @@ class Policy(ABC):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
+        config_template = EasyDict(Policy.config)
         cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg = deep_merge_dicts(config_template, cfg)
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
 
@@ -31,8 +33,7 @@ class Policy(ABC):
         if 'policy' not in config:
             raise Exception("Missing `policy` config")
         keys = config["policy"].keys()
-        valid_keys = set(cls.config.keys())
-        valid_keys = valid_keys.union(cls.policy_config_template.keys())
+        valid_keys = set(cls.default_config().keys())
         invalid_keys = keys - valid_keys
         if len(invalid_keys) > 0:
             raise Exception("Policy config contains invalid keys: {}".format(", ".join(invalid_keys)))

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from ding.utils.default_helper import deep_merge_dicts
 from typing import Any, List, Tuple
 import gym
 import copy
@@ -19,8 +20,15 @@ class BaseEnv(ABC, gym.Env):
         ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \
             ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
+    config = dict(manager=dict())
 
-    env_config_template = EasyDict(manager=dict())
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        config_template = EasyDict(BaseEnv.config)
+        cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg = deep_merge_dicts(config_template, cfg)
+        cfg.cfg_type = cls.__name__ + "Dict"
+        return cfg
 
     @classmethod
     def validate_config(cls: type, config: dict) -> None:
