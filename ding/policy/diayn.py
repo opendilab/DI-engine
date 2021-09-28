@@ -200,9 +200,7 @@ class DIAYNPolicy(SACPolicy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._value_network = False  # TODO self._cfg.model.value_network
         self._twin_critic = self._cfg.model.twin_critic
-        self._p_z = np.full(
-            self._cfg.model.num_skills, 1.0 / self._cfg.model.num_skills
-        )
+        self._p_z = np.full(self._cfg.model.num_skills, 1.0 / self._cfg.model.num_skills)
         # uniform distributed probabilities
         # Weight Init
         init_w = self._cfg.learn.init_w
@@ -353,8 +351,8 @@ class DIAYNPolicy(SACPolicy):
         )  # another way to write : .squeeze(-1) * torch.ones(size=(logits.shape[0],))
         # CrossEntropyLoss() gives up Negtive Log Likehood--> we add a -1 in the front
         p_z = torch.sum(
-            torch.from_numpy(self._p_z).float() * sklls_batch
-        , axis = 1)  # This is dot product, the result is a batchsize * no of skills tensor.
+            torch.from_numpy(self._p_z).float() * sklls_batch, axis=1
+        )  # This is dot product, the result is a batchsize * no of skills tensor.
         log_p_z = torch.log(p_z + 10 ** -10)
         # This reward function will be used to replace the reward from the data
         reward_revised -= log_p_z

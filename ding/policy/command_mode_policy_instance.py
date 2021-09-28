@@ -26,6 +26,7 @@ from .sql import SQLPolicy
 from .diayn import DIAYNPolicy
 from .cql import CQLPolicy
 
+
 class EpsCommandModePolicy(CommandModePolicy):
 
     def _init_command(self) -> None:

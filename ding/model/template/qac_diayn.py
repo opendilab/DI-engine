@@ -126,7 +126,6 @@ class QACDIAYN(QAC):
             )
         )
 
-
     def compute_discriminator(self, inputs: torch.Tensor) -> Dict:
         x = self.discriminator(inputs)['pred']
         return {'q_discriminator': x}
