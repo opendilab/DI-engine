@@ -341,6 +341,7 @@ def dqfd_nstep_td_error(
         gamma: float,
         lambda1: tuple,
         lambda2: tuple,
+        margin_function: float,
         nstep: int = 1,
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
@@ -375,7 +376,8 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, weight, new_n_q_one_step, next_n_action_one_step, is_expert = data
+    q, next_n_q, action, next_n_action, reward, done, weight, new_n_q_one_step, next_n_action_one_step,\
+        is_expert = data  # set is_expert flag(expert 1, agent 0)
     assert len(action.shape) == 1, action.shape
     if weight is None:
         weight = torch.ones_like(action)
@@ -412,13 +414,18 @@ def dqfd_nstep_td_error(
     # calculate the supervised loss
     device = q_s_a.device
     max_action = torch.argmax(q, dim=-1)
+    JE = is_expert * (
+        q[batch_range, max_action] + margin_function *
+        torch.where(action == max_action, torch.ones_like(action), torch.zeros_like(action)).float() - q_s_a
+    )
+    '''
     Js = is_expert * (
         q[batch_range, max_action.type(torch.int64)] +
         0.8 * torch.from_numpy((action == max_action).numpy().astype(int)).float().to(device) - q_s_a
     )
-
-    return ((lambda1[0] * td_error_per_sample + td_error_one_step_per_sample + lambda2[0] * Js) *
-            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + Js
+    '''
+    return ((lambda1[0] * td_error_per_sample + td_error_one_step_per_sample + lambda2[0] * JE) *
+            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
 
 
 def shape_fn_qntd_rescale(args, kwargs):

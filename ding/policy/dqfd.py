@@ -18,7 +18,7 @@ from copy import deepcopy
 class DQFDPolicy(DQNPolicy):
     r"""
     Overview:
-        Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.
+        Policy class of DQFD algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -71,6 +71,8 @@ class DQFDPolicy(DQNPolicy):
             lambda1=1.0,
             lambda2=1.0,
             lambda3=1e-5,
+            # margin function in JE, here we implement this as a constant
+            margin_function=0.8,
             # number of pertraining iterations
             per_train_iter_k=10,
             # (bool) Whether to use multi gpu
@@ -124,6 +126,8 @@ class DQFDPolicy(DQNPolicy):
         self.lambda1 = self._cfg.learn.lambda1,  # n-step return
         self.lambda2 = self._cfg.learn.lambda2,  # supervised loss
         self.lambda3 = self._cfg.learn.lambda3,  # L2
+        # margin function in JE, here we implement this as a constant
+        self.margin_function = self._cfg.learn.margin_function
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
@@ -186,12 +190,26 @@ class DQFDPolicy(DQNPolicy):
             target_q_action_one_step = self._learn_model.forward(data['next_obs_1'])['action']
 
         data_n = dqfd_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight'],
-            target_q_value_one_step, target_q_action_one_step, data['is_expert']
+            q_value,
+            target_q_value,
+            data['action'],
+            target_q_action,
+            data['reward'],
+            data['done'],
+            data['weight'],
+            target_q_value_one_step,
+            target_q_action_one_step,
+            data['is_expert']  # set is_expert flag(expert 1, agent 0)
         )
         value_gamma = data.get('value_gamma')
         loss, td_error_per_sample = dqfd_nstep_td_error(
-            data_n, self._gamma, self.lambda1, self.lambda2, nstep=self._nstep, value_gamma=value_gamma
+            data_n,
+            self._gamma,
+            self.lambda1,
+            self.lambda2,
+            self.margin_function,
+            nstep=self._nstep,
+            value_gamma=value_gamma
         )
 
         # ====================
@@ -215,6 +233,7 @@ class DQFDPolicy(DQNPolicy):
             # '[histogram]action_distribution': data['action'],
         }
 
+    '''
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
         Overview:
@@ -241,6 +260,7 @@ class DQFDPolicy(DQNPolicy):
         """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
+    '''
 
     def _init_collect(self) -> None:
         """
@@ -300,11 +320,14 @@ class DQFDPolicy(DQNPolicy):
             itself.
         """
         data_1 = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        data = get_nstep_return_data(
+            data, self._nstep, gamma=self._gamma
+        )  # here we want to include one-step next observation
         for i in range(len(data)):
-            data[i]['next_obs_1'] = data_1[i]['next_obs']
+            data[i]['next_obs_1'] = data_1[i]['next_obs']  # concat the one-step next observation
         return get_train_sample(data, self._unroll_len)
 
+    '''
     def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
         """
         Overview:
@@ -326,6 +349,7 @@ class DQFDPolicy(DQNPolicy):
             'done': timestep.done,
         }
         return transition
+    '''
 
     def _init_eval(self) -> None:
         r"""

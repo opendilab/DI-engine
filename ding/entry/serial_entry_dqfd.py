@@ -2,6 +2,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
+import numpy as np
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
@@ -27,9 +28,9 @@ def serial_pipeline_dqfd(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline sqil entry: we create this serial pipeline in order to\
-            implement SQIL in DI-engine. For now, we support the following envs\
-            Cartpole, Lunarlander, Pong, Spaceinvader, Qbert. The demonstration\
+        Serial pipeline dqfd entry: we create this serial pipeline in order to\
+            implement dqfd in DI-engine. For now, we support the following envs\
+            Cartpole, Lunarlander, Pong, Spaceinvader. The demonstration\
             data come from the expert model. We use a well-trained model to \
             generate demonstration data online
     Arguments:
@@ -95,7 +96,7 @@ def serial_pipeline_dqfd(
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     dummy_variable = deepcopy(cfg.policy.other.replay_buffer)
-    dummy_variable['replay_buffer_size'] = 10000
+    dummy_variable['replay_buffer_size'] = cfg.policy.learn.expert_replay_buffer_size
     expert_buffer = create_buffer(dummy_variable, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
@@ -105,9 +106,11 @@ def serial_pipeline_dqfd(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
-    expert_data = expert_collector.collect(n_sample=10000, policy_kwargs={'eps': -1})
+    expert_data = expert_collector.collect(
+        n_sample=cfg.policy.learn.expert_replay_buffer_size, policy_kwargs={'eps': -1}
+    )
     for i in range(len(expert_data)):
-        expert_data[i]['is_expert'] = 1
+        expert_data[i]['is_expert'] = 1  # set is_expert flag(expert 1, agent 0)
     expert_buffer.push(expert_data, cur_collector_envstep=0)
     for _ in range(cfg.policy.learn.per_train_iter_k):
         if evaluator.should_eval(learner.train_iter):
@@ -117,13 +120,6 @@ def serial_pipeline_dqfd(
         # Learn policy from collected data
         # Expert_learner will train ``update_per_collect == 1`` times in one iteration.
         train_data = expert_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-        if train_data is None:
-            # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
-            logging.warning(
-                "Replay buffer's data can only train for {} steps. ".format(i) +
-                "You can modify data collect config, e.g. increasing n_sample, n_episode."
-            )
-            break
         learner.train(train_data, collector.envstep)
         if learner.policy.get_attribute('priority'):
             expert_buffer.update(learner.priority_info)
@@ -136,7 +132,7 @@ def serial_pipeline_dqfd(
         collect_kwargs = commander.step()
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = 0
+            new_data[i]['is_expert'] = 0  # set is_expert flag(expert 1, agent 0)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
@@ -149,14 +145,19 @@ def serial_pipeline_dqfd(
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = 0
+            new_data[i]['is_expert'] = 0  # set is_expert flag(expert 1, agent 0)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            stats = torch.rand((learner.policy.get_attribute('batch_size'))) < cfg.policy.collect.pho
+            stats = np.random.choice(
+                (learner.policy.get_attribute('batch_size')), size=(learner.policy.get_attribute('batch_size'))
+            ) < (
+                learner.policy.get_attribute('batch_size')
+            ) * cfg.policy.collect.pho  # torch.rand((learner.policy.get_attribute('batch_size')))\
+            # < cfg.policy.collect.pho
             expert_batch_size = stats[stats].shape[0]
             demo_batch_size = (learner.policy.get_attribute('batch_size')) - expert_batch_size
             train_data = replay_buffer.sample(demo_batch_size, learner.train_iter)
