@@ -54,8 +54,8 @@ class MixerStar(nn.Module):
             - q_tot (:obj:`torch.FloatTensor`): the total mixed q_value
         Shapes:
             - agent_qs (:obj:`torch.FloatTensor`): :math:`(T,B, N)`, where T is timestep,
-              B is batch size and N is agent_num
-            - states (:obj:`torch.FloatTensor`): :math:`(T, B, M)`, where M is embedding_size
+              B is batch size, A is agent_num, N is obs_shape
+            - states (:obj:`torch.FloatTensor`): :math:`(T, B, M)`, where M is global_obs_shape
             - q_tot (:obj:`torch.FloatTensor`): :math:`(T, B, )`
         """
         # in below annotations about the shape of the variables, T is timestep,

@@ -7,6 +7,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='5m6m_wqmix_ow_ff3-256_hsl64', 
     env=dict(
         map_name='5m_vs_6m',
         difficulty=7,
@@ -24,7 +25,7 @@ main_config = dict(
             obs_shape=72,
             global_obs_shape=98,
             action_shape=12,
-            hidden_size_list=[32],
+            hidden_size_list=[64],
             lstm_type='gru',
             dueling=False,
         ),
