@@ -44,7 +44,7 @@ setup(
                   for package_name in find_packages(include=('ding.*'))},
     python_requires=">=3.6",
     install_requires=[
-        'numpy>=1.20.0',
+        'numpy>=1.10',
         'requests>=2.25.1',
         'six',
         'gym>=0.20.0',  # pypy incompatible
