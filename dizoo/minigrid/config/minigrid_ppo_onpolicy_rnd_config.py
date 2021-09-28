@@ -4,8 +4,8 @@ import torch
 print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ppo_onpolicy_rnd_ew0.1',
-    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_ew0.1',
+    exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd',
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,
@@ -22,6 +22,7 @@ minigrid_ppo_rnd_config = dict(
         # update_per_collect=10,
         batch_size=64, #32,
         update_per_collect=8, #10
+        clear_buffer_per_iters=10,
     ),
     policy=dict(
         recompute_adv=True,
@@ -31,29 +32,25 @@ minigrid_ppo_rnd_config = dict(
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            # encoder_hidden_size_list=[256, 128, 64, 64],
-            encoder_hidden_size_list=[64, 64, 128],
-            critic_head_hidden_size=128, # default=64
-            actor_head_hidden_size=128,
+            encoder_hidden_size_list=[256, 128, 64, 64],
+            critic_head_hidden_size=64, # default=64
+            actor_head_hidden_size=64,
         ),
         learn=dict(
-            epoch_per_collect=10,  # TODO 10
-            update_per_collect=1, #4,
+            epoch_per_collect=10,  # TODO(pu)
+            update_per_collect=1,  # 4
             batch_size=64,
             learning_rate=0.0003,
             value_weight=0.5,
-            entropy_weight=0.1, #0.01, 0.001
+            entropy_weight=0.001, 
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True, 
         ),
         collect=dict(
             collector_env_num= collector_env_num,
-            # collector=dict(
-            #     # cfg_type = EpisodeCollectorDict, 
-            #     # type = episode,#sample,
-            # ),
-            n_sample=int(64*collector_env_num), #  self._traj_len  = max(1,64*8//8)=64 
+            n_sample=int(64*collector_env_num), 
+            #  self._traj_len  = max(1,64*8//8)=64 
             #    self._traj_len = max(
             #      self._unroll_len,
             #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)

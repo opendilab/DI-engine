@@ -72,10 +72,17 @@ class RndRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
         self.estimate_cnt_rnd = 0
+        self._running_mean_std_rnd_obs = RunningMeanStd(epsilon=1e-4)  # TODO(pu)
 
     def _train(self) -> None:
         train_data: list = random.sample(self.train_data, self.cfg.batch_size)
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
+        
+        # TODO(pu) observation normalization
+        self._running_mean_std_rnd_obs.update(train_data.cpu().numpy())
+        train_data = (train_data - self._running_mean_std_rnd_obs.mean)/ self._running_mean_std_rnd_obs.std
+        train_data = torch.clamp(train_data, min=-5, max=5)
+
         predict_feature, target_feature = self.reward_model(train_data)
         loss = F.mse_loss(predict_feature, target_feature.detach())
         self.opt.zero_grad()
@@ -85,7 +92,7 @@ class RndRewardModel(BaseRewardModel):
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        self.clear_data()
+        # self.clear_data()
 
     def estimate(self, data: list) -> None:
         """
@@ -93,12 +100,19 @@ class RndRewardModel(BaseRewardModel):
         """
         obs = collect_states(data)
         obs = torch.stack(obs).to(self.device)
+        # TODO(pu)
+        obs = (obs - self._running_mean_std_rnd_obs.mean)/ self._running_mean_std_rnd_obs.std  # to mean 0, std 1
+        obs = torch.clamp(obs, min=-5, max=5)
+
         with torch.no_grad():
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8) # to [0,1]
+            # TODO(pu)
+            # reward = 0.5*(reward - reward.min()) / (reward.max() - reward.min() + 1e-8) # to [0,1]
             self._running_mean_std_rnd.update(reward.cpu().numpy())
-            reward = reward / self._running_mean_std_rnd.std # TODO(pu)
+            reward = reward / self._running_mean_std_rnd.std # to std 1
+            reward = 0.01 * reward
+
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)

@@ -90,7 +90,7 @@ def serial_pipeline_reward_model_onpolicy(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
-    for _ in range(max_iterations):
+    for iter in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -107,6 +107,8 @@ def serial_pipeline_reward_model_onpolicy(
         # update reward_model
         reward_model.train()
         reward_model.clear_data()
+        if iter % cfg.reward_model.clear_buffer_per_iters == 0:
+            reward_model.clear_data()
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect): # 1
             # Learner will train ``update_per_collect`` times in one iteration.
