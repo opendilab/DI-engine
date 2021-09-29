@@ -227,7 +227,7 @@ class D4PGPolicy(DDPGPolicy):
         q_value = self._learn_model.forward(data, mode='compute_critic')
         q_value_dict = {}
         q_dist = q_value['distribution']
-        q_value_dict['q_value'] = q_value['logit'].mean()
+        q_value_dict['q_value'] = q_value['q_value'].mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
@@ -237,9 +237,11 @@ class D4PGPolicy(DDPGPolicy):
         value_gamma = data.get('value_gamma')
         action_index = np.zeros(next_action.shape[0])
         # since the action is a scalar value, action index is set to 0 which is the only possible choice
-        td_data = dist_nstep_td_data(q_dist, target_q_dist, action_index, action_index, reward, data['done'], data['weight'])
+        td_data = dist_nstep_td_data(q_dist, target_q_dist, action_index, action_index, reward,
+                                     data['done'], data['weight'])
         critic_loss, td_error_per_sample = dist_nstep_td_error(td_data, self._gamma, self._v_min, self._v_max,
-                                                               self._n_atom,  nstep=self._nstep, value_gamma=value_gamma)
+                                                               self._n_atom, nstep=self._nstep,
+                                                               value_gamma=value_gamma)
         loss_dict['critic_loss'] = critic_loss
         # ================
         # critic update
@@ -256,7 +258,7 @@ class D4PGPolicy(DDPGPolicy):
         if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
             actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
             actor_data['obs'] = data['obs']
-            actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['logit'].mean()
+            actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
 
             loss_dict['actor_loss'] = actor_loss
             # actor update

@@ -125,7 +125,7 @@ class QACDIST(nn.Module):
                         Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
 
                 Forward with ``'compute_critic'``, Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
                     - distribution (:obj:`torch.Tensor`): Q value distribution tensor.
         Actor Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
@@ -135,7 +135,7 @@ class QACDIST(nn.Module):
         Critic Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
             - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``
 
         Actor Examples:
@@ -157,7 +157,7 @@ class QACDIST(nn.Module):
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
             >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atoms=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
-            >>> q_value['logit'].shape
+            >>> q_value['q_value'].shape
             [4, 1]
             >>> q_value['distribution'].shape
             [4, 1, 51]
@@ -221,19 +221,19 @@ class QACDIST(nn.Module):
             - outputs (:obj:`Dict`): Q-value output and distribution.
 
         ReturnKeys:
-            - logit (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
             - distribution (:obj:`torch.Tensor`): Q value distribution tensor.
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, ``n_atom``)`.
+            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``
 
         Examples:
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
             >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atom=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
-            >>> q_value['logit'].shape
+            >>> q_value['q_value'].shape
             [4, 1]
             >>> q_value['distribution'].shape
             [4, 1, 51]
@@ -244,4 +244,4 @@ class QACDIST(nn.Module):
             action = action.unsqueeze(1)
         x = torch.cat([obs, action], dim=1)
         x = self.critic(x)
-        return x
+        return {'q_value': x['logit'], 'distribution': x['distribution']}
