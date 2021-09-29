@@ -40,7 +40,7 @@ setup(
         *find_packages(include=('dizoo'
                                 'dizoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg']
+    package_data={package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
                   for package_name in find_packages(include=('ding.*'))},
     python_requires=">=3.6",
     install_requires=[

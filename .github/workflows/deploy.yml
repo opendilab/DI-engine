@@ -214,5 +214,5 @@ jobs:
       - name: Build and push
         id: docker_build
         run:  |
-          docker build -f ./Dockerfile.env . -t opendilab/ding:nightly-smac --target=smac
+          docker buildx build -f ./Dockerfile.env . -t opendilab/ding:nightly-smac --target=smac
           docker push opendilab/ding:nightly-smac
