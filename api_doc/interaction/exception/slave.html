@@ -84,7 +84,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
@@ -123,7 +123,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
@@ -625,7 +625,7 @@
 <h2>get_slave_exception_class_by_error_code<a class="headerlink" href="#get-slave-exception-class-by-error-code" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.interaction.exception.slave.get_slave_exception_class_by_error_code">
-<span class="sig-prename descclassname"><span class="pre">ding.interaction.exception.slave.</span></span><span class="sig-name descname"><span class="pre">get_slave_exception_class_by_error_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_code</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ding.interaction.exception.slave.SlaveErrorCode" title="ding.interaction.exception.slave.SlaveErrorCode"><span class="pre">ding.interaction.exception.slave.SlaveErrorCode</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ding.interaction.exception.slave.SlaveResponseException" title="ding.interaction.exception.slave.SlaveResponseException"><span class="pre">ding.interaction.exception.slave.SlaveResponseException</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/ding/interaction/exception/slave.html#get_slave_exception_class_by_error_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.slave.get_slave_exception_class_by_error_code" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ding.interaction.exception.slave.</span></span><span class="sig-name descname"><span class="pre">get_slave_exception_class_by_error_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_code</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#ding.interaction.exception.slave.SlaveErrorCode" title="ding.interaction.exception.slave.SlaveErrorCode"><span class="pre">ding.interaction.exception.slave.SlaveErrorCode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ding.interaction.exception.slave.SlaveResponseException" title="ding.interaction.exception.slave.SlaveResponseException"><span class="pre">ding.interaction.exception.slave.SlaveResponseException</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/ding/interaction/exception/slave.html#get_slave_exception_class_by_error_code"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.slave.get_slave_exception_class_by_error_code" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Transform from slave error code to <cite>SlaveResponseException</cite> class</p>
 </dd>
@@ -645,7 +645,7 @@
 <h2>get_slave_exception_by_error<a class="headerlink" href="#get-slave-exception-by-error" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.interaction.exception.slave.get_slave_exception_by_error">
-<span class="sig-prename descclassname"><span class="pre">ding.interaction.exception.slave.</span></span><span class="sig-name descname"><span class="pre">get_slave_exception_by_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#ding.interaction.exception.slave.SlaveResponseException" title="ding.interaction.exception.slave.SlaveResponseException"><span class="pre">ding.interaction.exception.slave.SlaveResponseException</span></a><a class="reference internal" href="../../../_modules/ding/interaction/exception/slave.html#get_slave_exception_by_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.slave.get_slave_exception_by_error" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ding.interaction.exception.slave.</span></span><span class="sig-name descname"><span class="pre">get_slave_exception_by_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">requests.exceptions.HTTPError</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.interaction.exception.slave.SlaveResponseException" title="ding.interaction.exception.slave.SlaveResponseException"><span class="pre">ding.interaction.exception.slave.SlaveResponseException</span></a></span></span><a class="reference internal" href="../../../_modules/ding/interaction/exception/slave.html#get_slave_exception_by_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.exception.slave.get_slave_exception_by_error" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Auto transform http error object to slave response exception object.</p>
 </dd>

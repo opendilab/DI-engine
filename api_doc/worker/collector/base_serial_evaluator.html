@@ -84,7 +84,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
@@ -122,7 +122,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
@@ -216,7 +216,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_episode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_episode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init method. According to the number of episodes and the number of environments, determine how many                 episodes need to be opened for each environment, and initialize the reward, info and other                 information</p>
 </dd>
@@ -230,7 +230,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode">
-<span class="sig-name descname"><span class="pre">get_current_episode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_current_episode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_current_episode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_current_episode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_current_episode" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the current episode. We can know which episode our evaluator is executing now.</p>
 </dd>
@@ -239,7 +239,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info">
-<span class="sig-name descname"><span class="pre">get_episode_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_episode_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get all episode information, such as total reward of one episode.</p>
 </dd>
@@ -248,7 +248,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward">
-<span class="sig-name descname"><span class="pre">get_episode_reward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">list</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_episode_reward</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_episode_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_episode_reward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the total reward of one episode.</p>
 </dd>
@@ -257,7 +257,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward">
-<span class="sig-name descname"><span class="pre">get_latest_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_latest_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_latest_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.get_latest_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.get_latest_reward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the latest reward of a certain environment.</p>
 </dd>
@@ -270,7 +270,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished">
-<span class="sig-name descname"><span class="pre">is_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.is_finished"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.is_finished"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.is_finished" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Determine whether the evaluator has completed the work.</p>
 </dd>
@@ -283,7 +283,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info">
-<span class="sig-name descname"><span class="pre">update_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_info" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update the information of the environment indicated by env_id.</p>
 </dd>
@@ -297,7 +297,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward">
-<span class="sig-name descname"><span class="pre">update_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#VectorEvalMonitor.update_reward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor.update_reward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Update the reward indicated by env_id.</p>
 </dd>

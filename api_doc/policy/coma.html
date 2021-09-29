@@ -84,7 +84,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
@@ -126,7 +126,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../faq/index_en.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
@@ -424,7 +424,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._data_preprocess_learn">
-<span class="sig-name descname"><span class="pre">_data_preprocess_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._data_preprocess_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._data_preprocess_learn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_data_preprocess_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._data_preprocess_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._data_preprocess_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Preprocess the data to fit the required data format for learning</p>
 </dd>
@@ -449,7 +449,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._forward_collect">
-<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_collect" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collect output according to eps_greedy plugin</p>
 </dd>
@@ -466,7 +466,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._forward_eval">
-<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_eval" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward function of collect mode, similar to <code class="docutils literal notranslate"><span class="pre">self._forward_collect</span></code>.</p>
 </dd>
@@ -483,7 +483,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._forward_learn">
-<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_learn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._forward_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Forward and backward function of learn mode, acquire the data and calculate the loss andoptimize learner model</p>
 </dd>
@@ -526,7 +526,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._get_train_sample">
-<span class="sig-name descname"><span class="pre">_get_train_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._get_train_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._get_train_sample" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_get_train_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._get_train_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._get_train_sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Get the train sample from trajectory</p>
 </dd>
@@ -543,7 +543,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._init_collect">
-<span class="sig-name descname"><span class="pre">_init_collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_collect" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_init_collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collect mode init moethod. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init traj and unroll length, collect model.
@@ -554,7 +554,7 @@ Model has eps_greedy_sample wrapper and hidden state wrapper</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._init_eval">
-<span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_eval" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Evaluate mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
 Init eval model with argmax strategy and hidden_state plugin.</p>
@@ -564,7 +564,7 @@ Init eval model with argmax strategy and hidden_state plugin.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._init_learn">
-<span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_learn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._init_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Init the learner model of COMAPolicy</p>
 </dd>
@@ -587,7 +587,7 @@ Init eval model with argmax strategy and hidden_state plugin.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._monitor_vars_learn">
-<span class="sig-name descname"><span class="pre">_monitor_vars_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._monitor_vars_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._monitor_vars_learn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_monitor_vars_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._monitor_vars_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._monitor_vars_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return variables’ name if variables are to used in monitor.</p>
 </dd>
@@ -600,7 +600,7 @@ Init eval model with argmax strategy and hidden_state plugin.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy._process_transition">
-<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">dict</span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._process_transition" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy._process_transition" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Generate dict type transition data from inputs.</p>
 </dd>
@@ -623,7 +623,7 @@ Init eval model with argmax strategy and hidden_state plugin.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.coma.COMAPolicy.default_model">
-<span class="sig-name descname"><span class="pre">default_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy.default_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy.default_model" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">default_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/coma.html#COMAPolicy.default_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.coma.COMAPolicy.default_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Return this algorithm default model setting for demonstration.</p>
 </dd>

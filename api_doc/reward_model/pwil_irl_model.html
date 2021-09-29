@@ -84,7 +84,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quick_start/index.html">Quick Start</a></li>
@@ -122,7 +122,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../faq/index_en.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../guide/index.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial_dev/index.html">Tutorial-Developer</a></li>
@@ -216,7 +216,7 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
 </dd>
@@ -231,7 +231,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel._get_action_distance">
-<span class="sig-name descname"><span class="pre">_get_action_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel._get_action_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel._get_action_distance" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_get_action_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel._get_action_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel._get_action_distance" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Getting distances of actions given 2 action lists. One single action                 is of shape <code class="docutils literal notranslate"><span class="pre">torch.Size([n])</span></code> (<code class="docutils literal notranslate"><span class="pre">n</span></code> referred in in-code comments)</p>
 </dd>
@@ -249,7 +249,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel._get_state_distance">
-<span class="sig-name descname"><span class="pre">_get_state_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel._get_state_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel._get_state_distance" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_get_state_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel._get_state_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel._get_state_distance" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Getting distances of states given 2 state lists. One single state                 is of shape <code class="docutils literal notranslate"><span class="pre">torch.Size([n])</span></code> (<code class="docutils literal notranslate"><span class="pre">n</span></code> referred in in-code comments)</p>
 </dd>
@@ -267,7 +267,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.clear_data">
-<span class="sig-name descname"><span class="pre">clear_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.clear_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.clear_data" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">clear_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.clear_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.clear_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Clearing training data.             This is a side effect function which clears the data attribute in <code class="docutils literal notranslate"><span class="pre">self</span></code></p>
 </dd>
@@ -276,7 +276,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.collect_data">
-<span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.collect_data" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.collect_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Collecting training data formatted by  <code class="docutils literal notranslate"><span class="pre">fn:concat_state_action_pairs</span></code>.</p>
 </dd>
@@ -293,7 +293,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.estimate">
-<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.estimate" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.estimate" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Estimate reward by rewriting the reward key in each row of the data.</p>
 </dd>
@@ -310,7 +310,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.load_expert_data">
-<span class="sig-name descname"><span class="pre">load_expert_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.load_expert_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.load_expert_data" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">load_expert_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.load_expert_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.load_expert_data" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Getting the expert data from <code class="docutils literal notranslate"><span class="pre">config['expert_data_path']</span></code> attribute in self</p>
 </dd>
@@ -321,7 +321,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.reward_model.pwil_irl_model.PwilRewardModel.train">
-<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.train" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/pwil_irl_model.html#PwilRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pwil_irl_model.PwilRewardModel.train" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Training the Pwil reward model.</p>
 </dd>

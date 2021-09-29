@@ -84,7 +84,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User Guide</span></p>
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
@@ -123,7 +123,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
@@ -325,15 +325,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.interaction.master.connection.SlaveConnection.connect">
 <span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnection.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnection.connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overview:
-Connect to slave end.</p>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Connect to slave end.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.interaction.master.connection.SlaveConnection.disconnect">
 <span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnection.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnection.disconnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overview:
-Disconnect from slave end.</p>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Disconnect from slave end.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
@@ -351,7 +355,7 @@ Disconnect from slave end.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.interaction.master.connection.SlaveConnection.new_task">
-<span class="sig-name descname"><span class="pre">new_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="task.html#ding.interaction.master.task.Task" title="ding.interaction.master.task.Task"><span class="pre">ding.interaction.master.task.Task</span></a><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnection.new_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnection.new_task" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">new_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="task.html#ding.interaction.master.task.Task" title="ding.interaction.master.task.Task"><span class="pre">ding.interaction.master.task.Task</span></a></span></span><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnection.new_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnection.new_task" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Send new task to slave end and receive task result from it.</p>
 </dd>
@@ -414,15 +418,19 @@ Disconnect from slave end.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.interaction.master.connection.SlaveConnectionProxy.connect">
 <span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnectionProxy.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnectionProxy.connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overview:
-Connect to slave end.</p>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Connect to slave end.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.interaction.master.connection.SlaveConnectionProxy.disconnect">
 <span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/interaction/master/connection.html#SlaveConnectionProxy.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.interaction.master.connection.SlaveConnectionProxy.disconnect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overview:
-Disconnect from slave end.</p>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Disconnect from slave end.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
