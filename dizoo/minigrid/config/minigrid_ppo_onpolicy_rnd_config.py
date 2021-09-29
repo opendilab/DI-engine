@@ -4,14 +4,14 @@ import torch
 print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
-    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd',
+    # exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
+    exp_name='minigrid_fourrooms_ppo_onpolicy_rnd',
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        env_id='MiniGrid-Empty-8x8-v0',
-        # env_id='MiniGrid-FourRooms-v0',
+        # env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-FourRooms-v0',
         stop_value=0.96,
     ),
     reward_model=dict(
@@ -56,7 +56,7 @@ minigrid_ppo_rnd_config = dict(
             #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
             #  )
             unroll_len=1,
-            discount_factor=0.99,
+            discount_factor=0.999,
             gae_lambda=0.95,
         ),
     ),

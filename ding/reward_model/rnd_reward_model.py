@@ -108,10 +108,15 @@ class RndRewardModel(BaseRewardModel):
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
             # TODO(pu)
-            # reward = 0.5*(reward - reward.min()) / (reward.max() - reward.min() + 1e-8) # to [0,1]
+            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8) # to [0,1]
+            
+            # TODO(pu) the std of intrinsic returns
             self._running_mean_std_rnd.update(reward.cpu().numpy())
-            reward = reward / self._running_mean_std_rnd.std # to std 1
-            reward = 0.01 * reward
+            # transform to (mean 0, std 1), empirically we found this normalization method works well
+            # than only dividing the self._running_mean_std_rnd.std
+            reward = (reward -self._running_mean_std_rnd.mean)/ self._running_mean_std_rnd.std
+
+            # reward = 0.5 * reward
 
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
@@ -122,6 +127,9 @@ class RndRewardModel(BaseRewardModel):
             reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
             if self.intrinsic_reward_type == 'add':
+                # if item['reward']>=0 and item['reward']<=1:
+                #     item['reward'] = 100*item['reward']  # TODO(pu) avarage episode length
+                # else:
                 item['reward'] += rew
             elif self.intrinsic_reward_type == 'new':
                 item['intrinsic_reward'] = rew
