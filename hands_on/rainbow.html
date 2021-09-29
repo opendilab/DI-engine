@@ -106,6 +106,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#noisy-net">Noisy Net</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#implementation">Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#experiments-on-rainbow-tricks">Experiments on Rainbow Tricks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
@@ -572,6 +573,74 @@ Parameter updates with Rainbow’s MLPs forward setup.</p>
 </dd></dl>
 
 <p>The Benchmark result of Rainbow implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview_en.html">Benchmark</a></p>
+</div>
+<div class="section" id="experiments-on-rainbow-tricks">
+<h2>Experiments on Rainbow Tricks<a class="headerlink" href="#experiments-on-rainbow-tricks" title="Permalink to this headline">¶</a></h2>
+<p>We conduct experiments on lunarlander environment using rainbow(dqn) policy, comparing the performance of n-sdueling, priority, and priority_IS tricks with baseline. The code link for the experiments is <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py">here</a>.
+Note that the config file is set for <code class="docutils literal notranslate"><span class="pre">dqn</span></code> by default. If we want to adopt <code class="docutils literal notranslate"><span class="pre">rainbow</span></code> policy, we need to change the
+type of policy as below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lunarlander_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+ <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+     <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;lunarlander&#39;</span><span class="p">,</span>
+     <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.box2d.lunarlander.envs.lunarlander_env&#39;</span><span class="p">],</span>
+ <span class="p">),</span>
+ <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+<span class="hll"> <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">),</span>
+</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The detailed experiments setting is stated below.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 83%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Experiments setting</p></th>
+<th class="head"><p>Remark</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>base</p></td>
+<td><p>one step DQN (n-step=1, dueling=False, priority=False, priority_IS=False)</p></td>
+</tr>
+<tr class="row-odd"><td><p>n-step</p></td>
+<td><p>n step DQN (n-step=3, dueling=False, priority=False, priority_IS=False)</p></td>
+</tr>
+<tr class="row-even"><td><p>dueling</p></td>
+<td><p>use dueling head trick (n-step=3, dueling=True, priority=False, priority_IS=False)</p></td>
+</tr>
+<tr class="row-odd"><td><p>priority</p></td>
+<td><p>use priority experience replay buffer (n-step=3, dueling=False, priority=True, priority_IS=False)</p></td>
+</tr>
+<tr class="row-even"><td><p>priority_IS</p></td>
+<td><p>use importance sampling tricks (n-step=3, dueling=False, priority=True, priority_IS=True)</p></td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> over <code class="docutils literal notranslate"><span class="pre">training</span> <span class="pre">iteration</span></code> is used as an evaluation metric.</p></li>
+<li><p>Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to insure stochasticity.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>By setting the <code class="docutils literal notranslate"><span class="pre">exp_name</span></code> in config file, the experiement results can be saved in specified path. Otherwise, it will be saved in <code class="docutils literal notranslate"><span class="pre">‘./default_experiment’</span></code> directory.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+
+<span class="n">nstep</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">lunarlander_dqn_default_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="hll"> <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;lunarlander_exp/base-one-step2&#39;</span><span class="p">,</span>
+</span> <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="o">......</span>
+</pre></div>
+</div>
+<p>The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiement setting, dueling trick contributes most to the performance.</p>
+<img alt="../_images/rainbow_exp.png" class="align-center" src="../_images/rainbow_exp.png" />
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>

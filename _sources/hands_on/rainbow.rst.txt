@@ -106,6 +106,78 @@ The network interface Rainbow used is defined as follows:
 The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
 
 
+
+Experiments on Rainbow Tricks
+-----------------------------
+We conduct experiments on lunarlander environment using rainbow(dqn) policy, comparing the performance of n-sdueling, priority, and priority_IS tricks with baseline. The code link for the experiments is `here <https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py>`_.
+Note that the config file is set for ``dqn`` by default. If we want to adopt ``rainbow`` policy, we need to change the 
+type of policy as below.
+
+.. code-block:: python
+   :emphasize-lines: 7
+
+   lunarlander_dqn_create_config = dict(
+    env=dict(
+        type='lunarlander',
+        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+    ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='rainbow'),
+   )
+
+   
+The detailed experiments setting is stated below.
+
++---------------------+---------------------------------------------------------------------------------------------------+
+| Experiments setting | Remark                                                                                            |
++=====================+===================================================================================================+
+| base                | one step DQN (n-step=1, dueling=False, priority=False, priority_IS=False)                         |
++---------------------+---------------------------------------------------------------------------------------------------+
+| n-step              | n step DQN (n-step=3, dueling=False, priority=False, priority_IS=False)                           |
++---------------------+---------------------------------------------------------------------------------------------------+
+| dueling             | use dueling head trick (n-step=3, dueling=True, priority=False, priority_IS=False)                |
++---------------------+---------------------------------------------------------------------------------------------------+
+| priority            | use priority experience replay buffer (n-step=3, dueling=False, priority=True, priority_IS=False) |
++---------------------+---------------------------------------------------------------------------------------------------+
+| priority_IS         | use importance sampling tricks (n-step=3, dueling=False, priority=True, priority_IS=True)         |
++---------------------+---------------------------------------------------------------------------------------------------+
+
+
+
+
+1. ``reward_mean`` over ``training iteration`` is used as an evaluation metric.
+   
+2. Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to insure stochasticity.
+
+.. code-block:: python
+
+   if __name__ == "__main__":
+      serial_pipeline([main_config, create_config], seed=0)
+
+3. By setting the ``exp_name`` in config file, the experiement results can be saved in specified path. Otherwise, it will be saved in ``‘./default_experiment’`` directory.
+
+.. code-block:: python
+   :emphasize-lines: 6
+
+   from easydict import EasyDict
+   from ding.entry import serial_pipeline
+
+   nstep = 1
+   lunarlander_dqn_default_config = dict(
+    exp_name='lunarlander_exp/base-one-step2',
+    env=dict(
+       ......
+
+
+
+The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiement setting, dueling trick contributes most to the performance. 
+
+.. image:: 
+   images/rainbow_exp.png
+   :align: center
+
+
+
 References
 -----------
 Matteo Hessel, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Azar, David Silver: “Rainbow: Combining Improvements in Deep Reinforcement Learning”, 2017; [http://arxiv.org/abs/1710.02298 arXiv:1710.02298].
