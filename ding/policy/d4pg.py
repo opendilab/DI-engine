@@ -235,7 +235,7 @@ class D4PGPolicy(DDPGPolicy):
             target_q_dist = self._target_model.forward(next_data, mode='compute_critic')['distribution']
 
         value_gamma = data.get('value_gamma')
-        action_index = np.zeros_like(next_action)
+        action_index = np.zeros(next_action.shape[0])
         # since the action is a scalar value, action index is set to 0 which is the only possible choice
         td_data = dist_nstep_td_data(q_dist, target_q_dist, action_index, action_index, reward, data['done'], data['weight'])
         critic_loss, td_error_per_sample = dist_nstep_td_error(td_data, self._gamma, self._v_min, self._v_max,
@@ -302,7 +302,7 @@ class D4PGPolicy(DDPGPolicy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         ret = [
-            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
+            'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value',
             'action'
         ]
         return ret
