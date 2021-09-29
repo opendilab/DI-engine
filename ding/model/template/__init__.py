@@ -5,6 +5,7 @@ from .vac import VAC
 # algorithm-specific
 from .ppg import PPG
 from .qmix import Mixer, QMix, CollaQ
+from .wqmix import WQMix
 from .coma import COMA
 from .atoc import ATOC
 from .sqn import SQN

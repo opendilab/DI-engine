@@ -17,6 +17,7 @@ from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
+from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
@@ -161,6 +162,11 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('qmix_command')
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('wqmix_command')
+class WQMIXCommandModePolicy(WQMIXPolicy, EpsCommandModePolicy):
     pass
 
 
