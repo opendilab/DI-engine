@@ -6,7 +6,7 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager
 from ding.policy.d4pg import D4PGPolicy
-from ding.model.template.qac_dist import QACDIST
+from ding.model.template import QACDIST
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.pendulum.envs import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_d4pg_config import pendulum_d4pg_config

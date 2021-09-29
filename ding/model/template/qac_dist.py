@@ -17,20 +17,20 @@ class QACDIST(nn.Module):
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            actor_head_type: str = "regression",
-            critic_head_type: str = "categorical",
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            v_min: Optional[float] = -10,
-            v_max: Optional[float] = 10,
-            n_atom: Optional[int] = 51,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        actor_head_type: str = "regression",
+        critic_head_type: str = "categorical",
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 1,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        v_min: Optional[float] = -10,
+        v_max: Optional[float] = 10,
+        n_atom: Optional[int] = 51,
     ) -> None:
         r"""
         Overview:
