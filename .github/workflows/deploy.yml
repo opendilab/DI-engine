@@ -193,7 +193,7 @@ jobs:
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
   docker_smac:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, smac]
     needs: docker_base
     if: |
       contains(github.event.head_commit.message, 'enable docker') &&
