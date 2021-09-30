@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.policy.td3 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.policy.td3</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.policy.td3</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">.ddpg</span> <span class="kn">import</span> <span class="n">DDPGPolicy</span>
+
+
+<div class="viewcode-block" id="TD3Policy"><a class="viewcode-back" href="../../../hands_on/td3.html#ding.policy.td3.TD3Policy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;td3&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TD3Policy</span><span class="p">(</span><span class="n">DDPGPolicy</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3</span>
+<span class="sd">        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.</span>
+<span class="sd">    Property:</span>
+<span class="sd">        learn_mode, collect_mode, eval_mode</span>
+
+<span class="sd">    Config:</span>
+
+<span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
+<span class="sd">    ID Symbol                Type        Default Value       Description                         Other(Shape)</span>
+<span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
+<span class="sd">    1  ``type``              str         td3                 | RL policy register name, refer    | this arg is optional,</span>
+<span class="sd">                                                             | to registry ``POLICY_REGISTRY``   | a placeholder</span>
+<span class="sd">    2  ``cuda``              bool        True                | Whether to use cuda for network   |</span>
+<span class="sd">    3  | ``random_``         int         25000               | Number of randomly collected      | Default to 25000 for</span>
+<span class="sd">       | ``collect_size``                                    | training samples in replay        | DDPG/TD3, 10000 for</span>
+<span class="sd">       |                                                     | buffer when training starts.      | sac.</span>
+<span class="sd">    4  | ``model.twin_``     bool        True                | Whether to use two critic         | Default True for TD3,</span>
+<span class="sd">       | ``critic``                                          | networks or only one.             | Clipped Double</span>
+<span class="sd">       |                                                     |                                   | Q-learning method in</span>
+<span class="sd">       |                                                     |                                   | TD3 paper.</span>
+<span class="sd">    5  | ``learn.learning``  float       1e-3                | Learning rate for actor           |</span>
+<span class="sd">       | ``_rate_actor``                                     | network(aka. policy).             |</span>
+<span class="sd">    6  | ``learn.learning``  float       1e-3                | Learning rates for critic         |</span>
+<span class="sd">       | ``_rate_critic``                                    | network (aka. Q-network).         |</span>
+<span class="sd">    7  | ``learn.actor_``    int         2                   | When critic network updates       | Default 2 for TD3, 1</span>
+<span class="sd">       | ``update_freq``                                     | once, how many times will actor   | for DDPG. Delayed</span>
+<span class="sd">       |                                                     | network update.                   | Policy Updates method</span>
+<span class="sd">       |                                                     |                                   | in TD3 paper.</span>
+<span class="sd">    8  | ``learn.noise``     bool        True                | Whether to add noise on target    | Default True for TD3,</span>
+<span class="sd">       |                                                     | network&#39;s action.                 | False for DDPG.</span>
+<span class="sd">       |                                                     |                                   | Target Policy Smoo-</span>
+<span class="sd">       |                                                     |                                   | thing Regularization</span>
+<span class="sd">       |                                                     |                                   | in TD3 paper.</span>
+<span class="sd">    9  | ``learn.noise_``    dict        | dict(min=-0.5,    | Limit for range of target         |</span>
+<span class="sd">       | ``range``                       |      max=0.5,)    | policy smoothing noise,           |</span>
+<span class="sd">       |                                 |                   | aka. noise_clip.                  |</span>
+<span class="sd">    10 | ``learn.-``         bool        False               | Determine whether to ignore       | Use ignore_done only</span>
+<span class="sd">       | ``ignore_done``                                     | done flag.                        | in halfcheetah env.</span>
+<span class="sd">    11 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation</span>
+<span class="sd">       | ``target_theta``                                    | target network.                   | factor in polyak aver</span>
+<span class="sd">       |                                                     |                                   | aging for target</span>
+<span class="sd">       |                                                     |                                   | networks.</span>
+<span class="sd">    12 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis</span>
+<span class="sd">       | ``noise_sigma``                                     | llection, through controlling     | tribution, Ornstein-</span>
+<span class="sd">       |                                                     | the sigma of distribution         | Uhlenbeck process in</span>
+<span class="sd">       |                                                     |                                   | DDPG paper, Guassian</span>
+<span class="sd">       |                                                     |                                   | process in ours.</span>
+<span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
+<span class="sd">   &quot;&quot;&quot;</span>
+
+    <span class="c1"># You can refer to DDPG&#39;s default config for more details.</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;td3&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool type) on_policy: Determine whether on-policy or off-policy.</span>
+        <span class="c1"># on-policy setting influences the behaviour of buffer.</span>
+        <span class="c1"># Default False in TD3.</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use priority(priority sample, IS weight, update priority)</span>
+        <span class="c1"># Default False in TD3.</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
+        <span class="c1"># Default 25000 in DDPG/TD3.</span>
+        <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (bool) Whether to use two critic networks or only one.</span>
+            <span class="c1"># Clipped Double Q-Learning for Actor-Critic in original TD3 paper.</span>
+            <span class="c1"># Default True for TD3, False for DDPG.</span>
+            <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+            <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># Minibatch size for gradient descent.</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="c1"># Learning rates for actor network(aka. policy).</span>
+            <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+            <span class="c1"># Learning rates and critic network(aka. Q-network).</span>
+            <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)</span>
+            <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
+            <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
+            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
+            <span class="c1"># Since we inplace done==True with done==False to keep</span>
+            <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
+            <span class="c1"># when the episode step is greater than max episode step.</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># (float type) target_theta: Used for soft update of the target network,</span>
+            <span class="c1"># aka. Interpolation factor in polyak averaging for target networks.</span>
+            <span class="c1"># Default to 0.005.</span>
+            <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+            <span class="c1"># (float) discount factor for the discounted sum of rewards, aka. gamma.</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="c1"># (int) When critic network updates once, how many times will actor network update.</span>
+            <span class="c1"># Delayed Policy Updates in original TD3 paper.</span>
+            <span class="c1"># Default 1 for DDPG, 2 for TD3.</span>
+            <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to add noise on target network&#39;s action.</span>
+            <span class="c1"># Target Policy Smoothing Regularization in original TD3 paper.</span>
+            <span class="c1"># Default True for TD3, False for DDPG.</span>
+            <span class="n">noise</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="c1"># (float) Sigma for smoothing noise added to target policy.</span>
+            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># (dict) Limit for range of target policy smoothing noise, aka. noise_clip.</span>
+            <span class="n">noise_range</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">min</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="nb">max</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># n_sample=1,</span>
+            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># It is a must to add noise during collection. So here omits &quot;noise&quot; and only set &quot;noise_sigma&quot;.</span>
+            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) Maximum size of replay buffer</span>
+                <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
