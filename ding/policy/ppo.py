@@ -15,15 +15,8 @@ from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 from ding.utils import dicts_to_lists, lists_to_dicts
+
 def compute_adv(data,last_value,cfg):
-    # data = get_gae_with_default_last_value( # data: episode dict [] Get the trajectory and calculate GAE
-    #         data,
-    #         data[-1]['done'],
-    #         # data['done'][-1],
-    #         gamma= cfg.collect.discount_factor,
-    #         gae_lambda= cfg.collect.gae_lambda,
-    #         cuda= False, # cfg.policy.cuda,
-    #     )
     data = get_gae(
         data, to_device(last_value, 'cpu') , gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False
     ) # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
