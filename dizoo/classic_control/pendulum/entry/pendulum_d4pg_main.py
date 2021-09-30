@@ -69,6 +69,7 @@ def main(cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
+            replay_buffer.update(learner.priority_info)
 
 
 if __name__ == "__main__":

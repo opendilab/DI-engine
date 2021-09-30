@@ -85,7 +85,7 @@ class QACDIST(nn.Module):
                 )
             )
         self.critic_head_type = critic_head_type
-        assert self.critic_head_type in ['categorical']
+        assert self.critic_head_type in ['categorical'], self.critic_head_type
         if self.critic_head_type == 'categorical':
             self.critic = nn.Sequential(
                 nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
@@ -140,12 +140,12 @@ class QACDIST(nn.Module):
 
         Actor Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = QACDIST(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = QACDIST(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -154,13 +154,13 @@ class QACDIST(nn.Module):
             >>> torch.Size([4, 64])
 
         Critic Examples:
+            >>> # Categorical mode
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atoms=51)
+            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,actor_head_type='regression', \
+            ...                 critic_head_type='categorical', n_atoms=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
-            >>> q_value['q_value'].shape
-            [4, 1]
-            >>> q_value['distribution'].shape
-            [4, 1, 51]
+            >>> assert q_value['q_value'].shape == torch.Size([4, 1])
+            >>> assert q_value['distribution'].shape == torch.Size([4, 1, 51])
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -190,12 +190,12 @@ class QACDIST(nn.Module):
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = QACDIST(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = QACDIST(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -230,13 +230,13 @@ class QACDIST(nn.Module):
             - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``
 
         Examples:
+            >>> # Categorical mode
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression', n_atom=51)
+            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,actor_head_type='regression', \
+            ...                 critic_head_type='categorical', n_atoms=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
-            >>> q_value['q_value'].shape
-            [4, 1]
-            >>> q_value['distribution'].shape
-            [4, 1, 51]
+            >>> assert q_value['q_value'].shape == torch.Size([4, 1])
+            >>> assert q_value['distribution'].shape == torch.Size([4, 1, 51])
         """
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2

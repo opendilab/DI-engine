@@ -35,6 +35,7 @@ from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
 from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
 
 
 @pytest.mark.unittest
@@ -353,3 +354,13 @@ def test_cql():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf default_experiment')
+
+
+@pytest.mark.unittest
+def test_d4pg():
+    config = [deepcopy(pendulum_d4pg_config), deepcopy(pendulum_d4pg_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
