@@ -41,6 +41,9 @@ DI-engine is a generalized Decision Intelligence engine. It supports most basic 
 - [DI-star](https://github.com/opendilab/DI-star)
 - [DI-drive](https://github.com/opendilab/DI-drive)
 
+### Environment
+- [GoBigger](https://github.com/opendilab/GoBigger)
+
 ### System Optimization and Design
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator)
 - [DI-hpc](https://github.com/opendilab/DI-hpc)

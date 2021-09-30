@@ -10,7 +10,7 @@ from .td3 import TD3Policy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
 from .sac import SACPolicy
-from .cql import CQLPolicy
+from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
 from .r2d2 import R2D2Policy
 from .ppg import PPGPolicy

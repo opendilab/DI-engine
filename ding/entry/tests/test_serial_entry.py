@@ -21,6 +21,7 @@ from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
+from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
 from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
@@ -35,7 +36,8 @@ from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
 from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
-from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
+from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 
 
 @pytest.mark.unittest
@@ -335,7 +337,7 @@ def test_cql():
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
     collect_count = 1000
-    expert_data_path = config[0].policy.learn.save_path
+    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./default_experiment/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
@@ -364,3 +366,33 @@ def test_d4pg():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+
+        
+def test_discrete_cql():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'cartpole'
+    # collect expert data
+    import torch
+    config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
+    collect_count = 1000
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load('./cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(cartpole_discrete_cql_config), deepcopy(cartpole_discrete_cql_create_config)]
+    config[0].policy.learn.train_epoch = 1
+    config[0].policy.eval.evaluator.eval_freq = 1
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf cartpole cartpole_cql')
