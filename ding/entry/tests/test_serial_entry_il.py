@@ -135,7 +135,7 @@ def test_serial_pipeline_il_dqn():
 
     # il training 2
     il_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
-    il_config[0].policy.learn.train_epoch = 10
+    il_config[0].policy.learn.train_epoch = 15
     il_config[0].policy.type = 'dqn_il'
     il_config[0].env.stop_value = 50
     _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
