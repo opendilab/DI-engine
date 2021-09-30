@@ -367,7 +367,7 @@ def test_d4pg():
     except Exception:
         assert False, "pipeline fail"
 
-        
+
 def test_discrete_cql():
     # train expert
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]

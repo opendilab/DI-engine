@@ -31,7 +31,7 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2021.08.03 DI-engine-v0.1.1 (beta)
+Updated on 2021.09.30 DI-engine-v0.2.0 (beta)
 
 
 ## Introduction to DI-engine (beta)
