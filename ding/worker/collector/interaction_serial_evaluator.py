@@ -22,7 +22,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
 
     config = dict(
         # Evaluate every "eval_freq" training iterations.
-        eval_freq=50,
+        eval_freq=1000,
     )
 
     def __init__(

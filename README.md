@@ -8,19 +8,16 @@
 ![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
 ![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/DI-engine)
-![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com%2FPaParaZz1%2F54c5c44eeb94734e276b2ed5770eba8d%2Fraw%2F01437f709b3f2f2fde4abf4d063dc7409066dd50%2Fbadges.json)
-![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/opendilab/DI-engine)
-
+![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/4d1ba1a3122eb8096c32c3d7bad165ce430cee9a/badges.json)
 
 ![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
 ![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
-
 
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
 ![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
-![Platformtest](https://github.com/opendilab/DI-engine/actions/workflows/platform_test.yml/badge.svg)
+![deploy](https://github.com/opendilab/DI-engine/actions/workflows/deploy.yml/badge.svg)
 [![codecov](https://codecov.io/gh/opendilab/DI-engine/branch/main/graph/badge.svg?token=B0Q15JI301)](https://codecov.io/gh/opendilab/DI-engine)
 
 
@@ -52,6 +49,7 @@ DI-engine is a generalized Decision Intelligence engine. It supports most basic 
 ### Other
 - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
 - [treevalue](https://github.com/opendilab/treevalue)
+- [DI-treetensor](https://github.com/opendilab/DI-treetensor) (preview)
 
 ## Installation
 
@@ -66,6 +64,13 @@ conda install -c opendilab di-engine
 ```
 
 For more information about installation, you can refer to [installation](https://opendilab.github.io/DI-engine/installation/index.html).
+
+And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
+
+- base: opendilab/ding:nightly
+- atari: opendilab/ding:nightly-atari
+- mujoco: opendilab/ding:nightly-mujoco
+- smac: opendilab/ding:nightly-smac
 
 ## Documentation
 
@@ -159,6 +164,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  16  |       league_demo                      | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/league_demo/league_demo.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/league_demo/envs)                |
 |  17  |       pomdp atari                    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   |  | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/pomdp/envs) |
 |  18  |       [bsuite](https://github.com/deepmind/bsuite)                         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/bsuite/bsuite.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/envs)  |
+| 19 | [IamgeNet](https://www.image-net.org/) | ![IL](https://img.shields.io/badge/-IL/SL-purple) | ![original](./dizoo/image_classification/imagenet.png) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/image_classification) |
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space
 
@@ -170,11 +176,13 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 ![offline](https://img.shields.io/badge/-offlineRL-darkblue) means offline RL environment
 
+![IL](https://img.shields.io/badge/-IL/SL-purple) means Imitation Learning or Supervised Learning Dataset
+
 P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
 
 ## Contribution
 
-We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides. And our roadmap can be accessed by [this link](https://github.com/opendilab/DI-engine/projects/1).
+We appreciate all contributions to improve DI-engine, both algorithms and system designs. Please refer to CONTRIBUTING.md for more guides. And our roadmap can be accessed by [this link](https://github.com/opendilab/DI-engine/projects).
 
 And users can join our [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ) or our [forum](https://github.com/opendilab/DI-engine/discussions) for more detailed discussion.
 
