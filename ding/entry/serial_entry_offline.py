@@ -47,7 +47,7 @@ def serial_pipeline_offline(
 
     # Dataset
     dataset = create_dataset(cfg)
-    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
     # Env, Policy
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])

@@ -24,12 +24,10 @@ pong_qrdqn_config = dict(
         nstep=1,
         discount_factor=0.99,
         learn=dict(
-            data_type='hdf5',
             update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            save_path='./expert/expert.pkl',
             learner = dict(
                 load_path='./expert/ckpt/ckpt_best.pth.tar',
                 hook=dict(
@@ -38,7 +36,11 @@ pong_qrdqn_config = dict(
                 )
             ),
         ),
-        collect=dict(n_sample=100, ),
+        collect=dict(
+            n_sample=100,
+            data_type='hdf5',
+            save_path='./expert/expert.pkl',
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

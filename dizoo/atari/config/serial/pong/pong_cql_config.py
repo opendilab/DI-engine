@@ -1,5 +1,5 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline, serial_pipeline_offline
 from easydict import EasyDict
 
 pong_cql_config = dict(
@@ -24,15 +24,17 @@ pong_cql_config = dict(
         nstep=1,
         discount_factor=0.99,
         learn=dict(
-            data_type='hdf5',
-            data_path='./default_experiment/expert.pkl',
             train_epoch=30000,
             batch_size=32,
             learning_rate=0.00005,
             target_update_freq=2000,
             min_q_weight=10.0,
         ),
-        collect=dict(n_sample=100, ),
+        collect=dict(
+            n_sample=100,
+            data_type='hdf5',
+            data_path='./default_experiment/expert.pkl',
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -59,4 +61,4 @@ pong_cql_create_config = EasyDict(pong_cql_create_config)
 create_config = pong_cql_create_config
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline_offline((main_config, create_config), seed=0)

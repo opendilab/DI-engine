@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_qrdqn_config = dict(
-    exp_name='cql',
+cartpole_discrete_cql_config = dict(
+    exp_name='cartpole_cql',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -21,8 +21,6 @@ cartpole_qrdqn_config = dict(
         discount_factor=0.97,
         nstep=3,
         learn=dict(
-            data_type='naive',
-            data_path='./default_experiment/expert.pkl',
             train_epoch=3000,
             batch_size=64,
             learning_rate=0.001,
@@ -31,22 +29,26 @@ cartpole_qrdqn_config = dict(
             min_q_weight=4.0,
         ),
         collect=dict(
+            data_type='hdf5',
+            data_path='./cartpole/expert_demos.hdf5',
             n_sample=80,
             unroll_len=1,
         ),
+        eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
                 decay=10000,
-            ), replay_buffer=dict(replay_buffer_size=20000, )
+            ),
+            replay_buffer=dict(replay_buffer_size=20000, )
         ),
     ),
 )
-cartpole_qrdqn_config = EasyDict(cartpole_qrdqn_config)
-main_config = cartpole_qrdqn_config
-cartpole_qrdqn_create_config = dict(
+cartpole_discrete_cql_config = EasyDict(cartpole_discrete_cql_config)
+main_config = cartpole_discrete_cql_config
+cartpole_discrete_cql_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -54,5 +56,5 @@ cartpole_qrdqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='cql_discrete'),
 )
-cartpole_qrdqn_create_config = EasyDict(cartpole_qrdqn_create_config)
-create_config = cartpole_qrdqn_create_config
+cartpole_discrete_cql_create_config = EasyDict(cartpole_discrete_cql_create_config)
+create_config = cartpole_discrete_cql_create_config

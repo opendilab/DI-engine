@@ -163,6 +163,8 @@ class CQLPolicy(Policy):
             with_lagrange=False,
             # (float) The threshold for difference in Q-values
             lagrange_thresh=-1,
+            # (float) Loss weight for conservative item.
+            min_q_weight=1.0,
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -204,7 +206,7 @@ class CQLPolicy(Policy):
 
         self._min_q_version = 3
         self._min_q_weight = self._cfg.learn.min_q_weight
-        self._with_lagrange = self._cfg.learn.with_lagrange
+        self._with_lagrange = self._cfg.learn.with_lagrange and (self._lagrange_thresh > 0)
         self._lagrange_thresh = self._cfg.learn.lagrange_thresh
         if self._with_lagrange:
             self.target_action_gap = self._lagrange_thresh
@@ -512,6 +514,7 @@ class CQLPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
@@ -523,6 +526,7 @@ class CQLPolicy(Policy):
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         if self._value_network:
             self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
@@ -668,7 +672,7 @@ class CQLPolicy(Policy):
 
 
 @POLICY_REGISTRY.register('cql_discrete')
-class CQLDISCRETEPolicy(DQNPolicy):
+class CQLDiscretePolicy(DQNPolicy):
     r"""
         Overview:
             Policy class of CQL algorithm in discrete environments.
@@ -702,7 +706,7 @@ class CQLDISCRETEPolicy(DQNPolicy):
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='qrdqn',
+        type='cql_discrete',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
@@ -729,6 +733,7 @@ class CQLDISCRETEPolicy(DQNPolicy):
             target_update_freq=100,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
+            # (float) Loss weight for conservative item.
             min_q_weight=1.0,
         ),
         # collect_mode config
@@ -856,11 +861,13 @@ class CQLDISCRETEPolicy(DQNPolicy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

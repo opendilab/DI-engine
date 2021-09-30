@@ -8,8 +8,8 @@ from ding.entry import serial_pipeline_offline, collect_demo_data, eval, serial_
 def train_cql(args):
     from dizoo.atari.config.serial.qbert.qbert_cql_config import main_config, create_config
     main_config.exp_name = 'qbert_cql_num_200_weight_10'
-    main_config.policy.learn.data_path = './qbert/expert_demos.hdf5'
-    main_config.policy.learn.data_type = 'hdf5'
+    main_config.policy.collect.data_path = './qbert/expert_demos.hdf5'
+    main_config.policy.collect.data_type = 'hdf5'
     config = deepcopy([main_config, create_config])
     serial_pipeline_offline(config, seed=args.seed)
 
@@ -25,11 +25,11 @@ def eval_ckpt(args):
 def generate(args):
     main_config.exp_name = 'qbert'
     main_config.policy.learn.learner.load_path = './qbert/ckpt/ckpt_best.pth.tar'
-    main_config.policy.learn.save_path = './qbert/expert.pkl'
+    main_config.policy.collect.save_path = './qbert/expert.pkl'
     config = deepcopy([main_config, create_config])
     state_dict = torch.load(main_config.policy.learn.learner.load_path, map_location='cpu')
     collect_demo_data(config, collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
-                      seed=args.seed, expert_data_path=main_config.policy.learn.save_path, state_dict=state_dict)
+                      seed=args.seed, expert_data_path=main_config.policy.collect.save_path, state_dict=state_dict)
 
 
 def train_expert(args):

@@ -25,15 +25,17 @@ qbert_cql_config = dict(
         discount_factor=0.99,
         learn=dict(
             update_per_collect=10,
-            data_type='naive',
-            data_path='./default_experiment/expert.pkl',
             train_epoch=30000,
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=2000,
             min_q_weight=10.0,
         ),
-        collect=dict(n_sample=100, ),
+        collect=dict(
+            n_sample=100,
+            data_type='naive',
+            data_path='./default_experiment/expert.pkl',
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
