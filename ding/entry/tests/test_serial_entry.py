@@ -21,6 +21,7 @@ from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
+from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
 from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
@@ -358,16 +359,20 @@ def test_cql():
 
 
 @pytest.mark.unittest
-def test_discrete_cql():
-    # train expert
-    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+def test_d4pg():
+    config = [deepcopy(pendulum_d4pg_config), deepcopy(pendulum_d4pg_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].exp_name = 'cartpole'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
+        
+def test_discrete_cql():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'cartpole'
     # collect expert data
     import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
