@@ -306,6 +306,7 @@ class SACPolicy(Policy):
                 pred = dist.rsample()
                 next_action = torch.tanh(pred)
                 y = 1 - next_action.pow(2) + 1e-6
+                # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
                 next_log_prob = dist.log_prob(pred).unsqueeze(-1)
                 next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
 
@@ -347,6 +348,7 @@ class SACPolicy(Policy):
         pred = dist.rsample()
         action = torch.tanh(pred)
         y = 1 - action.pow(2) + 1e-6
+        # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
         log_prob = dist.log_prob(pred).unsqueeze(-1)
         log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
 
