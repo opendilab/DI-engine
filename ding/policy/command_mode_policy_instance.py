@@ -24,7 +24,7 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
-from .cql import CQLPolicy
+from .cql import CQLPolicy, CQLDiscretePolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -157,6 +157,11 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('cql_command')
 class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('cql_discrete_command')
+class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
     pass
 
 
