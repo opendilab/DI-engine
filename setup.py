@@ -70,6 +70,7 @@ setup(
         'enum_tools',
         'scipy',
         'trueskill',
+        'h5py',
     ],
     extras_require={
         'test': [
