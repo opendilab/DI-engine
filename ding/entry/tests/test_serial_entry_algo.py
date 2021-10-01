@@ -395,7 +395,18 @@ def test_discrete_cql():
         f.write("27. discrete cql\n")
 
 
-@pytest.mark.algotest
+# @pytest.mark.algotest
+def test_wqmix():
+    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("28. wqmix\n")
+
+
+# @pytest.mark.algotest
 def test_running_on_orchestrator():
     from kubernetes import config, client, dynamic
     cluster_name = 'test-k8s-launcher'
@@ -436,17 +447,6 @@ def test_running_on_orchestrator():
     olauncher.delete_orchestrator()
     # delete k8s cluster
     launcher.delete_cluster()
-
-
-# @pytest.mark.algotest
-def test_wqmix():
-    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("27. wqmix\n")
 
 
 def create_object_from_config(config_path: str, namespace: str = 'default'):
