@@ -20,6 +20,8 @@ pong_ppo_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=24,
@@ -44,7 +46,6 @@ pong_ppo_config = dict(
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
             max_use=3,
-            min_sample_ratio=1,
         ), ),
     ),
 )
@@ -56,7 +57,7 @@ pong_ppo_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(pong_ppo_create_config)
 

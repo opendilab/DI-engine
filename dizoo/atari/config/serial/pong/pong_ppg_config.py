@@ -20,6 +20,8 @@ pong_ppg_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[64, 64, 128],
+            critic_head_hidden_size=128,
+            actor_head_hidden_size=128,
         ),
         learn=dict(
             update_per_collect=24,
@@ -46,14 +48,14 @@ pong_ppg_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             replay_buffer=dict(
-                buffer_name=['policy', 'value'],
+                multi_buffer=True,
                 policy=dict(
                     replay_buffer_size=100000,
                     max_use=3,
                 ),
                 value=dict(
                     replay_buffer_size=100000,
-                    max_use=3,
+                    max_use=5,
                 ),
             ),
         ),
@@ -70,6 +72,4 @@ pong_ppg_create_config = dict(
     policy=dict(type='ppg'),
 )
 create_config = EasyDict(pong_ppg_create_config)
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+# PPG needs to use specific entry, like `cartpole_ppg_main.py`

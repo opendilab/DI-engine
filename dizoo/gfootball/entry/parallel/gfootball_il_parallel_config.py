@@ -49,7 +49,7 @@ __base_learner_default_config = dict(
 
 __zergling_collector_default_config = dict(
     collector_type='zergling',
-    import_names=['ding.worker.collector.zergling_collector'],
+    import_names=['ding.worker.collector.zergling_parallel_collector'],
     print_freq=10,
     compressor='lz4',
     policy_update_freq=3,

@@ -7,7 +7,9 @@ import os.path as osp
 
 from ding.league.player import ActivePlayer, HistoricalPlayer, create_player
 from ding.league.shared_payoff import create_payoff
-from ding.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY
+from ding.utils import import_module, read_file, save_file, LockContext, LockContextType, LEAGUE_REGISTRY, \
+    deep_merge_dicts
+from .metric import LeagueMetricEnv
 
 
 class BaseLeague:
@@ -27,6 +29,41 @@ class BaseLeague:
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
 
+    config = dict(
+        league_type='base',
+        import_names=["ding.league.base_league"],
+        # ---player----
+        # "player_category" is just a name. Depends on the env.
+        # For example, in StarCraft, this can be ['zerg', 'terran', 'protoss'].
+        player_category=['default'],
+        # Support different types of active players for solo and battle league.
+        # For solo league, supports ['solo_active_player'].
+        # For battle league, supports ['battle_active_player', 'main_player', 'main_exploiter', 'league_exploiter'].
+        # active_players=dict(),
+        # "use_pretrain" means whether to use pretrain model to initialize active player.
+        use_pretrain=False,
+        # "use_pretrain_init_historical" means whether to use pretrain model to initialize historical player.
+        # "pretrain_checkpoint_path" is the pretrain checkpoint path used in "use_pretrain" and
+        # "use_pretrain_init_historical". If both are False, "pretrain_checkpoint_path" can be omitted as well.
+        # Otherwise, "pretrain_checkpoint_path" should list paths of all player categories.
+        use_pretrain_init_historical=False,
+        pretrain_checkpoint_path=dict(default='default_cate_pretrain.pth', ),
+        # ---payoff---
+        payoff=dict(
+            # Supports ['battle']
+            type='battle',
+            decay=0.99,
+            min_win_rate_games=8,
+        ),
+        metric=dict(
+            mu=0,
+            sigma=25 / 3,
+            beta=25 / 3 / 2,
+            tau=0.0,
+            draw_probability=0.02,
+        ),
+    )
+
     def __init__(self, cfg: EasyDict) -> None:
         """
         Overview:
@@ -34,16 +71,19 @@ class BaseLeague:
         Arguments:
             - cfg (:obj:`EasyDict`): League config.
         """
-        self.cfg = cfg
+        self.cfg = deep_merge_dicts(self.default_config(), cfg)
         self.path_policy = cfg.path_policy
         if not osp.exists(self.path_policy):
             os.mkdir(self.path_policy)
 
         self.league_uid = str(uuid.uuid1())
+        # TODO dict players
         self.active_players = []
         self.historical_players = []
         self.player_path = "./league"
         self.payoff = create_payoff(self.cfg.payoff)
+        metric_cfg = self.cfg.metric
+        self.metric_env = LeagueMetricEnv(metric_cfg.mu, metric_cfg.sigma, metric_cfg.tau, metric_cfg.draw_probability)
         self._active_players_lock = LockContext(type_=LockContextType.THREAD_LOCK)
         self._init_players()
 
@@ -58,7 +98,9 @@ class BaseLeague:
                 for i in range(n):  # This type's active player number
                     name = '{}_{}_{}'.format(k, cate, i)
                     ckpt_path = osp.join(self.path_policy, '{}_ckpt.pth'.format(name))
-                    player = create_player(self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0)
+                    player = create_player(
+                        self.cfg, k, self.cfg[k], cate, self.payoff, ckpt_path, name, 0, self.metric_env.create_rating()
+                    )
                     if self.cfg.use_pretrain:
                         self.save_checkpoint(self.cfg.pretrain_checkpoint_path[cate], ckpt_path)
                     self.active_players.append(player)
@@ -79,6 +121,7 @@ class BaseLeague:
                     self.cfg.pretrain_checkpoint_path[cate],
                     name,
                     0,
+                    self.metric_env.create_rating(),
                     parent_id=parent_name
                 )
                 self.historical_players.append(hp)
@@ -140,7 +183,7 @@ class BaseLeague:
             player = self.active_players[idx]
             if force or player.is_trained_enough():
                 # Snapshot
-                hp = player.snapshot()
+                hp = player.snapshot(self.metric_env)
                 self.save_checkpoint(player.checkpoint_path, hp.checkpoint_path)
                 self.historical_players.append(hp)
                 self.payoff.add_player(hp)
@@ -197,6 +240,21 @@ class BaseLeague:
         """
         # TODO(nyz) more fine-grained job info
         self.payoff.update(job_info)
+        if 'eval_flag' in job_info and job_info['eval_flag']:
+            home_id, away_id = job_info['player_id']
+            home_player, away_player = self.get_player_by_id(home_id), self.get_player_by_id(away_id)
+            job_info_result = job_info['result']
+            if isinstance(job_info_result[0], list):
+                job_info_result = sum(job_info_result, [])
+            home_player.rating, away_player.rating = self.metric_env.rate_1vs1(
+                home_player.rating, away_player.rating, result=job_info_result
+            )
+
+    def get_player_by_id(self, player_id: str) -> 'Player':  # noqa
+        if 'historical' in player_id:
+            return [p for p in self.historical_players if p.player_id == player_id][0]
+        else:
+            return [p for p in self.active_players if p.player_id == player_id][0]
 
     @staticmethod
     def save_checkpoint(src_checkpoint, dst_checkpoint) -> None:
