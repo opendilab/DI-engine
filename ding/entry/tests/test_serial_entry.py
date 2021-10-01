@@ -354,8 +354,6 @@ def test_cql():
         serial_pipeline_offline(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
-    finally:
-        os.popen('rm -rf default_experiment')
 
 
 @pytest.mark.unittest
@@ -364,10 +362,12 @@ def test_d4pg():
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
-    except Exception:
+    except Exception as e:
         assert False, "pipeline fail"
+        print(repr(e))
 
 
+@pytest.mark.unittest
 def test_discrete_cql():
     # train expert
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
