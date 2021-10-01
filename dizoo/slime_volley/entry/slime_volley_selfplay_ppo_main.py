@@ -16,7 +16,6 @@ from dizoo.slime_volley.envs import SlimeVolleyEnv
 from dizoo.slime_volley.config import slime_volley_league_ppo_config
 
 
-
 def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg.exp_name = 'slime_volley_selfplay_ppo'
     cfg = compile_config(
@@ -34,8 +33,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     collector_env_cfg.is_evaluator = False
     evaluator_env_cfg = copy.deepcopy(cfg.env)
     evaluator_env_cfg.is_evaluator = True
-    collector_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[partial(SlimeVolleyEnv, evaluator_env_cfg) for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[partial(SlimeVolleyEnv, collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env = BaseEnvManager(
+        env_fn=[partial(SlimeVolleyEnv, evaluator_env_cfg) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

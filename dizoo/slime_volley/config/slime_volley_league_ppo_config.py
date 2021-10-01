@@ -33,11 +33,7 @@ slime_volley_league_ppo_config = dict(
             clip_ratio=0.2,
         ),
         collect=dict(
-            n_episode=128,
-            unroll_len=1,
-            discount_factor=1.0,
-            gae_lambda=1.0,
-            collector=dict(get_train_sample=True,)
+            n_episode=128, unroll_len=1, discount_factor=1.0, gae_lambda=1.0, collector=dict(get_train_sample=True, )
         ),
         other=dict(
             league=dict(

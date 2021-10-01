@@ -4,7 +4,6 @@ import gym
 from typing import Any, Union, List, Optional
 import copy
 import slimevolleygym
-from typing import Optional
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -100,7 +99,7 @@ class SlimeVolleyEnv(BaseEnv):
                 },
             ),
             # [min, max)
-            # 6 valid actions: 
+            # 6 valid actions:
             act_space=T(
                 (1, ),
                 {
@@ -122,12 +121,12 @@ class SlimeVolleyEnv(BaseEnv):
 
     def __repr__(self):
         return "DI-engine Slam Volley Env"
-    
+
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-    
+
     @staticmethod
     def _process_action(action: np.ndarray, _type: str = "binary") -> np.ndarray:
         if action is None:
@@ -145,11 +144,11 @@ class SlimeVolleyEnv(BaseEnv):
             5: 3,  # RIGHT
         }
         to_binary_action = {
-            0: [0, 0, 0], # NOOP
-            1: [1, 0, 0], # LEFT (forward)
-            2: [1, 0, 1], # UPLEFT (forward jump)
-            3: [0, 0, 1], # UP (jump)
-            4: [0, 1, 1], # UPRIGHT (backward jump)
+            0: [0, 0, 0],  # NOOP
+            1: [1, 0, 0],  # LEFT (forward)
+            2: [1, 0, 1],  # UPLEFT (forward jump)
+            3: [0, 0, 1],  # UP (jump)
+            4: [0, 1, 1],  # UPRIGHT (backward jump)
             5: [0, 1, 0],  # RIGHT (backward)
         }
         if _type == "binary":
