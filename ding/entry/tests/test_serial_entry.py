@@ -373,6 +373,10 @@ def test_discrete_cql():
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'cartpole'
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
     # collect expert data
     import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
@@ -396,3 +400,4 @@ def test_discrete_cql():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole cartpole_cql')
+test_discrete_cql()
