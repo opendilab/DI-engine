@@ -362,7 +362,6 @@ def compile_config(
         env_config.update(create_cfg.env)
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         env_config.manager.update(create_cfg.env_manager)
-        print(env_config)
         policy_config = policy.default_config()
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
         policy_config.update(create_cfg.policy)
