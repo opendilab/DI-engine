@@ -372,7 +372,7 @@ def test_discrete_cql():
     # train expert
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].exp_name = 'cql_cartpole_data'
+    config[0].exp_name = 'cql_cartpole'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -382,7 +382,7 @@ def test_discrete_cql():
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./cql_cartpole_data/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./cql_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
