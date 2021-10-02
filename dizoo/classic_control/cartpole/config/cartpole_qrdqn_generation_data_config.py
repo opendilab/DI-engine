@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_qrdqn_generation_data_config = dict(
-    exp='cartpole',
+    exp_name='cartpole_generation',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -38,7 +38,7 @@ cartpole_qrdqn_generation_data_config = dict(
             n_sample=80,
             unroll_len=1,
             data_type='hdf5',
-            save_path='./cartpole/expert.pkl',
+            save_path='./cartpole_generation/expert.pkl',
         ),
         other=dict(
             eps=dict(
