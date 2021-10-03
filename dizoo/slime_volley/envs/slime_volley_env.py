@@ -18,9 +18,9 @@ class SlimeVolleyEnv(BaseEnv):
         self._cfg = cfg
         self._init_flag = False
         self._replay_path = None
-        # Evaluator env is single-agent env. obs, action, done, info are all single.
-        # Collector env is double-agent env, obs, action, info are double, done is still single.
-        self._is_evaluator = cfg.is_evaluator
+        # agent_vs_bot env is single-agent env. obs, action, done, info are all single.
+        # agent_vs_agent env is double-agent env, obs, action, info are double, done is still single.
+        self._agent_vs_agent = cfg.agent_vs_agent
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -33,12 +33,12 @@ class SlimeVolleyEnv(BaseEnv):
         self._init_flag = False
 
     def step(self, action: Union[np.ndarray, List[np.ndarray]]):
-        if self._is_evaluator:
-            assert isinstance(action, np.ndarray)
-            action1, action2 = action, None
-        else:
+        if self._agent_vs_agent:
             assert isinstance(action, list) and isinstance(action[0], np.ndarray)
             action1, action2 = action[0], action[1]
+        else:
+            assert isinstance(action, np.ndarray)
+            action1, action2 = action, None
         assert isinstance(action1, np.ndarray), type(action1)
         assert action2 is None or isinstance(action1, np.ndarray), type(action2)
         if action1.shape == (1, ):
@@ -53,9 +53,7 @@ class SlimeVolleyEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         reward = to_ndarray([rew]).astype(np.float32)
-        if self._is_evaluator:
-            return BaseEnvTimestep(obs1, reward, done, info)
-        else:
+        if self._agent_vs_agent:
             obs2 = info['otherObs']
             obs2 = to_ndarray(obs2).astype(np.float32)
             observations = np.stack([obs1, obs2], axis=0)
@@ -63,6 +61,8 @@ class SlimeVolleyEnv(BaseEnv):
             rewards = rewards[..., np.newaxis]
             infos = info, info
             return BaseEnvTimestep(observations, rewards, done, infos)
+        else:
+            return BaseEnvTimestep(obs1, reward, done, info)
 
     def reset(self):
         if not self._init_flag:
@@ -80,10 +80,10 @@ class SlimeVolleyEnv(BaseEnv):
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        if self._is_evaluator:
+        if self._agent_vs_agent:
+            obs = np.stack([obs, obs], axis=0)
             return obs
         else:
-            obs = np.stack([obs, obs], axis=0)
             return obs
 
     def info(self):
@@ -120,7 +120,7 @@ class SlimeVolleyEnv(BaseEnv):
         )
 
     def __repr__(self):
-        return "DI-engine Slam Volley Env"
+        return "DI-engine Slime Volley Env"
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
