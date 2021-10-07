@@ -50,17 +50,32 @@ class SlimeVolleyEnv(BaseEnv):
         obs1, rew, done, info = self._env.step(action1, action2)
         obs1 = to_ndarray(obs1).astype(np.float32)
         self._final_eval_reward += rew
-        if done:
-            info['final_eval_reward'] = self._final_eval_reward
+        # info ('ale.lives', 'ale.otherLives', 'otherObs', 'state', 'otherState')
+        if self._agent_vs_agent:
+            info = [
+                {
+                    'ale.lives': info['ale.lives'],
+                    'state': info['state']
+                }, {
+                    'ale.lives': info['ale.otherLives'],
+                    'state': info['otherState'],
+                    'obs': info['otherObs']
+                }
+            ]
+            if done:
+                info[0]['final_eval_reward'] = self._final_eval_reward
+                info[1]['final_eval_reward'] = -self._final_eval_reward
+        else:
+            if done:
+                info['final_eval_reward'] = self._final_eval_reward
         reward = to_ndarray([rew]).astype(np.float32)
         if self._agent_vs_agent:
-            obs2 = info['otherObs']
+            obs2 = info[1]['obs']
             obs2 = to_ndarray(obs2).astype(np.float32)
             observations = np.stack([obs1, obs2], axis=0)
             rewards = to_ndarray([rew, -rew]).astype(np.float32)
             rewards = rewards[..., np.newaxis]
-            infos = info, info
-            return BaseEnvTimestep(observations, rewards, done, infos)
+            return BaseEnvTimestep(observations, rewards, done, info)
         else:
             return BaseEnvTimestep(obs1, reward, done, info)
 
@@ -91,7 +106,7 @@ class SlimeVolleyEnv(BaseEnv):
         return BaseEnvInfo(
             agent_num=2,
             obs_space=T(
-                (12, ),
+                (2, 12) if self._agent_vs_agent else (12, ),
                 {
                     'min': [float("-inf") for _ in range(12)],
                     'max': [float("inf") for _ in range(12)],

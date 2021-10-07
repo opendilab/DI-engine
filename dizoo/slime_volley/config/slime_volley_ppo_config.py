@@ -12,7 +12,7 @@ slime_volley_ppo_config = dict(
         env_id="SlimeVolley-v0",
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=True,
         continuous=False,
         model=dict(
@@ -51,7 +51,6 @@ slime_volley_ppo_create_config = dict(
 )
 slime_volley_ppo_create_config = EasyDict(slime_volley_ppo_create_config)
 create_config = slime_volley_ppo_create_config
-
 
 if __name__ == "__main__":
     serial_pipeline_onpolicy([main_config, create_config], seed=0)
