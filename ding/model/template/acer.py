@@ -28,6 +28,7 @@ class ACER(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
+            continuous_action_space = False,
     ) -> None:
         r"""
         Overview:
@@ -48,6 +49,7 @@ class ACER(nn.Module):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
         """
         super(ACER, self).__init__()
+        self.continuous_action_space = continuous_action_space
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -65,13 +67,25 @@ class ACER(nn.Module):
         self.critic_encoder = encoder_cls(
             obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
         )
-
         self.critic_head = RegressionHead(
             critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
-        self.actor_head = DiscreteHead(
-            actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
-        )
+
+        if self.continuous_action_space:
+            # when the action space is continuous, we use ReparameterizationHead.
+            # the action_shape of continuous action space is a int, indicating the num of action dim.
+            self.actor_head = ReparameterizationHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+            
+        else: 
+            # when the action space is continuous, we use DiscreteHead.
+            # the action_shape of discrete action space is a list, indicating the num of action dim and action choice num K.
+            self.actor_head = DiscreteHead(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+            
+            
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
         self.actor = nn.ModuleList(self.actor)
