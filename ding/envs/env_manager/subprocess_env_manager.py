@@ -32,6 +32,15 @@ _NTYPE_TO_CTYPE = {
 }
 
 
+def is_abnormal_timestep(timestep: namedtuple) -> bool:
+    if isinstance(timestep.info, dict):
+        return timestep.info.get('abnormal', False)
+    elif isinstance(timestep.info, list) or isinstance(timestep.info, tuple):
+        return timestep.info[0].get('abnormal', False) or timestep.info[1].get('abnormal', False)
+    else:
+        raise TypeError("invalid env timestep type: {}".format(type(timestep.info)))
+
+
 class ShmBuffer():
     """
     Overview:
@@ -452,7 +461,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
 
         for env_id, timestep in timesteps.items():
-            if timestep.info.get('abnormal', False):
+            if is_abnormal_timestep(timestep):
                 self._env_states[env_id] = EnvState.ERROR
                 continue
             if timestep.done:
@@ -497,7 +506,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     elif cmd in method_name_list:
                         if cmd == 'step':
                             timestep = env.step(*args, **kwargs)
-                            if timestep.info.get('abnormal', False):
+                            if is_abnormal_timestep(timestep):
                                 ret = timestep
                             else:
                                 if obs_buffer is not None:
@@ -554,7 +563,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         @timeout_wrapper(timeout=step_timeout)
         def step_fn(*args, **kwargs):
             timestep = env.step(*args, **kwargs)
-            if timestep.info.get('abnormal', False):
+            if is_abnormal_timestep(timestep):
                 ret = timestep
             else:
                 if obs_buffer is not None:
@@ -768,7 +777,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         for env_id, timestep in timesteps.items():
-            if timestep.info.get('abnormal', False):
+            if is_abnormal_timestep(timestep):
                 self._env_states[env_id] = EnvState.ERROR
                 continue
             if timestep.done:

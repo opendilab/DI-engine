@@ -136,6 +136,10 @@ setup(
             'whichcraft',
             'joblib',
         ],
+
+        'slimevolleygym_env': [
+            'slimevolleygym',
+        ],
         'k8s': [
             'kubernetes',
         ]
