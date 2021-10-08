@@ -9,7 +9,6 @@ cartpole_ppo_config = dict(
         stop_value=195,
     ),
     policy=dict(
-        random_collect_size=100,
         cuda=False,
         on_policy=True,
         continuous=False,

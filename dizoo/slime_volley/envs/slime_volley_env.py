@@ -11,6 +11,21 @@ from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray
 
 
+class GymSelfPlayMonitor(gym.wrappers.Monitor):
+
+    def step(self, *args, **kwargs):
+        self._before_step(*args, **kwargs)
+        observation, reward, done, info = self.env.step(*args, **kwargs)
+        done = self._after_step(observation, reward, done, info)
+
+        return observation, reward, done, info
+
+    def _before_step(self, *args, **kwargs):
+        if not self.enabled:
+            return
+        self.stats_recorder.before_step(args[0])
+
+
 @ENV_REGISTRY.register('slime_volley')
 class SlimeVolleyEnv(BaseEnv):
 
@@ -83,7 +98,7 @@ class SlimeVolleyEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
             if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
+                self._env = GymSelfPlayMonitor(
                     self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
                 )
             self._init_flag = True

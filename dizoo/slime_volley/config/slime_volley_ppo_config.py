@@ -46,7 +46,7 @@ slime_volley_ppo_create_config = dict(
         type='slime_volley',
         import_names=['dizoo.slime_volley.envs.slime_volley_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),  # save replay must use base
     policy=dict(type='ppo'),
 )
 slime_volley_ppo_create_config = EasyDict(slime_volley_ppo_create_config)
