@@ -93,7 +93,7 @@ class DistributionHead(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the Head according to arguments.
+            Init the Head according to arguments. The 'distribution' refers to something like 'distributional RL' in c51.
         Arguments:
             - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
             - output_size (:obj:`int`): The num of output
