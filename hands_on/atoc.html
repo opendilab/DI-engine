@@ -227,7 +227,7 @@
 <p>The communication architecture for each agent consists of:</p>
 <ul class="simple">
 <li><p>Attention Unit: determining communication when necessary</p></li>
-<li><p>Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively output information that promotes cooperation and forget information that impedes cooperation through gates.</p></li>
+<li><p>Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively outputs information that promotes cooperation and forgets information that impedes cooperation through gates.</p></li>
 </ul>
 <p>The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.</p>
 <p>Select experiences where the action is determined by an agent independently (i.e., without communication) and experiences with communication, respectively, to update the action-value function <span class="math notranslate nohighlight">\(Q^{\mu}\)</span>:</p>
@@ -236,7 +236,7 @@
 \mathbb{E}_{o,a,r,o^{'}}[(Q^{\mu}(o,a) -
 y)^{2}], y = r + \gamma Q^{\mu{'}}
 (o^{'},a^{'})|_{a^{'}=\mu^{'}(o^{'})}\]</div>
-<p>The gradients are backpropagated to the policy network and communication channel to update the
+<p>The gradients are propagated backwardly to the policy network and communication channel to update the
 parameters.</p>
 <div class="math notranslate nohighlight">
 \[\nabla_{\theta^{\mu}}\mathcal{J}(\theta^{\mu}) = \mathbb{E}_{o,a\sim \mathcal{R}}[\nabla_{\theta^{\mu}}\mu(a|o)\nabla_{a}Q^{\mu}(o,a)|_{a=\mu (o)}]\]</div>

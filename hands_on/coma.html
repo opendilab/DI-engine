@@ -231,7 +231,7 @@
 \sum_{u^{'a}}\pi^{a}(u^{'a}|\tau^{a})Q(s,
 (\textbf{u}^{-a}, u^{'a}))\]</div>
 <p>The advantage <span class="math notranslate nohighlight">\(A^{a}(s, u)\)</span> computes a separate baseline that uses the centralized critic to find counterfactuals when only <span class="math notranslate nohighlight">\(a\)</span>’s action changes, learned directly from agents’ experiences.</p>
-<p>Compared to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:</p>
+<p>Comparing to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:</p>
 <div class="math notranslate nohighlight">
 \[g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]\]</div>
 </div>
@@ -240,7 +240,7 @@
 <ul class="simple">
 <li><p>COMA takes the advantage of learning a centralized critic to train decentralized actors. Similarly, Gupta et al. (2017) present a centralized actor-critic algorithm learning per-agent critics to opt for better scalability at the cost of diluted benefits of centralization.</p></li>
 <li><p>MADDPG (Lowe et al. 2017) extends the DDPG framework in multi-agent settings and learns a centralized critic for each agent. These approaches use on-policy policy gradient learning.</p></li>
-<li><p>COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than minibatches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires <span class="math notranslate nohighlight">\(n\)</span> inputs, one for each agent, and the COMA-CC critic requires <span class="math notranslate nohighlight">\(nm\)</span> inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations <span class="math notranslate nohighlight">\((z^1_t, ..., z^n_t)\)</span> is compressed via an encoding network before used as inputs to the critic.</p></li>
+<li><p>COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than mini-batches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires <span class="math notranslate nohighlight">\(n\)</span> inputs, one for each agent, and the COMA-CC critic requires <span class="math notranslate nohighlight">\(nm\)</span> inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations <span class="math notranslate nohighlight">\((z^1_t, ..., z^n_t)\)</span> is compressed via an encoding network before used as inputs to the critic.</p></li>
 </ul>
 <div class="math notranslate nohighlight">
 \[Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})\]</div>

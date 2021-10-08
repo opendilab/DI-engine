@@ -285,8 +285,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">]</span>
-        <span class="c1"># for convenience of call some apis(such as: self.critic.parameters()), but may cause</span>
-        <span class="c1"># misunderstanding when print(self)</span>
+        <span class="c1"># Convenient for calling some apis (e.g. self.critic.parameters()),</span>
+        <span class="c1"># but may cause misunderstanding when `print(self)`</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">critic</span><span class="p">)</span></div>
 

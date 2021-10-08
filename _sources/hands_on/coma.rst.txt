@@ -38,7 +38,7 @@ COMA computes an advantage function that compares the Q-value for the current ac
 
 The advantage :math:`A^{a}(s, u)` computes a separate baseline that uses the centralized critic to find counterfactuals when only :math:`a`'s action changes, learned directly from agents' experiences.
 
-Compared to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:
+Comparing to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:
 
 .. math::
    g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]
@@ -50,7 +50,7 @@ Extensions
 
 -  MADDPG (Lowe et al. 2017) extends the DDPG framework in multi-agent settings and learns a centralized critic for each agent. These approaches use on-policy policy gradient learning.
 
--  COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than minibatches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires :math:`n` inputs, one for each agent, and the COMA-CC critic requires :math:`nm` inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations :math:`(z^1_t, ..., z^n_t)` is compressed via an encoding network before used as inputs to the critic.
+-  COMA-CC (Vasilev et al. 2021) improves COMA by changing its training scheme to use the entire batch of data, rather than mini-batches with a consistent critic. COMA-CC is an off-policy version COMA with an alternative critic. For each counterfactual Q-value computation, the COMA critic requires :math:`n` inputs, one for each agent, and the COMA-CC critic requires :math:`nm` inputs, one for each agent and counterfactual joint action. To reduce computation, the concatenated observations :math:`(z^1_t, ..., z^n_t)` is compressed via an encoding network before used as inputs to the critic.
 
 .. math::
    Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})

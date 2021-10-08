@@ -44,8 +44,8 @@ Q-function changing to:
 
 .. math:: Q^{\pi}(s, a)=\mathbb{E}\left[r_{0}+\sum_{t=1}^{\infty} \gamma^{t}\left(r_{t}-\tau \mathrm{KL}_{t}\right) \mid s_{0}=s, a_{0}=a\right]
 
-Additionally, an optimal policy called Boltzmann-Policy canbe derived by
-vary the action probabilities as a gradedfunction of estimated value:
+Additionally, an optimal policy called Boltzmann-Policy can be derived by
+varying the action probabilities as a graded function of estimated value:
 
 .. math::
 
@@ -122,7 +122,7 @@ SQN can be combined with:
 -  SQN could use a separate policy network, which called
    `SAC-Discrete <https://arxiv.org/abs/1910.07207>`__
 
--  SQN is closly related to general Regularization Reinforcement
+-  SQN is closely related to general Regularization Reinforcement
    Learning which could have many form, but our implementation utilize
    auto adjust temperature and remove many unclear part `Leverage the
    Average <https://arxiv.org/abs/2003.14089>`__.

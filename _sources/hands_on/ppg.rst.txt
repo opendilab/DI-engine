@@ -13,7 +13,7 @@ Quick Facts
 
 3. PPG supports **off-policy** mode and **on-policy** mode.
 
-4. There is 2 value network in PPG.
+4. There is two value networks in PPG.
 
 5. In the implementation of DI-engine, we use two buffer to  off-policy PPG
 
@@ -42,7 +42,7 @@ The joint loss optimizes the auxiliary objective while preserves the original po
 
 Pseudo-code
 -----------
-The following flow charts shows how PPG alternates between the policy phase and the auxiliary phase.
+The following flow charts show how PPG alternates between the policy phase and the auxiliary phase.
 
 .. image:: images/PPG.png
    :align: center
@@ -56,7 +56,7 @@ Extensions
 - PPG can be combined with:
     * Multi-step learning
     * GAE
-    * Multi buffer, different max reuse
+    * Multi-buffer, different max reuse
 
 Implementation
 ---------------

@@ -210,8 +210,8 @@
 <h1>ACER<a class="headerlink" href="#acer" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>ACER, short for actor-critic with experience replay, is an off-policy actor-critic model with experience replay. It greatly increases
-the sample efficiency and decreasing the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO and truncates importance sample weights with
+<p>ACER, short for actor-critic with experience replay, is an off-policy actor-critic algorithm with experience replay. It greatly increases
+the sample efficiency and decreases the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO (Trust Region Policy Optimization) and truncates importance sample weights with
 bias correction to control the stability of the off-policy estimator. You can find more details in this paper
 <a class="reference external" href="https://arxiv.org/abs/1611.01224">Sample Efficient Actor-Critic with Experience Replay</a>.</p>
 </div>
@@ -219,28 +219,25 @@ bias correction to control the stability of the off-policy estimator. You can fi
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>ACER  is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
-</ol>
-<p>2. ACER can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces with several differences
-s
-3. ACER is a actor-critic RL algorithm, which optimizes actor network and critic network, respectively.</p>
-<ol class="arabic simple" start="4">
-<li><p>ACER decouples acting from learning. Collectors in ACER needs to record behavior probabilty distributions.</p></li>
+<li><p>ACER can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces with several differences.</p></li>
+<li><p>ACER is an actor-critic RL algorithm, which optimizes the actor and critic networks respectively.</p></li>
+<li><p>ACER decouples acting from learning. Collectors in ACER needs to record behavior probability distributions.</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations">
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
-<p>Loss used in ACER contains policy loss and value loss. They often update seperately, so it’s necessary to control their relative update speed.</p>
+<p>Loss used in ACER contains policy loss and value loss. They often update separately, so it’s necessary to control their relative update speed.</p>
 <div class="section" id="retrace-q-value-estimation">
 <h3>Retrace Q-value estimation<a class="headerlink" href="#retrace-q-value-estimation" title="Permalink to this headline">¶</a></h3>
-<p>Given a trajectory generated under the behavior policy <span class="math notranslate nohighlight">\(\mu\)</span>,  we retrieve a trajectory <span class="math notranslate nohighlight">\(\{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}\)</span>
+<p>Given a trajectory generated under the behavior policy <span class="math notranslate nohighlight">\(\mu\)</span>,  we retrieve a trajectory <span class="math notranslate nohighlight">\({x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}\)</span>
 the Retrace estimator can be
 expressed recursively as follows:</p>
 <div class="math notranslate nohighlight">
 \[Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
 1},a_{t+1})]+\gamma V(x_{t+1})\]</div>
-<p>where  <span class="math notranslate nohighlight">\(\bar{\rho}_t\)</span> is the truncated importance weight, <span class="math notranslate nohighlight">\(\bar{\rho}_t=\min\{c,\rho\}\)</span> with <span class="math notranslate nohighlight">\(\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}\)</span>. <span class="math notranslate nohighlight">\(\pi\)</span> is target policy
-Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the taget policy for any behavior policy
-we approximate the Q value by neural network <span class="math notranslate nohighlight">\(Q_{\theta}\)</span> in a mean squared error loss:</p>
+<p>where  <span class="math notranslate nohighlight">\(\bar{\rho}_t\)</span> is the truncated importance weight, <span class="math notranslate nohighlight">\(\bar{\rho}_t=\min\{c,\rho\}\)</span> with <span class="math notranslate nohighlight">\(\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}\)</span>. <span class="math notranslate nohighlight">\(\pi\)</span> is the target policy.
+Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the target policy for any behavior policy.
+We approximate the Q value by neural network <span class="math notranslate nohighlight">\(Q_{\theta}\)</span>. We use a mean squared error loss:</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \[L_{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.\]</div>
@@ -248,33 +245,33 @@ we approximate the Q value by neural network <span class="math notranslate nohig
 </div>
 <div class="section" id="policy-gradient">
 <h3>policy gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h3>
-<p>To safe-guard against high variance, ACER uses truncated importance weights and introduaces
+<p>To safe-guard against high variance, ACER uses truncated importance weights and introduces
 correction term via the following decomposition of <span class="math notranslate nohighlight">\(g^{acer}\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[g^{\text{acer}}=\bar{\rho_t}\nabla_\theta\log\pi_{\theta}(a_t|x_t)[Q^{\text{ret}}(x_t,a_t)-V_{\theta}(x_t)]+\mathbb{E}_{a\sim \pi}\left([\frac{\rho_t(a)-c}{\rho_t(a)}]_+\nabla_{\theta}\log\pi_{\theta}(a|x_t)[Q_\theta(x_t,a)-V_{\theta}(x_t)\right)\right].\]</div>
-<p>To ensure more stability, ACER limit the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
+<p>To ensure more stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{split}
 &amp;\text{minimize}_z\quad\frac{1}{2}\|g_t^{\text{acer}}-z\|_2^2\\
 &amp;subjec\ to\quad \nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]^\top\le\delta
 \end{split}\end{split}\]</div>
-<p>The <span class="math notranslate nohighlight">\(\phi(\theta)\)</span> is target policy network and the <span class="math notranslate nohighlight">\(\phi(\theta_a)\)</span> is average policy network.
-letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]\)</span>, the solution can be easily derived in closed form using the KKT condition:</p>
+<p>The <span class="math notranslate nohighlight">\(\phi(\theta)\)</span> is the target policy network and the <span class="math notranslate nohighlight">\(\phi(\theta_a)\)</span> is the average policy network.
+By letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]\)</span>, the solution can be easily derived in closed form using the KKT condition:</p>
 <div class="math notranslate nohighlight">
 \[z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k\]</div>
 </div>
 </div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
-<p>There are several differences that using ACER on discrete action space or continuous action space.</p>
+<p>There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.</p>
 <a class="reference internal image-reference" href="../_images/ACER_alg1.png"><img alt="../_images/ACER_alg1.png" class="align-center" src="../_images/ACER_alg1.png" style="width: 458.49999999999994px; height: 135.79999999999998px;" /></a>
 <a class="reference internal image-reference" href="../_images/ACER_alg2.png"><img alt="../_images/ACER_alg2.png" class="align-center" src="../_images/ACER_alg2.png" style="width: 467.59999999999997px; height: 466.2px;" /></a>
-<p>In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sample actions to replace the expectation.</p>
+<p>In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sampled actions to replace the expectation.</p>
 <a class="reference internal image-reference" href="../_images/ACER_alg3.png"><img alt="../_images/ACER_alg3.png" class="align-center" src="../_images/ACER_alg3.png" style="width: 469.7px; height: 457.09999999999997px;" /></a>
 </div>
 <div class="section" id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
-<p>Here we show the ACER algorithm on discrete action space.
+<p>Here we show the ACER algorithm on the discrete action space.
 The default config is defined as follows:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.policy.acer.ACERPolicy">
@@ -428,7 +425,7 @@ refer to doc of <code class="docutils literal notranslate"><span class="pre">din
 <p>You can find more information in <a class="reference internal" href="impala.html#ref2other"><span class="std std-ref">here</span></a></p>
 <p>The whole code of ACER you can find <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py">here</a>.
 Here we show some details of this algorithm.</p>
-<p>First, we use the following functions to compute retrace Q value.</p>
+<p>First, we use the following functions to compute the retrace Q value.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">rewards</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">weights</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -459,7 +456,7 @@ Here we show some details of this algorithm.</p>
     <span class="k">return</span> <span class="n">q_retraces</span>
 </pre></div>
 </div>
-<p>After that, we calculate policy loss value, it will calcuate the actor loss with importance weights trunction and bias correction loss by the following function</p>
+<p>After that, we calculate the value of policy loss, it will calculate the actor loss with importance weights truncation and bias correction loss by the following function</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_policy_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">target_pi</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">c_clip_ratio</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -509,8 +506,8 @@ Here we show some details of this algorithm.</p>
     <span class="k">return</span> <span class="n">update_gradients</span>
 </pre></div>
 </div>
-<p>With new gradients, we can continue to backward and then update parameters with gradients.</p>
-<p>Finally, we should calculate the Q value loss to update Q-Network</p>
+<p>With the new gradients, we can continue to propagate backwardly and then update parameters accordingly.</p>
+<p>Finally, we should calculate the mean squared loss for Q values to update Q-Network</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">actions</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>

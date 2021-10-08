@@ -232,10 +232,10 @@
 </div>
 <div class="section" id="prioritized-experience-replay-per">
 <h2>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this headline">¶</a></h2>
-<p>DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probability relative to the last encountered absolute TD error, formally:</p>
+<p>DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probabilities relative to the last encountered absolute TD error, formally:</p>
 <div class="math notranslate nohighlight">
 \[p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}\]</div>
-<p>The original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.</p>
+<p>In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.</p>
 </div>
 <div class="section" id="dueling-network">
 <h2>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this headline">¶</a></h2>
@@ -258,7 +258,7 @@ p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\
 <p>where the truncated n-step return is defined as:</p>
 <div class="math notranslate nohighlight">
 \[`R_{t}^{(n)} \equiv \sum^{n-1} \gamma_{t}^{(k)} R_{t+k+1}\]</div>
-<p>In the paper <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, the authors analyze that a greater capacity of replay buffer substantially increase the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.</p>
+<p>In the paper <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, the authors analyze that a greater capacity of replay buffer substantially increases the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.</p>
 </div>
 <div class="section" id="noisy-net">
 <h2>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this headline">¶</a></h2>
@@ -266,7 +266,7 @@ p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\
 <div class="math notranslate nohighlight">
 \[\boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)\]</div>
 <p>Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against epsilon-greedy when the action space is large, e.g. Montezuma’s Revenge, because epsilon-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
-In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the nosies are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -&gt; x.sign() * x.sqrt().</p>
+In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -&gt; x.sign() * x.sqrt().</p>
 </div>
 <div class="section" id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
@@ -576,7 +576,7 @@ Parameter updates with Rainbow’s MLPs forward setup.</p>
 </div>
 <div class="section" id="experiments-on-rainbow-tricks">
 <h2>Experiments on Rainbow Tricks<a class="headerlink" href="#experiments-on-rainbow-tricks" title="Permalink to this headline">¶</a></h2>
-<p>We conduct experiments on lunarlander environment using rainbow(dqn) policy, comparing the performance of n-sdueling, priority, and priority_IS tricks with baseline. The code link for the experiments is <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py">here</a>.
+<p>We conduct experiments on the lunarlander environment using rainbow (dqn) policy to compare the performance of n-step, dueling, priority, and priority_IS tricks with baseline. The code link for the experiments is <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py">here</a>.
 Note that the config file is set for <code class="docutils literal notranslate"><span class="pre">dqn</span></code> by default. If we want to adopt <code class="docutils literal notranslate"><span class="pre">rainbow</span></code> policy, we need to change the
 type of policy as below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lunarlander_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -620,14 +620,14 @@ type of policy as below.</p>
 </table>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> over <code class="docutils literal notranslate"><span class="pre">training</span> <span class="pre">iteration</span></code> is used as an evaluation metric.</p></li>
-<li><p>Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to insure stochasticity.</p></li>
+<li><p>Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to ensure stochasticity.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
-<li><p>By setting the <code class="docutils literal notranslate"><span class="pre">exp_name</span></code> in config file, the experiement results can be saved in specified path. Otherwise, it will be saved in <code class="docutils literal notranslate"><span class="pre">‘./default_experiment’</span></code> directory.</p></li>
+<li><p>By setting the <code class="docutils literal notranslate"><span class="pre">exp_name</span></code> in config file, the experiment results can be saved in specified path. Otherwise, it will be saved in <code class="docutils literal notranslate"><span class="pre">‘./default_experiment’</span></code> directory.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
@@ -639,7 +639,7 @@ type of policy as below.</p>
     <span class="o">......</span>
 </pre></div>
 </div>
-<p>The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiement setting, dueling trick contributes most to the performance.</p>
+<p>The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiment setting, dueling trick contributes most to the performance.</p>
 <img alt="../_images/rainbow_exp.png" class="align-center" src="../_images/rainbow_exp.png" />
 </div>
 <div class="section" id="references">

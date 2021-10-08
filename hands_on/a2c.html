@@ -207,20 +207,20 @@
 <h1>A2C<a class="headerlink" href="#a2c" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>A2C(advantage actor critic) is a actor-critic RL algorithm, where the policy gradient is combined with advantage function to reduce the variance.</p>
+<p>A2C (advantage actor critic) is an actor-critic RL algorithm, where the policy gradient algorithm is combined with an advantage function to reduce variance.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>A2C is a <strong>model-free</strong> and <strong>policy-based</strong> RL algorithm.</p></li>
 <li><p>A2C supports both <strong>discrete</strong> and <strong>continuous action spaces</strong>.</p></li>
-<li><p>A2C supports <strong>off-policy</strong> mode and <strong>on-policy</strong> mode.</p></li>
-<li><p>A2C can be equipped with RNN.</p></li>
+<li><p>A2C supports both <strong>off-policy</strong> and <strong>on-policy</strong> modes.</p></li>
+<li><p>A2C can be equipped with Recurrent Neural Network (RNN).</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>A2C use advantage estimation in the policy gradient:</p>
+<p>A2C uses advantage estimation in the policy gradient:</p>
 <div class="math notranslate nohighlight">
 \[\nabla_{\theta^{\prime}} \log \pi\left(a_{t} \mid {s}_{t} ; \theta^{\prime}\right) A\left(s_{t}, {a}_{t} ; \theta, \theta_{v}\right)\]</div>
 <p>where the n-step advantage function is defined:</p>
@@ -241,17 +241,17 @@
 <dt>A2C can be combined with:</dt><dd><ul>
 <li><p>Multi-step learning</p></li>
 <li><p>RNN</p></li>
-<li><p>GAE
-GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/1506.02438">High-Dimensional Continuous Control Using Generalized Advantage Estimation</a>, it uses exponentially-weighted average of different steps of advantage estimators, to make trade-off between the variance and bias of the estimation of the advantage:</p>
+<li><p>Generalized Advantage Estimation (GAE)
+GAE is proposed in <a class="reference external" href="https://arxiv.org/abs/1506.02438">High-Dimensional Continuous Control Using Generalized Advantage Estimation</a>, it uses exponentially-weighted average of different steps of advantage estimators, to make trade-off between variance and bias of the estimation of the advantage:</p>
 <div class="math notranslate nohighlight">
 \[\hat{A}_{t}^{\mathrm{GAE}(\gamma, \lambda)}:=(1-\lambda)\left(\hat{A}_{t}^{(1)}+\lambda \hat{A}_{t}^{(2)}+\lambda^{2} \hat{A}_{t}^{(3)}+\ldots\right)\]</div>
-<p>where the k-steps advantage estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(k)}\)</span> is defined as :</p>
+<p>where the k-step advantage estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(k)}\)</span> is defined as :</p>
 <div class="math notranslate nohighlight">
 \[\hat{A}_{t}^{(k)}:=\sum_{l=0}^{k-1} \gamma^{l} \delta_{t+l}^{V}=-V\left(s_{t}\right)+r_{t}+\gamma r_{t+1}+\cdots+\gamma^{k-1} r_{t+k-1}+\gamma^{k} V\left(s_{t+k}\right)\]</div>
 <p>When k=1, the estimator <span class="math notranslate nohighlight">\(\hat{A}_t^{(1)}\)</span> is the naive advantage estimator:</p>
 <div class="math notranslate nohighlight">
 \[\hat{A}_{t}^{(1)}:=\delta_{t}^{V} \quad=-V\left(s_{t}\right)+r_{t}+\gamma V\left(s_{t+1}\right)\]</div>
-<p>When GAE is used, the common value of <span class="math notranslate nohighlight">\(\lambda\)</span> is usually [0.8, 1.0].</p>
+<p>When GAE is used, the common values of <span class="math notranslate nohighlight">\(\lambda\)</span> usually belong to [0.8, 1.0].</p>
 </li>
 </ul>
 </dd>
@@ -541,7 +541,7 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
     <span class="k">return</span> <span class="n">a2c_loss</span><span class="p">(</span><span class="n">policy_loss</span><span class="p">,</span> <span class="n">value_loss</span><span class="p">,</span> <span class="n">entropy_loss</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The Benchmark result of A2C implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview_en.html">Benchmark</a>.</p>
+<p>The Benchmark results of A2C implemented in DI-engine can be found in <a class="reference external" href="../feature/algorithm_overview_en.html">Benchmark</a>.</p>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>

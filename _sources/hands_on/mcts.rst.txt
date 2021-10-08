@@ -47,9 +47,9 @@ Extensions
 
     * neural networks
 
-        Combined with deep neural network, the MCTS can improve the **tree policy** and the **default policy**.
+        By combining with deep neural networks, the MCTS can improve the **tree policy** and the **default policy**.
         The neural network can be used to predict the value of certain states or learn the policy performed by MCTS.
-        Using the value predicted by the neural network, the tree policy of MCTS can explorate and exploit more efficiently.
+        Using the value predicted by the neural network, the tree policy of MCTS can explore and exploit more efficiently.
         Using the policy learned, the MCTS simulation will gain better performance compared to simply make uniform random moves.
         
         Google Brain's **AlphaGo** combined the MCTS algorithm and the deep neural network, makes dramatic performance improvement.

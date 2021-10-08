@@ -185,7 +185,7 @@ We use an epsilon-greedy strategy when implementing the SQIL/SQL policy.  How we
             return output
 
 
-We have two buffers: one buffer is for new data by interacting with the environment and the other one is for demonstration data. We obtain the demonstation data online. That is,
+We have two buffers: one buffer is for new data by interacting with the environment and the other one is for demonstration data. We obtain the demonstration data online. That is,
 we use a well-trained model to generate data in the collecting stage and push them into the demonstration buffer. In learning process, we sample from these two buffers separately shown as follows:
 
 .. code-block:: python
@@ -205,7 +205,7 @@ we use a well-trained model to generate data in the collecting stage and push th
          if train_data is not None:
                learner.train(train_data, collector.envstep)
 
-We also need to modify rewards for new data and demonstation data. Taking the CartPole environment as an example:
+We also need to modify rewards for new data and demonstration data. Taking the CartPole environment as an example:
 
  .. code-block:: python
 

@@ -10,7 +10,7 @@ and a predecessor of the Muzero algorithm.
 The main motivation of the VPN algorithm is that the planning phase of RL only needs to predict future rewards and value 
 without predicting future observations. 
 
-VPN learn to predict values via Q-learning and rewards via supervised learning and at the same time, 
+VPN learns to predict values via Q-learning and rewards via supervised learning at the same time, 
 VPN performs lookahead planning to choose actions and compute bootstrapped target Q-values.
 
 (i.e., learning the dynamics of an abstract state space
@@ -18,11 +18,11 @@ sufficient for computing future rewards and values)
 
 Quick Facts
 -------------
-1. VPN can be view as combination of model-based RL and model-free RL. 
+1. VPN can be viewed as combination of model-based RL and model-free RL. 
 
 2. The model-based part of VPN is to learn the dynamics of an abstract state space sufficient for computing future rewards and values, and the model-free part of VPN is to map the learned abstract states to rewards and values.
 
-3. VPN combines temporal-difference search and n-step Q-laerning to train.
+3. VPN combines temporal-difference search and n-step Q-learning to train.
 
 4. The major performance improvement VPN has compared to other model-based algorithms is that VPN is more robust to stochasticity in the environment than an observation-prediction model approach.
 
@@ -41,9 +41,9 @@ Quick Facts
 	The model-free algorithm has lower sample efficiency, but is relatively simple and easier to implement. 
 	The model-based algorithm is not as popular as the model-free algorithm, due to its complexity, 
 	and is mostly used in environments that are costly to acquire data, such as robot-arm control.
-	This is because the model-base algorithm involves environment modeling, resulting in a complicated modeling process, 
-	and because environment modeling also requires training, 
-	the overall training is much more difficult than the model-free method.
+	This is because the model-base algorithm involves environment modeling, resulting in a complicated modeling process. Besides,
+	environment modeling also requires training, 
+	the overall training process for the model-based method is much more difficult than the model-free method.
 	Most of the environmental models modeled by model-based algorithms use observation and action to predict the next observation and reward. 
 	This kind of model is called an observation-prediction model. 
 	In a relatively complex environment, observation usually has a higher dimension and is highly stochastic, 

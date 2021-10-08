@@ -29,14 +29,14 @@ Double Q-learning maintains a target q network, which is periodically updated wi
 
 Prioritized Experience Replay(PER)
 ----------------------------------
-DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probability relative to the last encountered absolute TD error, formally:
+DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probabilities relative to the last encountered absolute TD error, formally:
 
 .. math::
    
    p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}
    
 
-The original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.
+In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.
 
 Dueling Network
 ---------------
@@ -72,7 +72,7 @@ where the truncated n-step return is defined as:
 
    `R_{t}^{(n)} \equiv \sum^{n-1} \gamma_{t}^{(k)} R_{t+k+1}
 
-In the paper `Revisiting Fundamentals of Experience Replay <https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf>`_, the authors analyze that a greater capacity of replay buffer substantially increase the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.
+In the paper `Revisiting Fundamentals of Experience Replay <https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf>`_, the authors analyze that a greater capacity of replay buffer substantially increases the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.
 
 Noisy Net
 ---------
@@ -83,7 +83,7 @@ Noisy Nets use a noisy linear layer that combines a deterministic and noisy stre
    \boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)
 
 Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against epsilon-greedy when the action space is large, e.g. Montezuma's Revenge, because epsilon-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
-In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the nosies are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -> x.sign() * x.sqrt().
+In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -> x.sign() * x.sqrt().
 
 Extensions
 -----------
@@ -109,7 +109,7 @@ The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark 
 
 Experiments on Rainbow Tricks
 -----------------------------
-We conduct experiments on lunarlander environment using rainbow(dqn) policy, comparing the performance of n-sdueling, priority, and priority_IS tricks with baseline. The code link for the experiments is `here <https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py>`_.
+We conduct experiments on the lunarlander environment using rainbow (dqn) policy to compare the performance of n-step, dueling, priority, and priority_IS tricks with baseline. The code link for the experiments is `here <https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py>`_.
 Note that the config file is set for ``dqn`` by default. If we want to adopt ``rainbow`` policy, we need to change the 
 type of policy as below.
 
@@ -147,14 +147,14 @@ The detailed experiments setting is stated below.
 
 1. ``reward_mean`` over ``training iteration`` is used as an evaluation metric.
    
-2. Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to insure stochasticity.
+2. Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to ensure stochasticity.
 
 .. code-block:: python
 
    if __name__ == "__main__":
       serial_pipeline([main_config, create_config], seed=0)
 
-3. By setting the ``exp_name`` in config file, the experiement results can be saved in specified path. Otherwise, it will be saved in ``‘./default_experiment’`` directory.
+3. By setting the ``exp_name`` in config file, the experiment results can be saved in specified path. Otherwise, it will be saved in ``‘./default_experiment’`` directory.
 
 .. code-block:: python
    :emphasize-lines: 6
@@ -170,7 +170,7 @@ The detailed experiments setting is stated below.
 
 
 
-The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiement setting, dueling trick contributes most to the performance. 
+The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiment setting, dueling trick contributes most to the performance. 
 
 .. image:: 
    images/rainbow_exp.png

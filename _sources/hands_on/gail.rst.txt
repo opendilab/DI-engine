@@ -60,7 +60,7 @@ Extensions
    Learning <https://arxiv.org/abs/1807.09936>`_ extended GAIL to
    multi-agent scenarios. The generator is redefined as a policy
    controlling all agents in a distributed manner, while the
-   discriminator is distinguishing expert and generated behavior for
+   discriminator is distinguishing expert and generates behavior for
    each agent.
 
    The Pseudo-Code is as following:
@@ -69,7 +69,7 @@ Extensions
       :scale: 85%
       :alt: 
 
--  Other perspective to understand GAIL
+-  Other perspectives to understand GAIL
 
    GAIL is closely related to other learning methods, and thus can be
    understood in different views.

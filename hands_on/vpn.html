@@ -212,7 +212,7 @@ Value prediction network is an improvement upon the traditional model-based rein
 and a predecessor of the Muzero algorithm.</p>
 <p>The main motivation of the VPN algorithm is that the planning phase of RL only needs to predict future rewards and value
 without predicting future observations.</p>
-<p>VPN learn to predict values via Q-learning and rewards via supervised learning and at the same time,
+<p>VPN learns to predict values via Q-learning and rewards via supervised learning at the same time,
 VPN performs lookahead planning to choose actions and compute bootstrapped target Q-values.</p>
 <p>(i.e., learning the dynamics of an abstract state space
 sufficient for computing future rewards and values)</p>
@@ -220,9 +220,9 @@ sufficient for computing future rewards and values)</p>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>VPN can be view as combination of model-based RL and model-free RL.</p></li>
+<li><p>VPN can be viewed as combination of model-based RL and model-free RL.</p></li>
 <li><p>The model-based part of VPN is to learn the dynamics of an abstract state space sufficient for computing future rewards and values, and the model-free part of VPN is to map the learned abstract states to rewards and values.</p></li>
-<li><p>VPN combines temporal-difference search and n-step Q-laerning to train.</p></li>
+<li><p>VPN combines temporal-difference search and n-step Q-learning to train.</p></li>
 <li><p>The major performance improvement VPN has compared to other model-based algorithms is that VPN is more robust to stochasticity in the environment than an observation-prediction model approach.</p></li>
 <li><p>In order to solve some of the existing problems of model-based algorithms, the VPN proposes a method between traditional model-based algorithms and model-free algorithms, using dynamics model to model the environment.</p></li>
 <li><p>From a model-based perspective, the dynamics model models the state transition process, reward and discount function of the environment by extracting the form of abstract state.</p></li>
@@ -235,9 +235,9 @@ sufficient for computing future rewards and values)</p>
 The model-free algorithm has lower sample efficiency, but is relatively simple and easier to implement.
 The model-based algorithm is not as popular as the model-free algorithm, due to its complexity,
 and is mostly used in environments that are costly to acquire data, such as robot-arm control.
-This is because the model-base algorithm involves environment modeling, resulting in a complicated modeling process,
-and because environment modeling also requires training,
-the overall training is much more difficult than the model-free method.
+This is because the model-base algorithm involves environment modeling, resulting in a complicated modeling process. Besides,
+environment modeling also requires training,
+the overall training process for the model-based method is much more difficult than the model-free method.
 Most of the environmental models modeled by model-based algorithms use observation and action to predict the next observation and reward.
 This kind of model is called an observation-prediction model.
 In a relatively complex environment, observation usually has a higher dimension and is highly stochastic,

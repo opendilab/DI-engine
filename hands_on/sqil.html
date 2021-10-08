@@ -366,7 +366,7 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
       <span class="k">return</span> <span class="n">output</span>
 </pre></div>
 </div>
-<p>We have two buffers: one buffer is for new data by interacting with the environment and the other one is for demonstration data. We obtain the demonstation data online. That is,
+<p>We have two buffers: one buffer is for new data by interacting with the environment and the other one is for demonstration data. We obtain the demonstration data online. That is,
 we use a well-trained model to generate data in the collecting stage and push them into the demonstration buffer. In learning process, we sample from these two buffers separately shown as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># During the learning stage</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
@@ -384,7 +384,7 @@ we use a well-trained model to generate data in the collecting stage and push th
          <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We also need to modify rewards for new data and demonstation data. Taking the CartPole environment as an example:</p>
+<p>We also need to modify rewards for new data and demonstration data. Taking the CartPole environment as an example:</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">new_data</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect_data</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;eps&#39;</span><span class="p">:</span> <span class="n">eps</span><span class="p">})</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_data</span><span class="p">)):</span>

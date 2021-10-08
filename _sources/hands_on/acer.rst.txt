@@ -3,8 +3,8 @@ ACER
 
 Overview
 ---------
-ACER, short for actor-critic with experience replay, is an off-policy actor-critic model with experience replay. It greatly increases
-the sample efficiency and decreasing the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO and truncates importance sample weights with
+ACER, short for actor-critic with experience replay, is an off-policy actor-critic algorithm with experience replay. It greatly increases
+the sample efficiency and decreases the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO (Trust Region Policy Optimization) and truncates importance sample weights with
 bias correction to control the stability of the off-policy estimator. You can find more details in this paper
 `Sample Efficient Actor-Critic with Experience Replay <https://arxiv.org/abs/1611.01224>`_.
 
@@ -13,20 +13,20 @@ Quick Facts
 -------------
 1. ACER  is a **model-free** and **off-policy** RL algorithm.
 
-2. ACER can support both **discrete** action spaces and **continuous** action spaces with several differences
-s
-3. ACER is a actor-critic RL algorithm, which optimizes actor network and critic network, respectively.
+2. ACER can support both **discrete** action spaces and **continuous** action spaces with several differences.
 
-4. ACER decouples acting from learning. Collectors in ACER needs to record behavior probabilty distributions.
+3. ACER is an actor-critic RL algorithm, which optimizes the actor and critic networks respectively.
+
+4. ACER decouples acting from learning. Collectors in ACER needs to record behavior probability distributions.
 
 
 Key Equations
 ---------------------------
-Loss used in ACER contains policy loss and value loss. They often update seperately, so it's necessary to control their relative update speed.
+Loss used in ACER contains policy loss and value loss. They often update separately, so it's necessary to control their relative update speed.
 
 Retrace Q-value estimation
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>
-Given a trajectory generated under the behavior policy :math:`\mu`,  we retrieve a trajectory :math:`\{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}`
+Given a trajectory generated under the behavior policy :math:`\mu`,  we retrieve a trajectory :math:`{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}`
 the Retrace estimator can be
 expressed recursively as follows:
 
@@ -35,9 +35,9 @@ expressed recursively as follows:
     Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
     1},a_{t+1})]+\gamma V(x_{t+1})
 
-where  :math:`\bar{\rho}_t` is the truncated importance weight, :math:`\bar{\rho}_t=\min\{c,\rho\}` with :math:`\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}`. :math:`\pi` is target policy
-Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the taget policy for any behavior policy
-we approximate the Q value by neural network :math:`Q_{\theta}` in a mean squared error loss:
+where  :math:`\bar{\rho}_t` is the truncated importance weight, :math:`\bar{\rho}_t=\min\{c,\rho\}` with :math:`\frac{\pi(a_t|x_t)}{\mu(a_t|x_t)}`. :math:`\pi` is the target policy. 
+Retrace is an off-policy, return based algorithm which has low variance and is proven to converge to the value function of the target policy for any behavior policy. 
+We approximate the Q value by neural network :math:`Q_{\theta}`. We use a mean squared error loss:
 
  .. math::
     L_{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.
@@ -46,13 +46,13 @@ we approximate the Q value by neural network :math:`Q_{\theta}` in a mean square
 policy gradient
 >>>>>>>>>>>>>>>>>>>>>>
 
-To safe-guard against high variance, ACER uses truncated importance weights and introduaces
+To safe-guard against high variance, ACER uses truncated importance weights and introduces
 correction term via the following decomposition of :math:`g^{acer}`:
 
 .. math::
     g^{\text{acer}}=\bar{\rho_t}\nabla_\theta\log\pi_{\theta}(a_t|x_t)[Q^{\text{ret}}(x_t,a_t)-V_{\theta}(x_t)]+\mathbb{E}_{a\sim \pi}\left([\frac{\rho_t(a)-c}{\rho_t(a)}]_+\nabla_{\theta}\log\pi_{\theta}(a|x_t)[Q_\theta(x_t,a)-V_{\theta}(x_t)\right)\right].
 
-To ensure more stability, ACER limit the per-step change to the policy by solving the following linearized KL divergence constraint:
+To ensure more stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:
 
 .. math::
     \begin{split}
@@ -60,8 +60,8 @@ To ensure more stability, ACER limit the per-step change to the policy by solvin
     &subjec\ to\quad \nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]^\top\le\delta 
     \end{split}
 
-The :math:`\phi(\theta)` is target policy network and the :math:`\phi(\theta_a)` is average policy network.
-letting :math:`k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]`, the solution can be easily derived in closed form using the KKT condition:
+The :math:`\phi(\theta)` is the target policy network and the :math:`\phi(\theta_a)` is the average policy network.
+By letting :math:`k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))\|f(\cdot|\phi_{\theta}(x_t))]`, the solution can be easily derived in closed form using the KKT condition:
 
 .. math::
     z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k 
@@ -72,7 +72,7 @@ letting :math:`k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_t))
 Pseudocode
 ----------
 
-There are several differences that using ACER on discrete action space or continuous action space.
+There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.
 
 .. image:: images/ACER_alg1.png
    :align: center
@@ -82,7 +82,7 @@ There are several differences that using ACER on discrete action space or contin
    :align: center
    :scale: 70%
 
-In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sample actions to replace the expectation.
+In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sampled actions to replace the expectation.
 
 .. image:: images/ACER_alg3.png
    :align: center
@@ -91,7 +91,7 @@ In continuous action space, it is impossible to enumerate all actions q value. S
 
 Implementations
 ----------------
-Here we show the ACER algorithm on discrete action space.
+Here we show the ACER algorithm on the discrete action space.
 The default config is defined as follows:
 
 .. autoclass:: ding.policy.acer.ACERPolicy
@@ -105,7 +105,7 @@ You can find more information in :ref:`here <ref2other>`
 The whole code of ACER you can find `here <https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py>`_.
 Here we show some details of this algorithm.
 
-First, we use the following functions to compute retrace Q value.
+First, we use the following functions to compute the retrace Q value.
 
 .. code:: python
 
@@ -139,7 +139,7 @@ First, we use the following functions to compute retrace Q value.
         return q_retraces
 
 
-After that, we calculate policy loss value, it will calcuate the actor loss with importance weights trunction and bias correction loss by the following function 
+After that, we calculate the value of policy loss, it will calculate the actor loss with importance weights truncation and bias correction loss by the following function 
 
 .. code:: python
 
@@ -193,9 +193,9 @@ Then, we execute backward operation towards target_pi. Moreover, we need to calc
             update_gradients.append(actor_gradient-scale*KL_gradient)
         return update_gradients
 
-With new gradients, we can continue to backward and then update parameters with gradients.
+With the new gradients, we can continue to propagate backwardly and then update parameters accordingly.
 
-Finally, we should calculate the Q value loss to update Q-Network 
+Finally, we should calculate the mean squared loss for Q values to update Q-Network 
 
 .. code:: python
 

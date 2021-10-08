@@ -34,7 +34,7 @@ The communication architecture for each agent consists of:
 
 - Attention Unit: determining communication when necessary
 
-- Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively output information that promotes cooperation and forget information that impedes cooperation through gates.
+- Communication Channel: integrating internal states of agents within a group and guiding the agents towards coordinated decision making. The LSTM unit can selectively outputs information that promotes cooperation and forgets information that impedes cooperation through gates.
 
 The overall training of ATOC is an extension of DDPG, including parameter updates of the critic, actor, communication channel, and attention unit.
 
@@ -46,7 +46,7 @@ Select experiences where the action is determined by an agent independently (i.e
    y)^{2}], y = r + \gamma Q^{\mu{'}} 
    (o^{'},a^{'})|_{a^{'}=\mu^{'}(o^{'})} 
 
-The gradients are backpropagated to the policy network and communication channel to update the
+The gradients are propagated backwardly to the policy network and communication channel to update the
 parameters. 
 
 .. math::
