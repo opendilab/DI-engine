@@ -191,7 +191,8 @@ class MAQAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        x = self.actor(inputs)
+        print(inputs)
+        x = self.actor(inputs['obs'])
         return {'logit': x}
 
     def compute_critic(self, inputs: Dict) -> Dict:

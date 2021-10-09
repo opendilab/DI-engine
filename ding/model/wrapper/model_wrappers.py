@@ -187,6 +187,7 @@ class MultinomialSampleWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
+        print(output)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
         assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
@@ -201,6 +202,7 @@ class MultinomialSampleWrapper(IModelWrapper):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output['action'] = action
+        print(output)
         return output
 
 

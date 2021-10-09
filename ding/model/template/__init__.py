@@ -11,3 +11,4 @@ from .sqn import SQN
 from .acer import ACER
 from .qtran import QTran
 from .mappo import MAPPO
+from .maqac import MAQAC
