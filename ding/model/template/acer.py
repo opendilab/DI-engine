@@ -28,7 +28,7 @@ class ACER(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
-            continuous_action_space = False,
+            continuous_action_space: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -75,7 +75,7 @@ class ACER(nn.Module):
             # when the action space is continuous, we use ReparameterizationHead.
             # the action_shape of continuous action space is a int, indicating the num of action dim.
             self.actor_head = ReparameterizationHead(
-                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
             )
             
         else: 
@@ -161,7 +161,7 @@ class ACER(nn.Module):
 
         ReturnsKeys (either):
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
-        Shapes:
+        Shapes: 
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
         Examples:
@@ -173,8 +173,14 @@ class ACER(nn.Module):
         """
         x = self.actor_encoder(inputs)
         x = self.actor_head(x)
-
-        return x
+        if self.continuous_action_space:
+            # for continuous action space, we use ReparametrizationHead
+            # the return is mu and sigma for normal distribution
+            return {'logit': (x['mu'], x['sigma']) }
+        else:
+            # for discrete action space, we use DiscreteHead
+            # the return is prob_val_before_softmax of each action
+            return {'logit': x['logit'] }
 
     def compute_critic(self, inputs: torch.Tensor) -> Dict:
         r"""
