@@ -25,6 +25,7 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .cql import CQLPolicy
+from .dqfd import DQFDPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -77,6 +78,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('dqn_command')
 class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('dqfd_command')
+class DQFDCommandModePolicy(DQFDPolicy, EpsCommandModePolicy):
     pass
 
 
