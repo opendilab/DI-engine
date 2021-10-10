@@ -11,7 +11,7 @@ ant_sac_default_config = dict(
     policy=dict(
         cuda=False,
         on_policy=False,
-        random_collect_size=10000,
+        random_collect_size=0,
         model=dict(
             agent_obs_shape=4,
             global_obs_shape=4,
@@ -21,10 +21,10 @@ ant_sac_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=1,
-            batch_size=256,
-            learning_rate_q=1e-3,
-            learning_rate_policy=1e-3,
+            update_per_collect=2,
+            batch_size=64,
+            learning_rate_q=5e-4,
+            learning_rate_policy=5e-4,
             learning_rate_alpha=3e-4,
             ignore_done=False,
             target_theta=0.005,
@@ -33,11 +33,12 @@ ant_sac_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=1,
+            env_num=8,
+            n_sample=256,
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(),
+        eval=dict(env_num=5),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     ),
 )
@@ -54,7 +55,7 @@ ant_sac_default_create_config = dict(
     policy=dict(
         type='masac',
     ),
-    replay_buffer=dict(type='naive', ),
+    #replay_buffer=dict(type='naive', ),
 )
 ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
 create_config = ant_sac_default_create_config

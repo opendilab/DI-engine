@@ -292,12 +292,15 @@ class MASACPolicy(Policy):
             next_data = {'obs': next_obs}
             target_q_value = self._target_model.forward(next_obs, mode='compute_critic')['q_value']
                 # the value of a policy according to the maximum entropy objective
+            #print(target_q_value[0].shape)
+            #print(output['prob'].shape)
+            #print(self._alpha)
+            #print(output['prob'] *(torch.min(target_q_value[0],target_q_value[1]) - self._alpha * output['log_prob'].squeeze(-1)))
             if self._twin_critic:
                 # find min one as target q value
-                target_q_value = output['prob'] *(torch.min(target_q_value[0],
-                                           target_q_value[1]) - self._alpha * output['log_prob'].squeeze(-1)).sum(dim=-1)
+                target_q_value = (output['prob'] *(torch.min(target_q_value[0],target_q_value[1]) - self._alpha * output['log_prob'].squeeze(-1))).sum(dim=-1)
             else:
-                target_q_value = output['prob'] * (target_q_value - self._alpha * output['log_prob'].squeeze(-1)).sum(dim=-1)
+                target_q_value = (output['prob'] * (target_q_value - self._alpha * output['log_prob'].squeeze(-1))).sum(dim=-1)
         target_value = target_q_value
 
         # =================
@@ -306,10 +309,9 @@ class MASACPolicy(Policy):
         # compute q loss
         if self._twin_critic:
             q_data0 = q_v_1step_td_data(q_value[0], target_value, action, reward, done, data['weight'])
-            loss_dict['critic_loss'], td_error_per_sample0 = q_v_1step_td_error(q_data0, self._gamma)
+            loss_dict['critic_loss'] = q_v_1step_td_error(q_data0, self._gamma)
             q_data1 = q_v_1step_td_data(q_value[1], target_value, action, reward, done, data['weight'])
-            loss_dict['twin_critic_loss'], td_error_per_sample1 = q_v_1step_td_error(q_data1, self._gamma)
-            td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
+            loss_dict['twin_critic_loss'] = q_v_1step_td_error(q_data1, self._gamma)
         else:
             q_data = q_v_1step_td_data(q_value, target_value, action, reward, done, data['weight'])
             loss_dict['critic_loss'], td_error_per_sample = q_v_1step_td_error(q_data, self._gamma)
@@ -326,7 +328,7 @@ class MASACPolicy(Policy):
         prob = F.softmax(logit, dim = -1)
         log_prob = torch.log(prob + 1e-8)
 
-        eval_data = {'obs': obs, 'action': output['action']}
+        #eval_data = {'obs': obs, 'action': output['action']}
         new_q_value = self._learn_model.forward(obs, mode='compute_critic')['q_value']
         if self._twin_critic:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
@@ -335,7 +337,9 @@ class MASACPolicy(Policy):
         # policy network
         # =================
         # compute policy loss
-        policy_loss = prob*(self._alpha * log_prob - new_q_value.unsqueeze(-1)).sum(dim=-1).mean()
+        #print(prob.shape)
+        #print(log_prob.shape)
+        policy_loss = (prob*(self._alpha * log_prob - new_q_value.squeeze(-1))).sum(dim=-1).mean()
 
         loss_dict['policy_loss'] = policy_loss
 
@@ -348,7 +352,7 @@ class MASACPolicy(Policy):
         if self._auto_alpha:
             if self._log_space:
                 log_prob = log_prob + self._target_entropy
-                loss_dict['alpha_loss'] = -prob*(self._log_alpha * log_prob.detach()).sum(dim=-1).mean()
+                loss_dict['alpha_loss'] = (-prob*(self._log_alpha * log_prob.detach())).sum(dim=-1).mean()
 
                 self._alpha_optim.zero_grad()
                 loss_dict['alpha_loss'].backward()
@@ -356,7 +360,7 @@ class MASACPolicy(Policy):
                 self._alpha = self._log_alpha.detach().exp()
             else:
                 log_prob = log_prob + self._target_entropy
-                loss_dict['alpha_loss'] = -prob*(self._alpha * log_prob.detach()).sum(dim=-1).mean()
+                loss_dict['alpha_loss'] = (-prob*(self._alpha * log_prob.detach())).sum(dim=-1).mean()
 
                 self._alpha_optim.zero_grad()
                 loss_dict['alpha_loss'].backward()
@@ -366,8 +370,8 @@ class MASACPolicy(Policy):
         loss_dict['total_loss'] = sum(loss_dict.values())
 
         info_dict = {}
-        if self._value_network:
-            info_dict['cur_lr_v'] = self._optimizer_value.defaults['lr']
+        #if self._value_network:
+        #    info_dict['cur_lr_v'] = self._optimizer_value.defaults['lr']
 
         # =============
         # after update
@@ -378,8 +382,8 @@ class MASACPolicy(Policy):
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
-            'priority': td_error_per_sample.abs().tolist(),
-            'td_error': td_error_per_sample.detach().mean().item(),
+            #'priority': td_error_per_sample.abs().tolist(),
+            #'td_error': td_error_per_sample.detach().mean().item(),
             'alpha': self._alpha.item(),
             'target_value': target_value.detach().mean().item(),
             **info_dict,
@@ -392,8 +396,8 @@ class MASACPolicy(Policy):
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
-        if self._value_network:
-            ret.update({'optimizer_value': self._optimizer_value.state_dict()})
+        #if self._value_network:
+        #    ret.update({'optimizer_value': self._optimizer_value.state_dict()})
         if self._auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
         return ret
@@ -401,8 +405,8 @@ class MASACPolicy(Policy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        if self._value_network:
-            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        #if self._value_network:
+        #    self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
@@ -432,12 +436,13 @@ class MASACPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
+        #print(data)
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+            output = self._collect_model.forward({'obs':data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
-        print(output)
+        #print(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -452,7 +457,7 @@ class MASACPolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        print(model_output)
+        #print(model_output)
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
@@ -490,7 +495,7 @@ class MASACPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
+            output = self._eval_model.forward({'obs':data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
