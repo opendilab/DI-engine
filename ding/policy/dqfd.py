@@ -172,6 +172,7 @@ class DQFDPolicy(DQNPolicy):
             ignore_done=self._cfg.learn.ignore_done,
             use_nstep=True
         )
+        data['done_1'] = data['done_1'].float()
         if self._cuda:
             data = to_device(data, self._device)
         # ====================
@@ -196,6 +197,7 @@ class DQFDPolicy(DQNPolicy):
             target_q_action,
             data['reward'],
             data['done'],
+            data['done_1'],
             data['weight'],
             target_q_value_one_step,
             target_q_action_one_step,
@@ -325,6 +327,7 @@ class DQFDPolicy(DQNPolicy):
         )  # here we want to include one-step next observation
         for i in range(len(data)):
             data[i]['next_obs_1'] = data_1[i]['next_obs']  # concat the one-step next observation
+            data[i]['done_1'] = data_1[i]['done']
         return get_train_sample(data, self._unroll_len)
 
     '''
