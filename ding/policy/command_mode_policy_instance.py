@@ -153,7 +153,6 @@ class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
     pass
 
-
 @POLICY_REGISTRY.register('cql_command')
 class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
