@@ -40,15 +40,15 @@ setup(
         *find_packages(include=('dizoo'
                                 'dizoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg']
+    package_data={package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
                   for package_name in find_packages(include=('ding.*'))},
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
         'requests>=2.25.1',
         'six',
-        'gym>=0.15.3',  # pypy incompatible
-        'torch>=1.3.1,<=1.8.0',
+        'gym==0.20.0',  # pypy incompatible
+        'torch>=1.3.1,<=1.9.0',  # PyTorch 1.9.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml',
         'easydict==1.9',
         'tensorboardX>=2.1,<=2.2',
@@ -70,6 +70,7 @@ setup(
         'enum_tools',
         'scipy',
         'trueskill',
+        'h5py',
     ],
     extras_require={
         'test': [
@@ -88,11 +89,13 @@ setup(
         'fast': [
             'numpy-stl',
             'numba>=0.53.0',
+        ],
+        'dist': [
             'redis==3.5.3',
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'atari_py',
+            'ale-py',  # atari
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
@@ -114,12 +117,12 @@ setup(
         'minigrid_env': [
             'gym-minigrid',
         ],
-        'd4rl_env': [
-            'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',
-        ],
-        'pybulletgym_env': [
-            'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
-        ],
+        # 'd4rl_env': [
+        #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',
+        # ],
+        # 'pybulletgym_env': [
+        #     'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
+        # ],
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',
@@ -132,6 +135,10 @@ setup(
             'sk-video',  # pypy incompatible
             'whichcraft',
             'joblib',
+        ],
+
+        'slimevolleygym_env': [
+            'slimevolleygym',
         ],
         'k8s': [
             'kubernetes',
