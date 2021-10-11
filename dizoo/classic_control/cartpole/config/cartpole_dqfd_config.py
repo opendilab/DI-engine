@@ -10,6 +10,7 @@ cartpole_dqfd_config = dict(
     ),
     policy=dict(
         cuda=False,
+        priority=True,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -21,14 +22,14 @@ cartpole_dqfd_config = dict(
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            lambda1 = 2.0,
+            lambda1 = 1,
             lambda2 = 3.0,
-            lambda3 = 1e-5,
+            lambda3 = 0,  # set this to be 0 (L2 loss = 0) with expert_replay_buffer_size = 0 and lambda1 = 0 recover the one step pdd dqn
             per_train_iter_k = 10,
             expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
         ),
         # Users should add their own path here (path should lead to a well-trained model)
-        collect=dict(n_sample=64, demonstration_info_path = 'path'),
+        collect=dict(n_sample=8, demonstration_info_path = 'path'),
         # note: this is the times after which you learns to evaluate
         eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(
