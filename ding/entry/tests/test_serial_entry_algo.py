@@ -25,7 +25,7 @@ from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_m
 from dizoo.classic_control.cartpole.entry.cartpole_ppo_main import main as ppo_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
-from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
+from dizoo.classic_control.pendulum.config import pendulum_td3_bc_config, pendulum_td3_bc_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
@@ -71,7 +71,7 @@ def test_ddpg():
 
 @pytest.mark.algotest
 def test_td3():
-    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+    config = [deepcopy(pendulum_td3_bc_config), deepcopy(pendulum_td3_bc_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

@@ -281,6 +281,7 @@ class DDPGPolicy(Policy):
             # 'q_value': np.array(q_value).mean(),
             'action': data.get('action').mean(),
             'priority': td_error_per_sample.abs().tolist(),
+            'td_error':  td_error_per_sample.abs().mean(),
             **loss_dict,
             **q_value_dict,
         }
@@ -404,7 +405,7 @@ class DDPGPolicy(Policy):
         """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
-            'action'
+            'action', 'td_error'
         ]
         if self._twin_critic:
             ret += ['critic_twin_loss']
