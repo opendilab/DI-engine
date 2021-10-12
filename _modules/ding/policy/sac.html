@@ -357,20 +357,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># TODO self._cfg.model.value_network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">twin_critic</span>
 
-        <span class="c1"># Weight Init</span>
+        <span class="c1"># Weight Init for the last output layer</span>
         <span class="n">init_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">init_w</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">log_sigma_layer</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">log_sigma_layer</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
 
         <span class="c1"># Optimizers</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
@@ -426,13 +418,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including current lr, loss, target_q_value and other \</span>
+<span class="sd">                running information.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
@@ -447,20 +440,20 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;obs&#39;</span><span class="p">)</span>
-        <span class="n">next_obs</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;next_obs&#39;</span><span class="p">)</span>
-        <span class="n">reward</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reward&#39;</span><span class="p">)</span>
-        <span class="n">done</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;done&#39;</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
+        <span class="n">next_obs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span>
 
-        <span class="c1"># predict q value</span>
+        <span class="c1"># 1. predict q value</span>
         <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
 
-        <span class="c1"># predict target value depend self._value_network.</span>
+        <span class="c1"># 2. predict target value depend self._value_network.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
-            <span class="c1"># predict v value</span>
             <span class="n">v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_value_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;v_value&#39;</span><span class="p">]</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">next_v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_value_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;v_value&#39;</span><span class="p">]</span>
+            <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">next_v_value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># target q value. SARSA: first predict next action, then calculate next q value</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -483,30 +476,26 @@
                                                <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">target_q_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">target_value</span> <span class="o">=</span> <span class="n">next_v_value</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span> <span class="k">else</span> <span class="n">target_q_value</span>
 
-        <span class="c1"># =================</span>
-        <span class="c1"># q network</span>
-        <span class="c1"># =================</span>
-        <span class="c1"># compute q loss</span>
+        <span class="c1"># 3. compute q loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
-            <span class="n">q_data0</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
+            <span class="n">q_data0</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
             <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;critic_loss&#39;</span><span class="p">],</span> <span class="n">td_error_per_sample0</span> <span class="o">=</span> <span class="n">v_1step_td_error</span><span class="p">(</span><span class="n">q_data0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
-            <span class="n">q_data1</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
+            <span class="n">q_data1</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
             <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;twin_critic_loss&#39;</span><span class="p">],</span> <span class="n">td_error_per_sample1</span> <span class="o">=</span> <span class="n">v_1step_td_error</span><span class="p">(</span><span class="n">q_data1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
             <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="p">(</span><span class="n">td_error_per_sample0</span> <span class="o">+</span> <span class="n">td_error_per_sample1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">q_data</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">,</span> <span class="n">target_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
+            <span class="n">q_data</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">,</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
             <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;critic_loss&#39;</span><span class="p">],</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">v_1step_td_error</span><span class="p">(</span><span class="n">q_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
 
-        <span class="c1"># update q network</span>
+        <span class="c1"># 4. update q network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;critic_loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
             <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;twin_critic_loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="c1"># evaluate to get action distribution</span>
+        <span class="c1"># 5. evaluate to get action distribution</span>
         <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
         <span class="n">dist</span> <span class="o">=</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">pred</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
@@ -521,10 +510,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
             <span class="n">new_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="c1"># =================</span>
-        <span class="c1"># value network</span>
-        <span class="c1"># =================</span>
-        <span class="c1"># compute value loss</span>
+        <span class="c1"># 6. (optional) compute value loss and update value network</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
             <span class="c1"># new_q_value: (bs, ), log_prob: (bs, act_shape) -&gt; target_v_value: (bs, )</span>
             <span class="n">target_v_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -535,20 +521,17 @@
             <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;value_loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="c1"># =================</span>
-        <span class="c1"># policy network</span>
-        <span class="c1"># =================</span>
-        <span class="c1"># compute policy loss</span>
+        <span class="c1"># 7. compute policy loss</span>
         <span class="n">policy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span> <span class="o">-</span> <span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
         <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy_loss</span>
 
-        <span class="c1"># update policy network</span>
+        <span class="c1"># 8. update policy network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
-        <span class="c1"># compute alpha loss</span>
+        <span class="c1"># 9. compute alpha loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_space</span><span class="p">:</span>
                 <span class="n">log_prob</span> <span class="o">=</span> <span class="n">log_prob</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_entropy</span>
@@ -569,10 +552,6 @@
 
         <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;total_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-        <span class="n">info_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
-            <span class="n">info_dict</span><span class="p">[</span><span class="s1">&#39;cur_lr_v&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">]</span>
-
         <span class="c1"># =============</span>
         <span class="c1"># after update</span>
         <span class="c1"># =============</span>
@@ -585,14 +564,14 @@
             <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="s1">&#39;td_error&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-            <span class="s1">&#39;target_value&#39;</span><span class="p">:</span> <span class="n">target_value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-            <span class="o">**</span><span class="n">info_dict</span><span class="p">,</span>
+            <span class="s1">&#39;target_q_value&#39;</span><span class="p">:</span> <span class="n">target_q_value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="o">**</span><span class="n">loss_dict</span>
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;optimizer_q&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;optimizer_policy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
         <span class="p">}</span>
@@ -604,6 +583,7 @@
 
     <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_q&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_value&#39;</span><span class="p">])</span>
@@ -646,13 +626,13 @@
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
 
-    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Generate dict type transition data from inputs.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs (:obj:`Any`): Env observation</span>
-<span class="sd">            - model_output (:obj:`dict`): Output of collect model, including at least [&#39;action&#39;]</span>
+<span class="sd">            - policy_output (:obj:`dict`): Output of policy collect model, including at least [&#39;action&#39;]</span>
 <span class="sd">            - timestep (:obj:`namedtuple`): Output after env step, including at least [&#39;obs&#39;, &#39;reward&#39;, &#39;done&#39;] \</span>
 <span class="sd">                (here &#39;obs&#39; indicates obs after env step, i.e. next_obs).</span>
 <span class="sd">        Return:</span>
@@ -661,7 +641,7 @@
         <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
             <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
-            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
             <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
         <span class="p">}</span>
@@ -713,16 +693,18 @@
 <span class="sd">            - vars (:obj:`List[str]`): Variables&#39; name list.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">twin_critic</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;twin_critic_loss&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span> <span class="k">else</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
-                <span class="s1">&#39;alpha_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_q&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_p&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_1&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;q_value_2&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;td_error&#39;</span><span class="p">,</span> <span class="s1">&#39;target_value&#39;</span>
-            <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
-                <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_q&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_p&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_1&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_2&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;td_error&#39;</span><span class="p">,</span> <span class="s1">&#39;target_value&#39;</span>
-            <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span></div>
+        <span class="n">alpha_loss</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;alpha_loss&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">value_loss</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;value_loss&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s1">&#39;alpha_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cur_lr_q&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cur_lr_p&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;target_q_value&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;alpha&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;td_error&#39;</span><span class="p">,</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span> <span class="o">+</span> <span class="n">alpha_loss</span> <span class="o">+</span> <span class="n">value_loss</span></div>
 </pre></div>
 
            </div>
