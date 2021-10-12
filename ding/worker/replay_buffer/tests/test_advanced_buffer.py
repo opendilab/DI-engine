@@ -98,6 +98,10 @@ class TestAdvancedBuffer:
         eps = advanced_buffer._eps
         for i in range(2, 5):
             assert (info['priority'][i] + eps == advanced_buffer._data[selected_idx[i]]['priority'])
+        # test case when data is None(such as max use remove)
+        advanced_buffer._data[selected_idx[0]] = None
+        advanced_buffer._valid_count -= 1
+        advanced_buffer.update(info)
 
         # test beta
         advanced_buffer.beta = 1.
@@ -128,6 +132,13 @@ class TestAdvancedBuffer:
         for k, v in use_dict.items():
             if v > advanced_buffer._max_use:
                 assert advanced_buffer._data[k] is None
+
+        for _ in range(64):
+            data = generate_data()
+            data['priority'] = None
+            advanced_buffer.push(data, 0)
+        batch = advanced_buffer.sample(10, 0, sample_range=slice(-20, -2))
+        assert len(batch) == 10
 
     def test_head_tail(self):
         buffer_cfg = deep_merge_dicts(

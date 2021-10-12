@@ -78,10 +78,13 @@ class R2D2Policy(Policy):
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
-        nstep=3,
+        nstep=5,
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
         burnin_step=2,
+        # (int) the trajectory length to unroll the RNN network minus
+        # the timestep of burnin operation
+        unroll_len=80,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -99,7 +102,7 @@ class R2D2Policy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
+            n_sample=64,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -152,9 +155,15 @@ class R2D2Policy(Policy):
             update_kwargs={'freq': self._cfg.learn.target_update_freq}
         )
         self._target_model = model_wrap(
-            self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size
+            self._target_model,
+            wrapper_name='hidden_state',
+            state_num=self._cfg.learn.batch_size,
         )
-        self._learn_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size)
+        self._learn_model = model_wrap(
+            self._model,
+            wrapper_name='hidden_state',
+            state_num=self._cfg.learn.batch_size,
+        )
         self._learn_model = model_wrap(self._learn_model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
@@ -177,23 +186,36 @@ class R2D2Policy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         bs = self._burnin_step
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)])
+
+        # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
         ignore_done = self._cfg.learn.ignore_done
 
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['done'] = data['done'][bs:self._unroll_len_add_burnin_step-self._nstep].float()
+            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
 
-        data['action'] = data['action'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['reward'] = data['reward'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['burnin_obs'] = data['obs'][:bs]     
-        data['main_obs'] = data['obs'][bs:self._unroll_len_add_burnin_step-self._nstep]
-        data['target_obs'] = data['obs'][bs + self._nstep:]
+        # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] =  [None for _ in range(self._unroll_len_add_burnin_step-self._nstep)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:self._unroll_len_add_burnin_step-self._nstep]
+            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
+        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+
+        data['action'] = data['action'][bs:-self._nstep]
+        data['reward'] = data['reward'][bs:-self._nstep]
+
+        # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
+        # target_q_value, and target_q_action
+        data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
+        # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
+        # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
+        data['main_obs'] = data['obs'][bs:-self._nstep]
+        # the target_obs is used to calculate the target_q_value
+        data['target_obs'] = data['obs'][bs + self._nstep:]
 
         return data
 
@@ -216,18 +238,29 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
-        if len(data['burnin_obs']) != 0:
+
+        if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
-                inputs = {'obs': data['burnin_obs'], 'enable_fast_timestep': True}
-                _ = self._learn_model.forward(inputs)
-                _ = self._target_model.forward(inputs)
+                inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
+                burnin_output = self._learn_model.forward(
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                )
+                burnin_output_target = self._target_model.forward(
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                )
+
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._learn_model.forward(inputs)['logit']
+        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
+        self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
+
         next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
         with torch.no_grad():
             target_q_value = self._target_model.forward(next_inputs)['logit']
+            # argmax_action double_dqn
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
@@ -236,7 +269,7 @@ class R2D2Policy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        for t in range(self._unroll_len_add_burnin_step- self._burnin_step-self._nstep):
+        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
@@ -285,7 +318,8 @@ class R2D2Policy(Policy):
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step 
+        self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
+        self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
 
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
@@ -311,6 +345,8 @@ class R2D2Policy(Policy):
         data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
+            # in collect phase, inference=True means that each time we only pass one timestep data,
+            # so the we can get the hidden state of rnn: <prev_state> at each timestep.
             output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')

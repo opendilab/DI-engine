@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
@@ -65,7 +65,7 @@ def serial_pipeline(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
@@ -82,7 +82,7 @@ def serial_pipeline(
     if cfg.policy.get('random_collect_size', 0) > 0:
         action_space = collector_env.env_info().act_space
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(policy.collect_mode)
+        collector.reset_policy(random_policy)
         collect_kwargs = commander.step()
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)

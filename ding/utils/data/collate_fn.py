@@ -3,8 +3,10 @@ from typing import List, Dict, Union, Any
 
 import torch
 import re
-from torch._six import container_abcs, string_classes, int_classes
+from torch._six import string_classes
+import collections.abc as container_abcs
 
+int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
 
 default_collate_err_msg_format = (
@@ -165,7 +167,10 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-def default_decollate(batch: Union[torch.Tensor, Sequence, Mapping], ignore: List[str] = ['prev_state']) -> List[Any]:
+def default_decollate(
+        batch: Union[torch.Tensor, Sequence, Mapping],
+        ignore: List[str] = ['prev_state', 'prev_actor_state', 'prev_critic_state']
+) -> List[Any]:
     """
     Overview:
         Drag out batch_size collated data's batch size to decollate it,
