@@ -12,13 +12,13 @@ from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
-from .base_policy import Policy
+from .sac import SACPolicy
 from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('cql')
-class CQLPolicy(Policy):
+class CQLPolicy(SACPolicy):
     r"""
        Overview:
            Policy class of CQL algorithm.
@@ -222,14 +222,6 @@ class CQLPolicy(Policy):
         self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
         self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
         self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
-        if self._twin_critic:
-            self._model.critic[0][2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[0][2].last.bias.data.uniform_(-init_w, init_w)
-            self._model.critic[1][2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[1][2].last.bias.data.uniform_(-init_w, init_w)
-        else:
-            self._model.critic[2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[2].last.bias.data.uniform_(-init_w, init_w)
 
         # Optimizers
         if self._value_network:
@@ -309,20 +301,21 @@ class CQLPolicy(Policy):
 
         self._learn_model.train()
         self._target_model.train()
-        obs = data.get('obs')
-        next_obs = data.get('next_obs')
-        reward = data.get('reward')
-        done = data.get('done')
+        obs = data['obs']
+        next_obs = data['next_obs']
+        reward = data['reward']
+        done = data['done']
 
-        # predict q value
+        # 1. predict q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
 
-        # predict target value depend self._value_network.
+        # 2. predict target value
         if self._value_network:
             # predict v value
             v_value = self._learn_model.forward(obs, mode='compute_value_critic')['v_value']
             with torch.no_grad():
                 next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
+            target_q_value = next_v_value
         else:
             # target q value. SARSA: first predict next action, then calculate next q value
             with torch.no_grad():
@@ -344,23 +337,19 @@ class CQLPolicy(Policy):
                                                target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
                 else:
                     target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
-        target_value = next_v_value if self._value_network else target_q_value
 
-        # =================
-        # q network
-        # =================
-        # compute q loss
+        # 3. compute q loss
         if self._twin_critic:
-            q_data0 = v_1step_td_data(q_value[0], target_value, reward, done, data['weight'])
+            q_data0 = v_1step_td_data(q_value[0], target_q_value, reward, done, data['weight'])
             loss_dict['critic_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
-            q_data1 = v_1step_td_data(q_value[1], target_value, reward, done, data['weight'])
+            q_data1 = v_1step_td_data(q_value[1], target_q_value, reward, done, data['weight'])
             loss_dict['twin_critic_loss'], td_error_per_sample1 = v_1step_td_error(q_data1, self._gamma)
             td_error_per_sample = (td_error_per_sample0 + td_error_per_sample1) / 2
         else:
-            q_data = v_1step_td_data(q_value, target_value, reward, done, data['weight'])
+            q_data = v_1step_td_data(q_value, target_q_value, reward, done, data['weight'])
             loss_dict['critic_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
-        # add CQL
+        # 4. add CQL
 
         curr_actions_tensor, curr_log_pis = self._get_policy_actions(data, self._num_actions)
         new_curr_actions_tensor, new_log_pis = self._get_policy_actions({'obs': next_obs}, self._num_actions)
@@ -421,14 +410,14 @@ class CQLPolicy(Policy):
         if self._twin_critic:
             loss_dict['twin_critic_loss'] += min_qf2_loss
 
-        # update q network
+        # 5. update q network
         self._optimizer_q.zero_grad()
         loss_dict['critic_loss'].backward(retain_graph=True)
         if self._twin_critic:
             loss_dict['twin_critic_loss'].backward()
         self._optimizer_q.step()
 
-        # evaluate to get action distribution
+        # 6. evaluate to get action distribution
         (mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
         dist = Independent(Normal(mu, sigma), 1)
         pred = dist.rsample()
@@ -442,10 +431,7 @@ class CQLPolicy(Policy):
         if self._twin_critic:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
 
-        # =================
-        # value network
-        # =================
-        # compute value loss
+        # 7. (optional)compute value loss
         if self._value_network:
             # new_q_value: (bs, ), log_prob: (bs, act_shape) -> target_v_value: (bs, )
             target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
@@ -456,20 +442,17 @@ class CQLPolicy(Policy):
             loss_dict['value_loss'].backward()
             self._optimizer_value.step()
 
-        # =================
-        # policy network
-        # =================
-        # compute policy loss
+        # 8. compute policy loss
         policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
 
         loss_dict['policy_loss'] = policy_loss
 
-        # update policy network
+        # 9. update policy network
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
 
-        # compute alpha loss
+        # 10. compute alpha loss
         if self._auto_alpha:
             if self._log_space:
                 log_prob = log_prob + self._target_entropy
@@ -490,10 +473,6 @@ class CQLPolicy(Policy):
 
         loss_dict['total_loss'] = sum(loss_dict.values())
 
-        info_dict = {}
-        if self._value_network:
-            info_dict['cur_lr_v'] = self._optimizer_value.defaults['lr']
-
         # =============
         # after update
         # =============
@@ -506,146 +485,9 @@ class CQLPolicy(Policy):
             'priority': td_error_per_sample.abs().tolist(),
             'td_error': td_error_per_sample.detach().mean().item(),
             'alpha': self._alpha.item(),
-            'target_value': target_value.detach().mean().item(),
-            **info_dict,
+            'target_q_value': target_q_value.detach().mean().item(),
             **loss_dict
         }
-
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        ret = {
-            'model': self._learn_model.state_dict(),
-            'target_model': self._target_model.state_dict(),
-            'optimizer_q': self._optimizer_q.state_dict(),
-            'optimizer_policy': self._optimizer_policy.state_dict(),
-        }
-        if self._value_network:
-            ret.update({'optimizer_value': self._optimizer_value.state_dict()})
-        if self._auto_alpha:
-            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
-        return ret
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._target_model.load_state_dict(state_dict['target_model'])
-        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
-        if self._value_network:
-            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
-        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
-        if self._auto_alpha:
-            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Use action noise for exploration.
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='base')
-        self._collect_model.reset()
-
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of collect mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            (mu, sigma) = self._collect_model.forward(data, mode='compute_actor')['logit']
-            dist = Independent(Normal(mu, sigma), 1)
-            action = torch.tanh(dist.rsample())
-            output = {'logit': (mu, sigma), 'action': action}
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step, i.e. next_obs).
-        Return:
-            - transition (:obj:`Dict[str, Any]`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return transition
-
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        return get_train_sample(data, self._unroll_len)
-
-    def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model. Unlike learn and collect model, eval model does not need noise.
-        """
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._eval_model.eval()
-        with torch.no_grad():
-            (mu, sigma) = self._eval_model.forward(data, mode='compute_actor')['logit']
-            action = torch.tanh(mu)  # deterministic_eval
-            output = {'action': action}
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
-
-    def _monitor_vars_learn(self) -> List[str]:
-        r"""
-        Overview:
-            Return variables' name if variables are to used in monitor.
-        Returns:
-            - vars (:obj:`List[str]`): Variables' name list.
-        """
-        twin_critic = ['twin_critic_loss'] if self._twin_critic else []
-        if self._auto_alpha:
-            return super()._monitor_vars_learn() + [
-                'alpha_loss', 'policy_loss', 'critic_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'q_value_1',
-                'q_value_2', 'alpha', 'td_error', 'target_value'
-            ] + twin_critic
-        else:
-            return super()._monitor_vars_learn() + [
-                'policy_loss', 'critic_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'q_value_1', 'q_value_2',
-                'alpha', 'td_error', 'target_value'
-            ] + twin_critic
 
     def _get_policy_actions(self, data: Dict, num_actions=10, epsilon: float = 1e-6) -> List:
 

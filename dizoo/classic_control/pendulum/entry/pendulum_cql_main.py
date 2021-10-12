@@ -24,6 +24,7 @@ def generate(args):
     collect_demo_data(config, collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
                       seed=args.seed, expert_data_path=main_config.policy.collect.save_path, state_dict=state_dict)
 
+
 def train_expert(args):
     from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
     config = deepcopy([main_config, create_config])
