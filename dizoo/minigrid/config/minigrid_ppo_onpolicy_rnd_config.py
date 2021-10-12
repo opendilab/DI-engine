@@ -5,7 +5,7 @@ print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
-    exp_name='minigrid_fourrooms_ppo_onpolicy_rnd',
+    exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_debug',
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,

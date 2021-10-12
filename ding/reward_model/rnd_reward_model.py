@@ -11,6 +11,7 @@ from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 from ding.utils import RunningMeanStd
+from ding.torch_utils.data_helper import to_tensor
 
 
 def collect_states(iterator):  # get total_states
@@ -80,7 +81,7 @@ class RndRewardModel(BaseRewardModel):
         
         # TODO(pu) observation normalization
         self._running_mean_std_rnd_obs.update(train_data.cpu().numpy())
-        train_data = (train_data - self._running_mean_std_rnd_obs.mean)/ self._running_mean_std_rnd_obs.std
+        train_data = (train_data - to_tensor(self._running_mean_std_rnd_obs.mean))/ to_tensor(self._running_mean_std_rnd_obs.std)
         train_data = torch.clamp(train_data, min=-5, max=5)
 
         predict_feature, target_feature = self.reward_model(train_data)
@@ -101,7 +102,7 @@ class RndRewardModel(BaseRewardModel):
         obs = collect_states(data)
         obs = torch.stack(obs).to(self.device)
         # TODO(pu)
-        obs = (obs - self._running_mean_std_rnd_obs.mean)/ self._running_mean_std_rnd_obs.std  # to mean 0, std 1
+        obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean))/ to_tensor(self._running_mean_std_rnd_obs.std)  # to mean 0, std 1
         obs = torch.clamp(obs, min=-5, max=5)
 
         with torch.no_grad():
@@ -115,7 +116,6 @@ class RndRewardModel(BaseRewardModel):
             # transform to (mean 0, std 1), empirically we found this normalization method works well
             # than only dividing the self._running_mean_std_rnd.std
             reward = (reward -self._running_mean_std_rnd.mean)/ self._running_mean_std_rnd.std
-
             # reward = 0.5 * reward
 
             self.estimate_cnt_rnd += 1
