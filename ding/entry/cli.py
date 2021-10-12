@@ -161,7 +161,8 @@ def cli(
         from .serial_entry_dqfd import serial_pipeline_dqfd
         if config is None:
             config = get_predefined_config(env, policy)
-        serial_pipeline_dqfd(config, seed, max_iterations=train_iter)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
