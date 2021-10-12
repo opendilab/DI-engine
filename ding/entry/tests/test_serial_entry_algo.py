@@ -40,6 +40,8 @@ from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
 from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -341,7 +343,7 @@ def test_cql():
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
-    expert_data_path = config[0].policy.learn.save_path
+    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
     try:
         collect_demo_data(
@@ -361,6 +363,50 @@ def test_cql():
 
 
 @pytest.mark.algotest
+def test_discrete_cql():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].exp_name = 'cartpole'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(cartpole_discrete_cql_config), deepcopy(cartpole_discrete_cql_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("27. discrete cql\n")
+
+
+# @pytest.mark.algotest
+def test_wqmix():
+    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("28. wqmix\n")
+
+
+# @pytest.mark.algotest
 def test_running_on_orchestrator():
     from kubernetes import config, client, dynamic
     cluster_name = 'test-k8s-launcher'
@@ -401,17 +447,6 @@ def test_running_on_orchestrator():
     olauncher.delete_orchestrator()
     # delete k8s cluster
     launcher.delete_cluster()
-
-
-# @pytest.mark.algotest
-def test_wqmix():
-    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("27. wqmix\n")
 
 
 def create_object_from_config(config_path: str, namespace: str = 'default'):

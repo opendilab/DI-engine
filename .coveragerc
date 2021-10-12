@@ -7,9 +7,11 @@ omit =
   ding/utils/k8s_helper.py
   ding/config/utils.py
   ding/entry/tests/test_serial_entry_algo.py
+  ding/entry/tests/test_serial_entry.py
   ding/entry/dist_entry.py
   ding/entry/cli.py
   ding/entry/predefined_config.py
   ding/hpc_rl/*
   ding/worker/collector/tests/speed_test/*
   ding/envs/env_wrappers/env_wrappers.py
+  ding/rl_utils/tests/test_ppg.py

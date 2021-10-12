@@ -21,8 +21,6 @@ pendulum_cql_default_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            data_type='naive',
-            data_path='./default_experiment/expert.pkl',
             train_epoch=30000,
             batch_size=128,
             learning_rate_q=3e-4,
@@ -39,6 +37,8 @@ pendulum_cql_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            data_type='naive',
+            data_path='./default_experiment/expert.pkl',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),

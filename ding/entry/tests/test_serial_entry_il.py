@@ -60,7 +60,7 @@ def test_serial_pipeline_il_ppo():
 
     # il training 1
     il_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
-    il_config[0].policy.learn.train_epoch = 10
+    il_config[0].policy.learn.train_epoch = 20
     il_config[0].policy.type = 'ppo_il'
     _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
