@@ -45,6 +45,9 @@ def serial_pipeline_offline(
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
+    # Dataset
+    dataset = create_dataset(cfg)
+    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
     # Env, Policy
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
@@ -55,9 +58,6 @@ def serial_pipeline_offline(
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    # import ipdb; ipdb.set_trace()
-    dataset = create_dataset(cfg)
-    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
