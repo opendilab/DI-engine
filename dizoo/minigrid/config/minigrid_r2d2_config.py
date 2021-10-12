@@ -3,11 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-<<<<<<< HEAD
-    exp_name='minigrid_empty8_r2d2_bs2_n5',
-=======
     exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e7_rbs1e5',
->>>>>>> fac84bcf829bbf7a24bac2d404fd078ebd93e30e
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -24,17 +20,6 @@ minigrid_r2d2_config = dict(
             action_shape=7,
             encoder_hidden_size_list=[256, 128, 64, 64],
         ),
-<<<<<<< HEAD
-        discount_factor=0.999,
-        burnin_step=2,
-        nstep=5,
-        unroll_len=80,
-        learn=dict(
-            update_per_collect=20,
-            batch_size=64,
-            learning_rate=0.0005,
-            target_update_freq=100,
-=======
         discount_factor=0.997,
         burnin_step=20,
         nstep=5,
@@ -52,7 +37,6 @@ minigrid_r2d2_config = dict(
             batch_size=64,
             learning_rate=0.0005,
             target_update_freq=2500, 
->>>>>>> fac84bcf829bbf7a24bac2d404fd078ebd93e30e
         ),
         collect=dict(
             n_sample=32,
@@ -64,13 +48,8 @@ minigrid_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-<<<<<<< HEAD
-                decay=10000,
-            ), replay_buffer=dict(replay_buffer_size=10000, )
-=======
                 decay=1e7,
             ), replay_buffer=dict(replay_buffer_size=100000, )
->>>>>>> fac84bcf829bbf7a24bac2d404fd078ebd93e30e
         ),
     ),
 )

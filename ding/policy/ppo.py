@@ -104,7 +104,7 @@ def dict_data_split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
 class PPOPolicy(Policy):
     r"""
     Overview:
-        Policy class of PPO algorithm.
+        Policy class of  on policy version PPO algorithm.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -119,11 +119,9 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
-<<<<<<< HEAD
         nstep_return=False,
-=======
         multi_agent=False,
->>>>>>> fac84bcf829bbf7a24bac2d404fd078ebd93e30e
+
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
