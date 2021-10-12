@@ -81,6 +81,8 @@ class HDF5Dataset(Dataset):
         data_path = cfg.policy.collect.get('data_path', None)
         data = h5py.File(data_path, 'r')
         self._load_data(data)
+        if cfg.policy.collect.get('normalize_states', None):
+            self._normalize_states()
 
     def __len__(self) -> int:
         return len(self._data['obs'])
@@ -93,6 +95,20 @@ class HDF5Dataset(Dataset):
         for k in dataset.keys():
             logging.info(f'Load {k} data.')
             self._data[k] = dataset[k][:]
+
+    def _normalize_states(self, eps=1e-3):
+        self._mean = self._data['obs'].mean(0, keepdims=True)
+        self._std = self._data['obs'].std(0, keepdims=True) + eps
+        self._data['obs'] = (self._data['obs'] - self._mean) / self._std
+        self._data['next_obs'] = (self._data['next_obs'] - self._mean) / self._std
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def std(self):
+        return self._std
 
 
 def hdf5_save(exp_data, expert_data_path):
