@@ -261,7 +261,7 @@ q_nstep_td_data = namedtuple(
 
 dqfd_nstep_td_data = namedtuple(
     'dqfd_nstep_td_data', [
-        'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight', 'new_n_q_one_step',
+        'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'done_1', 'weight', 'new_n_q_one_step',
         'next_n_action_one_step', 'is_expert'
     ]
 )
@@ -376,7 +376,7 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, weight, new_n_q_one_step, next_n_action_one_step,\
+    q, next_n_q, action, next_n_action, reward, done, done_1, weight, new_n_q_one_step, next_n_action_one_step,\
         is_expert = data  # set is_expert flag(expert 1, agent 0)
     assert len(action.shape) == 1, action.shape
     if weight is None:
@@ -400,24 +400,32 @@ def dqfd_nstep_td_error(
     # calculate 1-step TD-loss
     nstep = 1
     reward = reward[0].unsqueeze(0)
+    value_gamma = None
     if cum_reward:
         if value_gamma is None:
-            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done)
+            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_1)
         else:
-            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done)
+            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done_1)
     else:
         target_q_s_a_one_step = nstep_return(
-            nstep_return_data(reward, target_q_s_a_one_step, done), gamma, nstep, value_gamma
+            nstep_return_data(reward, target_q_s_a_one_step, done_1), gamma, nstep, value_gamma
         )
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
 
     # calculate the supervised loss
     device = q_s_a.device
+    '''
     max_action = torch.argmax(q, dim=-1)
     JE = is_expert * (
         q[batch_range, max_action] + margin_function *
-        torch.where(action == max_action, torch.ones_like(action), torch.zeros_like(action)).float() - q_s_a
+        torch.where(action == max_action, torch.ones_like(action), torch.zeros_like(action)).float().to(device) - q_s_a
     )
+    '''
+    l = margin_function * torch.ones_like(q)  # q shape (64,4)
+    l.scatter_(
+        1, torch.LongTensor(action.unsqueeze(1)), torch.zeros_like(q)
+    )  # along the first dimension. for the index of the action, fill the corresponding position in l with 0
+    JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
     '''
     Js = is_expert * (
         q[batch_range, max_action.type(torch.int64)] +
