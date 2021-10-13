@@ -1,6 +1,7 @@
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple
 import copy
+from pyglet.window.key import O
 
 import torch
 
@@ -363,7 +364,7 @@ class ACERPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
-            Use multinomial_sample to choose action.
+            For discrete action, use multinomial_sample to choose action.
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
@@ -465,7 +466,11 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
+            if self._cfg.model.continuous_action_space:
+                # TODO 
+                pass
+            else:
+                output = self._eval_model.forward(data, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
