@@ -80,7 +80,7 @@ def serial_pipeline_r2d3(
     # model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(
-        torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
+        torch.load(expert_cfg.policy.collect.demonstration_info_path, map_location='cpu')
     )
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

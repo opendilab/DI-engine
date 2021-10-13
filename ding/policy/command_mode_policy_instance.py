@@ -26,7 +26,6 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 
-from .cql import CQLPolicy
 from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
 from .d4pg import D4PGPolicy

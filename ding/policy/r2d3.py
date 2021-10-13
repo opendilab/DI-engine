@@ -141,7 +141,8 @@ class R2D3Policy(Policy):
         self.lambda1 = self._cfg.learn.lambda1  # n-step return
         self.lambda2 = self._cfg.learn.lambda2  # supervised loss
         self.lambda3 = self._cfg.learn.lambda3  # L2
-        self.margin_function = self._cfg.learn.margin_function  # margin function in JE, here we implement this as a constant
+        # margin function in JE, here we implement this as a constant
+        self.margin_function = self._cfg.learn.margin_function
 
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -266,7 +267,7 @@ class R2D3Policy(Policy):
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._learn_model.forward(inputs)['logit']
 
-        ### n-step
+        # n-step
         self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
         self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
 
@@ -276,7 +277,7 @@ class R2D3Policy(Policy):
             # argmax_action double_dqn
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
-        ### one-step
+        # one-step
         self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
         self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
 
@@ -330,7 +331,8 @@ class R2D3Policy(Policy):
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
-        )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))  # td_erroe list(75,32)
+        )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
+        # td_error list(75,32)
         # update
         self._optimizer.zero_grad()
         loss.backward()

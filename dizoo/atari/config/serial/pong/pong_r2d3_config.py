@@ -43,7 +43,7 @@ pong_r2d3_config = dict(
             # in most environments
             value_rescale=False,
             update_per_collect=8,
-            batch_size=32,  # TODO
+            batch_size=32,
             learning_rate=0.0005,
             target_update_freq=2500,
             ###
@@ -51,11 +51,10 @@ pong_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=10,  # TODO
-            # expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
+            per_train_iter_k=10,
         ),
         collect=dict(
-            # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Cut trajectories into pieces with length "unroll_len".
             # unroll_len=1,
             env_num=collector_env_num,
@@ -71,7 +70,7 @@ pong_r2d3_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=100000, alpha=0.9),  # priority exponent =0.9
+            replay_buffer=dict(replay_buffer_size=100000, alpha=0.9),  # priority exponent=0.9
         ),
     ),
 )
@@ -109,15 +108,13 @@ expert_pong_r2d3_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[128, 128, 512],
-            # encoder_hidden_size_list=[512, 64],  # dqn
-            # encoder_hidden_size_list=[128],  # ppo
+            encoder_hidden_size_list=[64, 64, 128],  # ppo
         ),
         discount_factor=0.997,
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=10000,  # 1000, # justify the buffer size of the expert buffer TODO(pu)
+            expert_replay_buffer_size=10000,  # TODO(pu)
         ),
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
