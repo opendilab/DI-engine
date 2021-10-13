@@ -47,7 +47,7 @@ setup(
         'numpy>=1.10',
         'requests>=2.25.1',
         'six',
-        'gym>=0.20.0',  # pypy incompatible
+        'gym==0.20.0',  # pypy incompatible
         'torch>=1.3.1,<=1.9.0',  # PyTorch 1.9.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml',
         'easydict==1.9',
@@ -122,6 +122,9 @@ setup(
         # ],
         # 'pybulletgym_env': [
         #     'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
+        # ],
+        # 'gym_hybrid_env': [
+        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid#egg=gym-hybrid',
         # ],
         'sc2_env': [
             'absl-py>=0.1.0',
