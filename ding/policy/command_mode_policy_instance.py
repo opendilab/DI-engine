@@ -10,6 +10,7 @@ from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
+from .ppo_offpolicy_collect_traj import PPOOffCollectTrajPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
@@ -27,9 +28,9 @@ from .sql import SQLPolicy
 
 from .cql import CQLPolicy
 from .dqfd import DQFDPolicy
+from .r2d3 import R2D3Policy
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
-
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -115,6 +116,11 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('r2d3_command')
+class R2D3CommandModePolicy(R2D3Policy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('sqn_command')
 class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
     pass
@@ -132,6 +138,11 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_offpolicy_command')
 class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
+class PPOOffCollectTrajCommandModePolicy(PPOOffCollectTrajPolicy, DummyCommandModePolicy):
     pass
 
 

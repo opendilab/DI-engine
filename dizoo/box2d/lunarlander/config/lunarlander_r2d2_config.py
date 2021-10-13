@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 lunarlander_r2d2_config = dict(
-    exp_name='lunarlander_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5',
+    exp_name='lunarlander_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -13,7 +13,7 @@ lunarlander_r2d2_config = dict(
     policy=dict(
         cuda=False, 
         on_policy=False,
-        priority=False, 
+        priority=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -38,7 +38,7 @@ lunarlander_r2d2_config = dict(
             target_update_freq=2500, 
         ),
         collect=dict(
-            n_sample=32,
+            each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
