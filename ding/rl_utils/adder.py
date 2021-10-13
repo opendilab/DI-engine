@@ -36,6 +36,7 @@ class Adder(object):
         reward = torch.stack([d['reward'] for d in data])
         if cuda:
             value = value.cuda()
+            next_value = next_value.cuda()
             reward = reward.cuda()
         adv = gae(gae_data(value, next_value, reward, None), gamma, gae_lambda)
         if cuda:

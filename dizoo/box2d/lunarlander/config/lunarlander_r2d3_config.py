@@ -115,7 +115,8 @@ expert_lunarlander_r2d3_config = dict(
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='dizoo/box2d/lunarlander/config/path/ppo-off_iteration_12948.pth.tar',
+            demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
+
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
             env_num=collector_env_num,
