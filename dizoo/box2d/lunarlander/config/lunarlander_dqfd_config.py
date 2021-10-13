@@ -1,8 +1,8 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
-
+from ding.entry import serial_pipeline_dqfd
+import copy
 lunarlander_dqfd_config = dict(
-    exp_name='lunarlander_dqfd',
+    exp_name='lunarlander_dqfd_debug',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -26,12 +26,12 @@ lunarlander_dqfd_config = dict(
             lambda2 = 1.0,
             lambda3 = 1e-5,
             per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
+            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer
         ),
         collect=dict(
             n_sample=64,
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='path',
+            demonstration_info_path='path/dqn_iteration_18000.pth.tar',
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -61,4 +61,5 @@ lunarlander_dqfd_create_config = EasyDict(lunarlander_dqfd_create_config)
 create_config = lunarlander_dqfd_create_config
 
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    # serial_pipeline_dqfd([main_config, create_config], seed=0)
+    serial_pipeline_dqfd([main_config, create_config], [copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=0)

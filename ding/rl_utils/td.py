@@ -261,7 +261,7 @@ q_nstep_td_data = namedtuple(
 
 dqfd_nstep_td_data = namedtuple(
     'dqfd_nstep_td_data', [
-        'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'done_1', 'weight', 'new_n_q_one_step',
+        'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'done_one_step', 'weight', 'new_n_q_one_step',
         'next_n_action_one_step', 'is_expert'
     ]
 )
@@ -339,8 +339,8 @@ def q_nstep_td_error(
 def dqfd_nstep_td_error(
         data: namedtuple,
         gamma: float,
-        lambda1: tuple,
-        lambda2: tuple,
+        lambda1: float,
+        lambda2: float,
         margin_function: float,
         nstep: int = 1,
         cum_reward: bool = False,
@@ -376,7 +376,7 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, done_1, weight, new_n_q_one_step, next_n_action_one_step,\
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step,\
         is_expert = data  # set is_expert flag(expert 1, agent 0)
     assert len(action.shape) == 1, action.shape
     if weight is None:
@@ -399,40 +399,27 @@ def dqfd_nstep_td_error(
 
     # calculate 1-step TD-loss
     nstep = 1
-    reward = reward[0].unsqueeze(0)
+    reward = reward[0].unsqueeze(0)  # get the one-step reward
     value_gamma = None
     if cum_reward:
         if value_gamma is None:
-            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_1)
+            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_one_step)
         else:
-            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done_1)
+            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done_one_step)
     else:
         target_q_s_a_one_step = nstep_return(
-            nstep_return_data(reward, target_q_s_a_one_step, done_1), gamma, nstep, value_gamma
+            nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
         )
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
 
     # calculate the supervised loss
     device = q_s_a.device
-    '''
-    max_action = torch.argmax(q, dim=-1)
-    JE = is_expert * (
-        q[batch_range, max_action] + margin_function *
-        torch.where(action == max_action, torch.ones_like(action), torch.zeros_like(action)).float().to(device) - q_s_a
-    )
-    '''
     l = margin_function * torch.ones_like(q)  # q shape (64,4)
-    l.scatter_(
-        1, torch.LongTensor(action.unsqueeze(1)), torch.zeros_like(q)
-    )  # along the first dimension. for the index of the action, fill the corresponding position in l with 0
+    l.scatter_(1, torch.LongTensor(action.unsqueeze(1)), torch.zeros_like(q))
+    # along the first dimension. for the index of the action, fill the corresponding position in l with 0
     JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
-    '''
-    Js = is_expert * (
-        q[batch_range, max_action.type(torch.int64)] +
-        0.8 * torch.from_numpy((action == max_action).numpy().astype(int)).float().to(device) - q_s_a
-    )
-    '''
-    return ((lambda1[0] * td_error_per_sample + td_error_one_step_per_sample + lambda2[0] * JE) *
+
+    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
             weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
 
 
