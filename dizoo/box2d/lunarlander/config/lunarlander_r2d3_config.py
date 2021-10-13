@@ -19,7 +19,7 @@ lunarlander_r2d3_config = dict(
     policy=dict(
         cuda=False,
         on_policy=False,
-        priority=True,  # TODO
+        priority=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -40,7 +40,7 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=False,
             update_per_collect=8,
-            batch_size=32,  # TODO
+            batch_size=32,
             learning_rate=0.0005,
             target_update_freq=2500,
             ###
@@ -48,11 +48,10 @@ lunarlander_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=10,  # TODO
-            # expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
+            per_train_iter_k=10,  # TODO(pu)
         ),
         collect=dict(
-            # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Cut trajectories into pieces with length "unroll_len".
             # unroll_len=1,
             env_num=collector_env_num,
@@ -111,12 +110,12 @@ expert_lunarlander_r2d3_config = dict(
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=10000,  # 1000, # justify the buffer size of the expert buffer TODO(pu)
+            expert_replay_buffer_size=10000,  # TODO(pu)
         ),
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='/Users/puyuan/code/DI-engine/dizoo/box2d/lunarlander/config/path/ppo-off_iteration_12948.pth.tar',
+            demonstration_info_path='dizoo/box2d/lunarlander/config/path/ppo-off_iteration_12948.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
             env_num=collector_env_num,

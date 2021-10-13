@@ -95,7 +95,7 @@ def serial_pipeline(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  #  TODO(pu)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
                 train_iter=learner.train_iter,

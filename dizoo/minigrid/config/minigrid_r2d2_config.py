@@ -33,10 +33,10 @@ minigrid_r2d2_config = dict(
             # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
-            update_per_collect=8, 
+            update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500, 
+            target_update_freq=2500,
         ),
         collect=dict(
             n_sample=32,
