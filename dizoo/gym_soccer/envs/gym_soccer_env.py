@@ -53,10 +53,7 @@ class GymSoccerEnv(BaseEnv):
         np.random.seed(self._seed)
     
     def close(self) -> None:
-        pass
-        # if self._init_flag:
-        #     self._env.close()
-        # self._init_flag = False
+        self._init_flag = False
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
