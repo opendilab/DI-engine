@@ -5,6 +5,7 @@ import gym_soccer
 import torch
 from ding.utils import ENV_REGISTRY
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from gym.utils import seeding
 
@@ -40,7 +41,10 @@ class GymSoccerEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        # reward wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  
+        # '1' indicates the discrete action is associated with the continuous parameters
+        info['action_args_mask'] = np.array([[1, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 1]]) 
         return BaseEnvTimestep(obs, rew, done, info)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
@@ -55,7 +59,41 @@ class GymSoccerEnv(BaseEnv):
         # self._init_flag = False
 
     def info(self) -> BaseEnvInfo:
-        pass
+        T = EnvElementInfo
+        return BaseEnvInfo(
+            agent_num=1,
+
+            obs_space=T(
+                (6, ),
+                {
+                    # [min, max)
+                    'min': -1,
+                    'max': 2,
+                    'dtype': np.float32,
+                },
+            ),
+            
+            act_space=T(
+                (3, ),
+                {
+                    # [min, max)
+                    'min': 0,
+                    'max': 3,
+                    'dtype': int,
+                },
+            ),
+
+            rew_space=T(
+                (1, ),
+                {
+                    # [min, max)
+                    'min': 0,
+                    'max': 2.0,
+                    'dtype': int,
+                },
+            ),
+            use_wrappers=None,
+        )
 
     def __repr__(self) -> str:
         return "DI-engine gym soccer Env"
