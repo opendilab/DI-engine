@@ -322,7 +322,11 @@ class NGUPolicy(Policy):
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
-        td_error_per_sample = sum(td_error) / (len(td_error) + 1e-8)
+        # td_error_per_sample = sum(td_error) / (len(td_error) + 1e-8)
+        # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
+        td_error_per_sample = 0.9 * torch.max(
+            torch.stack(td_error), dim=0
+        )[0] + (1 - 0.9) * (sum(td_error) / (len(td_error) + 1e-8))
         # update
         self._optimizer.zero_grad()
         loss.backward()
