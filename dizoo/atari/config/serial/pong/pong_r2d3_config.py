@@ -19,14 +19,13 @@ pong_r2d3_config = dict(
         frame_stack=4,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
-            # encoder_hidden_size_list=[128, 128, 64],
         ),
         discount_factor=0.997,
         burnin_step=20,
@@ -109,6 +108,8 @@ expert_pong_r2d3_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[64, 64, 128],  # ppo
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
         ),
         discount_factor=0.997,
         burnin_step=20,
@@ -119,7 +120,7 @@ expert_pong_r2d3_config = dict(
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off.pth.tar',
+            demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
             env_num=collector_env_num,
