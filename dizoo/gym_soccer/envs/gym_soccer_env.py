@@ -56,6 +56,13 @@ class GymSoccerEnv(BaseEnv):
     def close(self) -> None:
         self._init_flag = False
 
+    def get_random_action(self):
+        # action_type: 0, 1, 2
+        # action_args:
+        #   - power: [0, 100]
+        #   - direction: [-180, 180]
+        return self._env.action_space.sample()
+
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
         return BaseEnvInfo(
