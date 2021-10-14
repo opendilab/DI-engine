@@ -251,7 +251,8 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
+            episodic_reward = (episodic_reward  - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std  # TODO transform to mean 0, std 1
             # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return episodic_reward
 
