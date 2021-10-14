@@ -51,7 +51,7 @@ def test_mappo():
     action = torch.randint(0, N, size=(B, A))
     value_new = torch.randn(B, A).requires_grad_(True)
     value_old = value_new + torch.rand_like(value_new) * 0.1
-    adv = torch.rand(B)
+    adv = torch.rand(B, A)
     return_ = torch.randn(B, A) * 2
     data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, None)
     loss, info = ppo_error(data)

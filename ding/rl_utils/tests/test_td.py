@@ -30,6 +30,8 @@ def test_q_nstep_td():
         value_gamma = torch.tensor(0.9)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
         loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward = True, value_gamma = value_gamma)
+        loss.backward()
+        assert isinstance(q.grad, torch.Tensor)
 
 @pytest.mark.unittest
 def test_dist_1step_td():
@@ -136,6 +138,7 @@ def test_qrdqn_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         loss, td_error_per_sample = qrdqn_nstep_td_error(data, 0.95, nstep=nstep, value_gamma=torch.tensor(0.9))
+        assert td_error_per_sample.shape == (batch_size, )
 
 @pytest.mark.unittest
 def test_dist_1step_compatible():
@@ -184,7 +187,8 @@ def test_v_1step_td():
     assert isinstance(v.grad, torch.Tensor)
     data = v_1step_td_data(v, next_v, reward, None, None)
     loss, td_error_per_sample = v_1step_td_error(data, 0.99)
-
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
 
 @pytest.mark.unittest
 def test_v_nstep_td():
@@ -201,6 +205,8 @@ def test_v_nstep_td():
     assert isinstance(v.grad, torch.Tensor)
     data = v_nstep_td_data(v, next_v, reward, done, None, 0.99)
     loss, td_error_per_sample = v_nstep_td_error(data, 0.99, 5)
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
 
 @pytest.mark.unittest
 def test_q_nstep_sql_td():
@@ -225,7 +231,8 @@ def test_q_nstep_sql_td():
         value_gamma = torch.tensor(0.9)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
         loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(data, 0.95, 0.5, nstep=nstep, cum_reward = True, value_gamma = value_gamma)
-
+        loss.backward()
+        assert isinstance(q.grad, torch.Tensor)
     
 @pytest.mark.unittest
 def test_iqn_nstep_td():
@@ -248,6 +255,7 @@ def test_iqn_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         loss, td_error_per_sample = iqn_nstep_td_error(data, 0.95, nstep=nstep, value_gamma=torch.tensor(0.9))
+        assert td_error_per_sample.shape == (batch_size, )
 
 @pytest.mark.unittest
 def test_shape_fn_qntd():
