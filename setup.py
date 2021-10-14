@@ -124,7 +124,10 @@ setup(
         #     'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
         # ],
         # 'gym_hybrid_env': [
-        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid#egg=gym-hybrid',
+        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid',
+        # ],
+        # 'gobigger_env': [
+        #     'gobigger @ git+https://github.com/opendilab/GoBigger@main#egg=gobigger',
         # ],
         'sc2_env': [
             'absl-py>=0.1.0',
