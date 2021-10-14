@@ -2,22 +2,24 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
-lunarlander_r2d2_config = dict(
-    exp_name='lunarlander_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p',
+pong_r2d2_config = dict(
+    exp_name='pong_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=195,
+        stop_value=20,
+        env_id='PongNoFrameskip-v4',
+        frame_stack=4,
     ),
     policy=dict(
         cuda=True,
         on_policy=False,
         priority=True,
         model=dict(
-            obs_shape=8,
-            action_shape=4,
-            encoder_hidden_size_list=[128, 128, 64],
+            obs_shape=[4, 84, 84],
+            action_shape=6,
+            encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,
         burnin_step=20,
@@ -52,18 +54,18 @@ lunarlander_r2d2_config = dict(
         ),
     ),
 )
-lunarlander_r2d2_config = EasyDict(lunarlander_r2d2_config)
-main_config = lunarlander_r2d2_config
-lunarlander_r2d2_create_config = dict(
+pong_r2d2_config = EasyDict(pong_r2d2_config)
+main_config = pong_r2d2_config
+pong_r2d2_create_config = dict(
     env=dict(
-        type='lunarlander',
-        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+        type='atari',
+        import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-lunarlander_r2d2_create_config = EasyDict(lunarlander_r2d2_create_config)
-create_config = lunarlander_r2d2_create_config
+pong_r2d2_create_config = EasyDict(pong_r2d2_create_config)
+create_config = pong_r2d2_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

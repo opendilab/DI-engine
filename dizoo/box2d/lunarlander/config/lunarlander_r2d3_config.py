@@ -17,7 +17,7 @@ lunarlander_r2d3_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=True,
         model=dict(
