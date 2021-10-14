@@ -26,12 +26,13 @@ def test_q_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward = True)
+        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True)
         value_gamma = torch.tensor(0.9)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward = True, value_gamma = value_gamma)
+        loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep, cum_reward=True, value_gamma=value_gamma)
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
+
 
 @pytest.mark.unittest
 def test_dist_1step_td():
@@ -99,6 +100,7 @@ def test_dist_nstep_td():
     loss.backward()
     assert isinstance(dist.grad, torch.Tensor)
 
+
 @pytest.mark.unittest
 def test_q_nstep_td_with_rescale():
     batch_size = 4
@@ -117,6 +119,7 @@ def test_q_nstep_td_with_rescale():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
+
 
 @pytest.mark.unittest
 def test_qrdqn_nstep_td():
@@ -139,6 +142,7 @@ def test_qrdqn_nstep_td():
         assert isinstance(q.grad, torch.Tensor)
         loss, td_error_per_sample = qrdqn_nstep_td_error(data, 0.95, nstep=nstep, value_gamma=torch.tensor(0.9))
         assert td_error_per_sample.shape == (batch_size, )
+
 
 @pytest.mark.unittest
 def test_dist_1step_compatible():
@@ -190,6 +194,7 @@ def test_v_1step_td():
     loss.backward()
     assert isinstance(v.grad, torch.Tensor)
 
+
 @pytest.mark.unittest
 def test_v_nstep_td():
     batch_size = 5
@@ -207,6 +212,7 @@ def test_v_nstep_td():
     loss, td_error_per_sample = v_nstep_td_error(data, 0.99, 5)
     loss.backward()
     assert isinstance(v.grad, torch.Tensor)
+
 
 @pytest.mark.unittest
 def test_q_nstep_sql_td():
@@ -227,13 +233,16 @@ def test_q_nstep_sql_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(data, 0.95, 0.5, nstep=nstep, cum_reward = True)
+        loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(data, 0.95, 0.5, nstep=nstep, cum_reward=True)
         value_gamma = torch.tensor(0.9)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(data, 0.95, 0.5, nstep=nstep, cum_reward = True, value_gamma = value_gamma)
+        loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(
+            data, 0.95, 0.5, nstep=nstep, cum_reward=True, value_gamma=value_gamma
+        )
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
-    
+
+
 @pytest.mark.unittest
 def test_iqn_nstep_td():
     batch_size = 4
@@ -256,6 +265,7 @@ def test_iqn_nstep_td():
         assert isinstance(q.grad, torch.Tensor)
         loss, td_error_per_sample = iqn_nstep_td_error(data, 0.95, nstep=nstep, value_gamma=torch.tensor(0.9))
         assert td_error_per_sample.shape == (batch_size, )
+
 
 @pytest.mark.unittest
 def test_shape_fn_qntd():
@@ -294,16 +304,17 @@ def test_shape_fn_dntd():
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
     reward = torch.randn(nstep, batch_size)
     data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
-    tmp = shape_fn_dntd([data, 0.9, v_min, v_max, n_atom, nstep],{})
+    tmp = shape_fn_dntd([data, 0.9, v_min, v_max, n_atom, nstep], {})
     assert tmp[0] == reward.shape[0]
     assert tmp[1] == dist.shape[0]
     assert tmp[2] == dist.shape[1]
     assert tmp[3] == n_atom
-    tmp = shape_fn_dntd([],{'data': data, 'gamma': 0.9, 'v_min': v_min, 'v_max': v_max, 'n_atom': n_atom, 'nstep': 5})
+    tmp = shape_fn_dntd([], {'data': data, 'gamma': 0.9, 'v_min': v_min, 'v_max': v_max, 'n_atom': n_atom, 'nstep': 5})
     assert tmp[0] == reward.shape[0]
     assert tmp[1] == dist.shape[0]
     assert tmp[2] == dist.shape[1]
     assert tmp[3] == n_atom
+
 
 @pytest.mark.unittest
 def test_shape_fn_qntd_rescale():
@@ -325,6 +336,7 @@ def test_shape_fn_qntd_rescale():
         assert tmp[0] == reward.shape[0]
         assert tmp[1] == q.shape[0]
         assert tmp[2] == q.shape[1]
+
 
 @pytest.mark.unittest
 def test_fn_td_lambda():

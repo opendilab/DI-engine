@@ -43,6 +43,7 @@ def test_ppo(use_value_clip, dual_clip, weight):
     assert isinstance(logit_new.grad, torch.Tensor)
     assert isinstance(value_new.grad, torch.Tensor)
 
+
 @pytest.mark.unittest
 def test_mappo():
     B, A, N = 4, 8, 32
@@ -63,6 +64,7 @@ def test_mappo():
     total_loss.backward()
     assert isinstance(logit_new.grad, torch.Tensor)
     assert isinstance(value_new.grad, torch.Tensor)
+
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight', args)
