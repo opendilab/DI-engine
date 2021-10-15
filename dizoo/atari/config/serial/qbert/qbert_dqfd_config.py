@@ -1,15 +1,14 @@
-from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_dqfd_config = dict(
-    exp_name='space_invaders_dqfd',
+qbert_dqn_config = dict(
+    exp_name='qbert_dqfd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        stop_value=30000,
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=True, force_reproducibility=True)
     ),
@@ -47,9 +46,9 @@ space_invaders_dqfd_config = dict(
         ),
     ),
 )
-space_invaders_dqfd_config = EasyDict(space_invaders_dqfd_config)
-main_config = space_invaders_dqfd_config
-space_invaders_dqfd_create_config = dict(
+qbert_dqn_config = EasyDict(qbert_dqn_config)
+main_config = qbert_dqn_config
+qbert_dqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -57,8 +56,8 @@ space_invaders_dqfd_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
-space_invaders_dqfd_create_config = EasyDict(space_invaders_dqfd_create_config)
-create_config = space_invaders_dqfd_create_config
+qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
+create_config = qbert_dqn_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)
