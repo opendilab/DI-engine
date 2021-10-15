@@ -52,7 +52,7 @@ pong_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=10,
+            per_train_iter_k=100,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -103,7 +103,7 @@ expert_pong_r2d3_config = dict(
         frame_stack=4,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=True,
         model=dict(
@@ -121,6 +121,7 @@ expert_pong_r2d3_config = dict(
         ),
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
             demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
@@ -131,7 +132,7 @@ expert_pong_r2d3_config = dict(
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=10000, alpha=0.9),  # 1000 TODO(pu)
+            replay_buffer=dict(replay_buffer_size=10000, alpha=0.9),  # priority exponent=0.9 TODO(pu)
         ),
     ),
 )
