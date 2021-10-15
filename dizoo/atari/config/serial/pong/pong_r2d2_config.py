@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 pong_r2d2_config = dict(
-    exp_name='pong_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p',
+    exp_name='pong_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,

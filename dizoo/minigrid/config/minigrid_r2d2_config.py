@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-    exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e7_rbs1e5',
+    exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e7_rbs1e5_p_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -12,7 +12,7 @@ minigrid_r2d2_config = dict(
         stop_value=0.96,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=False,
         model=dict(
@@ -39,7 +39,9 @@ minigrid_r2d2_config = dict(
             target_update_freq=2500,
         ),
         collect=dict(
-            n_sample=32,
+            # n_sample=32,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),

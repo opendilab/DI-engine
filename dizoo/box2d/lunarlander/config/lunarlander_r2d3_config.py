@@ -1,6 +1,9 @@
+import os
 from easydict import EasyDict
 
 from ding.entry import serial_pipeline_r2d3
+import os   
+module_path = os.path.dirname(__file__) 
 
 collector_env_num = 8
 evaluator_env_num = 5
@@ -40,7 +43,7 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=False,
             update_per_collect=8,
-            batch_size=32,
+            batch_size=10,  # 32 TODO(pu)
             learning_rate=0.0005,
             target_update_freq=2500,
             ###
@@ -48,7 +51,7 @@ lunarlander_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=10,  # TODO(pu)
+            per_train_iter_k=1,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -110,12 +113,14 @@ expert_lunarlander_r2d3_config = dict(
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=10000,  # TODO(pu)
+            expert_replay_buffer_size=10,  # TODO(pu)
         ),
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
+            # demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
+            demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
+
 
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
@@ -123,7 +128,7 @@ expert_lunarlander_r2d3_config = dict(
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=10000, alpha=0.9),  # 1000 TODO(pu)
+            replay_buffer=dict(replay_buffer_size=10, alpha=0.9),  # 10000 TODO(pu)
         ),
     ),
 )
