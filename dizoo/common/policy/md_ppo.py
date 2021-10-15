@@ -165,7 +165,7 @@ class MultiDiscretePPOOffPolicy(PPOOffPolicy):
         avg_entropy_loss = sum([item.entropy_loss for item in loss_list]) / action_num
         avg_approx_kl = sum([item.approx_kl for item in info_list]) / action_num
         avg_clipfrac = sum([item.clipfrac for item in info_list]) / action_num
-            
+
         wv, we = self._value_weight, self._entropy_weight
         total_loss = avg_policy_loss + wv * avg_value_loss - we * avg_entropy_loss
 

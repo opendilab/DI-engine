@@ -14,6 +14,7 @@ from ding.utils import set_pkg_seed
 from dizoo.overcooked.envs import OvercookGameEnv
 from dizoo.overcooked.config import overcooked_demo_ppo_config
 
+
 def wrapped_overcookgame():
     return OvercookGameEnv({})
 

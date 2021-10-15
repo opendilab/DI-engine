@@ -7,7 +7,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='MMM_wqmix_ow_ff3-256_hsl64', 
+    exp_name='MMM_wqmix_ow_ff3-256_hsl64',
     env=dict(
         map_name='MMM',
         difficulty=7,
