@@ -11,10 +11,10 @@ space_invaders_dqfd_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=True, force_reproducibility=True)
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=True,
         model=dict(
             obs_shape=[4, 84, 84],
@@ -53,7 +53,7 @@ space_invaders_dqfd_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility = True),
+    env_manager=dict(type='subprocess', force_reproducibility = True),
     policy=dict(type='dqfd'),
 )
 space_invaders_dqfd_create_config = EasyDict(space_invaders_dqfd_create_config)
