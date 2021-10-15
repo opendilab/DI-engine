@@ -69,7 +69,7 @@ def test_mappo():
 @pytest.mark.unittest
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight', args)
 def test_ppo_error_continous(use_value_clip, dual_clip, weight):
-    B, N = 32, 32
+    B, N = 4, 1
     logit_new = torch.randn(B, N).requires_grad_(True)
     logit_old = logit_new + torch.rand_like(logit_new) * 0.1
     action = torch.randint(0, N, size=(B, ))
@@ -77,7 +77,7 @@ def test_ppo_error_continous(use_value_clip, dual_clip, weight):
     value_old = value_new + torch.rand_like(value_new) * 0.1
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
-    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, None)
+    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, weight)
     loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
