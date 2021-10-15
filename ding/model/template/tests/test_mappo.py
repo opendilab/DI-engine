@@ -10,8 +10,9 @@ B = 32
 agent_obs_shape = [216, 265]
 global_obs_shape = [264, 324]
 agent_num = 8
-action_shape=14
+action_shape = 14
 args = list(product(*[agent_obs_shape, global_obs_shape]))
+
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('agent_obs_shape, global_obs_shape', args)
@@ -28,9 +29,8 @@ class TestVAC:
         data = {
             'agent_state': torch.randn(B, agent_num, agent_obs_shape),
             'global_state': torch.randn(B, agent_num, global_obs_shape),
-            'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape)),
-        },
-        data = data[0]
+            'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+        }
         model = MAPPO(agent_obs_shape, global_obs_shape, action_shape, agent_num)
 
         logit = model(data, mode='compute_actor_critic')['logit']
