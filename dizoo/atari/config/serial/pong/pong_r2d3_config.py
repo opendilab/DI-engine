@@ -1,6 +1,8 @@
 from easydict import EasyDict
 
 from ding.entry import serial_pipeline_r2d3
+import os   
+module_path = os.path.dirname(__file__) 
 
 collector_env_num = 8
 evaluator_env_num = 5
@@ -120,7 +122,9 @@ expert_pong_r2d3_config = dict(
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
+            # demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
+            demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
+
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
             env_num=collector_env_num,
