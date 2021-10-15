@@ -414,6 +414,7 @@ def dqfd_nstep_td_error(
 
     # calculate the supervised loss
     device = q_s_a.device
+    device_cpu = torch.device('cpu')
     '''
     max_action = torch.argmax(q, dim=-1)
     JE = is_expert * (
@@ -421,9 +422,9 @@ def dqfd_nstep_td_error(
         torch.where(action == max_action, torch.ones_like(action), torch.zeros_like(action)).float().to(device) - q_s_a
     )
     '''
-    l = margin_function * torch.ones_like(q)  # q shape (64,4)
+    l = margin_function * torch.ones_like(q).to(device_cpu)
     l.scatter_(
-        1, torch.LongTensor(action.unsqueeze(1)), torch.zeros_like(q)
+        1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu)
     )  # along the first dimension. for the index of the action, fill the corresponding position in l with 0
     JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
     '''

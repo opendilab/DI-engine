@@ -12,7 +12,7 @@ lunarlander_dqfd_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -54,7 +54,7 @@ lunarlander_dqfd_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
 lunarlander_dqfd_create_config = EasyDict(lunarlander_dqfd_create_config)
