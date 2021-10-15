@@ -87,7 +87,6 @@ league_demo_ppo_config = dict(
                 ),
             ),
         ),
-
     ),
 )
 league_demo_ppo_config = EasyDict(league_demo_ppo_config)

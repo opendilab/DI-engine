@@ -47,7 +47,8 @@ cartpole_qrdqn_generation_data_config = dict(
                 end=0.1,
                 decay=10000,
                 collect=0.2,
-            ), replay_buffer=dict(replay_buffer_size=100000, )
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )
