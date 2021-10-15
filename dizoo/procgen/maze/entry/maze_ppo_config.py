@@ -17,7 +17,6 @@ maze_ppo_default_config = dict(
             action_shape=15,
             encoder_hidden_size_list=[32, 32, 64],
         ),
-        
         learn=dict(
             update_per_collect=5,
             batch_size=64,
@@ -26,9 +25,7 @@ maze_ppo_default_config = dict(
             clip_ratio=0.2,
             learning_rate=0.0001,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             eps=dict(
@@ -49,7 +46,7 @@ maze_ppo_create_config = dict(
         type='maze',
         import_names=['dizoo.procgen.maze.envs.maze_env'],
     ),
-    env_manager=dict(type='subprocess',),
+    env_manager=dict(type='subprocess', ),
     policy=dict(type='ppo'),
 )
 maze_ppo_create_config = EasyDict(maze_ppo_create_config)

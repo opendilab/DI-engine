@@ -12,9 +12,10 @@ _global_no_output_lock = Lock()
 def silence(no_stdout: bool = True, no_stderr: bool = True):
     with _global_no_output_lock:
         if no_stdout:
-            _real_stdout, sys.stdout = sys.stdout, open(os.devnull, 'wb')
+            # Don't use `wb` mode here, otherwise it will cause all streaming methods to crash
+            _real_stdout, sys.stdout = sys.stdout, open(os.devnull, 'w')
         if no_stderr:
-            _real_stderr, sys.stderr = sys.stderr, open(os.devnull, 'wb')
+            _real_stderr, sys.stderr = sys.stderr, open(os.devnull, 'w')
 
         try:
             yield

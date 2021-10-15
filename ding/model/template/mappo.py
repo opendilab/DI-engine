@@ -180,7 +180,7 @@ class MAPPO(nn.Module):
         x = self.actor_head(x)
         logit = x['logit']
         logit[action_mask == 0.0] = -99999999
-        return {'logit': logit, 'action_mask': action_mask}
+        return {'logit': logit}
 
     def compute_critic(self, x: Dict) -> Dict:
         r"""
@@ -248,4 +248,4 @@ class MAPPO(nn.Module):
         logit = self.compute_actor(x)['logit']
         value = self.compute_critic(x)['value']
         action_mask = x['action_mask']
-        return {'logit': logit, 'value': value, 'action_mask': x['action_mask']}
+        return {'logit': logit, 'value': value}
