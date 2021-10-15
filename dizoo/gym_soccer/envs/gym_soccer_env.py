@@ -2,7 +2,6 @@ from typing import Any, List, Union, Optional
 import numpy as np
 import gym
 import gym_soccer
-import torch
 from ding.utils import ENV_REGISTRY
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElementInfo
@@ -21,7 +20,7 @@ class GymSoccerEnv(BaseEnv):
         self._init_flag = False
         self._replay_path = None
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.array:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             self._init_flag = True
@@ -68,7 +67,7 @@ class GymSoccerEnv(BaseEnv):
         return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
-                (6, ),
+                (58, ),
                 {
                     # [min, max)
                     'min': -1,
