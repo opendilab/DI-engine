@@ -1,10 +1,10 @@
 import pytest
 import torch
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data,\
-    td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data, \
-    dqfd_nstep_td_data, dqfd_nstep_td_error,dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data,\
-     v_nstep_td_error, q_nstep_sql_td_error, iqn_nstep_td_data, iqn_nstep_td_error, qrdqn_nstep_td_data,\
-     qrdqn_nstep_td_error
+    td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data,\
+    dqfd_nstep_td_data, dqfd_nstep_td_error, dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data,\
+    v_nstep_td_error, q_nstep_sql_td_error, iqn_nstep_td_data, iqn_nstep_td_error, qrdqn_nstep_td_data,\
+    qrdqn_nstep_td_error
 from ding.rl_utils.td import shape_fn_dntd, shape_fn_qntd, shape_fn_td_lambda, shape_fn_qntd_rescale
 
 
@@ -242,6 +242,7 @@ def test_dqfd_nstep_td():
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
         print(loss)
+
 
 @pytest.mark.unittest
 def test_q_nstep_sql_td():
