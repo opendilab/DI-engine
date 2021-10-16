@@ -23,14 +23,8 @@ space_invaders_sql_config = dict(
         ),
         nstep=3,
         discount_factor=0.99,
-        learn=dict(
-            update_per_collect=10,
-            batch_size=32,
-            learning_rate=0.0001,
-            target_update_freq=500,
-            alpha = 0.1
-        ),
-        collect=dict(n_sample=100, demonstration_info_path = None),
+        learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.1),
+        collect=dict(n_sample=100, demonstration_info_path=None),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -50,7 +44,7 @@ space_invaders_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility = True),
+    env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 space_invaders_sql_create_config = EasyDict(space_invaders_sql_create_config)
