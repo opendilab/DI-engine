@@ -252,10 +252,13 @@ class RainbowDQNPolicy(DQNPolicy):
             Reset the noise from noise net and collect output according to eps_greedy plugin
 
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

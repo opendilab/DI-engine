@@ -317,7 +317,7 @@ class CQLPolicy(SACPolicy):
                 next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
             target_q_value = next_v_value
         else:
-            # target q value. SARSA: first predict next action, then calculate next q value
+            # target q value.
             with torch.no_grad():
                 (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
@@ -714,11 +714,11 @@ class CQLDiscretePolicy(DQNPolicy):
 
     def _init_collect(self) -> None:
         r"""
-            Overview:
-                Collect mode init method. Called by ``self.__init__``.
-                Init traj and unroll length, collect model.
-                Enable the eps_greedy_sample
-            """
+        Overview:
+            Collect mode init method. Called by ``self.__init__``.
+            Init traj and unroll length, collect model.
+            Enable the eps_greedy_sample
+        """
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
@@ -726,14 +726,21 @@ class CQLDiscretePolicy(DQNPolicy):
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
-        r"""
-            Overview:
-                Forward function for collect mode with eps_greedy
-            Arguments:
-                - data (:obj:`dict`): Dict type data, including at least ['obs'].
-            Returns:
-                - data (:obj:`dict`): The collected data
-            """
+        """
+        Overview:
+            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \
+                env and the constructing of transition.
+        ArgumentsKeys:
+            - necessary: ``obs``
+        ReturnsKeys
+            - necessary: ``logit``, ``action``
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
