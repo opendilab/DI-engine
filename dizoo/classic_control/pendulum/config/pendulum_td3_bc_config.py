@@ -37,7 +37,7 @@ pendulum_td3_bc_config = dict(
                 min=-0.5,
                 max=0.5,
             ),
-            alpha=1.0,
+            alpha=2.5,
         ),
         collect=dict(
             n_sample=48,
@@ -45,7 +45,7 @@ pendulum_td3_bc_config = dict(
             collector=dict(collect_print_freq=1000, ),
             data_type='hdf5',
             data_path = './td3/expert_demos.hdf5',
-            normalize_states=False,
+            normalize_states=True,
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),

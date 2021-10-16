@@ -49,7 +49,7 @@ hopper_td3_bc_default_config = dict(
             normalize_states=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=500, )),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),
 )

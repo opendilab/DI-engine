@@ -141,7 +141,9 @@ class TD3BCPolicy(DDPGPolicy):
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
+            normalize_states=True,
         ),
+        eval=dict(evaluator=dict(eval_freq=5000, ), ),
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer
@@ -284,7 +286,7 @@ class TD3BCPolicy(DDPGPolicy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        if self.cfg.learn.get('normalize_states', None):
+        if self.cfg.collect.normalize_states:
             data = (data - self._mean) / self._std
         if self._cuda:
             data = to_device(data, self._device)
