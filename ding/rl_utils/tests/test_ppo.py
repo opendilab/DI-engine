@@ -70,7 +70,7 @@ def test_mappo():
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight', args)
 def test_ppo_error_continous(use_value_clip, dual_clip, weight):
     B, N = 4, 6
-    mu_sigma_new = [torch.randn(B, N).requires_grad_(True), torch.randn(B, N).requires_grad_(True)]
+    mu_sigma_new = [torch.rand(B, N).requires_grad_(True), torch.rand(B, N).requires_grad_(True)]
     mu_sigma_old = [
         mu_sigma_new[0] + torch.rand_like(mu_sigma_new[0]) * 0.1,
         mu_sigma_new[1] + torch.rand_like(mu_sigma_new[1]) * 0.1
