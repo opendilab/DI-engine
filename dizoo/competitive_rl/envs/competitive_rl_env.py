@@ -1,6 +1,5 @@
 from typing import Any, Union, List
 import copy
-import torch
 import numpy as np
 import gym
 import competitive_rl
@@ -8,7 +7,7 @@ import competitive_rl
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from .competitive_rl_env_wrapper import BuiltinOpponentWrapper, wrap_env
 from ding.utils import ENV_REGISTRY
 
@@ -108,7 +107,7 @@ class CompetitiveRlEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: Union[torch.Tensor, np.ndarray, list]) -> BaseEnvTimestep:
+    def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
         action = self.process_action(action)  # process
 

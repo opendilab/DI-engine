@@ -31,8 +31,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     collector_env_cfg = AtariEnv.create_collector_env_cfg(cfg.env)
     evaluator_env_cfg = AtariEnv.create_evaluator_env_cfg(cfg.env)
-    collector_env = SyncSubprocessEnvManager(env_fn=[partial(AtariEnv, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
-    evaluator_env = SyncSubprocessEnvManager(env_fn=[partial(AtariEnv, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
+    collector_env = SyncSubprocessEnvManager(
+        env_fn=[partial(AtariEnv, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager
+    )
+    evaluator_env = SyncSubprocessEnvManager(
+        env_fn=[partial(AtariEnv, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)

@@ -1,12 +1,11 @@
 from typing import Any, List, Union, Optional
 import time
 import gym
-import torch
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 
 
 def disable_gym_view_window():
@@ -32,14 +31,14 @@ class MazeEnv(BaseEnv):
         self._seed = 0
         self._init_flag = False
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=1)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)        
+            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
             self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=1)
@@ -62,14 +61,14 @@ class MazeEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
-            action = action.squeeze()  # 0-dim tensor
+            action = action.squeeze()  # 0-dim array
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, bool(done), info)
 
     def info(self) -> BaseEnvInfo:
