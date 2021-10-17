@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-    exp_name='minigrid_empty8_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e7_rbs1e5_p_debug',
+    exp_name='minigrid_empty8_r2d2_n5_bs10_ul40_upc8_tuf2500_ed1e7_rbs1e5_p_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -14,19 +14,19 @@ minigrid_r2d2_config = dict(
     policy=dict(
         cuda=True,
         on_policy=False,
-        priority=False,
+        priority=True,
         model=dict(
             obs_shape=2739,
             action_shape=7,
             encoder_hidden_size_list=[256, 128, 64, 64],
         ),
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=10,  # TODO(pu) 20
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=80,
+        unroll_len=40,  # TODO(pu) 80
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence

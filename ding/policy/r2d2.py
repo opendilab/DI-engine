@@ -1,12 +1,13 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
-import torch
 import copy
+from collections import namedtuple
+from typing import List, Dict, Any, Tuple, Union, Optional
 
-from ding.torch_utils import Adam, to_device
+import torch
+
+from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
-from ding.model import model_wrap
+from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
@@ -284,7 +285,9 @@ class R2D2Policy(Policy):
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
-        )[0] + (1 - 0.9) * (sum(td_error) / (len(td_error) + 1e-8))  # td_erroe list(75,32)
+        )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
+        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
         # update
         self._optimizer.zero_grad()

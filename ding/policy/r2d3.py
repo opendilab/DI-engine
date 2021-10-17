@@ -332,7 +332,9 @@ class R2D3Policy(Policy):
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
-        # td_error list(75,32)
+        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
+
         # update
         self._optimizer.zero_grad()
         loss.backward()
