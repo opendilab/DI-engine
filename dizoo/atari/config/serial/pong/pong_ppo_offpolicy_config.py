@@ -5,8 +5,8 @@ from easydict import EasyDict
 pong_ppo_config = dict(
     env=dict(
         collector_env_num=16,
-        evaluator_env_num=4,
-        n_evaluator_episode=8,
+        evaluator_env_num=1,
+        n_evaluator_episode=1,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
@@ -14,8 +14,7 @@ pong_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        # (bool) whether to use on-policy training pipeline(on-policy means behaviour policy and training policy are the same)
-        on_policy=False,
+        random_collect_size=2048,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -24,20 +23,20 @@ pong_ppo_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            update_per_collect=24,
-            batch_size=128,
+            update_per_collect=10,
+            batch_size=64,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
             learning_rate=0.0002,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.015,
+            entropy_weight=0.01,
             clip_ratio=0.1,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=1024,
+            n_sample=256,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
             discount_factor=0.99,
@@ -45,7 +44,7 @@ pong_ppo_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            max_use=3,
+            max_use=5,
         ), ),
     ),
 )
