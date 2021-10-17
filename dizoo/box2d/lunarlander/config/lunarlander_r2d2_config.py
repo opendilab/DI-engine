@@ -11,31 +11,31 @@ lunarlander_r2d2_config = dict(
         stop_value=195,
     ),
     policy=dict(
-        cuda=False, 
+        cuda=False,
         on_policy=False,
-        priority=False, 
+        priority=False,
         model=dict(
             obs_shape=8,
             action_shape=4,
             encoder_hidden_size_list=[128, 128, 64],
         ),
-        discount_factor=0.997,  
-        burnin_step=20, 
+        discount_factor=0.997,
+        burnin_step=20,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=80,  
+        unroll_len=80,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
             # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
-            update_per_collect=8,  
+            update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500, 
+            target_update_freq=2500,
         ),
         collect=dict(
             n_sample=32,
@@ -48,7 +48,7 @@ lunarlander_r2d2_config = dict(
                 start=0.95,
                 end=0.05,
                 decay=10000,
-            ), replay_buffer=dict(replay_buffer_size=100000, )  
+            ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )

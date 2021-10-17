@@ -21,8 +21,13 @@ def eval_ckpt(args):
 def generate(args):
     config = deepcopy([main_config, create_config])
     state_dict = torch.load(main_config.policy.learn.learner.load_path, map_location='cpu')
-    collect_demo_data(config, collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
-                      seed=args.seed, expert_data_path=main_config.policy.collect.save_path, state_dict=state_dict)
+    collect_demo_data(
+        config,
+        collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
+        seed=args.seed,
+        expert_data_path=main_config.policy.collect.save_path,
+        state_dict=state_dict
+    )
 
 
 def train_expert(args):

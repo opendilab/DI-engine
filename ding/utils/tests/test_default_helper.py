@@ -3,8 +3,9 @@ import numpy as np
 import torch
 from collections import namedtuple
 
-from ding.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper,\
-    list_split, LimitedSpaceContainer, set_pkg_seed, deep_merge_dicts, deep_update, flatten_dict
+from ding.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper, \
+    list_split, LimitedSpaceContainer, set_pkg_seed, deep_merge_dicts, deep_update, flatten_dict, RunningMeanStd, \
+    one_time_warning, split_data_generator
 
 
 @pytest.mark.unittest
@@ -84,6 +85,7 @@ class TestDefaultHelper():
 
         wrap_bad_ret = error_wrapper(bad_ret, 0)
         assert wrap_bad_ret(1) == 0
+        wrap_bad_ret_with_customized_log = error_wrapper(bad_ret, 0, 'customized_information')
 
     def test_list_split(self):
         data = [i for i in range(10)]
@@ -213,3 +215,60 @@ class TestDict:
         assert flat['b/d/e'] == 6
         assert flat['b/d/f'] == 5
         assert flat['b/z'] == 4
+
+    def test_one_time_warning(self):
+        one_time_warning('test_one_time_warning')
+
+    def test_running_mean_std(self):
+        running = RunningMeanStd()
+        running.reset()
+        running.update(np.arange(1, 10))
+        assert running.mean == pytest.approx(5, abs=1e-4)
+        assert running.std == pytest.approx(2.582030, abs=1e-6)
+        running.update(np.arange(2, 11))
+        assert running.mean == pytest.approx(5.5, abs=1e-4)
+        assert running.std == pytest.approx(2.629981, abs=1e-6)
+        running.reset()
+        running.update(np.arange(1, 10))
+        assert pytest.approx(running.mean, 5)
+        assert running.mean == pytest.approx(5, abs=1e-4)
+        assert running.std == pytest.approx(2.582030, abs=1e-6)
+        new_shape = running.new_shape((2, 4), (3, ), (1, ))
+        assert isinstance(new_shape, tuple) and len(new_shape) == 3
+
+        running = RunningMeanStd(shape=(4, ))
+        running.reset()
+        running.update(np.random.random((10, 4)))
+        assert isinstance(running.mean, torch.Tensor) and running.mean.shape == (4, )
+        assert isinstance(running.std, torch.Tensor) and running.std.shape == (4, )
+
+    def test_split_data_generator(self):
+
+        def get_data():
+            return {
+                'obs': torch.randn(5),
+                'action': torch.randint(0, 10, size=(1, )),
+                'prev_state': [None, None],
+                'info': {
+                    'other_obs': torch.randn(5)
+                },
+            }
+
+        data = [get_data() for _ in range(4)]
+        data = lists_to_dicts(data)
+        data['obs'] = torch.stack(data['obs'])
+        data['action'] = torch.stack(data['action'])
+        data['info'] = {'other_obs': torch.stack([t['other_obs'] for t in data['info']])}
+        assert len(data['obs']) == 4
+        data['NoneKey'] = None
+        generator = split_data_generator(data, 3)
+        generator_result = list(generator)
+        assert len(generator_result) == 2
+        assert generator_result[0]['NoneKey'] is None
+        assert len(generator_result[0]['obs']) == 3
+        assert generator_result[0]['info']['other_obs'].shape == (3, 5)
+        assert generator_result[1]['NoneKey'] is None
+        assert len(generator_result[1]['obs']) == 3
+        assert generator_result[1]['info']['other_obs'].shape == (3, 5)
+
+        generator = split_data_generator(data, 3, shuffle=False)
