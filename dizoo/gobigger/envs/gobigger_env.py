@@ -1,5 +1,6 @@
 from typing import Any, List, Union, Optional, Tuple
 import time
+import copy
 import math
 import cv2
 import numpy as np
@@ -118,8 +119,13 @@ class GoBiggerEnv(BaseEnv):
 
             player_unit_feat = []
             unit_type_mapping = {'food': 0, 'thorn': 1, 'spore': 2, 'clone': 3}
+            raw_overlap = {}
             for unit_type in value['overlap']:
-                for unit in value['overlap'][unit_type]:
+                raw_overlap_one_type = list(value['overlap'][unit_type])
+                if raw_overlap_one_type is None:
+                    raw_overlap_one_type = []
+                raw_overlap[unit_type] = copy.deepcopy(raw_overlap_one_type)
+                for unit in raw_overlap_one_type:
                     if unit_type == 'clone':
                         position, radius = unit['position'], unit['radius']
                         player_name, team_name = unit['player'], unit['team']
@@ -150,6 +156,7 @@ class GoBiggerEnv(BaseEnv):
                     'scalar_obs': np.concatenate([global_feat, player_scalar_feat]).astype(np.float32),
                     'unit_obs': player_unit_feat.astype(np.float32),
                     'unit_num': len(player_unit_feat),
+                    'collate_ignore_raw_obs': copy.deepcopy({'overlap': raw_overlap}),
                 }
             )
             if self._use_spatial:
@@ -162,7 +169,8 @@ class GoBiggerEnv(BaseEnv):
     def _act_transform(self, act: list) -> dict:
         act = [item.tolist() for item in act]
         act = sum(act, [])
-        return {n: self._to_raw_action(a) for n, a in zip(self._player_names, act)}
+        # the element of act can be int scalar or structed object
+        return {n: self._to_raw_action(a) if np.isscalar(a) else a for n, a in zip(self._player_names, act)}
 
     @staticmethod
     def _to_raw_action(act: int) -> Tuple[float, float, int]:
