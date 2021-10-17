@@ -268,55 +268,8 @@
 </dd></dl>
 
 </div>
-<div class="section" id="module-ding.utils.log_helper.DistributionTimeImage">
-<span id="distributiontimeimage"></span><h3>DistributionTimeImage<a class="headerlink" href="#module-ding.utils.log_helper.DistributionTimeImage" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">DistributionTimeImage</span></code> can be used to store images accorrding to <code class="docutils literal notranslate"><span class="pre">time_steps</span></code>,
-for data with 3 dims``(time, category, value)``</p>
-</dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">add_one_time_step</span></code>, <code class="docutils literal notranslate"><span class="pre">get_image</span></code></p>
-</dd>
-</dl>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.utils.log_helper.DistributionTimeImage.__init__">
-<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.DistributionTimeImage.</span></span><span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxlen</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_range</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ding.utils.log_helper.DistributionTimeImage.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init the <code class="docutils literal notranslate"><span class="pre">DistributionTimeImage</span></code> class</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>maxlen (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The max length of data inputs</p></li>
-<li><p>val_range (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): Dict with <code class="docutils literal notranslate"><span class="pre">val_range['min']</span></code> and <code class="docutils literal notranslate"><span class="pre">val_range['max']</span></code>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.utils.log_helper.DistributionTimeImage.add_one_time_step">
-<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.DistributionTimeImage.</span></span><span class="sig-name descname"><span class="pre">add_one_time_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ding.utils.log_helper.DistributionTimeImage.add_one_time_step" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Step one timestep in <code class="docutils literal notranslate"><span class="pre">DistributionTimeImage</span></code> and add the data to distribution image</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code>): The data input</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.utils.log_helper.DistributionTimeImage.get_image">
-<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.DistributionTimeImage.</span></span><span class="sig-name descname"><span class="pre">get_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#ding.utils.log_helper.DistributionTimeImage.get_image" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Return the distribution image</p>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>img (<code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code>): The calculated distribution image</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="distributiontimeimage">
+<h3>DistributionTimeImage<a class="headerlink" href="#distributiontimeimage" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="module-ding.utils.log_helper.pretty_print">
 <span id="pretty-print"></span><h3>pretty_print<a class="headerlink" href="#module-ding.utils.log_helper.pretty_print" title="Permalink to this headline">¶</a></h3>

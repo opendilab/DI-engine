@@ -240,7 +240,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <h3>TimeWrapper<a class="headerlink" href="#timewrapper" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">TimeWrapper</span></span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">TimeWrapper</span></span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract class method that defines <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
 </dd>
@@ -249,7 +249,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.end_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">end_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapper.end_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.end_time" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">end_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.end_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.end_time" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract classmethod, stop timing</p>
 </dd>
@@ -258,7 +258,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.start_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapper.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.start_time" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.start_time" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract classmethod, start timing</p>
 </dd>
@@ -267,7 +267,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.wrapper">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapper.wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.wrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.wrapper" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Classmethod wrapper, wrap a function and automatically return its running time</p>
 </dd>
@@ -319,7 +319,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <div class="section" id="module-ding.utils.time_helper.get_cuda_time_wrapper">
 <span id="get-cuda-time-wrapper"></span><h3>get_cuda_time_wrapper<a class="headerlink" href="#module-ding.utils.time_helper.get_cuda_time_wrapper" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>Return the <code class="docutils literal notranslate"><span class="pre">TimeWrapperCuda</span></code> class</p>
+<dt>Overview:</dt><dd><p>Return the <code class="docutils literal notranslate"><span class="pre">TimeWrapperCuda</span></code> class, this wrapper aims to ensure compatibility in no cuda device</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>TimeWrapperCuda(<code class="xref py py-obj docutils literal notranslate"><span class="pre">class</span></code>): See <code class="docutils literal notranslate"><span class="pre">TimeWrapperCuda</span></code> class</p></li>

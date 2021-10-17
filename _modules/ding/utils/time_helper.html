@@ -168,6 +168,8 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">.time_helper_base</span> <span class="kn">import</span> <span class="n">TimeWrapper</span>
+<span class="kn">from</span> <span class="nn">.time_helper_cuda</span> <span class="kn">import</span> <span class="n">get_cuda_time_wrapper</span>
 
 
 <span class="k">def</span> <span class="nf">build_time_helper</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wrapper_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="s1">&#39;TimeWrapper&#39;</span><span class="p">]:</span>
@@ -195,11 +197,14 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Either wrapper_type or cfg should be provided.&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">time_wrapper_type</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()):</span>
+    <span class="k">if</span> <span class="n">time_wrapper_type</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">TimeWrapperTime</span>
     <span class="k">elif</span> <span class="n">time_wrapper_type</span> <span class="o">==</span> <span class="s1">&#39;cuda&#39;</span><span class="p">:</span>
-        <span class="c1"># lazy initialize to make code runnable locally</span>
-        <span class="k">return</span> <span class="n">get_cuda_time_wrapper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="c1"># lazy initialize to make code runnable locally</span>
+            <span class="k">return</span> <span class="n">get_cuda_time_wrapper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TimeWrapperTime</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;invalid time_wrapper_type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time_wrapper_type</span><span class="p">))</span>
 
@@ -250,49 +255,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">end_time</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="TimeWrapper"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper">[docs]</a><span class="k">class</span> <span class="nc">TimeWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Abstract class method that defines ``TimeWrapper`` class</span>
-
-<span class="sd">    Interface:</span>
-<span class="sd">        ``wrapper``, ``start_time``, ``end_time``</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="TimeWrapper.wrapper"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper.wrapper">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Classmethod wrapper, wrap a function and automatically return its running time</span>
-
-<span class="sd">        - fn (:obj:`function`): The function to be wrap and timed</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">def</span> <span class="nf">time_func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">start_time</span><span class="p">()</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">end_time</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">ret</span><span class="p">,</span> <span class="n">t</span>
-
-        <span class="k">return</span> <span class="n">time_func</span></div>
-
-<div class="viewcode-block" id="TimeWrapper.start_time"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper.start_time">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">start_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Abstract classmethod, start timing</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
-
-<div class="viewcode-block" id="TimeWrapper.end_time"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper.end_time">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">end_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Abstract classmethod, stop timing</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
-
-
 <div class="viewcode-block" id="TimeWrapperTime"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapperTime">[docs]</a><span class="k">class</span> <span class="nc">TimeWrapperTime</span><span class="p">(</span><span class="n">TimeWrapper</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -323,62 +285,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">cls</span><span class="o">.</span><span class="n">start</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">get_cuda_time_wrapper</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="s1">&#39;TimeWrapper&#39;</span><span class="p">]:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Return the ``TimeWrapperCuda`` class</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        - TimeWrapperCuda(:obj:`class`): See ``TimeWrapperCuda`` class</span>
-
-<span class="sd">    .. note::</span>
-<span class="sd">        Must use ``torch.cuda.synchronize()``, reference: &lt;https://blog.csdn.net/u013548568/article/details/81368019&gt;</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># TODO find a way to autodoc the class within method</span>
-    <span class="k">class</span> <span class="nc">TimeWrapperCuda</span><span class="p">(</span><span class="n">TimeWrapper</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            A class method that inherit from ``TimeWrapper`` class</span>
-
-<span class="sd">            Notes:</span>
-<span class="sd">                Must use torch.cuda.synchronize(), reference: \</span>
-<span class="sd">                &lt;https://blog.csdn.net/u013548568/article/details/81368019&gt;</span>
-
-<span class="sd">        Interface:</span>
-<span class="sd">            ``start_time``, ``end_time``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># cls variable is initialized on loading this class</span>
-        <span class="n">start_record</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">enable_timing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">end_record</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">enable_timing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># overwrite</span>
-        <span class="nd">@classmethod</span>
-        <span class="k">def</span> <span class="nf">start_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Implement and overide the ``start_time`` method in ``TimeWrapper`` class</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">start_record</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
-
-        <span class="c1"># overwrite</span>
-        <span class="nd">@classmethod</span>
-        <span class="k">def</span> <span class="nf">end_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-            <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Implement and overide the end_time method in ``TimeWrapper`` class</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - time(:obj:`float`): The time between ``start_time`` and ``end_time``</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">end</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">end_record</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">start_record</span><span class="o">.</span><span class="n">elapsed_time</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">end_record</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span>
-
-    <span class="k">return</span> <span class="n">TimeWrapperCuda</span>
 
 
 <div class="viewcode-block" id="WatchDog"><a class="viewcode-back" href="../../../api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog">[docs]</a><span class="k">class</span> <span class="nc">WatchDog</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
