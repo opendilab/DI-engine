@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 gobigger_dqn_config = dict(
-    exp_name='gobigger_selfplay_baseline_dqn',
+    exp_name='gobigger_no_spatial_baseline_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=3,
@@ -14,13 +14,12 @@ gobigger_dqn_config = dict(
         map_width=1000,
         resize_height=160,
         resize_width=160,
-        use_spatial=True,
+        spatial=False,
         manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
         model=dict(
-            spatial_shape=(7, 160, 160),
             scalar_shape=36,
             per_unit_shape=21,
             action_type_shape=16,

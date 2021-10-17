@@ -13,7 +13,7 @@ from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.gobigger.envs import GoBiggerEnv
 from dizoo.gobigger.model import GoBiggerStructedNetwork
-from dizoo.gobigger.config.gobigger_selfplay_no_spatial_config import main_config
+from dizoo.gobigger.config.gobigger_no_spatial_config import main_config
 
 
 class RandomPolicy:
@@ -46,11 +46,15 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         save_cfg=True
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
+    collector_env_cfg = copy.deepcopy(cfg.env)
+    collector_env_cfg.train = True
+    evaluator_env_cfg = copy.deepcopy(cfg.env)
+    evaluator_env_cfg.train = False
     collector_env = SyncSubprocessEnvManager(
-        env_fn=[lambda: GoBiggerEnv(cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: GoBiggerEnv(collector_env_cfg) for _ in range(collector_env_num)], cfg=cfg.env.manager
     )
     evaluator_env = SyncSubprocessEnvManager(
-        env_fn=[lambda: GoBiggerEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: GoBiggerEnv(evaluator_env_cfg) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
 
     collector_env.seed(seed)

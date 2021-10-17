@@ -28,7 +28,8 @@ class GoBiggerEnv(BaseEnv):
         map_width=1000,
         resize_height=160,
         resize_width=160,
-        use_spatial=True,
+        spatial=True,
+        train=True,
     )
 
     def __init__(self, cfg: dict) -> None:
@@ -41,14 +42,15 @@ class GoBiggerEnv(BaseEnv):
         self._map_width = cfg.map_width
         self._resize_height = cfg.resize_height
         self._resize_width = cfg.resize_width
-        self._use_spatial = cfg.use_spatial
+        self._spatial = cfg.spatial
+        self._train = cfg.train
         self._last_team_size = None
         self._init_flag = False
 
     def _launch_game(self) -> Server:
         server = Server(self._cfg)
         server.start()
-        render = EnvRender(server.map_width, server.map_height, use_spatial=self._use_spatial)
+        render = EnvRender(server.map_width, server.map_height, use_spatial=self._spatial)
         server.set_render(render)
         self._player_names = sum(server.get_player_names_with_team(), [])
         return server
@@ -100,7 +102,7 @@ class GoBiggerEnv(BaseEnv):
         # player
         obs = []
         for n, value in player_state.items():
-            if self._use_spatial:
+            if self._spatial:
                 player_spatial_feat = []
                 for c, item in enumerate(value['feature_layers']):
                     # cv2.imwrite('before_{}_{}.jpg'.format(n, c), item*255)
@@ -159,7 +161,7 @@ class GoBiggerEnv(BaseEnv):
                     'collate_ignore_raw_obs': copy.deepcopy({'overlap': raw_overlap}),
                 }
             )
-            if self._use_spatial:
+            if self._spatial:
                 obs[-1]['spatial_obs'] = player_spatial_feat.astype(np.float32)
         team_obs = []
         for i in range(self._team_num):
@@ -203,7 +205,8 @@ class GoBiggerEnv(BaseEnv):
             team_reward = []
             for i in range(self._team_num):
                 team_reward_item = sum(reward[i * self._player_num_per_team:(i + 1) * self._player_num_per_team])
-                team_reward_item = np.clip(team_reward_item / 2, -1, 1)
+                if self._train:
+                    team_reward_item = np.clip(team_reward_item / 2, -1, 1)
                 team_reward.append(team_reward_item)
         self._last_team_size = global_state['leaderboard']
         return team_reward
