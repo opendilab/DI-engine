@@ -1,3 +1,6 @@
+import sys 
+sys.path.append("..") 
+
 from typing import Any, List, Union, Optional
 import numpy as np
 import gym
@@ -22,21 +25,22 @@ class GymSoccerEnv(BaseEnv):
 
     def reset(self) -> np.array:
         if not self._init_flag:
-            self._env = gym.make(self._env_id)
+            self._env = gym.make(self._env_id, replay_path=self._replay_path)
             self._init_flag = True
-            if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-                )
-                self._env.metadata["render.modes"] = ["human", "rgb_array"]
+            # if self._replay_path is not None:
+            #     self._env = gym.wrappers.Monitor(
+            #         self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            #     )
+            #     self._env.metadata["render.modes"] = ["human"]
 
         self._final_eval_reward = 0
-        obs = self._env._reset()
+        obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs
 
     def step(self, action: List) -> BaseEnvTimestep:
-        obs, rew, done, info = self._env._step(action)
+        obs, rew, done, info = self._env.step(action)
+        self.render()
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
@@ -67,16 +71,18 @@ class GymSoccerEnv(BaseEnv):
         return BaseEnvInfo(
             agent_num=1,
             obs_space=T(
-                (58, ),
+                (59, ),
                 {
-                    # [min, max)
+                    # [min, max]
                     'min': -1,
-                    'max': 2,
+                    'max': 1,
                     'dtype': np.float32,
                 },
             ),
             act_space=T(
-                (3, ),
+                # the discrete action shape is (3,)
+                # however, the continuous action shape is (5,), which is not revealed in the info
+                (3, ), 
                 {
                     # [min, max)
                     'min': 0,
@@ -96,10 +102,16 @@ class GymSoccerEnv(BaseEnv):
             use_wrappers=None,
         )
 
+    def render(self,close=False):
+        self._env.render(close)
+    
     def __repr__(self) -> str:
         return "DI-engine gym soccer Env"
+    
+    def replay_log(self, log_path):
+        self._env.replay_log(log_path)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
-            replay_path = './video'
+            replay_path = './game_log'
         self._replay_path = replay_path
