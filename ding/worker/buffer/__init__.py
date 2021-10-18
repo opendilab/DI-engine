@@ -1,4 +1,3 @@
-from .buffer import Buffer
-from .naive_buffer import NaiveBuffer
+from .buffer import Buffer, RateLimit
 from .storage import Storage
 from .memory_storage import MemoryStorage
