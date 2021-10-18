@@ -42,11 +42,13 @@ class Buffer:
             Use algorithm middlewares to modify the behavior of the buffer.
             Every middleware should be a callable function, it will receive three argument parts, including:
             1. The buffer instance, you can use this instance to visit every thing of the buffer, including the storage.
-            2. The functions called by the user, there are three methods named `push`, `sample` and `clear`, so you can use these function name to decide which action to choose.
+            2. The functions called by the user, there are three methods named `push`, `sample` and `clear`,
+               so you can use these function name to decide which action to choose.
             3. The remaining arguments passed by the user to the original function, will be passed in *args.
 
             Each middleware handler should return two parts of the value, including:
-            1. The first value is `done` (True or False), if done==True, the middleware chain will stop immediately, no more middlewares will be executed during this execution
+            1. The first value is `done` (True or False), if done==True, the middleware chain will stop immediately,
+               no more middlewares will be executed during this execution
             2. The remaining values, will be passed to the next middleware or the default function in the buffer.
         Arguments:
             - func (:obj:`Callable`): the middleware handler
