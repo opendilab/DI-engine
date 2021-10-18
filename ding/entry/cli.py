@@ -52,7 +52,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-m',
     '--mode',
-    type=click.Choice(['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval']),
+    type=click.Choice(['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval',
+                       'serial_reward_model']),
     help='serial-train or parallel-train or dist-train or eval'
 )
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')
@@ -157,6 +158,11 @@ def cli(
             config = get_predefined_config(env, policy)
         expert_config = input("Enter the name of the config you used to generate your expert model: ")
         serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+    elif mode == 'serial_reward_model':
+        from .serial_entry_reward_model import serial_pipeline_reward_model
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
     elif mode == 'serial_dqfd':
         from .serial_entry_dqfd import serial_pipeline_dqfd
         if config is None:
