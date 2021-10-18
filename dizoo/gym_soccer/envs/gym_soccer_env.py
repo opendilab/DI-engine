@@ -1,6 +1,3 @@
-import sys 
-sys.path.append("..") 
-
 from typing import Any, List, Union, Optional
 import numpy as np
 import gym
@@ -10,6 +7,9 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from gym.utils import seeding
+
+import sys
+sys.path.append("..")
 
 
 @ENV_REGISTRY.register('gym_soccer')
@@ -82,7 +82,9 @@ class GymSoccerEnv(BaseEnv):
             act_space=T(
                 # the discrete action shape is (3,)
                 # however, the continuous action shape is (5,), which is not revealed in the info
-                (3, ), 
+                (
+                    3,
+                ),
                 {
                     # [min, max)
                     'min': 0,
@@ -102,12 +104,12 @@ class GymSoccerEnv(BaseEnv):
             use_wrappers=None,
         )
 
-    def render(self,close=False):
+    def render(self, close=False):
         self._env.render(close)
-    
+
     def __repr__(self) -> str:
         return "DI-engine gym soccer Env"
-    
+
     def replay_log(self, log_path):
         self._env.replay_log(log_path)
 

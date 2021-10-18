@@ -32,5 +32,6 @@ class TestGymSoccerEnv:
         # env.replay_log("game_log/20211019011053-base_left_0-vs-base_right_0.rcg")
         env.close()
 
+
 test_env = TestGymSoccerEnv()
 test_env.test_naive()
