@@ -320,10 +320,19 @@ class R2D2Policy(Policy):
         self._optimizer.step()
         # after update
         self._target_model.update(self._learn_model.state_dict())
+
+        # the information for debug
+        batch_range = torch.arange(action[0].shape[0])
+        q_s_a_t0 = q_value[0][batch_range, action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range,  target_q_action[0]]
+
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            'q_s_a_t0':  q_s_a_t0.mean().item(),  # TODO(pu)
+            'target_q_s_a_t0': target_q_s_a_t0.mean().item(),  # TODO(pu)
+
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -461,3 +470,8 @@ class R2D2Policy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'drqn', ['ding.model.template.q_learning']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'total_loss', 'priority', 'q_s_a_t0',  'target_q_s_a_t0'
+        ]
