@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 lunarlander_dqfd_config = dict(
     exp_name='lunarlander_dqfd',
@@ -59,6 +58,3 @@ lunarlander_dqfd_create_config = dict(
 )
 lunarlander_dqfd_create_config = EasyDict(lunarlander_dqfd_create_config)
 create_config = lunarlander_dqfd_create_config
-
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
