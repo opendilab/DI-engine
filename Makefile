@@ -33,7 +33,7 @@ cudatest:
 		-sv -m cudatest
 
 dockertest:
-	docker run --rm -it -v $$(pwd):/ding opendilab/ding:nightly ./ding/scripts/docker-test.sh
+	./ding/scripts/docker-test-entry.sh
 
 platformtest:
 	pytest ${PLATFORM_TEST_DIR} \
