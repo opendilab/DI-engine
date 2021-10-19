@@ -2,8 +2,9 @@ import os
 from easydict import EasyDict
 
 from ding.entry import serial_pipeline_r2d3
-import os   
-module_path = os.path.dirname(__file__) 
+import os
+
+module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
@@ -23,18 +24,19 @@ lunarlander_r2d3_config = dict(
         cuda=True,
         on_policy=False,
         priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
-            encoder_hidden_size_list=[128, 128, 64],
+            encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=2,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=80,
+        unroll_len=40,
         learn=dict(
             # according to the r2d3 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -43,9 +45,9 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=False,
             update_per_collect=8,
-            batch_size=32,  # TODO(pu)
+            batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500,
+            target_update_theta=0.001,
             ###
             lambda1=1.0,  # n-step return
             lambda2=1.0,  # supervised loss
@@ -55,8 +57,7 @@ lunarlander_r2d3_config = dict(
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # Cut trajectories into pieces with length "unroll_len".
-            # unroll_len=1,
+            each_iter_n_sample=32,
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
@@ -68,9 +69,14 @@ lunarlander_r2d3_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=10000,
+                decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=100000, alpha=0.9),  # priority exponent =0.9
+            replay_buffer=dict(replay_buffer_size=100000,
+                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                               alpha=0.6,  # priority exponent default=0.6
+                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                               beta=0.4,
+                               )
         ),
     ),
 )
@@ -90,7 +96,7 @@ create_config = lunarlander_r2d3_create_config
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
-    exp_name='lunarlander_r2d3_debug',
+    exp_name='debug_lunarlander_r2d3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -107,10 +113,10 @@ expert_lunarlander_r2d3_config = dict(
             obs_shape=8,
             action_shape=4,
             # encoder_hidden_size_list=[512, 64],  # dqn
-            # encoder_hidden_size_list=[128],  # ppo
+            encoder_hidden_size_list=[128, 128, 64],  # ppo
         ),
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=2,
         nstep=5,
         learn=dict(
             expert_replay_buffer_size=10000,  # TODO(pu)
@@ -121,14 +127,18 @@ expert_lunarlander_r2d3_config = dict(
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
             demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
-
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=100,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=10000, alpha=0.9),  # priority exponent=0.9 TODO(pu)
+            replay_buffer=dict(replay_buffer_size=10000,
+                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                               alpha=0.9,  # priority exponent default=0.6
+                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                               beta=0.4,
+                               )
         ),
     ),
 )
