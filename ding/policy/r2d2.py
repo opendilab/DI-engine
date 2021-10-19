@@ -70,9 +70,9 @@ class R2D2Policy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=False,
+        priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
+        priority_IS_weight=True,
         # ==============================================================
         # The following configs are algorithm-specific
         # ==============================================================
@@ -97,7 +97,7 @@ class R2D2Policy(Policy):
             # ==============================================================
             # (int) Frequence of target network update.
             # target_update_freq=100,
-            target_update_theta = 0.001,
+            target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
@@ -211,6 +211,8 @@ class R2D2Policy(Policy):
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
+            # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
@@ -223,7 +225,8 @@ class R2D2Policy(Policy):
         if 'weight' not in data:
             data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['weight'] = data['weight'] * torch.ones_like(data['done'])  # every timestep in sequence has same weight
+            data['weight'] = data['weight'] * torch.ones_like(data['done'])
+            # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
@@ -289,7 +292,9 @@ class R2D2Policy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):  # the first self._burnin_step data
+        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+            # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
+            # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
