@@ -1,9 +1,9 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline
 
-nstep = 3
-lunarlander_dqn_default_config = dict(
-    exp_name='lunarlander_dqn',
+nstep = 1
+lunarlander_gail_default_config = dict(
+    exp_name='lunarlander_gail',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
@@ -12,6 +12,16 @@ lunarlander_dqn_default_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=200,
+    ),
+    reward_model=dict(
+        type='gail',
+        input_size=9,
+        hidden_size=64,
+        batch_size=64,
+        learning_rate=1e-3,
+        update_per_collect=100,
+        expert_data_path='lunarlander_dqn/expert_data.pkl',
+        collect_count=100000,
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -59,10 +69,10 @@ lunarlander_dqn_default_config = dict(
         ),
     ),
 )
-lunarlander_dqn_default_config = EasyDict(lunarlander_dqn_default_config)
-main_config = lunarlander_dqn_default_config
+lunarlander_gail_default_config = EasyDict(lunarlander_gail_default_config)
+main_config = lunarlander_gail_default_config
 
-lunarlander_dqn_create_config = dict(
+lunarlander_gail_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
@@ -70,8 +80,8 @@ lunarlander_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
-create_config = lunarlander_dqn_create_config
+lunarlander_gail_create_config = EasyDict(lunarlander_gail_create_config)
+create_config = lunarlander_gail_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

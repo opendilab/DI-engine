@@ -16,7 +16,7 @@ cartpole_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='cartpole_dqn/expert_data.pkl',
-        collect_count=1000,
+        collect_count=100000,
     ),
     policy=dict(
         load_path='',
@@ -34,7 +34,7 @@ cartpole_gail_config = dict(
             learning_rate=0.001,
         ),
         collect=dict(n_sample=64),
-        eval=dict(evaluator=dict(eval_freq=40, )),
+        eval=dict(evaluator=dict(eval_freq=10, )),
         other=dict(
             eps=dict(
                 type='exp',

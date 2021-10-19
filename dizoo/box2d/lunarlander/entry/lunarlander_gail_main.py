@@ -12,8 +12,10 @@ from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
-from dizoo.classic_control.cartpole.config.cartpole_gail_config import cartpole_gail_config, cartpole_gail_create_config
-from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
+from dizoo.box2d.lunarlander.config.lunarlander_gail_config import lunarlander_gail_default_config,\
+    lunarlander_gail_create_config
+from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import lunarlander_dqn_default_config,\
+    lunarlander_dqn_create_config
 
 
 def main(
@@ -135,5 +137,6 @@ def main(
 
 
 if __name__ == "__main__":
-    main((cartpole_gail_config, cartpole_gail_create_config), (cartpole_dqn_config, cartpole_dqn_create_config),
+    main((lunarlander_gail_default_config, lunarlander_gail_create_config), (lunarlander_dqn_default_config,
+                                                                             lunarlander_dqn_create_config),
          collect_data=1, seed=0)
