@@ -10,7 +10,7 @@ def apply_middleware(func_name: str):
             for func in buffer.middlewares:
                 done, *args = func(buffer, func_name, *args)
                 if done:
-                    return args
+                    return args[0] if len(args) == 1 else args
             return f(buffer, *args)
 
         return _apply_middleware
