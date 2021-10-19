@@ -17,12 +17,16 @@ from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
+from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+from .dqfd import DQFDPolicy
+from .d4pg import D4PGPolicy
+from .cql import CQLPolicy, CQLDiscretePolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -75,6 +79,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('dqn_command')
 class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('dqfd_command')
+class DQFDCommandModePolicy(DQFDPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -153,8 +162,23 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('cql_command')
+class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('cql_discrete_command')
+class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('qmix_command')
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('wqmix_command')
+class WQMIXCommandModePolicy(WQMIXPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -180,4 +204,9 @@ class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('qtran_command')
 class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('d4pg_command')
+class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
     pass

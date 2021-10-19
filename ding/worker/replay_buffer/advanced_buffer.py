@@ -10,6 +10,13 @@ from ding.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
 
+def to_positive_index(idx: Union[int, None], size: int) -> int:
+    if idx is None or idx >= 0:
+        return idx
+    else:
+        return size + idx
+
+
 @BUFFER_REGISTRY.register('advanced')
 class AdvancedReplayBuffer(IBuffer):
     r"""
@@ -90,7 +97,8 @@ class AdvancedReplayBuffer(IBuffer):
         Arguments:
             - cfg (:obj:`dict`): Config dict.
             - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
-            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
+            - exp_name (:obj:`Optional[str]`): Name of this experiment.
+            - instance_name (:obj:`Optional[str]`): Name of this instance.
         """
         self._exp_name = exp_name
         self._instance_name = instance_name
@@ -206,13 +214,15 @@ class AdvancedReplayBuffer(IBuffer):
         if self._enable_track_used_data:
             self._used_data_remover.close()
 
-    def sample(self, size: int, cur_learner_iter: int) -> Optional[list]:
-        r"""
+    def sample(self, size: int, cur_learner_iter: int, sample_range: slice = None) -> Optional[list]:
+        """
         Overview:
             Sample data with length ``size``.
         Arguments:
             - size (:obj:`int`): The number of the data that will be sampled.
             - cur_learner_iter (:obj:`int`): Learner's current iteration, used to calculate staleness.
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``
         ReturnsKeys:
@@ -235,7 +245,7 @@ class AdvancedReplayBuffer(IBuffer):
             )
             return None
         with self._lock:
-            indices = self._get_indices(size)
+            indices = self._get_indices(size, sample_range)
             result = self._sample_with_indices(indices, cur_learner_iter)
             # Deepcopy ``result``'s same indice datas in case ``self._get_indices`` may get datas with
             # the same indices, i.e. the same datas would be sampled afterwards.
@@ -445,8 +455,8 @@ class AdvancedReplayBuffer(IBuffer):
                     self._max_priority = max(self._max_priority, priority)
                 else:
                     self._logger.debug(
-                        'buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
-                            idx, self._data[idx]['replay_unique_id'], id_
+                        '[Skip Update]: buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
+                            idx, id_, priority
                         )
                     )
 
@@ -498,7 +508,7 @@ class AdvancedReplayBuffer(IBuffer):
         # only the data passes all the check functions, would the check return True
         return all([fn(d) for fn in self.check_list])
 
-    def _get_indices(self, size: int) -> list:
+    def _get_indices(self, size: int, sample_range: slice = None) -> list:
         r"""
         Overview:
             Get the sample index list according to the priority probability.
@@ -511,8 +521,16 @@ class AdvancedReplayBuffer(IBuffer):
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # Uniformly sample within each interval
         mass = intervals + np.random.uniform(size=(size, )) * 1. / size
-        # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
-        mass *= self._sum_tree.reduce()
+        if sample_range is None:
+            # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
+            mass *= self._sum_tree.reduce()
+        else:
+            # Rescale to [a, b)
+            start = to_positive_index(sample_range.start, self._replay_buffer_size)
+            end = to_positive_index(sample_range.stop, self._replay_buffer_size)
+            a = self._sum_tree.reduce(0, start)
+            b = self._sum_tree.reduce(0, end)
+            mass = mass * (b - a) + a
         # Find prefix sum index to sample with probability
         return [self._sum_tree.find_prefixsum_idx(m) for m in mass]
 
@@ -598,10 +616,6 @@ class AdvancedReplayBuffer(IBuffer):
         self._periodic_thruput_monitor.push_data_count += add_count
         if self._use_thruput_controller:
             self._thruput_controller.history_push_count += add_count
-        self._tb_logger.add_scalar(
-            'buffer_{}_sec/'.format(self._instance_name) + 'push', add_count,
-            time.time() - self._start_time
-        )
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -653,10 +667,6 @@ class AdvancedReplayBuffer(IBuffer):
                     self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, iter_metric)
                 if step_metric is not None:
                     self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, step_metric)
-        self._tb_logger.add_scalar(
-            '{}_sec/'.format(self._instance_name) + 'sample', len(sample_data),
-            time.time() - self._start_time
-        )
         self._sampled_data_attr_print_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:

@@ -1,12 +1,11 @@
 from typing import Any, List, Union, Sequence
 import copy
-import torch
 import gym
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
 from pprint import pprint
@@ -101,7 +100,7 @@ class PomdpAtariEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
@@ -112,8 +111,9 @@ class PomdpAtariEnv(BaseEnv):
             info.use_wrappers = self._make_env(only_info=True)
             return info
         else:
-            raise NotImplementedError('{} not found in POMDP_INFO_DICT [{}]'\
-                .format(self._cfg.env_id, POMDP_INFO_DICT.keys()))
+            raise NotImplementedError(
+                '{} not found in POMDP_INFO_DICT [{}]'.format(self._cfg.env_id, POMDP_INFO_DICT.keys())
+            )  # noqa
 
     def _make_env(self, only_info=False):
         return wrap_deepmind(

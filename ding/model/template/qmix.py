@@ -121,7 +121,7 @@ class QMix(nn.Module):
         self.mixer = mixer
         if self.mixer:
             self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
-            self._global_state_encoder = nn.Sequential()
+            self._global_state_encoder = nn.Identity()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -428,7 +428,7 @@ class CollaQ(nn.Module):
         embedding_size = hidden_size_list[-1]
         if self.mixer:
             self._mixer = Mixer(agent_num, global_obs_shape, embedding_size)
-            self._global_state_encoder = nn.Sequential()
+            self._global_state_encoder = nn.Identity()
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """

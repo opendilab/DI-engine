@@ -25,7 +25,8 @@ class Player:
             init_payoff: 'BattleSharedPayoff',  # noqa
             checkpoint_path: str,
             player_id: str,
-            total_agent_step: int
+            total_agent_step: int,
+            rating: 'PlayerRating',  # noqa
     ) -> None:
         """
         Overview:
@@ -39,6 +40,7 @@ class Player:
             - player_id (:obj:`str`): Player id in string format.
             - total_agent_step (:obj:`int`): For active player, it should be 0; \
                 For historical player, it should be parent player's ``_total_agent_step`` when ``snapshot``.
+            - rating (:obj:`PlayerRating`): player rating information in total league
         """
         self._cfg = cfg
         self._category = category
@@ -48,6 +50,7 @@ class Player:
         self._player_id = player_id
         assert isinstance(total_agent_step, int), (total_agent_step, type(total_agent_step))
         self._total_agent_step = total_agent_step
+        self._rating = rating
 
     @property
     def category(self) -> str:
@@ -72,6 +75,14 @@ class Player:
     @total_agent_step.setter
     def total_agent_step(self, step: int) -> None:
         self._total_agent_step = step
+
+    @property
+    def rating(self) -> 'PlayerRating':  # noqa
+        return self._rating
+
+    @rating.setter
+    def rating(self, _rating: 'PlayerRating') -> None:  # noqa
+        self._rating = _rating
 
 
 @PLAYER_REGISTRY.register('historical_player')
@@ -168,10 +179,12 @@ class ActivePlayer(Player):
             else:
                 return False
 
-    def snapshot(self) -> HistoricalPlayer:
+    def snapshot(self, metric_env: 'LeagueMetricEnv') -> HistoricalPlayer:  # noqa
         """
         Overview:
             Generate a snapshot historical player from the current player, called in league's ``_snapshot``.
+        Argument:
+            - metric_env (:obj:`LeagueMetricEnv`): player rating environment, one league one env
         Returns:
             - snapshot_player (:obj:`HistoricalPlayer`): new instantiated historical player
 
@@ -187,6 +200,7 @@ class ActivePlayer(Player):
             path,
             self.player_id + '_{}_historical'.format(int(self._total_agent_step)),
             self._total_agent_step,
+            metric_env.create_rating(mu=self.rating.mu),
             parent_id=self.player_id
         )
 
