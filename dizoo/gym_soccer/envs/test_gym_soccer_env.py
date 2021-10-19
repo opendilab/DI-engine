@@ -18,6 +18,7 @@ class TestGymSoccerEnv:
             random_action = env.get_random_action()
             # print('random_action', random_action)
             timestep = env.step(random_action)
+            env.render()
             assert isinstance(timestep.obs, np.ndarray)
             assert isinstance(timestep.done, bool)
             assert timestep.obs.shape == (59, )
@@ -27,7 +28,7 @@ class TestGymSoccerEnv:
             if timestep.done:
                 print('reset env')
                 env.reset()
-            assert env._final_eval_reward == 0
+                assert env._final_eval_reward == 0
         print(env.info())
         # env.replay_log("game_log/20211019011053-base_left_0-vs-base_right_0.rcg")
         env.close()

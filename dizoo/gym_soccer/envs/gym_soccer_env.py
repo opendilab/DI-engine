@@ -40,7 +40,6 @@ class GymSoccerEnv(BaseEnv):
 
     def step(self, action: List) -> BaseEnvTimestep:
         obs, rew, done, info = self._env.step(action)
-        self.render()
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
