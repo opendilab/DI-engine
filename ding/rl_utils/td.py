@@ -339,8 +339,8 @@ def q_nstep_td_error(
 def dqfd_nstep_td_error(
         data: namedtuple,
         gamma: float,
-        lambda1: tuple,
-        lambda2: tuple,
+        lambda1: float,
+        lambda2: float,
         margin_function: float,
         nstep: int = 1,
         cum_reward: bool = False,
@@ -433,7 +433,7 @@ def dqfd_nstep_td_error(
         0.8 * torch.from_numpy((action == max_action).numpy().astype(int)).float().to(device) - q_s_a
     )
     '''
-    return ((lambda1[0] * td_error_per_sample + td_error_one_step_per_sample + lambda2[0] * JE) *
+    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
             weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
 
 
