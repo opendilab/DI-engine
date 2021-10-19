@@ -3,10 +3,11 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_ppo_config = dict(
+    exp_name='ppo_offpolicy_pong',
     env=dict(
         collector_env_num=16,
-        evaluator_env_num=1,
-        n_evaluator_episode=1,
+        evaluator_env_num=8,
+        n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
@@ -23,8 +24,8 @@ pong_ppo_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            update_per_collect=10,
-            batch_size=64,
+            update_per_collect=24,
+            batch_size=128,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
             learning_rate=0.0002,
@@ -36,7 +37,7 @@ pong_ppo_config = dict(
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=256,
+            n_sample=1024,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
             discount_factor=0.99,
