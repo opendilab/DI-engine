@@ -96,14 +96,15 @@ class R2D2Policy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            # target_update_freq=100,
+            target_update_theta = 0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=64,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -149,12 +150,19 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
+        # self._target_model = model_wrap(  TODO(pu)
+        #     self._target_model,
+        #     wrapper_name='target',
+        #     update_type='assign',
+        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
+        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
+
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
@@ -186,24 +194,36 @@ class R2D2Policy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
+
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
+
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
         # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+            data['value_gamma'] = data['value_gamma'][bs:]
+
+        if 'weight' not in data:
+            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+        else:
+            data['weight'] = data['weight'] * torch.ones_like(data['done'])  # every timestep in sequence has same weight
 
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
@@ -269,7 +289,7 @@ class R2D2Policy(Policy):
         loss = []
         td_error = []
         value_gamma = data['value_gamma']
-        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):  # the first self._burnin_step data
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
