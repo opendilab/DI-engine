@@ -332,7 +332,6 @@ class R2D2Policy(Policy):
             'priority': td_error_per_sample.abs().tolist(),
             'q_s_a_t0':  q_s_a_t0.mean().item(),  # TODO(pu)
             'target_q_s_a_t0': target_q_s_a_t0.mean().item(),  # TODO(pu)
-
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:

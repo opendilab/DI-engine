@@ -411,14 +411,13 @@ def dqfd_nstep_td_error(
             nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
         )
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
-
+    device = q_s_a.device
+    device_cpu = torch.device('cpu')
     # calculate the supervised loss
-    l = margin_function * torch.ones_like(q)  # q shape (B, A)
-    l = l.to(q.device)
-    action = action.to(q.device)  # action shape (B, )
-    l.scatter_(1, torch.LongTensor(action.unsqueeze(1)), torch.zeros_like(q))
+    l = margin_function * torch.ones_like(q).to(device_cpu)  # q shape (B, A), action shape (B, )
+    l.scatter_(1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu))
     # along the first dimension. for the index of the action, fill the corresponding position in l with 0
-    JE = is_expert * (torch.max(q + l, dim=1)[0] - q_s_a)
+    JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
 
     return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
             weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
