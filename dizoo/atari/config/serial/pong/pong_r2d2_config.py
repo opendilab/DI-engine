@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 pong_r2d2_config = dict(
-    exp_name='pong_r2d2_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_p_debug',
+    exp_name='debug_pong_r2d2_n5_bs2_ul40',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -16,18 +16,19 @@ pong_r2d2_config = dict(
         cuda=True,
         on_policy=False,
         priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=2,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=80,
+        unroll_len=40,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -37,9 +38,10 @@ pong_r2d2_config = dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500,
+            target_update_theta=0.001,
         ),
         collect=dict(
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
@@ -49,8 +51,15 @@ pong_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=10000,
-            ), replay_buffer=dict(replay_buffer_size=100000, )
+                decay=100000,
+            ),
+            replay_buffer=dict(
+                replay_buffer_size=100000,
+               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+               alpha=0.6,
+               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+               beta=0.4,
+            )
         ),
     ),
 )
