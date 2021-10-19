@@ -68,9 +68,9 @@ class R2D3Policy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=False,
+        priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
+        priority_IS_weight=True,
         # ==============================================================
         # The following configs are algorithm-specific
         # ==============================================================
@@ -94,14 +94,15 @@ class R2D3Policy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            # target_update_freq=100,
+            target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=64,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -153,11 +154,17 @@ class R2D3Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
+        # self._target_model = model_wrap(
+        #     self._target_model,
+        #     wrapper_name='target',
+        #     update_type='assign',
+        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
+        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
         self._target_model = model_wrap(
             self._target_model,
@@ -190,6 +197,14 @@ class R2D3Policy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
+
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
+
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
@@ -198,16 +213,23 @@ class R2D3Policy(Policy):
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
+            # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+            data['value_gamma'] = data['value_gamma'][bs:]
+        
+        if 'weight' not in data:
+            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+        else:
+            data['weight'] = data['weight'] * torch.ones_like(data['done'])
+            # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
@@ -224,9 +246,9 @@ class R2D3Policy(Policy):
         # TODO(pu)
         data['target_obs_one_step'] = data['obs'][bs + 1:]
         if ignore_done:
-            data['done_one_step'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - 1)]
+            data['done_one_step'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['done_one_step'] = data['done_one_step'][bs + 1:].float(
+            data['done_one_step'] = data['done_one_step'][bs:].float(
             )  # for computation of online model self._learn_model
 
         return data
@@ -295,6 +317,8 @@ class R2D3Policy(Policy):
         loss = []
         td_error = []
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+            # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
+            # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = dqfd_nstep_td_data(
                 q_value[t],
                 target_q_value[t],
@@ -341,10 +365,18 @@ class R2D3Policy(Policy):
         self._optimizer.step()
         # after update
         self._target_model.update(self._learn_model.state_dict())
+        
+        # the information for debug
+        batch_range = torch.arange(action[0].shape[0])
+        q_s_a_t0 = q_value[0][batch_range, action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range,  target_q_action[0]]
+
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            'q_s_a_t0':  q_s_a_t0.mean().item(),  # TODO(pu)
+            'target_q_s_a_t0': target_q_s_a_t0.mean().item(),  # TODO(pu)
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -491,3 +523,8 @@ class R2D3Policy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'drqn', ['ding.model.template.q_learning']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'total_loss', 'priority', 'q_s_a_t0',  'target_q_s_a_t0'
+        ]
