@@ -3,11 +3,13 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-    exp_name='debug_minigrid_empty8_r2d2_n5_bs2_ul40',
+    exp_name='debug_minigrid_doorkey_r2d2_n5_bs2_ul40',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
+        env_id='MiniGrid-DoorKey-16x16-v0',
         n_evaluator_episode=5,
         stop_value=0.96,
     ),

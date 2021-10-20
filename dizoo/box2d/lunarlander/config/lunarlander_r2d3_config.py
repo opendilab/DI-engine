@@ -11,7 +11,7 @@ evaluator_env_num = 5
 
 """agent config"""
 lunarlander_r2d3_config = dict(
-    exp_name='lunarlander_r2d3_debug',
+    exp_name='debug_lunarlander_r2d3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
