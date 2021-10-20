@@ -423,7 +423,7 @@ DI-engine saves and loads checkpoints in the same way as PyTorch.</p>
 </pre></div>
 </div>
 <p>To deploy this in a more elegant way, DI-engine is configured to use
-<a class="reference internal" href="../api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.LearnerHook" title="ding.worker.learner.learner_hook.LearnerHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">Learner</span> <span class="pre">Hook</span></code></a> to handle these cases. The saving hook is
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Learner</span> <span class="pre">Hook</span></code> to handle these cases. The saving hook is
 automatically called after training iterations. And to load &amp; save checkpoints at the beginning and
 in the end, users can simply add one-line code before &amp; after training as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">learner</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;before_run&#39;</span><span class="p">)</span>

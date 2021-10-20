@@ -168,7 +168,7 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span>
 
 
-<div class="viewcode-block" id="BaseRewardModel"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel">[docs]</a><span class="k">class</span> <span class="nc">BaseRewardModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseRewardModel"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel">[docs]</a><span class="k">class</span> <span class="nc">BaseRewardModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        the base class of reward model</span>
@@ -182,7 +182,7 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
         <span class="k">return</span> <span class="n">cfg</span>
 
-<div class="viewcode-block" id="BaseRewardModel.estimate"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.estimate">[docs]</a>    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseRewardModel.estimate"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel.estimate">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -195,7 +195,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BaseRewardModel.train"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.train">[docs]</a>    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseRewardModel.train"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel.train">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -207,7 +207,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BaseRewardModel.collect_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.collect_data">[docs]</a>    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseRewardModel.collect_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel.collect_data">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -219,7 +219,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BaseRewardModel.clear_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.clear_data">[docs]</a>    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseRewardModel.clear_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel.clear_data">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -228,7 +228,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="BaseRewardModel.load_expert_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.base_reward_model.BaseRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseRewardModel.load_expert_data"><a class="viewcode-back" href="../../../api_doc/reward_model/gail_irl_model.html#ding.reward_model.gail_irl_model.BaseRewardModel.load_expert_data">[docs]</a>    <span class="k">def</span> <span class="nf">load_expert_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Getting the expert data, usually used in inverse RL reward model</span>
