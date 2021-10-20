@@ -1,6 +1,7 @@
 from typing import Any, List, Union, Optional
 import numpy as np
 import gym
+from ding.envs.common.common_function import affine_transform
 import gym_soccer
 from ding.utils import ENV_REGISTRY
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
@@ -18,6 +19,7 @@ class GymSoccerEnv(BaseEnv):
 
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg
+        self._act_scale = cfg.get('act_scale',True)
         self._env_id = cfg.env_id
         assert self._env_id in self.default_env_id
         self._init_flag = False
@@ -27,18 +29,19 @@ class GymSoccerEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make(self._env_id, replay_path=self._replay_path)
             self._init_flag = True
-            # if self._replay_path is not None:
-            #     self._env = gym.wrappers.Monitor(
-            #         self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            #     )
-            #     self._env.metadata["render.modes"] = ["human"]
-
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         return obs
 
     def step(self, action: List) -> BaseEnvTimestep:
+        if self._act_scale:
+            action[1][0] = affine_transform(action[1][0],min_val=0,max_val=100)
+            action[2][0] = affine_transform(action[2][0],min_val=-180,max_val=180)
+            action[3][0] = affine_transform(action[3][0],min_val=-180,max_val=180)
+            action[4][0] = affine_transform(action[4][0],min_val=0,max_val=100)
+            action[5][0] = affine_transform(action[5][0],min_val=-180,max_val=180)
+
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
