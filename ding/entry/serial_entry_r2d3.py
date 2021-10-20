@@ -161,8 +161,17 @@ def serial_pipeline_r2d3(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
+
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+            new_data = collector.collect(
+                n_sample=cfg.policy.collect.each_iter_n_sample,
+                train_iter=learner.train_iter,
+                policy_kwargs=collect_kwargs
+            )
+        else:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+
         for i in range(len(new_data)):
             new_data[i]['is_expert'] = [
                 0

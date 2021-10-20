@@ -94,8 +94,8 @@ pong_r2d3_create_config = dict(
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
 
-"""export config"""
 
+"""export config"""
 expert_pong_r2d3_config = dict(
     exp_name='pong_r2d3_debug',
     env=dict(
