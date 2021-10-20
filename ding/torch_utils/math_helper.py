@@ -67,3 +67,27 @@ def cov(
     c = c / fact
 
     return c.squeeze()
+
+
+class OrnsteinUhlenbeckProcess:
+    def __init__(self, theta=0.15, mu=-0.1, sigma=1.0, time_scale=1e-1):
+        self.theta = theta
+        self.mu = mu
+        self.sigma = sigma
+        self.time_scale = time_scale
+
+    def sample(self,size):
+        self.size = size
+        previous_value = torch.zeros(size)
+        value = previous_value
+        value += self.theta * (self.mu - self.previous_value) * self.time_scale
+        value += self.sigma * torch.sqrt(self.time_scale) * torch.normal(0,1,size=size)
+        return value
+
+    def reset(self):
+        self.previous_value = torch.zeros(self.size)
+
+    def sampling_parameters(self):
+        mean = self.previous_value + self.theta * (self.mu - self.previous_value) * self.time_scale
+        sd = self.sigma * torch.sqrt(self.time_scale) * torch.ones((self.size,))
+        return mean, sd

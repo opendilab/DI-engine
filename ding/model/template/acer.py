@@ -29,6 +29,8 @@ class ACER(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
             continuous_action_space: Optional[bool] = False,
+            q_value_sample_size : int = 20,
+            noise_ratio : float = 0.,
     ) -> None:
         r"""
         Overview:
@@ -50,6 +52,8 @@ class ACER(nn.Module):
         """
         super(ACER, self).__init__()
         self.continuous_action_space = continuous_action_space
+        self.q_value_sample_size = q_value_sample_size
+        self.noise_ratio = noise_ratio
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -76,7 +80,7 @@ class ACER(nn.Module):
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
             )
             self.critic_head = StochasticDuelingHead(
-                critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
+                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type, noise_
             )
             
         else: 
@@ -193,7 +197,7 @@ class ACER(nn.Module):
             Execute parameter updates with ``'compute_critic'`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
-            - ``obs``, ``action`` encoded tensors.
+            - ``obs_inputs``, ``act_inputs`` tensors.
             - mode (:obj:`str`): Name of the forward mode.
         Returns:
             - outputs (:obj:`Dict`): Q-value output.
@@ -201,8 +205,9 @@ class ACER(nn.Module):
         ReturnKeys:
             - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``.
+            - obs_inputs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
+            - act_inputs (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, 1)`, where B is batch size.
 
         Examples:
             >>> inputs =torch.randn(4, N)
@@ -217,8 +222,10 @@ class ACER(nn.Module):
         encoded_state = self.critic_encoder(obs_inputs)
         if self.continuous_action_space:
             if act_inputs is not None:
-                state_action = torch.cat((encoded_state,act_inputs), dim=0)
-                q_val = self.critic_head(state_action)
+                encoded_action = act_inputs
+                # mu_t.shape = (B, action_size)
+                mu_t, sigma_t = self.compute_actor(obs_inputs)['logit']
+                q_val = self.critic_head(encoded_state, encoded_action, mu_t, sigma_t, self.q_value_sample_size, self.noise_ratio)
             else:
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."
