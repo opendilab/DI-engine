@@ -45,7 +45,7 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=False,
             update_per_collect=8,
-            batch_size=64,
+            batch_size=64,#64, # TODO(pu)
             learning_rate=0.0005,
             target_update_theta=0.001,
             ###
@@ -53,7 +53,7 @@ lunarlander_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=100,  # TODO(pu)
+            per_train_iter_k=100,#100,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -119,11 +119,10 @@ expert_lunarlander_r2d3_config = dict(
         burnin_step=2,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=10000,  # TODO(pu)
+            expert_replay_buffer_size=10000,  # 8, 10000, TODO(pu)
         ),
         collect=dict(
             # n_sample=32, # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
             demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
@@ -133,7 +132,7 @@ expert_lunarlander_r2d3_config = dict(
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=10000,
+            replay_buffer=dict(replay_buffer_size=10000, # 10000,8 TODO(pu)
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.9,  # priority exponent default=0.6
                                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
