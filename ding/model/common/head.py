@@ -535,6 +535,91 @@ class DuelingHead(nn.Module):
         logit = a - a.mean(dim=-1, keepdim=True) + v
         return {'logit': logit}
 
+class StochasticDuelingHead(nn.Module):
+
+    def __init__(
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        # policy_pi: [nn.Module],
+        sample_size: int = 10,
+        a_layer_num: Optional[int] = None,
+        v_layer_num: Optional[int] = None,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+    ) -> None:
+        r"""
+        Overview:
+            Init the Head according to arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - output_size (:obj:`int`): The num of output
+            - a_layer_num (:obj:`int`): The num of layers used in the network to compute action output
+            - v_layer_num (:obj:`int`): The num of layers used in the network to compute value output
+            - activation (:obj:`nn.Module`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
+            - noise (:obj:`bool`): Whether use noisy ``fc_block``
+        """
+        super(DuelingHead, self).__init__()
+        if a_layer_num is None:
+            a_layer_num = layer_num
+        if v_layer_num is None:
+            v_layer_num = layer_num
+        layer = NoiseLinearLayer if noise else nn.Linear
+        block = noise_block if noise else fc_block
+        self.A = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                a_layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, output_size)
+        )
+        self.V = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                v_layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, 1)
+        )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict Dueling output.
+            Parameter updates with DuelingHead's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run ``MLP`` with ``DuelingHead`` setups and return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+        Examples:
+            >>> head = DuelingHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+        """
+        a = self.A(x)
+        v = self.V(x)
+        logit = a - a.mean(dim=-1, keepdim=True) + v
+        return {'pred': logit}
 
 class RegressionHead(nn.Module):
 
@@ -749,4 +834,5 @@ head_cls_map = {
     'reparameterization': ReparameterizationHead,
     # multi
     'multi': MultiHead,
+    'sdn': StochasticDuelingHead,
 }

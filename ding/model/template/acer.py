@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder
+    FCEncoder, ConvEncoder, StochasticDuelingHead
 
 
 @MODEL_REGISTRY.register('acer')
@@ -67,9 +67,7 @@ class ACER(nn.Module):
         self.critic_encoder = encoder_cls(
             obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
         )
-        self.critic_head = RegressionHead(
-            critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
-        )
+        
 
         if self.continuous_action_space:
             # when the action space is continuous, we use ReparameterizationHead.
@@ -77,12 +75,19 @@ class ACER(nn.Module):
             self.actor_head = ReparameterizationHead(
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
             )
+            self.critic_head = StochasticDuelingHead(
+                critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
+            )
             
         else: 
             # when the action space is continuous, we use DiscreteHead.
             # the action_shape of discrete action space is a list, indicating the num of action dim and action choice num K.
             self.actor_head = DiscreteHead(
                 actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
+            
+            self.critic_head = RegressionHead(
+                critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
             
             
@@ -182,7 +187,7 @@ class ACER(nn.Module):
             # the return is prob_val_before_softmax of each action
             return {'logit': x['logit'] }
 
-    def compute_critic(self, inputs: torch.Tensor) -> Dict:
+    def compute_critic(self, obs_inputs: torch.Tensor, act_inputs: Optional[torch.Tensor] = None) -> Dict:
         r"""
         Overview:
             Execute parameter updates with ``'compute_critic'`` mode
@@ -209,8 +214,15 @@ class ACER(nn.Module):
             [-0.0874, -0.0406, -0.0487,  0.1346, -0.1135]],
             grad_fn=<AddmmBackward>)
         """
-
-        obs = inputs
-        x = self.critic_encoder(obs)
-        x = self.critic_head(x)
-        return {"q_value": x['pred']}
+        encoded_state = self.critic_encoder(obs_inputs)
+        if self.continuous_action_space:
+            if act_inputs is not None:
+                state_action = torch.cat((encoded_state,act_inputs), dim=0)
+                q_val = self.critic_head(state_action)
+            else:
+                raise RuntimeError(
+                    "If you indicate continuous action space, please add act_inputs when computing critic."
+                )
+        else:
+            q_val = self.critic_head(encoded_state)
+        return {"q_value": q_val['pred']}
