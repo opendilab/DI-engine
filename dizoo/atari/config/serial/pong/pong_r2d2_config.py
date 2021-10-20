@@ -37,7 +37,7 @@ pong_r2d2_config = dict(
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
             update_per_collect=8,
-            batch_size=64,
+            batch_size=25,  #TODO(pu)64,
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),

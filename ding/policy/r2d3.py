@@ -6,7 +6,7 @@ import torch
 
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_error_with_rescale, get_nstep_return_data, \
-    get_train_sample, dqfd_nstep_td_error, dqfd_nstep_td_data
+    get_train_sample, dqfd_nstep_td_error, dqfd_nstep_td_error_with_rescale, dqfd_nstep_td_data
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
@@ -334,9 +334,19 @@ class R2D3Policy(Policy):
             )
 
             if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = dqfd_nstep_td_error_with_rescale(
+                    td_data,
+                    self._gamma,
+                    self.lambda1,
+                    self.lambda2,
+                    self.margin_function,
+                    self._nstep,
+                    False,
+                    value_gamma[t],
+                )
                 loss.append(l)
                 td_error.append(e.abs())
+
             else:
                 l, e = dqfd_nstep_td_error(
                     td_data,
