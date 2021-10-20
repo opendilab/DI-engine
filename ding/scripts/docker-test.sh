@@ -5,6 +5,7 @@ if [ ! -f /.dockerenv ]; then
   exit 1
 fi
 
+pip install --ignore-installed 'PyYAML<6.0'
 pip install -e .[test,k8s] &&
   ./ding/scripts/install-k8s-tools.sh &&
   make test

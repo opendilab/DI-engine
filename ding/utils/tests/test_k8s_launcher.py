@@ -4,7 +4,7 @@ from ding.utils import K8sLauncher, OrchestratorLauncher
 from kubernetes import config, client, watch
 
 
-@pytest.mark.k8s
+@pytest.mark.unittest
 def test_operate_k8s_cluster():
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
