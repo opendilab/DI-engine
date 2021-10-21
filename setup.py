@@ -40,8 +40,10 @@ setup(
         *find_packages(include=('dizoo'
                                 'dizoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
-                  for package_name in find_packages(include=('ding.*'))},
+    package_data={
+        package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
+        for package_name in find_packages(include=('ding.*'))
+    },
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
@@ -124,8 +126,12 @@ setup(
         #     'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
         # ],
         # 'gym_hybrid_env': [
-        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid#egg=gym-hybrid',
+        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid',
         # ],
+        # 'gym_soccer_env': [
+        #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
+        # ],
+
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',
@@ -139,7 +145,6 @@ setup(
             'whichcraft',
             'joblib',
         ],
-
         'slimevolleygym_env': [
             'slimevolleygym',
         ],
