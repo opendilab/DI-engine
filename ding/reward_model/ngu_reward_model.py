@@ -185,7 +185,7 @@ class EpisodicRewardModel(BaseRewardModel):
         if torch.isnan(s):
             print('torch.isnan(s):', s.max(), s.min())
             return torch.tensor(0)  # todo
-        return 1 / s  # torch.tensor(1 / s)
+        return 1 / s  # torch.tensor(1 / s) # 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
 
     def estimate(self, data: list) -> None:
         """
@@ -251,9 +251,9 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO -> std1
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO transform to std1
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std  # TODO transform to mean 0, std 1
-            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
+            episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)  # transform to [0,1]
         return episodic_reward
 
     def collect_data(self, data: list) -> None:

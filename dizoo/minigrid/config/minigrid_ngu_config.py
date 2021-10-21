@@ -86,7 +86,7 @@ minigrid_ppo_rnd_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=1e6,
+                decay=1e5,
             ),
             replay_buffer=dict(replay_buffer_size=100000,
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization

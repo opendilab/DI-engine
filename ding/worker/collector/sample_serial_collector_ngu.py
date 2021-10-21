@@ -240,7 +240,7 @@ class SampleCollectorNGU(ISerialCollector):
                 self._beta_pool.update(beta_index)
                 policy_output = self._policy.forward(
                     beta_index, obs, prev_action, prev_reward_e, **policy_kwargs
-                )  # TODO action,r_e,r_i
+                )  # TODO reward embeding
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
