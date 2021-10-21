@@ -3,6 +3,7 @@ from collections import deque
 from operator import itemgetter
 from ding.worker.buffer import Storage
 import random
+import numpy as np
 
 
 class MemoryStorage(Storage):
@@ -16,8 +17,8 @@ class MemoryStorage(Storage):
     def get(self, indices: List[int]) -> List[Any]:
         return itemgetter(*indices)(self.storage)
 
-    def sample(self, size: int) -> List[Any]:
-        return random.sample(self.storage, size)
+    def sample(self, size: int, replace: bool = False) -> List[Any]:
+        return np.random.choice(self.storage, size, replace=replace)
 
     def count(self) -> int:
         return len(self.storage)
