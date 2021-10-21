@@ -845,8 +845,8 @@ Parameter updates with ReparameterizationHead’s MLPs forward setup.</p>
 <dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run <code class="docutils literal notranslate"><span class="pre">MLP</span></code> with <code class="docutils literal notranslate"><span class="pre">ReparameterizationHead</span></code> setups and return the result prediction dictionary.</p>
 <dl class="simple">
 <dt>Necessary Keys:</dt><dd><ul class="simple">
-<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated mu values of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_size)</span></code></p></li>
-<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated sigma values of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_size)</span></code></p></li>
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated mu values, with same size as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated sigma values, with same size as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
