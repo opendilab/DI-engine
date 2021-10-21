@@ -2,13 +2,12 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import gym_hybrid
-import torch
 import copy
 import numpy as np
 from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElementInfo
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 
@@ -23,7 +22,7 @@ class GymHybridEnv(BaseEnv):
         self._init_flag = False
         self._replay_path = None
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             if self._replay_path is not None:
