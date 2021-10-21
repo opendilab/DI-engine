@@ -5,7 +5,7 @@ from easydict import EasyDict
 from dizoo.competitive_rl.envs.competitive_rl_env import CompetitiveRlEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCompetitiveRlEnv:
 
     def test_pong_single(self):
@@ -42,7 +42,6 @@ class TestCompetitiveRlEnv:
         print(env.info())
         env.close()
 
-    @pytest.mark.double
     def test_pong_double(self):
         cfg = dict(env_id='cPongDouble-v0', )
         cfg = EasyDict(cfg)
