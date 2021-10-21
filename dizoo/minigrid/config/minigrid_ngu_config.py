@@ -8,16 +8,15 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
-    # exp_name='minigrid_fourrooms_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
-    exp_name='minigrid_fourrooms_ngu_n5_bs10_ul40_upc4_tuf2500_ed1e6_rbs5e4',
-    # exp_name='minigrid_doorkey_ngu_n5_bs20_ul80_upc8_tuf2500_ed1e7_rbs1e5',
+    exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul40',
+    # exp_name='debug_minigrid_fourrooms_ngu_n5_bs2_ul40',
+    # exp_name='debug_minigrid_doorkey_ngu_n5_bs2_ul40',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
         # env_id='MiniGrid-DoorKey-16x16-v0',
         stop_value=0.96,
     ),
@@ -32,7 +31,6 @@ minigrid_ppo_rnd_config = dict(
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
-
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -59,29 +57,27 @@ minigrid_ppo_rnd_config = dict(
         continuous=False,
         on_policy=False,
         cuda=True,
-        priority=False,
+        priority=True,
+        priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=10,
+        burnin_step=2,
         nstep=nstep,
         unroll_len=40,
         model=dict(
             obs_shape=2739,
             action_shape=7,
-            encoder_hidden_size_list=[256, 128, 64, 64],
+            encoder_hidden_size_list=[128, 128, 512],
             collector_env_num=collector_env_num,
         ),
         learn=dict(
-            update_per_collect=4,#8,
+            update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
-            value_weight=0.5,
-            entropy_weight=0.001,
-            clip_ratio=0.2,
-            adv_norm=False,
-            target_update_freq=2500,
+            target_update_theta=0.001,
         ),
         collect=dict(
-            n_sample=32,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -92,7 +88,12 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e6,
             ),
-            replay_buffer=dict(replay_buffer_size=50000, )
+            replay_buffer=dict(replay_buffer_size=100000,
+                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                               alpha=0.6,
+                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                               beta=0.4,
+                               )
         ),
     ),
 )

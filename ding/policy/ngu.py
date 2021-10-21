@@ -13,7 +13,8 @@ from .base_policy import Policy
 
 index_to_gamma = {
     i:
-    1 - torch.exp(((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1))
+        1 - torch.exp(
+            ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1))
     for i in range(8)  # TODO
 }
 
@@ -75,9 +76,9 @@ class NGUPolicy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=False,
+        priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
+        priority_IS_weight=True,
         # ==============================================================
         # The following configs are algorithm-specific
         # ==============================================================
@@ -101,16 +102,15 @@ class NGUPolicy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            # target_update_freq=100,
+            target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=64,
-            n_sample=128,
-            # unroll_len=1,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -156,11 +156,17 @@ class NGUPolicy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
+        # self._target_model = model_wrap(
+        #     self._target_model,
+        #     wrapper_name='target',
+        #     update_type='assign',
+        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
+        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
         self._target_model = model_wrap(
             self._target_model, wrapper_name='hidden_state', state_num=self._cfg.learn.batch_size, save_prev_state=True
@@ -190,25 +196,39 @@ class NGUPolicy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
+
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
+
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
+            # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
-        # if 'value_gamma' not in data:
-        #     data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
-        # else:
-        #     data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
-        data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+        if 'value_gamma' not in data:
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+        else:
+            data['value_gamma'] = data['value_gamma'][bs:]
+
+        if 'weight' not in data:
+            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+        else:
+            data['weight'] = data['weight'] * torch.ones_like(data['done'])
+            # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
         # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
         # target_q_value, and target_q_action
@@ -234,7 +254,7 @@ class NGUPolicy(Policy):
         data['main_beta'] = data['beta'][bs:-self._nstep]
         data['target_beta'] = data['beta'][bs + self._nstep:]
 
-        # Must be here after the previous slicing operation
+        # Note that Must be here after the previous slicing operation
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
 
@@ -272,8 +292,10 @@ class NGUPolicy(Policy):
                     'beta': data['burnin_nstep_beta'],
                     'enable_fast_timestep': True
                 }
-                tmp = self._learn_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep])
-                tmp_target = self._target_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep])
+                tmp = self._learn_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step,
+                                                                                      self._burnin_step + self._nstep])
+                tmp_target = self._target_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step,
+                                                                                              self._burnin_step + self._nstep])
 
         inputs = {
             'obs': data['main_obs'],
@@ -301,15 +323,17 @@ class NGUPolicy(Policy):
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
+        value_gamma = data['value_gamma']
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        value_gamma = data['value_gamma']
         self._gamma = [index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B  75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+            # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
+            # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
@@ -322,11 +346,13 @@ class NGUPolicy(Policy):
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
-        # td_error_per_sample = sum(td_error) / (len(td_error) + 1e-8)
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
-        )[0] + (1 - 0.9) * (sum(td_error) / (len(td_error) + 1e-8))
+        )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
+        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
+
         # update
         self._optimizer.zero_grad()
         loss.backward()
@@ -334,17 +360,19 @@ class NGUPolicy(Policy):
         # after update
         self._target_model.update(self._learn_model.state_dict())
 
-        batch_range = torch.arange(action.shape[1])  # T,B,1 -> B
-        max_target_q_s_a = target_q_value[0][batch_range, target_q_action[0]]  # B,
-        q_s_a = q_value[0][batch_range, action[0]]  # B,
+        # the information for debug
+        batch_range = torch.arange(action[0].shape[0])
+        q_s_a_t0 = q_value[0][batch_range, action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
+
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-            # timestep 0
-            'max_target_q_s_a_value': max_target_q_s_a.mean(),  # TODO
-            'q_s_a_value': q_s_a.mean(),  # TODO
-            'mean_q_s_a_value': q_value[0].mean(),  # TODO mean in B and A
+            # the first timestep in the sequence, may not be the start of episode TODO(pu)
+            'q_s_taken-a_t0': q_s_a_t0.mean().item(),
+            'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
+            'q_s_a-mean_t0': q_value[0].mean().item(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -401,10 +429,10 @@ class NGUPolicy(Policy):
             beta = to_device(beta, self._device)
             prev_action = to_device(prev_action, self._device)
             prev_reward_e = to_device(prev_reward_e, self._device)
-        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}
+        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}  # TODO eps
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)  # TODO eps 8个
+            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)  # TODO eps
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -462,13 +490,7 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(
-            self,
-            beta: dict,
-            obs: dict,
-            prev_action: dict,
-            prev_reward_e: dict,
-    ) -> dict:
+    def _forward_eval(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, ) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
@@ -504,3 +526,8 @@ class NGUPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'ngu', ['ding.model.template.ngu']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
+        ]

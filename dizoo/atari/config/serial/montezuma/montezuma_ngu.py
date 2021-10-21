@@ -7,21 +7,27 @@ print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
-lunarlander_ngu_config = dict(
-    exp_name='debug_lunarlander_ngu_n5_bs2_ul40',
+montezuma_ppo_rnd_config = dict(
+    exp_name='debug_montezuma_ngu_n5_bs2_ul40',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=195,
+        env_id='MontezumaRevengeNoFrameskip-v4',
+        stop_value=20,
+        frame_stack=4,
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
-        obs_shape=8,
-        action_shape=4,
+        obs_shape=[4, 84, 84],
+        action_shape=6,
         batch_size=64,
-        update_per_collect=50,  # 32*100/64=50
+        update_per_collect=int(50 / 2),  # 32*100/64=50
+        only_use_last_five_frames_for_icm_rnd=False,
+        # update_per_collect=3,  # 32*5/64=3
+        # only_use_last_five_frames_for_icm_rnd=True,
+
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -30,18 +36,21 @@ lunarlander_ngu_config = dict(
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
         learning_rate=0.001,
-        obs_shape=8,
-        action_shape=4,
+        obs_shape=[4, 84, 84],
+        action_shape=6,
         batch_size=64,
-        update_per_collect=50,
+        update_per_collect=int(50 / 2),  # 32*100/64=50
+        only_use_last_five_frames_for_icm_rnd=False,
+        # update_per_collect=3,  # 32*5/64=3
+        # only_use_last_five_frames_for_icm_rnd=True,
+
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
     ),
     policy=dict(
-        continuous=False,
-        on_policy=False,
         cuda=True,
+        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
@@ -49,8 +58,8 @@ lunarlander_ngu_config = dict(
         nstep=nstep,
         unroll_len=40,
         model=dict(
-            obs_shape=8,
-            action_shape=4,
+            obs_shape=[4, 84, 84],
+            action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
             collector_env_num=collector_env_num,
         ),
@@ -71,35 +80,37 @@ lunarlander_ngu_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=10000,
+                decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=100000,
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.6,
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=50000,
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.6,
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )
-lunarlander_ngu_config = EasyDict(lunarlander_ngu_config)
-main_config = lunarlander_ngu_config
-lunarlander_ngu_create_config = dict(
+montezuma_ppo_rnd_config = EasyDict(montezuma_ppo_rnd_config)
+main_config = montezuma_ppo_rnd_config
+montezuma_ppo_rnd_create_config = dict(
     env=dict(
-        type='lunarlander',
-        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+        type='atari',
+        import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
+    # reward_model=dict(type='rnd'),
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(
-        type='sample_ngu',  # TODO
+        type='sample_ngu',
     )
 )
-lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
-create_config = lunarlander_ngu_create_config
+montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
+create_config = montezuma_ppo_rnd_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
