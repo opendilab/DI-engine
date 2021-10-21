@@ -333,6 +333,7 @@ def test_sqil():
 def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].exp_name = 'sac'
     try:
         serial_pipeline(config, seed=0)
     except Exception:

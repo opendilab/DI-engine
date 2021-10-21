@@ -386,8 +386,8 @@ class CQLPolicy(SACPolicy):
         q_next_actions = self._get_q_value({'obs': obs_repeat, 'action': new_curr_actions_tensor})
         # q2_next_actions = self._get_tensor_values(obs, new_curr_actions_tensor, network=self.qf2)
 
-        cat_q1 = torch.cat([q_rand[0], q_value[0], q_next_actions[0], q_curr_actions[0]], 1)
-        cat_q2 = torch.cat([q_rand[1], q_value[1], q_next_actions[1], q_curr_actions[1]], 1)
+        cat_q1 = torch.cat([q_rand[0], q_value[0].reshape(-1, 1, 1), q_next_actions[0], q_curr_actions[0]], 1)
+        cat_q2 = torch.cat([q_rand[1], q_value[1].reshape(-1, 1, 1), q_next_actions[1], q_curr_actions[1]], 1)
         std_q1 = torch.std(cat_q1, dim=1)
         std_q2 = torch.std(cat_q2, dim=1)
         if self._min_q_version == 3:
