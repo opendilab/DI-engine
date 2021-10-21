@@ -87,11 +87,26 @@ class MAPPO(nn.Module):
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
-
         actor_head_cls = DiscreteHead
-        self.actor_head = actor_head_cls(
-            actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
-        )
+        multi_head = not isinstance(action_shape, int)
+        self.multi_head = multi_head
+        if multi_head:
+            self.actor_head = MultiHead(
+                actor_head_cls,
+                actor_head_hidden_size,
+                action_shape,
+                layer_num=actor_head_layer_num,
+                activation=activation,
+                norm_type=norm_type
+            )
+        else:
+            self.actor_head = actor_head_cls(
+                actor_head_hidden_size,
+                action_shape,
+                actor_head_layer_num,
+                activation=activation,
+                norm_type=norm_type
+            )
         # must use list, not nn.ModuleList
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
@@ -179,7 +194,11 @@ class MAPPO(nn.Module):
         x = self.actor_encoder(x)
         x = self.actor_head(x)
         logit = x['logit']
-        logit[action_mask == 0.0] = -99999999
+        if self.multi_head:
+            for i, l in enumerate(logit):
+                l[action_mask[..., i, :] == 0.0] = -99999999
+        else:
+            logit[action_mask == 0.0] = -99999999
         return {'logit': logit}
 
     def compute_critic(self, x: Dict) -> Dict:
