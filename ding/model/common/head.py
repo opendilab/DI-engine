@@ -623,7 +623,7 @@ class StochasticDuelingHead(nn.Module):
         state_cat_action = torch.cat((s,a),dim=1)  # size (B, action_size + state_size)
         a_val = self.A(state_cat_action)  # size (B, 1)
         s_val = self.V(s)  # size (B,1)
-        mu_t = (torch.unsqueeze(mu_t, 1)).expand((batch_size, sample_size, action_size,))  # size (B, sample_size, action_size) 
+        mu_t = (torch.unsqueeze(mu_t, 1)).expand((batch_size, sample_size, action_size))  # size (B, sample_size, action_size) 
         sigma_t = (torch.unsqueeze(sigma_t, 1)).expand((batch_size, sample_size, action_size))  # size (B, sample_size, action_size) 
         expand_s = (torch.unsqueeze(s, 1)).expand((batch_size, sample_size, hidden_size))  # size (B, sample_size, action_size) 
         action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size) 
