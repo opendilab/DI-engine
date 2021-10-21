@@ -1,16 +1,15 @@
-from typing import Any, List, Union, Optional
-import numpy as np
-import gym
-from ding.envs.common.common_function import affine_transform
-import gym_soccer
-from ding.utils import ENV_REGISTRY
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElementInfo
-from ding.torch_utils import to_tensor, to_ndarray, to_list
-from gym.utils import seeding
-
 import sys
-sys.path.append("..")
+from typing import Any, List, Optional, Union
+
+import gym
+import gym_soccer
+import numpy as np
+from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
+from ding.envs.common.common_function import affine_transform
+from ding.envs.common.env_element import EnvElementInfo
+from ding.torch_utils import to_list, to_ndarray, to_tensor
+from ding.utils import ENV_REGISTRY
+from gym.utils import seeding
 
 
 @ENV_REGISTRY.register('gym_soccer')
@@ -19,7 +18,7 @@ class GymSoccerEnv(BaseEnv):
 
     def __init__(self, cfg: dict = {}) -> None:
         self._cfg = cfg
-        self._act_scale = cfg.get('act_scale', True)
+        self._act_scale = cfg.act_scale
         self._env_id = cfg.env_id
         assert self._env_id in self.default_env_id
         self._init_flag = False
@@ -36,6 +35,8 @@ class GymSoccerEnv(BaseEnv):
 
     def step(self, action: List) -> BaseEnvTimestep:
         if self._act_scale:
+            # The continuous action is a Tensor of size = (1,)
+            # We indexed at [0] to fetch it as a scalar value
             action[1][0] = affine_transform(action[1][0], min_val=0, max_val=100)
             action[2][0] = affine_transform(action[2][0], min_val=-180, max_val=180)
             action[3][0] = affine_transform(action[3][0], min_val=-180, max_val=180)
@@ -47,7 +48,7 @@ class GymSoccerEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs).astype(np.float32)
-        # reward wrapped to be transfered to a Tensor with shape (1,)
+        # reward wrapped to be transfered to a numpy array with shape (1,)
         rew = to_ndarray([rew])
         # '1' indicates the discrete action is associated with the continuous parameters
         info['action_args_mask'] = np.array([[1, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 1]])
@@ -62,10 +63,14 @@ class GymSoccerEnv(BaseEnv):
         self._init_flag = False
 
     def get_random_action(self):
-        # action_type: 0, 1, 2
-        # action_args:
+        # discrete action type: 0, 1, 2
+        # continuous action_args:
         #   - power: [0, 100]
         #   - direction: [-180, 180]
+        # the action space is (6,), the first indicates discrete action and the remaining indicates continuous action
+        # discrete action 0 assotiated with the first and second continuous parameters
+        # discrete action 1 assotiated with the third continuous parameter
+        # discrete action 2 assotiated with the forth and fifth continuous parameters
         return self._env.action_space.sample()
 
     def info(self) -> BaseEnvInfo:

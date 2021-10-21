@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
-from easydict import EasyDict
+import pytest
 from dizoo.gym_soccer.envs.gym_soccer_env import GymSoccerEnv
+from easydict import EasyDict
 
 
 @pytest.mark.envtest
@@ -30,9 +30,5 @@ class TestGymSoccerEnv:
                 env.reset()
                 assert env._final_eval_reward == 0
         print(env.info())
-        # env.replay_log("game_log/20211019011053-base_left_0-vs-base_right_0.rcg")
+        # env.replay_log("./video/20211019011053-base_left_0-vs-base_right_0.rcg")
         env.close()
-
-
-test_env = TestGymSoccerEnv()
-test_env.test_naive()

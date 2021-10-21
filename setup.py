@@ -126,6 +126,10 @@ setup(
         # 'gym_hybrid_env': [
         #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid#egg=gym-hybrid',
         # ],
+        # 'gym_soccer_env': [
+        #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
+        # ],
+
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',
