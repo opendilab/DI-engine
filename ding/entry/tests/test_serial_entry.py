@@ -327,6 +327,7 @@ def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'sac'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -340,7 +341,7 @@ def test_cql():
     ]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./default_experiment/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./sac/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
