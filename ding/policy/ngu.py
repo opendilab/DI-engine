@@ -323,7 +323,8 @@ class NGUPolicy(Policy):
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
-        value_gamma = data['value_gamma']
+        # value_gamma = data['value_gamma']
+        value_gamma = [None for _ in range(self._unroll_len_add_burnin_step - self._burnin_step)]  # NOTE this is important, because we use diffrent gamma according to their beta in NGU alg.
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []

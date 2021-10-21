@@ -129,9 +129,4 @@ def serial_pipeline_reward_model(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
-<<<<<<< HEAD
     return policy
-    
-=======
-    return policy
->>>>>>> fe35658cae18c16144445cbb14fc2cf3db4ed0a7
