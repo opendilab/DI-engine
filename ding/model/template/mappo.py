@@ -101,11 +101,7 @@ class MAPPO(nn.Module):
             )
         else:
             self.actor_head = actor_head_cls(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                activation=activation,
-                norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
             )
         # must use list, not nn.ModuleList
         self.actor = [self.actor_encoder, self.actor_head]
