@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
+from ding.torch_utils.math_helper import OrnsteinUhlenbeckProcess
 from torch.distributions import Categorical
 
 
@@ -176,6 +177,19 @@ class ArgmaxSampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+class TanhSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample action via tanh funtion
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        (mu, sigma) = output['logit']
+        action = torch.tanh(mu)  # deterministic_eval
+        output['action'] = action
+        return output
 
 class MultinomialSampleWrapper(IModelWrapper):
     r"""
@@ -201,6 +215,30 @@ class MultinomialSampleWrapper(IModelWrapper):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output['action'] = action
+        return output
+
+class NormalNoisySampleWrapper(IModelWrapper):
+    
+    r"""
+    Overview:
+        Used to helper the model get the corresponding action from the output['mu','sigma']
+    Interfaces:
+        register
+    """
+    def forward(self, noise_ratio: float = 0.1, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        (mu, sigma) = output['logit']
+        OUProcessNoise = OrnsteinUhlenbeckProcess()
+        batch_size = mu.shape[0]
+        action_size = mu.shape[1]
+        action_sample = torch.normal(mu, sigma)
+        noise = OUProcessNoise.sample((batch_size,action_size)) # size (B, action_size)
+        # noise_action_sample size (B, action_size)
+        noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
+        # scaled_action_sample size (B, action_size)
+        scaled_action_sample = -1 + 2*torch.sigmoid(noise_action_sample)
+        output['action'] = scaled_action_sample
         return output
 
 
@@ -415,15 +453,16 @@ class TeacherNetworkWrapper(IModelWrapper):
         super().__init__(model)
         self._model._teacher_cfg = teacher_cfg
 
-
 wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
+    'tanh_sample': TanhSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
+    'normal_noisy_sample': NormalNoisySampleWrapper,
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,

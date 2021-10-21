@@ -89,5 +89,5 @@ class OrnsteinUhlenbeckProcess:
 
     def sampling_parameters(self):
         mean = self.previous_value + self.theta * (self.mu - self.previous_value) * self.time_scale
-        sd = self.sigma * torch.sqrt(self.time_scale) * torch.ones((self.size,))
+        sd = self.sigma * torch.sqrt(self.time_scale) * torch.ones((self.size))
         return mean, sd

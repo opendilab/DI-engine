@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
-from ding.torch_utils.math_helper import OrnsteinUhlenbeckProcess
 from ding.rl_utils import beta_function_map
 from ding.utils import lists_to_dicts, SequenceType
 
@@ -595,18 +594,17 @@ class StochasticDuelingHead(nn.Module):
                 norm_type=norm_type
             ), block(hidden_size, 1)
         )
-        self.noise = OrnsteinUhlenbeckProcess()
 
-    def forward(self, s: torch.Tensor, a: torch.Tensor, mu_t: torch.Tensor, sigma_t: torch.Tensor, sample_size: int = 10, noise_ratio: float = 0. ) -> Dict:
+    def forward(self, s: torch.Tensor, a: torch.Tensor, mu_t: torch.Tensor, sigma_t: torch.Tensor, sample_size: int = 10) -> Dict:
         r"""
         Overview:
             Use encoded embedding tensor to predict Dueling output.
             Parameter updates with DuelingHead's MLPs forward setup.
         Arguments:
-            - x (:obj:`torch.Tensor`):
+            - s (:obj:`torch.Tensor`):
                 The encoded embedding state tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
             - a (:obj:`torch.Tensor`):
-                The encoded embedding action tensor, determined with ``action_shape``, i.e. ``(B, N=action_shape)``.
+                The encoded embedding action tensor, determined with ``action_size``, i.e. ``(B, N=action_size)``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``DuelingHead`` setups and return the result prediction dictionary.
@@ -614,26 +612,20 @@ class StochasticDuelingHead(nn.Module):
                     - pred (:obj:`torch.Tensor`): Pred tensor of size ``(B, 1)``.
         """
         batch_size = s.shape[0]
-        action_shape = a.shape[1]
-        state_cat_action = torch.cat((s,a),dim=1)
-        a_val = self.A(state_cat_action)
-        s_val = self.V(s)
-        a_val_sample = torch.zeros((batch_size, sample_size), dtype=torch.float32)
+        # action_size = a.shape[1]
+        state_cat_action = torch.cat((s,a),dim=1)  # size (B, action_size + state_size)
+        a_val = self.A(state_cat_action)  # size (B, 1)
+        s_val = self.V(s)  # size (B,1)
+        a_val_sample = torch.zeros((batch_size, sample_size), dtype=torch.float32)  # size (B,sample_size)
         for i in range(sample_size):
-            # action_sample size (B, action_shape)
-            # mu_t size (B, action_shape)
-            action_sample = torch.normal(mu_t, sigma_t)
-            # noise size (B, action_shape)
-            noise = self.noise.sample((batch_size, action_shape))
-            # noise_action_sample size (B, action_shape)
-            noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
-            # scaled_action_sample size (B, action_shape)
-            scaled_action_sample = -1 + 2*torch.sigmoid(noise_action_sample)
-            
-            state_cat_action_sample = torch.cat((s,scaled_action_sample),dim=1)
-            a_val_sample[:,i] = self.A(state_cat_action_sample).reshape(1,batch_size)
-            
-        logit = a_val - a_val_sample.mean(dim=-1, keepdim=True) + s_val
+            # mu_t size (B, action_size)
+            action_sample = torch.normal(mu_t, sigma_t)  # size (B, action_size)
+            # state_cat_action_sample size (B, action_size+state_size)
+            state_cat_action_sample = torch.cat((s,action_sample),dim=1)
+            # a_val_sample[:,i] size == torch.Size([B])
+            a_val_sample[:,i] = self.A(state_cat_action_sample).reshape(1,batch_size) 
+
+        logit = a_val - a_val_sample.mean(dim=-1, keepdim=True) + s_val  # size (B,1)
         return {'pred': logit}
 
 class RegressionHead(nn.Module):

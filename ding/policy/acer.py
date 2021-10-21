@@ -4,6 +4,7 @@ import copy
 from pyglet.window.key import O
 
 import torch
+from ding import model
 
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, compute_q_retraces, acer_policy_error,\
@@ -365,9 +366,14 @@ class ACERPolicy(Policy):
         Overview:
             Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
             For discrete action, use multinomial_sample to choose action.
+            For continuous action, use normal_noisy_sample to choose action (first sample action from normal distribution,
+                and then add some noise to the action via OU process)
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        if self._cfg.model.continuous_action_space:
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        else:
+            self._collect_model = model_wrap(self._model, wrapper_name='normal_noisy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Dict[str, Any]]:
@@ -389,7 +395,11 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+            if self._cfg.model.continuous_action_space:
+                noise_ratio = 0.1
+                output = self._collect_model.forward(noise_ratio, data, mode='compute_actor')
+            else:
+                output = self._collect_model.forward(data, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -440,9 +450,13 @@ class ACERPolicy(Policy):
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
-            and use argmax_sample to choose action.
+            For discrete action, use argmax_sample to choose action.
+            For continuous action, we pass the mu to tanh funtion and got actions
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        if self._cfg.model.continuous_action_space:
+            self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
+        else:
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
@@ -466,11 +480,7 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            if self._cfg.model.continuous_action_space:
-                # TODO 
-                pass
-            else:
-                output = self._eval_model.forward(data, mode='compute_actor')
+            output = self._eval_model.forward(data, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

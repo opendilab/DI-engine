@@ -80,7 +80,7 @@ class ACER(nn.Module):
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
             )
             self.critic_head = StochasticDuelingHead(
-                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type, noise_
+                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type, noise_ratio=0.,
             )
             
         else: 
@@ -93,7 +93,6 @@ class ACER(nn.Module):
             self.critic_head = RegressionHead(
                 critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
-            
             
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
@@ -225,7 +224,7 @@ class ACER(nn.Module):
                 encoded_action = act_inputs
                 # mu_t.shape = (B, action_size)
                 mu_t, sigma_t = self.compute_actor(obs_inputs)['logit']
-                q_val = self.critic_head(encoded_state, encoded_action, mu_t, sigma_t, self.q_value_sample_size, self.noise_ratio)
+                q_val = self.critic_head(encoded_state, encoded_action, mu_t, sigma_t, self.q_value_sample_size)
             else:
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."
