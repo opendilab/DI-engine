@@ -6,7 +6,7 @@ import copy
 import numpy as np
 from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElementInfo
+from ding.envs.common import EnvElementInfo, affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
@@ -15,10 +15,11 @@ from ding.utils import ENV_REGISTRY
 class GymHybridEnv(BaseEnv):
     default_env_id = ['Sliding-v0', 'Moving-v0']
 
-    def __init__(self, cfg: dict = {}) -> None:
+    def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
         self._env_id = cfg.env_id
         assert self._env_id in self.default_env_id
+        self._act_scale = cfg.act_scale
         self._init_flag = False
         self._replay_path = None
 
@@ -52,6 +53,9 @@ class GymHybridEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: List) -> BaseEnvTimestep:
+        if self._act_scale:
+            # acceleration_value
+            action[1][0] = affine_transform(action[1][0], min_val=0, max_val=1)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
