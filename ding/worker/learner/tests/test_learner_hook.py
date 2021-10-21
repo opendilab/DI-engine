@@ -1,7 +1,8 @@
 import easydict
 import pytest
 from ding.worker.learner import register_learner_hook, build_learner_hook_by_cfg, LearnerHook
-from ding.worker.learner.learner_hook import SaveCkptHook, show_hooks, add_learner_hook, LoadCkptHook, LogShowHook, LogReduceHook, merge_hooks
+from ding.worker.learner.learner_hook import SaveCkptHook, LoadCkptHook, LogShowHook, LogReduceHook
+from ding.worker.learner.learner_hook import show_hooks, add_learner_hook, merge_hooks
 from easydict import EasyDict
 
 

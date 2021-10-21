@@ -25,8 +25,8 @@ cfg = EasyDict(fake_cls_config)
 class fake_eval_dataset(data.Dataset):
 
     def __init__(self) -> None:
-        self.data = [i for i in range(5)]  #  [0, 1, 2, 3, 4, 5]
-        self.target = [2 * i + 1 for i in range(5)]  #  [0, 3, 5, 7, 9, 11]
+        self.data = [i for i in range(5)]  # [0, 1, 2, 3, 4, 5]
+        self.target = [2 * i + 1 for i in range(5)]  # [0, 3, 5, 7, 9, 11]
 
     def __len__(self) -> int:
         return len(self.data)
@@ -93,10 +93,10 @@ def test_evaluator(cfg):
     )
 
     cur_iter = 0
-    assert evaluator.should_eval(cur_iter) == True
+    assert evaluator.should_eval(cur_iter)
 
     evaluator._last_eval_iter = 0
     cur_iter = 1
     stop, reward = evaluator.eval(None, cur_iter, 0)
-    assert stop == True
+    assert stop
     assert reward['acc'] == 100
