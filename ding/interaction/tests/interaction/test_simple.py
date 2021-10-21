@@ -1,7 +1,7 @@
 import pytest
 from requests import HTTPError
 
-from .bases import _TestInteractionBase
+from .bases import _TestInteractionBase, _random_slave_channel_and_port, _slave_endpoint, _get_master_endpoint
 from ..test_utils import random_port
 from ...master.task import TaskStatus
 
@@ -11,8 +11,8 @@ class TestInteractionSimple(_TestInteractionBase):
 
     @pytest.mark.execution_timeout(10.0, method='thread')
     def test_slave_launch(self):
-        _slave_port, _channel = self._random_slave_channel_and_port()
-        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = _random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = _slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
@@ -22,15 +22,15 @@ class TestInteractionSimple(_TestInteractionBase):
 
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_connection(self):
-        _slave_port, _channel = self._random_slave_channel_and_port()
-        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = _random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = _slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
 
         try:
             _master_port = random_port()
-            master = self._get_master_endpoint(_master_port, _channel)
+            master = _get_master_endpoint(_master_port, _channel)
             with master:
                 assert master.ping()
 
@@ -66,15 +66,15 @@ class TestInteractionSimple(_TestInteractionBase):
 
     @pytest.mark.execution_timeout(20.0, method='thread')
     def test_slave_simple_task(self):
-        _slave_port, _channel = self._random_slave_channel_and_port()
-        slave_thread, open_slave_event, close_slave_event = self._slave_endpoint(_slave_port, _channel)
+        _slave_port, _channel = _random_slave_channel_and_port()
+        slave_thread, open_slave_event, close_slave_event = _slave_endpoint(_slave_port, _channel)
 
         slave_thread.start()
         open_slave_event.wait()
 
         try:
             _master_port = random_port()
-            master = self._get_master_endpoint(_master_port, _channel)
+            master = _get_master_endpoint(_master_port, _channel)
             with master:
                 with master.new_connection('conn', '127.0.0.1', _slave_port) as conn:
                     task = conn.new_task({'a': 2, 'b': 3})

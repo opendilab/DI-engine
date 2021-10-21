@@ -185,7 +185,9 @@ class AtariEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        action = action.item()
         obs, rew, done, info = self._env.step(action)
+        # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
@@ -240,7 +242,7 @@ class AtariEnvMR(AtariEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._make_env(only_info=False)
+            self._env = self._make_env(only_info=False)
             self._init_flag = True
         if hasattr(self, '_seed'):
             np_seed = 100 * np.random.randint(1, 1000)
@@ -251,7 +253,7 @@ class AtariEnvMR(AtariEnv):
         return obs
 
     def _make_env(self, only_info=False):
-        self._env = wrap_deepmind_mr(
+        return wrap_deepmind_mr(
             self._cfg.env_id,
             frame_stack=self._cfg.frame_stack,
             episode_life=self._cfg.is_train,
@@ -269,6 +271,7 @@ class AtariEnvMR(AtariEnv):
             info.obs_space.shape = obs_shape
             info.act_space.shape = act_shape
             info.rew_space.shape = rew_shape
+            return info
         else:
             raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
                 .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))

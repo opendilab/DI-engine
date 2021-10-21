@@ -112,26 +112,26 @@ def serial_pipeline_reward_model_ngu(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data_count, target_new_data_count = 0, cfg.rnd_reward_model.get('target_new_data_count', 1)
-        while new_data_count < target_new_data_count:
+        # new_data_count, target_new_data_count = 0, cfg.rnd_reward_model.get('target_new_data_count', 1)
+        # while new_data_count < target_new_data_count:
             # Collect data by default config n_sample/n_episode
-            if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
-                new_data = collector.collect(
-                    n_sample=cfg.policy.collect.each_iter_n_sample,
-                    train_iter=learner.train_iter,
-                    policy_kwargs=collect_kwargs
-                )
-            else:
-                new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-            new_data_count += len(new_data)
-            # collect data for reward_model training
-            rnd_reward_model.collect_data(new_data)  # TODO(pu):
-            episodic_reward_model.collect_data(new_data)  # TODO(pu):
-            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+            new_data = collector.collect(
+                n_sample=cfg.policy.collect.each_iter_n_sample,
+                train_iter=learner.train_iter,
+                policy_kwargs=collect_kwargs
+            )
+        else:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        # new_data_count += len(new_data)
+        # collect data for reward_model training
+        rnd_reward_model.collect_data(new_data)  # TODO(pu):
+        episodic_reward_model.collect_data(new_data)  # TODO(pu):
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         rnd_reward_model.train()
         # if iter % 10 == 0:  # TODO(pu):
-        if iter % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+        if (iter+1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
         episodic_reward_model.clear_data()  # TODO(pu):
