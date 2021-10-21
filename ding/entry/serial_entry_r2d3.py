@@ -18,7 +18,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
 
 
 def serial_pipeline_r2d3(
-        input_cfg: Union[str, Tuple[dict, dict]],
+        agent_cfg: Union[str, Tuple[dict, dict]],
         expert_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -30,13 +30,14 @@ def serial_pipeline_r2d3(
     Overview:
         Serial pipeline r2d3 entry: we create this serial pipeline in order to\
             implement r2d3 in DI-engine. For now, we support the following envs\
-            Cartpole, Lunarlander, Pong, Spaceinvader. The demonstration\
+            Lunarlander, Pong, Qbert. The demonstration\
             data come from the expert model. We use a well-trained model to \
             generate demonstration data online
     Arguments:
-        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
+        - agent_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
+            
         - seed (:obj:`int`): Random seed.
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
@@ -48,11 +49,11 @@ def serial_pipeline_r2d3(
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
-    if isinstance(input_cfg, str):
-        cfg, create_cfg = read_config(input_cfg)
+    if isinstance(agent_cfg, str):
+        cfg, create_cfg = read_config(agent_cfg)  #
         expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        cfg, create_cfg = agent_cfg
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     expert_create_cfg.policy.type = expert_create_cfg.policy.type + '_command'
@@ -130,7 +131,7 @@ def serial_pipeline_r2d3(
             expert_data[i]['is_expert'] = [1] * expert_cfg.policy.collect.unroll_len  # rnn buffer
         expert_buffer.push(expert_data, cur_collector_envstep=0)
 
-        for _ in range(cfg.policy.learn.per_train_iter_k):
+        for _ in range(cfg.policy.learn.per_train_iter_k):  # pretrain
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
                 if stop:
@@ -142,6 +143,7 @@ def serial_pipeline_r2d3(
             if learner.policy.get_attribute('priority'):
                 expert_buffer.update(learner.priority_info)
         learner.priority_info = {}
+
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         action_space = collector_env.env_info().act_space
@@ -173,25 +175,21 @@ def serial_pipeline_r2d3(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = [
-                0
-            ] * expert_cfg.policy.collect.unroll_len  # set is_expert flag(expert 1, agent 0)
+            new_data[i]['is_expert'] = [0] * expert_cfg.policy.collect.unroll_len  # set is_expert flag(expert 1, agent 0)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             if expert_cfg.policy.learn.expert_replay_buffer_size != 0:
                 # Learner will train ``update_per_collect`` times in one iteration.
+
                 # The hyperparameter pho, the demo ratio, control the propotion of data coming\
                 # from expert demonstrations versus from the agent's own experience.
-
                 expert_batch_size = int(
                     np.float32(np.random.rand(learner.policy.get_attribute('batch_size')) < cfg.policy.collect.pho
                                ).sum()
                 )
-
                 demo_batch_size = (learner.policy.get_attribute('batch_size')) - expert_batch_size
                 train_data_agent = replay_buffer.sample(demo_batch_size, learner.train_iter)
-
                 train_data_expert = expert_buffer.sample(expert_batch_size, learner.train_iter)
                 if train_data_agent is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times

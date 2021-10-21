@@ -47,6 +47,7 @@ class LunarLanderEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim tensor
         obs, rew, done, info = self._env.step(action)
+        # self._env.render()
         rew = float(rew)
         self._final_eval_reward += rew
         if done:
