@@ -59,6 +59,13 @@ class GLU(nn.Module):
         x = self.layer2(x)
         return x
 
+class Swish(nn.Module):
+    def __init__(self):
+        super(Swish, self).__init__()
+
+    def forward(self, x):
+        x = x * F.sigmoid(x)
+        return x
 
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     r"""
@@ -74,7 +81,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
     else:
         inplace = False
-    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU()}
+    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU(), 'swish': Swish()}
     if activation in act_func.keys():
         return act_func[activation]
     else:

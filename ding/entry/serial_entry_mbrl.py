@@ -6,13 +6,14 @@ import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
-from ding.envs import get_vec_env_setting, create_env_manager, get_env_cls
+from ding.envs import get_vec_env_setting, create_env_manager, create_model_env
 from ding.model import create_model
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed, read_file, save_file
+
 def save_ckpt_fn(learner, env_model, envstep):
 
     dirname = './{}/ckpt'.format(learner.exp_name)
@@ -42,13 +43,6 @@ def save_ckpt_fn(learner, env_model, envstep):
         learner.save_checkpoint(policy_prefix + ckpt_name)
 
     return model_policy_save_ckpt_fn
-
-def create_model_env(cfg):
-    cfg = copy.deepcopy(cfg)
-    model_env_fn = get_env_cls(cfg)
-    cfg.pop('import_names')
-    cfg.pop('type')
-    return model_env_fn(**cfg)
 
 def serial_pipeline_mbrl(
         input_cfg: Union[str, Tuple[dict, dict]],

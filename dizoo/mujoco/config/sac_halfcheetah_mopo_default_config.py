@@ -80,7 +80,7 @@ main_config = dict(
         ),
         env_model=dict(
             type='mbpo',
-            import_names=['ding.model.model_based.mbpo'],
+            import_names=['ding.model.template.model_based.mbpo'],
             network_size=7,
             elite_size=5,
             state_size=obs_shape,

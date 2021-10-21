@@ -126,6 +126,7 @@ class NaiveReplayBuffer(IBuffer):
                 Not used in naive buffer, but preserved for compatibility.
             - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
                 means only sample among the last 10 data
+            - replace (:obj:`bool`): Whether sample with replacement
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
@@ -220,6 +221,7 @@ class NaiveReplayBuffer(IBuffer):
             Check whether this buffer has more than `size` datas to sample.
         Arguments:
             - size (:obj:`int`): Number of data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         """
@@ -358,7 +360,7 @@ class NaiveReplayBuffer(IBuffer):
 class ElasticReplayBuffer(NaiveReplayBuffer):
     r"""
     Overview:
-        Naive replay buffer, can store and sample data.
+        Elastic replay buffer, it stores data and support dynamically change the buffer size.
         An naive implementation of replay buffer with no priority or any other advanced features.
         This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that methods like
         ``sample``, ``push``, ``clear`` are all mutual to each other.
@@ -394,7 +396,8 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
         """
         super().__init__(cfg, tb_logger, exp_name, instance_name)
         self._set_buffer_size = self._cfg.set_buffer_size
-        self._current_buffer_size = self._set_buffer_size(0) # This variable restricts how many samples teh buffer can use for sampling
+        self._current_buffer_size = self._set_buffer_size(0) # Set the buffer size at the 0-th envstep.
+        # The variable 'current_buffer_size' restricts how many samples the buffer can use for sampling
 
     def _sample_check(self, size: int, replace: bool = False) -> bool:
         r"""
@@ -402,6 +405,7 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
             Check whether this buffer has more than `size` datas to sample.
         Arguments:
             - size (:obj:`int`): Number of data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         """
@@ -420,7 +424,8 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
         Overview:
             Get the sample index list.
         Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
         Returns:
             - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
         """

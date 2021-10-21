@@ -12,14 +12,7 @@ import numpy as np
 
 from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import MODEL_REGISTRY
-
-class Swish(nn.Module):
-    def __init__(self):
-        super(Swish, self).__init__()
-
-    def forward(self, x):
-        x = x * F.sigmoid(x)
-        return x
+from ding.torch_utils.activation import Swish
 
 class StandardScaler(nn.Module):
     def __init__(self, input_size):
@@ -72,7 +65,7 @@ def init_weights(m):
             t = torch.where(cond, torch.nn.init.normal_(torch.ones(t.shape), mean=mean, std=std), t)
         return t
 
-    if type(m) == nn.Linear or isinstance(m, EnsembleFC):
+    if isinstance(m, nn.Linear) or isinstance(m, EnsembleFC):
         input_dim = m.in_features
         truncated_normal_init(m.weight, std=1 / (2 * np.sqrt(input_dim)))
         m.bias.data.fill_(0.0)
@@ -92,11 +85,6 @@ class EnsembleFC(nn.Module):
         self.weight = nn.Parameter(torch.Tensor(ensemble_size, in_features, out_features))
         self.weight_decay = weight_decay
         self.bias = nn.Parameter(torch.Tensor(ensemble_size, 1, out_features))
-        self.reset_parameters()
-
-    def reset_parameters(self) -> None:
-        pass
-
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         assert input.shape[0] == self.ensemble_size and len(input.shape) == 3
@@ -304,11 +292,6 @@ class EnsembleDynamicsModel(nn.Module):
                 self.tb_logger.add_scalar('env_model_step/' + k, v, envstep)
 
     def _train(self, inputs, labels):
-
-        #shuffle
-        # permutation = torch.randperm(inputs.shape[0]).to(inputs.device)
-        # inputs, labels = inputs[permutation], labels[permutation]
-
         #split
         num_holdout = int(inputs.shape[0] * self.holdout_ratio)
         train_inputs, train_labels = inputs[num_holdout:], labels[num_holdout:]
@@ -444,31 +427,3 @@ class EnsembleDynamicsModel(nn.Module):
         rewards, next_obs = sample[:, :1], sample[:, 1:]
 
         return rewards.detach().cpu(), next_obs.detach().cpu()
-
-def test():
-    network_size = 3
-    elite_size = 2
-    state_size = 2
-    action_size = 2
-    reward_size = 1
-    hidden_size = 20
-
-    states = torch.rand(1280, state_size)
-    actions = torch.rand(1280, action_size)
-    next_states = states + actions
-    rewards = actions.sum(-1, keepdim=True)
-    inputs = torch.cat([states, actions],dim=1)
-    labels = torch.cat([rewards, next_states],dim=1)
-
-    model = EnsembleDynamicsModel(network_size, elite_size, state_size, action_size, reward_size, hidden_size, use_decay=True, cuda=False)
-
-    model._train(inputs[:640], labels[:640])
-    with torch.no_grad():
-        mean, logvar = self.ensemble_model(inputs[640:], ret_log_var=True)
-        loss, mse_loss = self.ensemble_model.loss(mean, logvar, labels[640:])
-    print('var: ' + str(mse_loss.mean().item()), flush=True)
-
-
-
-if __name__ == '__main__':
-    test()

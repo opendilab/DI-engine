@@ -1,4 +1,4 @@
-from typing import Any, Union, List
+from typing import Any, Union, List, Callable, Dict
 import copy
 import torch
 import numpy as np
@@ -13,12 +13,12 @@ from ding.worker.collector.base_serial_collector import to_tensor_transitions
 
 @ENV_REGISTRY.register('mujoco_model')
 class MujocoModelEnv(object):
-    def __init__(self, env_id, set_rollout_length, rollout_batch_size=100000):
+    def __init__(self, env_id: str, set_rollout_length: Callable, rollout_batch_size: int = 100000):
         self.env_id = env_id
         self.rollout_batch_size = rollout_batch_size
         self._set_rollout_length = set_rollout_length
 
-    def termination_fn(self, next_obs):
+    def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
         # This function determines whether each state is a terminated state
         assert len(next_obs.shape) == 2
         if self.env_id == "Hopper-v2":
@@ -57,7 +57,13 @@ class MujocoModelEnv(object):
             done = torch.zeros_like(next_obs.sum(-1)).bool()
             return done
 
-    def rollout(self, env_model, policy, replay_buffer, imagine_buffer, envstep, cur_learner_iter):
+    def rollout(self,
+                env_model: nn.Module,
+                policy: 'Policy',
+                replay_buffer: 'IBuffer',
+                imagine_buffer: 'IBuffer',
+                envstep: int,
+                cur_learner_iter: int) -> None:
         # This function samples from the replay_buffer, rollouts to generate new data, and push them into the imagine_buffer
         # set rollout length
         rollout_length = self._set_rollout_length(envstep)
@@ -93,7 +99,7 @@ class MujocoModelEnv(object):
 
         imagine_buffer.push(new_data, cur_collector_envstep=envstep)
 
-    def step(self, obs, act, env_model):
+    def step(self, obs: Dict, act: Dict, env_model: nn.Module) -> Dict:
         # This function has the same input and output format as env manager's step
         data_id = list(obs.keys())
         obs = torch.stack([obs[id] for id in data_id],dim=0)
