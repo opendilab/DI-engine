@@ -13,7 +13,7 @@ class Storage:
         raise NotImplementedError
 
     @abstractmethod
-    def sample(self, size: int, replace: bool = False) -> List[Any]:
+    def sample(self, size: int, replace: bool = False, range: slice = None) -> List[Any]:
         raise NotImplementedError
 
     @abstractmethod
