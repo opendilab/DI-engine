@@ -8,6 +8,7 @@ from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_p
 from dizoo.multiagent_particle.config import cooperative_navigation_mappo_config, cooperative_navigation_mappo_create_config
 from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_ppo_config, pendulum_ppo_create_config
 
+
 @pytest.mark.unittest
 def test_onpolicy_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
