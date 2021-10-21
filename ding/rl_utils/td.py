@@ -446,8 +446,8 @@ def dqfd_nstep_td_error(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step,\
-        is_expert = data  # set is_expert flag(expert 1, agent 0)
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
+    is_expert = data  # set is_expert flag(expert 1, agent 0)
     assert len(action.shape) == 1, action.shape
     if weight is None:
         weight = torch.ones_like(action)
@@ -455,9 +455,6 @@ def dqfd_nstep_td_error(
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
     target_q_s_a = next_n_q[batch_range, next_n_action]
-
-    target_q_s_a = inv_trans_fn(target_q_s_a)   # rescale
-    target_q_s_a_one_step = inv_trans_fn(target_q_s_a_one_step)   # rescale
     target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
 
     # calculate n-step TD-loss
@@ -468,7 +465,6 @@ def dqfd_nstep_td_error(
             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
     else:
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
-    target_q_s_a = trans_fn(target_q_s_a)   # rescale
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
 
     # calculate 1-step TD-loss
@@ -483,9 +479,7 @@ def dqfd_nstep_td_error(
     else:
         target_q_s_a_one_step = nstep_return(
             nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
-        )  
-    target_q_s_a = trans_fn(target_q_s_a)  # rescale
-
+        )
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
     device = q_s_a.device
     device_cpu = torch.device('cpu')
@@ -541,16 +535,19 @@ def dqfd_nstep_td_error_with_rescale(
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
     """
-    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step,\
-        is_expert = data  # set is_expert flag(expert 1, agent 0)
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
+    is_expert = data  # set is_expert flag(expert 1, agent 0)
     assert len(action.shape) == 1, action.shape
     if weight is None:
         weight = torch.ones_like(action)
 
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
+
     target_q_s_a = next_n_q[batch_range, next_n_action]
+    target_q_s_a = inv_trans_fn(target_q_s_a)  # rescale
     target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
+    target_q_s_a_one_step = inv_trans_fn(target_q_s_a_one_step)  # rescale
 
     # calculate n-step TD-loss
     if cum_reward:
@@ -560,12 +557,13 @@ def dqfd_nstep_td_error_with_rescale(
             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
     else:
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    target_q_s_a = trans_fn(target_q_s_a)  # rescale
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
 
     # calculate 1-step TD-loss
     nstep = 1
     reward = reward[0].unsqueeze(0)  # get the one-step reward
-    value_gamma = None
+    value_gamma = None  # This is very important
     if cum_reward:
         if value_gamma is None:
             target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_one_step)
@@ -575,6 +573,8 @@ def dqfd_nstep_td_error_with_rescale(
         target_q_s_a_one_step = nstep_return(
             nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
         )
+    target_q_s_a_one_step = trans_fn(target_q_s_a_one_step)  # rescale
+
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
     device = q_s_a.device
     device_cpu = torch.device('cpu')
