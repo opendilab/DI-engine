@@ -5,7 +5,7 @@ import numpy as np
 from dizoo.overcooked.envs import OvercookEnv, OvercookGameEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestOvercooked:
 
     def test_overcook(self):
