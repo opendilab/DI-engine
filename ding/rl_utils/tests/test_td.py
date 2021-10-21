@@ -234,7 +234,7 @@ def test_dqfd_nstep_td():
             q, next_q, action, next_action, reward, done, done_1, None, next_q_one_step, next_action_one_step, is_expert
         )
         loss, td_error_per_sample = dqfd_nstep_td_error(
-            data, 0.95, lambda1=(1, ), lambda2=(1, ), margin_function=0.8, nstep=nstep
+            data, 0.95, lambda1=1, lambda2=1, margin_function=0.8, nstep=nstep
         )
         assert td_error_per_sample.shape == (batch_size, )
         assert loss.shape == ()

@@ -1,5 +1,3 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_dqfd_config = dict(
@@ -58,6 +56,3 @@ pong_dqfd_create_config = dict(
 )
 pong_dqfd_create_config = EasyDict(pong_dqfd_create_config)
 create_config = pong_dqfd_create_config
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
