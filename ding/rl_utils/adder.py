@@ -152,6 +152,8 @@ class Adder(object):
 
             def null_padding():
                 template = copy.deepcopy(residual[0])
+                # template['is_null'] = True  # TODO(pu)
+                template['obs'] = torch.zeros_like(template['obs'])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
                 if 'value_gamma' in template:
