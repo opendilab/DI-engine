@@ -205,7 +205,7 @@ class R2D2Policy(Policy):
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
@@ -215,7 +215,7 @@ class R2D2Policy(Policy):
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
             data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
@@ -261,7 +261,8 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
+        # take out timestep=0
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
         if len(data['burnin_nstep_obs']) != 0:
@@ -287,11 +288,11 @@ class R2D2Policy(Policy):
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
+        value_gamma = data['value_gamma']
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        value_gamma = data['value_gamma']
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
@@ -330,8 +331,10 @@ class R2D2Policy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-            'q_s_a_t0':  q_s_a_t0.mean().item(),  # TODO(pu)
-            'target_q_s_a_t0': target_q_s_a_t0.mean().item(),  # TODO(pu)
+            # the first timestep in the sequence, may not be the start of episode TODO(pu)
+            'q_s_taken-a_t0': q_s_a_t0.mean().item(),
+            'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
+            'q_s_a-mean_t0': q_value[0].mean().item(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -472,5 +475,5 @@ class R2D2Policy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
-            'total_loss', 'priority', 'q_s_a_t0',  'target_q_s_a_t0'
+            'total_loss', 'priority', 'q_s_taken-a_t0',  'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]
