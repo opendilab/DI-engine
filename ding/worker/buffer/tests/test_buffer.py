@@ -1,4 +1,5 @@
 import pytest
+import time
 from typing import Callable
 from ding.worker.buffer import Buffer
 from ding.worker.buffer import MemoryStorage
@@ -16,23 +17,41 @@ class RateLimit:
 
     def handler(self) -> Callable:
 
-        def _handler(buffer: Buffer, action: str, *args):
+        def _handler(action: str, next: Callable, *args, **kwargs):
             if action == "push":
-                return self.push(*args)
-            return args
+                return self.push(next, *args, **kwargs)
+            return next(*args, **kwargs)
 
         return _handler
 
-    def push(self, data) -> None:
-        import time
+    def push(self, next, data, *args, **kwargs) -> None:
         current = time.time()
         # Cut off stale records
         self.buffered = [t for t in self.buffered if t > current - self.window_seconds]
         if len(self.buffered) < self.max_rate:
             self.buffered.append(current)
-            return False, data
+            return next(data, *args, **kwargs)
         else:
-            return True, None
+            return None
+
+
+def add_10() -> Callable:
+    """
+    Transform data on sampling
+    """
+
+    def sample(next: Callable, size: int, replace: bool = False, *args, **kwargs):
+        print("Replace", replace)
+        data = next(size, replace, *args, **kwargs)
+        return [d + 10 for d in data]
+
+    def _subview(action: str, next: Callable, *args, **kwargs):
+        if action == "sample":
+            # print("ARGS", args)
+            return sample(next, *args, **kwargs)
+        return next(*args, **kwargs)
+
+    return _subview
 
 
 @pytest.mark.unittest
@@ -49,6 +68,12 @@ def test_naive_push_sample():
     # Clear
     buffer.clear()
     assert storage.count() == 0
+
+    # Test replace sample
+    for i in range(5):
+        buffer.push(i)
+    assert storage.count() == 5
+    assert len(buffer.sample(10, replace=True)) == 10
 
 
 @pytest.mark.unittest
@@ -71,10 +96,14 @@ def test_buffer_view():
     assert storage.count() == 1
 
     ratelimit = RateLimit(max_rate=5)
-    buf2 = buf1.view().use(ratelimit.handler())
+    buf2 = buf1.view().use(ratelimit.handler()).use(add_10())
 
     for i in range(10):
         buf2.push(i)
     # With 1 record written by buf1 and 5 records written by buf2
     assert len(buf1.middlewares) == 0
     assert storage.count() == 6
+    # All data in buffer should bigger than 10 because of `add_10`
+    assert all(d >= 10 for d in buf2.sample(5))
+    # But data in storage is still less than 10
+    assert all(d < 10 for d in storage.sample(5))
