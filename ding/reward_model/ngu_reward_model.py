@@ -220,14 +220,13 @@ class EpisodicRewardModel(BaseRewardModel):
                 for j in range(timesteps):
                     if j <= 10:
                         if self._running_mean_std_episodic_reward.mean is not None:
-                            episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean))
+                            episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
                         else:
-                            episodic_reward[i].append(torch.tensor(0.))
+                            episodic_reward[i].append(torch.tensor(0.).to(self.device))
                             # episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean))
                     else:
                         episodic_memory = cur_obs_embedding[i][:j]
-                        reward = self._compute_intrinsic_reward(episodic_memory,
-                                                                cur_obs_embedding[i][j]).to(self.device)
+                        reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
 
             # 32,42,1  list(list(tensor)) - > tensor
