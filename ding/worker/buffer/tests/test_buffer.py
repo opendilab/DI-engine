@@ -75,6 +75,13 @@ def test_naive_push_sample():
     assert storage.count() == 5
     assert len(buffer.sample(10, replace=True)) == 10
 
+    # Test slicing
+    buffer.clear()
+    for i in range(10):
+        buffer.push(i)
+    assert len(buffer.sample(5, range=slice(5, 10))) == 5
+    assert 0 not in buffer.sample(5, range=slice(5, 10))
+
 
 @pytest.mark.unittest
 def test_rate_limit_push_sample():

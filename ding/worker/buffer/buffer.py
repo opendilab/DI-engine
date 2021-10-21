@@ -8,6 +8,13 @@ def apply_middleware(func_name: str):
     def wrap_func(base_func: Callable):
 
         def handler(buffer, *args, **kwargs):
+            """
+            The real processing starts here, we apply the middlewares one by one,
+            each middleware will receive a `next` function, which is an executor of next
+            middleware. You can change the input arguments to the `next` middleware, and you
+            also can get the return value from the next middleware, so you have the
+            maximum freedom to choose at what stage to implement your method.
+            """
 
             def wrap_handler(middlewares, *args, **kwargs):
                 if len(middlewares) == 0:
@@ -49,7 +56,7 @@ class Buffer:
         self.storage.append(data)
 
     @apply_middleware("sample")
-    def sample(self, size: int, replace: bool = False) -> List[Any]:
+    def sample(self, size: int, replace: bool = False, range: slice = None) -> List[Any]:
         """
         Overview:
             Sample data with length ``size``, this function may be wrapped by middlewares.
@@ -58,7 +65,7 @@ class Buffer:
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
-        return self.storage.sample(size, replace)
+        return self.storage.sample(size, replace=replace, range=range)
 
     @apply_middleware("clear")
     def clear(self) -> None:
