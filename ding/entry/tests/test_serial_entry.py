@@ -137,6 +137,7 @@ def test_ppo():
 def test_sac():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = False
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -147,7 +148,7 @@ def test_sac():
 def test_sac_auto_alpha():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.is_auto_alpha = True
+    config[0].policy.learn.auto_alpha = True
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
