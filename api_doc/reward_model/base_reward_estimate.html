@@ -201,6 +201,93 @@
 <h2>base_reward_estimate<a class="headerlink" href="#base-reward-estimate" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="baserewardmodel">
 <h3>BaseRewardModel<a class="headerlink" href="#baserewardmodel" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.base_reward_model.</span></span><span class="sig-name descname"><span class="pre">BaseRewardModel</span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>the base class of reward model</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">default_config</span></code>, <code class="docutils literal notranslate"><span class="pre">estimate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_data</span></code>, <code class="docutils literal notranslate"><span class="pre">collect_data</span></code>, <code class="docutils literal notranslate"><span class="pre">load_expert_date</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel.clear_data">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">clear_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel.clear_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel.clear_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Clearing training data.             This can be a side effect function which clears the data attribute in <code class="docutils literal notranslate"><span class="pre">self</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel.collect_data">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collecting training data in designated formate or with designated transition.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Raw training data (e.g. some form of states, actions, obs, etc)</p></li>
+</ul>
+</dd>
+<dt>Returns / Effects:</dt><dd><ul class="simple">
+<li><p>This can be a side effect function which updates the data attribute in <code class="docutils literal notranslate"><span class="pre">self</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel.estimate">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel.estimate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>estimate reward</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): the list of data used for estimation</p></li>
+</ul>
+</dd>
+<dt>Returns / Effects:</dt><dd><ul class="simple">
+<li><p>This can be a side effect function which updates the reward value</p></li>
+<li><p>If this function returns, an example returned object can be reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the estimated reward</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel.load_expert_data">
+<span class="sig-name descname"><span class="pre">load_expert_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel.load_expert_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel.load_expert_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Getting the expert data, usually used in inverse RL reward model</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Expert data</p></li>
+</ul>
+</dd>
+<dt>Effects:</dt><dd><p>This is mostly a side effect function which updates the expert data attribute (e.g.  <code class="docutils literal notranslate"><span class="pre">self.expert_data</span></code>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.base_reward_model.BaseRewardModel.train">
+<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/base_reward_model.html#BaseRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.base_reward_model.BaseRewardModel.train" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Training the reward model</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Data used for training</p></li>
+</ul>
+</dd>
+<dt>Effects:</dt><dd><ul class="simple">
+<li><p>This is mostly a side effect function which updates the reward model</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-ding.reward_model.base_reward_model.create_reward_model">
 <span id="create-reward-model"></span><h3>create_reward_model<a class="headerlink" href="#module-ding.reward_model.base_reward_model.create_reward_model" title="Permalink to this headline">¶</a></h3>

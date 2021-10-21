@@ -25,6 +25,7 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -203,6 +204,260 @@
 <p>Please Reference ding/model/template/vac.py for usage</p>
 <div class="section" id="vac">
 <h2>VAC<a class="headerlink" href="#vac" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.VAC">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.</span></span><span class="sig-name descname"><span class="pre">VAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'independent'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The VAC model.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.VAC.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuous</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'independent'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the VAC Model according to arguments.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Observation’s space.</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): Action’s space.</p></li>
+<li><p>share_encoder (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether share encoder.</p></li>
+<li><p>continuous (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether collect continuously.</p></li>
+<li><p>encoder_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): Collection of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">Encoder</span></code></p></li>
+<li><p>actor_head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to actor-nn’s <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><dl class="simple">
+<dt>actor_head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>):</dt><dd><p>The num of layers used in the network to compute Q value output for actor’s nn.</p>
+</dd>
+</dl>
+</li>
+<li><p>critic_head_hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> to pass to critic-nn’s <code class="docutils literal notranslate"><span class="pre">Head</span></code>.</p></li>
+<li><dl class="simple">
+<dt>critic_head_layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>):</dt><dd><p>The num of layers used in the network to compute Q value output for critic’s nn.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[nn.Module]</span></code>):</dt><dd><p>The type of activation function to use in <code class="docutils literal notranslate"><span class="pre">MLP</span></code> the after <code class="docutils literal notranslate"><span class="pre">layer_fn</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">None</span></code> then default set to <code class="docutils literal notranslate"><span class="pre">nn.ReLU()</span></code></p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>):</dt><dd><p>The type of normalization to use, see <code class="docutils literal notranslate"><span class="pre">ding.torch_utils.fc_block</span></code> for more details`</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.VAC.compute_actor">
+<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC.compute_actor" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">hidden_size</span> <span class="pre">=</span> <span class="pre">actor_head_hidden_size</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.VAC.compute_actor_critic">
+<span class="sig-name descname"><span class="pre">compute_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC.compute_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC.compute_actor_critic" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_actor_critic'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The encoded embedding tensor.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">compute_actor_critic</span></code> interface aims to save computation when shares encoder.
+Returning the combination dictionry.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.VAC.compute_critic">
+<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC.compute_critic" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code> mode
+Use encoded embedding tensor to predict output.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">hidden_size</span> <span class="pre">=</span> <span class="pre">critic_head_hidden_size</span></code></p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Necessary Keys:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.VAC.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/vac.html#VAC.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.VAC.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict output.
+Parameter updates with VAC’s MLPs forward setup.</p>
+</dd>
+<dt>Arguments:</dt><dd><dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code> or <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.
+Whether <code class="docutils literal notranslate"><span class="pre">actor_head_hidden_size</span></code> or <code class="docutils literal notranslate"><span class="pre">critic_head_hidden_size</span></code> depend on <code class="docutils literal notranslate"><span class="pre">mode</span></code>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><ul>
+<li><dl>
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head.</p>
+<dl class="simple">
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_actor'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit encoding tensor, with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Forward with <code class="docutils literal notranslate"><span class="pre">'compute_critic'</span></code>, Necessary Keys:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N corresponding <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">128</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+<dt>Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">critic_outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+</pre></div>
+</div>
+</dd>
+<dt>Actor-Critic Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span><span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+<span class="go">tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
