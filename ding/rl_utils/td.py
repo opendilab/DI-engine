@@ -287,6 +287,13 @@ q_nstep_td_data = namedtuple(
     'q_nstep_td_data', ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight']
 )
 
+dqfd_nstep_td_data = namedtuple(
+    'dqfd_nstep_td_data', [
+        'q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'done_one_step', 'weight', 'new_n_q_one_step',
+        'next_n_action_one_step', 'is_expert'
+    ]
+)
+
 
 def shape_fn_qntd(args, kwargs):
     r"""
@@ -479,6 +486,7 @@ def q_nstep_td_error_with_rescale(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
+<<<<<<< HEAD
 @hpc_wrapper(
     shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
 )
@@ -508,14 +516,56 @@ def q_nstep_td_error_with_rescale_ngu(
     Shapes:
         - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
+=======
+
+def dqfd_nstep_td_error(
+        data: namedtuple,
+        gamma: float,
+        lambda1: float,
+        lambda2: float,
+        margin_function: float,
+        nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep n step td_error + 1 step td_error + supervised margin loss or dqfd
+    Arguments:
+        - data (:obj:`dqfd_nstep_td_data`): the input data, dqfd_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - nstep (:obj:`int`): nstep num, default set to 10
+    Returns:
+        - loss (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error + supervised margin loss, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error\
+            + supervised margin loss, 1-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+            ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight'\
+                , 'new_n_q_one_step', 'next_n_action_one_step', 'is_expert']
+>>>>>>> 168e964998a2f098e240278872ced6a6536495c7
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(B, )`
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+<<<<<<< HEAD
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
+=======
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - new_n_q_one_step (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
+        - is_expert (:obj:`int`) : 0 or 1
+    """
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
+    is_expert = data  # set is_expert flag(expert 1, agent 0)
+>>>>>>> 168e964998a2f098e240278872ced6a6536495c7
     assert len(action.shape) == 1, action.shape
     if weight is None:
         weight = torch.ones_like(action)
@@ -523,6 +573,7 @@ def q_nstep_td_error_with_rescale_ngu(
     batch_range = torch.arange(action.shape[0])
     q_s_a = q[batch_range, action]
     target_q_s_a = next_n_q[batch_range, next_n_action]
+<<<<<<< HEAD
 
     target_q_s_a = inv_trans_fn(target_q_s_a)
     target_q_s_a = nstep_return_ngu(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
@@ -530,6 +581,139 @@ def q_nstep_td_error_with_rescale_ngu(
 
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
+=======
+    target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
+
+    # calculate n-step TD-loss
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+        else:
+            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+
+    # calculate 1-step TD-loss
+    nstep = 1
+    reward = reward[0].unsqueeze(0)  # get the one-step reward
+    value_gamma = None
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_one_step)
+        else:
+            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done_one_step)
+    else:
+        target_q_s_a_one_step = nstep_return(
+            nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
+        )
+    td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
+    device = q_s_a.device
+    device_cpu = torch.device('cpu')
+    # calculate the supervised loss
+    l = margin_function * torch.ones_like(q).to(device_cpu)  # q shape (B, A), action shape (B, )
+    l.scatter_(1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu))
+    # along the first dimension. for the index of the action, fill the corresponding position in l with 0
+    JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
+
+    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
+            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
+
+
+def dqfd_nstep_td_error_with_rescale(
+        data: namedtuple,
+        gamma: float,
+        lambda1: float,
+        lambda2: float,
+        margin_function: float,
+        nstep: int = 1,
+        cum_reward: bool = False,
+        value_gamma: Optional[torch.Tensor] = None,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+        trans_fn: Callable = value_transform,
+        inv_trans_fn: Callable = value_inv_transform,
+) -> torch.Tensor:
+    """
+    Overview:
+        Multistep n step td_error + 1 step td_error + supervised margin loss or dqfd
+    Arguments:
+        - data (:obj:`dqfd_nstep_td_data`): the input data, dqfd_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - nstep (:obj:`int`): nstep num, default set to 10
+    Returns:
+        - loss (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error + supervised margin loss, 0-dim tensor
+        - td_error_per_sample (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error\
+            + supervised margin loss, 1-dim tensor
+    Shapes:
+        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+            ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight'\
+                , 'new_n_q_one_step', 'next_n_action_one_step', 'is_expert']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - new_n_q_one_step (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
+        - is_expert (:obj:`int`) : 0 or 1
+    """
+    q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
+    is_expert = data  # set is_expert flag(expert 1, agent 0)
+    assert len(action.shape) == 1, action.shape
+    if weight is None:
+        weight = torch.ones_like(action)
+
+    batch_range = torch.arange(action.shape[0])
+    q_s_a = q[batch_range, action]
+
+    target_q_s_a = next_n_q[batch_range, next_n_action]
+    target_q_s_a = inv_trans_fn(target_q_s_a)  # rescale
+    target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
+    target_q_s_a_one_step = inv_trans_fn(target_q_s_a_one_step)  # rescale
+
+    # calculate n-step TD-loss
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
+        else:
+            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
+    else:
+        target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    target_q_s_a = trans_fn(target_q_s_a)  # rescale
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+
+    # calculate 1-step TD-loss
+    nstep = 1
+    reward = reward[0].unsqueeze(0)  # get the one-step reward
+    value_gamma = None  # This is very important
+    if cum_reward:
+        if value_gamma is None:
+            target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_one_step)
+        else:
+            target_q_s_a_one_step = reward + value_gamma * target_q_s_a_one_step * (1 - done_one_step)
+    else:
+        target_q_s_a_one_step = nstep_return(
+            nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
+        )
+    target_q_s_a_one_step = trans_fn(target_q_s_a_one_step)  # rescale
+
+    td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
+    device = q_s_a.device
+    device_cpu = torch.device('cpu')
+    # calculate the supervised loss
+    l = margin_function * torch.ones_like(q).to(device_cpu)  # q shape (B, A), action shape (B, )
+    l.scatter_(1, torch.LongTensor(action.unsqueeze(1).to(device_cpu)), torch.zeros_like(q, device=device_cpu))
+    # along the first dimension. for the index of the action, fill the corresponding position in l with 0
+    JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
+
+    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
+            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
+>>>>>>> 168e964998a2f098e240278872ced6a6536495c7
 
 
 qrdqn_nstep_td_data = namedtuple(

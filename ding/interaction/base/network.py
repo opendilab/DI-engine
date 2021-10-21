@@ -48,6 +48,7 @@ class HttpEngine:
         self.__base_url = URLObject().with_scheme('https' if https else 'http') \
             .with_hostname(host).with_port(port).add_path(path or '')
         self.__session = requests.session()
+        self.__session.trust_env = False
 
     # noinspection PyMethodMayBeStatic
     def _data_process(self, data: Optional[Mapping[str, Any]] = None) -> Mapping[str, Any]:

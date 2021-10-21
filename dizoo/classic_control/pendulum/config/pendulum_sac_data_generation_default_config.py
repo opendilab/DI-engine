@@ -33,7 +33,6 @@ pendulum_sac_data_genearation_default_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             auto_alpha=False,
-            save_path='./default_experiment/expert.pkl',
             learner = dict(
                 load_path='./default_experiment/ckpt/ckpt_best.pth.tar',
                 hook=dict(
@@ -45,6 +44,7 @@ pendulum_sac_data_genearation_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            save_path='./default_experiment/expert.pkl',
         ),
         command=dict(),
         eval=dict(),

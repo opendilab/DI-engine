@@ -6,6 +6,7 @@ from .sample_serial_collector_ngu import SampleCollectorNGU
 from .sample_serial_collector import SampleSerialCollector
 from .episode_serial_collector import EpisodeSerialCollector
 from .battle_episode_serial_collector import BattleEpisodeSerialCollector
+from .battle_sample_serial_collector import BattleSampleSerialCollector
 
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 from .interaction_serial_evaluator import InteractionSerialEvaluator

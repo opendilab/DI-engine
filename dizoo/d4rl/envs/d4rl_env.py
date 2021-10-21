@@ -369,7 +369,7 @@ class D4RLEnv(BaseEnv):
             info.rew_space.shape = rew_shape
             return info
         else:
-            raise NotImplementedError('{} not found in D4RL_INFO_DICT [{}]' \
+            raise NotImplementedError('{} not found in D4RL_INFO_DICT [{}]'
                                       .format(self._cfg.env_id, D4RL_INFO_DICT.keys()))
 
     def _make_env(self, only_info=False):

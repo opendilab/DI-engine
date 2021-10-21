@@ -398,7 +398,7 @@ class PPGPolicy(Policy):
             data[-1]['done'],
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
-            cuda=self._cuda,
+            cuda=False,
         )
         data = get_train_sample(data, self._unroll_len)
         for d in data:

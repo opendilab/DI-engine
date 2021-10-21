@@ -197,6 +197,7 @@ class QMIXPolicy(Policy):
 
         if self._cfg.learn.double_q:
             next_inputs = {'obs': data['next_obs']}
+            self._learn_model.reset(state=data['prev_state'][1])
             logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
             next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
         else:

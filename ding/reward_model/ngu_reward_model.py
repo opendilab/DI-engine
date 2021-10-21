@@ -251,9 +251,12 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO transform to std1
-            # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std  # TODO transform to mean 0, std 1
-            episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)  # transform to [0,1]
+            episodic_reward = episodic_reward / episodic_reward.mean()  # TODO transform to batch mean1
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO transform to long-term mean1
+            # TODO transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0, otherwise, the rnd_reward wrong only play a magnifying role
+            # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO transform to std1 not meaningful
+            # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)  # TODO transform to [0,1] wrong, may give 1 in a familiar state
         return episodic_reward
 
     def collect_data(self, data: list) -> None:

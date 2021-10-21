@@ -48,7 +48,7 @@ lunarlander_ppo_rnd_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(type='ppo'),
     reward_model=dict(type='rnd')
 )
 lunarlander_ppo_rnd_create_config = EasyDict(lunarlander_ppo_rnd_create_config)

@@ -11,4 +11,7 @@ from .cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config
 from .cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config
 from .cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config
 from .cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config
+from .cartpole_dqfd_config import cartpole_dqfd_config, cartpole_dqfd_create_config
+from .cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
+from .cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 # from .cartpole_ppo_default_loader import cartpole_ppo_default_loader
