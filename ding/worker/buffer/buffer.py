@@ -5,23 +5,30 @@ import copy
 
 def apply_middleware(func_name: str):
 
-    def wrap_func(f: Callable):
+    def wrap_func(base_func: Callable):
 
-        def _apply_middleware(buffer, *args):
-            for func in buffer.middlewares:
-                done, *args = func(buffer, func_name, *args)
-                if done:
-                    return args[0] if len(args) == 1 else args
-            return f(buffer, *args)
+        def handler(buffer, *args, **kwargs):
 
-        return _apply_middleware
+            def wrap_handler(middlewares, *args, **kwargs):
+                if len(middlewares) == 0:
+                    return base_func(buffer, *args, **kwargs)
+
+                def next(*args, **kwargs):
+                    return wrap_handler(middlewares[1:], *args, **kwargs)
+
+                func = middlewares[0]
+                return func(func_name, next, *args, **kwargs)
+
+            return wrap_handler(buffer.middlewares, *args, **kwargs)
+
+        return handler
 
     return wrap_func
 
 
 class Buffer:
 
-    def __init__(self, storage: Storage, **kwargs) -> None:
+    def __init__(self, storage: Storage) -> None:
         """
         Overview:
             Initialize the buffer
@@ -42,7 +49,7 @@ class Buffer:
         self.storage.append(data)
 
     @apply_middleware("sample")
-    def sample(self, size: int) -> List[Any]:
+    def sample(self, size: int, replace: bool = False) -> List[Any]:
         """
         Overview:
             Sample data with length ``size``, this function may be wrapped by middlewares.
@@ -51,7 +58,7 @@ class Buffer:
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
-        return self.storage.sample(size)
+        return self.storage.sample(size, replace)
 
     @apply_middleware("clear")
     def clear(self) -> None:
