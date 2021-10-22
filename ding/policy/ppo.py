@@ -347,7 +347,11 @@ class PPOPolicy(Policy):
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
         data = get_gae(
-            data, to_device(last_value, self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=False,
+            data,
+            to_device(last_value, self._device),
+            gamma=self._gamma,
+            gae_lambda=self._gae_lambda,
+            cuda=False,
         )
         if self._value_norm:
             for i in range(len(data)):
