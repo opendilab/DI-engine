@@ -36,6 +36,8 @@ class PPOPolicy(Policy):
         recompute_adv=True,
         continuous=True,
         multi_agent=False,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -345,7 +347,11 @@ class PPOPolicy(Policy):
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
         data = get_gae(
-            data, to_device(last_value, self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=self._cuda
+            data,
+            to_device(last_value, self._device),
+            gamma=self._gamma,
+            gae_lambda=self._gae_lambda,
+            cuda=False,
         )
         if self._value_norm:
             for i in range(len(data)):
@@ -428,8 +434,7 @@ class PPOOffPolicy(Policy):
         type='ppo',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
-        on_policy=True,
+        on_policy=False,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
@@ -437,6 +442,8 @@ class PPOOffPolicy(Policy):
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
         nstep=3,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -680,7 +687,7 @@ class PPOOffPolicy(Policy):
             data[-1]['done'],
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
-            cuda=self._cuda,
+            cuda=False,
         )
         if not self._nstep_return:
             return get_train_sample(data, self._unroll_len)
