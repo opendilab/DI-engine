@@ -5,7 +5,8 @@ from copy import deepcopy
 
 from ding.entry import serial_pipeline_onpolicy
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from dizoo.multiagent_particle.config import cooperative_navigation_mappo_config, cooperative_navigation_mappo_create_config
+from dizoo.multiagent_particle.config import cooperative_navigation_mappo_config, \
+    cooperative_navigation_mappo_create_config
 from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_ppo_config, pendulum_ppo_create_config
 
 
