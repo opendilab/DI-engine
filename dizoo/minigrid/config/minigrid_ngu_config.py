@@ -8,16 +8,16 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul40',
-    # exp_name='debug_minigrid_fourrooms_ngu_n5_bs2_ul40',
-    # exp_name='debug_minigrid_doorkey_ngu_n5_bs2_ul40',
+    exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul98_erbm1',
+    # exp_name='debug_minigrid_fourrooms_ngu_n5_bs2_ul198_erbm1',
+    # exp_name='debug_minigrid_doorkey_ngu_n5_bs2_ul298_erbm1',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-Empty-8x8-v0',
         # env_id='MiniGrid-FourRooms-v0',
-        # env_id='MiniGrid-DoorKey-16x16-v0',
+        env_id='MiniGrid-DoorKey-16x16-v0',
         stop_value=0.96,
     ),
     rnd_reward_model=dict(
@@ -62,7 +62,7 @@ minigrid_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=40,
+        unroll_len=98,  # TODO(pu) according to the episode length
         model=dict(
             obs_shape=2739,
             action_shape=7,
@@ -88,7 +88,8 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=100000,
+            replay_buffer=dict(replay_buffer_size=20000,
+                               # todo doorkey 5000 30g, 20000 130g;  empty8 20000 50G; fourrooms
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.6,
                                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
