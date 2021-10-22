@@ -9,7 +9,7 @@ evaluator_env_num = 5
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3',
+    exp_name='debug_pong_r2d3_k100_pho1-4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -52,7 +52,7 @@ pong_r2d3_config = dict(
             lambda2=1.0,  # supervised loss
             lambda3=1e-5,  # L2
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=10,  # TODO(pu)
+            per_train_iter_k=100,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -72,7 +72,7 @@ pong_r2d3_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=20000,  # TODO(pu)
+                replay_buffer_size=20000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

@@ -282,7 +282,7 @@ class EpisodicRewardModel(BaseRewardModel):
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
                     for k in  range(null_start_index,timesteps):
-                        episodic_reward[i][k] = torch.tensor(0)
+                        episodic_reward[i][k] = torch.tensor(0).to(self.device)
                     # episodic_reward[i][null_start_index:-1]=[torch.tensor(0) for i in range(timesteps-null_start_index)]
 
 
@@ -307,12 +307,16 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            episodic_reward = episodic_reward / episodic_reward.mean()  # TODO transform to batch mean1
-            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean  # TODO transform to long-term mean1
-            # TODO transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0, otherwise, the rnd_reward wrong only play a magnifying role
+            # TODO transform to batch mean1
+            episodic_reward = episodic_reward / episodic_reward.mean()
+            # TODO 1 transform to long-term mean1
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
+            # TODO 2 transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0, otherwise, the rnd_reward wrong only play a magnifying role
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
-            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std  # TODO transform to std1 not meaningful
-            # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)  # TODO transform to [0,1] wrong, may give 1 in a familiar state
+            # TODO 3 transform to std1 not meaningful
+            # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
+            # TODO 4 transform to [0,1] wrong, may give 1 in a familiar state
+            # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)
         return episodic_reward
 
     def collect_data(self, data: list) -> None:
