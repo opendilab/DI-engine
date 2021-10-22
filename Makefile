@@ -32,6 +32,9 @@ cudatest:
 	pytest ${TEST_DIR} \
 		-sv -m cudatest
 
+dockertest:
+	./ding/scripts/docker-test-entry.sh
+
 platformtest:
 	pytest ${PLATFORM_TEST_DIR} \
 		--cov-report term-missing \

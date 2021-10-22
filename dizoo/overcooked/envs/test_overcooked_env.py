@@ -5,7 +5,7 @@ import numpy as np
 from dizoo.overcooked.envs import OvercookEnv, OvercookGameEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestOvercooked:
 
     def test_overcook(self):
@@ -28,7 +28,7 @@ class TestOvercooked:
         assert timestep.done
         sum_rew += timestep.info['final_eval_reward'][0]
         print("sum reward is:", sum_rew)
-    
+
     def test_overcook_game(self):
         concat_obs = False
         num_agent = 2
@@ -42,4 +42,3 @@ class TestOvercooked:
         assert timestep.done
         print("agent 0 sum reward is:", timestep.info[0]['final_eval_reward'])
         print("agent 1 sum reward is:", timestep.info[1]['final_eval_reward'])
-
