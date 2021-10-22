@@ -563,7 +563,7 @@ class PPOOffPolicy(Policy):
             # TODO what should we do here to keep shape
             assert self._nstep > 1
             td_data = v_nstep_td_data(
-                value['value'], target_value['value'], reward.t(), data['done'], data['weight'], value_gamma
+                value['value'], target_value['value'], reward, data['done'], data['weight'], value_gamma
             )
             # calculate v_nstep_td critic_loss
             critic_loss, td_error_per_sample = v_nstep_td_error(td_data, self._gamma, self._nstep)

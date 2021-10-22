@@ -136,6 +136,17 @@ def test_ppo():
 
 
 @pytest.mark.unittest
+def test_ppo_nstep_return():
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.nstep_return = True
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
 def test_sac():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1

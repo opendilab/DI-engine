@@ -13,9 +13,10 @@ from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_p
 @pytest.mark.unittest
 def test_onpolicy_ppo():
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
-    config[0].policy.learn.epoch_per_collect = 1
+    config[0].policy.learn.epoch_per_collect = 2
+    config[0].policy.eval.evaluator.eval_freq = 1
     try:
-        serial_pipeline_onpolicy(config, seed=0, max_iterations=1)
+        serial_pipeline_onpolicy(config, seed=0, max_iterations=2)
     except Exception:
         assert False, "pipeline fail"
 
