@@ -23,6 +23,7 @@ def main(
         seed: int = 0,
         max_iterations: Optional[int] = int(1e4),
         collect_data: bool = True,
+        train: bool = True,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -49,6 +50,8 @@ def main(
         collect_demo_data((expert_cfg, expert_create_cfg), seed, state_dict_path=expert_cfg.policy.load_path,
                           expert_data_path=cfg.reward_model.expert_data_path,
                           collect_count=cfg.reward_model.collect_count)
+    if not train:
+        exit()
     # Create main components: env, policy
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
@@ -148,4 +151,4 @@ def main(
 
 if __name__ == "__main__":
     main((cartpole_gail_config, cartpole_gail_create_config), (cartpole_dqn_config, cartpole_dqn_create_config),
-         collect_data=0, seed=0)
+         collect_data=1, seed=0, train=0)

@@ -106,7 +106,6 @@ def main(
     for _ in range(max_iterations):
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            print('dff')
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if reward >= best_reward:
                 save_reward_model(cfg.exp_name, reward_model)

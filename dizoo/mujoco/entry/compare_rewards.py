@@ -77,4 +77,4 @@ def eval_reward(
 
 
 if __name__ == "__main__":
-    eval_reward((walker2d_gail_default_config, walker2d_gail_default_create_config), seed=0, cut_expert_rewards=1000)
+    eval_reward((walker2d_gail_default_config, walker2d_gail_default_create_config), seed=0, cut_expert_rewards=100000)

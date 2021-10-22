@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_gail_config = dict(
-    exp_name='cartpole_gail',
+    exp_name='cartpole_gail_train',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -16,7 +16,7 @@ cartpole_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='cartpole_dqn/expert_data.pkl',
-        collect_count=100000,
+        collect_count=1000,
     ),
     policy=dict(
         load_path='cartpole_gail/reward_model/ckpt/last.pth.tar',
