@@ -200,6 +200,8 @@
         <span class="n">recompute_adv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>
             <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -509,7 +511,7 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">get_gae</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">to_device</span><span class="p">(</span><span class="n">last_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">),</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">,</span> <span class="n">cuda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">to_device</span><span class="p">(</span><span class="n">last_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">),</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="n">gae_lambda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">,</span> <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
@@ -592,8 +594,7 @@
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo&#39;</span><span class="p">,</span>
         <span class="c1"># (bool) Whether to use cuda for network.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)</span>
-        <span class="n">on_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether to use priority(priority sample, IS weight, update priority)</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
@@ -601,6 +602,8 @@
         <span class="c1"># (bool) Whether to use nstep_return for value loss</span>
         <span class="n">nstep_return</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>
             <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -844,7 +847,7 @@
             <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;done&#39;</span><span class="p">],</span>
             <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span>
             <span class="n">gae_lambda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">,</span>
-            <span class="n">cuda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">,</span>
+            <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep_return</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
