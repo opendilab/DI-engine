@@ -16,15 +16,30 @@ from dizoo.mujoco.config.walker2d_gail_config import walker2d_gail_default_confi
     walker2d_gail_default_create_config
 from dizoo.mujoco.config.walker2d_ddpg_default_config import walker2d_ddpg_default_config,\
     walker2d_ddpg_default_create_config
+from ding.utils import save_file
+
+
+def save_reward_model(dir, reward_model, weights_name='best'):
+    # save reward model
+    path = os.path.join(dir, 'reward_model', 'ckpt')
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
+    path = os.path.join(path, '{}.pth.tar'.format(weights_name))
+    state_dict = reward_model.state_dict()
+    save_file(path, state_dict)
+    print('Saved reward model ckpt in {}'.format(path))
 
 
 def main(
         input_cfg: Tuple[dict, dict],
         expert_cfg: Tuple[dict, dict],
         seed: int = 0,
-        max_iterations: Optional[int] = int(1e4),
+        max_iterations: Optional[int] = int(1e9),
         collect_data: bool = True,
-) -> 'Policy':  # noqa
+    ) -> 'Policy':  # noqa
     """
     Overview:
         Serial pipeline entry with reward model.
@@ -87,10 +102,14 @@ def main(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
+    best_reward = -10000
     for _ in range(max_iterations):
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
+            print('dff')
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            if reward >= best_reward:
+                save_reward_model(cfg.exp_name, reward_model)
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
@@ -125,11 +144,12 @@ def main(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    save_reward_model(cfg.exp_name, reward_model, 'last')
     # evaluate
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 
 if __name__ == "__main__":
     main((walker2d_gail_default_config, walker2d_gail_default_create_config), (walker2d_ddpg_default_config,
-                                                                               walker2d_gail_default_create_config),
-         collect_data=0, seed=0)
+                                                                           walker2d_gail_default_create_config),
+     collect_data=0, seed=0, max_iterations=1000000)

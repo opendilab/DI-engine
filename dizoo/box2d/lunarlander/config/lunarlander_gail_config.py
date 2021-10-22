@@ -24,6 +24,7 @@ lunarlander_gail_default_config = dict(
         collect_count=100000,
     ),
     policy=dict(
+        load_path='lunarlander_gail/reward_model/ckpt/last.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
         # Whether the RL algorithm is on-policy or off-policy.

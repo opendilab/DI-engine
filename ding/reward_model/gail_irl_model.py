@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import pickle
 import random
 from collections.abc import Iterable
@@ -103,6 +104,14 @@ class GailRewardModel(BaseRewardModel):
         with open(self.cfg.expert_data_path, 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
         self.expert_data = concat_state_action_pairs(self.expert_data_loader)
+
+    def state_dict(self) -> Dict[str, Any]:
+        return {
+            'model': self.reward_model.state_dict(),
+        }
+
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        self.reward_model.load_state_dict(state_dict['model'])
 
     def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
         """

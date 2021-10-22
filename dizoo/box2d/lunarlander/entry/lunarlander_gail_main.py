@@ -16,6 +16,7 @@ from dizoo.box2d.lunarlander.config.lunarlander_gail_config import lunarlander_g
     lunarlander_gail_create_config
 from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import lunarlander_dqn_default_config,\
     lunarlander_dqn_create_config
+from ding.utils import save_file
 
 
 def main(
@@ -132,6 +133,18 @@ def main(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    # save reward model
+    # save reward model
+    path = os.path.join(cfg.exp_name, 'reward_model', 'ckpt')
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
+    path = os.path.join(path, 'last.pth.tar')
+    state_dict = reward_model.state_dict()
+    save_file(path, state_dict)
+    print('Saved reward model ckpt in {}'.format(path))
     # evaluate
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
@@ -139,4 +152,4 @@ def main(
 if __name__ == "__main__":
     main((lunarlander_gail_default_config, lunarlander_gail_create_config), (lunarlander_dqn_default_config,
                                                                              lunarlander_dqn_create_config),
-         collect_data=1, seed=0)
+         collect_data=0, seed=0)

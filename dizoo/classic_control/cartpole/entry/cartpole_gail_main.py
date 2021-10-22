@@ -14,6 +14,7 @@ from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
 from dizoo.classic_control.cartpole.config.cartpole_gail_config import cartpole_gail_config, cartpole_gail_create_config
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
+from ding.utils import save_file
 
 
 def main(
@@ -130,10 +131,21 @@ def main(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    # save reward model
+    path = os.path.join(cfg.exp_name, 'reward_model', 'ckpt')
+    if not os.path.exists(path):
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            pass
+    path = os.path.join(path, 'last.pth.tar')
+    state_dict = reward_model.state_dict()
+    save_file(path, state_dict)
+    print('Saved reward model ckpt in {}'.format(path))
     # evaluate
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 
 if __name__ == "__main__":
     main((cartpole_gail_config, cartpole_gail_create_config), (cartpole_dqn_config, cartpole_dqn_create_config),
-         collect_data=1, seed=0)
+         collect_data=0, seed=0)

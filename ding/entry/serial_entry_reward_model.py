@@ -129,4 +129,7 @@ def serial_pipeline_reward_model(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
+    # Save reward model weights after training
+    reward_model_dict = reward_model._state_dict_learn()
+
     return policy

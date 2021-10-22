@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 walker2d_gail_default_config = dict(
-    exp_name='walker2d_gail',
+    exp_name='walker2d_gail_00',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -24,6 +24,7 @@ walker2d_gail_default_config = dict(
         target_new_data_count=1,
     ),
     policy=dict(
+        load_path='walker2d_gail_0/ckpt/ckpt_best.pth.tar',
         cuda=True,
         on_policy=False,
         random_collect_size=25000,

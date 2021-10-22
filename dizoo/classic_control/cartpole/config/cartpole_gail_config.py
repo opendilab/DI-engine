@@ -19,7 +19,7 @@ cartpole_gail_config = dict(
         collect_count=100000,
     ),
     policy=dict(
-        load_path='',
+        load_path='cartpole_gail/reward_model/ckpt/last.pth.tar',
         cuda=False,
         model=dict(
             obs_shape=4,
