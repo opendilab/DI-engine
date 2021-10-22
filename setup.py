@@ -97,7 +97,7 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py',  # atari
+            'ale-py==0.7.0',  # atari
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
