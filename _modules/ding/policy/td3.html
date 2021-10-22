@@ -170,8 +170,13 @@
 <span class="k">class</span> <span class="nc">TD3Policy</span><span class="p">(</span><span class="n">DDPGPolicy</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3</span>
+<span class="sd">        Policy class of TD3 algorithm.</span>
+
+<span class="sd">        Since DDPG and TD3 share many common things, we can easily derive this TD3</span>
 <span class="sd">        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.</span>
+
+<span class="sd">        https://arxiv.org/pdf/1802.09477.pdf</span>
+
 <span class="sd">    Property:</span>
 <span class="sd">        learn_mode, collect_mode, eval_mode</span>
 
@@ -240,7 +245,7 @@
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use two critic networks or only one.</span>
-            <span class="c1"># Clipped Double Q-Learning for Actor-Critic in original TD3 paper.</span>
+            <span class="c1"># Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).</span>
             <span class="c1"># Default True for TD3, False for DDPG.</span>
             <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">),</span>
@@ -250,16 +255,16 @@
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="c1"># Minibatch size for gradient descent.</span>
+            <span class="c1"># (int) Minibatch size for gradient descent.</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
-            <span class="c1"># Learning rates for actor network(aka. policy).</span>
+            <span class="c1"># (float) Learning rates for actor network(aka. policy).</span>
             <span class="n">learning_rate_actor</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
-            <span class="c1"># Learning rates and critic network(aka. Q-network).</span>
+            <span class="c1"># (float) Learning rates for critic network(aka. Q-network).</span>
             <span class="n">learning_rate_critic</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
             <span class="c1"># (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)</span>
             <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
             <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
-            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
+            <span class="c1"># However, interaction with HalfCheetah always gets done with False,</span>
             <span class="c1"># Since we inplace done==True with done==False to keep</span>
             <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
             <span class="c1"># when the episode step is greater than max episode step.</span>
@@ -271,11 +276,11 @@
             <span class="c1"># (float) discount factor for the discounted sum of rewards, aka. gamma.</span>
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
             <span class="c1"># (int) When critic network updates once, how many times will actor network update.</span>
-            <span class="c1"># Delayed Policy Updates in original TD3 paper.</span>
+            <span class="c1"># Delayed Policy Updates in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).</span>
             <span class="c1"># Default 1 for DDPG, 2 for TD3.</span>
             <span class="n">actor_update_freq</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="c1"># (bool) Whether to add noise on target network&#39;s action.</span>
-            <span class="c1"># Target Policy Smoothing Regularization in original TD3 paper.</span>
+            <span class="c1"># Target Policy Smoothing Regularization in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).</span>
             <span class="c1"># Default True for TD3, False for DDPG.</span>
             <span class="n">noise</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="c1"># (float) Sigma for smoothing noise added to target policy.</span>
@@ -287,15 +292,21 @@
             <span class="p">),</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># n_sample=1,</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="c1"># It is a must to add noise during collection. So here omits &quot;noise&quot; and only set &quot;noise_sigma&quot;.</span>
+            <span class="c1"># (float) It is a must to add noise during collection. So here omits &quot;noise&quot; and only set &quot;noise_sigma&quot;.</span>
             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) Evaluate every &quot;eval_freq&quot; training iterations.</span>
+                <span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">),</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int) Maximum size of replay buffer</span>
+                <span class="c1"># (int) Maximum size of replay buffer.</span>
                 <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>

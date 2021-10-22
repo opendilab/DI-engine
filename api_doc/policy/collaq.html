@@ -412,11 +412,20 @@
 <dt>Overview:</dt><dd><p>Forward function for collect mode with eps_greedy</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type data, including at least [‘obs’].</p></li>
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Dict type data, stacked env data for predicting policy_output(action), </dt><dd><p>values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</p>
+</dd>
+</dl>
+</li>
+<li><p>eps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): epsilon value for exploration, which is decayed by collected env step.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The collected data</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): Dict type data, including at least inferred action according to input obs.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">action</span></code></p></li>
 </ul>
 </dd>
 </dl>
@@ -429,11 +438,19 @@
 <dt>Overview:</dt><dd><p>Forward function for eval mode, similar to <code class="docutils literal notranslate"><span class="pre">self._forward_collect</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type data, including at least [‘obs’].</p></li>
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Dict type data, stacked env data for predicting policy_output(action), </dt><dd><p>values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type data, including at least inferred action according to input obs.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The dict of predicting action for the interaction with env.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">action</span></code></p></li>
 </ul>
 </dd>
 </dl>

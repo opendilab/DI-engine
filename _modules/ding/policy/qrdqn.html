@@ -367,13 +367,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward function for collect mode with eps_greedy</span>
+<span class="sd">            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;].</span>
+<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
+<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
+<span class="sd">            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - data (:obj:`dict`): The collected data</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \</span>
+<span class="sd">                env and the constructing of transition.</span>
+<span class="sd">        ArgumentsKeys:</span>
+<span class="sd">            - necessary: ``obs``</span>
+<span class="sd">        ReturnsKeys</span>
+<span class="sd">            - necessary: ``logit``, ``action``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>

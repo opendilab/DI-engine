@@ -185,6 +185,8 @@
 <span class="sd">       Overview:</span>
 <span class="sd">           Policy class of SAC algorithm.</span>
 
+<span class="sd">           https://arxiv.org/pdf/1801.01290.pdf</span>
+
 <span class="sd">       Config:</span>
 <span class="sd">           == ====================  ========    =============  ================================= =======================</span>
 <span class="sd">           ID Symbol                Type        Default Value  Description                       Other(Shape)</span>
@@ -312,7 +314,7 @@
             <span class="c1"># (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)</span>
             <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
             <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
-            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
+            <span class="c1"># However, interaction with HalfCheetah always gets done with False,</span>
             <span class="c1"># Since we inplace done==True with done==False to keep</span>
             <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
             <span class="c1"># when the episode step is greater than max episode step.</span>
@@ -328,7 +330,12 @@
             <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) Evaluate every &quot;eval_freq&quot; training iterations.</span>
+                <span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="c1"># (int type) replay_buffer_size: Max size of replay buffer.</span>
@@ -340,10 +347,6 @@
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Policy class of SAC algorithm.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -455,7 +458,7 @@
                 <span class="n">next_v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_value_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;v_value&#39;</span><span class="p">]</span>
             <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">next_v_value</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># target q value. SARSA: first predict next action, then calculate next q value</span>
+            <span class="c1"># target q value.</span>
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
 
@@ -607,9 +610,13 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward function of collect mode.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;].</span>
+<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
+<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.</span>
+<span class="sd">        ReturnsKeys</span>
+<span class="sd">            - necessary: ``action``</span>
+<span class="sd">            - optional: ``logit``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
@@ -662,11 +669,15 @@
     <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward function for eval mode, similar to ``self._forward_collect``.</span>
+<span class="sd">            Forward function of eval mode, similar to ``self._forward_collect``.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;].</span>
+<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
+<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.</span>
+<span class="sd">        ReturnsKeys</span>
+<span class="sd">            - necessary: ``action``</span>
+<span class="sd">            - optional: ``logit``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
