@@ -454,16 +454,30 @@ class NGUPolicy(Policy):
         Returns:
             - transition (:obj:`dict`): Dict type transition data.
         """
-        transition = {
-            'beta': beta_index,
-            'obs': obs,
-            'action': model_output['action'],
-            # 'prev_action': model_output['action'],
-            'prev_state': model_output['prev_state'],
-            'reward': timestep.reward,
-            # 'prev_reward_e': timestep.reward,
-            'done': timestep.done,
-        }
+        if hasattr(timestep,'null'):
+            transition = {
+                'beta': beta_index,
+                'obs': obs,
+                'action': model_output['action'],
+                # 'prev_action': model_output['action'],
+                'prev_state': model_output['prev_state'],
+                'reward': timestep.reward,
+                # 'prev_reward_e': timestep.reward,
+                'done': timestep.done,
+                'null': timestep.null,
+            }
+        else:
+            transition = {
+                'beta': beta_index,
+                'obs': obs,
+                'action': model_output['action'],
+                # 'prev_action': model_output['action'],
+                'prev_state': model_output['prev_state'],
+                'reward': timestep.reward,
+                # 'prev_reward_e': timestep.reward,
+                'done': timestep.done,
+                'null': False,
+            }
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
