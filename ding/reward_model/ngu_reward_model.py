@@ -16,24 +16,64 @@ from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 
 
-def collect_states(iterator):  # get total_states
+def collect_data_rnd_exclude_null_data(iterator):  # get total_states
     res = []
     for item in iterator:
-        state = item['obs']
-        res.append(state)
+        if torch.nonzero(torch.tensor(item['null']).float()).shape[0] != 0: # have null padding
+            not_null_index = torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)
+            null_start_index = int(torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)[0])
+            obs= item['obs'][: null_start_index]  # episode
+        else:
+            obs = item['obs']
+        res.append(obs)
     return res
 
+def collect_data_rnd(iterator):  # get total_states
+    res = []
+    is_null_list = []
+    for item in iterator:
+        state = item['obs']
+        is_null = item['null']
+        res.append(state)
+        is_null_list.append(is_null)
+    return res, is_null_list
 
-def collect_states_episodic(iterator):  # get total_states list(dict, dict,...)
+
+def collect_data_episodic_exclude_null_data(iterator):  # get total_states list(dict, dict,...)
     obs_list = []
     action_list = []
     for item in iterator:
-        obs = item['obs']  # episode
-        action = item['action']
+        if torch.nonzero(torch.tensor(item['null']).float()).shape[0]!=0: # have null padding
+            not_null_index=torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)
+            null_start_index = int(torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)[0])
+            obs = item['obs'][: null_start_index]  # episode
+            action = item['action'][: null_start_index]
+        else:
+            obs = item['obs'] # episode
+            action = item['action']
         obs_list.append(obs)
         action_list.append(action)
     return obs_list, action_list
 
+def collect_data_episodic(iterator):  # get total_states
+    res = []
+    is_null_list = []
+    for item in iterator:
+        state = item['obs']
+        is_null = item['null']
+        res.append(state)
+        is_null_list.append(is_null)
+    return res,is_null_list
+
+# def collect_data_episodic(iterator):  # get total_states list(dict, dict,...)
+#     obs_list = []
+#     action_list = []
+#     for item in iterator:
+#         obs = item['obs']  # episode
+#         action = item['action']
+#         obs_list.append(obs)
+#         action_list.append(action)
+#     return obs_list, action_list
 
 class InverseNetwork(nn.Module):
 
@@ -139,26 +179,34 @@ class EpisodicRewardModel(BaseRewardModel):
 
         # stack batch dim
         if isinstance(self.cfg.obs_shape, int):
-            self.train_obs = torch.stack(
-                self.train_obs, dim=0
-            ).view(len(self.train_obs) * len(self.train_obs[0]), self.cfg.obs_shape)  # -1) TODO image
-        else:  # len(self.cfg.obs_shape) == 3
-            self.train_obs = torch.stack(
-                self.train_obs, dim=0
-            ).view(self.train_obs.shape[0] * self.train_obs.shape[1], *self.cfg.obs_shape)  # -1) TODO image
-            self.train_obs = torch.stack(
-                self.train_obs, dim=0
-            ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # -1) TODO image
+            # self.train_obs = torch.stack(
+            #     self.train_obs, dim=0
+            # ).view(len(self.train_obs) * len(self.train_obs[0]), self.cfg.obs_shape)  # -1)
 
-        self.train_next_obs = torch.stack(
-            self.train_next_obs, dim=0
-        ).view(len(self.train_next_obs) * len(self.train_next_obs[0]), -1)
-        self.train_action = torch.stack(
-            self.train_action, dim=0
-        ).view(len(self.train_action) * len(self.train_action[0]), -1)
+            # the length of each sequence in batch is diffrent because exclude the numm_padding in the collect phase
+            self.train_obs = torch.cat(self.train_obs, 0)
+
+        else:  # len(self.cfg.obs_shape) == 3 TODO image
+            self.train_obs = torch.cat(self.train_obs, 0)
+            # self.train_obs = torch.stack(
+            #     self.train_obs, dim=0
+            # ).view(self.train_obs.shape[0] * self.train_obs.shape[1], *self.cfg.obs_shape)  # -1)
+            # self.train_obs = torch.stack(
+            #     self.train_obs, dim=0
+            # ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # -1)
+
+        # self.train_next_obs = torch.stack(
+        #     self.train_next_obs, dim=0
+        # ).view(len(self.train_next_obs) * len(self.train_next_obs[0]), -1)
+        # self.train_action = torch.stack(
+        #     self.train_action, dim=0
+        # ).view(len(self.train_action) * len(self.train_action[0]), -1)
+
+        self.train_next_obs = torch.cat(self.train_next_obs, 0)
+        self.train_action= torch.cat(self.train_action, 0)
+
         for _ in range(self.cfg.update_per_collect):  # * self.cfg.clear_buffer_per_iters):  # TODO(pu)
             self._train()
-        # self.clear_data()
 
     def _compute_intrinsic_reward(
             self,
@@ -191,7 +239,7 @@ class EpisodicRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        obs = collect_states(data)  # list(list()) 32,42,obs_dim
+        obs,is_null = collect_data_episodic(data)  # list(list()) 32,42,obs_dim
         batch_size = len(obs)
         timesteps = len(obs[0])
         # stack episode dim
@@ -205,13 +253,15 @@ class EpisodicRewardModel(BaseRewardModel):
             obs = torch.stack(
                 obs, dim=0
             ).view(batch_size * timesteps, *self.cfg.obs_shape).to(self.device)  # -1) TODO image
+
+
         # if isinstance(obs[0], list):  # if self.train_data list( list(torch.tensor) )
         #     tmp = []
         #     for i in range(len(data)):
         #         tmp += obs[i]
         #     obs = tmp
         # obs = torch.stack(obs).to(self.device)
-        inputs = {'obs': obs}
+        inputs = {'obs': obs, 'is_null':is_null}
         with torch.no_grad():
             cur_obs_embedding = self.episodic_reward_model(inputs, inference=True)
             cur_obs_embedding = cur_obs_embedding.view(batch_size, timesteps, -1)  # 32 42,64
@@ -219,17 +269,24 @@ class EpisodicRewardModel(BaseRewardModel):
             for i in range(batch_size):
                 for j in range(timesteps):
                     if j <= 10:
-                        if self._running_mean_std_episodic_reward.mean is not None:
-                            episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
-                        else:
-                            episodic_reward[i].append(torch.tensor(0.).to(self.device))
-                            # episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean))
-                    else:
+                        # if self._running_mean_std_episodic_reward.mean is not None:
+                        #     episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
+                        # else:
+                        episodic_reward[i].append(torch.tensor(0.).to(self.device))
+                    elif j:
                         episodic_memory = cur_obs_embedding[i][:j]
                         reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
 
-            # 32,42,1  list(list(tensor)) - > tensor
+                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:  # if have null padding, the episodic_reward should be 0
+                    not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
+                    null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
+                    for k in  range(null_start_index,timesteps):
+                        episodic_reward[i][k] = torch.tensor(0)
+                    # episodic_reward[i][null_start_index:-1]=[torch.tensor(0) for i in range(timesteps-null_start_index)]
+
+
+             # 32,42,1  list(list(tensor)) - > tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # -1) TODO image
@@ -259,7 +316,7 @@ class EpisodicRewardModel(BaseRewardModel):
         return episodic_reward
 
     def collect_data(self, data: list) -> None:
-        train_obs, train_action = collect_states_episodic(data)
+        train_obs, train_action = collect_data_episodic_exclude_null_data(data)
         self.train_obs.extend(train_obs)
         self.train_action.extend(train_action)
 
@@ -364,11 +421,12 @@ class RndRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        obs = collect_states(data)
+        obs,is_null = collect_data_rnd(data)
         if isinstance(obs[0], list):  # if self.train_data list( list(torch.tensor) )
             obs = sum(obs, [])
 
         obs = torch.stack(obs).to(self.device)
+
         with torch.no_grad():
             predict_feature, target_feature = self.reward_model(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
@@ -383,7 +441,7 @@ class RndRewardModel(BaseRewardModel):
         return reward  # torch.Size([1344])
 
     def collect_data(self, data: list) -> None:
-        self.train_data_total.extend(collect_states(data))
+        self.train_data_total.extend(collect_data_rnd_exclude_null_data(data))
 
     def clear_data(self) -> None:
         self.train_data_total.clear()
@@ -429,7 +487,8 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                 if j < timesteps - nstep:
                     bonus = torch.cat([intrisic_reward[i * timesteps + j + k] for k in range(nstep)], dim=0)
                     if intrinsic_reward_type == 'add':
-                        data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                        if  data[i]['null'][j]!=True:  # means its's not null data, only the conventional data,we add a bonus TODO(pu)
+                            data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
 
         # for i in range(batch_size): #64 batch_size
         #     for j in range(eps_len): #24 24=20+2*2 eps_len
