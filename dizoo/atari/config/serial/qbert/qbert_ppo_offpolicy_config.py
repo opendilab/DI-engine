@@ -2,20 +2,19 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_ppo_config = dict(
+qbert_ppo_config = dict(
+    exp_name='qbert_ppo_offpolcy_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -50,9 +49,9 @@ space_invaders_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(space_invaders_ppo_config)
+main_config = EasyDict(qbert_ppo_config)
 
-space_invaders_ppo_create_config = dict(
+qbert_ppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -60,7 +59,7 @@ space_invaders_ppo_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(space_invaders_ppo_create_config)
+create_config = EasyDict(qbert_ppo_create_config)
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

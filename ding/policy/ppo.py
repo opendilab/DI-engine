@@ -430,8 +430,7 @@ class PPOOffPolicy(Policy):
         type='ppo',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
-        on_policy=True,
+        on_policy=False,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
