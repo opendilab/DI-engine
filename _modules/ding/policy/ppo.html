@@ -506,7 +506,7 @@
                         <span class="p">},</span>
                         <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span>
                     <span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-                    <span class="n">last_value</span> <span class="o">=</span> <span class="n">last_value</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="c1">#last_value = last_value.squeeze(0)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                     <span class="n">last_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
