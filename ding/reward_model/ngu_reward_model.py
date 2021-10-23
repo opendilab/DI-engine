@@ -278,7 +278,7 @@ class EpisodicRewardModel(BaseRewardModel):
                         reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
 
-                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:  # if have null padding, the episodic_reward should be 0
+                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:  #  TODO if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
                     for k in  range(null_start_index,timesteps):
@@ -308,7 +308,7 @@ class EpisodicRewardModel(BaseRewardModel):
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
             # TODO transform to batch mean1
-            episodic_reward = episodic_reward / episodic_reward.mean()
+            episodic_reward = episodic_reward / (episodic_reward.mean()+1e-11)
             # TODO 1 transform to long-term mean1
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
             # TODO 2 transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0, otherwise, the rnd_reward wrong only play a magnifying role
@@ -491,15 +491,13 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                 if j < timesteps - nstep:
                     bonus = torch.cat([intrisic_reward[i * timesteps + j + k] for k in range(nstep)], dim=0)
                     if intrinsic_reward_type == 'add':
-                        if  data[i]['null'][j]!=True:  # means its's not null data, only the conventional data,we add a bonus TODO(pu)
-                            data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                        if  data[i]['null'][j]!=True:  # TODO(pu) means its's not null data, only the conventional data, we add a bonus
+                            if  np.all(np.array(data[i]['reward'][j])<=0):
+                                data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                            else:
+                                # for minigrid, only reaching the goal state has positive reward
+                                # the length of minigrid about 100, TODO(pu)
+                                data[i]['reward'][j] = timesteps * data[i]['reward'][j] + bonus * index_to_beta[
+                                    int(data[i]['beta'][j])]
 
-        # for i in range(batch_size): #64 batch_size
-        #     for j in range(eps_len): #24 24=20+2*2 eps_len
-        #             if self.intrinsic_reward_type == 'add':
-        #                 data[i]['reward'][j]+=reward[i*eps_len+j]
-        #             elif self.intrinsic_reward_type == 'new':
-        #                 data[i]['reward'][j]+=reward[i*eps_len+j]
-        #             elif self.intrinsic_reward_type == 'assign':
-        #                 data[i]['reward'][j]=reward[i*eps_len+j]
     return data, estimate_cnt
