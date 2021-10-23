@@ -37,7 +37,6 @@ def serial_pipeline_r2d3(
         - agent_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
-            
         - seed (:obj:`int`): Random seed.
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
@@ -175,7 +174,9 @@ def serial_pipeline_r2d3(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = [0] * expert_cfg.policy.collect.unroll_len  # set is_expert flag(expert 1, agent 0)
+            new_data[i]['is_expert'] = [
+                0
+            ] * expert_cfg.policy.collect.unroll_len  # set is_expert flag(expert 1, agent 0)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):

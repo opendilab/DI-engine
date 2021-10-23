@@ -84,7 +84,9 @@ def serial_pipeline_dqfd(
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     if cfg.policy.cuda and torch.cuda.is_available():  # cpu->gpu 0
         expert_policy.collect_mode.load_state_dict(
-            torch.load(expert_cfg.policy.collect.demonstration_info_path, map_location=lambda storage, loc: storage.cuda(0))
+            torch.load(
+                expert_cfg.policy.collect.demonstration_info_path, map_location=lambda storage, loc: storage.cuda(0)
+            )
         )
     else:
         expert_policy.collect_mode.load_state_dict(

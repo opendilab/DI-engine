@@ -224,7 +224,7 @@ class R2D3Policy(Policy):
             data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['value_gamma'] = data['value_gamma'][bs:]
-        
+
         if 'weight' not in data:
             data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
@@ -375,17 +375,17 @@ class R2D3Policy(Policy):
         self._optimizer.step()
         # after update
         self._target_model.update(self._learn_model.state_dict())
-        
+
         # the information for debug
         batch_range = torch.arange(action[0].shape[0])
         q_s_a_t0 = q_value[0][batch_range, action[0]]
-        target_q_s_a_t0 = target_q_value[0][batch_range,  target_q_action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-             # the first timestep in the sequence, may not be the start of episode TODO(pu)
+            # the first timestep in the sequence, may not be the start of episode TODO(pu)
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),

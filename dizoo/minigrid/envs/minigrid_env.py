@@ -109,7 +109,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=100,
+        max_step=300,
         use_wrappers=None,
     ),
     'MiniGrid-ObstructedMaze-2Dlh-v0': MiniGridEnvInfo(
@@ -132,7 +132,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=200,
+        max_step=300,
         use_wrappers=None,
     ),
     'MiniGrid-ObstructedMaze-Full-v0': MiniGridEnvInfo(
@@ -155,7 +155,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=200,
+        max_step=300,
         use_wrappers=None,
     ),
 }

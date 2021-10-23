@@ -13,8 +13,7 @@ from .base_policy import Policy
 
 index_to_gamma = {
     i:
-        1 - torch.exp(
-            ((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1))
+    1 - torch.exp(((8 - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) / (8 - 1))
     for i in range(8)  # TODO
 }
 
@@ -292,10 +291,12 @@ class NGUPolicy(Policy):
                     'beta': data['burnin_nstep_beta'],
                     'enable_fast_timestep': True
                 }
-                tmp = self._learn_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step,
-                                                                                      self._burnin_step + self._nstep])
-                tmp_target = self._target_model.forward(inputs, saved_hidden_state_timesteps=[self._burnin_step,
-                                                                                              self._burnin_step + self._nstep])
+                tmp = self._learn_model.forward(
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                )
+                tmp_target = self._target_model.forward(
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
+                )
 
         inputs = {
             'obs': data['main_obs'],
@@ -324,7 +325,9 @@ class NGUPolicy(Policy):
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         # value_gamma = data['value_gamma']
-        value_gamma = [None for _ in range(self._unroll_len_add_burnin_step - self._burnin_step)]  # NOTE this is important, because we use diffrent gamma according to their beta in NGU alg.
+        value_gamma = [
+            None for _ in range(self._unroll_len_add_burnin_step - self._burnin_step)
+        ]  # NOTE this is important, because we use diffrent gamma according to their beta in NGU alg.
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
@@ -454,7 +457,7 @@ class NGUPolicy(Policy):
         Returns:
             - transition (:obj:`dict`): Dict type transition data.
         """
-        if hasattr(timestep,'null'):
+        if hasattr(timestep, 'null'):
             transition = {
                 'beta': beta_index,
                 'obs': obs,
@@ -505,7 +508,13 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, ) -> dict:
+    def _forward_eval(
+            self,
+            beta: dict,
+            obs: dict,
+            prev_action: dict,
+            prev_reward_e: dict,
+    ) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.

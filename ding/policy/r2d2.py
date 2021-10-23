@@ -326,7 +326,7 @@ class R2D2Policy(Policy):
         # the information for debug
         batch_range = torch.arange(action[0].shape[0])
         q_s_a_t0 = q_value[0][batch_range, action[0]]
-        target_q_s_a_t0 = target_q_value[0][batch_range,  target_q_action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],
@@ -476,6 +476,5 @@ class R2D2Policy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
-            'total_loss', 'priority', 'q_s_taken-a_t0',  'target_q_s_max-a_t0', 'q_s_a-mean_t0'
+            'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]
-
