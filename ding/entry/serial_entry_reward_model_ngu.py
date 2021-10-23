@@ -16,7 +16,7 @@ from ding.utils import set_pkg_seed
 #     create_serial_collector
 from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
 from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
-
+import copy
 
 def serial_pipeline_reward_model_ngu(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -147,11 +147,12 @@ def serial_pipeline_reward_model_ngu(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
+            train_data_modified = copy.deepcopy(train_data)  # TODO(pu) very important
             # update train_data reward
-            rnd_reward = rnd_reward_model.estimate(train_data)  # pu TODO
-            episodic_reward = episodic_reward_model.estimate(train_data)  # pu TODO
-            train_data, estimate_cnt = fusion_reward(
-                train_data,
+            rnd_reward = rnd_reward_model.estimate(train_data_modified)  # TODO
+            episodic_reward = episodic_reward_model.estimate(train_data_modified)  # TODO(pu)
+            train_data_modified, estimate_cnt = fusion_reward(
+                train_data_modified,
                 rnd_reward,
                 episodic_reward,
                 nstep=cfg.policy.nstep,
@@ -159,7 +160,7 @@ def serial_pipeline_reward_model_ngu(
                 tb_logger=tb_logger,
                 estimate_cnt=estimate_cnt
             )
-            learner.train(train_data, collector.envstep)
+            learner.train(train_data_modified, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if cfg.policy.on_policy:
