@@ -117,7 +117,9 @@ class NGU(nn.Module):
                 head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
             )
 
-    def forward(self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None) -> Dict:
+    def forward(
+            self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
+    ) -> Dict:
         r"""
         Overview:
             Use observation tensor to predict DRQN output.

@@ -220,9 +220,11 @@ class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
 class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('ngu_command')
 class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('d4pg_command')
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):

@@ -88,7 +88,7 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=20000,
+            replay_buffer=dict(replay_buffer_size=10000,
                                # todo doorkey 5000 30g, 20000 130g;  empty8 20000 50G; fourrooms
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.6,

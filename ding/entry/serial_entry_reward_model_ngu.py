@@ -18,6 +18,7 @@ from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_
 from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
 import copy
 
+
 def serial_pipeline_reward_model_ngu(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -114,7 +115,7 @@ def serial_pipeline_reward_model_ngu(
                 break
         # new_data_count, target_new_data_count = 0, cfg.rnd_reward_model.get('target_new_data_count', 1)
         # while new_data_count < target_new_data_count:
-            # Collect data by default config n_sample/n_episode
+        # Collect data by default config n_sample/n_episode
         if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
@@ -131,7 +132,7 @@ def serial_pipeline_reward_model_ngu(
         # update reward_model
         rnd_reward_model.train()
         # if iter % 10 == 0:  # TODO(pu):
-        if (iter+1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+        if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
         episodic_reward_model.clear_data()  # TODO(pu):

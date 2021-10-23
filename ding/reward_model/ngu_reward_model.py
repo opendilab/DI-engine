@@ -19,14 +19,15 @@ from .base_reward_model import BaseRewardModel
 def collect_data_rnd_exclude_null_data(iterator):  # get total_states
     res = []
     for item in iterator:
-        if torch.nonzero(torch.tensor(item['null']).float()).shape[0] != 0: # have null padding
+        if torch.nonzero(torch.tensor(item['null']).float()).shape[0] != 0:  # have null padding
             not_null_index = torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)
             null_start_index = int(torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)[0])
-            obs= item['obs'][: null_start_index]  # episode
+            obs = item['obs'][:null_start_index]  # episode
         else:
             obs = item['obs']
         res.append(obs)
     return res
+
 
 def collect_data_rnd(iterator):  # get total_states
     res = []
@@ -43,17 +44,18 @@ def collect_data_episodic_exclude_null_data(iterator):  # get total_states list(
     obs_list = []
     action_list = []
     for item in iterator:
-        if torch.nonzero(torch.tensor(item['null']).float()).shape[0]!=0: # have null padding
-            not_null_index=torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)
+        if torch.nonzero(torch.tensor(item['null']).float()).shape[0] != 0:  # have null padding
+            not_null_index = torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)
             null_start_index = int(torch.nonzero(torch.tensor(item['null']).float()).squeeze(-1)[0])
-            obs = item['obs'][: null_start_index]  # episode
-            action = item['action'][: null_start_index]
+            obs = item['obs'][:null_start_index]  # episode
+            action = item['action'][:null_start_index]
         else:
-            obs = item['obs'] # episode
+            obs = item['obs']  # episode
             action = item['action']
         obs_list.append(obs)
         action_list.append(action)
     return obs_list, action_list
+
 
 def collect_data_episodic(iterator):  # get total_states
     res = []
@@ -63,7 +65,8 @@ def collect_data_episodic(iterator):  # get total_states
         is_null = item['null']
         res.append(state)
         is_null_list.append(is_null)
-    return res,is_null_list
+    return res, is_null_list
+
 
 # def collect_data_episodic(iterator):  # get total_states list(dict, dict,...)
 #     obs_list = []
@@ -74,6 +77,7 @@ def collect_data_episodic(iterator):  # get total_states
 #         obs_list.append(obs)
 #         action_list.append(action)
 #     return obs_list, action_list
+
 
 class InverseNetwork(nn.Module):
 
@@ -145,7 +149,9 @@ class EpisodicRewardModel(BaseRewardModel):
     def _train(self) -> None:
         # sample episode's timestep index
         train_index = np.random.randint(
-            low=0, high=self.train_obs.shape[0], size=self.cfg.batch_size  # 64
+            low=0,
+            high=self.train_obs.shape[0],
+            size=self.cfg.batch_size  # 64
         )  # self.cfg.reward_model_batch_size)
 
         train_obs: torch.Tensor = self.train_obs[train_index].to(self.device)  # shape reward_model_batch_size, obs_dim
@@ -203,7 +209,7 @@ class EpisodicRewardModel(BaseRewardModel):
         # ).view(len(self.train_action) * len(self.train_action[0]), -1)
 
         self.train_next_obs = torch.cat(self.train_next_obs, 0)
-        self.train_action= torch.cat(self.train_action, 0)
+        self.train_action = torch.cat(self.train_action, 0)
 
         for _ in range(self.cfg.update_per_collect):  # * self.cfg.clear_buffer_per_iters):  # TODO(pu)
             self._train()
@@ -239,7 +245,7 @@ class EpisodicRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        obs,is_null = collect_data_episodic(data)  # list(list()) 32,42,obs_dim
+        obs, is_null = collect_data_episodic(data)  # list(list()) 32,42,obs_dim
         batch_size = len(obs)
         timesteps = len(obs[0])
         # stack episode dim
@@ -254,14 +260,13 @@ class EpisodicRewardModel(BaseRewardModel):
                 obs, dim=0
             ).view(batch_size * timesteps, *self.cfg.obs_shape).to(self.device)  # -1) TODO image
 
-
         # if isinstance(obs[0], list):  # if self.train_data list( list(torch.tensor) )
         #     tmp = []
         #     for i in range(len(data)):
         #         tmp += obs[i]
         #     obs = tmp
         # obs = torch.stack(obs).to(self.device)
-        inputs = {'obs': obs, 'is_null':is_null}
+        inputs = {'obs': obs, 'is_null': is_null}
         with torch.no_grad():
             cur_obs_embedding = self.episodic_reward_model(inputs, inference=True)
             cur_obs_embedding = cur_obs_embedding.view(batch_size, timesteps, -1)  # 32 42,64
@@ -275,18 +280,19 @@ class EpisodicRewardModel(BaseRewardModel):
                         episodic_reward[i].append(torch.tensor(0.).to(self.device))
                     elif j:
                         episodic_memory = cur_obs_embedding[i][:j]
-                        reward = self._compute_intrinsic_reward(episodic_memory, cur_obs_embedding[i][j]).to(self.device)
+                        reward = self._compute_intrinsic_reward(episodic_memory,
+                                                                cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
 
-                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:  #  TODO if have null padding, the episodic_reward should be 0
+                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:
+                    # TODO if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
-                    for k in  range(null_start_index,timesteps):
+                    for k in range(null_start_index, timesteps):
                         episodic_reward[i][k] = torch.tensor(0).to(self.device)
-                    # episodic_reward[i][null_start_index:-1]=[torch.tensor(0) for i in range(timesteps-null_start_index)]
+                # episodic_reward[i][null_start_index:-1]=[torch.tensor(0) for i in range(timesteps-null_start_index)]
 
-
-             # 32,42,1  list(list(tensor)) - > tensor
+            # 32,42,1  list(list(tensor)) - > tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # -1) TODO image
@@ -308,10 +314,11 @@ class EpisodicRewardModel(BaseRewardModel):
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
             # TODO transform to batch mean1
-            episodic_reward = episodic_reward / (episodic_reward.mean()+1e-11)
+            episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
             # TODO 1 transform to long-term mean1
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
-            # TODO 2 transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0, otherwise, the rnd_reward wrong only play a magnifying role
+            # TODO 2 transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0,
+            # otherwise, the rnd_reward wrong only play a magnifying role
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
             # TODO 3 transform to std1 not meaningful
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
@@ -425,7 +432,7 @@ class RndRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        obs,is_null = collect_data_rnd(data)
+        obs, is_null = collect_data_rnd(data)
         if isinstance(obs[0], list):  # if self.train_data list( list(torch.tensor) )
             obs = sum(obs, [])
 
@@ -441,7 +448,6 @@ class RndRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', reward.min(), self.estimate_cnt_rnd)
-            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return reward  # torch.Size([1344])
 
     def collect_data(self, data: list) -> None:
@@ -465,9 +471,8 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
         )
         for i in range(collector_env_num)
     }
-    batch_size = len(data)  # 32
-    # batch_size = int(len(episodic_reward) / len(data[0]['reward']))
-    timesteps = len(data[0]['reward'])  # 42
+    batch_size = len(data)
+    timesteps = len(data[0]['reward'])
     device = data[0]['reward'][0].device
     intrinsic_reward_type = 'add'
     intrisic_reward = episodic_reward * torch.clamp(inter_episodic_reward, min=1, max=5)
@@ -484,20 +489,32 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
     else:  # rnn nstep
         intrisic_reward = intrisic_reward.to(device)
         intrisic_reward = torch.chunk(intrisic_reward, int(intrisic_reward.shape[0]), dim=0)  # tensor to tuple
-        # reward = torch.chunk(reward, int(reward.shape[0]/len(data[0]['reward'])), dim=0)
 
-        for i in range(batch_size):  # if nstep 64 batch_size
-            for j in range(timesteps):  # 24 24=20+2*2 eps_len
+        # this is for the nstep rl algorithms
+        for i in range(batch_size):  # batch_size typically 64
+            for j in range(timesteps):  # 100=2+98 burnin+unroll_len is the sequence length
                 if j < timesteps - nstep:
                     bonus = torch.cat([intrisic_reward[i * timesteps + j + k] for k in range(nstep)], dim=0)
                     if intrinsic_reward_type == 'add':
-                        if  data[i]['null'][j]!=True:  # TODO(pu) means its's not null data, only the conventional data, we add a bonus
-                            if  np.all(np.array(data[i]['reward'][j])<=0):
-                                data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                        if not data[i]['null'][j]:
+                            # TODO(pu) if data[i]['null'][j]==True, means its's null data, only the original data, we add a bonus
+                            if data[i]['done'][j]:
+                                # if not null data, and  data[i]['done'][j]==True, so this is the last nstep transition in original data
+                                for k in reversed(range(nstep)):
+                                    # here we want to find the last nonzero reward in the nstep reward list: data[i]['reward'][j],
+                                    # that is also the last reward in the sequence, here,we set the sequence length is large enough,
+                                    # the we can consider the sequence as the episode plus null_padding
+                                    #  TODO(pu) what we should do if the last reward in the whole episode is zero?
+                                    if data[i]['reward'][j][
+                                        k] != 0:  # find the last one that is nonzero, and enlarging seq_length times
+                                        data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                                        data[i]['reward'][j][k] = timesteps * data[i]['reward'][j][k] + bonus[
+                                            k] * index_to_beta[int(data[i]['beta'][j])]
+                                        # substitute the kth reward in the list data[i]['reward'][j] with <timesteps> times amplified reward
+                                        break
                             else:
-                                # for minigrid, only reaching the goal state has positive reward
-                                # the length of minigrid about 100, TODO(pu)
-                                data[i]['reward'][j] = timesteps * data[i]['reward'][j] + bonus * index_to_beta[
-                                    int(data[i]['beta'][j])]
+                                data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
+                            # if  np.all(np.array(data[i]['reward'][j])<=0):  #  amplify the all positive reward
+                            #     data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
 
     return data, estimate_cnt

@@ -624,17 +624,17 @@ def dqfd_nstep_td_error(
 
 
 def dqfd_nstep_td_error_with_rescale(
-        data: namedtuple,
-        gamma: float,
-        lambda1: float,
-        lambda2: float,
-        margin_function: float,
-        nstep: int = 1,
-        cum_reward: bool = False,
-        value_gamma: Optional[torch.Tensor] = None,
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-        trans_fn: Callable = value_transform,
-        inv_trans_fn: Callable = value_inv_transform,
+    data: namedtuple,
+    gamma: float,
+    lambda1: float,
+    lambda2: float,
+    margin_function: float,
+    nstep: int = 1,
+    cum_reward: bool = False,
+    value_gamma: Optional[torch.Tensor] = None,
+    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
+    trans_fn: Callable = value_transform,
+    inv_trans_fn: Callable = value_inv_transform,
 ) -> torch.Tensor:
     """
     Overview:
@@ -716,7 +716,6 @@ def dqfd_nstep_td_error_with_rescale(
 
     return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
             weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
-
 
 
 qrdqn_nstep_td_data = namedtuple(

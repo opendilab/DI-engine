@@ -14,4 +14,3 @@ from .qtran import QTran
 
 from .ngu import NGU
 from .qac_dist import QACDIST
-
