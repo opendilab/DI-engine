@@ -60,8 +60,19 @@ class GymHybridEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
+        if isinstance(obs, list):  # corner case
+            for i in range(len(obs)):
+                if len(obs[i].shape) == 0:
+                    obs[i] = np.array([obs[i]])
+            obs = np.concatenate(obs)
+        assert isinstance(obs, np.ndarray) and obs.shape == (10, )
+        obs = obs.astype(np.float32)
+
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        if isinstance(rew, list):
+            rew = rew[0]
+        assert isinstance(rew, np.ndarray) and rew.shape == (1, )
         info['action_args_mask'] = np.array([[1, 0], [0, 1], [0, 0]])
         return BaseEnvTimestep(obs, rew, done, info)
 

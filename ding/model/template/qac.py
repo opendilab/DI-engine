@@ -1,9 +1,11 @@
 from typing import Union, Dict, Optional
+import numpy as np
 import torch
 import torch.nn as nn
 
+from ding.torch_utils import one_hot
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ..common import RegressionHead, ReparameterizationHead
+from ..common import RegressionHead, ReparameterizationHead, DiscreteHead
 
 
 @MODEL_REGISTRY.register('qac')
@@ -35,7 +37,7 @@ class QAC(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
+            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -52,9 +54,10 @@ class QAC(nn.Module):
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
+        self.action_shape = action_shape
         self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization']
-        if self.actor_head_type == 'regression':
+        assert self.actor_head_type in ['regression', 'reparameterization', 'hybrid']
+        if self.actor_head_type == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -66,7 +69,7 @@ class QAC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'reparameterization':
+        elif self.actor_head_type == 'reparameterization':  # SAC
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 ReparameterizationHead(
@@ -78,13 +81,41 @@ class QAC(nn.Module):
                     norm_type=norm_type
                 )
             )
+        elif self.actor_head_type == 'hybrid':  # PADDPG
+            # discrete action_type, continuous action_args
+            actor_action_args = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                RegressionHead(
+                    actor_head_hidden_size,
+                    action_shape.action_args_shape,
+                    actor_head_layer_num,
+                    final_tanh=True,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+            actor_action_type = nn.Sequential(
+                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                DiscreteHead(
+                    actor_head_hidden_size,
+                    action_shape.action_type_shape,
+                    actor_head_layer_num,
+                    activation=activation,
+                    norm_type=norm_type,
+                )
+            )
+            self.actor = nn.ModuleList([actor_action_type, actor_action_args])
         self.twin_critic = twin_critic
+        if self.actor_head_type == 'hybrid':
+            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
+        else:
+            critic_input_size = obs_shape + action_shape
         if self.twin_critic:
             self.critic = nn.ModuleList()
             for _ in range(2):
                 self.critic.append(
                     nn.Sequential(
-                        nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
+                        nn.Linear(critic_input_size, critic_head_hidden_size), activation,
                         RegressionHead(
                             critic_head_hidden_size,
                             1,
@@ -97,7 +128,7 @@ class QAC(nn.Module):
                 )
         else:
             self.critic = nn.Sequential(
-                nn.Linear(obs_shape + action_shape, critic_head_hidden_size), activation,
+                nn.Linear(critic_input_size, critic_head_hidden_size), activation,
                 RegressionHead(
                     critic_head_hidden_size,
                     1,
@@ -206,11 +237,16 @@ class QAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        x = self.actor(inputs)
         if self.actor_head_type == 'regression':
+            x = self.actor(inputs)
             return {'action': x['pred']}
         elif self.actor_head_type == 'reparameterization':
+            x = self.actor(inputs)
             return {'logit': [x['mu'], x['sigma']]}
+        elif self.actor_head_type == 'hybrid':
+            logit = self.actor[0](inputs)
+            action_args = self.actor[1](inputs)
+            return {'logit': logit['logit'], 'action_args': action_args['pred']}
 
     def compute_critic(self, inputs: Dict) -> Dict:
         r"""
@@ -240,9 +276,16 @@ class QAC(nn.Module):
 
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
-        if len(action.shape) == 1:  # (B, ) -> (B, 1)
-            action = action.unsqueeze(1)
-        x = torch.cat([obs, action], dim=1)
+        if self.actor_head_type == 'hybrid':
+            action_type, action_args = action
+            action_type = one_hot(action_type, self.action_shape.action_type_shape)
+            if len(action_args.shape) == 1:
+                action_args = action_args.unsqueeze(1)
+            x = torch.cat([obs, action_type, action_args], dim=1)
+        else:
+            if len(action.shape) == 1:  # (B, ) -> (B, 1)
+                action = action.unsqueeze(1)
+            x = torch.cat([obs, action], dim=1)
         if self.twin_critic:
             x = [m(x)['pred'] for m in self.critic]
         else:
