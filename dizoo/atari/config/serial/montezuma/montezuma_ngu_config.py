@@ -8,13 +8,13 @@ collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 montezuma_ppo_rnd_config = dict(
-    exp_name='debug_montezuma_ngu_n5_bs2_ul40',
+    exp_name='debug_montezuma_ngu_n5_bs2_ul298',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         env_id='MontezumaRevengeNoFrameskip-v4',
-        stop_value=20,
+        stop_value=10000,
         frame_stack=4,
     ),
     rnd_reward_model=dict(
@@ -23,7 +23,7 @@ montezuma_ppo_rnd_config = dict(
         obs_shape=[4, 84, 84],
         action_shape=6,
         batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        update_per_collect=int(50),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
@@ -39,8 +39,10 @@ montezuma_ppo_rnd_config = dict(
         obs_shape=[4, 84, 84],
         action_shape=6,
         batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        update_per_collect=int(50),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
+        clear_buffer_per_iters=10,
+
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
 
@@ -56,7 +58,7 @@ montezuma_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=40,
+        unroll_len=298,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -83,7 +85,7 @@ montezuma_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=50000,
+                replay_buffer_size=20000,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
