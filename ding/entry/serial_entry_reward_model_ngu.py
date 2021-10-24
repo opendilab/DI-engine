@@ -135,7 +135,8 @@ def serial_pipeline_reward_model_ngu(
         if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
-        episodic_reward_model.clear_data()  # TODO(pu):
+        if (iter + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+            episodic_reward_model.clear_data()  # TODO(pu):
 
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
@@ -148,7 +149,8 @@ def serial_pipeline_reward_model_ngu(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            train_data_modified = copy.deepcopy(train_data)  # TODO(pu) very important
+            # TODO(pu) very important, otherwise the reward od the date in replay buffer will be modifyed
+            train_data_modified = copy.deepcopy(train_data)
             # update train_data reward
             rnd_reward = rnd_reward_model.estimate(train_data_modified)  # TODO
             episodic_reward = episodic_reward_model.estimate(train_data_modified)  # TODO(pu)

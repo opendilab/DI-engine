@@ -136,10 +136,8 @@ class EpisodicRewardModel(BaseRewardModel):
         self.episodic_reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
-        # self.train_data = []
-        self.train_obs = []
-        self.train_next_obs = []
-        self.train_action = []
+        self.train_obs_total = []
+        self.train_action_total = []
         self.opt = optim.Adam(self.episodic_reward_model.parameters(), config.learning_rate)
         self.estimate_cnt_episodic = 0
         self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
@@ -167,47 +165,27 @@ class EpisodicRewardModel(BaseRewardModel):
         self.opt.step()
 
     def train(self) -> None:
-        # stack episode dim
-        self.train_next_obs = copy.deepcopy(self.train_obs)
+        self.train_next_obs_total = copy.deepcopy(self.train_obs_total)
 
         if self.only_use_last_five_frames:
-            self.train_obs = [
-                torch.stack(episode_obs[-6:-1], dim=0) for episode_obs in self.train_obs
-            ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
-            self.train_next_obs = [torch.stack(episode_obs[-5:], dim=0) for episode_obs in self.train_next_obs]
-            self.train_action = [torch.stack(episode_action[-6:-1], dim=0) for episode_action in self.train_action]
+            # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_obs = [torch.stack(episode_obs[-6:-1], dim=0) for episode_obs in
+                              self.train_obs_total]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_next_obs = [torch.stack(episode_obs[-5:], dim=0) for episode_obs in self.train_next_obs_total]
+            self.train_action = [torch.stack(episode_action[-6:-1], dim=0) for episode_action in
+                                 self.train_action_total]
         else:
-            self.train_obs = [
-                torch.stack(episode_obs[:-1], dim=0) for episode_obs in self.train_obs
-            ]  # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
-            self.train_next_obs = [torch.stack(episode_obs[1:], dim=0) for episode_obs in self.train_next_obs]
-            self.train_action = [torch.stack(episode_action[:-1], dim=0) for episode_action in self.train_action]
+
+            # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
+            self.train_obs = [torch.stack(episode_obs[:-1], dim=0) for episode_obs in self.train_obs_total if
+                              len(episode_obs) > 1]
+            self.train_next_obs = [torch.stack(episode_next_obs[1:], dim=0) for episode_next_obs in
+                                   self.train_next_obs_total if len(episode_next_obs) > 1]
+            self.train_action = [torch.stack(episode_action[:-1], dim=0) for episode_action in self.train_action_total
+                                 if len(episode_action) > 1]
 
         # stack batch dim
-        if isinstance(self.cfg.obs_shape, int):
-            # self.train_obs = torch.stack(
-            #     self.train_obs, dim=0
-            # ).view(len(self.train_obs) * len(self.train_obs[0]), self.cfg.obs_shape)  # -1)
-
-            # the length of each sequence in batch is diffrent because exclude the numm_padding in the collect phase
-            self.train_obs = torch.cat(self.train_obs, 0)
-
-        else:  # len(self.cfg.obs_shape) == 3 TODO image
-            self.train_obs = torch.cat(self.train_obs, 0)
-            # self.train_obs = torch.stack(
-            #     self.train_obs, dim=0
-            # ).view(self.train_obs.shape[0] * self.train_obs.shape[1], *self.cfg.obs_shape)  # -1)
-            # self.train_obs = torch.stack(
-            #     self.train_obs, dim=0
-            # ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # -1)
-
-        # self.train_next_obs = torch.stack(
-        #     self.train_next_obs, dim=0
-        # ).view(len(self.train_next_obs) * len(self.train_next_obs[0]), -1)
-        # self.train_action = torch.stack(
-        #     self.train_action, dim=0
-        # ).view(len(self.train_action) * len(self.train_action[0]), -1)
-
+        self.train_obs = torch.cat(self.train_obs, 0)
         self.train_next_obs = torch.cat(self.train_next_obs, 0)
         self.train_action = torch.cat(self.train_action, 0)
 
@@ -328,13 +306,12 @@ class EpisodicRewardModel(BaseRewardModel):
 
     def collect_data(self, data: list) -> None:
         train_obs, train_action = collect_data_episodic_exclude_null_data(data)
-        self.train_obs.extend(train_obs)
-        self.train_action.extend(train_action)
+        self.train_obs_total.extend(train_obs)
+        self.train_action_total.extend(train_action)
 
     def clear_data(self) -> None:
-        self.train_obs = []
-        self.train_next_obs = []
-        self.train_action = []
+        self.train_obs_total = []
+        self.train_action_total = []
 
 
 class RndNetwork(nn.Module):
@@ -407,7 +384,9 @@ class RndRewardModel(BaseRewardModel):
         if self.only_use_last_five_frames:
             # self.train_obs list(list) 32,100,N [batch_size,timesteps,N]
             self.train_obs = [torch.stack(episode_obs[-5:], dim=0) for episode_obs in self.train_data_total]
+
             # stack batch dim
+            # way 1
             if isinstance(self.cfg.obs_shape, int):
                 self.train_data_cur = torch.stack(
                     self.train_obs, dim=0
@@ -416,6 +395,10 @@ class RndRewardModel(BaseRewardModel):
                 self.train_data_cur = torch.stack(
                     self.train_obs, dim=0
                 ).view(len(self.train_obs) * self.train_obs[0].shape[0], *self.cfg.obs_shape)  # TODO image
+
+            # way 2
+            self.train_data_cur = torch.cat(self.train_obs, 0)
+
         else:
             # tmp = []
             # for i in range(len(self.train_data)):
@@ -443,7 +426,7 @@ class RndRewardModel(BaseRewardModel):
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
             self._running_mean_std_rnd.update(reward.cpu().numpy())
             # TODO -> mean 1 std 1
-            reward = 1 + (reward - self._running_mean_std_rnd.mean) / self._running_mean_std_rnd.std
+            reward = 1 + (reward - self._running_mean_std_rnd.mean) / (self._running_mean_std_rnd.std + 1e-11)
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
@@ -507,8 +490,9 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                                     #  TODO(pu) what we should do if the last reward in the whole episode is zero?
                                     if data[i]['reward'][j][
                                         k] != 0:  # find the last one that is nonzero, and enlarging seq_length times
+                                        tmp = copy.deepcopy(data[i]['reward'][j][k])
                                         data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
-                                        data[i]['reward'][j][k] = timesteps * data[i]['reward'][j][k] + bonus[
+                                        data[i]['reward'][j][k] = timesteps * tmp + bonus[
                                             k] * index_to_beta[int(data[i]['beta'][j])]
                                         # substitute the kth reward in the list data[i]['reward'][j] with <timesteps> times amplified reward
                                         break
