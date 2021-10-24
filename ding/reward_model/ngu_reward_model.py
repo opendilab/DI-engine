@@ -295,12 +295,12 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
             # TODO 1 transform to long-term mean1
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
-            # TODO 2 transform to mean 0, std 1, rnd_reward is in [1,5], episodic reward should >0,
-            # otherwise, the rnd_reward wrong only play a magnifying role
+            # TODO 2 transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
+            # otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger ,the total intrinsic reward smaller, which is not correct.
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
-            # TODO 3 transform to std1 not meaningful
+            # TODO 3 transform to std1, which is not meaningful
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
-            # TODO 4 transform to [0,1] wrong, may give 1 in a familiar state
+            # TODO 4 transform to [0,1], which is wrong, because this paradigm may assign rnd reward 1 in a familiar state，but which should be assigned a small rnd reward.
             # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)
         return episodic_reward
 
@@ -473,7 +473,12 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
         intrisic_reward = intrisic_reward.to(device)
         intrisic_reward = torch.chunk(intrisic_reward, int(intrisic_reward.shape[0]), dim=0)  # tensor to tuple
 
-        # this is for the nstep rl algorithms
+        if len(data[0]['obs'][0].shape) == 3:  # atari image
+            last_rew_weight = 1
+        else:  # lularlander, minigrid
+            last_rew_weight = timesteps
+
+            # this is for the nstep rl algorithms
         for i in range(batch_size):  # batch_size typically 64
             for j in range(timesteps):  # 100=2+98 burnin+unroll_len is the sequence length
                 if j < timesteps - nstep:
@@ -492,8 +497,8 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                                         k] != 0:  # find the last one that is nonzero, and enlarging seq_length times
                                         tmp = copy.deepcopy(data[i]['reward'][j][k])
                                         data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
-                                        data[i]['reward'][j][k] = timesteps * tmp + bonus[
-                                            k] * index_to_beta[int(data[i]['beta'][j])]
+                                        data[i]['reward'][j][k] = last_rew_weight  * tmp + bonus[k] * index_to_beta[
+                                            int(data[i]['beta'][j])]
                                         # substitute the kth reward in the list data[i]['reward'][j] with <timesteps> times amplified reward
                                         break
                             else:
