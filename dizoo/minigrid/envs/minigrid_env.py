@@ -63,7 +63,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=200,
+        max_step=100,
         use_wrappers=None,
     ),
     'MiniGrid-DoorKey-16x16-v0': MiniGridEnvInfo(

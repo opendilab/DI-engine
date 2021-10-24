@@ -21,7 +21,7 @@ lunarlander_ngu_config = dict(
         obs_shape=8,
         action_shape=4,
         batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        update_per_collect=int(50),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
@@ -36,10 +36,11 @@ lunarlander_ngu_config = dict(
         obs_shape=8,
         action_shape=4,
         batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        update_per_collect=int(50),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
+        clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
