@@ -25,6 +25,7 @@ def main(
         seed: int = 0,
         max_iterations: Optional[int] = int(1e4),
         collect_data: bool = True,
+        train: bool = True
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -51,6 +52,8 @@ def main(
         collect_demo_data((expert_cfg, expert_create_cfg), seed, state_dict_path=expert_cfg.policy.load_path,
                           expert_data_path=cfg.reward_model.expert_data_path,
                           collect_count=cfg.reward_model.collect_count)
+    if not train:
+        exit()
     # Create main components: env, policy
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
@@ -134,7 +137,6 @@ def main(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     # save reward model
-    # save reward model
     path = os.path.join(cfg.exp_name, 'reward_model', 'ckpt')
     if not os.path.exists(path):
         try:
@@ -152,4 +154,4 @@ def main(
 if __name__ == "__main__":
     main((lunarlander_gail_default_config, lunarlander_gail_create_config), (lunarlander_dqn_default_config,
                                                                              lunarlander_dqn_create_config),
-         collect_data=0, seed=0)
+         collect_data=1, seed=1, train=0)

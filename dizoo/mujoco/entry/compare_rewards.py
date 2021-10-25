@@ -61,16 +61,14 @@ def eval_reward(
     expert_data_loader = expert_data_loader[:k]
     for item in expert_data_loader:
         exp_reward.append(item['reward'])
-    data = reward_model.estimate(expert_data_loader)
+    reward_model.estimate(expert_data_loader)
     model_reward = []
     for item in expert_data_loader:
         model_reward.append(item['reward'])
-
     tb_logger_exp = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'reward_expert'))
     tb_logger_mod = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'reward_model'))
     for i in range(len(model_reward)):
-        # print(exp_reward[i], model_reward[i])
-        tb_logger_exp.add_scalar('reward', exp_reward[i], i)
+        tb_logger_exp.add_scalar('reward', exp_reward[i][0], i)
         tb_logger_mod.add_scalar('reward', model_reward[i], i)
     tb_logger_exp.close()
     tb_logger_mod.close()

@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 
 nstep = 1
 lunarlander_gail_default_config = dict(
-    exp_name='lunarlander_gail',
+    exp_name='lunarlander_gail_test',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
@@ -20,7 +20,7 @@ lunarlander_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='lunarlander_dqn/expert_data.pkl',
+        expert_data_path='lunarlander_dqn/expert_data_test.pkl',
         collect_count=100000,
     ),
     policy=dict(

@@ -15,7 +15,7 @@ cartpole_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='cartpole_dqn/expert_data.pkl',
+        expert_data_path='cartpole_dqn/expert_data_train.pkl',
         collect_count=1000,
     ),
     policy=dict(
