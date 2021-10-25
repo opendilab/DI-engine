@@ -167,6 +167,7 @@ class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('cql_command')
 class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass

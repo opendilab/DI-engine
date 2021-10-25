@@ -14,6 +14,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed, read_file, save_file
 
+
 def save_ckpt_fn(learner, env_model, envstep):
 
     dirname = './{}/ckpt'.format(learner.exp_name)
@@ -43,6 +44,7 @@ def save_ckpt_fn(learner, env_model, envstep):
         learner.save_checkpoint(policy_prefix + ckpt_name)
 
     return model_policy_save_ckpt_fn
+
 
 def serial_pipeline_mbrl(
         input_cfg: Union[str, Tuple[dict, dict]],
@@ -138,14 +140,16 @@ def serial_pipeline_mbrl(
     # Train
     batch_size = learner.policy.get_attribute('batch_size')
     real_ratio = model_based_cfg['real_ratio']
-    replay_batch_size = int(batch_size*real_ratio)
+    replay_batch_size = int(batch_size * real_ratio)
     imagine_batch_size = batch_size - replay_batch_size
     eval_buffer = []
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(save_ckpt_fn(learner, env_model, collector.envstep), learner.train_iter, collector.envstep)
+            stop, reward = evaluator.eval(
+                save_ckpt_fn(learner, env_model, collector.envstep), learner.train_iter, collector.envstep
+            )
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
@@ -160,7 +164,9 @@ def serial_pipeline_mbrl(
         if env_model.should_train(collector.envstep):
             env_model.train(replay_buffer, learner.train_iter, collector.envstep)
             imagine_buffer.update(collector.envstep)
-            model_env.rollout(env_model, policy.collect_mode, replay_buffer, imagine_buffer, collector.envstep, learner.train_iter)
+            model_env.rollout(
+                env_model, policy.collect_mode, replay_buffer, imagine_buffer, collector.envstep, learner.train_iter
+            )
             policy._rollout_length = model_env._set_rollout_length(collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):

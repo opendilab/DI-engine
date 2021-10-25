@@ -14,7 +14,9 @@ from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import MODEL_REGISTRY
 from ding.torch_utils.activation import Swish
 
+
 class StandardScaler(nn.Module):
+
     def __init__(self, input_size):
         super(StandardScaler, self).__init__()
         self.register_buffer('std', torch.ones(1, input_size))
@@ -55,7 +57,9 @@ class StandardScaler(nn.Module):
         """
         return self.std * data + self.mu
 
+
 def init_weights(m):
+
     def truncated_normal_init(t, mean=0.0, std=0.01):
         torch.nn.init.normal_(t, mean=mean, std=std)
         while True:
@@ -69,6 +73,7 @@ def init_weights(m):
         input_dim = m.in_features
         truncated_normal_init(m.weight, std=1 / (2 * np.sqrt(input_dim)))
         m.bias.data.fill_(0.0)
+
 
 class EnsembleFC(nn.Module):
     __constants__ = ['in_features', 'out_features']
@@ -91,12 +96,21 @@ class EnsembleFC(nn.Module):
         return torch.bmm(input, self.weight) + self.bias  # w times x + b
 
     def extra_repr(self) -> str:
-        return 'in_features={}, out_features={}'.format(
-            self.in_features, self.out_features
-        )
+        return 'in_features={}, out_features={}'.format(self.in_features, self.out_features)
+
 
 class EnsembleModel(nn.Module):
-    def __init__(self, state_size, action_size, reward_size, ensemble_size, hidden_size=200, learning_rate=1e-3, use_decay=False):
+
+    def __init__(
+        self,
+        state_size,
+        action_size,
+        reward_size,
+        ensemble_size,
+        hidden_size=200,
+        learning_rate=1e-3,
+        use_decay=False
+    ):
         super(EnsembleModel, self).__init__()
 
         self.use_decay = use_decay
@@ -147,9 +161,9 @@ class EnsembleModel(nn.Module):
         assert len(mean.shape) == len(logvar.shape) == len(labels.shape) == 3
         inv_var = torch.exp(-logvar)
         # Average over batch and dim, sum over ensembles.
-        mse_loss_inv = (torch.pow(mean - labels, 2) * inv_var).mean(dim=(1,2))
-        var_loss = logvar.mean(dim=(1,2))
-        mse_loss = torch.pow(mean - labels, 2).mean(dim=(1,2))
+        mse_loss_inv = (torch.pow(mean - labels, 2) * inv_var).mean(dim=(1, 2))
+        var_loss = logvar.mean(dim=(1, 2))
+        mse_loss = torch.pow(mean - labels, 2).mean(dim=(1, 2))
         total_loss = mse_loss_inv.sum() + var_loss.sum()
         return total_loss, mse_loss
 
@@ -164,9 +178,27 @@ class EnsembleModel(nn.Module):
 
         self.optimizer.step()
 
+
 @MODEL_REGISTRY.register('mbpo')
 class EnsembleDynamicsModel(nn.Module):
-    def __init__(self, network_size, elite_size, state_size, action_size, reward_size=1, hidden_size=200, use_decay=False, batch_size=256, holdout_ratio=0.2, max_epochs_since_update=5, train_freq=250, eval_freq=20, cuda=True, tb_logger=None):
+
+    def __init__(
+        self,
+        network_size,
+        elite_size,
+        state_size,
+        action_size,
+        reward_size=1,
+        hidden_size=200,
+        use_decay=False,
+        batch_size=256,
+        holdout_ratio=0.2,
+        max_epochs_since_update=5,
+        train_freq=250,
+        eval_freq=20,
+        cuda=True,
+        tb_logger=None
+    ):
         super(EnsembleDynamicsModel, self).__init__()
         self._cuda = cuda
         self.tb_logger = tb_logger
@@ -177,7 +209,9 @@ class EnsembleDynamicsModel(nn.Module):
         self.action_size = action_size
         self.reward_size = reward_size
 
-        self.ensemble_model = EnsembleModel(state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay)
+        self.ensemble_model = EnsembleModel(
+            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
+        )
         self.scaler = StandardScaler(state_size + action_size)
         if self._cuda:
             self.cuda()
@@ -200,7 +234,7 @@ class EnsembleDynamicsModel(nn.Module):
             Determine whether you need to start the evaluation mode, if the number of training has reached\
                 the maximum number of times to start the evaluator, return True
         """
-        if (envstep - self.last_eval_step) < self.eval_freq or self.last_train_step==0:
+        if (envstep - self.last_eval_step) < self.eval_freq or self.last_train_step == 0:
             return False
         return True
 
@@ -217,11 +251,7 @@ class EnsembleDynamicsModel(nn.Module):
     def eval(self, data, envstep):
         # load data
         data = default_preprocess_learn(
-            data,
-            use_priority=False,
-            use_priority_IS_weight=False,
-            ignore_done=False,
-            use_nstep=False
+            data, use_priority=False, use_priority_IS_weight=False, ignore_done=False, use_nstep=False
         )
         obs = data['obs']
         action = data['action']
@@ -265,11 +295,7 @@ class EnsembleDynamicsModel(nn.Module):
         # load data
         data = buffer.sample(buffer.count(), train_iter)
         data = default_preprocess_learn(
-            data,
-            use_priority=False,
-            use_priority_IS_weight=False,
-            ignore_done=False,
-            use_nstep=False
+            data, use_priority=False, use_priority_IS_weight=False, ignore_done=False, use_nstep=False
         )
         obs = data['obs']
         action = data['action']
@@ -311,10 +337,11 @@ class EnsembleDynamicsModel(nn.Module):
         self._save_states()
         for epoch in itertools.count():
 
-            train_idx = torch.stack([torch.randperm(train_inputs.shape[0]) for _ in range(self.network_size)]).to(train_inputs.device)
+            train_idx = torch.stack([torch.randperm(train_inputs.shape[0])
+                                     for _ in range(self.network_size)]).to(train_inputs.device)
             self.mse_loss = []
             for start_pos in range(0, train_inputs.shape[0], self.batch_size):
-                idx = train_idx[:, start_pos: start_pos + self.batch_size]
+                idx = train_idx[:, start_pos:start_pos + self.batch_size]
                 train_input = train_inputs[idx]
                 train_label = train_labels[idx]
                 mean, logvar = self.ensemble_model(train_input, ret_log_var=True)
@@ -340,10 +367,12 @@ class EnsembleDynamicsModel(nn.Module):
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
             self.elite_model_idxes = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
-            self.middle_holdout_mse_loss = sorted_loss[self.network_size//2]
+            self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
-            assert self.curr_holdout_mse_loss >= self.best_holdout_mse_loss, '{} vs {}'.format(self.curr_holdout_mse_loss, self.best_holdout_mse_loss)
+            assert self.curr_holdout_mse_loss >= self.best_holdout_mse_loss, '{} vs {}'.format(
+                self.curr_holdout_mse_loss, self.best_holdout_mse_loss
+            )
         return {'mse_loss': self.mse_loss, \
                 'curr_holdout_mse_loss': self.curr_holdout_mse_loss, \
                 'best_holdout_mse_loss': self.best_holdout_mse_loss, \
@@ -352,8 +381,7 @@ class EnsembleDynamicsModel(nn.Module):
                 'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss, \
                 }
 
-
-    def _save_states(self,):
+    def _save_states(self, ):
         self._states = copy.deepcopy(self.state_dict())
 
     def _save_state(self, id):
@@ -411,8 +439,8 @@ class EnsembleDynamicsModel(nn.Module):
             b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
             ensemble_mean.append(b_mean)
             ensemble_var.append(b_var)
-        ensemble_mean = torch.cat(ensemble_mean,1)
-        ensemble_var = torch.cat(ensemble_var,1)
+        ensemble_mean = torch.cat(ensemble_mean, 1)
+        ensemble_var = torch.cat(ensemble_var, 1)
         ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution

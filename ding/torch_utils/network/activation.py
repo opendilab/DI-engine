@@ -59,13 +59,16 @@ class GLU(nn.Module):
         x = self.layer2(x)
         return x
 
+
 class Swish(nn.Module):
+
     def __init__(self):
         super(Swish, self).__init__()
 
     def forward(self, x):
         x = x * F.sigmoid(x)
         return x
+
 
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     r"""

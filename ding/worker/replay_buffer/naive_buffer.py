@@ -116,7 +116,11 @@ class NaiveReplayBuffer(IBuffer):
             self._append(data, cur_collector_envstep)
             self._periodic_thruput_monitor.push_data_count += 1
 
-    def sample(self, size: int, cur_learner_iter: int, sample_range: slice = None, replace: bool = False) -> Optional[list]:
+    def sample(self,
+               size: int,
+               cur_learner_iter: int,
+               sample_range: slice = None,
+               replace: bool = False) -> Optional[list]:
         """
         Overview:
             Sample data with length ``size``.
@@ -229,7 +233,11 @@ class NaiveReplayBuffer(IBuffer):
             print("The buffer is empty")
             return False
         if self._valid_count < size and not replace:
-            print("No enough elements for sampling without replacement (expect: {} / current: {})".format(size, self._valid_count))
+            print(
+                "No enough elements for sampling without replacement (expect: {} / current: {})".format(
+                    size, self._valid_count
+                )
+            )
             return False
         else:
             return True
@@ -356,6 +364,7 @@ class NaiveReplayBuffer(IBuffer):
     def push_count(self) -> int:
         return self._push_count
 
+
 @BUFFER_REGISTRY.register('elastic')
 class ElasticReplayBuffer(NaiveReplayBuffer):
     r"""
@@ -396,7 +405,7 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
         """
         super().__init__(cfg, tb_logger, exp_name, instance_name)
         self._set_buffer_size = self._cfg.set_buffer_size
-        self._current_buffer_size = self._set_buffer_size(0) # Set the buffer size at the 0-th envstep.
+        self._current_buffer_size = self._set_buffer_size(0)  # Set the buffer size at the 0-th envstep.
         # The variable 'current_buffer_size' restricts how many samples the buffer can use for sampling
 
     def _sample_check(self, size: int, replace: bool = False) -> bool:
@@ -414,7 +423,11 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
             print("The buffer is empty")
             return False
         if valid_count < size and not replace:
-            print("No enough elements for sampling without replacement (expect: {} / current: {})".format(size, self._valid_count))
+            print(
+                "No enough elements for sampling without replacement (expect: {} / current: {})".format(
+                    size, self._valid_count
+                )
+            )
             return False
         else:
             return True
@@ -430,9 +443,11 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
             - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
         """
         assert self._valid_count <= self._replay_buffer_size
-        assert sample_range is None # not support
+        assert sample_range is None  # not support
         range = min(self._valid_count, self._current_buffer_size)
-        indices = list( ( self._tail - 1 - np.random.choice(a=range, size=size, replace=replace) ) % self._replay_buffer_size )
+        indices = list(
+            (self._tail - 1 - np.random.choice(a=range, size=size, replace=replace)) % self._replay_buffer_size
+        )
         return indices
 
     def update(self, envstep):

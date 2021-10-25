@@ -11,8 +11,9 @@ hidden_size = 20
 # arguments
 state_size = [16]
 action_size = [16]
-reward_size = [1,2]
+reward_size = [1, 2]
 args = list(product(*[state_size, action_size, reward_size]))
+
 
 @pytest.mark.unittest
 class TestMBPO:
@@ -37,6 +38,8 @@ class TestMBPO:
         inputs = torch.cat([states, actions], dim=1)
         labels = torch.cat([rewards, next_states], dim=1)
 
-        model = EnsembleDynamicsModel(network_size, elite_size, state_size, action_size, reward_size, hidden_size, use_decay=True, cuda=False)
+        model = EnsembleDynamicsModel(
+            network_size, elite_size, state_size, action_size, reward_size, hidden_size, use_decay=True, cuda=False
+        )
 
         model._train(inputs[:640], labels[:640])
