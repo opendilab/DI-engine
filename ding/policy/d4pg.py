@@ -82,6 +82,10 @@ class D4PGPolicy(DDPGPolicy):
         random_collect_size=25000,
         # (int) N-step reward for target q_value estimation
         nstep=3,
+        # (str) Action space type
+        action_space='continuous',  # ['continuous', 'hybrid']
+        # (bool) Whether use batch normalization for reward
+        use_reward_batch_norm=False,
         model=dict(
             # (float) Value of the smallest atom in the support set.
             # Default to -10.0.
@@ -160,7 +164,7 @@ class D4PGPolicy(DDPGPolicy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
+        self._use_reward_batch_norm = self._cfg.use_reward_batch_norm
 
         self._gamma = self._cfg.learn.discount_factor
         self._nstep = self._cfg.nstep
