@@ -124,31 +124,27 @@ class CountbasedRewardModel(BaseRewardModel):
             obs = self._collect_states(data)
 
             probs = self._get_pseudo_count(obs)
+            probs = torch.sum(probs, 1)
 
             self._execute_gain_training(obs, train_iter)
 
             with torch.no_grad():
                 recoding_probs = self._get_pseudo_count(obs).detach()
+            recoding_probs = torch.sum(recoding_probs, 1)
+
 
             batch = obs.shape[0]
             reward_mean = 0
-            pred_gain_mean = 0
             for i, item in enumerate(data):
-                pred_gain = torch.sum(torch.log(recoding_probs[i] + 1e-8) - torch.log(probs[i]) + 1e-8)
-                pred_gain_mean += pred_gain
-
+                pred_gain = max(0, torch.log(recoding_probs[i]) - torch.log(probs[i]))
+                
                 intrinsic_reward = pow(
-                    exp(self.cfg.bonus_coeffient * pow(train_iter + 1, -0.5) * max(0, pred_gain)) - 1, 0.5
+                    exp(self.cfg.bonus_coeffient * pow(train_iter + 1, -0.5) * pred_gain) - 1, 0.5
                 )
                 reward_mean += intrinsic_reward
-                # reward clip in the original paper
-                if intrinsic_reward > 1.:
-                    intrinsic_reward = 1.
-                if intrinsic_reward < -1.:
-                    intrinsic_reward = -1.
 
                 if self.intrinsic_reward_type == 'add':
-                    item['reward'] += 0.1 * intrinsic_reward
+                    item['reward'] += intrinsic_reward
                 elif self.intrinsic_reward_type == 'new':
                     item['intrinsic_reward'] = intrinsic_reward
                 elif self.intrinsic_reward_type == 'assign':
@@ -184,9 +180,6 @@ class CountbasedRewardModel(BaseRewardModel):
         '''
         obs = [item['obs'] for item in data]
         obs = torch.stack(obs).to(self.device)
-        _, x, y, _ = obs.shape
-        if x==y:    # HWC
-            obs = obs.permute(0, 3, 1, 2)
 
         obs = nn.functional.interpolate(obs, 42)
 
@@ -366,7 +359,7 @@ class GatedPixelCNN(nn.Module):
         n_gated=2,
         gated_channels=16,
         head_channels=64,
-        q_level=8,
+        q_level=256,
     ):
         """Initializes a new GatedPixelCNN instance.
         Args:
