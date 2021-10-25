@@ -232,9 +232,9 @@ class DDPGPolicy(Policy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
-            next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
+            next_actor_data['obs'] = next_obs
+            target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -371,6 +371,8 @@ class DDPGPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
+        if self._cfg.action_space == 'hybrid':
+            transition['logit'] = model_output['logit']
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 gym_hybrid_ddpg_config = dict(
-    exp_name='gym_hybrid_ddpg',
+    exp_name='gym_hybrid_ddpg1',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -9,7 +9,7 @@ gym_hybrid_ddpg_config = dict(
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
-        stop_value=2.5,
+        stop_value=0.99,
     ),
     policy=dict(
         cuda=True,
@@ -27,28 +27,28 @@ gym_hybrid_ddpg_config = dict(
         ),
         learn=dict(
             action_space='hybrid',
-            update_per_collect=5,
+            update_per_collect=10,
             batch_size=32,
-            learning_rate_actor=0.001,
+            discount_factor=0.99,
+            learning_rate_actor=0.0003,
             learning_rate_critic=0.001,
-            ignore_done=False,
             actor_update_freq=1,
             noise=False,
         ),
         collect=dict(
-            n_sample=64,
+            n_sample=32,
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
-        eval=dict(evaluator=dict(eval_freq=200, ), ),
+        eval=dict(evaluator=dict(eval_freq=1000, ), ),
         other=dict(
             eps=dict(
                 type='exp',
                 start=1.,
                 end=0.1,
-                decay=10000,
+                decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=50000, ),
+            replay_buffer=dict(replay_buffer_size=100000, ),
         ),
     ),
 )

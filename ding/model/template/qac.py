@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ding.torch_utils import one_hot
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead
 
@@ -107,7 +106,7 @@ class QAC(nn.Module):
             self.actor = nn.ModuleList([actor_action_type, actor_action_args])
         self.twin_critic = twin_critic
         if self.actor_head_type == 'hybrid':
-            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
+            critic_input_size = obs_shape + action_shape.action_type_shape  # + action_shape.action_args_shape
         else:
             critic_input_size = obs_shape + action_shape
         if self.twin_critic:
@@ -277,11 +276,13 @@ class QAC(nn.Module):
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
         if self.actor_head_type == 'hybrid':
-            action_type, action_args = action
-            action_type = one_hot(action_type, self.action_shape.action_type_shape)
+            action_type_logit = inputs['logit']
+            action_type_logit = torch.softmax(action_type_logit, dim=-1)
+            action_args = action[1]
             if len(action_args.shape) == 1:
                 action_args = action_args.unsqueeze(1)
-            x = torch.cat([obs, action_type, action_args], dim=1)
+            # x = torch.cat([obs, action_type_logit, action_args], dim=1)
+            x = torch.cat([obs, action_type_logit], dim=1)
         else:
             if len(action.shape) == 1:  # (B, ) -> (B, 1)
                 action = action.unsqueeze(1)
