@@ -15,6 +15,7 @@ from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
@@ -24,6 +25,7 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+from .dqfd import DQFDPolicy
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 
@@ -78,6 +80,11 @@ class DummyCommandModePolicy(CommandModePolicy):
 
 @POLICY_REGISTRY.register('dqn_command')
 class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('dqfd_command')
+class DQFDCommandModePolicy(DQFDPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -148,6 +155,11 @@ class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('td3_command')
 class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_bc_command')
+class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
     pass
 
 

@@ -20,7 +20,7 @@ runAsRoot() {
 curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=v4.4.8 bash
 
 # install kubectl
-if [ $(which kubectl) == "" ]; then
+if [[ $(which kubectl) == "" ]]; then
     echo "Installing kubectl..."
     curl -LO https://dl.k8s.io/release/v1.21.3/bin/linux/amd64/kubectl
     chmod +x kubectl

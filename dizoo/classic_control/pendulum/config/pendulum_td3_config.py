@@ -13,6 +13,7 @@ pendulum_td3_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
+        random_collect_size=800,
         model=dict(
             obs_shape=3,
             action_shape=1,

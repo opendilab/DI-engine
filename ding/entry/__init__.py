@@ -5,5 +5,7 @@ from .serial_entry_offline import serial_pipeline_offline
 from .serial_entry_il import serial_pipeline_il
 from .serial_entry_reward_model import serial_pipeline_reward_model
 from .serial_entry_mbrl import serial_pipeline_mbrl
+from .serial_entry_dqfd import serial_pipeline_dqfd
+from .serial_entry_sqil import serial_pipeline_sqil
 from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data
