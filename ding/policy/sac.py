@@ -21,6 +21,8 @@ class SACPolicy(Policy):
        Overview:
            Policy class of SAC algorithm.
 
+           https://arxiv.org/pdf/1801.01290.pdf
+
        Config:
            == ====================  ========    =============  ================================= =======================
            ID Symbol                Type        Default Value  Description                       Other(Shape)
@@ -148,7 +150,7 @@ class SACPolicy(Policy):
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
             # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with done is False,
+            # However, interaction with HalfCheetah always gets done with False,
             # Since we inplace done==True with done==False to keep
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
@@ -164,7 +166,12 @@ class SACPolicy(Policy):
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
-        eval=dict(),
+        eval=dict(
+            evaluator=dict(
+                # (int) Evaluate every "eval_freq" training iterations.
+                eval_freq=5000,
+            ),
+        ),
         other=dict(
             replay_buffer=dict(
                 # (int type) replay_buffer_size: Max size of replay buffer.
@@ -176,10 +183,6 @@ class SACPolicy(Policy):
             ),
         ),
     )
-    r"""
-    Overview:
-        Policy class of SAC algorithm.
-    """
 
     def _init_learn(self) -> None:
         r"""
@@ -291,7 +294,7 @@ class SACPolicy(Policy):
                 next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
             target_q_value = next_v_value
         else:
-            # target q value. SARSA: first predict next action, then calculate next q value
+            # target q value.
             with torch.no_grad():
                 (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
@@ -443,9 +446,13 @@ class SACPolicy(Policy):
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -498,11 +505,15 @@ class SACPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

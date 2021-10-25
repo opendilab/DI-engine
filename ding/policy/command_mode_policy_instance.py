@@ -15,6 +15,7 @@ from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
@@ -154,6 +155,11 @@ class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('td3_command')
 class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_bc_command')
+class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
     pass
 
 
