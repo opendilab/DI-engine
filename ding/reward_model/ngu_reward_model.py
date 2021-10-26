@@ -497,8 +497,8 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                                         k] != 0:  # find the last one that is nonzero, and enlarging seq_length times
                                         tmp = copy.deepcopy(data[i]['reward'][j][k])
                                         data[i]['reward'][j] += bonus * index_to_beta[int(data[i]['beta'][j])]
-                                        data[i]['reward'][j][k] = last_rew_weight  * tmp + bonus[k] * index_to_beta[
-                                            int(data[i]['beta'][j])]
+                                        # data[i]['reward'][j][k] = last_rew_weight * tmp + bonus[k] * index_to_beta[int(data[i]['beta'][j])]
+                                        data[i]['reward'][j][k] = last_rew_weight * tmp
                                         # substitute the kth reward in the list data[i]['reward'][j] with <timesteps> times amplified reward
                                         break
                             else:
