@@ -328,7 +328,7 @@ class DDPGPolicy(Policy):
             noise_range=None
         )
         if self._cfg.action_space == 'hybrid':
-            self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_sample')
+            self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, **kwargs) -> dict:

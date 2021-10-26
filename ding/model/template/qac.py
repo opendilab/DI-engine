@@ -106,7 +106,7 @@ class QAC(nn.Module):
             self.actor = nn.ModuleList([actor_action_type, actor_action_args])
         self.twin_critic = twin_critic
         if self.actor_head_type == 'hybrid':
-            critic_input_size = obs_shape + action_shape.action_type_shape  # + action_shape.action_args_shape
+            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
         else:
             critic_input_size = obs_shape + action_shape
         if self.twin_critic:
@@ -281,8 +281,7 @@ class QAC(nn.Module):
             action_args = action[1]
             if len(action_args.shape) == 1:
                 action_args = action_args.unsqueeze(1)
-            # x = torch.cat([obs, action_type_logit, action_args], dim=1)
-            x = torch.cat([obs, action_type_logit], dim=1)
+            x = torch.cat([obs, action_type_logit, action_args], dim=1)
         else:
             if len(action.shape) == 1:  # (B, ) -> (B, 1)
                 action = action.unsqueeze(1)
