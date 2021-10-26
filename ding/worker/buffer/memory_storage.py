@@ -2,8 +2,8 @@ from typing import Any, List
 from collections import deque
 from operator import itemgetter
 from ding.worker.buffer import Storage
-import numpy as np
 import itertools
+import random
 
 
 class MemoryStorage(Storage):
@@ -21,7 +21,10 @@ class MemoryStorage(Storage):
         storage = self.storage
         if range:
             storage = list(itertools.islice(self.storage, range.start, range.stop, range.step))
-        return np.random.choice(storage, size, replace=replace)
+        if replace:
+            return random.choices(storage, k=size)
+        else:
+            return random.sample(storage, k=size)
 
     def count(self) -> int:
         return len(self.storage)
