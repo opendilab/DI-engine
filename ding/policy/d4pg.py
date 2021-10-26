@@ -232,7 +232,7 @@ class D4PGPolicy(DDPGPolicy):
         q_value_dict = {}
         q_dist = q_value['distribution']
         q_value_dict['q_value'] = q_value['q_value'].mean()
-        # target q value. SARSA: first predict next action, then calculate next q value
+        # target q value.
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
             next_data = {'obs': next_obs, 'action': next_action}

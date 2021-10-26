@@ -69,7 +69,7 @@ class GymHybridEnv(BaseEnv):
         assert isinstance(obs, np.ndarray) and obs.shape == (10, )
         obs = obs.astype(np.float32)
 
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a numpy array with shape (1,)
         if isinstance(rew, list):
             rew = rew[0]
         assert isinstance(rew, np.ndarray) and rew.shape == (1, )

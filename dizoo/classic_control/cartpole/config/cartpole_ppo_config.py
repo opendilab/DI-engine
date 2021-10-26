@@ -33,6 +33,14 @@ cartpole_ppo_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        eval=dict(
+            evaluator=dict(
+                eval_freq=1000,
+                cfg_type='InteractionSerialEvaluatorDict',
+                stop_value=195,
+                n_episode=5,
+            ),
+        ),
     ),
 )
 cartpole_ppo_config = EasyDict(cartpole_ppo_config)
