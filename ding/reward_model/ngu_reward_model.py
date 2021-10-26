@@ -249,9 +249,10 @@ class EpisodicRewardModel(BaseRewardModel):
             cur_obs_embedding = self.episodic_reward_model(inputs, inference=True)
             cur_obs_embedding = cur_obs_embedding.view(batch_size, timesteps, -1)  # 32 42,64
             episodic_reward = [[] for _ in range(batch_size)]
+            null_cnt=0
             for i in range(batch_size):
                 for j in range(timesteps):
-                    if j <= 10:
+                    if j < 10:
                         # if self._running_mean_std_episodic_reward.mean is not None:
                         #     episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
                         # else:
@@ -266,6 +267,7 @@ class EpisodicRewardModel(BaseRewardModel):
                     # TODO if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
+                    null_cnt = null_cnt + timesteps-null_start_index #  TODO add the # of null transitions in ith sequence in batch
                     for k in range(null_start_index, timesteps):
                         episodic_reward[i][k] = torch.tensor(0).to(self.device)
                 # episodic_reward[i][null_start_index:-1]=[torch.tensor(0) for i in range(timesteps-null_start_index)]
@@ -275,6 +277,8 @@ class EpisodicRewardModel(BaseRewardModel):
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # -1) TODO image
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
+
+            # episodic_reward_real_mean = sum(episodic_reward)/(batch_size*timesteps- null_cnt) #  TODO recompute mean
 
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
@@ -291,17 +295,18 @@ class EpisodicRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            # TODO transform to batch mean1
-            episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
-            # TODO 1 transform to long-term mean1
+            # TODO transform to batch mean1: erbm1
+            # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11) # have null_padding episodic reward=0,
+            # episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11) # have null_padding episodic reward=0,
+            # TODO 1 transform to long-term mean1: erlm1
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
             # TODO 2 transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
             # otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger ,the total intrinsic reward smaller, which is not correct.
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
-            # TODO 3 transform to std1, which is not meaningful
+            # TODO 3 transform to std1, which is not very meaningful
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
-            # TODO 4 transform to [0,1], which is wrong, because this paradigm may assign rnd reward 1 in a familiar state，but which should be assigned a small rnd reward.
-            # episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)
+            # TODO 4 transform to [0,1]: er01
+            episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min()+ 1e-11)
         return episodic_reward
 
     def collect_data(self, data: list) -> None:
