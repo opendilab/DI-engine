@@ -266,8 +266,8 @@ class PPOOffCollectTrajPolicy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            # 'prev_state': model_output['prev_state'],
-            'prev_state': None,
+            'prev_state': model_output['prev_state'],
+            # 'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
         }

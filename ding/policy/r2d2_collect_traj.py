@@ -13,8 +13,8 @@ from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 
-@POLICY_REGISTRY.register('r2d2')
-class R2D2Policy(Policy):
+@POLICY_REGISTRY.register('r2d2_collect_traj')
+class  R2D2CollectTrajPolicy(Policy):
     r"""
     Overview:
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
@@ -357,7 +357,7 @@ class R2D2Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
-        assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
+        # assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
@@ -368,10 +368,13 @@ class R2D2Policy(Policy):
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        # self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='argmax_sample')
+
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, eps: float) -> dict:
+    # def _forward_collect(self, data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin
@@ -391,7 +394,10 @@ class R2D2Policy(Policy):
         with torch.no_grad():
             # in collect phase, inference=True means that each time we only pass one timestep data,
             # so the we can get the hidden state of rnn: <prev_state> at each timestep.
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            # output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            output = self._collect_model.forward(data, data_id=data_id, inference=True)
+            # output = self._collect_model.forward(data, inference=True)
+
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -415,7 +421,8 @@ class R2D2Policy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            'prev_state': model_output['prev_state'],
+            # 'prev_state': model_output['prev_state'],
+            'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -432,8 +439,18 @@ class R2D2Policy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
+        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        # return get_train_sample(data, self._unroll_len_add_burnin_step)
+
+        from copy import deepcopy
+        # data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
+        data_one_step = deepcopy(data)
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        for i in range(len(data)):
+            # here we record the one-step done, we don't need record one-step reward,
+            # because the n-step reward in data already include one-step reward
+            data[i]['done_one_step'] = data_one_step[i]['done']
+        return get_train_sample(data, self._unroll_len)  # self._unroll_len_add_burnin_step
 
     def _init_eval(self) -> None:
         r"""

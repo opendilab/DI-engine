@@ -96,7 +96,7 @@ create_config = lunarlander_r2d3_create_config
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
-    exp_name='debug_lunarlander_r2d3',
+    # exp_name='debug_lunarlander_r2d3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -113,7 +113,8 @@ expert_lunarlander_r2d3_config = dict(
             obs_shape=8,
             action_shape=4,
             # encoder_hidden_size_list=[512, 64],  # dqn
-            encoder_hidden_size_list=[128, 128, 64],  # ppo
+            # encoder_hidden_size_list=[128, 128, 64],  # ppo_off
+            encoder_hidden_size_list=[128, 128, 512],  # r2d2
         ),
         discount_factor=0.997,
         burnin_step=2,
@@ -126,7 +127,7 @@ expert_lunarlander_r2d3_config = dict(
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
             # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
-            demonstration_info_path=module_path + '/demo_path/r2d2_iteration_12948.pth.tar',
+            demonstration_info_path=module_path + '/demo_path/r2d2_iteration_13000.pth.tar',
 
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=40,  # TODO(pu)if ppo_offpolicy this key should equals self._unroll_len_add_burnin_step in r2d2 policy
