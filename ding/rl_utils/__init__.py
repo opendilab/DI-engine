@@ -16,5 +16,6 @@ from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_da
 from .value_rescale import value_transform, value_inv_transform
 from .vtrace import vtrace_data, vtrace_error
 from .beta_function import beta_function_map
-from .retrace import compute_q_retraces
-from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
+from .retrace import compute_q_retraces, compute_q_retraces_continuous
+from .acer import acer_policy_error, acer_value_error, acer_trust_region_update, acer_value_error_continuous, acer_policy_error_continuous
+from .opc import compute_q_opc

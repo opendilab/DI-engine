@@ -1,6 +1,6 @@
 from typing import Optional
 import torch
-
+import math
 
 def cov(
         x: torch.Tensor,
@@ -78,10 +78,10 @@ class OrnsteinUhlenbeckProcess:
 
     def sample(self,size):
         self.size = size
-        previous_value = torch.zeros(size)
-        value = previous_value
+        self.previous_value = torch.zeros(size)
+        value = self.previous_value
         value += self.theta * (self.mu - self.previous_value) * self.time_scale
-        value += self.sigma * torch.sqrt(self.time_scale) * torch.normal(0,1,size=size)
+        value += self.sigma * math.sqrt(self.time_scale) * torch.normal(0,1,size=size)
         return value
 
     def reset(self):

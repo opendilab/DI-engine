@@ -28,7 +28,7 @@ class ACER(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
-            continuous_action_space: Optional[bool] = False,
+            continuous_action_space: bool = False,
             q_value_sample_size : int = 20,
             noise_ratio : float = 0.,
     ) -> None:
@@ -80,7 +80,7 @@ class ACER(nn.Module):
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
             )
             self.critic_head = StochasticDuelingHead(
-                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type, noise_ratio=0.,
+                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type,
             )
             
         else: 
@@ -99,7 +99,7 @@ class ACER(nn.Module):
         self.actor = nn.ModuleList(self.actor)
         self.critic = nn.ModuleList(self.critic)
 
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
+    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str, action: Optional[torch.Tensor] = None) -> Dict:
         r"""
         Overview:
         Use observation to predict output.
@@ -151,7 +151,10 @@ class ACER(nn.Module):
 
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        return getattr(self, mode)(inputs)
+        if action is not None:
+            return getattr(self, mode)(inputs, action)
+        else:
+            return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
         r"""
@@ -172,6 +175,8 @@ class ACER(nn.Module):
         Shapes: 
             - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
+            - mu (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
+            - sigam (:obj:`torch.FloatTensor`): :math:`(B, N1)`, where B is batch size and N1 is ``action_shape``
         Examples:
             >>> # Regression mode
             >>> model = ACER(64, 64)
@@ -184,7 +189,7 @@ class ACER(nn.Module):
         if self.continuous_action_space:
             # for continuous action space, we use ReparametrizationHead
             # the return is mu and sigma for normal distribution
-            return {'logit': (x['mu'], x['sigma']) }
+            return {'logit': [x['mu'], x['sigma']] }
         else:
             # for discrete action space, we use DiscreteHead
             # the return is prob_val_before_softmax of each action
@@ -206,7 +211,7 @@ class ACER(nn.Module):
         Shapes:
             - obs_inputs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - act_inputs (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, 1)`, where B is batch size.
+            - q_value (:obj:`torch.FloatTensor`): :math:`(B, 1)` for continuous case, where B is batch size.
 
         Examples:
             >>> inputs =torch.randn(4, N)

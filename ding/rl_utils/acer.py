@@ -102,3 +102,69 @@ def acer_trust_region_update(
     scale = torch.div(scale, KL_gradient.mul(KL_gradient).sum(-1, keepdim=True)).clamp(min=0.0)
     update_gradients.append(actor_gradient - scale * KL_gradient)
     return update_gradients
+
+
+def acer_value_error_continuous(q_values: torch.Tensor, 
+                                q_retraces: torch.Tensor):
+    """
+    Overview:
+        Get ACER critic loss
+    Arguments:
+        - q_values (:obj:`torch.Tensor`): Q values
+        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
+        - actions (:obj:`torch.Tensor`): The actions in replay buffer
+        - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy
+    Returns:
+        - critic_loss (:obj:`torch.Tensor`): critic loss
+    Shapes:
+        - q_values (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`, where B is batch size 
+        - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+        - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
+        - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+    """
+
+    critic_loss = (q_retraces - q_values.detach())*q_values
+    return critic_loss
+
+
+def acer_policy_error_continuous(
+        q_values_prime: torch.Tensor,
+        q_opc: torch.Tensor,
+        v_pred: torch.Tensor,
+        target_pi: torch.Tensor,
+        target_pi_prime: torch.Tensor,
+        ratio: torch.Tensor,
+        ratio_prime: torch.Tensor,
+        c_clip_ratio: float = 10.0
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Overview:
+        Get ACER policy loss
+    Arguments:
+        - q_values (:obj:`torch.Tensor`): Q values
+        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
+        - v_pred (:obj:`torch.Tensor`): V values
+        - target_pi (:obj:`torch.Tensor`): The new policy's probability
+        - actions (:obj:`torch.Tensor`): The actions in replay buffer
+        - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy
+        - c_clip_ratio (:obj:`float`): clip value for ratio
+    Returns:
+        - actor_loss (:obj:`torch.Tensor`): policy loss from q_retrace
+        - bc_loss (:obj:`torch.Tensor`): correct policy loss
+    Shapes:
+        - q_values (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`, where B is batch size and N is action dim
+        - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+        - v_pred (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+        - target_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+        - ratio (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+        - actor_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+        - bc_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+    """
+    with torch.no_grad():
+        advantage_retraces = q_opc - v_pred  # shape T,B,1
+        advantage_native = q_values_prime - v_pred  # shape T,B,env_action_shape
+    actor_loss = ratio.clamp(max=c_clip_ratio) * advantage_retraces * (target_pi + EPS).log()  # shape T,B,1
+
+    # bias correction term, the first target_pi will not calculate gradient flow
+    bias_correction_loss = (1.0-c_clip_ratio/(ratio_prime+EPS)).clamp(min=0.0) * advantage_native * (target_pi_prime + EPS).log()  # shape T,B,env_action_shape
+    return actor_loss, bias_correction_loss
