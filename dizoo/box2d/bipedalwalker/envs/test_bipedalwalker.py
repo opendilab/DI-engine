@@ -4,7 +4,7 @@ import numpy as np
 from dizoo.box2d.bipedalwalker.envs import BipedalWalkerEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestBipedalWalkerEnv:
 
     def test_naive(self):

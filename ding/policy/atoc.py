@@ -177,7 +177,7 @@ class ATOCPolicy(Policy):
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
-        # target q value. SARSA: first predict next action, then calculate next q value
+        # target q value.
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
             next_data = {'obs': next_obs, 'action': next_action}
@@ -267,9 +267,12 @@ class ATOCPolicy(Policy):
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -335,11 +338,14 @@ class ATOCPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function of collect mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

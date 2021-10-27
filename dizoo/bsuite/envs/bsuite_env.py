@@ -5,7 +5,7 @@ import gym
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 import bsuite
@@ -147,7 +147,7 @@ class BSuiteEnv(BaseEnv):
         if obs.shape[0] == 1:
             obs = obs[0]
         obs = to_ndarray(obs)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:

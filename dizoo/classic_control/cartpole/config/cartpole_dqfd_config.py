@@ -3,13 +3,14 @@ from easydict import EasyDict
 cartpole_dqfd_config = dict(
     exp_name='cartpole_dqfd',
     env=dict(
+        manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=True,
         model=dict(
             obs_shape=4,
@@ -50,7 +51,7 @@ cartpole_dqfd_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
 cartpole_dqfd_create_config = EasyDict(cartpole_dqfd_create_config)

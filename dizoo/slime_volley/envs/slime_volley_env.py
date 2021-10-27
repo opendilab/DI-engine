@@ -8,7 +8,7 @@ import slimevolleygym
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import to_ndarray
 
 
 class GymSelfPlayMonitor(gym.wrappers.Monitor):
@@ -57,9 +57,9 @@ class SlimeVolleyEnv(BaseEnv):
         assert isinstance(action1, np.ndarray), type(action1)
         assert action2 is None or isinstance(action1, np.ndarray), type(action2)
         if action1.shape == (1, ):
-            action1 = action1.squeeze()  # 0-dim tensor
+            action1 = action1.squeeze()  # 0-dim array
         if action2 is not None and action2.shape == (1, ):
-            action2 = action2.squeeze()  # 0-dim tensor
+            action2 = action2.squeeze()  # 0-dim array
         action1 = SlimeVolleyEnv._process_action(action1)
         action2 = SlimeVolleyEnv._process_action(action2)
         obs1, rew, done, info = self._env.step(action1, action2)

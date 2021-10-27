@@ -39,6 +39,11 @@ class DQFDPolicy(DQNPolicy):
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
         7  ``nstep``            int      10,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
+        8  | ``lambda1``        float     1              | multiplicative factor for n-step return
+        9  | ``lambda2``        float     1              | multiplicative factor for the supervised margin loss
+        10 | ``lambda3``        float     1e-5           | L2 loss
+        11 | ``margin_function  float     0.8            | margin function in JE, here we implement this as a constant
+        12 | ``per_train_iter_k`` int     10             | number of pertraining iterations
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
@@ -46,7 +51,7 @@ class DQFDPolicy(DQNPolicy):
            | ``size``
         10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        11 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+        11 | ``learn.target_``  int      100            | Frequency of target network update.    | Hard(assign) update
            | ``update_freq``
         12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
            | ``done``                                   | calculation.                           | fake termination env
@@ -68,9 +73,9 @@ class DQFDPolicy(DQNPolicy):
         nstep=10,
         learn=dict(
             # multiplicative factor for each loss
-            lambda1=1.0,
-            lambda2=1.0,
-            lambda3=1e-5,
+            lambda1=1.0,  # n-step return
+            lambda2=1.0,  # supervised loss
+            lambda3=1e-5,  # L2
             # margin function in JE, here we implement this as a constant
             margin_function=0.8,
             # number of pertraining iterations
@@ -123,15 +128,15 @@ class DQFDPolicy(DQNPolicy):
             Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \
             and target model.
         """
-        self.lambda1 = self._cfg.learn.lambda1,  # n-step return
-        self.lambda2 = self._cfg.learn.lambda2,  # supervised loss
-        self.lambda3 = self._cfg.learn.lambda3,  # L2
+        self.lambda1 = self._cfg.learn.lambda1  # n-step return
+        self.lambda2 = self._cfg.learn.lambda2  # supervised loss
+        self.lambda3 = self._cfg.learn.lambda3  # L2
         # margin function in JE, here we implement this as a constant
         self.margin_function = self._cfg.learn.margin_function
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3[0])
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -235,75 +240,6 @@ class DQFDPolicy(DQNPolicy):
             # '[histogram]action_distribution': data['action'],
         }
 
-    '''
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        """
-        Overview:
-            Return the state_dict of learn mode, usually including model and optimizer.
-        Returns:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
-        """
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        """
-        Overview:
-            Load the state_dict variable into policy learn mode.
-        Arguments:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
-
-        .. tip::
-            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
-            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
-            complicated operation.
-        """
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-    '''
-
-    def _init_collect(self) -> None:
-        """
-        Overview:
-            Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model, \
-            enable the eps_greedy_sample for exploration.
-        """
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-        self._collect_model.reset()
-
-    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
-        """
-        Overview:
-            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \
-                env and the constructing of transition.
-        ArgumentsKeys:
-            - necessary: ``obs``
-        ReturnsKeys
-            - necessary: ``logit``, ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Overview:
@@ -329,75 +265,3 @@ class DQFDPolicy(DQNPolicy):
             data[i]['next_obs_1'] = data_1[i]['next_obs']  # concat the one-step next observation
             data[i]['done_1'] = data_1[i]['done']
         return get_train_sample(data, self._unroll_len)
-
-    '''
-    def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
-        """
-        Overview:
-            Generate a transition(e.g.: <s, a, s', r, d>) for this algorithm training.
-        Arguments:
-            - obs (:obj:`Any`): Env observation.
-            - policy_output (:obj:`Dict[str, Any]`): The output of policy collect mode(``self._forward_collect``),\
-                including at least ``action``.
-            - timestep (:obj:`namedtuple`): The output after env step(execute policy output action), including at \
-                least ``obs``, ``reward``, ``done``, (here obs indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': policy_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return transition
-    '''
-
-    def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
-        """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
-        """
-        Overview:
-            Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
-            ``self._forward_collect``.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ArgumentsKeys:
-            - necessary: ``obs``
-        ReturnsKeys
-            - necessary: ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._eval_model.eval()
-        with torch.no_grad():
-            output = self._eval_model.forward(data)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default model setting for demonstration.
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
-
-        .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
-        """
-        return 'dqn', ['ding.model.template.q_learning']

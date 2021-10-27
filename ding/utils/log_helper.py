@@ -102,63 +102,6 @@ class LoggerFactory(object):
         return s
 
 
-class DistributionTimeImage:
-    r"""
-    Overview:
-        ``DistributionTimeImage`` can be used to store images accorrding to ``time_steps``,
-        for data with 3 dims``(time, category, value)``
-    Interface:
-        ``__init__``, ``add_one_time_step``, ``get_image``
-    """
-
-    def __init__(self, maxlen: int = 600, val_range: Optional[dict] = None):
-        r"""
-        Overview:
-            Init the ``DistributionTimeImage`` class
-        Arguments:
-            - maxlen (:obj:`int`): The max length of data inputs
-            - val_range (:obj:`dict` or :obj:`None`): Dict with ``val_range['min']`` and ``val_range['max']``.
-        """
-        self.maxlen = maxlen
-        self.val_range = val_range
-        self.img = np.ones((maxlen, maxlen))
-        self.time_step = 0
-        self.one_img = np.ones((maxlen, maxlen))
-
-    def add_one_time_step(self, data: np.ndarray) -> None:
-        r"""
-        Overview:
-            Step one timestep in ``DistributionTimeImage`` and add the data to distribution image
-        Arguments:
-            - data (:obj:`np.ndarray`): The data input
-        """
-        assert (isinstance(data, np.ndarray))
-        data = np.expand_dims(data, 1)
-        data = np.resize(data, (1, self.maxlen))
-        if self.time_step >= self.maxlen:
-            self.img = np.concatenate([self.img[:, 1:], data])
-        else:
-            self.img[:, self.time_step:self.time_step + 1] = data
-            self.time_step += 1
-
-    def get_image(self) -> np.ndarray:
-        r"""
-        Overview:
-            Return the distribution image
-        Returns:
-            - img (:obj:`np.ndarray`): The calculated distribution image
-        """
-        norm_img = np.copy(self.img)
-        valid = norm_img[:, :self.time_step]
-        if self.val_range is None:
-            valid = (valid - valid.min()) / (valid.max() - valid.min())
-        else:
-            valid = np.clip(valid, self.val_range['min'], self.val_range['max'])
-            valid = (valid - self.val_range['min']) / (self.val_range['max'] - self.val_range['min'])
-        norm_img[:, :self.time_step] = valid
-        return np.stack([self.one_img, norm_img, norm_img], axis=0)
-
-
 def pretty_print(result: dict, direct_print: bool = True) -> str:
     r"""
     Overview:
