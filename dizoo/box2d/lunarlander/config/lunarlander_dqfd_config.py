@@ -25,7 +25,7 @@ lunarlander_dqfd_config = dict(
             lambda2 = 1.0,
             lambda3 = 1e-5,
             per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer
+            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
         ),
         collect=dict(
             n_sample=64,

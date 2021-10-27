@@ -3,7 +3,7 @@ import numpy as np
 from dizoo.classic_control.cartpole.envs import CartPoleEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCartPoleEnv:
 
     def test_naive(self):

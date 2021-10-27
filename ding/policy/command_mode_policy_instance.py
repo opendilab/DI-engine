@@ -18,6 +18,7 @@ from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
@@ -30,6 +31,7 @@ from .sql import SQLPolicy
 
 from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
+
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 
@@ -172,6 +174,11 @@ class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('td3_command')
 class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_bc_command')
+class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
     pass
 
 

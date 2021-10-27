@@ -13,7 +13,7 @@ from gym_minigrid.window import Window
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 MiniGridEnvInfo = namedtuple(
@@ -216,7 +216,7 @@ class MiniGridEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
-            action = action.squeeze()  # 0-dim tensor
+            action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
@@ -236,7 +236,7 @@ class MiniGridEnv(BaseEnv):
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> MiniGridEnvInfo:

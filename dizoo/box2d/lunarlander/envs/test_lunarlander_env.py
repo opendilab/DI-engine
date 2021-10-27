@@ -4,7 +4,7 @@ import numpy as np
 from dizoo.box2d.lunarlander.envs import LunarLanderEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestLunarLanderEnvEnv:
 
     def test_naive(self):
