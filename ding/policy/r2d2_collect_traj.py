@@ -443,8 +443,8 @@ class  R2D2CollectTrajPolicy(Policy):
         # return get_train_sample(data, self._unroll_len_add_burnin_step)
 
         from copy import deepcopy
-        # data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
-        data_one_step = deepcopy(data)
+        data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
+        # data_one_step = deepcopy(data)
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         for i in range(len(data)):
             # here we record the one-step done, we don't need record one-step reward,
