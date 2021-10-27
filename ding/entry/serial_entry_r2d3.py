@@ -189,8 +189,8 @@ def serial_pipeline_r2d3(
                     np.float32(np.random.rand(learner.policy.get_attribute('batch_size')) < cfg.policy.collect.pho
                                ).sum()
                 )
-                demo_batch_size = (learner.policy.get_attribute('batch_size')) - expert_batch_size
-                train_data_agent = replay_buffer.sample(demo_batch_size, learner.train_iter)
+                agent_batch_size = (learner.policy.get_attribute('batch_size')) - expert_batch_size
+                train_data_agent = replay_buffer.sample(agent_batch_size, learner.train_iter)
                 train_data_expert = expert_buffer.sample(expert_batch_size, learner.train_iter)
                 if train_data_agent is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
@@ -206,17 +206,17 @@ def serial_pipeline_r2d3(
                     # When learner, assign priority for each data item according their loss
                     learner.priority_info_agent = deepcopy(learner.priority_info)
                     learner.priority_info_expert = deepcopy(learner.priority_info)
-                    learner.priority_info_agent['priority'] = learner.priority_info['priority'][0:demo_batch_size]
+                    learner.priority_info_agent['priority'] = learner.priority_info['priority'][0:agent_batch_size]
                     learner.priority_info_agent['replay_buffer_idx'] = learner.priority_info['replay_buffer_idx'][
-                        0:demo_batch_size]
+                        0:agent_batch_size]
                     learner.priority_info_agent['replay_unique_id'] = learner.priority_info['replay_unique_id'][
-                        0:demo_batch_size]
+                        0:agent_batch_size]
 
-                    learner.priority_info_expert['priority'] = learner.priority_info['priority'][demo_batch_size:]
+                    learner.priority_info_expert['priority'] = learner.priority_info['priority'][agent_batch_size:]
                     learner.priority_info_expert['replay_buffer_idx'] = learner.priority_info['replay_buffer_idx'][
-                        demo_batch_size:]
+                        agent_batch_size:]
                     learner.priority_info_expert['replay_unique_id'] = learner.priority_info['replay_unique_id'][
-                        demo_batch_size:]
+                        agent_batch_size:]
 
                     # Expert data and demo data update their priority separately.
                     replay_buffer.update(learner.priority_info_agent)
