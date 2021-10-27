@@ -278,8 +278,8 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = torch.stack(tmp, dim=0)  # -1) TODO image
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
-            # episodic_reward_real_mean = sum(episodic_reward)/(batch_size*timesteps- null_cnt) #  TODO recompute mean
-
+            episodic_reward_real_mean = sum(episodic_reward)/(batch_size*timesteps- null_cnt) #  TODO recompute mean
+            # episodic_reward_real_std =
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
 
@@ -287,13 +287,13 @@ class EpisodicRewardModel(BaseRewardModel):
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic
             )
             self.tb_logger.add_scalar(
-                'episodic_reward/episodic_reward_mean', episodic_reward.mean(), self.estimate_cnt_episodic
+                'episodic_reward/episodic_reward_mean', episodic_reward_real_mean, self.estimate_cnt_episodic
             )
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_min', episodic_reward.min(), self.estimate_cnt_episodic
             )
             self.tb_logger.add_scalar(
-                'episodic_reward/episodic_reward_std', episodic_reward.std(), self.estimate_cnt_episodic
+                'episodic_reward/episodic_reward_std_', episodic_reward.std(), self.estimate_cnt_episodic
             )
             # TODO transform to batch mean1: erbm1
             # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11) # have null_padding episodic reward=0,
