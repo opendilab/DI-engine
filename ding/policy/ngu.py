@@ -425,7 +425,7 @@ class NGUPolicy(Policy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        eps = {i: 0.4 ** (1 + 8 * i / (len(obs) - 1)) for i in range(len(obs))}  # TODO
+        eps = {i: 0.4 ** (1 + 8 * i / (len(obs) - 1)) for i in range(len(obs))}  # TODO epislon=0.4, alpha=9
         data_id = list(obs.keys())
         obs = default_collate(list(obs.values()))
         beta = default_collate(list(beta.values()))

@@ -5,19 +5,21 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 import torch
 
 from ding.model import model_wrap
-from ding.rl_utils import q_nstep_td_error_with_rescale, get_nstep_return_data, \
-    get_train_sample, dqfd_nstep_td_error, dqfd_nstep_td_error_with_rescale, dqfd_nstep_td_data
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
+    get_train_sample
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 
-@POLICY_REGISTRY.register('r2d3')
-class R2D3Policy(Policy):
+@POLICY_REGISTRY.register('r2d2')
+class R2D2Policy(Policy):
     r"""
     Overview:
-        Policy class of r2d3, from paper `Making Efficient Use of Demonstrations to Solve Hard Exploration Problems` .
+        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
+        R2D2 proposes that several tricks should be used to improve upon DRQN,
+        namely some recurrent experience replay tricks such as burn-in.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -62,7 +64,7 @@ class R2D3Policy(Policy):
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='r2d3',
+        type='r2d2',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
@@ -126,7 +128,7 @@ class R2D3Policy(Policy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Init the learner model of r2d3Policy
+            Init the learner model of R2D2Policy
 
         Arguments:
             .. note::
@@ -139,22 +141,16 @@ class R2D3Policy(Policy):
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
             - burnin_step (:obj:`int`): The num of step of burnin
         """
-        self.lambda1 = self._cfg.learn.lambda1  # n-step return
-        self.lambda2 = self._cfg.learn.lambda2  # supervised loss
-        self.lambda3 = self._cfg.learn.lambda3  # L2
-        # margin function in JE, here we implement this as a constant
-        self.margin_function = self._cfg.learn.margin_function
-
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # self._target_model = model_wrap(
+        # self._target_model = model_wrap(  TODO(pu)
         #     self._target_model,
         #     wrapper_name='target',
         #     update_type='assign',
@@ -166,6 +162,7 @@ class R2D3Policy(Policy):
             update_type='momentum',
             update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
+
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
@@ -208,17 +205,17 @@ class R2D3Policy(Policy):
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
             data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
@@ -243,14 +240,6 @@ class R2D3Policy(Policy):
         # the target_obs is used to calculate the target_q_value
         data['target_obs'] = data['obs'][bs + self._nstep:]
 
-        # TODO(pu)
-        data['target_obs_one_step'] = data['obs'][bs + 1:]
-        if ignore_done:
-            data['done_one_step'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
-        else:
-            data['done_one_step'] = data['done_one_step'][bs:].float(
-            )  # for computation of online model self._learn_model
-
         return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -272,24 +261,23 @@ class R2D3Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
+        # take out timestep=0
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
         if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
                 burnin_output = self._learn_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep,  self._burnin_step + 1]
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
                 burnin_output_target = self._target_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep, self._burnin_step + 1]
+                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
 
         self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
         inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
         q_value = self._learn_model.forward(inputs)['logit']
-
-        # n-step
         self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
         self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
 
@@ -299,19 +287,8 @@ class R2D3Policy(Policy):
             # argmax_action double_dqn
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
-        # one-step
-        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][2])
-        self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][2])
-
-        next_inputs_one_step = {'obs': data['target_obs_one_step'], 'enable_fast_timestep': True}
-        with torch.no_grad():
-            target_q_value_one_step = self._target_model.forward(next_inputs_one_step)['logit']
-            # argmax_action double_dqn
-            target_q_action_one_step = self._learn_model.forward(next_inputs_one_step)['action']
-
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         value_gamma = data['value_gamma']
-        done_one_step = data['done_one_step']
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
@@ -319,49 +296,19 @@ class R2D3Policy(Policy):
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
-            td_data = dqfd_nstep_td_data(
-                q_value[t],
-                target_q_value[t],
-                action[t],
-                target_q_action[t],
-                reward[t],
-                done[t],
-                done_one_step[t],
-                weight[t],
-                target_q_value_one_step[t],
-                target_q_action_one_step[t],
-                data['is_expert'][t],  # is_expert flag(expert 1, agent 0)
+            td_data = q_nstep_td_data(
+                q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
-
             if self._value_rescale:
-                l, e = dqfd_nstep_td_error_with_rescale(
-                    td_data,
-                    self._gamma,
-                    self.lambda1,
-                    self.lambda2,
-                    self.margin_function,
-                    self._nstep,
-                    False,
-                    value_gamma[t],
-                )
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
-
             else:
-                l, e = dqfd_nstep_td_error(
-                    td_data,
-                    self._gamma,
-                    self.lambda1,
-                    self.lambda2,
-                    self.margin_function,
-                    self._nstep,
-                    False,
-                    value_gamma[t],
-                )
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
-
         loss = sum(loss) / (len(loss) + 1e-8)
+
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
@@ -410,12 +357,13 @@ class R2D3Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
-        assert 'unroll_len' not in self._cfg.collect, "r2d3 use default unroll_len"
+        assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
         self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
+        # self._unroll_len = self._cfg.collect.unroll_len
 
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
@@ -484,16 +432,7 @@ class R2D3Policy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        # return get_train_sample(data, self._unroll_len_add_burnin_step)
-
-        from copy import deepcopy
-        data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        for i in range(len(data)):
-            # here we record the one-step done, we don't need record one-step reward,
-            # because the n-step reward in data already include one-step reward
-            data[i]['done_one_step'] = data_one_step[i]['done']
         return get_train_sample(data, self._unroll_len_add_burnin_step)
 
     def _init_eval(self) -> None:

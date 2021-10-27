@@ -367,7 +367,8 @@ class R2D2Policy(Policy):
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        # self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -414,7 +415,8 @@ class R2D2Policy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            'prev_state': model_output['prev_state'],
+            # 'prev_state': model_output['prev_state'],
+            'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -431,8 +433,18 @@ class R2D2Policy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
+        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        # return get_train_sample(data, self._unroll_len_add_burnin_step)
+
+        from copy import deepcopy
+        # data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
+        data_one_step = deepcopy(data)
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        for i in range(len(data)):
+            # here we record the one-step done, we don't need record one-step reward,
+            # because the n-step reward in data already include one-step reward
+            data[i]['done_one_step'] = data_one_step[i]['done']
+        return get_train_sample(data, self._unroll_len)  # self._unroll_len_add_burnin_step
 
     def _init_eval(self) -> None:
         r"""
