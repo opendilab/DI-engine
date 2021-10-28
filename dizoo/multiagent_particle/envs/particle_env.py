@@ -3,12 +3,11 @@ from typing import Any, Optional
 from easydict import EasyDict
 import copy
 import numpy as np
-import torch
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from dizoo.multiagent_particle.envs.make_env import make_env
 from dizoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
 import gym
@@ -29,7 +28,7 @@ class ParticleEnv(BaseEnv):
         self._env.force_discrete_action = True
         self.agent_num = self._env.n
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         self._step_count = 0
         if hasattr(self, '_seed'):
             # Note: the real env instance only has a empty seed method, only pass
@@ -153,7 +152,7 @@ class ModifiedPredatorPrey(BaseEnv):
         self.global_obs_dim = self._n_agent * 2 + self._num_landmarks * 2 + self._n_agent * 2
         self.obs_alone_dim = 2 + 2 + (self._num_landmarks) * 2
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         self._step_count = 0
         self._sum_reward = 0
         # if hasattr(self, '_seed'):
@@ -314,7 +313,7 @@ class CooperativeNavigation(BaseEnv):
         self.global_obs_dim = self._n_agent * 2 + self._num_landmarks * 2 + self._n_agent * 2
         self.obs_alone_dim = 2 + 2 + (self._num_landmarks) * 2
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         self._step_count = 0
         self._sum_reward = 0
         if hasattr(self, '_seed'):

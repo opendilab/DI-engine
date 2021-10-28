@@ -42,3 +42,51 @@ def test_ppo(use_value_clip, dual_clip, weight):
     total_loss.backward()
     assert isinstance(logit_new.grad, torch.Tensor)
     assert isinstance(value_new.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
+def test_mappo():
+    B, A, N = 4, 8, 32
+    logit_new = torch.randn(B, A, N).requires_grad_(True)
+    logit_old = logit_new + torch.rand_like(logit_new) * 0.1
+    action = torch.randint(0, N, size=(B, A))
+    value_new = torch.randn(B, A).requires_grad_(True)
+    value_old = value_new + torch.rand_like(value_new) * 0.1
+    adv = torch.rand(B, A)
+    return_ = torch.randn(B, A) * 2
+    data = ppo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, None)
+    loss, info = ppo_error(data)
+    assert all([l.shape == tuple() for l in loss])
+    assert all([np.isscalar(i) for i in info])
+    assert logit_new.grad is None
+    assert value_new.grad is None
+    total_loss = sum(loss)
+    total_loss.backward()
+    assert isinstance(logit_new.grad, torch.Tensor)
+    assert isinstance(value_new.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
+@pytest.mark.parametrize('use_value_clip, dual_clip, weight', args)
+def test_ppo_error_continous(use_value_clip, dual_clip, weight):
+    B, N = 4, 6
+    mu_sigma_new = [torch.rand(B, N).requires_grad_(True), torch.rand(B, N).requires_grad_(True)]
+    mu_sigma_old = [
+        mu_sigma_new[0] + torch.rand_like(mu_sigma_new[0]) * 0.1,
+        mu_sigma_new[1] + torch.rand_like(mu_sigma_new[1]) * 0.1
+    ]
+    action = torch.rand(B, N)
+    value_new = torch.randn(B).requires_grad_(True)
+    value_old = value_new + torch.rand_like(value_new) * 0.1
+    adv = torch.rand(B)
+    return_ = torch.randn(B) * 2
+    data = ppo_data(mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight)
+    loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
+    assert all([l.shape == tuple() for l in loss])
+    assert all([np.isscalar(i) for i in info])
+    assert mu_sigma_new[0].grad is None
+    assert value_new.grad is None
+    total_loss = sum(loss)
+    total_loss.backward()
+    assert isinstance(mu_sigma_new[0].grad, torch.Tensor)
+    assert isinstance(value_new.grad, torch.Tensor)

@@ -5,7 +5,7 @@ from easydict import EasyDict
 from dizoo.atari.envs import AtariEnv, AtariEnvMR
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestAtariEnv:
 
     def test_pong(self):

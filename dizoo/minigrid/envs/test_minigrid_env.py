@@ -4,7 +4,7 @@ import numpy as np
 from dizoo.minigrid.envs import MiniGridEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestMiniGridEnv:
 
     def test_naive(self):

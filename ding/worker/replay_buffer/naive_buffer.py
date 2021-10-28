@@ -77,7 +77,7 @@ class NaiveReplayBuffer(IBuffer):
             )
         # Periodic thruput. Here by default, monitor range is 60 seconds. You can modify it for free.
         self._periodic_thruput_monitor = PeriodicThruputMonitor(
-            self._instance_name, EasyDict(seconds=3), self._logger, self._tb_logger
+            self._instance_name, EasyDict(seconds=60), self._logger, self._tb_logger
         )
 
     def start(self) -> None:

@@ -30,6 +30,7 @@ from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_
 from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
+from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
@@ -39,6 +40,10 @@ from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
 from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -328,6 +333,7 @@ def test_sqil():
 def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].exp_name = 'sac'
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -340,7 +346,7 @@ def test_cql():
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
-    expert_data_path = config[0].policy.learn.save_path
+    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
     try:
         collect_demo_data(
@@ -360,6 +366,83 @@ def test_cql():
 
 
 @pytest.mark.algotest
+def test_discrete_cql():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].exp_name = 'cartpole'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(cartpole_discrete_cql_config), deepcopy(cartpole_discrete_cql_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("27. discrete cql\n")
+
+
+# @pytest.mark.algotest
+def test_wqmix():
+    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("28. wqmix\n")
+
+
+@pytest.mark.algotest
+def test_td3_bc():
+    # train expert
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+    config[0].exp_name = 'td3'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train td3 bc
+    config = [deepcopy(pendulum_td3_bc_config), deepcopy(pendulum_td3_bc_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("29. td3_bc\n")
+
+
+# @pytest.mark.algotest
 def test_running_on_orchestrator():
     from kubernetes import config, client, dynamic
     cluster_name = 'test-k8s-launcher'

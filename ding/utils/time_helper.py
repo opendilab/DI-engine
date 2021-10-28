@@ -4,6 +4,8 @@ from typing import Any, Callable
 
 import torch
 from easydict import EasyDict
+from .time_helper_base import TimeWrapper
+from .time_helper_cuda import get_cuda_time_wrapper
 
 
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
@@ -31,11 +33,14 @@ def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callabl
     else:
         raise RuntimeError('Either wrapper_type or cfg should be provided.')
 
-    if time_wrapper_type == 'time' or (not torch.cuda.is_available()):
+    if time_wrapper_type == 'time':
         return TimeWrapperTime
     elif time_wrapper_type == 'cuda':
-        # lazy initialize to make code runnable locally
-        return get_cuda_time_wrapper()
+        if torch.cuda.is_available():
+            # lazy initialize to make code runnable locally
+            return get_cuda_time_wrapper()
+        else:
+            return TimeWrapperTime
     else:
         raise KeyError('invalid time_wrapper_type: {}'.format(time_wrapper_type))
 
@@ -86,49 +91,6 @@ class EasyTimer:
         self.value = self._timer.end_time()
 
 
-class TimeWrapper(object):
-    r"""
-    Overview:
-        Abstract class method that defines ``TimeWrapper`` class
-
-    Interface:
-        ``wrapper``, ``start_time``, ``end_time``
-    """
-
-    @classmethod
-    def wrapper(cls, fn):
-        r"""
-        Overview:
-            Classmethod wrapper, wrap a function and automatically return its running time
-
-        - fn (:obj:`function`): The function to be wrap and timed
-        """
-
-        def time_func(*args, **kwargs):
-            cls.start_time()
-            ret = fn(*args, **kwargs)
-            t = cls.end_time()
-            return ret, t
-
-        return time_func
-
-    @classmethod
-    def start_time(cls):
-        r"""
-        Overview:
-            Abstract classmethod, start timing
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def end_time(cls):
-        r"""
-        Overview:
-            Abstract classmethod, stop timing
-        """
-        raise NotImplementedError
-
-
 class TimeWrapperTime(TimeWrapper):
     r"""
     Overview:
@@ -159,62 +121,6 @@ class TimeWrapperTime(TimeWrapper):
         """
         cls.end = time.time()
         return cls.end - cls.start
-
-
-def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
-    r"""
-    Overview:
-        Return the ``TimeWrapperCuda`` class
-
-    Returns:
-        - TimeWrapperCuda(:obj:`class`): See ``TimeWrapperCuda`` class
-
-    .. note::
-        Must use ``torch.cuda.synchronize()``, reference: <https://blog.csdn.net/u013548568/article/details/81368019>
-
-    """
-
-    # TODO find a way to autodoc the class within method
-    class TimeWrapperCuda(TimeWrapper):
-        r"""
-        Overview:
-            A class method that inherit from ``TimeWrapper`` class
-
-            Notes:
-                Must use torch.cuda.synchronize(), reference: \
-                <https://blog.csdn.net/u013548568/article/details/81368019>
-
-        Interface:
-            ``start_time``, ``end_time``
-        """
-        # cls variable is initialized on loading this class
-        start_record = torch.cuda.Event(enable_timing=True)
-        end_record = torch.cuda.Event(enable_timing=True)
-
-        # overwrite
-        @classmethod
-        def start_time(cls):
-            r"""
-            Overview:
-                Implement and overide the ``start_time`` method in ``TimeWrapper`` class
-            """
-            torch.cuda.synchronize()
-            cls.start = cls.start_record.record()
-
-        # overwrite
-        @classmethod
-        def end_time(cls):
-            r"""
-            Overview:
-                Implement and overide the end_time method in ``TimeWrapper`` class
-            Returns:
-                - time(:obj:`float`): The time between ``start_time`` and ``end_time``
-            """
-            cls.end = cls.end_record.record()
-            torch.cuda.synchronize()
-            return cls.start_record.elapsed_time(cls.end_record) / 1000
-
-    return TimeWrapperCuda
 
 
 class WatchDog(object):

@@ -1,3 +1,44 @@
+2021.9.30(v0.2.0)
+- env: overcooked env (#20)
+- env: procgen env (#26)
+- env: modified predator env (#30)
+- env: d4rl env (#37)
+- env: imagenet dataset (#27)
+- env: bsuite env (#58)
+- env: move atari_py to ale-py
+- algo: SQIL algorithm (#25) (#44)
+- algo: CQL algorithm (discrete/continuous) (#37) (#68)
+- algo: MAPPO algorithm (#62)
+- algo: WQMIX algorithm (#24)
+- algo: D4PG algorithm (#76)
+- algo: update multi discrete policy(dqn, ppo, rainbow) (#51) (#72)
+- feature: image classification training pipeline (#27)
+- feature: add force_reproducibility option in subprocess env manager
+- feature: add/delete/restart replicas via cli for k8s
+- feautre: add league metric (trueskill and elo) (#22)
+- feature: add tb in naive buffer and modify tb in advanced buffer (#39)
+- feature: add k8s launcher and di-orchestrator launcher, add related unittest (#45) (#49)
+- feature: add hyper-parameter scheduler module (#38)
+- feautre: add plot function (#59)
+- fix: acer bug and update atari result (#21)
+- fix: mappo nan bug and dict obs cannot unsqueeze bug (#54)
+- fix: r2d2 hidden state and obs arange bug (#36) (#52)
+- fix: ppo bug when use dual_clip and adv > 0
+- fix: qmix double_q hidden state bug
+- fix: spawn context problem in interaction unittest (#69)
+- fix: formatted config no eval bug (#53)
+- fix: the catch statments that will never succeed and system proxy bug (#71) (#79)
+- fix: lunarlander config
+- fix: c51 head dimension mismatch bug
+- fix: mujoco config typo bug
+- fix: ppg atari config bug
+- fix: max use and priority update special branch bug in advanced_buffer
+- style: add docker deploy in github workflow (#70) (#78) (#80)
+- style: support PyTorch 1.9.0
+- style: add algo/env list in README
+- style: rename advanced_buffer register name to advanced
+
+
 2021.8.3(v0.1.1)
 - env: selfplay/league demo (#12)
 - env: pybullet env (#16)

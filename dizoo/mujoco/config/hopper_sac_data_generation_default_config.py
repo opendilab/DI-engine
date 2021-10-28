@@ -35,8 +35,7 @@ hopper_sac_data_genearation_default_config = dict(
             alpha=0.2,
             reparameterization=True,
             auto_alpha=False,
-            save_path='./default_experiment/expert_iteration_200000.pkl',
-            learner = dict(
+            learner=dict(
                 load_path='./default_experiment/ckpt/ckpt_best.pth.tar',
                 hook=dict(
                     load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
@@ -47,6 +46,7 @@ hopper_sac_data_genearation_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            save_path='./default_experiment/expert_iteration_200000.pkl',
         ),
         command=dict(),
         eval=dict(),

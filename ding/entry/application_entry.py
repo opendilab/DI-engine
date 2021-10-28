@@ -9,6 +9,7 @@ from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
+from ding.utils.data import offline_data_save_type
 
 
 def eval(
@@ -137,10 +138,13 @@ def collect_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
+    policy_kwargs = None if not hasattr(cfg.policy.other.get('eps', None), 'collect') \
+        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+
     # Let's collect some expert demostrations
-    exp_data = collector.collect(n_sample=collect_count)
+    exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
-    with open(expert_data_path, 'wb') as f:
-        pickle.dump(exp_data, f)
+    # Save data transitions.
+    offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
     print('Collect demo data successfully')
