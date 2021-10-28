@@ -24,8 +24,7 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .cql import CQLPolicy
-from .masac import MASACPolicy
-
+from .sac import SACDiscretePolicy
 class EpsCommandModePolicy(CommandModePolicy):
 
     def _init_command(self) -> None:
@@ -189,6 +188,6 @@ class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('masac_command')
-class MASACCommandModePolicy(MASACPolicy, DummyCommandModePolicy):
+@POLICY_REGISTRY.register('sac_discrete_command')
+class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
     pass

@@ -22,7 +22,7 @@ class MAQAC(nn.Module):
             agent_obs_shape: Union[int, SequenceType],
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            #actor_head_type: str,
+            # actor_head_type: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -191,10 +191,12 @@ class MAQAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        #print(inputs)
-        x = self.actor(inputs['obs'])
-        #print(x)
-        return {'logit': x['logit']}
+        action_mask = inputs['obs']['action_mask']  # (1,10,16)
+        x = self.actor(inputs['obs']['agent_state'])  # # (1,10,16)
+        # x['logit'] = torch.clamp(x['logit'], -5, 2)  # TODO(pu)
+        # x['logit'][action_mask == 0.0] = -99999999
+        # x['logit'] = x['logit'] * action_mask + (1 - action_mask) * (-99999999)  # Another way to implement
+        return {'logit': x['logit'], 'action_mask': action_mask}
 
     def compute_critic(self, inputs: Dict) -> Dict:
         r"""
@@ -223,8 +225,7 @@ class MAQAC(nn.Module):
         """
 
         if self.twin_critic:
-            x = [m(inputs)['logit'] for m in self.critic]
+            x = [m(inputs['obs']['global_state'])['logit'] for m in self.critic]
         else:
-            x = self.critic(inputs)['logit']
-        #print(x)
+            x = self.critic(inputs['obs']['global_state'])['logit']
         return {'q_value': x}
