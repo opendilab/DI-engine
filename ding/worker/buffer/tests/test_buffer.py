@@ -108,7 +108,7 @@ def test_buffer_view():
     for i in range(10):
         buf2.push(i)
     # With 1 record written by buf1 and 5 records written by buf2
-    assert len(buf1.middlewares) == 0
+    assert len(buf1.middleware) == 0
     assert storage.count() == 6
     # All data in buffer should bigger than 10 because of `add_10`
     assert all(d >= 10 for d in buf2.sample(5))
