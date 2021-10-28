@@ -14,12 +14,10 @@ from .base_policy import Policy
 
 
 @POLICY_REGISTRY.register('r2d2_collect_traj')
-class  R2D2CollectTrajPolicy(Policy):
+class R2D2CollectTrajPolicy(Policy):
     r"""
     Overview:
-        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
-        R2D2 proposes that several tricks should be used to improve upon DRQN,
-        namely some recurrent experience replay tricks such as burn-in.
+        Policy class of R2D2 for collecting expert traj for R2D3.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -439,9 +437,6 @@ class  R2D2CollectTrajPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        # return get_train_sample(data, self._unroll_len_add_burnin_step)
-
         from copy import deepcopy
         data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
         # data_one_step = deepcopy(data)

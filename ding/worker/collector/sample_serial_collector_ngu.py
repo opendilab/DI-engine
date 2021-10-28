@@ -285,12 +285,15 @@ class SampleCollectorNGU(ISerialCollector):
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
                         self._traj_buffer[env_id].clear()
-                        beta_index[env_id] = np.random.randint(0, self._env_num)  # TODO
 
                 self._env_info[env_id]['time'] += self._timer.value + interaction_duration
 
                 # If env is done, record episode info and reset
                 if timestep.done:
+                    beta_index[env_id] = np.random.randint(
+                        0, self._env_num
+                    )  # TODO complete episode, need self._traj_len=INF
+
                     self._total_episode_count += 1
                     reward = timestep.info['final_eval_reward']
                     info = {

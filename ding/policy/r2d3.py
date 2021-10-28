@@ -154,12 +154,6 @@ class R2D3Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # self._target_model = model_wrap(
-        #     self._target_model,
-        #     wrapper_name='target',
-        #     update_type='assign',
-        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
@@ -213,7 +207,7 @@ class R2D3Policy(Policy):
         if ignore_done:
             data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
         else:
-            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][bs:].float()
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
@@ -248,8 +242,7 @@ class R2D3Policy(Policy):
         if ignore_done:
             data['done_one_step'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['done_one_step'] = data['done_one_step'][bs:].float(
-            )  # for computation of online model self._learn_model
+            data['done_one_step'] = data['done_one_step'][bs:].float()
 
         return data
 
@@ -272,17 +265,24 @@ class R2D3Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
+        # take out the hidden state in timestep=0
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
         if len(data['burnin_nstep_obs']) != 0:
             with torch.no_grad():
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
                 burnin_output = self._learn_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep,  self._burnin_step + 1]
+                    inputs,
+                    saved_hidden_state_timesteps=[
+                        self._burnin_step, self._burnin_step + self._nstep, self._burnin_step + 1
+                    ]
                 )
                 burnin_output_target = self._target_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep, self._burnin_step + 1]
+                    inputs,
+                    saved_hidden_state_timesteps=[
+                        self._burnin_step, self._burnin_step + self._nstep, self._burnin_step + 1
+                    ]
                 )
 
         self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
@@ -362,6 +362,7 @@ class R2D3Policy(Policy):
                 td_error.append(e.abs())
 
         loss = sum(loss) / (len(loss) + 1e-8)
+
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
@@ -385,7 +386,7 @@ class R2D3Policy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-            # the first timestep in the sequence, may not be the start of episode TODO(pu)
+            # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
@@ -484,9 +485,6 @@ class R2D3Policy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        # return get_train_sample(data, self._unroll_len_add_burnin_step)
-
         from copy import deepcopy
         data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)

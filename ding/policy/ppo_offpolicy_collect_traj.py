@@ -200,7 +200,7 @@ class PPOOffCollectTrajPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        # self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')  # TODO(pu)
+        # self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         # NOTE this policy is to collect expert traj, so we have to use argmax_sample wrapper
         self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._collect_model.reset()
@@ -242,27 +242,6 @@ class PPOOffCollectTrajPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        # if not self._nstep_return:
-        #     transition = {
-        #         'obs': obs,
-        #         'logit': model_output['logit'],
-        #         'action': model_output['action'],
-        #         'value': model_output['value'],
-        #         'reward': timestep.reward,
-        #         'done': timestep.done,
-        #     }
-        # else:
-        #     transition = {
-        #         'obs': obs,
-        #         'next_obs': timestep.obs,
-        #         'logit': model_output['logit'],
-        #         'action': model_output['action'],
-        #         'value': model_output['value'],
-        #         'reward': timestep.reward,
-        #         'done': timestep.done,
-        #     }
-        # return transition
-
         transition = {
             'obs': obs,
             'action': model_output['action'],
@@ -282,24 +261,6 @@ class PPOOffCollectTrajPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        # data = get_gae_with_default_last_value(
-        #     data,
-        #     data[-1]['done'],
-        #     gamma=self._gamma,
-        #     gae_lambda=self._gae_lambda,
-        #     cuda=self._cuda,
-        # )
-        # if not self._nstep_return:
-        #     return get_train_sample(data, self._unroll_len)
-        # else:
-        #     return get_nstep_return_data(data, self._nstep)
-
-        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        # return get_train_sample(data, self._unroll_len)  # self._unroll_len_add_burnin_step
-
-        # data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        # return get_train_sample(data, self._unroll_len_add_burnin_step)
-
         from copy import deepcopy
         # data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
         data_one_step = deepcopy(data)

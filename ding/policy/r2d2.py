@@ -150,7 +150,8 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # self._target_model = model_wrap(  TODO(pu)
+        # here we should not adopt the 'assign' mode of target network here because the reset bug
+        # self._target_model = model_wrap(
         #     self._target_model,
         #     wrapper_name='target',
         #     update_type='assign',
@@ -261,7 +262,7 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        # take out timestep=0
+        # use the hidden state in timestep=0
         self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
@@ -332,7 +333,7 @@ class R2D2Policy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-            # the first timestep in the sequence, may not be the start of episode TODO(pu)
+            # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),

@@ -118,9 +118,11 @@ class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
 class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('r2d2_collect_traj_command')
-class  R2D2CollectTrajCommandModePolicy(R2D2CollectTrajPolicy, DummyCommandModePolicy):
+class R2D2CollectTrajCommandModePolicy(R2D2CollectTrajPolicy, DummyCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('r2d3_command')
 class R2D3CommandModePolicy(R2D3Policy, EpsCommandModePolicy):
