@@ -1,7 +1,7 @@
 import pytest
 import torch
 from ding.worker.buffer import Buffer, MemoryStorage
-from ding.worker.buffer.middlewares import clone_object
+from ding.worker.buffer.middleware import clone_object
 
 
 @pytest.mark.unittest
