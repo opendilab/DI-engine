@@ -1,8 +1,8 @@
 import pytest
 import time
-from typing import Callable
-from ding.worker.buffer import Buffer
-from ding.worker.buffer import MemoryStorage
+from typing import Callable, Deque
+from ding.worker.buffer import Buffer, storage
+from ding.worker.buffer import DequeStorage
 
 
 class RateLimit:
@@ -41,13 +41,11 @@ def add_10() -> Callable:
     """
 
     def sample(next: Callable, size: int, replace: bool = False, *args, **kwargs):
-        print("Replace", replace)
         data = next(size, replace, *args, **kwargs)
         return [d + 10 for d in data]
 
     def _subview(action: str, next: Callable, *args, **kwargs):
         if action == "sample":
-            # print("ARGS", args)
             return sample(next, *args, **kwargs)
         return next(*args, **kwargs)
 
@@ -57,7 +55,7 @@ def add_10() -> Callable:
 @pytest.mark.unittest
 def test_naive_push_sample():
     # Push and sample
-    storage = MemoryStorage(maxlen=10)
+    storage = DequeStorage(maxlen=10)
     buffer = Buffer(storage)
     for i in range(20):
         buffer.push(i)
@@ -85,7 +83,7 @@ def test_naive_push_sample():
 
 @pytest.mark.unittest
 def test_rate_limit_push_sample():
-    storage = MemoryStorage(maxlen=10)
+    storage = DequeStorage(maxlen=10)
     ratelimit = RateLimit(max_rate=5)
     buffer = Buffer(storage).use(ratelimit.handler())
     for i in range(10):
@@ -96,7 +94,7 @@ def test_rate_limit_push_sample():
 
 @pytest.mark.unittest
 def test_buffer_view():
-    storage = MemoryStorage(maxlen=10)
+    storage = DequeStorage(maxlen=10)
     buf1 = Buffer(storage)
     for i in range(1):
         buf1.push(i)
@@ -114,3 +112,67 @@ def test_buffer_view():
     assert all(d >= 10 for d in buf2.sample(5))
     # But data in storage is still less than 10
     assert all(d < 10 for d in storage.sample(5))
+
+
+@pytest.mark.unittest
+def test_sample_index_meta():
+    storage = DequeStorage(maxlen=10)
+    buf = Buffer(storage)
+    for i in range(10):
+        buf.push({"data": i}, {"meta": i})
+
+    # Test sample pure data
+    samples = buf.sample(5)
+    assert len(samples) == 5
+    for s in samples:
+        assert "data" in s
+
+    # Test sample data with index
+    samples = buf.sample(5, return_index=True)
+    assert len(samples) == 5
+    for s, i in samples:
+        assert "data" in s
+        assert isinstance(i, str)
+
+    # Test sample data with meta
+    samples = buf.sample(5, return_meta=True)
+    assert len(samples) == 5
+    for s, m in samples:
+        assert "data" in s
+        assert "meta" in m
+
+    # Test sample data with index and meta
+    samples = buf.sample(5, return_index=True, return_meta=True)
+    assert len(samples) == 5
+    for s, i, m in samples:
+        assert "data" in s
+        assert isinstance(i, str)
+        assert "meta" in m
+
+
+@pytest.mark.unittest
+def test_update_delete():
+    storage = DequeStorage(maxlen=10)
+    buf = Buffer(storage)
+    for i in range(1):
+        buf.push({"data": i}, {"meta": i})
+
+    # Update data
+    [[data, index, meta]] = buf.sample(1, return_index=True, return_meta=True)
+    data["new_prop"] = "any"
+    meta = None
+    success = buf.update(index, data, meta)
+    assert success
+    ## Resample
+    [[data, meta]] = buf.sample(1, return_meta=True)
+    assert "new_prop" in data
+    assert meta is None
+    ## Update object that not exists in buffer
+    success = buf.update("invalidindex", {}, None)
+    assert success == False
+
+    # Delete data
+    [[_, index]] = buf.sample(1, return_index=True)
+    success = buf.delete(index)
+    assert success
+    assert storage.count() == 0
