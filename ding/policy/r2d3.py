@@ -142,6 +142,7 @@ class R2D3Policy(Policy):
         self.lambda1 = self._cfg.learn.lambda1  # n-step return
         self.lambda2 = self._cfg.learn.lambda2  # supervised loss
         self.lambda3 = self._cfg.learn.lambda3  # L2
+        self.lambda_one_step_td = self._cfg.learn.lambda_one_step_td  # 1-step return
         # margin function in JE, here we implement this as a constant
         self.margin_function = self._cfg.learn.margin_function
 
@@ -339,6 +340,7 @@ class R2D3Policy(Policy):
                     self._gamma,
                     self.lambda1,
                     self.lambda2,
+                    self.lambda_one_step_td,  # TODO
                     self.margin_function,
                     self._nstep,
                     False,
