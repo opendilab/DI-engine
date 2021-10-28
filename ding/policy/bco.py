@@ -14,6 +14,8 @@ from ding.utils import EasyTimer
 from ding.utils.data import default_collate, default_decollate
 from ding.rl_utils import q_nstep_td_data, q_nstep_sql_td_error, get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
+
+
 @POLICY_REGISTRY.register('bco')
 class BehaviourCloningObservationPolicy(Policy):
     config = dict(
@@ -113,6 +115,7 @@ class BehaviourCloningObservationPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+
     def _init_collect(self) -> None:
         r"""
         Overview:
