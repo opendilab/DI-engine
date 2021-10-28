@@ -285,11 +285,6 @@ class EnsembleDynamicsModel(nn.Module):
             self.tb_logger.add_scalar('env_model_step/eval_model_variances', model_variance.mean().item(), envstep)
 
         self.last_eval_step = envstep
-        # self.ensemble_mse_losses.append(ensemble_mse_loss.detach().cpu())
-        # self.model_variances.append(model_variance.detach().cpu())
-        # ensemble_mse_losses = torch.cat(self.ensemble_mse_losses, dim=0).numpy()
-        # model_variances = torch.cat(self.model_variances, dim=0).numpy()
-        # scipy.io.savemat('var_vs_mse.mat', dict(ensemble_mse_losses=ensemble_mse_losses, model_variances=model_variances))
 
     def train(self, buffer, train_iter, envstep):
         # load data
@@ -373,12 +368,12 @@ class EnsembleDynamicsModel(nn.Module):
             assert self.curr_holdout_mse_loss >= self.best_holdout_mse_loss, '{} vs {}'.format(
                 self.curr_holdout_mse_loss, self.best_holdout_mse_loss
             )
-        return {'mse_loss': self.mse_loss, \
-                'curr_holdout_mse_loss': self.curr_holdout_mse_loss, \
-                'best_holdout_mse_loss': self.best_holdout_mse_loss, \
-                'top_holdout_mse_loss': self.top_holdout_mse_loss, \
-                'middle_holdout_mse_loss': self.middle_holdout_mse_loss, \
-                'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss, \
+        return {'mse_loss': self.mse_loss,
+                'curr_holdout_mse_loss': self.curr_holdout_mse_loss,
+                'best_holdout_mse_loss': self.best_holdout_mse_loss,
+                'top_holdout_mse_loss': self.top_holdout_mse_loss,
+                'middle_holdout_mse_loss': self.middle_holdout_mse_loss,
+                'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
                 }
 
     def _save_states(self, ):
