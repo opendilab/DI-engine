@@ -128,6 +128,10 @@ setup(
         # 'gym_hybrid_env': [
         #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid',
         # ],
+
+        # 'gobigger_env': [
+        #     'gobigger @ git+https://github.com/opendilab/GoBigger@main#egg=gobigger',
+        # ],
         # 'gym_soccer_env': [
         #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
         # ],
