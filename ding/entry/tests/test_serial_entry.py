@@ -44,6 +44,7 @@ from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config i
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 
+
 @pytest.mark.unittest
 @pytest.mark.dqn
 def test_dqn():
@@ -66,7 +67,8 @@ def test_ddpg():
     except Exception:
         assert False, "pipeline fail"
 
-@pytest.mark.unittest
+
+# @pytest.mark.unittest
 def test_hybrid_ddpg():
     config = [deepcopy(gym_hybrid_ddpg_config), deepcopy(gym_hybrid_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -74,6 +76,7 @@ def test_hybrid_ddpg():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+
 
 @pytest.mark.unittest
 def test_td3():
@@ -476,4 +479,3 @@ def test_td3_bc():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf td3 td3_bc')
-

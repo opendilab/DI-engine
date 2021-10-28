@@ -11,24 +11,34 @@ B = 4
 T = 6
 embedding_size = 32
 hybrid_args = {
-        'action_shape': EasyDict({'action_type_shape':(4,), 'action_args_shape': (6,)}),
-        'twin': True,
-        'actor_head_type': 'hybrid'
-    }
+    'action_shape': EasyDict({
+        'action_type_shape': (4, ),
+        'action_args_shape': (6, )
+    }),
+    'twin': True,
+    'actor_head_type': 'hybrid'
+}
 
 
 @pytest.mark.unittest
 class TestHybridQAC:
 
-    def test_hybrid_qac(self, action_shape = hybrid_args['action_shape'], 
-                              twin = hybrid_args['twin'], 
-                              actor_head_type = hybrid_args['actor_head_type']):
+    def test_hybrid_qac(
+        self,
+        action_shape=hybrid_args['action_shape'],
+        twin=hybrid_args['twin'],
+        actor_head_type=hybrid_args['actor_head_type']
+    ):
         N = 32
         assert actor_head_type == 'hybrid'
-        inputs = {'obs': torch.randn(B, N), 
-                      'action': [torch.rand(B, N), torch.rand(B, N, squeeze(action_shape.action_args_shape))], 
-                      'logit':torch.randn(B, N, squeeze(action_shape.action_type_shape))
-                      }
+        inputs = {
+            'obs': torch.randn(B, N),
+            'action': {
+                'action_type': torch.randint(0, squeeze(action_shape.action_type_shape), (B, )),
+                'action_args': torch.rand(B, squeeze(action_shape.action_args_shape))
+            },
+            'logit': torch.randn(B, squeeze(action_shape.action_type_shape))
+        }
         model = QAC(
             obs_shape=(N, ),
             action_shape=action_shape,
@@ -48,20 +58,13 @@ class TestHybridQAC:
         # compute_action
         print(model)
 
-        discrete_logit = model(inputs['obs'], mode='compute_actor')['logit']
-        continuous_args = model(inputs['obs'], mode='compute_actor')['action_args']
-        # test discrete action
+        output = model(inputs['obs'], mode='compute_actor')
+        discrete_logit = output['logit']
+        continuous_args = output['action_args']
+        # test discrete action_type + continuous action_args
         if squeeze(action_shape.action_type_shape) == 1:
             assert discrete_logit.shape == (B, )
         else:
             assert discrete_logit.shape == (B, squeeze(action_shape.action_type_shape))
-        is_differentiable(discrete_logit.sum(), model.actor)
-
-        # test continuous action
-        if squeeze(action_shape.action_args_shape) == 1:
-            assert continuous_args.shape == (B, )
-        else:
-            assert continuous_args.shape == (B, squeeze(action_shape.action_args_shape))
-        
-        assert continuous_args.eq(continuous_args.clamp(-1, 1)).all()
-        is_differentiable(continuous_args.sum(), model.actor)
+        assert continuous_args.shape == (B, action_shape.action_args_shape)
+        is_differentiable(discrete_logit.sum() + continuous_args.sum(), model.actor)

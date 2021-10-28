@@ -1,4 +1,4 @@
-from typing import Any, List, Union, Optional
+from typing import Any, List, Dict, Union, Optional
 import time
 import gym
 import gym_hybrid
@@ -52,10 +52,11 @@ class GymHybridEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: List) -> BaseEnvTimestep:
+    def step(self, action: Dict) -> BaseEnvTimestep:
         if self._act_scale:
             # acceleration_value
-            action[1][0] = affine_transform(action[1][0], min_val=0, max_val=1)
+            action['action_args'][0] = affine_transform(action['action_args'][0], min_val=0, max_val=1)
+            action = [action['action_type'], action['action_args']]
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
@@ -76,12 +77,13 @@ class GymHybridEnv(BaseEnv):
         info['action_args_mask'] = np.array([[1, 0], [0, 1], [0, 0]])
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def get_random_action(self):
+    def get_random_action(self) -> Dict:
         # action_type: 0, 1, 2
         # action_args:
         #   - acceleration_value: [0, 1]
         #   - rotation_value: [-1, 1]
-        return self._env.action_space.sample()
+        raw_action = self._env.action_space.sample()
+        return {'action_type': raw_action[0], 'action_args': raw_action[1]}
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo

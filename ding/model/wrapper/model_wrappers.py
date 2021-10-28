@@ -201,7 +201,7 @@ class HybridArgmaxSampleWrapper(IModelWrapper):
         action = [l.argmax(dim=-1) for l in logit]
         if len(action) == 1:
             action, logit = action[0], logit[0]
-        output = {'action': [action, output['action_args']], 'logit': output['logit']}
+        output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
         return output
 
 
@@ -305,7 +305,7 @@ class HybridEpsGreedySampleWrapper(IModelWrapper):
                     action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
         if len(action) == 1:
             action, logit = action[0], logit[0]
-        output = {'action': [action, output['action_args']], 'logit': output['logit']}
+        output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
         return output
 
 
@@ -394,7 +394,7 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
                     action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
         if len(action) == 1:
             action, logit = action[0], logit[0]
-        output = {'action': [action, output['action_args']], 'logit': output['logit']}
+        output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
         return output
 
 

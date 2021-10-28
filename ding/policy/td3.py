@@ -82,7 +82,7 @@ class TD3Policy(DDPGPolicy):
         # (str) Action space type
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
-        use_reward_batch_norm=False,
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).

@@ -85,7 +85,7 @@ class DDPGPolicy(Policy):
         # (str) Action space type
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
-        use_reward_batch_norm=False,
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
@@ -167,7 +167,7 @@ class DDPGPolicy(Policy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-        self._use_reward_batch_norm = self._cfg.use_reward_batch_norm
+        self._reward_batch_norm = self._cfg.reward_batch_norm
 
         self._gamma = self._cfg.learn.discount_factor
         self._actor_update_freq = self._cfg.learn.actor_update_freq
@@ -228,7 +228,7 @@ class DDPGPolicy(Policy):
         self._target_model.train()
         next_obs = data['next_obs']
         reward = data['reward']
-        if self._use_reward_batch_norm:
+        if self._reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
