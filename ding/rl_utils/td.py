@@ -545,8 +545,9 @@ def q_nstep_td_error_with_rescale_ngu(
 def dqfd_nstep_td_error(
         data: namedtuple,
         gamma: float,
-        lambda1: float,
-        lambda2: float,
+        lambda_n_step_td: float,
+        lambda_supervised_loss: float,
+        lambda_one_step_td: float,
         margin_function: float,
         nstep: int = 1,
         cum_reward: bool = False,
@@ -625,15 +626,23 @@ def dqfd_nstep_td_error(
     # along the first dimension. for the index of the action, fill the corresponding position in l with 0
     JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
 
-    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
-            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
+    return (
+        (
+            (
+                lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+                lambda_supervised_loss * JE
+            ) * weight
+        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+        lambda_supervised_loss * JE
+    )
 
 
 def dqfd_nstep_td_error_with_rescale(
     data: namedtuple,
     gamma: float,
-    lambda1: float,
-    lambda2: float,
+    lambda_n_step_td: float,
+    lambda_supervised_loss: float,
+    lambda_one_step_td: float,
     margin_function: float,
     nstep: int = 1,
     cum_reward: bool = False,
@@ -693,6 +702,7 @@ def dqfd_nstep_td_error_with_rescale(
             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
     else:
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+
     target_q_s_a = trans_fn(target_q_s_a)  # rescale
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
 
@@ -709,8 +719,8 @@ def dqfd_nstep_td_error_with_rescale(
         target_q_s_a_one_step = nstep_return(
             nstep_return_data(reward, target_q_s_a_one_step, done_one_step), gamma, nstep, value_gamma
         )
-    target_q_s_a_one_step = trans_fn(target_q_s_a_one_step)  # rescale
 
+    target_q_s_a_one_step = trans_fn(target_q_s_a_one_step)  # rescale
     td_error_one_step_per_sample = criterion(q_s_a, target_q_s_a_one_step.detach())
     device = q_s_a.device
     device_cpu = torch.device('cpu')
@@ -720,8 +730,15 @@ def dqfd_nstep_td_error_with_rescale(
     # along the first dimension. for the index of the action, fill the corresponding position in l with 0
     JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
 
-    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
-            weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
+    return (
+        (
+            (
+                lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+                lambda_supervised_loss * JE
+            ) * weight
+        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+        lambda_supervised_loss * JE
+    )
 
 
 qrdqn_nstep_td_data = namedtuple(

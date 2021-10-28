@@ -80,8 +80,9 @@ class InverseNetwork(nn.Module):
             self.embedding_net = ConvEncoder(obs_shape, hidden_size_list)
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".format(
-                    obs_shape))
+                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
+                format(obs_shape)
+            )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
         )
@@ -265,7 +266,7 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
-                    batch_size * seq_length - null_cnt
+                batch_size * seq_length - null_cnt
             )  # TODO recompute mean
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
@@ -322,8 +323,10 @@ class RndNetwork(nn.Module):
             self.target = ConvEncoder(obs_shape, hidden_size_list)
             self.predictor = ConvEncoder(obs_shape, hidden_size_list)
         else:
-            raise KeyError("not support obs_shape for pre-defined encoder: {}, "
-                           "please customize your own RND model".format(obs_shape))
+            raise KeyError(
+                "not support obs_shape for pre-defined encoder: {}, "
+                "please customize your own RND model".format(obs_shape)
+            )
         for param in self.target.parameters():
             param.requires_grad = False
 
@@ -500,9 +503,7 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
                                 if data[i]['reward'][j][k] != 0:
                                     # find the last one that is nonzero, and enlarging <seq_length> times
                                     tmp = copy.deepcopy(data[i]['reward'][j][k])  # should deepcopy to avoid
-                                    data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(
-                                        data[i]['beta'][j]
-                                    )]
+                                    data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(data[i]['beta'][j])]
                                     # data[i]['reward'][j][k] = last_rew_weight * tmp + intrinsic_reward[k]
                                     # * index_to_beta[int(data[i]['beta'][j])]
                                     data[i]['reward'][j][k] = last_rew_weight * tmp
