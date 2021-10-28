@@ -80,9 +80,8 @@ class InverseNetwork(nn.Module):
             self.embedding_net = ConvEncoder(obs_shape, hidden_size_list)
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
+                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".format(
+                    obs_shape))
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
         )
@@ -252,10 +251,12 @@ class EpisodicRewardModel(BaseRewardModel):
                     # TODO if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
-                    null_cnt = null_cnt + seq_length - null_start_index  # add the number of null transitions in i'th sequence in batch
+                    # add the number of null transitions in i'th sequence in batch
+                    null_cnt = null_cnt + seq_length - null_start_index
                     for k in range(null_start_index, seq_length):
                         episodic_reward[i][k] = torch.tensor(0).to(self.device)
-                    # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device) for i in range(seq_length-null_start_index)]
+                        # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device)
+                        # for i in range(seq_length-null_start_index)]
 
             # list(list(tensor)) - > tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
@@ -264,7 +265,7 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
-                batch_size * seq_length - null_cnt
+                    batch_size * seq_length - null_cnt
             )  # TODO recompute mean
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
@@ -285,13 +286,16 @@ class EpisodicRewardModel(BaseRewardModel):
             episodic_reward = (episodic_reward -
                                episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)
             ''' 1. transform to batch mean1: erbm1'''
-            # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11) # the null_padding transition have episodic reward=0,
+            # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
+            # the null_padding transition have episodic reward=0,
             # episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11)
             '''2. transform to long-term mean1: erlm1'''
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
             '''3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
-            otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger ,the total intrinsic reward smaller, which is not correct.'''
-            # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean) / self._running_mean_std_episodic_reward.std
+            otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger,
+            the total intrinsic reward smaller, which is not correct.'''
+            # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean)
+            # / self._running_mean_std_episodic_reward.std
             '''4. transform to std1, which is not very meaningful'''
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
 
@@ -318,10 +322,8 @@ class RndNetwork(nn.Module):
             self.target = ConvEncoder(obs_shape, hidden_size_list)
             self.predictor = ConvEncoder(obs_shape, hidden_size_list)
         else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
+            raise KeyError("not support obs_shape for pre-defined encoder: {}, "
+                           "please customize your own RND model".format(obs_shape))
         for param in self.target.parameters():
             param.requires_grad = False
 
@@ -481,28 +483,33 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
             for j in range(seq_length):  # burnin+unroll_len is the sequence length, e.g. 100=2+98
                 if j < seq_length - nstep:
                     intrinsic_reward = torch.cat([intrisic_reward[i * seq_length + j + k] for k in range(nstep)], dim=0)
-                    if intrinsic_reward_type == 'add':
-                        if not data[i]['null'][j]:
-                            # if data[i]['null'][j]==True, means its's null data, only the not null data, we add aintrinsic_reward reward
-                            if data[i]['done'][j]:
-                                # if not null data, and data[i]['done'][j]==True, so this is the last nstep transition in the original data.
-                                for k in reversed(range(nstep)):
-                                    # here we want to find the last nonzero reward in the nstep reward list: data[i]['reward'][j],
-                                    # that is also the last reward in the sequence, here, we set the sequence length is large enough,
-                                    # so we can consider the sequence as the whole episode plus null_padding
+                    # if intrinsic_reward_type == 'add':
+                    if not data[i]['null'][j]:
+                        # if data[i]['null'][j]==True, means its's null data, only the not null data,
+                        # we add aintrinsic_reward reward
+                        if data[i]['done'][j]:
+                            # if not null data, and data[i]['done'][j]==True, so this is the last nstep transition
+                            # in the original data.
+                            for k in reversed(range(nstep)):
+                                # here we want to find the last nonzero reward in the nstep reward list:
+                                # data[i]['reward'][j], that is also the last reward in the sequence, here,
+                                # we set the sequence length is large enough,
+                                # so we can consider the sequence as the whole episode plus null_padding
 
-                                    # TODO(pu): what should we do if the last reward in the whole episode is zero?
-                                    if data[i]['reward'][j][k] != 0:
-                                        # find the last one that is nonzero, and enlarging <seq_length> times
-                                        tmp = copy.deepcopy(data[i]['reward'][j][k])  # should deepcopy to avoid
-                                        data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(
-                                            data[i]['beta'][j]
-                                        )]
-                                        # data[i]['reward'][j][k] = last_rew_weight * tmp + intrinsic_reward[k] * index_to_beta[int(data[i]['beta'][j])]
-                                        data[i]['reward'][j][k] = last_rew_weight * tmp
-                                        # substitute the kth reward in the list data[i]['reward'][j] with <seq_length> times amplified reward
-                                        break
-                            else:
-                                data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(data[i]['beta'][j])]
+                                # TODO(pu): what should we do if the last reward in the whole episode is zero?
+                                if data[i]['reward'][j][k] != 0:
+                                    # find the last one that is nonzero, and enlarging <seq_length> times
+                                    tmp = copy.deepcopy(data[i]['reward'][j][k])  # should deepcopy to avoid
+                                    data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(
+                                        data[i]['beta'][j]
+                                    )]
+                                    # data[i]['reward'][j][k] = last_rew_weight * tmp + intrinsic_reward[k]
+                                    # * index_to_beta[int(data[i]['beta'][j])]
+                                    data[i]['reward'][j][k] = last_rew_weight * tmp
+                                    # substitute the kth reward in the list data[i]['reward'][j] with <seq_length>
+                                    # times amplified reward
+                                    break
+                        else:
+                            data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(data[i]['beta'][j])]
 
     return data, estimate_cnt
