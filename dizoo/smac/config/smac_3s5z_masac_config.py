@@ -58,9 +58,7 @@ smac_3s5z_masac_default_config = dict(
         ),
         command=dict(),
         eval=dict(
-            evaluator=dict(
-                eval_freq=50,
-            ),
+            evaluator=dict(eval_freq=50, ),
             env_num=evaluator_env_num,
         ),
         other=dict(
@@ -70,7 +68,8 @@ smac_3s5z_masac_default_config = dict(
                 end=0.05,
                 decay=100000,
             ),  # TODO(pu)
-            replay_buffer=dict(replay_buffer_size=1000000, ), ),
+            replay_buffer=dict(replay_buffer_size=1000000, ),
+        ),
     ),
 )
 
@@ -83,14 +82,11 @@ smac_3s5z_masac_default_create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='sac_discrete',
-    ),
+    policy=dict(type='sac_discrete', ),
     #replay_buffer=dict(type='naive', ),
 )
 smac_3s5z_masac_default_create_config = EasyDict(smac_3s5z_masac_default_create_config)
 create_config = smac_3s5z_masac_default_create_config
-
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

@@ -299,12 +299,11 @@ class SACDiscretePolicy(Policy):
             # the value of a policy according to the maximum entropy objective
             if self._twin_critic:
                 # find min one as target q value
-                target_value = (prob * (
-                            torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))).sum(
-                    dim=-1)
+                target_value = (
+                    prob * (torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))
+                ).sum(dim=-1)
             else:
-                target_value = (prob * (target_q_value - self._alpha * log_prob.squeeze(-1))).sum(
-                    dim=-1)
+                target_value = (prob * (target_q_value - self._alpha * log_prob.squeeze(-1))).sum(dim=-1)
         # target_value = target_q_value
 
         # 3. compute q loss
@@ -365,7 +364,8 @@ class SACDiscretePolicy(Policy):
                 self._alpha_optim.zero_grad()
                 loss_dict['alpha_loss'].backward()
                 self._alpha_optim.step()
-                self._alpha.data = torch.where(self._alpha > 0, self._alpha, torch.zeros_like(self._alpha)).requires_grad_()
+                self._alpha.data = torch.where(self._alpha > 0, self._alpha,
+                                               torch.zeros_like(self._alpha)).requires_grad_()
                 #print(self._alpha)
                 #(torch.where(self._alpha > 0, self._alpha, torch.zeros_like(self._alpha)))
         loss_dict['total_loss'] = sum(loss_dict.values())
@@ -434,7 +434,6 @@ class SACDiscretePolicy(Policy):
 
         self._collect_model.reset()
 
-
     def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
@@ -450,12 +449,13 @@ class SACDiscretePolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward({'obs': data}, mode='compute_actor', eps=eps)  # eps_greedy_sample  eps_greedy_sample_masac
+            output = self._collect_model.forward(
+                {'obs': data}, mode='compute_actor', eps=eps
+            )  # eps_greedy_sample  eps_greedy_sample_masac
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -534,6 +534,7 @@ class SACDiscretePolicy(Policy):
                 'policy_loss', 'critic_loss', 'cur_lr_q', 'cur_lr_p', 'target_q_value', 'q_value_1', 'q_value_2',
                 'alpha', 'td_error', 'target_value', 'entropy'
             ] + twin_critic
+
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):

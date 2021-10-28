@@ -57,11 +57,7 @@ class MAQAC(nn.Module):
         self.actor = nn.Sequential(
             nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
             DiscreteHead(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                activation=activation,
-                norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
             )
         )
 

@@ -51,6 +51,7 @@ def q_v_1step_td_error(
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
+
 nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'done'])
 
 
