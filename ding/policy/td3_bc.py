@@ -93,6 +93,7 @@ class TD3BCPolicy(DDPGPolicy):
         random_collect_size=25000,
         # (bool) Whether use batch normalization for reward
         reward_batch_norm=False,
+        action_space='continuous',
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
