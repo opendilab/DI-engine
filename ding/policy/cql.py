@@ -165,6 +165,8 @@ class CQLPolicy(SACPolicy):
             lagrange_thresh=-1,
             # (float) Loss weight for conservative item.
             min_q_weight=1.0,
+            # (bool) Whether to use entory in target q.
+            with_q_entropy=False,
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -216,12 +218,22 @@ class CQLPolicy(SACPolicy):
                 lr=self._cfg.learn.learning_rate_q,
             )
 
+        self._with_q_entropy = self._cfg.learn.with_q_entropy
+
         # Weight Init
         init_w = self._cfg.learn.init_w
         self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
         self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
         self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
         self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        if self._twin_critic:
+            self._model.critic[0][2].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic[0][2].last.bias.data.uniform_(-init_w, init_w)
+            self._model.critic[1][2].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic[1][2].last.bias.data.uniform_(-init_w, init_w)
+        else:
+            self._model.critic[2].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic[2].last.bias.data.uniform_(-init_w, init_w)
 
         # Optimizers
         if self._value_network:
@@ -317,7 +329,7 @@ class CQLPolicy(SACPolicy):
                 next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
             target_q_value = next_v_value
         else:
-            # target q value. SARSA: first predict next action, then calculate next q value
+            # target q value.
             with torch.no_grad():
                 (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
@@ -333,10 +345,14 @@ class CQLPolicy(SACPolicy):
                 # the value of a policy according to the maximum entropy objective
                 if self._twin_critic:
                     # find min one as target q value
-                    target_q_value = torch.min(target_q_value[0],
-                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
+                    if self._with_q_entropy:
+                        target_q_value = torch.min(target_q_value[0],
+                                                   target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
+                    else:
+                        target_q_value = torch.min(target_q_value[0], target_q_value[1])
                 else:
-                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
+                    if self._with_q_entropy:
+                        target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
 
         # 3. compute q loss
         if self._twin_critic:
@@ -362,7 +378,7 @@ class CQLPolicy(SACPolicy):
         act_repeat = data['action'].unsqueeze(1).repeat(1, self._num_actions, 1).view(
             data['action'].shape[0] * self._num_actions, data['action'].shape[1]
         )
-        q_pred = self._get_q_value({'obs': obs_repeat, 'action': act_repeat})
+
         q_rand = self._get_q_value({'obs': obs_repeat, 'action': random_actions_tensor})
         # q2_rand = self._get_q_value(obs, random_actions_tensor, network=self.qf2)
         q_curr_actions = self._get_q_value({'obs': obs_repeat, 'action': curr_actions_tensor})
@@ -370,20 +386,20 @@ class CQLPolicy(SACPolicy):
         q_next_actions = self._get_q_value({'obs': obs_repeat, 'action': new_curr_actions_tensor})
         # q2_next_actions = self._get_tensor_values(obs, new_curr_actions_tensor, network=self.qf2)
 
-        cat_q1 = torch.stack([q_rand[0], q_pred[0], q_next_actions[0], q_curr_actions[0]], 1)
-        cat_q2 = torch.stack([q_rand[1], q_pred[1], q_next_actions[1], q_curr_actions[1]], 1)
+        cat_q1 = torch.cat([q_rand[0], q_value[0].reshape(-1, 1, 1), q_next_actions[0], q_curr_actions[0]], 1)
+        cat_q2 = torch.cat([q_rand[1], q_value[1].reshape(-1, 1, 1), q_next_actions[1], q_curr_actions[1]], 1)
         std_q1 = torch.std(cat_q1, dim=1)
         std_q2 = torch.std(cat_q2, dim=1)
         if self._min_q_version == 3:
             # importance sammpled version
             random_density = np.log(0.5 ** curr_actions_tensor.shape[-1])
-            cat_q1 = torch.stack(
+            cat_q1 = torch.cat(
                 [
                     q_rand[0] - random_density, q_next_actions[0] - new_log_pis.detach(),
                     q_curr_actions[0] - curr_log_pis.detach()
                 ], 1
             )
-            cat_q2 = torch.stack(
+            cat_q2 = torch.cat(
                 [
                     q_rand[1] - random_density, q_next_actions[1] - new_log_pis.detach(),
                     q_curr_actions[1] - curr_log_pis.detach()
@@ -393,8 +409,8 @@ class CQLPolicy(SACPolicy):
         min_qf1_loss = torch.logsumexp(cat_q1, dim=1).mean() * self._min_q_weight
         min_qf2_loss = torch.logsumexp(cat_q2, dim=1).mean() * self._min_q_weight
         """Subtract the log likelihood of data"""
-        min_qf1_loss = min_qf1_loss - q_pred[0].mean() * self._min_q_weight
-        min_qf2_loss = min_qf2_loss - q_pred[1].mean() * self._min_q_weight
+        min_qf1_loss = min_qf1_loss - q_value[0].mean() * self._min_q_weight
+        min_qf2_loss = min_qf2_loss - q_value[1].mean() * self._min_q_weight
 
         if self._with_lagrange:
             alpha_prime = torch.clamp(self.log_alpha_prime.exp(), min=0.0, max=1000000.0)
@@ -434,7 +450,10 @@ class CQLPolicy(SACPolicy):
         # 7. (optional)compute value loss
         if self._value_network:
             # new_q_value: (bs, ), log_prob: (bs, act_shape) -> target_v_value: (bs, )
-            target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
+            if self._with_q_entropy:
+                target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
+            else:
+                target_v_value = new_q_value.unsqueeze(-1).mean(dim=-1)
             loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
 
             # update value network
@@ -504,10 +523,14 @@ class CQLPolicy(SACPolicy):
         log_prob = dist.log_prob(pred).unsqueeze(-1)
         log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
 
-        return action, log_prob.squeeze(-1)
+        return action, log_prob.view(-1, num_actions, 1)
 
     def _get_q_value(self, data: Dict, keep=True) -> torch.Tensor:
         new_q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
+        if self._twin_critic:
+            new_q_value = [value.view(-1, self._num_actions, 1) for value in new_q_value]
+        else:
+            new_q_value = new_q_value.view(-1, self._num_actions, 1)
         if self._twin_critic and not keep:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
         return new_q_value
@@ -714,11 +737,11 @@ class CQLDiscretePolicy(DQNPolicy):
 
     def _init_collect(self) -> None:
         r"""
-            Overview:
-                Collect mode init method. Called by ``self.__init__``.
-                Init traj and unroll length, collect model.
-                Enable the eps_greedy_sample
-            """
+        Overview:
+            Collect mode init method. Called by ``self.__init__``.
+            Init traj and unroll length, collect model.
+            Enable the eps_greedy_sample
+        """
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
@@ -726,14 +749,21 @@ class CQLDiscretePolicy(DQNPolicy):
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
-        r"""
-            Overview:
-                Forward function for collect mode with eps_greedy
-            Arguments:
-                - data (:obj:`dict`): Dict type data, including at least ['obs'].
-            Returns:
-                - data (:obj:`dict`): The collected data
-            """
+        """
+        Overview:
+            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \
+                env and the constructing of transition.
+        ArgumentsKeys:
+            - necessary: ``obs``
+        ReturnsKeys
+            - necessary: ``logit``, ``action``
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:

@@ -5,7 +5,7 @@ from dizoo.multiagent_particle.envs import ParticleEnv, CooperativeNavigation
 use_discrete = [True, False]
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 @pytest.mark.parametrize('discrete_action', use_discrete)
 class TestParticleEnv:
 
@@ -85,7 +85,7 @@ class TestParticleEnv:
         env.close()
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCooperativeNavigation:
 
     def test_discrete_naive(self):

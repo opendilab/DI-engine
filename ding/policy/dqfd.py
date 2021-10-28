@@ -39,6 +39,11 @@ class DQFDPolicy(DQNPolicy):
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
         7  ``nstep``            int      10,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
+        8  | ``lambda1``        float     1              | multiplicative factor for n-step return
+        9  | ``lambda2``        float     1              | multiplicative factor for the supervised margin loss
+        10 | ``lambda3``        float     1e-5           | L2 loss
+        11 | ``margin_function  float     0.8            | margin function in JE, here we implement this as a constant
+        12 | ``per_train_iter_k`` int     10             | number of pertraining iterations
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
@@ -46,7 +51,7 @@ class DQFDPolicy(DQNPolicy):
            | ``size``
         10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        11 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+        11 | ``learn.target_``  int      100            | Frequency of target network update.    | Hard(assign) update
            | ``update_freq``
         12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
            | ``done``                                   | calculation.                           | fake termination env
@@ -68,9 +73,9 @@ class DQFDPolicy(DQNPolicy):
         nstep=10,
         learn=dict(
             # multiplicative factor for each loss
-            lambda1=1.0,
-            lambda2=1.0,
-            lambda3=1e-5,
+            lambda1=1.0,  # n-step return
+            lambda2=1.0,  # supervised loss
+            lambda3=1e-5,  # L2
             # margin function in JE, here we implement this as a constant
             margin_function=0.8,
             # number of pertraining iterations
@@ -123,15 +128,15 @@ class DQFDPolicy(DQNPolicy):
             Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \
             and target model.
         """
-        self.lambda1 = self._cfg.learn.lambda1,  # n-step return
-        self.lambda2 = self._cfg.learn.lambda2,  # supervised loss
-        self.lambda3 = self._cfg.learn.lambda3,  # L2
+        self.lambda1 = self._cfg.learn.lambda1  # n-step return
+        self.lambda2 = self._cfg.learn.lambda2  # supervised loss
+        self.lambda3 = self._cfg.learn.lambda3  # L2
         # margin function in JE, here we implement this as a constant
         self.margin_function = self._cfg.learn.margin_function
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3[0])
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
