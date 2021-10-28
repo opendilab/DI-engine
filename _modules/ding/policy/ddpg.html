@@ -249,7 +249,7 @@
         <span class="c1"># (str) Action space type</span>
         <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;continuous&#39;, &#39;hybrid&#39;]</span>
         <span class="c1"># (bool) Whether use batch normalization for reward</span>
-        <span class="n">use_reward_batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">reward_batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use two critic networks or only one.</span>
             <span class="c1"># Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).</span>
@@ -331,7 +331,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
             <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_critic</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_use_reward_batch_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">use_reward_batch_norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reward_batch_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">reward_batch_norm</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">discount_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_actor_update_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">actor_update_freq</span>
@@ -392,7 +392,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="n">next_obs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span>
         <span class="n">reward</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_reward_batch_norm</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward_batch_norm</span><span class="p">:</span>
             <span class="n">reward</span> <span class="o">=</span> <span class="p">(</span><span class="n">reward</span> <span class="o">-</span> <span class="n">reward</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
         <span class="c1"># current q value</span>
         <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
