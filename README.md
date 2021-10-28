@@ -181,7 +181,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 ![continuous](https://img.shields.io/badge/-continous-green) means continuous action space
 
-![hybrid](https://img.shields.io/badge/-hybrid-darkgreen)means hybrid (discrete + continuous) action space
+![hybrid](https://img.shields.io/badge/-hybrid-darkgreen) means hybrid (discrete + continuous) action space
 
 ![MARL](https://img.shields.io/badge/-MARL-yellow) means multi-agent RL environment
 
