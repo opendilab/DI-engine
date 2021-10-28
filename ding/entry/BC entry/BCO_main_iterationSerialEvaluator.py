@@ -10,7 +10,7 @@ from ding.config import read_config, compile_config
 from ding.model.template.q_learning import DQN
 from ding.utils import set_pkg_seed, get_rank, dist_init
 from ding.policy import BehaviourCloningObservationPolicy
-from dizoo.behaviour_cloning.config.cartpole_bc_config import main_config, create_config
+from dizoo.classic_control.cartpole.config.cartpole_bc_config import main_config, create_config
 from ding.envs import get_vec_env_setting, create_env_manager
 from functools import partial
 import numpy as np
@@ -144,7 +144,7 @@ def main(cfg: dict, create_cfg: dict, seed: int, env_setting: Optional[List[Any]
         #expert_learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=learn_sampler, num_workers=3)
         #eval_dataloader = DataLoader(eval_dataset, cfg.policy.eval.batch_size, sampler=eval_sampler, num_workers=2)
     else:
-        policy = BehaviourCloningObservationPolicy(cfg.policy, model=policy_model, enable_field=['learn', 'collect', 'eval', 'command'])
+        policy = BehaviourCloningObservationPolicy(cfg.policy, model=policy_model, enable_field=['learn', 'collect', 'eval'])
         collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
         '''
         action_space = collector_env.env_info().act_space
