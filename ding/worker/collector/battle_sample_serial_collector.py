@@ -96,6 +96,7 @@ class BattleSampleSerialCollector(ISerialCollector):
             self._default_n_sample = _policy[0].get_attribute('cfg').collect.get('n_sample', None)
             self._unroll_len = _policy[0].get_attribute('unroll_len')
             self._on_policy = _policy[0].get_attribute('cfg').on_policy
+            self._policy_collect_data = [getattr(self._policy[i], 'collect_data', True) for i in range(2)]
             if self._default_n_sample is not None:
                 self._traj_len = max(
                     self._unroll_len,
@@ -224,7 +225,7 @@ class BattleSampleSerialCollector(ISerialCollector):
         return_data = [[] for _ in range(2)]
         return_info = [[] for _ in range(2)]
 
-        while any([c < n_sample for c in collected_sample]):
+        while any([c < n_sample for i, c in enumerate(collected_sample) if self._policy_collect_data[i]]):
             with self._timer:
                 # Get current env obs.
                 obs = self._env.ready_obs
@@ -254,6 +255,8 @@ class BattleSampleSerialCollector(ISerialCollector):
                 self._total_envstep_count += 1
                 with self._timer:
                     for policy_id, policy in enumerate(self._policy):
+                        if not self._policy_collect_data[policy_id]:
+                            continue
                         policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                         policy_timestep = type(timestep)(*policy_timestep_data)
                         transition = self._policy[policy_id].process_transition(
