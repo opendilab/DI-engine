@@ -126,8 +126,9 @@ def serial_pipeline_r2d3(
             n_sample=expert_cfg.policy.learn.expert_replay_buffer_size, policy_kwargs=expert_collect_kwargs
         )
         for i in range(len(expert_data)):
-            # expert_data[i]['is_expert'] = 1  # set is_expert flag(expert 1, agent 0)
-            expert_data[i]['is_expert'] = [1] * expert_cfg.policy.collect.unroll_len  # rnn buffer
+            # set is_expert flag(expert 1, agent 0)
+            # expert_data[i]['is_expert'] = 1  # for transition-based alg.
+            expert_data[i]['is_expert'] = [1] * expert_cfg.policy.collect.unroll_len  # for rnn/sequence-based alg.
         expert_buffer.push(expert_data, cur_collector_envstep=0)
 
         for _ in range(cfg.policy.learn.per_train_iter_k):  # pretrain
@@ -151,7 +152,8 @@ def serial_pipeline_r2d3(
         collect_kwargs = commander.step()
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = 0  # set is_expert flag(expert 1, agent 0)
+            # set is_expert flag(expert 1, agent 0)
+            new_data[i]['is_expert'] = 0
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         collector.reset_policy(policy.collect_mode)
 
@@ -164,7 +166,7 @@ def serial_pipeline_r2d3(
                 break
 
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
                 train_iter=learner.train_iter,
@@ -174,9 +176,8 @@ def serial_pipeline_r2d3(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         for i in range(len(new_data)):
-            new_data[i]['is_expert'] = [
-                0
-            ] * expert_cfg.policy.collect.unroll_len  # set is_expert flag(expert 1, agent 0)
+            # set is_expert flag(expert 1, agent 0)
+            new_data[i]['is_expert'] = [0] * expert_cfg.policy.collect.unroll_len
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
