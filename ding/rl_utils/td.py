@@ -41,7 +41,8 @@ def nstep_return(data: namedtuple, gamma: float, nstep: int, value_gamma: Option
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
-
+    reward_factor = view_similar(reward_factor, reward)
+    reward = reward.mul(reward_factor).sum(0)
     if value_gamma is None:
         return_ = reward + (gamma ** nstep) * next_value * (1 - done)
     else:
@@ -59,10 +60,7 @@ def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Opti
         for i in range(1, nstep):
             reward_factor[i] = gamma[j] * reward_factor[i - 1]
         reward_tmp = torch.matmul(reward_factor, reward[:, j])
-        # if value_gamma is None:
         return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
-        # else:
-        # return_ = reward_tmp + value_gamma * next_value[j] * (1 - done[j])
         return_list.append(return_.unsqueeze(0))
     # return_list = to_tensor(return_list)
     return_ = torch.cat(return_list, dim=0)
