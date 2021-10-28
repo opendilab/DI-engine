@@ -25,6 +25,8 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 
+from .sac import SACDiscretePolicy
+
 from .il import ILPolicy
 
 from .command_mode_policy_instance import *

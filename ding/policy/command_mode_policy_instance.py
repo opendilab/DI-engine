@@ -28,6 +28,7 @@ from .sql import SQLPolicy
 from .dqfd import DQFDPolicy
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
+from .sac import SACDiscretePolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -215,4 +216,9 @@ class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('d4pg_command')
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('sac_discrete_command')
+class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
     pass
