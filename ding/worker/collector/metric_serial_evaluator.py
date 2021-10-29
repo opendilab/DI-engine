@@ -135,7 +135,6 @@ class MetricSerialEvaluator(ISerialEvaluator):
         if self._end_flag:
             return
         self._end_flag = True
-        self._env.close()
         self._tb_logger.flush()
         self._tb_logger.close()
 

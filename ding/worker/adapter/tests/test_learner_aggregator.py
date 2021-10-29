@@ -93,6 +93,13 @@ def test_learner_aggregator():
             assert task.result['a_list'] == [1, 2] * 4
             assert task.status == TaskStatus.COMPLETED
 
+            task = conn.new_task({'name': 'fake_task', 'task_info': {}})
+            task.start().join()
+            assert task.status == TaskStatus.FAILED
+            assert task.result == {'message': 'task name error'}
+
+            assert learner_aggregator.deal_with_get_resource()['gpu'] == len(learner_slaves)
+
     learner_aggregator.close()
     for learner_slave in learner_slaves:
         learner_slave.close()

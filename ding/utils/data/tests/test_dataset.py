@@ -1,11 +1,8 @@
 import pytest
-import threading
-import time
 import torch
-import torch.nn as nn
 from easydict import EasyDict
 
-from ding.utils.data import offline_data_save_type, create_dataset
+from ding.utils.data import offline_data_save_type, create_dataset, NaiveRLDataset, D4RLDataset, HDF5Dataset
 
 cfg1 = dict(policy=dict(collect=dict(
     data_type='naive',
@@ -46,3 +43,24 @@ def test_offline_data_save_type(data_type):
 def test_dataset(cfg):
     cfg = EasyDict(cfg)
     create_dataset(cfg)
+
+
+@pytest.mark.parametrize('cfg', [cfg1])
+@pytest.mark.unittest
+def test_NaiveRLDataset(cfg):
+    cfg = EasyDict(cfg)
+    dataset = NaiveRLDataset(cfg)
+
+
+# @pytest.mark.parametrize('cfg', [cfg3])
+# @pytest.mark.unittest
+# def test_D4RLDataset(cfg):
+#     cfg = EasyDict(cfg)
+#     dataset = D4RLDataset(cfg)
+
+
+@pytest.mark.parametrize('cfg', [cfg2])
+@pytest.mark.unittest
+def test_HDF5Dataset(cfg):
+    cfg = EasyDict(cfg)
+    dataset = HDF5Dataset(cfg)

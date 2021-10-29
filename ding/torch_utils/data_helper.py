@@ -110,7 +110,7 @@ def to_tensor(
         return new_data
     elif isinstance(item, list) or isinstance(item, tuple):
         if len(item) == 0:
-            return None
+            return []
         elif isinstance(item[0], numbers.Integral) or isinstance(item[0], numbers.Real):
             return transform(item)
         elif hasattr(item, '_fields'):  # namedtuple
