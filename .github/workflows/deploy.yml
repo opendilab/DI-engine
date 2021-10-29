@@ -1,6 +1,8 @@
 name: deploy  # deploy docker
 
-on: [push]
+on:
+  push:
+    branches: [main, 'deploy/*']
 
 jobs:
   docker_base:
