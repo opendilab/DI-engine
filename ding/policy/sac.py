@@ -76,6 +76,7 @@ class SACDiscretePolicy(Policy):
         # on-policy setting influences the behaviour of buffer.
         # Default False in SAC.
         on_policy=False,
+        multi_agent = True,
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Default False in SAC.
         priority=False,
@@ -216,6 +217,7 @@ class SACDiscretePolicy(Policy):
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
+        self._multi_agent = self._cfg.multi_agent
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
             self._target_entropy = self._cfg.learn.get('target_entropy', -np.prod(self._cfg.model.action_shape))
@@ -292,7 +294,7 @@ class SACDiscretePolicy(Policy):
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
             policy_output_next = self._learn_model.forward({'obs': next_obs}, mode='compute_actor')
-            policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
+            #policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
             prob = F.softmax(policy_output_next['logit'], dim=-1)
             log_prob = torch.log(prob + 1e-8)
             target_q_value = self._target_model.forward({'obs': next_obs}, mode='compute_critic')['q_value']
@@ -430,7 +432,10 @@ class SACDiscretePolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         # self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')  # TODO(pu)
         # self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_masac')
+        if self._multi_agent:
+            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_masac')
+        else:
+            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
 
         self._collect_model.reset()
 
@@ -514,7 +519,10 @@ class SACDiscretePolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'maqac', ['ding.model.template.maqac']
+        if self._multi_agent:
+            return 'maqac', ['ding.model.template.maqac']
+        else:
+            return 'discrete_qac', ['ding.model.template.maqac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

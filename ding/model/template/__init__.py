@@ -13,4 +13,4 @@ from .acer import ACER
 from .qtran import QTran
 from .mappo import MAPPO
 from .qac_dist import QACDIST
-from .maqac import MAQAC
+from .maqac import MAQAC, DiscreteQAC
