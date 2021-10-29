@@ -112,7 +112,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         if _policy is not None:
             self.reset_policy(_policy)
         self._max_eval_reward = float("-inf")
-        self._last_eval_iter = 0
+        self._last_eval_iter = -1
         self._end_flag = False
 
     def close(self) -> None:

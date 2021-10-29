@@ -52,7 +52,7 @@ class EpsCommandModePolicy(CommandModePolicy):
         Overview:
             Collect mode setting information including eps
         Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
@@ -170,8 +170,42 @@ class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('ddpg_command')
-class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
-    pass
+class DDPGCommandModePolicy(DDPGPolicy, CommandModePolicy):
+
+    def _init_command(self) -> None:
+        r"""
+        Overview:
+            Command mode init method. Called by ``self.__init__``.
+            If hybrid action space, set the eps_greedy rule according to the config for command,
+            otherwise, just a empty method
+        """
+        if self._cfg.action_space == 'hybrid':
+            eps_cfg = self._cfg.other.eps
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+
+    def _get_setting_collect(self, command_info: dict) -> dict:
+        r"""
+        Overview:
+            Collect mode setting information including eps when hybrid action space
+        Arguments:
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
+        Returns:
+           - collect_setting (:obj:`dict`): Including eps in collect mode.
+        """
+        if self._cfg.action_space == 'hybrid':
+            # Decay according to `learner_step`
+            # step = command_info['learner_step']
+            # Decay according to `envstep`
+            step = command_info['envstep']
+            return {'eps': self.epsilon_greedy(step)}
+        else:
+            return {}
+
+    def _get_setting_learn(self, command_info: dict) -> dict:
+        return {}
+
+    def _get_setting_eval(self, command_info: dict) -> dict:
+        return {}
 
 
 @POLICY_REGISTRY.register('td3_command')

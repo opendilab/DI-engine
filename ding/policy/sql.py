@@ -176,7 +176,7 @@ class SQLPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_sql')
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
