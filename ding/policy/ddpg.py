@@ -82,6 +82,10 @@ class DDPGPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (str) Action space type
+        action_space='continuous',  # ['continuous', 'hybrid']
+        # (bool) Whether use batch normalization for reward
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
@@ -163,7 +167,7 @@ class DDPGPolicy(Policy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
+        self._reward_batch_norm = self._cfg.reward_batch_norm
 
         self._gamma = self._cfg.learn.discount_factor
         self._actor_update_freq = self._cfg.learn.actor_update_freq
@@ -171,6 +175,8 @@ class DDPGPolicy(Policy):
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
+        if self._cfg.action_space == 'hybrid':
+            self._target_model = model_wrap(self._target_model, wrapper_name='hybrid_argmax_sample')
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
@@ -189,6 +195,8 @@ class DDPGPolicy(Policy):
                 noise_range=self._cfg.learn.noise_range
             )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
+        if self._cfg.action_space == 'hybrid':
+            self._learn_model = model_wrap(self._learn_model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
 
@@ -218,9 +226,9 @@ class DDPGPolicy(Policy):
         # ====================
         self._learn_model.train()
         self._target_model.train()
-        next_obs = data.get('next_obs')
-        reward = data.get('reward')
-        if self._use_reward_batch_norm:
+        next_obs = data['next_obs']
+        reward = data['reward']
+        if self._reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
@@ -232,9 +240,9 @@ class DDPGPolicy(Policy):
             q_value_dict['q_value'] = q_value.mean()
         # target q value.
         with torch.no_grad():
-            next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
-            next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
+            next_actor_data['obs'] = next_obs
+            target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
@@ -283,11 +291,15 @@ class DDPGPolicy(Policy):
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
+        if self._cfg.action_space == 'hybrid':
+            action_log_value = -1.  # TODO(nyz) better way to viz hybrid action
+        else:
+            action_log_value = data['action'].mean()
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
             # 'q_value': np.array(q_value).mean(),
-            'action': data.get('action').mean(),
+            'action': action_log_value,
             'priority': td_error_per_sample.abs().tolist(),
             'td_error': td_error_per_sample.abs().mean(),
             **loss_dict,
@@ -324,9 +336,11 @@ class DDPGPolicy(Policy):
             },
             noise_range=None
         )
+        if self._cfg.action_space == 'hybrid':
+            self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
@@ -345,7 +359,7 @@ class DDPGPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+            output = self._collect_model.forward(data, mode='compute_actor', **kwargs)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -370,6 +384,8 @@ class DDPGPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
+        if self._cfg.action_space == 'hybrid':
+            transition['logit'] = model_output['logit']
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
@@ -382,6 +398,8 @@ class DDPGPolicy(Policy):
             Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
+        if self._cfg.action_space == 'hybrid':
+            self._eval_model = model_wrap(self._eval_model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:

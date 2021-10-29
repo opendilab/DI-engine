@@ -177,6 +177,34 @@ class ArgmaxSampleWrapper(IModelWrapper):
         return output
 
 
+class HybridArgmaxSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample argmax action in hybrid action space,
+        i.e.{'action_type': discrete, 'action_args', continuous}
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        if 'logit' not in output:
+            return output
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        action = [l.argmax(dim=-1) for l in logit]
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
+        return output
+
+
 class MultinomialSampleWrapper(IModelWrapper):
     r"""
     Overview:
@@ -207,7 +235,7 @@ class MultinomialSampleWrapper(IModelWrapper):
 class EpsGreedySampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+        Epsilon greedy sampler used in collector_model to help balance exploration and exploitation.
     Interfaces:
         register
     """
@@ -285,7 +313,8 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
 class EpsGreedySampleWrapperSql(IModelWrapper):
     r"""
     Overview:
-        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+        Epsilon greedy sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
     Interfaces:
         register
     """
@@ -323,6 +352,50 @@ class EpsGreedySampleWrapperSql(IModelWrapper):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output['action'] = action
+        return output
+
+
+class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
+    """
+    Overview:
+        Epsilon greedy sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
+        In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        eps = kwargs.pop('eps')
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps:
+                prob = torch.softmax(l, dim=-1)
+                prob = prob / torch.sum(prob, 1, keepdims=True)
+                pi_action = Categorical(prob)
+                pi_action = pi_action.sample()
+                action.append(pi_action)
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
         return output
 
 
@@ -460,9 +533,16 @@ wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
+    'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
+<<<<<<< HEAD
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
+=======
+    'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
+    'hybrid_eps_greedy_sample': HybridEpsGreedySampleWrapper,
+    'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
+>>>>>>> edb14698b757709e2c03b74f75cc314b51f1c1ae
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
     # model wrapper
