@@ -206,7 +206,7 @@ class R2D3Policy(Policy):
         # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['done'] = data['done'][bs:].float()
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
@@ -344,7 +344,7 @@ class R2D3Policy(Policy):
                     self.margin_function,
                     self._nstep,
                     False,
-                    value_gamma[t],
+                    value_gamma=value_gamma[t],
                 )
                 loss.append(l)
                 td_error.append(e.abs())
@@ -355,10 +355,11 @@ class R2D3Policy(Policy):
                     self._gamma,
                     self.lambda1,
                     self.lambda2,
+                    self.lambda_one_step_td,  # TODO
                     self.margin_function,
                     self._nstep,
                     False,
-                    value_gamma[t],
+                    value_gamma=value_gamma[t],
                 )
                 loss.append(l)
                 td_error.append(e.abs())
