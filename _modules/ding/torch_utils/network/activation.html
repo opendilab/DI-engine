@@ -164,6 +164,7 @@
   <h1>Source code for ding.torch_utils.network.activation</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 
 
 <div class="viewcode-block" id="GLU"><a class="viewcode-back" href="../../../../api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.activation.GLU">[docs]</a><span class="k">class</span> <span class="nc">GLU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -224,6 +225,16 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
+<span class="k">class</span> <span class="nc">Swish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Swish</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+
 <span class="k">def</span> <span class="nf">build_activation</span><span class="p">(</span><span class="n">activation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -238,7 +249,7 @@
         <span class="k">assert</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="s1">&#39;inplace argument is not compatible with </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">inplace</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">act_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;relu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">),</span> <span class="s1">&#39;glu&#39;</span><span class="p">:</span> <span class="n">GLU</span><span class="p">,</span> <span class="s1">&#39;prelu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">()}</span>
+    <span class="n">act_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;relu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">),</span> <span class="s1">&#39;glu&#39;</span><span class="p">:</span> <span class="n">GLU</span><span class="p">,</span> <span class="s1">&#39;prelu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span> <span class="s1">&#39;swish&#39;</span><span class="p">:</span> <span class="n">Swish</span><span class="p">()}</span>
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">in</span> <span class="n">act_func</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">act_func</span><span class="p">[</span><span class="n">activation</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
