@@ -691,6 +691,7 @@ def dqfd_nstep_td_error_with_rescale(
 
     target_q_s_a = next_n_q[batch_range, next_n_action]
     target_q_s_a = inv_trans_fn(target_q_s_a)  # rescale
+
     target_q_s_a_one_step = new_n_q_one_step[batch_range, next_n_action_one_step]
     target_q_s_a_one_step = inv_trans_fn(target_q_s_a_one_step)  # rescale
 
@@ -701,6 +702,7 @@ def dqfd_nstep_td_error_with_rescale(
         else:
             target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
     else:
+        # to use value_gamma in  n-step TD-loss
         target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
 
     target_q_s_a = trans_fn(target_q_s_a)  # rescale
@@ -709,7 +711,7 @@ def dqfd_nstep_td_error_with_rescale(
     # calculate 1-step TD-loss
     nstep = 1
     reward = reward[0].unsqueeze(0)  # get the one-step reward
-    value_gamma = None  # This is very important
+    value_gamma = None  # This is very important, to use gamma in  1-step TD-loss
     if cum_reward:
         if value_gamma is None:
             target_q_s_a_one_step = reward + (gamma ** nstep) * target_q_s_a_one_step * (1 - done_one_step)

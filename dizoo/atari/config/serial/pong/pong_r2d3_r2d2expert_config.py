@@ -6,6 +6,7 @@ module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
+expert_replay_buffer_size=1  #TODO 1000
 
 """agent config"""
 pong_r2d3_config = dict(
@@ -24,6 +25,7 @@ pong_r2d3_config = dict(
         cuda=True,
         on_policy=False,
         priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -49,7 +51,7 @@ pong_r2d3_config = dict(
             target_update_theta=0.001,
             # DQFD related parameters
             lambda1=1.0,  # n-step return
-            lambda2=1.0,  # supervised loss
+            lambda2=0,  # supervised loss
             lambda3=1e-5,  # L2
             lambda_one_step_td=0,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
@@ -57,8 +59,7 @@ pong_r2d3_config = dict(
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # Cut trajectories into pieces with length "unroll_len".
-            # unroll_len=1,
+            each_iter_n_sample=32,
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
@@ -113,6 +114,7 @@ expert_pong_r2d3_config = dict(
         cuda=True,
         on_policy=False,
         priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -125,7 +127,7 @@ expert_pong_r2d3_config = dict(
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=1000,  # TODO(pu)
+            expert_replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -142,7 +144,7 @@ expert_pong_r2d3_config = dict(
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size=1000,  # TODO(pu)
+                replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

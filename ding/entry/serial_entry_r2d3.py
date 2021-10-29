@@ -122,9 +122,18 @@ def serial_pipeline_r2d3(
     learner.call_hook('before_run')
     if expert_cfg.policy.learn.expert_replay_buffer_size != 0:  # for ablation study
         expert_buffer = create_buffer(expert_cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-        expert_data = expert_collector.collect(
-            n_sample=expert_cfg.policy.learn.expert_replay_buffer_size, policy_kwargs=expert_collect_kwargs
-        )
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+            expert_data = expert_collector.collect(
+                n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
+                train_iter=learner.train_iter,
+                policy_kwargs=expert_collect_kwargs
+            )
+        else:
+            expert_data = expert_collector.collect(
+                n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
+                train_iter=learner.train_iter, policy_kwargs=expert_collect_kwargs
+            )
+
         for i in range(len(expert_data)):
             # set is_expert flag(expert 1, agent 0)
             # expert_data[i]['is_expert'] = 1  # for transition-based alg.
@@ -178,6 +187,7 @@ def serial_pipeline_r2d3(
         for i in range(len(new_data)):
             # set is_expert flag(expert 1, agent 0)
             new_data[i]['is_expert'] = [0] * expert_cfg.policy.collect.unroll_len
+
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
