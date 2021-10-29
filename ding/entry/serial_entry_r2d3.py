@@ -131,7 +131,8 @@ def serial_pipeline_r2d3(
         else:
             expert_data = expert_collector.collect(
                 n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
-                train_iter=learner.train_iter, policy_kwargs=expert_collect_kwargs
+                train_iter=learner.train_iter,
+                policy_kwargs=expert_collect_kwargs
             )
 
         for i in range(len(expert_data)):
