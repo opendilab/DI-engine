@@ -67,7 +67,7 @@ class Swish(nn.Module):
         super(Swish, self).__init__()
 
     def forward(self, x):
-        x = x * F.sigmoid(x)
+        x = x * torch.sigmoid(x)
         return x
 
 

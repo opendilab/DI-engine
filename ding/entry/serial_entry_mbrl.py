@@ -55,7 +55,7 @@ def serial_pipeline_mbrl(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry.
+        Serial pipeline entry for model-based RL.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \

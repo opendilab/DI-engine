@@ -1,18 +1,15 @@
 import math
 import copy
-import gzip
 import itertools
-import scipy.io
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-import numpy as np
 
-from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import MODEL_REGISTRY
-from ding.torch_utils.activation import Swish
+from ding.torch_utils import Swish
+from ding.utils.data import default_collate
 
 
 class StandardScaler(nn.Module):
@@ -23,38 +20,15 @@ class StandardScaler(nn.Module):
         self.register_buffer('mu', torch.zeros(1, input_size))
 
     def fit(self, data):
-        """Runs two ops, one for assigning the mean of the data to the internal mean, and
-        another for assigning the standard deviation of the data to the internal standard deviation.
-        This function must be called within a 'with <session>.as_default()' block.
-
-        Arguments:
-        data (torch.Tensor): A pytorch Tensor containing the input
-
-        Returns: None.
-        """
         std, mu = torch.std_mean(data, dim=0, keepdim=True)
         std[std < 1e-12] = 1
-        self.std.data.mul_(0.0).add_(1.0, std)
-        self.mu.data.mul_(0.0).add_(1.0, mu)
+        self.std.data.mul_(0.0).add_(std)
+        self.mu.data.mul_(0.0).add_(mu)
 
     def transform(self, data):
-        """Transforms the input matrix data using the parameters of this scaler.
-
-        Arguments:
-        data (np.array): A numpy array containing the points to be transformed.
-
-        Returns: (np.array) The transformed dataset.
-        """
         return (data - self.mu) / self.std
 
     def inverse_transform(self, data):
-        """Undoes the transformation performed by this scaler.
-
-        Arguments:
-        data (np.array): A numpy array containing the points to be transformed.
-
-        Returns: (np.array) The transformed dataset.
-        """
         return self.std * data + self.mu
 
 
@@ -250,9 +224,9 @@ class EnsembleDynamicsModel(nn.Module):
 
     def eval(self, data, envstep):
         # load data
-        data = default_preprocess_learn(
-            data, use_priority=False, use_priority_IS_weight=False, ignore_done=False, use_nstep=False
-        )
+        data = default_collate(data)
+        data['done'] = data['done'].float()
+        data['weight'] = data.get('weight', None)
         obs = data['obs']
         action = data['action']
         reward = data['reward']
@@ -289,9 +263,9 @@ class EnsembleDynamicsModel(nn.Module):
     def train(self, buffer, train_iter, envstep):
         # load data
         data = buffer.sample(buffer.count(), train_iter)
-        data = default_preprocess_learn(
-            data, use_priority=False, use_priority_IS_weight=False, ignore_done=False, use_nstep=False
-        )
+        data = default_collate(data)
+        data['done'] = data['done'].float()
+        data['weight'] = data.get('weight', None)
         obs = data['obs']
         action = data['action']
         reward = data['reward']
@@ -365,16 +339,17 @@ class EnsembleDynamicsModel(nn.Module):
             self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
-            assert self.curr_holdout_mse_loss >= self.best_holdout_mse_loss, '{} vs {}'.format(
+            assert math.fabs(self.curr_holdout_mse_loss - self.best_holdout_mse_loss) < 1e-3, '{} vs {}'.format(
                 self.curr_holdout_mse_loss, self.best_holdout_mse_loss
             )
-        return {'mse_loss': self.mse_loss,
-                'curr_holdout_mse_loss': self.curr_holdout_mse_loss,
-                'best_holdout_mse_loss': self.best_holdout_mse_loss,
-                'top_holdout_mse_loss': self.top_holdout_mse_loss,
-                'middle_holdout_mse_loss': self.middle_holdout_mse_loss,
-                'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
-                }
+        return {
+            'mse_loss': self.mse_loss,
+            'curr_holdout_mse_loss': self.curr_holdout_mse_loss,
+            'best_holdout_mse_loss': self.best_holdout_mse_loss,
+            'top_holdout_mse_loss': self.top_holdout_mse_loss,
+            'middle_holdout_mse_loss': self.middle_holdout_mse_loss,
+            'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
+        }
 
     def _save_states(self, ):
         self._states = copy.deepcopy(self.state_dict())
