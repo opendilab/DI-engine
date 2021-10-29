@@ -1,4 +1,4 @@
-from typing import Any, List, Union, Optional
+from typing import Any, List, Dict, Union, Optional
 import time
 import gym
 import gym_hybrid
@@ -6,7 +6,7 @@ import copy
 import numpy as np
 from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElementInfo
+from ding.envs.common import EnvElementInfo, affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
@@ -15,10 +15,11 @@ from ding.utils import ENV_REGISTRY
 class GymHybridEnv(BaseEnv):
     default_env_id = ['Sliding-v0', 'Moving-v0']
 
-    def __init__(self, cfg: dict = {}) -> None:
+    def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
         self._env_id = cfg.env_id
         assert self._env_id in self.default_env_id
+        self._act_scale = cfg.act_scale
         self._init_flag = False
         self._replay_path = None
 
@@ -51,22 +52,38 @@ class GymHybridEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: List) -> BaseEnvTimestep:
+    def step(self, action: Dict) -> BaseEnvTimestep:
+        if self._act_scale:
+            # acceleration_value
+            action['action_args'][0] = affine_transform(action['action_args'][0], min_val=0, max_val=1)
+            action = [action['action_type'], action['action_args']]
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
+        if isinstance(obs, list):  # corner case
+            for i in range(len(obs)):
+                if len(obs[i].shape) == 0:
+                    obs[i] = np.array([obs[i]])
+            obs = np.concatenate(obs)
+        assert isinstance(obs, np.ndarray) and obs.shape == (10, )
+        obs = obs.astype(np.float32)
+
         rew = to_ndarray([rew])  # wrapped to be transfered to a numpy array with shape (1,)
+        if isinstance(rew, list):
+            rew = rew[0]
+        assert isinstance(rew, np.ndarray) and rew.shape == (1, )
         info['action_args_mask'] = np.array([[1, 0], [0, 1], [0, 0]])
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def get_random_action(self):
+    def get_random_action(self) -> Dict:
         # action_type: 0, 1, 2
         # action_args:
         #   - acceleration_value: [0, 1]
         #   - rotation_value: [-1, 1]
-        return self._env.action_space.sample()
+        raw_action = self._env.action_space.sample()
+        return {'action_type': raw_action[0], 'action_args': raw_action[1]}
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
