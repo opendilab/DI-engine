@@ -10,7 +10,7 @@ expert_replay_buffer_size=1  #TODO 1000
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho0_no1td',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho0_no1td_nosl',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -74,7 +74,7 @@ pong_r2d3_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
+                replay_buffer_size=20000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
