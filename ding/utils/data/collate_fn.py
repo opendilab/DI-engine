@@ -15,7 +15,9 @@ default_collate_err_msg_format = (
 )
 
 
-def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tensor, Mapping, Sequence]:
+def default_collate(batch: Sequence,
+                    cat_1dim: bool = True,
+                    ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
@@ -77,7 +79,13 @@ def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tenso
     elif isinstance(elem, string_classes):
         return batch
     elif isinstance(elem, container_abcs.Mapping):
-        return {key: default_collate([d[key] for d in batch], cat_1dim=cat_1dim) for key in elem}
+        ret = {}
+        for key in elem:
+            if any([key.startswith(t) for t in ignore_prefix]):
+                ret[key] = [d[key] for d in batch]
+            else:
+                ret[key] = default_collate([d[key] for d in batch], cat_1dim=cat_1dim)
+        return ret
     elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
         return elem_type(*(default_collate(samples, cat_1dim=cat_1dim) for samples in zip(*batch)))
     elif isinstance(elem, container_abcs.Sequence):

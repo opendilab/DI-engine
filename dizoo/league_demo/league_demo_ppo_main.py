@@ -37,6 +37,7 @@ class EvalPolicy1:
 
 
 class EvalPolicy2:
+
     def forward(self, data: dict) -> dict:
         return {
             env_id: {

@@ -1,12 +1,11 @@
 from typing import Any, Union, Optional
 import gym
-import torch
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 
 
 @ENV_REGISTRY.register('pendulum')
@@ -19,7 +18,7 @@ class PendulumEnv(BaseEnv):
         self._init_flag = False
         self._replay_path = None
 
-    def reset(self) -> torch.Tensor:
+    def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make('Pendulum-v0')
             if self._replay_path is not None:
@@ -55,7 +54,7 @@ class PendulumEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)

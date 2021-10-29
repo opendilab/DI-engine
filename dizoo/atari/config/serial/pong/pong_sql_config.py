@@ -23,14 +23,8 @@ pong_sql_config = dict(
         ),
         nstep=3,
         discount_factor=0.99,
-        learn=dict(
-            update_per_collect=10,
-            batch_size=32,
-            learning_rate=0.0001,
-            target_update_freq=500,
-            alpha = 0.12
-        ),
-        collect=dict(n_sample=96, demonstration_info_path = None),
+        learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.12),
+        collect=dict(n_sample=96, demonstration_info_path=None),
         other=dict(
             eps=dict(
                 type='exp',
@@ -49,7 +43,7 @@ pong_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility = True),
+    env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 pong_sql_create_config = EasyDict(pong_sql_create_config)
