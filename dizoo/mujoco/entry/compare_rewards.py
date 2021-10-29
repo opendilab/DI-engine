@@ -50,7 +50,7 @@ def eval_reward(
     reward_model = create_reward_model(cfg.reward_model, 'cpu', None)
     if state_dict is None:
         if load_path is None:
-            load_path = cfg.policy.load_path
+            load_path = cfg.reward_model.load_path
         state_dict = torch.load(load_path, map_location='cpu')
     reward_model.load_state_dict(state_dict)
 

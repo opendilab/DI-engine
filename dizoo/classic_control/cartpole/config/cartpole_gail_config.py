@@ -16,10 +16,11 @@ cartpole_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='cartpole_dqn/expert_data_train.pkl',
+        load_path='cartpole_gail/reward_model/ckpt/last.pth.tar',
         collect_count=1000,
     ),
     policy=dict(
-        load_path='cartpole_gail/reward_model/ckpt/last.pth.tar',
+        load_path='cartpole_gail/ckpt/ckpt_best.pth.tar',
         cuda=False,
         model=dict(
             obs_shape=4,

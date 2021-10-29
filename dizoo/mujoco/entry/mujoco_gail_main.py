@@ -60,7 +60,10 @@ def main(
     expert_cfg, expert_create_cfg = expert_cfg
     # Load expert data
     if collect_data:
-        expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
+        if expert_cfg.policy.other.get('eps', None) is not None:
+            expert_cfg.policy.other.eps.collect = -1
+        if expert_cfg.policy.get('load_path', None) is None:
+            expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
         collect_demo_data((expert_cfg, expert_create_cfg), seed, state_dict_path=expert_cfg.policy.load_path,
                           expert_data_path=cfg.reward_model.expert_data_path,
                           collect_count=cfg.reward_model.collect_count)

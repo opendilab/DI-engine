@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 walker2d_gail_default_config = dict(
-    exp_name='walker2d_gail_train',
+    exp_name='walker2d_gail_test',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -19,12 +19,13 @@ walker2d_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='walker2d_ddpg/expert_data_train.pkl',
+        expert_data_path='walker2d_ddpg/expert_data_test.pkl',
+        load_path='walker2d_gail_0/reward_model/ckpt/best.pth.tar',
         collect_count=100000,
         target_new_data_count=1,
     ),
     policy=dict(
-        load_path='walker2d_gail_0/reward_model/ckpt/best.pth.tar',
+        load_path='walker2d_gail_0/ckpt/ckpt_best.pth.tar',
         cuda=True,
         on_policy=False,
         random_collect_size=25000,

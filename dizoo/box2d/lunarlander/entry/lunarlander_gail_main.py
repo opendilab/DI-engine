@@ -47,8 +47,10 @@ def main(
     expert_cfg, expert_create_cfg = expert_cfg
     # Load expert data
     if collect_data:
-        expert_cfg.policy.other.eps.collect = 0.1
-        expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
+        if expert_cfg.policy.other.get('eps', None) is not None:
+            expert_cfg.policy.other.eps.collect = -1
+        if expert_cfg.policy.get('load_path', None) is None:
+            expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
         collect_demo_data((expert_cfg, expert_create_cfg), seed, state_dict_path=expert_cfg.policy.load_path,
                           expert_data_path=cfg.reward_model.expert_data_path,
                           collect_count=cfg.reward_model.collect_count)
@@ -154,4 +156,4 @@ def main(
 if __name__ == "__main__":
     main((lunarlander_gail_default_config, lunarlander_gail_create_config), (lunarlander_dqn_default_config,
                                                                              lunarlander_dqn_create_config),
-         collect_data=1, seed=1, train=0)
+         collect_data=0, seed=0, train=0)

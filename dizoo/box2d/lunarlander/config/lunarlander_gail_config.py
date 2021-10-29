@@ -22,9 +22,10 @@ lunarlander_gail_default_config = dict(
         update_per_collect=100,
         expert_data_path='lunarlander_dqn/expert_data_test.pkl',
         collect_count=100000,
+        load_path='lunarlander_gail/reward_model/ckpt/last.pth.tar',
     ),
     policy=dict(
-        load_path='lunarlander_gail/reward_model/ckpt/last.pth.tar',
+        load_path='lunarlander_gail/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
         # Whether the RL algorithm is on-policy or off-policy.
