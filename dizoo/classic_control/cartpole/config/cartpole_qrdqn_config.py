@@ -9,7 +9,6 @@ cartpole_qrdqn_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         priority=True,
         model=dict(
             obs_shape=4,

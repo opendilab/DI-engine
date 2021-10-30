@@ -10,7 +10,6 @@ cartpole_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=True,
         continuous=False,
         model=dict(
             obs_shape=4,

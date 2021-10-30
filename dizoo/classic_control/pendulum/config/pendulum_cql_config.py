@@ -11,7 +11,6 @@ pendulum_cql_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         model=dict(
             obs_shape=3,
             action_shape=1,

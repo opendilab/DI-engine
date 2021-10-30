@@ -12,7 +12,6 @@ pendulum_sac_data_genearation_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=3,

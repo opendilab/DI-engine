@@ -15,8 +15,6 @@ lunarlander_dqn_default_config = dict(
     policy=dict(
         # Whether to use cuda for network.
         cuda=False,
-        # Whether the RL algorithm is on-policy or off-policy.
-        on_policy=False,
         model=dict(
             obs_shape=8,
             action_shape=4,

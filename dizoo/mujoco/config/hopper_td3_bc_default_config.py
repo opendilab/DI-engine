@@ -13,7 +13,6 @@ hopper_td3_bc_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         model=dict(
             obs_shape=11,
             action_shape=3,
