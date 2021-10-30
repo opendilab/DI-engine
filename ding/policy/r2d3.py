@@ -340,8 +340,8 @@ class R2D3Policy(Policy):
                     self._gamma,
                     self.lambda1,
                     self.lambda2,
-                    self.lambda_one_step_td,  # TODO
                     self.margin_function,
+                    self.lambda_one_step_td,
                     self._nstep,
                     False,
                     value_gamma=value_gamma[t],
@@ -355,8 +355,8 @@ class R2D3Policy(Policy):
                     self._gamma,
                     self.lambda1,
                     self.lambda2,
-                    self.lambda_one_step_td,  # TODO
                     self.margin_function,
+                    self.lambda_one_step_td,
                     self._nstep,
                     False,
                     value_gamma=value_gamma[t],
