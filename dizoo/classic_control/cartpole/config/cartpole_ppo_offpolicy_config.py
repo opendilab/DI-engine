@@ -9,7 +9,6 @@ cartpole_ppo_offpolicy_config = dict(
         stop_value=195,
     ),
     policy=dict(
-        on_policy=False,
         cuda=False,
         model=dict(
             obs_shape=4,

@@ -74,7 +74,6 @@ main_config = dict(
             grad_clip_value=10,
             ignore_done=False,
         ),
-        on_policy=True,
         collect=dict(env_num=collector_env_num, n_sample=3200),
         eval=dict(env_num=evaluator_env_num),
     ),
