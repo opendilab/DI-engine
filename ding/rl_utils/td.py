@@ -38,38 +38,50 @@ def view_similar(x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
 nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'done'])
 
 
-def nstep_return(data: namedtuple, gamma: float, nstep: int, value_gamma: Optional[torch.Tensor] = None):
+def nstep_return(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
-    reward_factor = torch.ones(nstep).to(device)
-    for i in range(1, nstep):
-        reward_factor[i] = gamma * reward_factor[i - 1]
-    reward_factor = view_similar(reward_factor, reward)
-    reward = reward.mul(reward_factor).sum(0)
-    if value_gamma is None:
-        return_ = reward + (gamma ** nstep) * next_value * (1 - done)
-    else:
-        return_ = reward + value_gamma * next_value * (1 - done)
-    return return_
 
-
-def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
-    reward, next_value, done = data
-    assert reward.shape[0] == nstep
-    device = reward.device
-    return_list = []
-    for j in range(done.shape[0]):  # reward.shape[1]):  # batch_size
+    if isinstance(gamma, float):
         reward_factor = torch.ones(nstep).to(device)
         for i in range(1, nstep):
-            reward_factor[i] = gamma[j] * reward_factor[i - 1]
-        reward_tmp = torch.matmul(reward_factor, reward[:, j])
-        return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
-        return_list.append(return_.unsqueeze(0))
-    # return_list = to_tensor(return_list)
-    return_ = torch.cat(return_list, dim=0)
+            reward_factor[i] = gamma * reward_factor[i - 1]
+        reward_factor = view_similar(reward_factor, reward)
+        return_tmp = reward.mul(reward_factor).sum(0)
+        if value_gamma is None:
+            return_ = return_tmp + (gamma ** nstep) * next_value * (1 - done)
+        else:
+            return_ = return_tmp + value_gamma * next_value * (1 - done)
+
+    else:  # if gamma is list. for NGU
+        reward_factor = torch.ones([nstep + 1, done.shape[0]]).to(device)
+        for i in range(1, nstep + 1):
+            reward_factor[i] = torch.stack(gamma, dim=0) * reward_factor[i - 1]
+        reward_factor = view_similar(reward_factor, reward)
+        return_tmp = reward.mul(reward_factor[:nstep]).sum(0)
+        return_ = return_tmp + reward_factor[nstep] * next_value * (1 - done)
 
     return return_
+
+
+# backup
+# def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
+#     reward, next_value, done = data
+#     assert reward.shape[0] == nstep
+#     device = reward.device
+#     return_list = []
+#
+#     for j in range(done.shape[0]):  # reward.shape[1]):  # batch_size
+#         reward_factor = torch.ones(nstep).to(device)
+#         for i in range(1, nstep):
+#             reward_factor[i] = gamma[j] * reward_factor[i - 1]
+#         reward_tmp = torch.matmul(reward_factor, reward[:, j])
+#         return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
+#         return_list.append(return_.unsqueeze(0))
+#     return_ = torch.cat(return_list, dim=0)
+#
+#     return return_
 
 
 dist_1step_td_data = namedtuple(
@@ -313,7 +325,7 @@ def shape_fn_qntd(args, kwargs):
 @hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error(
         data: namedtuple,
-        gamma: float,
+        gamma: Any,
         nstep: int = 1,
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
@@ -367,59 +379,6 @@ def q_nstep_td_error(
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
 
-@hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
-def q_nstep_td_error_ngu(
-        data: namedtuple,
-        gamma: Any,  # float,
-        nstep: int = 1,
-        cum_reward: bool = False,
-        value_gamma: Optional[torch.Tensor] = None,
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-) -> torch.Tensor:
-    """
-    Overview:
-        Multistep (1 step or n step) td_error for q-learning based algorithm
-    Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - nstep (:obj:`int`): nstep num, default set to 1
-    Returns:
-        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
-        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
-    Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-            ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
-        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
-        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
-    """
-    q, next_n_q, action, next_n_action, reward, done, weight = data
-    assert len(action.shape) == 1, action.shape
-    if weight is None:
-        weight = torch.ones_like(action)
-
-    batch_range = torch.arange(action.shape[0])
-    q_s_a = q[batch_range, action]
-    target_q_s_a = next_n_q[batch_range, next_n_action]
-
-    if cum_reward:
-        if value_gamma is None:
-            target_q_s_a = reward + (gamma ** nstep) * target_q_s_a * (1 - done)
-        else:
-            target_q_s_a = reward + value_gamma * target_q_s_a * (1 - done)
-    else:
-        target_q_s_a = nstep_return_ngu(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
-    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
-    return (td_error_per_sample * weight).mean(), td_error_per_sample
-
-
 def shape_fn_qntd_rescale(args, kwargs):
     r"""
     Overview:
@@ -440,59 +399,6 @@ def shape_fn_qntd_rescale(args, kwargs):
     shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
 )
 def q_nstep_td_error_with_rescale(
-    data: namedtuple,
-    gamma: float,
-    nstep: int = 1,
-    value_gamma: Optional[torch.Tensor] = None,
-    criterion: torch.nn.modules = nn.MSELoss(reduction='none'),
-    trans_fn: Callable = value_transform,
-    inv_trans_fn: Callable = value_inv_transform,
-) -> torch.Tensor:
-    """
-    Overview:
-        Multistep (1 step or n step) td_error with value rescaling
-    Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - nstep (:obj:`int`): nstep num, default set to 1
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\
-            (refer to rl_utils/value_rescale.py)
-        - inv_trans_fn (:obj:`Callable`): value inverse transfrom function, default to value_inv_transform\
-            (refer to rl_utils/value_rescale.py)
-    Returns:
-        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
-    Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
-        ['q', 'next_n_q', 'action', 'reward', 'done']
-        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
-        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
-        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
-        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
-    """
-    q, next_n_q, action, next_n_action, reward, done, weight = data
-    assert len(action.shape) == 1, action.shape
-    if weight is None:
-        weight = torch.ones_like(action)
-
-    batch_range = torch.arange(action.shape[0])
-    q_s_a = q[batch_range, action]
-    target_q_s_a = next_n_q[batch_range, next_n_action]
-
-    target_q_s_a = inv_trans_fn(target_q_s_a)
-    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
-    target_q_s_a = trans_fn(target_q_s_a)
-
-    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
-    return (td_error_per_sample * weight).mean(), td_error_per_sample
-
-
-@hpc_wrapper(
-    shape_fn=shape_fn_qntd_rescale, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma']
-)
-def q_nstep_td_error_with_rescale_ngu(
     data: namedtuple,
     gamma: Any,
     nstep: int = 1,
@@ -535,7 +441,7 @@ def q_nstep_td_error_with_rescale_ngu(
     target_q_s_a = next_n_q[batch_range, next_n_action]
 
     target_q_s_a = inv_trans_fn(target_q_s_a)
-    target_q_s_a = nstep_return_ngu(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
+    target_q_s_a = nstep_return(nstep_return_data(reward, target_q_s_a, done), gamma, nstep, value_gamma)
     target_q_s_a = trans_fn(target_q_s_a)
 
     td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())

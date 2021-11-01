@@ -155,7 +155,9 @@ class Adder(object):
                 template['null'] = True  # TODO(pu)
                 template['obs'] = torch.zeros_like(template['obs'])
                 # template['action'] = -1 * torch.ones_like(template['action']) # TODO(pu)
-                template['action'] = torch.zeros_like(template['action'])
+                # template['action'] = torch.zeros_like(template['action'])  # TODO(pu)
+                if hasattr(template, 'action'):
+                    template['action'] = torch.zeros_like(template['action'])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
                 if 'value_gamma' in template:
