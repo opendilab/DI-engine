@@ -459,6 +459,7 @@ wrapper_name_map = {
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
+    'eps_greedy_sample_masac': EpsGreedySampleWrapperMASAC,
     'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
