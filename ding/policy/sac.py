@@ -294,7 +294,8 @@ class SACDiscretePolicy(Policy):
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
             policy_output_next = self._learn_model.forward({'obs': next_obs}, mode='compute_actor')
-            #policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
+            if self._multi_agent:
+                policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
             prob = F.softmax(policy_output_next['logit'], dim=-1)
             log_prob = torch.log(prob + 1e-8)
             target_q_value = self._target_model.forward({'obs': next_obs}, mode='compute_critic')['q_value']
@@ -328,7 +329,8 @@ class SACDiscretePolicy(Policy):
 
         # 5. evaluate to get action distribution
         policy_output = self._learn_model.forward({'obs': data['obs']}, mode='compute_actor')
-        policy_output['logit'][policy_output['action_mask'] == 0.0] = -1e8
+        if self._multi_agent:
+            policy_output['logit'][policy_output['action_mask'] == 0.0] = -1e8
         logit = policy_output['logit']
         prob = F.softmax(logit, dim=-1)
         log_prob = torch.log(prob + 1e-8)
@@ -432,6 +434,7 @@ class SACDiscretePolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         # self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')  # TODO(pu)
         # self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        self._multi_agent = self._cfg.multi_agent
         if self._multi_agent:
             self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_masac')
         else:
@@ -519,7 +522,7 @@ class SACDiscretePolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        if self._multi_agent:
+        if self._cfg.multi_agent:
             return 'maqac', ['ding.model.template.maqac']
         else:
             return 'discrete_qac', ['ding.model.template.maqac']

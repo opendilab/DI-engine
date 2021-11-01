@@ -272,7 +272,7 @@ class DiscreteQAC(nn.Module):
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
         """
-        super(MAQAC, self).__init__()
+        super(DiscreteQAC, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
         action_shape: int = squeeze(action_shape)
 

@@ -72,7 +72,7 @@ pong_sac_default_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        type='discrete_sac',
+        type='sac_discrete',
     ),
     #replay_buffer=dict(type='naive', ),
 )
