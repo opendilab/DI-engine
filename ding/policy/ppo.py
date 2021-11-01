@@ -7,7 +7,7 @@ from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
-    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous,\
+    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
@@ -16,89 +16,98 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 from ding.utils import dicts_to_lists, lists_to_dicts
 
-def compute_adv(data,last_value,cfg):
+
+def compute_adv(data, last_value, cfg):
     data = get_gae(
-        data, to_device(last_value, 'cpu') , gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False
-    ) # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
+        data,
+        to_device(last_value, 'cpu'),
+        gamma=cfg.collect.discount_factor,
+        gae_lambda=cfg.collect.gae_lambda,
+        cuda=False
+    )  # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
     if not cfg.nstep_return:
         return get_train_sample(data, cfg.collect.unroll_len)
     else:
         return get_nstep_return_data(data, cfg.nstep)
 
-def list_data_split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
-    # data shape: list of transitions dict [{'value':,'reward':,'adv':},...,{'value':,'reward':,'adv':}] 
-    processed_data=[]
-    start_index=0
-    timesteps=0
+
+def list_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
+    # data shape: list of transitions dict [{'value':,'reward':,'adv':},...,{'value':,'reward':,'adv':}]
+    processed_data = []
+    start_index = 0
+    timesteps = 0
     for i in range(len(data)):
-        timesteps+=1
-        if data[i]['done']==True:
+        timesteps += 1
+        if data[i]['done'] is True:
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
-            traj_data=compute_adv(data[start_index:i+1],torch.zeros(1)[0],cfg)  
+            traj_data = compute_adv(data[start_index:i + 1], torch.zeros(1)[0], cfg)
             processed_data.extend(traj_data)
-            start_index=i+1
-            timesteps=0
+            start_index = i + 1
+            timesteps = 0
             continue
-        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
-            # for example, if i = 63, traj_data take the timestep [t=0,...,t=62], last value: next_value[62] 
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # self._traj_len 64
+            # for example, if i = 63, traj_data take the timestep [t=0,...,t=62], last value: next_value[62]
             # throw away timestep t=63, because we don't kown the value of timestep 64
             # owing to self._traj_len=64
-            traj_data=compute_adv(data[start_index:i], next_value[i-1], cfg)
-            ##### 
-            # below is wrong, because the next_value[i] for example, i=63, 
+            traj_data = compute_adv(data[start_index:i], next_value[i - 1], cfg)
+            #####
+            # below is wrong, because the next_value[i] for example, i=63,
             # next_value[63] is the value of init timestep in next episode
-            # traj_data=compute_adv(data[start_index:i+1], next_value[i], cfg) 
+            # traj_data=compute_adv(data[start_index:i+1], next_value[i], cfg)
             #####
             processed_data.extend(traj_data)
-            start_index=i+1
-            timesteps=0
+            start_index = i + 1
+            timesteps = 0
             continue
-    return processed_data+data[start_index:i+1] # add the remaining data 
+    return processed_data + data[start_index:i + 1]  # add the remaining data
 
-def dict_data_split_traj_and_compute_adv(data,next_value,cfg): # 64*8 -> 63*8
-     # data shape: dict of torch.FloatTensor of thansitions {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
+
+def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
+    # data shape: dict of torch.FloatTensor of thansitions
+    # {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
     # traj mean episode transitions or truncated episode transitions because the restrict of max_traj_len
-    processed_data=[]
-    start_index=0
-    timesteps=0
+    processed_data = []
+    start_index = 0
+    timesteps = 0
     for i in range(data['reward'].shape[0]):
-        timesteps+=1
-        traj_data=[]
-        if data['done'][i]==True:
-            for k in range(start_index,i+1):
+        timesteps += 1
+        traj_data = []
+        if data['done'][i] is True:
+            for k in range(start_index, i + 1):
                 # traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
-                traj_data.append( {key:data[key][k] for key in data.keys()} )
-           
+                traj_data.append({key: data[key][k] for key in data.keys()})
+
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
-            traj_data=compute_adv(traj_data,torch.zeros(1)[0],cfg)
+            traj_data = compute_adv(traj_data, torch.zeros(1)[0], cfg)
             processed_data.extend(traj_data)
-            start_index=i+1
-            timesteps=0
+            start_index = i + 1
+            timesteps = 0
             continue
-        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num: # self._traj_len 64
-            for k in range(start_index,i): #
-                # for example, if i = 63, traj_data take the timestep [k=0,...,k=62], last value: next_value[62] 
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # self._traj_len 64
+            for k in range(start_index, i):  #
+                # for example, if i = 63, traj_data take the timestep [k=0,...,k=62], last value: next_value[62]
                 # throw away timestep t=63, because we don't kown the value of timestep 64
                 # owing to self._traj_len=64
-                traj_data.append( {key:data[key][k] for key in data.keys()} ) 
-            traj_data=compute_adv(traj_data, next_value[i-1], cfg)
+                traj_data.append({key: data[key][k] for key in data.keys()})
+            traj_data = compute_adv(traj_data, next_value[i - 1], cfg)
 
-            ##### 
-            # below is wrong, because the next_value[i] for example, i=63, 
+            #####
+            # below is wrong, because the next_value[i] for example, i=63,
             # next_value[63] is the value of init timestep in next episode
             # for k in range(start_index,i+1): #
-            #     traj_data.append( {key:data[key][k] for key in data.keys()} ) 
+            #     traj_data.append( {key:data[key][k] for key in data.keys()} )
             # traj_data=compute_adv(traj_data, next_value[i], cfg)
             #####
             processed_data.extend(traj_data)
-            start_index=i+1
-            timesteps=0
+            start_index = i + 1
+            timesteps = 0
             continue
-    remaining_traj_data = [] # because of the limit of max_sample
-    for k in range(start_index,i+1):
-        remaining_traj_data.append( {key:data[key][k] for key in data.keys()} )
+    remaining_traj_data = []  # because of the limit of max_sample
+    for k in range(start_index, i + 1):
+        remaining_traj_data.append({key: data[key][k] for key in data.keys()})
         # remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
-    return processed_data + remaining_traj_data # add the remaining data, return shape list of dict
+    return processed_data + remaining_traj_data  # add the remaining data, return shape list of dict
+
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
@@ -121,7 +130,6 @@ class PPOPolicy(Policy):
         continuous=True,
         nstep_return=False,
         multi_agent=False,
-
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -242,11 +250,12 @@ class PPOPolicy(Policy):
             data['return'] = unnormalized_return / self._running_mean_std.std
             self._running_mean_std.update(unnormalized_return.cpu().numpy())
         else:
-            # if ppo_onpolicy_rnd, the data['adv'] should be recompute accordingto the new reward before calling this _forward_learn()
-            data['return'] = data['adv'] + data['value'] 
+            # if ppo_onpolicy_rnd, the data['adv'] should be recompute accordingto
+            # the new reward before calling this _forward_learn()
+            data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv: # new v network compute new value
+            if self._recompute_adv:  # new v network compute new value
                 with torch.no_grad():
                     # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
@@ -257,16 +266,17 @@ class PPOPolicy(Policy):
 
                     # gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
                     # # gae function need (T, B) shape input and return (T, B) output
-                    # #  TODO(pu) data['reward'] should be torch.FloatTensor(T,B), where T is trajectory length and B is batch size, 
-                    # # but the input data may be a concatenate of many episodes with diffrent length! 
+                    # TODO(pu) data['reward'] should be torch.FloatTensor(T,B),
+                    # where T is trajectory length and B is batch size,
+                    # # but the input data may be a concatenate of many episodes with diffrent length!
                     # # value.shape=[512], data['reward'].shape=[512]
-                    # data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda) 
+                    # data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
 
                     # way 1
                     # data['value']=value
                     # data['weight']=[None for i in range(data['reward'].shape[0])]
                     # processed_data=dicts_to_lists(data)
-                    # processed_data = list_data_split_traj_and_compute_adv(processed_data, next_value ,self._cfg) # TODO
+                    # processed_data = list_data_split_traj_and_compute_adv(processed_data, next_value ,self._cfg)
                     # processed_data=lists_to_dicts(processed_data)
                     # for k,v in processed_data.items():
                     #     if isinstance(v[0],torch.Tensor):
@@ -274,16 +284,16 @@ class PPOPolicy(Policy):
                     # processed_data['weight'] = None
 
                     # way 2
-                    data['value']=value
-                    data['weight']=[None for i in range(data['reward'].shape[0])]
-                    # NOTE: processed_data have less transition than data, because we throw away the last timestep 
+                    data['value'] = value
+                    data['weight'] = [None for i in range(data['reward'].shape[0])]
+                    # NOTE: processed_data have less transition than data, because we throw away the last timestep
                     # transition in each traj in fun dict_data_split_traj_and_compute_adv() to compute the adv
                     # 64*8 -> 63*8
-                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value ,self._cfg) # TODO
+                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value, self._cfg)  # TODO
                     processed_data = lists_to_dicts(processed_data)
-                    for k,v in processed_data.items():
-                        if isinstance(v[0],torch.Tensor):
-                            processed_data[k]=torch.stack(v,dim=0)
+                    for k, v in processed_data.items():
+                        if isinstance(v[0], torch.Tensor):
+                            processed_data[k] = torch.stack(v, dim=0)
                     processed_data['weight'] = None
 
                     unnormalized_returns = processed_data['value'] + processed_data['adv']
@@ -297,8 +307,9 @@ class PPOPolicy(Policy):
                         processed_data['return'] = unnormalized_returns
             else:
                 processed_data = data
-            
-            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size, shuffle=True): # self._cfg.learn.batch_size=64
+
+            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size,
+                                              shuffle=True):  # self._cfg.learn.batch_size=64
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:
@@ -323,6 +334,7 @@ class PPOPolicy(Policy):
 
                 self._optimizer.zero_grad()
                 total_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self._model.parameters(), 10)  # TODO(pu)
                 self._optimizer.step()
 
                 return_info = {

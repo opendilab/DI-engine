@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_empty8_ppo_rnd_debug',
+    exp_name='debug_minigrid_empty8_ppo_rnd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,

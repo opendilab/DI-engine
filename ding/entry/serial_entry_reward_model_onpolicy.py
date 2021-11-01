@@ -66,7 +66,7 @@ def serial_pipeline_reward_model_onpolicy(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = ISerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
@@ -109,7 +109,7 @@ def serial_pipeline_reward_model_onpolicy(
         if iter % cfg.reward_model.clear_buffer_per_iters == 0:
             reward_model.clear_data()
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect): # 1
+        for i in range(cfg.policy.learn.update_per_collect):  # 1
             # Learner will train ``update_per_collect`` times in one iteration.
             # train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             train_data = new_data
@@ -133,4 +133,3 @@ def serial_pipeline_reward_model_onpolicy(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
-

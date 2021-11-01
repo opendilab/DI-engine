@@ -5,13 +5,22 @@ print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_debug',
     exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_doorkey_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_kcs3r3_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_om2dlh_ppo_onpolicy_rnd_debug',
+
     env=dict(
         collector_env_num= collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         # env_id='MiniGrid-Empty-8x8-v0',
         env_id='MiniGrid-FourRooms-v0',
+        # env_id='MiniGrid-DoorKey-16x16-v0',
+        # env_id='MiniGrid-KeyCorridorS3R3-v0',
+        # env_id='MiniGrid-ObstructedMaze-2Dlh-v0 ',
+
         stop_value=0.96,
     ),
     reward_model=dict(
@@ -20,8 +29,8 @@ minigrid_ppo_rnd_config = dict(
         obs_shape=2739,
         # batch_size=32,
         # update_per_collect=10,
-        batch_size=64, #32,
-        update_per_collect=8, #10
+        batch_size=64,
+        update_per_collect=8,  # 10
         clear_buffer_per_iters=10,
     ),
     policy=dict(
@@ -33,7 +42,7 @@ minigrid_ppo_rnd_config = dict(
             obs_shape=2739,
             action_shape=7,
             encoder_hidden_size_list=[256, 128, 64, 64],
-            critic_head_hidden_size=64, # default=64
+            critic_head_hidden_size=64,  # default=64
             actor_head_hidden_size=64,
         ),
         learn=dict(
