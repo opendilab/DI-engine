@@ -564,7 +564,8 @@ class TargetNetworkWrapper(IModelWrapper):
         self._update_count = 0
 
     def reset(self, *args, **kwargs):
-        self.reset_state()
+        target_update_count = kwargs.pop('target_update_count', None)
+        self.reset_state(target_update_count)
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
 
@@ -591,12 +592,15 @@ class TargetNetworkWrapper(IModelWrapper):
                 # default theta = 0.001
                 p.data = (1 - theta) * p.data + theta * state_dict[name]
 
-    def reset_state(self) -> None:
+    def reset_state(self, target_update_count: int = None) -> None:
         r"""
         Overview:
             Reset the update_count
+        Arguments:
+            target_update_count (:obj:`int`): reset target update count value.
         """
-        self._update_count = 0
+        if target_update_count is not None:
+            self._update_count = target_update_count
 
 
 class TeacherNetworkWrapper(IModelWrapper):
