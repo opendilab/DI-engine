@@ -43,6 +43,52 @@ MINIGRID_INFO_DICT = {
         max_step=100,
         use_wrappers=None,
     ),
+    'MiniGrid-FourRooms-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-DoorKey-16x16-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
     'MiniGrid-KeyCorridorS3R3-v0': MiniGridEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(shape=(2739, ), value={
@@ -63,7 +109,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=100,
+        max_step=300,
         use_wrappers=None,
     ),
     'MiniGrid-ObstructedMaze-2Dlh-v0': MiniGridEnvInfo(
@@ -86,7 +132,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=200,
+        max_step=300,
         use_wrappers=None,
     ),
     'MiniGrid-ObstructedMaze-Full-v0': MiniGridEnvInfo(
@@ -109,7 +155,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=200,
+        max_step=300,
         use_wrappers=None,
     ),
 }

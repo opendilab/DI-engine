@@ -10,8 +10,8 @@ from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
 
-@SERIAL_COLLECTOR_REGISTRY.register('sample')
-class SampleSerialCollector(ISerialCollector):
+@SERIAL_COLLECTOR_REGISTRY.register('sample_ngu')
+class SampleCollectorNGU(ISerialCollector):
     """
     Overview:
         Sample collector(n_sample), a sample is one training sample for updating model,
@@ -94,6 +94,7 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+            self._action_shape = _policy.get_attribute('cfg').model.action_shape
             self._unroll_len = _policy.get_attribute('unroll_len')
             self._on_policy = _policy.get_attribute('on_policy')
             if self._default_n_sample is not None:
@@ -129,6 +130,7 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self.reset_policy(_policy)
 
+        self._beta_pool = CachePool('beta', self._env_num)
         self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
@@ -154,6 +156,7 @@ class SampleSerialCollector(ISerialCollector):
             - env_id (:obj:`int`): the id where we need to reset the collector's state
         """
         self._traj_buffer[env_id].clear()
+        self._beta_pool.reset(env_id)
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
         self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
@@ -189,10 +192,12 @@ class SampleSerialCollector(ISerialCollector):
         """
         self.close()
 
-    def collect(self,
-                n_sample: Optional[int] = None,
-                train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+    def collect(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            policy_kwargs: Optional[dict] = None,
+    ) -> List[Any]:
         """
         Overview:
             Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations
@@ -217,7 +222,11 @@ class SampleSerialCollector(ISerialCollector):
             policy_kwargs = {}
         collected_sample = 0
         return_data = []
+        # beta={i:torch.randn(1)  for i in range(8)}
 
+        beta_index = {i: np.random.randint(0, self._env_num) for i in range(self._env_num)}
+        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO    self.action_shape
+        prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
@@ -226,12 +235,20 @@ class SampleSerialCollector(ISerialCollector):
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
-                policy_output = self._policy.forward(obs, **policy_kwargs)
+
+                beta_index = to_tensor(beta_index, dtype=torch.int64)
+                self._beta_pool.update(beta_index)
+                policy_output = self._policy.forward(
+                    beta_index, obs, prev_action, prev_reward_e, **policy_kwargs
+                )  # TODO reward embeding
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
+                prev_reward_e = {env_id: timestep.reward.astype('float32') for env_id, timestep in timesteps.items()}
+                prev_reward_e = to_ndarray(prev_reward_e)
+                prev_action = actions
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -248,18 +265,21 @@ class SampleSerialCollector(ISerialCollector):
                         self._logger.info('env_id {}, abnormal step {}', env_id, timestep.info)
                         continue
                     transition = self._policy.process_transition(
-                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                        self._beta_pool[env_id],
+                        self._obs_pool[env_id],
+                        self._policy_output_pool[env_id],
+                        timestep,
                     )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)  # NOTE
+                    self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
-                        train_sample = self._policy.get_train_sample(transitions)
+                        train_sample = self._policy.get_train_sample(transitions)  # pu if r2d2 n-step reward gamma
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
@@ -270,6 +290,10 @@ class SampleSerialCollector(ISerialCollector):
 
                 # If env is done, record episode info and reset
                 if timestep.done:
+                    beta_index[env_id] = np.random.randint(
+                        0, self._env_num
+                    )  # TODO complete episode, need self._traj_len=INF
+
                     self._total_episode_count += 1
                     reward = timestep.info['final_eval_reward']
                     info = {
