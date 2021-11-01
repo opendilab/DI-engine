@@ -25,8 +25,7 @@ minigrid_ppo_rnd_config = dict(
         learning_rate=5e-4,
         obs_shape=2739,
         action_shape=7,
-        batch_size=320, # transitions
-
+        batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
@@ -41,7 +40,6 @@ minigrid_ppo_rnd_config = dict(
         obs_shape=2739,
         action_shape=7,
         batch_size=320,  # transitions
-
         update_per_collect=int(10),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
