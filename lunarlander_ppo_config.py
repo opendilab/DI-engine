@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_max_entropy
 
 lunarlander_ppo_config = dict(
-    exp_name='lunarlander_guided_cost_F',
+    exp_name='lunarlander_guided_cost_F_1031',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -35,7 +35,7 @@ lunarlander_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            demonstration_info_path ='/home/SENSETIME/weiyuhong/Desktop/Guided_cost_0825/DI-engine/lunarlander_expert/ckpt/ckpt_best.pth.tar',
+            demonstration_info_path ='/home/SENSETIME/weiyuhong/Desktop/Guided_cost_1031/DI-engine/lunarlander_expert_1031/ckpt/ckpt_best.pth.tar',
             n_sample=800,
             unroll_len=1,
             discount_factor=0.99,
@@ -58,4 +58,4 @@ lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_max_entropy([main_config, create_config], seed=0)
+    serial_pipeline_max_entropy([main_config, create_config], seed=1)

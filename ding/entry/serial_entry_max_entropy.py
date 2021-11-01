@@ -14,7 +14,7 @@ from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseS
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, save_file
 from ding.reward_model import create_reward_model
 import copy
 import os
@@ -126,14 +126,6 @@ def serial_pipeline_max_entropy(
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         train_data = copy.deepcopy(new_data)
         expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        for i in range(len(new_data)):
-            device_1 = new_data[i]['obs'].device
-            device_2 = expert_data[i]['obs'].device
-            probs = F.softmax(new_data[i]['logit'], dim = -1)
-            #new_data[i]['prob'] = torch.tensor(probs[new_data[i]['action']]).to(device_1)
-            new_data[i]['prob'] = probs[new_data[i]['action']].to(device_1)
-            #print(new_data[i]['prob'])
-            expert_data[i]['prob'] = torch.ones_like(expert_data[i]['action'].float()).to(device_2)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         expert_buffer.push(expert_data, cur_collector_envstep=expert_collector.envstep)
         # Learn policy from collected data
@@ -145,11 +137,7 @@ def serial_pipeline_max_entropy(
             # Learner will train ``update_per_collect`` times in one iteration.
             #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             train_data = train_data
-            #print(train_data)
-            for i in range(len(train_data)):
-                #print(train_data[i]['obs'])
-                with torch.no_grad():
-                    train_data[i]['reward'] = reward_model.cal_reward(torch.cat([train_data[i]['obs'],train_data[i]['action'].float()]).unsqueeze(0)).squeeze(0)
+            reward_model.estimate(train_data)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -163,17 +151,20 @@ def serial_pipeline_max_entropy(
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.
             replay_buffer.clear()
-        dirname = cfg.exp_name+'reward_model'
+        dirname = cfg.exp_name+'/reward_model'
         if not os.path.exists(dirname):
             try:
                 os.mkdir(dirname)
             except FileExistsError:
                 pass
-        if learner.train_iter%cfg.reward_model.freq == 0:
+        if learner.train_iter%cfg.reward_model.store_model_every_n_train == 0:
+        #if learner.train_iter%5000 == 0:
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(learner.train_iter))
-            reward_model.save_model(path)
+            state_dict = reward_model.state_dict_reward_model()
+            save_file(path, state_dict)
     path = os.path.join(dirname, 'final_model.pth.tar')
-    reward_model.save_model(path)
+    state_dict = reward_model.state_dict_reward_model()
+    save_file(path, state_dict)
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy

@@ -599,6 +599,7 @@ class PPOOffPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
+        self._recompute_adv = self._cfg.recompute_adv
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
@@ -639,7 +640,7 @@ class PPOOffPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        if not self._nstep_return:
+        if self._nstep_return or self._recompute_adv:
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
@@ -652,7 +653,6 @@ class PPOOffPolicy(Policy):
         else:
             transition = {
                 'obs': obs,
-                'next_obs': timestep.obs,
                 'logit': model_output['logit'],
                 'action': model_output['action'],
                 'value': model_output['value'],
