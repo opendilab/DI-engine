@@ -27,7 +27,7 @@ lunarlander_ngu_config = dict(
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
-        type='rnd',
+        type='rnd-ngu',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -97,7 +97,7 @@ lunarlander_ngu_create_config = dict(
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(type='sample_ngu',)
 )
