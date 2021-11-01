@@ -22,8 +22,8 @@ pong_ppo_rnd_config = dict(
         learning_rate=1e-4,
         obs_shape=[4, 84, 84],
         action_shape=6,
-        batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        batch_size=320,
+        update_per_collect=int(10),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
         # update_per_collect=3,  # 32*5/64=3
@@ -37,8 +37,8 @@ pong_ppo_rnd_config = dict(
         learning_rate=1e-4,
         obs_shape=[4, 84, 84],
         action_shape=6,
-        batch_size=64,
-        update_per_collect=int(50 / 2),  # 32*100/64=50
+        batch_size=320,
+        update_per_collect=int(10),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
         nstep=nstep,
