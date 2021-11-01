@@ -4,20 +4,20 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32 #TODO
+collector_env_num = 32  # TODO
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    # exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul98_erbm1',
+    exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul98_erbm1',
     # exp_name='debug_minigrid_fourrooms_ngu_er01_rbs5e4_n32',
-    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_rbs3e4_n32',
+    # exp_name='debug_minigrid_doorkey_ngu_ul298_er01_rbs3e4_n32',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
         # env_id='MiniGrid-FourRooms-v0',
-        env_id='MiniGrid-DoorKey-16x16-v0',
+        # env_id='MiniGrid-DoorKey-16x16-v0',
         stop_value=0.96,
     ),
     rnd_reward_model=dict(
@@ -31,7 +31,7 @@ minigrid_ppo_rnd_config = dict(
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
-        type='rnd',
+        type='rnd-ngu',
 
     ),
     episodic_reward_model=dict(
@@ -56,7 +56,7 @@ minigrid_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=298,  # TODO(pu): according to the episode length
+        unroll_len=98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=2739,
             action_shape=7,
@@ -101,7 +101,7 @@ minigrid_ppo_rnd_create_config = dict(
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(type='sample_ngu',)
 )

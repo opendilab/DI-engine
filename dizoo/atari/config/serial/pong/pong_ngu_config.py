@@ -30,7 +30,7 @@ pong_ppo_rnd_config = dict(
         # only_use_last_five_frames_for_icm_rnd=True,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
-        type='rnd',
+        type='rnd-ngu',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -100,7 +100,7 @@ pong_ppo_rnd_create_config = dict(
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     # reward_model=dict(type='rnd'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(type='sample_ngu',)
 )
