@@ -150,3 +150,11 @@ def get_env_cls(cfg: EasyDict) -> type:
     """
     import_module(cfg.get('import_names', []))
     return ENV_REGISTRY.get(cfg.type)
+
+
+def create_model_env(cfg: EasyDict) -> Any:
+    cfg = copy.deepcopy(cfg)
+    model_env_fn = get_env_cls(cfg)
+    cfg.pop('import_names')
+    cfg.pop('type')
+    return model_env_fn(**cfg)

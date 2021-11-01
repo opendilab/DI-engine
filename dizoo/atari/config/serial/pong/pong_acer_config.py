@@ -14,7 +14,6 @@ pong_acer_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
