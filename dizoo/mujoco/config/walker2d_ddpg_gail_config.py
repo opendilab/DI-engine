@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker2d_gail_default_config = dict(
-    exp_name='walker2d_gail_test',
+walker2d_ddpg_gail_default_config = dict(
+    exp_name='walker2d_ddpg_gail',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -20,12 +20,12 @@ walker2d_gail_default_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='walker2d_ddpg/expert_data_test.pkl',
-        load_path='walker2d_gail_0/reward_model/ckpt/best.pth.tar',
+        load_path='walker2d_ddpg_gail/reward_model/ckpt/best.pth.tar',
         collect_count=100000,
         target_new_data_count=1,
     ),
     policy=dict(
-        load_path='walker2d_gail_0/ckpt/ckpt_best.pth.tar',
+        load_path='walker2d_ddpg_gail/ckpt/ckpt_best.pth.tar',
         cuda=True,
         on_policy=False,
         random_collect_size=25000,
@@ -56,10 +56,10 @@ walker2d_gail_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-walker2d_gail_default_config = EasyDict(walker2d_gail_default_config)
-main_config = walker2d_gail_default_config
+walker2d_ddpg_gail_default_config = EasyDict(walker2d_ddpg_gail_default_config)
+main_config = walker2d_ddpg_gail_default_config
 
-walker2d_gail_default_create_config = dict(
+walker2d_ddpg_gail_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -71,5 +71,5 @@ walker2d_gail_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_gail_default_create_config = EasyDict(walker2d_gail_default_create_config)
-create_config = walker2d_gail_default_create_config
+walker2d_ddpg_gail_default_create_config = EasyDict(walker2d_ddpg_gail_default_create_config)
+create_config = walker2d_ddpg_gail_default_create_config

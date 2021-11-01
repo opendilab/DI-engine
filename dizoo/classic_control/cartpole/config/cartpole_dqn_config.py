@@ -18,7 +18,7 @@ cartpole_dqn_config = dict(
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
-        nstep=1,
+        nstep=3,
         discount_factor=0.97,
         learn=dict(
             batch_size=64,

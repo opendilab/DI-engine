@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_gail_config = dict(
-    exp_name='cartpole_gail_train',
+cartpole_dqn_gail_config = dict(
+    exp_name='cartpole_dqn_gail',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -16,11 +16,11 @@ cartpole_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='cartpole_dqn/expert_data_train.pkl',
-        load_path='cartpole_gail/reward_model/ckpt/last.pth.tar',
+        load_path='cartpole_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',
         collect_count=1000,
     ),
     policy=dict(
-        load_path='cartpole_gail/ckpt/ckpt_best.pth.tar',
+        load_path='cartpole_dqn_gail/ckpt/ckpt_best.pth.tar',
         cuda=False,
         model=dict(
             obs_shape=4,
@@ -33,6 +33,7 @@ cartpole_gail_config = dict(
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
+            update_per_collect=3,
         ),
         collect=dict(n_sample=64),
         eval=dict(evaluator=dict(eval_freq=10, )),
@@ -47,9 +48,9 @@ cartpole_gail_config = dict(
         ),
     ),
 )
-cartpole_gail_config = EasyDict(cartpole_gail_config)
-main_config = cartpole_gail_config
-cartpole_gail_create_config = dict(
+cartpole_dqn_gail_config = EasyDict(cartpole_dqn_gail_config)
+main_config = cartpole_dqn_gail_config
+cartpole_dqn_gail_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -57,5 +58,5 @@ cartpole_gail_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-cartpole_gail_create_config = EasyDict(cartpole_gail_create_config)
-create_config = cartpole_gail_create_config
+cartpole_dqn_gail_create_config = EasyDict(cartpole_dqn_gail_create_config)
+create_config = cartpole_dqn_gail_create_config

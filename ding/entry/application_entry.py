@@ -142,7 +142,7 @@ def collect_demo_data(
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
     policy_kwargs = None if not hasattr(cfg.policy.other.get('eps', None), 'collect') \
-        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+        else {'eps': cfg.policy.other.eps.get('collect', 0.)}
 
     # Let's collect some expert demonstrations
     exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
