@@ -13,6 +13,7 @@ class TestAdder:
         return {
             'value': torch.randn(1),
             'reward': torch.rand(1),
+            'action': torch.rand(3),
             'other': np.random.randint(0, 10, size=(4, )),
             'obs': torch.randn(3),
             'done': False
@@ -22,6 +23,7 @@ class TestAdder:
         return {
             'value': torch.randn(1, 8),
             'reward': torch.rand(1, 1),
+            'action': torch.rand(3),
             'other': np.random.randint(0, 10, size=(4, )),
             'obs': torch.randn(3),
             'done': False

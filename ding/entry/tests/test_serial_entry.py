@@ -188,7 +188,7 @@ def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_iterations=5)
     except Exception:
         assert False, "pipeline fail"
 
