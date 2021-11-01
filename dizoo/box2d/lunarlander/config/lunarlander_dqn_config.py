@@ -3,7 +3,6 @@ from ding.entry import serial_pipeline
 
 nstep = 3
 lunarlander_dqn_default_config = dict(
-    exp_name='lunarlander_dqn',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
@@ -14,7 +13,6 @@ lunarlander_dqn_default_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        load_path='lunarlander_dqn/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
         model=dict(
