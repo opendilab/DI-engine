@@ -4,8 +4,8 @@ import torch
 import copy
 
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, q_nstep_td_error_ngu, \
-    q_nstep_td_error_with_rescale_ngu, get_nstep_return_data, get_train_sample
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
+    get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
@@ -325,7 +325,7 @@ class NGUPolicy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, 75,64 -> 64
+        self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, e.g. 75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
@@ -335,11 +335,11 @@ class NGUPolicy(Policy):
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
             if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
             else:
-                l, e = q_nstep_td_error_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
