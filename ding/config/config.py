@@ -38,7 +38,7 @@ class Config(dict):
         """
         # With the code below, you can access dict via attributes,
         # This idea comes from https://stackoverflow.com/questions/4984647/accessing-dict-keys-like-an-attribute/14620633#14620633
-        super(Config, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.__dict__ = self
         self._validators = []
 
