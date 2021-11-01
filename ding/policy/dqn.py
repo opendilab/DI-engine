@@ -191,10 +191,14 @@ class DQNPolicy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'q_value': q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """

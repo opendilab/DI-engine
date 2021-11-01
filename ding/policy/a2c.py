@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
 
-from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
+from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample
 from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
@@ -31,7 +31,7 @@ class A2CPolicy(Policy):
             # (bool) Whether to use multi gpu
             multi_gpu=False,
             # (int) for a2c, update_per_collect must be 1.
-            update_per_collect=1,  # this line should not be seen by users
+            update_per_collect=1,  # fixed value, this line should not be modified by users
             batch_size=64,
             learning_rate=0.001,
             # (List[float])
@@ -62,10 +62,6 @@ class A2CPolicy(Policy):
             discount_factor=0.9,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
-            # (bool) Whether to use nstep return for value network target
-            nstep_return=False,
-            # (int) N-step td
-            nstep=1,
         ),
         eval=dict(),
         # Although a2c is an on-policy algorithm, DI-engine reuses the buffer mechanism, and clear buffer after update.
@@ -176,17 +172,18 @@ class A2CPolicy(Policy):
         # Algorithm
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
-        self._nstep_return = self._cfg.collect.nstep_return
-        self._nstep = self._cfg.collect.nstep
 
     def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode
+            Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -238,8 +235,6 @@ class A2CPolicy(Policy):
             gae_lambda=self._gae_lambda,
             cuda=self._cuda,
         )
-        if self._nstep_return:
-            data = get_nstep_return_data(data, self._nstep)
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
@@ -254,11 +249,14 @@ class A2CPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

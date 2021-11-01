@@ -8,7 +8,7 @@ from dizoo.gym_hybrid.envs import GymHybridEnv
 class TestGymHybridEnv:
 
     def test_naive(self):
-        env = GymHybridEnv(EasyDict({'env_id': 'Moving-v0'}))
+        env = GymHybridEnv(EasyDict({'env_id': 'Moving-v0', 'act_scale': False}))
         env.enable_save_replay('./video')
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314

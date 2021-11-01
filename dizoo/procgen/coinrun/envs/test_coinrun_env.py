@@ -4,7 +4,7 @@ from easydict import EasyDict
 from dizoo.procgen.coinrun.envs import CoinRunEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCoinRunEnv:
 
     def test_naive(self):

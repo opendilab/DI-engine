@@ -4,7 +4,7 @@ from easydict import EasyDict
 from dizoo.classic_control.pendulum.envs import PendulumEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestPendulumEnv:
 
     def test_naive(self):

@@ -11,7 +11,6 @@ maze_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         model=dict(
             obs_shape=[3, 64, 64],
             action_shape=15,

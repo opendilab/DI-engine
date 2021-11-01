@@ -14,8 +14,6 @@ pong_a2c_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=True,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -24,7 +22,6 @@ pong_a2c_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            update_per_collect=1,
             batch_size=160,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
@@ -44,10 +41,6 @@ pong_a2c_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=160,
-            max_use=1,
-        ), ),
     ),
 )
 main_config = EasyDict(pong_a2c_config)
@@ -61,6 +54,3 @@ pong_a2c_create_config = dict(
     policy=dict(type='a2c'),
 )
 create_config = EasyDict(pong_a2c_create_config)
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)

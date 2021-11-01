@@ -17,8 +17,6 @@ lunarlander_dqn_default_config = dict(
         load_path='lunarlander_dqn/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
-        # Whether the RL algorithm is on-policy or off-policy.
-        on_policy=False,
         model=dict(
             obs_shape=8,
             action_shape=4,

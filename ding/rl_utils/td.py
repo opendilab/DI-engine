@@ -27,6 +27,11 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
+def view_similar(x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    size = list(x.shape) + [1 for _ in range(len(target.shape) - len(x.shape))]
+    return x.view(*size)
+
+
 nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'done'])
 
 
@@ -37,7 +42,8 @@ def nstep_return(data: namedtuple, gamma: float, nstep: int, value_gamma: Option
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
-    reward = torch.matmul(reward_factor, reward)
+    reward_factor = view_similar(reward_factor, reward)
+    reward = reward.mul(reward_factor).sum(0)
     if value_gamma is None:
         return_ = reward + (gamma ** nstep) * next_value * (1 - done)
     else:
@@ -317,13 +323,17 @@ def q_nstep_td_error(
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
-    assert len(action.shape) == 1, action.shape
     if weight is None:
-        weight = torch.ones_like(action)
+        weight = torch.ones_like(reward)
+    if len(action.shape) > 1:  # MARL case
+        reward = reward.unsqueeze(-1)
+        weight = weight.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        if value_gamma is not None:
+            value_gamma = value_gamma.unsqueeze(-1)
 
-    batch_range = torch.arange(action.shape[0])
-    q_s_a = q[batch_range, action]
-    target_q_s_a = next_n_q[batch_range, next_n_action]
+    q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+    target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
 
     if cum_reward:
         if value_gamma is None:
@@ -339,8 +349,8 @@ def q_nstep_td_error(
 def dqfd_nstep_td_error(
         data: namedtuple,
         gamma: float,
-        lambda1: tuple,
-        lambda2: tuple,
+        lambda1: float,
+        lambda2: float,
         margin_function: float,
         nstep: int = 1,
         cum_reward: bool = False,
@@ -433,7 +443,7 @@ def dqfd_nstep_td_error(
         0.8 * torch.from_numpy((action == max_action).numpy().astype(int)).float().to(device) - q_s_a
     )
     '''
-    return ((lambda1[0] * td_error_per_sample + td_error_one_step_per_sample + lambda2[0] * JE) *
+    return ((lambda1 * td_error_per_sample + td_error_one_step_per_sample + lambda2 * JE) *
             weight).mean(), td_error_per_sample + td_error_one_step_per_sample + JE
 
 

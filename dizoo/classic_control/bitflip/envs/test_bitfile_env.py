@@ -4,7 +4,7 @@ import numpy as np
 from dizoo.classic_control.bitflip.envs import BitFlipEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 def test_bitfilp_env():
     n_bits = 10
     env = BitFlipEnv(EasyDict({'n_bits': n_bits}))

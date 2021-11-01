@@ -18,7 +18,6 @@ cooperative_navigation_atoc_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=False,
         model=dict(
             obs_shape=2 + 2 + (n_agent - 1) * 2 + n_agent * 2,

@@ -6,7 +6,7 @@ import subprocess
 from copy import deepcopy
 
 from ding.utils import K8sLauncher, OrchestratorLauncher
-from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data
+from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data, serial_pipeline_onpolicy
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
@@ -42,6 +42,8 @@ from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -84,7 +86,7 @@ def test_td3():
 def test_a2c():
     config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
     try:
-        serial_pipeline(config, seed=0)
+        serial_pipeline_onpolicy(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -166,20 +168,6 @@ def test_r2d2():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("11. r2d2\n")
-
-
-@pytest.mark.algotest
-def test_a2c_with_nstep_return():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
-    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
-    config[0].policy.collect.discount_factor = 0.9
-    config[0].policy.collect.nstep = 3
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("12. a2c with nstep return\n")
 
 
 # @pytest.mark.algotest
@@ -331,6 +319,7 @@ def test_sqil():
 def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].exp_name = 'sac'
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -404,6 +393,39 @@ def test_wqmix():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("28. wqmix\n")
+
+
+@pytest.mark.algotest
+def test_td3_bc():
+    # train expert
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+    config[0].exp_name = 'td3'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train td3 bc
+    config = [deepcopy(pendulum_td3_bc_config), deepcopy(pendulum_td3_bc_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("29. td3_bc\n")
 
 
 # @pytest.mark.algotest

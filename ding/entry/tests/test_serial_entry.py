@@ -6,7 +6,8 @@ from copy import deepcopy
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from dizoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
+    cartpole_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
@@ -38,6 +39,9 @@ from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
+from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 
 
 @pytest.mark.unittest
@@ -63,9 +67,9 @@ def test_ddpg():
         assert False, "pipeline fail"
 
 
-@pytest.mark.unittest
-def test_td3():
-    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+# @pytest.mark.unittest
+def test_hybrid_ddpg():
+    config = [deepcopy(gym_hybrid_ddpg_config), deepcopy(gym_hybrid_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -74,8 +78,8 @@ def test_td3():
 
 
 @pytest.mark.unittest
-def test_a2c():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
+def test_td3():
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -125,10 +129,21 @@ def test_qrdqn():
 
 @pytest.mark.unittest
 def test_ppo():
-    config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        ppo_main(config[0], seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_ppo_nstep_return():
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.nstep_return = True
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -137,6 +152,7 @@ def test_ppo():
 def test_sac():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = False
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -147,7 +163,20 @@ def test_sac():
 def test_sac_auto_alpha():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.is_auto_alpha = True
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = False
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_sac_log_space():
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = True
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -158,19 +187,6 @@ def test_sac_auto_alpha():
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    try:
-        serial_pipeline(config, seed=0, max_iterations=1)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
-def test_a2c_with_nstep_return():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
-    config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
-    config[0].policy.collect.discount_factor = 0.9
-    config[0].policy.collect.nstep = 3
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -325,6 +341,7 @@ def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'sac'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -338,7 +355,7 @@ def test_cql():
     ]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./default_experiment/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./sac/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -401,3 +418,40 @@ def test_discrete_cql():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole cartpole_cql')
+
+
+@pytest.mark.algotest
+def test_td3_bc():
+    # train expert
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+    config[0].exp_name = 'td3'
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
+    collect_count = 1000
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load('./td3/ckpt/iteration_0.pth.tar', map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train td3 bc
+    config = [deepcopy(pendulum_td3_bc_config), deepcopy(pendulum_td3_bc_create_config)]
+    config[0].exp_name = 'td3_bc'
+    config[0].policy.learn.train_epoch = 1
+    config[0].policy.eval.evaluator.eval_freq = 1
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf td3 td3_bc')
