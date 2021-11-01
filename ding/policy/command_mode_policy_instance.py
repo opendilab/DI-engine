@@ -8,11 +8,14 @@ from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
+from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
+from .ppo_offpolicy_collect_traj import PPOOffCollectTrajPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
+from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .td3_bc import TD3BCPolicy
@@ -25,7 +28,10 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
+
 from .dqfd import DQFDPolicy
+from .r2d3 import R2D3Policy
+
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 
@@ -113,6 +119,16 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('r2d2_collect_traj_command')
+class R2D2CollectTrajCommandModePolicy(R2D2CollectTrajPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('r2d3_command')
+class R2D3CommandModePolicy(R2D3Policy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('sqn_command')
 class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
     pass
@@ -130,6 +146,11 @@ class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_offpolicy_command')
 class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
+class PPOOffCollectTrajCommandModePolicy(PPOOffCollectTrajPolicy, DummyCommandModePolicy):
     pass
 
 
@@ -244,6 +265,11 @@ class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('qtran_command')
 class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ngu_command')
+class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
     pass
 
 
