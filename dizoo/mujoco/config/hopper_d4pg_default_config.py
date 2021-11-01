@@ -15,7 +15,6 @@ hopper_d4pg_default_config = dict(
         cuda=True,
         priority=True,
         nstep=5,
-        on_policy=False,
         random_collect_size=25000,
         model=dict(
             obs_shape=11,

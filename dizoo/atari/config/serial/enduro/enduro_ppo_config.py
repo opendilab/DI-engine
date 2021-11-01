@@ -14,8 +14,6 @@ enduro_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=9,
@@ -62,6 +60,3 @@ enduro_ppo_create_config = dict(
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(enduro_ppo_create_config)
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)

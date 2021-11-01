@@ -161,9 +161,6 @@ def serial_pipeline_sqil(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

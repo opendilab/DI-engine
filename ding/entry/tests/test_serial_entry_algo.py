@@ -6,7 +6,7 @@ import subprocess
 from copy import deepcopy
 
 from ding.utils import K8sLauncher, OrchestratorLauncher
-from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data
+from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data, serial_pipeline_onpolicy
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
@@ -86,7 +86,7 @@ def test_td3():
 def test_a2c():
     config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
     try:
-        serial_pipeline(config, seed=0)
+        serial_pipeline_onpolicy(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -168,20 +168,6 @@ def test_r2d2():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("11. r2d2\n")
-
-
-@pytest.mark.algotest
-def test_a2c_with_nstep_return():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
-    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
-    config[0].policy.collect.discount_factor = 0.9
-    config[0].policy.collect.nstep = 3
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("12. a2c with nstep return\n")
 
 
 # @pytest.mark.algotest

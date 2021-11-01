@@ -1,3 +1,4 @@
+# ding -m serial_onpolicy -c cartpole_a2c_config.py -s 0
 from easydict import EasyDict
 
 cartpole_a2c_config = dict(
@@ -32,6 +33,7 @@ cartpole_a2c_config = dict(
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=50, )),
     ),
 )
 cartpole_a2c_config = EasyDict(cartpole_a2c_config)
