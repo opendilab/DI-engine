@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 lunarlander_r2d2_config = dict(
-    exp_name='debug_lunarlander_r2d2_n5_bs2_ul40',
+    exp_name='debug_lunarlander_r2d2_n5_bs2_ul40_rbs5e4_seed1',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -50,9 +50,9 @@ lunarlander_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=100000,
+                decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=100000,
+            replay_buffer=dict(replay_buffer_size=50000,
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.6,
                                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

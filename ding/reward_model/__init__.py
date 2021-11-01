@@ -7,5 +7,5 @@ from .red_irl_model import RedRewardModel
 # sparse reward
 from .her_reward_model import HerRewardModel
 # exploration
-# from .rnd_reward_model import RndRewardModel
-from .ngu_reward_model import RndRewardModel, EpisodicRewardModel
+from .rnd_reward_model import RndRewardModel
+from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel

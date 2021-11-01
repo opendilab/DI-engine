@@ -4,11 +4,11 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 8
+collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 pong_ppo_rnd_config = dict(
-    exp_name='debug_pong_ngu_n5_bs2_ul40',
+    exp_name='debug_pong_ngu_ul98_er01_rlbs2e4_n32',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -19,31 +19,28 @@ pong_ppo_rnd_config = dict(
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
-        learning_rate=0.001,
+        learning_rate=1e-4,
         obs_shape=[4, 84, 84],
         action_shape=6,
         batch_size=64,
         update_per_collect=int(50 / 2),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
+        clear_buffer_per_iters=10,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
-
-        clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
-        learning_rate=0.001,
+        learning_rate=1e-4,
         obs_shape=[4, 84, 84],
         action_shape=6,
         batch_size=64,
         update_per_collect=int(50 / 2),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
-
+        clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
@@ -56,7 +53,7 @@ pong_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=10,
         nstep=nstep,
-        unroll_len=40,
+        unroll_len=98,  # TODO(pu): 40
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
