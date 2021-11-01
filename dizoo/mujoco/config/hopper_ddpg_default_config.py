@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
 hopper_ddpg_default_config = dict(
-    exp_name='hopper_ddpg',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
