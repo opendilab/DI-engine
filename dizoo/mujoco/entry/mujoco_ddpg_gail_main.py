@@ -35,7 +35,7 @@ def main(
         seed: int = 0,
         max_iterations: Optional[int] = int(1e9),
         collect_data: bool = True,
-    ) -> 'Policy':  # noqa
+) -> 'Policy':  # noqa
     """
     Overview:
         Serial pipeline entry with reward model.
@@ -62,9 +62,13 @@ def main(
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
             expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
-        collect_demo_data((expert_cfg, expert_create_cfg), seed, state_dict_path=expert_cfg.policy.load_path,
-                          expert_data_path=cfg.reward_model.expert_data_path,
-                          collect_count=cfg.reward_model.collect_count)
+        collect_demo_data(
+            (expert_cfg, expert_create_cfg),
+            seed,
+            state_dict_path=expert_cfg.policy.load_path,
+            expert_data_path=cfg.reward_model.expert_data_path,
+            collect_count=cfg.reward_model.collect_count
+        )
     # Create main components: env, policy
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
@@ -151,6 +155,10 @@ def main(
 
 
 if __name__ == "__main__":
-    main((walker2d_ddpg_gail_default_config, walker2d_ddpg_gail_default_create_config),
-         (walker2d_ddpg_default_config, walker2d_ddpg_default_create_config),
-         collect_data=True, seed=0, max_iterations=1000000)
+    main(
+        (walker2d_ddpg_gail_default_config, walker2d_ddpg_gail_default_create_config),
+        (walker2d_ddpg_default_config, walker2d_ddpg_default_create_config),
+        collect_data=True,
+        seed=0,
+        max_iterations=1000000
+    )
