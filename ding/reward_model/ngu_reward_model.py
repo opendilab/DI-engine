@@ -104,7 +104,7 @@ class InverseNetwork(nn.Module):
 
 
 @REWARD_MODEL_REGISTRY.register('episodic')
-class EpisodicRewardModel(BaseRewardModel):
+class EpisodicNGURewardModel(BaseRewardModel):
     config = dict(
         type='episodic',
         intrinsic_reward_type='add',
@@ -115,7 +115,7 @@ class EpisodicRewardModel(BaseRewardModel):
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
-        super(EpisodicRewardModel, self).__init__()
+        super(EpisodicNGURewardModel, self).__init__()
         self.cfg = config
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
@@ -337,10 +337,10 @@ class RndNetwork(nn.Module):
         return predict_feature, target_feature
 
 
-@REWARD_MODEL_REGISTRY.register('rnd')
-class RndRewardModel(BaseRewardModel):
+@REWARD_MODEL_REGISTRY.register('rnd-ngu')
+class RndNGURewardModel(BaseRewardModel):
     config = dict(
-        type='rnd',
+        type='rnd-ngu',
         intrinsic_reward_type='add',
         learning_rate=1e-3,
         batch_size=64,
@@ -349,7 +349,7 @@ class RndRewardModel(BaseRewardModel):
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
-        super(RndRewardModel, self).__init__()
+        super(RndNGURewardModel, self).__init__()
         self.cfg = config
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
