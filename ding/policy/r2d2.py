@@ -223,7 +223,7 @@ class R2D2Policy(Policy):
         else:
             data['value_gamma'] = data['value_gamma'][bs:]
 
-        if 'weight' not in data:
+        if 'weight' not in data or data['weight'] is None:
             data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
