@@ -58,19 +58,19 @@ def clone_object():
     """
     fastcopy = FastCopy()
 
-    def push(next: Callable, data: Any, *args, **kwargs) -> None:
+    def push(chain: Callable, data: Any, *args, **kwargs) -> None:
         data = fastcopy.copy(data)
-        return next(data, *args, **kwargs)
+        return chain(data, *args, **kwargs)
 
-    def sample(next: Callable, *args, **kwargs) -> List[Any]:
-        data = next(*args, **kwargs)
+    def sample(chain: Callable, *args, **kwargs) -> List[Any]:
+        data = chain(*args, **kwargs)
         return fastcopy.copy(data)
 
-    def _immutable_object(action: str, next: Callable, *args, **kwargs):
+    def _immutable_object(action: str, chain: Callable, *args, **kwargs):
         if action == "push":
-            return push(next, *args, **kwargs)
+            return push(chain, *args, **kwargs)
         elif action == "sample":
-            return sample(next, *args, **kwargs)
-        return next(*args, **kwargs)
+            return sample(chain, *args, **kwargs)
+        return chain(*args, **kwargs)
 
     return _immutable_object
