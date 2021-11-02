@@ -82,7 +82,7 @@ class RndRewardModel(BaseRewardModel):
         # TODO(pu): observation normalization:  transform to mean 0, std 1
         self._running_mean_std_rnd_obs.update(train_data.cpu().numpy())
         train_data = (train_data -
-                      to_tensor(self._running_mean_std_rnd_obs.mean)) / to_tensor(self._running_mean_std_rnd_obs.std)
+                      to_tensor(self._running_mean_std_rnd_obs.mean).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
         train_data = torch.clamp(train_data, min=-5, max=5)
 
         predict_feature, target_feature = self.reward_model(train_data)
@@ -103,7 +103,7 @@ class RndRewardModel(BaseRewardModel):
         obs = collect_states(data)
         obs = torch.stack(obs).to(self.device)
         # TODO(pu): observation normalization:  transform to mean 0, std 1
-        obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean)) / to_tensor(self._running_mean_std_rnd_obs.std)
+        obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
         obs = torch.clamp(obs, min=-5, max=5)
 
         with torch.no_grad():

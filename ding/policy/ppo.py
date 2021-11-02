@@ -20,7 +20,8 @@ from ding.utils import dicts_to_lists, lists_to_dicts
 def compute_adv(data, last_value, cfg):
     data = get_gae(
         data,
-        to_device(last_value, 'cpu'),
+        # to_device(last_value, 'cpu'),
+        last_value,
         gamma=cfg.collect.discount_factor,
         gae_lambda=cfg.collect.gae_lambda,
         cuda=False
@@ -289,7 +290,7 @@ class PPOPolicy(Policy):
                     # NOTE: processed_data have less transition than data, because we throw away the last timestep
                     # transition in each traj in fun dict_data_split_traj_and_compute_adv() to compute the adv
                     # 64*8 -> 63*8
-                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value, self._cfg)  # TODO
+                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value.to(self._device), self._cfg)  # TODO
                     processed_data = lists_to_dicts(processed_data)
                     for k, v in processed_data.items():
                         if isinstance(v[0], torch.Tensor):
