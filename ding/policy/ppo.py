@@ -272,7 +272,7 @@ class PPOPolicy(Policy):
                     # # value.shape=[512], data['reward'].shape=[512]
                     # data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
 
-                    # way 1
+                    # method1
                     # data['value']=value
                     # data['weight']=[None for i in range(data['reward'].shape[0])]
                     # processed_data=dicts_to_lists(data)
@@ -283,7 +283,7 @@ class PPOPolicy(Policy):
                     #         processed_data[k]=torch.stack(v,dim=0)
                     # processed_data['weight'] = None
 
-                    # way 2
+                    # method2
                     data['value'] = value
                     data['weight'] = [None for i in range(data['reward'].shape[0])]
                     # NOTE: processed_data have less transition than data, because we throw away the last timestep
@@ -308,8 +308,7 @@ class PPOPolicy(Policy):
             else:
                 processed_data = data
 
-            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size,
-                                              shuffle=True):  # self._cfg.learn.batch_size=64
+            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:

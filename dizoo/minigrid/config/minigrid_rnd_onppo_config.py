@@ -4,15 +4,15 @@ import torch
 print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_ppo_onpolicy_rnd_debug',
-    # exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_debug',
-    exp_name='minigrid_fourrooms_ppo_onpolicy_rnd_debug',
-    # exp_name='minigrid_doorkey_ppo_onpolicy_rnd_debug',
-    # exp_name='minigrid_kcs3r3_ppo_onpolicy_rnd_debug',
-    # exp_name='minigrid_om2dlh_ppo_onpolicy_rnd_debug',
+    # exp_name='minigrid_empty8_onppo_rnd',
+    # exp_name='minigrid_fourrooms_ppo_rnd',
+    exp_name='minigrid_fourrooms_onppo_rnd',
+    # exp_name='minigrid_doorkey_onppo_rnd',
+    # exp_name='minigrid_kcs3r3_onppo_rnd',
+    # exp_name='minigrid_om2dlh_onppo_rnd',
 
     env=dict(
-        collector_env_num= collector_env_num,
+        collector_env_num=collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         # env_id='MiniGrid-Empty-8x8-v0',
@@ -25,12 +25,12 @@ minigrid_ppo_rnd_config = dict(
     ),
     reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
-        learning_rate=0.001,
+        learning_rate=5e-4,
         obs_shape=2739,
-        # batch_size=32,
+        # batch_size=64,
         # update_per_collect=10,
-        batch_size=64,
-        update_per_collect=8,  # 10
+        batch_size=320,
+        update_per_collect=4,   # TODO(pu):2
         clear_buffer_per_iters=10,
     ),
     policy=dict(
@@ -49,7 +49,7 @@ minigrid_ppo_rnd_config = dict(
             epoch_per_collect=10,  # TODO(pu)
             update_per_collect=1,  # 4
             batch_size=64,
-            learning_rate=0.0003,
+            learning_rate=3e-4,
             value_weight=0.5,
             entropy_weight=0.001, 
             clip_ratio=0.2,
@@ -57,7 +57,7 @@ minigrid_ppo_rnd_config = dict(
             value_norm=True, 
         ),
         collect=dict(
-            collector_env_num= collector_env_num,
+            collector_env_num=collector_env_num,
             n_sample=int(64*collector_env_num), 
             #  self._traj_len  = max(1,64*8//8)=64 
             #    self._traj_len = max(
