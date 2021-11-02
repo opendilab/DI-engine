@@ -371,6 +371,116 @@ notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
 <h2>solo_parallel_commander<a class="headerlink" href="#solo-parallel-commander" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="solocommander">
 <h3>SoloCommander<a class="headerlink" href="#solocommander" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.solo_parallel_commander.</span></span><span class="sig-name descname"><span class="pre">SoloCommander</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Parallel commander for solo games.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, get_collector_task, get_learner_task, finish_collector_task, finish_learner_task,
+notify_fail_collector_task, notify_fail_learner_task, update_learner_info</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Init the solo commander according to config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type config file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task">
+<span class="sig-name descname"><span class="pre">finish_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get collector’s finish_task_info and release collector_task_space.
+If collector’s task is evaluation, judge the convergence and return it.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>task_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the collector task_id</p></li>
+<li><p>finished_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the finished task</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>convergence (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether the stop val is reached and the algorithm is converged. </dt><dd><p>If True, the pipeline can be finished.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task">
+<span class="sig-name descname"><span class="pre">finish_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finished_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.finish_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get learner’s finish_task_info, release learner_task_space, reset corresponding variables.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>task_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Learner task_id</p></li>
+<li><p>finished_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Learner’s finish_learn_info.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>buffer_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Buffer id of the finished learner.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task">
+<span class="sig-name descname"><span class="pre">get_collector_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the new collector task when there is residual task space; Otherwise return None.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): New collector task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task">
+<span class="sig-name descname"><span class="pre">get_learner_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.get_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.get_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the new learner task when there is residual task space; Otherwise return None.</p>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): New learner task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task">
+<span class="sig-name descname"><span class="pre">notify_fail_collector_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_collector_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_collector_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Release task space when collector task fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task">
+<span class="sig-name descname"><span class="pre">notify_fail_learner_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/solo_parallel_commander.html#SoloCommander.notify_fail_learner_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.solo_parallel_commander.SoloCommander.notify_fail_learner_task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Release task space when learner task fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 </div>

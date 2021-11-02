@@ -162,21 +162,18 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.policy.ppg</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
-
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
 
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
-<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">get_gae_with_default_last_value</span><span class="p">,</span> <span class="n">get_train_sample</span><span class="p">,</span>
-                           <span class="n">ppg_data</span><span class="p">,</span> <span class="n">ppg_joint_error</span><span class="p">,</span> <span class="n">ppo_policy_data</span><span class="p">,</span>
-                           <span class="n">ppo_policy_error</span><span class="p">,</span> <span class="n">ppo_value_data</span><span class="p">,</span> <span class="n">ppo_value_error</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
 <span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
-
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">get_gae_with_default_last_value</span><span class="p">,</span> <span class="n">get_train_sample</span><span class="p">,</span> \
+    <span class="n">ppo_policy_data</span><span class="p">,</span> <span class="n">ppo_policy_error</span><span class="p">,</span> <span class="n">ppo_value_data</span><span class="p">,</span> <span class="n">ppo_value_error</span><span class="p">,</span> <span class="n">ppg_data</span><span class="p">,</span> <span class="n">ppg_joint_error</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
 <span class="kn">from</span> <span class="nn">.base_policy</span> <span class="kn">import</span> <span class="n">Policy</span>
 
 

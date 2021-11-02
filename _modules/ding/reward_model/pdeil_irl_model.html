@@ -162,19 +162,16 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.reward_model.pdeil_irl_model</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pickle</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">stats</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">stats</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">SVC</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">cov</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span><span class="p">,</span> <span class="n">one_time_warning</span>
-
 <span class="kn">from</span> <span class="nn">.base_reward_model</span> <span class="kn">import</span> <span class="n">BaseRewardModel</span>
 
 
