@@ -17,20 +17,20 @@ class RateLimit:
 
     def handler(self) -> Callable:
 
-        def _handler(action: str, next: Callable, *args, **kwargs):
+        def _handler(action: str, chain: Callable, *args, **kwargs):
             if action == "push":
-                return self.push(next, *args, **kwargs)
-            return next(*args, **kwargs)
+                return self.push(chain, *args, **kwargs)
+            return chain(*args, **kwargs)
 
         return _handler
 
-    def push(self, next, data, *args, **kwargs) -> None:
+    def push(self, chain, data, *args, **kwargs) -> None:
         current = time.time()
         # Cut off stale records
         self.buffered = [t for t in self.buffered if t > current - self.window_seconds]
         if len(self.buffered) < self.max_rate:
             self.buffered.append(current)
-            return next(data, *args, **kwargs)
+            return chain(data, *args, **kwargs)
         else:
             return None
 
@@ -40,14 +40,14 @@ def add_10() -> Callable:
     Transform data on sampling
     """
 
-    def sample(next: Callable, size: int, replace: bool = False, *args, **kwargs):
-        data = next(size, replace, *args, **kwargs)
+    def sample(chain: Callable, size: int, replace: bool = False, *args, **kwargs):
+        data = chain(size, replace, *args, **kwargs)
         return [d + 10 for d in data]
 
-    def _subview(action: str, next: Callable, *args, **kwargs):
+    def _subview(action: str, chain: Callable, *args, **kwargs):
         if action == "sample":
-            return sample(next, *args, **kwargs)
-        return next(*args, **kwargs)
+            return sample(chain, *args, **kwargs)
+        return chain(*args, **kwargs)
 
     return _subview
 
