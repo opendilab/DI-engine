@@ -6,10 +6,10 @@ collector_env_num=8
 minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_empty8_onppo_rnd',
     # exp_name='minigrid_fourrooms_ppo_rnd',
-    exp_name='minigrid_fourrooms_onppo_rnd',
-    # exp_name='minigrid_doorkey_onppo_rnd',
-    # exp_name='minigrid_kcs3r3_onppo_rnd',
-    # exp_name='minigrid_om2dlh_onppo_rnd',
+    exp_name='minigrid_fourrooms_rnd_onppo',
+    # exp_name='minigrid_doorkey_rnd_onppo',
+    # exp_name='minigrid_kcs3r3_rnd_onppo',
+    # exp_name='minigrid_om2dlh_rnd_onppo',
 
     env=dict(
         collector_env_num=collector_env_num,
