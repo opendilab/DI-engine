@@ -400,7 +400,7 @@ class NGUPolicy(Policy):
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample_ngu')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
         self.index_to_gamma = {
             i: 1 - torch.exp(

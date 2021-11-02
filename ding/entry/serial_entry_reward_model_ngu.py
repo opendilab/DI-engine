@@ -56,7 +56,7 @@ def serial_pipeline_reward_model_ngu(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface TODO
+    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface TODO(pu)
 
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
@@ -81,9 +81,6 @@ def serial_pipeline_reward_model_ngu(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    # reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
-    # cfg.rnd_reward_model.update({'type':'rnd'})
-    # cfg.episodic_reward_model.update({'type':'episodic'})
     rnd_reward_model = create_reward_model(cfg.rnd_reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
     episodic_reward_model = create_reward_model(
         cfg.episodic_reward_model, policy.collect_mode.get_attribute('device'), tb_logger
@@ -106,7 +103,10 @@ def serial_pipeline_reward_model_ngu(
         collector.reset_policy(policy.collect_mode)
     estimate_cnt = 0
     for iter in range(max_iterations):
-        collect_kwargs = commander.step()  # {'eps': 0.95}
+        # collect_kwargs = commander.step()  # {'eps': 0.95}
+        eps = {i: 0.4 ** (1 + 8 * i / (cfg.policy.collect.env_num - 1)) for i in range(cfg.policy.collect.env_num)}
+        collect_kwargs = {'eps': eps}
+
         # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -126,17 +126,16 @@ def serial_pipeline_reward_model_ngu(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         # new_data_count += len(new_data)
         # collect data for reward_model training
-        rnd_reward_model.collect_data(new_data)  # TODO(pu):
-        episodic_reward_model.collect_data(new_data)  # TODO(pu):
+        rnd_reward_model.collect_data(new_data)  # TODO(pu)
+        episodic_reward_model.collect_data(new_data)  # TODO(pu)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         rnd_reward_model.train()
-        # if iter % 10 == 0:  # TODO(pu):
         if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
         if (iter + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
-            episodic_reward_model.clear_data()  # TODO(pu):
+            episodic_reward_model.clear_data()
 
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
@@ -149,7 +148,7 @@ def serial_pipeline_reward_model_ngu(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # TODO(pu) very important, otherwise the reward od the date in replay buffer will be modifyed
+            # TODO(pu): this is very important, otherwise the reward od the date in replay buffer will be modifyed
             train_data_modified = copy.deepcopy(train_data)
             # update train_data reward
             rnd_reward = rnd_reward_model.estimate(train_data_modified)  # TODO
