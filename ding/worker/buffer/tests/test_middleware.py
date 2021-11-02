@@ -1,7 +1,7 @@
 import pytest
 import torch
 from ding.worker.buffer import Buffer, DequeStorage
-from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check
+from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, priority
 
 
 @pytest.mark.unittest
@@ -76,3 +76,29 @@ def test_staleness_check():
     with pytest.raises(ValueError):
         data = buffer.sample(size=N, replace=False, train_iter_sample_data=11)
     assert buffer.count() == 2
+
+
+@pytest.mark.unittest
+def test_priority():
+    N = 5
+    buffer = Buffer(DequeStorage(maxlen=10))
+    buffer.use(priority(buffer, buffer_size=10, IS_weight=True))
+    for _ in range(N):
+        buffer.push(get_data())
+    assert buffer.count() == N
+    for _ in range(N):
+        buffer.push(get_data(), meta={'priority': 2.0})
+    assert buffer.count() == N + N
+    data = buffer.sample(size=N + N, replace=False)
+    assert len(data) == N + N
+    for (item, _, meta) in data:
+        assert set(meta.keys()).issuperset(set(['priority', 'priority_idx', 'priority_IS']))
+        meta['priority'] = 3.0
+    for item, index, meta in data:
+        buffer.update(index, item, meta)
+    data = buffer.sample(size=1)
+    assert data[0][2]['priority'] == 3.0
+    buffer.delete(data[0][1])
+    assert buffer.count() == N + N - 1
+    buffer.clear()
+    assert buffer.count() == 0
