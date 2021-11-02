@@ -57,3 +57,6 @@ class DequeStorage(Storage):
 
     def clear(self) -> None:
         self.storage.clear()
+
+    def __iter__(self) -> deque:
+        return iter(self.storage)

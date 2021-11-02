@@ -151,3 +151,12 @@ class Buffer:
         buffer = Buffer(self.storage)
         buffer.middleware = copy.deepcopy(self.middleware)
         return buffer
+
+    def count(self) -> int:
+        """
+        Overview:
+            Return the actual valid data count in buffer now
+        Returns:
+            - count (:obj:`int`): The actual valid data count
+        """
+        return self.storage.count()

@@ -1,7 +1,7 @@
 import pytest
 import time
 from typing import Callable, Deque
-from ding.worker.buffer import Buffer, storage
+from ding.worker.buffer import Buffer
 from ding.worker.buffer import DequeStorage
 
 
@@ -163,13 +163,13 @@ def test_update_delete():
     meta = None
     success = buf.update(index, data, meta)
     assert success
-    ## Resample
+    # Resample
     [[data, meta]] = buf.sample(1, return_meta=True)
     assert "new_prop" in data
     assert meta is None
-    ## Update object that not exists in buffer
+    # Update object that not exists in buffer
     success = buf.update("invalidindex", {}, None)
-    assert success == False
+    assert not success
 
     # Delete data
     [[_, index]] = buf.sample(1, return_index=True)
