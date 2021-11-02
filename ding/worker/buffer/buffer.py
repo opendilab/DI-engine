@@ -11,8 +11,8 @@ def apply_middleware(func_name: str):
             """
             Overview:
                 The real processing starts here, we apply the middleware one by one,
-                each middleware will receive a `next` function, which is an executor of next
-                middleware. You can change the input arguments to the `next` middleware, and you
+                each middleware will receive next `chained` function, which is an executor of next
+                middleware. You can change the input arguments to the next `chained` middleware, and you
                 also can get the return value from the next middleware, so you have the
                 maximum freedom to choose at what stage to implement your method.
             """
@@ -21,11 +21,11 @@ def apply_middleware(func_name: str):
                 if len(middleware) == 0:
                     return base_func(buffer, *args, **kwargs)
 
-                def next(*args, **kwargs):
+                def chain(*args, **kwargs):
                     return wrap_handler(middleware[1:], *args, **kwargs)
 
                 func = middleware[0]
-                return func(func_name, next, *args, **kwargs)
+                return func(func_name, chain, *args, **kwargs)
 
             return wrap_handler(buffer.middleware, *args, **kwargs)
 
