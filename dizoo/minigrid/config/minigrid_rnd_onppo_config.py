@@ -4,9 +4,8 @@ import torch
 print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_onppo_rnd',
-    # exp_name='minigrid_fourrooms_ppo_rnd',
-    exp_name='minigrid_fourrooms_rnd_onppo',
+    exp_name='minigrid_empty8_rnd_onppo',
+    # exp_name='minigrid_fourrooms_rnd_onppo',
     # exp_name='minigrid_doorkey_rnd_onppo',
     # exp_name='minigrid_kcs3r3_rnd_onppo',
     # exp_name='minigrid_om2dlh_rnd_onppo',
@@ -15,8 +14,8 @@ minigrid_ppo_rnd_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
         # env_id='MiniGrid-DoorKey-16x16-v0',
         # env_id='MiniGrid-KeyCorridorS3R3-v0',
         # env_id='MiniGrid-ObstructedMaze-2Dlh-v0 ',
