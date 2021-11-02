@@ -9,28 +9,28 @@ def use_time_check(max_use: int = float("inf")) -> Callable:
         greater than max_use, this data will be removed from buffer as soon as possible.
     """
 
-    def push(next: Callable, data: Any, *args, **kwargs) -> None:
+    def push(chain: Callable, data: Any, *args, **kwargs) -> None:
         if 'meta' in kwargs:
             kwargs['meta']['use_count'] = 0
         else:
             kwargs['meta'] = {'use_count': 0}
-        return next(data, *args, **kwargs)
+        return chain(data, *args, **kwargs)
 
-    def sample(next: Callable, *args, **kwargs) -> List[Any]:
+    def sample(chain: Callable, *args, **kwargs) -> List[Any]:
         kwargs['return_index'] = True
         kwargs['return_meta'] = True
-        data = next(*args, **kwargs)
+        data = chain(*args, **kwargs)
         for i, (d, idx, meta) in enumerate(data):
             meta['use_count'] += 1
             if meta['use_count'] >= max_use:
                 print('max_use trigger')  # TODO(nyz)
         return data
 
-    def _immutable_object(action: str, next: Callable, *args, **kwargs) -> Any:
+    def _immutable_object(action: str, chain: Callable, *args, **kwargs) -> Any:
         if action == "push":
-            return push(next, *args, **kwargs)
+            return push(chain, *args, **kwargs)
         elif action == "sample":
-            return sample(next, *args, **kwargs)
-        return next(*args, **kwargs)
+            return sample(chain, *args, **kwargs)
+        return chain(*args, **kwargs)
 
     return _immutable_object
