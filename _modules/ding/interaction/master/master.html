@@ -164,10 +164,10 @@
   <h1>Source code for ding.interaction.master.master</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Empty</span>
-<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span><span class="p">,</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Event</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Empty</span><span class="p">,</span> <span class="n">Queue</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Event</span><span class="p">,</span> <span class="n">Lock</span><span class="p">,</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">UUID</span>
 
 <span class="kn">import</span> <span class="nn">requests</span>
@@ -175,15 +175,18 @@
 <span class="kn">from</span> <span class="nn">requests.exceptions</span> <span class="kn">import</span> <span class="n">RequestException</span>
 <span class="kn">from</span> <span class="nn">urlobject</span> <span class="kn">import</span> <span class="n">URLObject</span>
 
-<span class="kn">from</span> <span class="nn">.connection</span> <span class="kn">import</span> <span class="n">SlaveConnectionProxy</span><span class="p">,</span> <span class="n">SlaveConnection</span><span class="p">,</span> <span class="n">_ISlaveConnection</span><span class="p">,</span> <span class="n">_get_connection_class</span><span class="p">,</span> \
-    <span class="n">_slave_task_complete</span><span class="p">,</span> <span class="n">_slave_task_fail</span>
-<span class="kn">from</span> <span class="nn">.task</span> <span class="kn">import</span> <span class="n">TaskResultType</span>
-<span class="kn">from</span> <span class="nn">..base</span> <span class="kn">import</span> <span class="n">random_token</span><span class="p">,</span> <span class="n">ControllableService</span><span class="p">,</span> <span class="n">failure_response</span><span class="p">,</span> <span class="n">success_response</span><span class="p">,</span> <span class="n">get_host_ip</span><span class="p">,</span> \
-    <span class="n">get_http_engine_class</span>
-<span class="kn">from</span> <span class="nn">..config</span> <span class="kn">import</span> <span class="n">GLOBAL_HOST</span><span class="p">,</span> <span class="n">DEFAULT_MASTER_PORT</span><span class="p">,</span> <span class="n">DEFAULT_CHANNEL</span><span class="p">,</span> <span class="n">MIN_HEARTBEAT_SPAN</span><span class="p">,</span> \
-    <span class="n">DEFAULT_HEARTBEAT_TOLERANCE</span><span class="p">,</span> <span class="n">MIN_HEARTBEAT_CHECK_SPAN</span><span class="p">,</span> <span class="n">DEFAULT_HEARTBEAT_CHECK_SPAN</span><span class="p">,</span> <span class="n">DEFAULT_REQUEST_RETRIES</span><span class="p">,</span> \
-    <span class="n">DEFAULT_REQUEST_RETRY_WAITING</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ControllableService</span><span class="p">,</span> <span class="n">failure_response</span><span class="p">,</span> <span class="n">get_host_ip</span><span class="p">,</span>
+                    <span class="n">get_http_engine_class</span><span class="p">,</span> <span class="n">random_token</span><span class="p">,</span> <span class="n">success_response</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..config</span> <span class="kn">import</span> <span class="p">(</span><span class="n">DEFAULT_CHANNEL</span><span class="p">,</span> <span class="n">DEFAULT_HEARTBEAT_CHECK_SPAN</span><span class="p">,</span>
+                      <span class="n">DEFAULT_HEARTBEAT_TOLERANCE</span><span class="p">,</span> <span class="n">DEFAULT_MASTER_PORT</span><span class="p">,</span>
+                      <span class="n">DEFAULT_REQUEST_RETRIES</span><span class="p">,</span> <span class="n">DEFAULT_REQUEST_RETRY_WAITING</span><span class="p">,</span>
+                      <span class="n">GLOBAL_HOST</span><span class="p">,</span> <span class="n">MIN_HEARTBEAT_CHECK_SPAN</span><span class="p">,</span>
+                      <span class="n">MIN_HEARTBEAT_SPAN</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..exception</span> <span class="kn">import</span> <span class="n">MasterErrorCode</span><span class="p">,</span> <span class="n">get_master_exception_by_error</span>
+<span class="kn">from</span> <span class="nn">.connection</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SlaveConnection</span><span class="p">,</span> <span class="n">SlaveConnectionProxy</span><span class="p">,</span>
+                         <span class="n">_get_connection_class</span><span class="p">,</span> <span class="n">_ISlaveConnection</span><span class="p">,</span>
+                         <span class="n">_slave_task_complete</span><span class="p">,</span> <span class="n">_slave_task_fail</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.task</span> <span class="kn">import</span> <span class="n">TaskResultType</span>
 
 
 <div class="viewcode-block" id="Master"><a class="viewcode-back" href="../../../../api_doc/interaction/master/master.html#ding.interaction.master.master.Master">[docs]</a><span class="k">class</span> <span class="nc">Master</span><span class="p">(</span><span class="n">ControllableService</span><span class="p">):</span>

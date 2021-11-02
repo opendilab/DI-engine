@@ -163,11 +163,13 @@
             
   <h1>Source code for ding.league.starcraft_player</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PLAYER_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">.player</span> <span class="kn">import</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">HistoricalPlayer</span>
+
 <span class="kn">from</span> <span class="nn">.algorithm</span> <span class="kn">import</span> <span class="n">pfsp</span>
+<span class="kn">from</span> <span class="nn">.player</span> <span class="kn">import</span> <span class="n">ActivePlayer</span><span class="p">,</span> <span class="n">HistoricalPlayer</span>
 
 
 <div class="viewcode-block" id="MainPlayer"><a class="viewcode-back" href="../../../api_doc/league/player.html#ding.league.starcraft_player.MainPlayer">[docs]</a><span class="nd">@PLAYER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;main_player&#39;</span><span class="p">)</span>

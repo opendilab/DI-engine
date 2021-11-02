@@ -162,24 +162,28 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.envs.env_manager.subprocess_env_manager</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pipe</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">get_context</span><span class="p">,</span> <span class="n">Array</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Array</span><span class="p">,</span> <span class="n">Pipe</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">get_context</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">cloudpickle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">ctypes</span>
-<span class="kn">import</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">cloudpickle</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">retry_wrapper</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span>
+                        <span class="n">PropagatingThread</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">retry_wrapper</span><span class="p">,</span>
+                               <span class="n">timeout_wrapper</span><span class="p">)</span>
 
 <span class="n">_NTYPE_TO_CTYPE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">,</span>

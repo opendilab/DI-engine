@@ -163,12 +163,14 @@
             
   <h1>Source code for ding.torch_utils.network.rnn</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">ding</span>
 <span class="kn">from</span> <span class="nn">ding.torch_utils.network.normalization</span> <span class="kn">import</span> <span class="n">build_normalization</span>
+
 <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_hpc_rl</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">hpc_rll.torch_utils.network.rnn</span> <span class="kn">import</span> <span class="n">LSTM</span> <span class="k">as</span> <span class="n">HPCLSTM</span>
 <span class="k">else</span><span class="p">:</span>

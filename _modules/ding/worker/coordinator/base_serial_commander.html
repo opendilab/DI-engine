@@ -162,9 +162,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.worker.coordinator.base_serial_commander</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 
 
 <div class="viewcode-block" id="BaseSerialCommander"><a class="viewcode-back" href="../../../../api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_serial_commander.BaseSerialCommander">[docs]</a><span class="k">class</span> <span class="nc">BaseSerialCommander</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
