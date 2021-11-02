@@ -706,7 +706,7 @@ class DRQN(nn.Module):
             x['next_state'] = prev_state  # the last timestep state including h and c
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)  # the all hidden state h
             if saved_hidden_state_timesteps is not None:
-                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states
+                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x
 
 

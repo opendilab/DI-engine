@@ -1,32 +1,61 @@
-from easydict import EasyDict
 import torch
+from easydict import EasyDict
 
+from ding.entry import serial_pipeline_reward_model_ngu
+
+print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
-cartpole_r2d2_config = dict(
-    exp_name='cartpole_r2d2_bs20_n5_ul40_upc8_tuf2500_ed1e4_rbs1e5',
+nstep = 5
+cartpole_ngu_config = dict(
+    exp_name='cartpole_ngu_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_debug',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=195,
+        # replay_path='eval_replay', #TODO
+    ),
+    rnd_reward_model=dict(
+        intrinsic_reward_type='add',  # 'assign'
+        learning_rate=0.001,
+        obs_shape=4,
+        action_shape=2,
+        batch_size=64,
+        update_per_collect=50,  # 32*100/64=50
+        clear_buffer_per_iters=10,
+        nstep=nstep,
+        hidden_size_list=[128, 128, 64],
+        type='rnd',
+    ),
+    episodic_reward_model=dict(
+        intrinsic_reward_type='add',
+        learning_rate=0.001,
+        obs_shape=4,
+        action_shape=2,
+        batch_size=64,
+        update_per_collect=50,
+        nstep=nstep,
+        hidden_size_list=[128, 128, 64],
+        type='episodic',
     ),
     policy=dict(
         cuda=False,
+        on_policy=False,
         priority=False,
-        priority_IS_weight=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
             encoder_hidden_size_list=[128, 128, 64],
+            collector_env_num=collector_env_num,  # TODO(pu)
         ),
         discount_factor=0.997,
-        burnin_step=10,
-        nstep=5,
+        burnin_step=20,
+        nstep=nstep,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=20,
+        unroll_len=80,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -43,7 +72,7 @@ cartpole_r2d2_config = dict(
             n_sample=32,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=20)),
+        eval=dict(env_num=evaluator_env_num, ),
         other=dict(
             eps=dict(
                 type='exp',
@@ -54,19 +83,25 @@ cartpole_r2d2_config = dict(
         ),
     ),
 )
-cartpole_r2d2_config = EasyDict(cartpole_r2d2_config)
-main_config = cartpole_r2d2_config
-cartpole_r2d2_create_config = dict(
+cartpole_ngu_config = EasyDict(cartpole_ngu_config)
+main_config = cartpole_ngu_config
+cartpole_ngu_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='r2d2'),
+    policy=dict(type='ngu'),
+    # TODO(pu)
+    rnd_reward_model=dict(type='rnd'),
+    episodic_reward_model=dict(type='episodic'),
+    collector=dict(
+        type='sample_ngu',
+    )
 )
-cartpole_r2d2_create_config = EasyDict(cartpole_r2d2_create_config)
-create_config = cartpole_r2d2_create_config
+cartpole_ngu_create_config = EasyDict(cartpole_ngu_create_config)
+create_config = cartpole_ngu_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    # from ding.entry import serial_pipeline_reward_model_ngu
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

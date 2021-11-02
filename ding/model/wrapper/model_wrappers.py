@@ -398,6 +398,91 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         return output
 
 
+class EpsGreedySampleNGUWrapper(IModelWrapper):
+    r"""
+    Overview:
+        eps is a dict n_env
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        kwargs.pop('eps')
+        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}  # TODO
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps[i]:
+                action.append(l.argmax(dim=-1))
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output['action'] = action
+        return output
+
+
+class EpsGreedySampleWrapperSql(IModelWrapper):
+    r"""
+    Overview:
+        Epsilon greedy sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        eps = kwargs.pop('eps')
+        alpha = kwargs.pop('alpha')
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps:
+                prob = torch.softmax(output['logit'] / alpha, dim=-1)
+                prob = prob / torch.sum(prob, 1, keepdims=True)
+                pi_action = torch.zeros(prob.shape)
+                pi_action = Categorical(prob)
+                pi_action = pi_action.sample()
+                action.append(pi_action)
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output['action'] = action
+        return output
+
+
 class ActionNoiseWrapper(IModelWrapper):
     r"""
     Overview:
@@ -479,7 +564,8 @@ class TargetNetworkWrapper(IModelWrapper):
         self._update_count = 0
 
     def reset(self, *args, **kwargs):
-        self.reset_state()
+        target_update_count = kwargs.pop('target_update_count', None)
+        self.reset_state(target_update_count)
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
 
@@ -506,12 +592,15 @@ class TargetNetworkWrapper(IModelWrapper):
                 # default theta = 0.001
                 p.data = (1 - theta) * p.data + theta * state_dict[name]
 
-    def reset_state(self) -> None:
+    def reset_state(self, target_update_count: int = None) -> None:
         r"""
         Overview:
             Reset the update_count
+        Arguments:
+            target_update_count (:obj:`int`): reset target update count value.
         """
-        self._update_count = 0
+        if target_update_count is not None:
+            self._update_count = target_update_count
 
 
 class TeacherNetworkWrapper(IModelWrapper):
@@ -534,6 +623,8 @@ wrapper_name_map = {
     'argmax_sample': ArgmaxSampleWrapper,
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
+    'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
+    'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
     'hybrid_eps_greedy_sample': HybridEpsGreedySampleWrapper,
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,

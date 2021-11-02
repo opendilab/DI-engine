@@ -13,13 +13,11 @@ from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 
-@POLICY_REGISTRY.register('r2d2')
-class R2D2Policy(Policy):
+@POLICY_REGISTRY.register('r2d2_collect_traj')
+class R2D2CollectTrajPolicy(Policy):
     r"""
     Overview:
-        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
-        R2D2 proposes that several tricks should be used to improve upon DRQN,
-        namely some recurrent experience replay tricks such as burn-in.
+        Policy class of R2D2 for collecting expert traj for R2D3.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -150,8 +148,7 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # here we should not adopt the 'assign' mode of target network here because the reset bug
-        # self._target_model = model_wrap(
+        # self._target_model = model_wrap(  TODO(pu)
         #     self._target_model,
         #     wrapper_name='target',
         #     update_type='assign',
@@ -223,7 +220,7 @@ class R2D2Policy(Policy):
         else:
             data['value_gamma'] = data['value_gamma'][bs:]
 
-        if 'weight' not in data or data['weight'] is None:
+        if 'weight' not in data:
             data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
@@ -262,7 +259,7 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        # use the hidden state in timestep=0
+        # take out timestep=0
         self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
@@ -333,7 +330,7 @@ class R2D2Policy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
-            # the first timestep in the sequence, may not be the start of episode
+            # the first timestep in the sequence, may not be the start of episode TODO(pu)
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
@@ -358,31 +355,33 @@ class R2D2Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
-        assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
+        # assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
         self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
+        # self._unroll_len = self._cfg.collect.unroll_len
 
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        # self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='argmax_sample')
+
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, eps: float) -> dict:
+    # def _forward_collect(self, data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode with eps_greedy
+            Collect output according to eps_greedy plugin
+
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - data (:obj:`dict`): The collected data
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -393,7 +392,10 @@ class R2D2Policy(Policy):
         with torch.no_grad():
             # in collect phase, inference=True means that each time we only pass one timestep data,
             # so the we can get the hidden state of rnn: <prev_state> at each timestep.
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            # output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            output = self._collect_model.forward(data, data_id=data_id, inference=True)
+            # output = self._collect_model.forward(data, inference=True)
+
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -417,7 +419,8 @@ class R2D2Policy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            'prev_state': model_output['prev_state'],
+            # 'prev_state': model_output['prev_state'],
+            'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -434,8 +437,15 @@ class R2D2Policy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
+        from copy import deepcopy
+        data_one_step = deepcopy(get_nstep_return_data(data, 1, gamma=self._gamma))
+        # data_one_step = deepcopy(data)
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        for i in range(len(data)):
+            # here we record the one-step done, we don't need record one-step reward,
+            # because the n-step reward in data already include one-step reward
+            data[i]['done_one_step'] = data_one_step[i]['done']
+        return get_train_sample(data, self._unroll_len)  # self._unroll_len_add_burnin_step
 
     def _init_eval(self) -> None:
         r"""
@@ -450,14 +460,13 @@ class R2D2Policy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Forward function of collect mode, similar to ``self._forward_collect``.
+
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
