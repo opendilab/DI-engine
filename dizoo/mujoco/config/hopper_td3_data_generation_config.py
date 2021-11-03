@@ -37,7 +37,7 @@ halfcheetah_td3_default_config = dict(
                 min=-0.5,
                 max=0.5,
             ),
-            learner = dict(
+            learner=dict(
                 load_path='./td3/ckpt/ckpt_best.pth.tar',
                 hook=dict(
                     load_ckpt_before_run='./td3/ckpt/ckpt_best.pth.tar',
