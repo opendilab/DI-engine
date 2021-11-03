@@ -491,20 +491,21 @@ class TargetNetworkWrapper(IModelWrapper):
         Arguments:
             - state_dict (:obj:`dict`): the state_dict from learner model
             - direct (:obj:`bool`): whether to update the target network directly, \
-                if ture then will simply call the load_state_dict method of the model
+                if true then will simply call the load_state_dict method of the model
         """
         if direct:
             self._model.load_state_dict(state_dict, strict=True)
             self._update_count = 0
-        elif self._update_type == 'assign':
-            if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
-                self._model.load_state_dict(state_dict, strict=True)
-            self._update_count += 1
-        elif self._update_type == 'momentum':
-            theta = self._update_kwargs['theta']
-            for name, p in self._model.named_parameters():
-                # default theta = 0.001
-                p.data = (1 - theta) * p.data + theta * state_dict[name]
+        else: 
+            if self._update_type == 'assign':
+                if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+                    self._model.load_state_dict(state_dict, strict=True)
+                self._update_count += 1
+            elif self._update_type == 'momentum':
+                theta = self._update_kwargs['theta']
+                for name, p in self._model.named_parameters():
+                    # default theta = 0.001
+                    p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset_state(self) -> None:
         r"""
