@@ -11,7 +11,7 @@ evaluator_env_num = 5
 
 """agent config"""
 lunarlander_r2d3_config = dict(
-    exp_name='debug_lunarlander_r2d3_ppoexpert_k100_pho1-4_rbs1e5_epsend0.05',
+    exp_name='debug_lunarlander_r2d3_ppoexpert_k100_pho1-4_rbs1e5',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -45,14 +45,14 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=True,
             update_per_collect=8,
-            batch_size=64,  #32, # TODO(pu)
+            batch_size=64,  # TODO(pu)
             learning_rate=0.0005,
             target_update_theta=0.001,
             # DQFD related parameters
             lambda1=1.0,  # n-step return
             lambda2=1.0,  # supervised loss
-            lambda3=1e-5,  # L2
-            lambda_one_step_td=0,  # 1-step return
+            lambda3=1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
+            lambda_one_step_td=1,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
             per_train_iter_k=100,  # TODO(pu)
         ),
@@ -97,7 +97,7 @@ create_config = lunarlander_r2d3_create_config
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
-    exp_name='debug_lunarlander_r2d3',
+    exp_name='expert_lunarlander_r2d3_ppoexpert_k100_pho1-4_rbs1e5',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),

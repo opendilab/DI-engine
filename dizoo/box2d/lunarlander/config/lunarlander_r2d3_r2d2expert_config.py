@@ -11,7 +11,7 @@ evaluator_env_num = 5
 
 """agent config"""
 lunarlander_r2d3_config = dict(
-    exp_name='debug_lunarlander_r2d3_r2d2expert_k0_pho0',
+    exp_name='debug_lunarlander_r2d3_r2d2expert_k100_pho1-4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -51,9 +51,10 @@ lunarlander_r2d3_config = dict(
             # DQFD related parameters
             lambda1=1.0,  # n-step return
             lambda2=1.0,  # supervised loss
-            lambda3=1e-5,  # L2
+            lambda3=1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
+            lambda_one_step_td=1,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=0,  # TODO(pu)
+            per_train_iter_k=100,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -61,7 +62,7 @@ lunarlander_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=0,  # TODO(pu) 0.25
+            pho=1/4,  # TODO(pu) 0.25
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -96,7 +97,7 @@ create_config = lunarlander_r2d3_create_config
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
-    # exp_name='debug_lunarlander_r2d3',
+    exp_name='expert_lunarlander_r2d3_r2d2expert_k100_pho1-4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -128,7 +129,6 @@ expert_lunarlander_r2d3_config = dict(
             # demonstration_info_path='dizoo/box2d/lunarlander/config/demo_path/ppo-off_iteration_12948.pth.tar',
             # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
             demonstration_info_path=module_path + '/demo_path/r2d2_iteration_13000.pth.tar',
-
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=40,  # TODO(pu): if in ppo_offpolicy, this key should equals self._unroll_len_add_burnin_step in r2d2 policy
             env_num=collector_env_num,

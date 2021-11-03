@@ -10,7 +10,7 @@ expert_replay_buffer_size=1000  #TODO 1000
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_rbs2e4_wd0',
+    exp_name='debug_pong_r2d3_r2d2expert_k100_pho1-4_rbs2e4_nol2',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -52,10 +52,10 @@ pong_r2d3_config = dict(
             # DQFD related parameters
             lambda1=1.0,  # n-step return
             lambda2=1.0,  # supervised loss
-            lambda3=0,  #1e-5,  # L2 very important
+            lambda3=0,#1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
             lambda_one_step_td=1,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=0,  # TODO(pu)
+            per_train_iter_k=100,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -63,7 +63,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/256,  #TODO(pu), 0.25,
+            pho=1/4,  # TODO(pu), 1/256,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -74,7 +74,7 @@ pong_r2d3_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(2e4),  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
+                replay_buffer_size=int(2e4),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -99,7 +99,7 @@ create_config = pong_r2d3_create_config
 
 """export config"""
 expert_pong_r2d3_config = dict(
-    # exp_name='debug_pong_r2d3',
+    exp_name='expert_pong_r2d3_r2d2expert_k100_pho1-4_rbs2e4_nol2',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
