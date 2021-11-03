@@ -3,6 +3,7 @@ import time
 import random
 from typing import Callable
 from ding.worker.buffer import DequeBuffer
+from ding.worker.buffer.buffer import BufferedData
 
 
 class RateLimit:
@@ -41,8 +42,8 @@ def add_10() -> Callable:
     """
 
     def sample(chain: Callable, size: int, replace: bool = False, *args, **kwargs):
-        data = chain(size, replace, *args, **kwargs)
-        return [d + 10 for d in data]
+        sampled_data = chain(size, replace, *args, **kwargs)
+        return [BufferedData(data=item.data + 10, index=item.index, meta=item.meta) for item in sampled_data]
 
     def _subview(action: str, chain: Callable, *args, **kwargs):
         if action == "sample":
@@ -59,8 +60,7 @@ def test_naive_push_sample():
     for i in range(20):
         buffer.push(i)
     assert buffer.count() == 10
-    assert len(set(buffer.sample(10))) == 10
-    assert 0 not in buffer.sample(10)
+    assert 0 not in [item.data for item in buffer.sample(10)]
 
     # Clear
     buffer.clear()
@@ -77,7 +77,7 @@ def test_naive_push_sample():
     for i in range(10):
         buffer.push(i)
     assert len(buffer.sample(5, range=slice(5, 10))) == 5
-    assert 0 not in buffer.sample(5, range=slice(5, 10))
+    assert 0 not in [item.data for item in buffer.sample(5, range=slice(5, 10))]
 
 
 @pytest.mark.unittest
@@ -106,44 +106,9 @@ def test_buffer_view():
     assert len(buf1.middleware) == 0
     assert buf1.count() == 6
     # All data in buffer should bigger than 10 because of `add_10`
-    assert all(d >= 10 for d in buf2.sample(5))
+    assert all(d.data >= 10 for d in buf2.sample(5))
     # But data in storage is still less than 10
-    assert all(d < 10 for d in buf1.sample(5))
-
-
-@pytest.mark.unittest
-def test_sample_index_meta():
-    buf = DequeBuffer(size=10)
-    for i in range(10):
-        buf.push({"data": i}, {"meta": i})
-
-    # Test sample pure data
-    samples = buf.sample(5)
-    assert len(samples) == 5
-    for s in samples:
-        assert "data" in s
-
-    # Test sample data with index
-    samples = buf.sample(5, return_index=True)
-    assert len(samples) == 5
-    for s, i in samples:
-        assert "data" in s
-        assert isinstance(i, str)
-
-    # Test sample data with meta
-    samples = buf.sample(5, return_meta=True)
-    assert len(samples) == 5
-    for s, m in samples:
-        assert "data" in s
-        assert "meta" in m
-
-    # Test sample data with index and meta
-    samples = buf.sample(5, return_index=True, return_meta=True)
-    assert len(samples) == 5
-    for s, i, m in samples:
-        assert "data" in s
-        assert isinstance(i, str)
-        assert "meta" in m
+    assert all(d.data < 10 for d in buf1.sample(5))
 
 
 @pytest.mark.unittest
@@ -152,13 +117,13 @@ def test_sample_with_index():
     for i in range(10):
         buf.push({"data": i}, {"meta": i})
     # Random sample and get indices
-    indices = [item[1] for item in buf.sample(10, return_index=True)]
+    indices = [item.index for item in buf.sample(10)]
     assert len(indices) == 10
     random.shuffle(indices)
     indices = indices[:5]
 
     # Resample by indices
-    new_indices = [item[1] for item in buf.sample(indices=indices, return_index=True)]
+    new_indices = [item.index for item in buf.sample(indices=indices)]
     assert len(new_indices) == len(indices)
     for index in new_indices:
         assert index in indices
@@ -171,20 +136,20 @@ def test_update_delete():
         buf.push({"data": i}, {"meta": i})
 
     # Update data
-    [[data, index, meta]] = buf.sample(1, return_index=True, return_meta=True)
-    data["new_prop"] = "any"
+    [item] = buf.sample(1)
+    item.data["new_prop"] = "any"
     meta = None
-    success = buf.update(index, data, meta)
+    success = buf.update(item.index, item.data, item.meta)
     assert success
     # Resample
-    [[data, meta]] = buf.sample(1, return_meta=True)
-    assert "new_prop" in data
+    [item] = buf.sample(1)
+    assert "new_prop" in item.data
     assert meta is None
     # Update object that not exists in buffer
     success = buf.update("invalidindex", {}, None)
     assert not success
 
     # Delete data
-    [[_, index]] = buf.sample(1, return_index=True)
-    buf.delete(index)
+    [item] = buf.sample(1)
+    buf.delete(item.index)
     assert buf.count() == 0

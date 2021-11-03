@@ -15,6 +15,7 @@ def test_clone_object():
 
     # Modify it
     for item in buffer.sample(len(arr)):
+        item = item.data
         if isinstance(item, dict):
             item["key"] = "v2"
         elif isinstance(item, list):
@@ -26,6 +27,7 @@ def test_clone_object():
 
     # Resample it, and check their values
     for item in buffer.sample(len(arr)):
+        item = item.data
         if isinstance(item, dict):
             assert item["key"] == "v1"
         elif isinstance(item, list):
@@ -49,7 +51,7 @@ def test_use_time_check():
     for _ in range(N):
         buffer.push(get_data())
 
-    for i in range(2):
+    for _ in range(2):
         data = buffer.sample(size=N, replace=False)
         assert len(data) == N
     with pytest.raises(ValueError):
@@ -91,14 +93,16 @@ def test_priority():
     assert buffer.count() == N + N
     data = buffer.sample(size=N + N, replace=False)
     assert len(data) == N + N
-    for (item, _, meta) in data:
+    for item in data:
+        meta = item.meta
         assert set(meta.keys()).issuperset(set(['priority', 'priority_idx', 'priority_IS']))
         meta['priority'] = 3.0
-    for item, index, meta in data:
-        buffer.update(index, item, meta)
+    for item in data:
+        data, index, meta = item.data, item.index, item.meta
+        buffer.update(index, data, meta)
     data = buffer.sample(size=1)
-    assert data[0][2]['priority'] == 3.0
-    buffer.delete(data[0][1])
+    assert data[0].meta['priority'] == 3.0
+    buffer.delete(data[0].index)
     assert buffer.count() == N + N - 1
     buffer.clear()
     assert buffer.count() == 0

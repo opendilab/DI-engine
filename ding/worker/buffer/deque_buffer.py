@@ -1,12 +1,10 @@
 import enum
 from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import deque
-from ding.worker.buffer import Buffer
+from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 import itertools
 import random
 import uuid
-
-from ding.worker.buffer import apply_middleware
 
 
 class DequeBuffer(Buffer):
@@ -18,7 +16,7 @@ class DequeBuffer(Buffer):
     @apply_middleware("push")
     def push(self, data: Any, meta: Optional[dict] = None) -> None:
         index = uuid.uuid1().hex
-        self.storage.append((data, index, meta))
+        self.storage.append(BufferedData(data=data, index=index, meta=meta))
 
     @apply_middleware("sample")
     def sample(
@@ -26,10 +24,8 @@ class DequeBuffer(Buffer):
             size: Optional[int] = None,
             indices: Optional[List[str]] = None,
             replace: bool = False,
-            range: Optional[slice] = None,
-            return_index: bool = False,
-            return_meta: bool = False
-    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]:
+            range: Optional[slice] = None
+    ) -> List[BufferedData]:
         storage = self.storage
         if range:
             storage = list(itertools.islice(self.storage, range.start, range.stop, range.step))
@@ -38,24 +34,17 @@ class DequeBuffer(Buffer):
             raise AssertionError("Size and indices length must be equal.")
 
         if indices:
-            sampled_data = filter(lambda item: item[1] in indices, self.storage)
+            sampled_data = filter(lambda item: item.index in indices, self.storage)
         else:
             sampled_data = random.choices(storage, k=size) if replace else random.sample(storage, k=size)
-
-        if return_index and not return_meta:
-            sampled_data = list(map(lambda item: (item[0], item[1]), sampled_data))
-        elif not return_index and return_meta:
-            sampled_data = list(map(lambda item: (item[0], item[2]), sampled_data))
-        elif not return_index and not return_meta:
-            sampled_data = list(map(lambda item: item[0], sampled_data))
-
         return sampled_data
 
     @apply_middleware("update")
     def update(self, index: str, data: Any, meta: Optional[Any] = None) -> bool:
-        for i, (_, _index, _) in enumerate(self.storage):
-            if _index == index:
-                self.storage[i] = (data, _index, meta)
+        for item in self.storage:
+            if item.index == index:
+                item.data = data
+                item.meta = meta
                 return True
         return False
 
@@ -65,7 +54,7 @@ class DequeBuffer(Buffer):
             indices = [indices]
         for i in indices:
             for index, item in enumerate(self.storage):
-                if item[1] == i:
+                if item.index == i:
                     del self.storage[index]
                     break
 
