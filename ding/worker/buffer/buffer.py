@@ -68,7 +68,8 @@ class Buffer:
             size: Optional[int] = None,
             indices: Optional[List[str]] = None,
             replace: bool = False,
-            range: Optional[slice] = None
+            range: Optional[slice] = None,
+            ignore_insufficient: bool = False
     ) -> List[BufferedData]:
         """
         Overview:
@@ -78,6 +79,8 @@ class Buffer:
             - indices (:obj:`Optional[List[str]]`): Sample with multiple indices.
             - replace (:obj:`bool`): If use replace is true, you may receive duplicated data from the buffer.
             - range (:obj:`slice`): Range slice.
+            - ignore_insufficient (:obj:`bool`): If ignore_insufficient is true, sampling more than buffer size
+                with no repetition will not cause an exception.
         Returns:
             - sample_data (:obj:`List[BufferedData]`):
                 A list of data with length ``size``.
