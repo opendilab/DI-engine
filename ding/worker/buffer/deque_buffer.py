@@ -24,7 +24,8 @@ class DequeBuffer(Buffer):
             size: Optional[int] = None,
             indices: Optional[List[str]] = None,
             replace: bool = False,
-            range: Optional[slice] = None
+            range: Optional[slice] = None,
+            ignore_insufficient: bool = False
     ) -> List[BufferedData]:
         storage = self.storage
         if range:
@@ -32,11 +33,25 @@ class DequeBuffer(Buffer):
         assert size or indices, "One of size and indices must not be empty."
         if (size and indices) and (size != len(indices)):
             raise AssertionError("Size and indices length must be equal.")
+        if not size:
+            size = len(indices)
 
+        value_error = None
+        sampled_data = []
         if indices:
-            sampled_data = filter(lambda item: item.index in indices, self.storage)
+            sampled_data = list(filter(lambda item: item.index in indices, self.storage))
         else:
-            sampled_data = random.choices(storage, k=size) if replace else random.sample(storage, k=size)
+            if replace:
+                sampled_data = random.choices(storage, k=size)
+            else:
+                try:
+                    sampled_data = random.sample(storage, k=size)
+                except ValueError as e:
+                    value_error = e
+
+        if not ignore_insufficient and (value_error or len(sampled_data) != size):
+            raise ValueError("There are less than {} data in buffer".format(size))
+
         return sampled_data
 
     @apply_middleware("update")

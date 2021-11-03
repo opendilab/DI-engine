@@ -153,3 +153,15 @@ def test_update_delete():
     [item] = buf.sample(1)
     buf.delete(item.index)
     assert buf.count() == 0
+
+
+@pytest.mark.unittest
+def test_ignore_insufficient():
+    buffer = DequeBuffer(size=10)
+    for i in range(2):
+        buffer.push(i)
+
+    with pytest.raises(ValueError):
+        buffer.sample(3)
+    data = buffer.sample(3, ignore_insufficient=True)
+    assert len(data) == 0
