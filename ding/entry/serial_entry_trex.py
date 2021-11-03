@@ -14,6 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from dizoo.atari.config.serial.pong.pong_trex_config import main_config, create_config
 
+
 def serial_pipeline_reward_model_trex(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -131,5 +132,6 @@ def serial_pipeline_reward_model_trex(
     learner.call_hook('after_run')
     return policy
 
-if __name__=='__main__':
-    serial_pipeline_reward_model_trex([main_config,create_config])
+
+if __name__ == '__main__':
+    serial_pipeline_reward_model_trex([main_config, create_config])

@@ -52,7 +52,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-m',
     '--mode',
-    type=click.Choice(['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'parallel', 'dist', 'eval']),
+    type=click.Choice(
+        ['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'parallel', 'dist', 'eval']
+    ),
     help='serial-train or parallel-train or dist-train or eval'
 )
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')

@@ -17,6 +17,7 @@ import numpy as np
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind
 from .rnd_reward_model import collect_states
 
+
 class TREX_Model(nn.Module):
 
     def __init__(self):
@@ -33,8 +34,9 @@ class TREX_Model(nn.Module):
         '''calculate cumulative return of trajectory'''
         sum_rewards = 0
         sum_abs_rewards = 0
-        x = traj.permute(0, 3, 1, 2)  #get into NCHW format
-        #compute forward pass of reward network (we parallelize across frames so batch size is length of partial trajectory)
+        x = traj.permute(0, 3, 1, 2)  # get into NCHW format
+        # compute forward pass of reward network (we parallelize across frames so
+        # batch size is length of partial trajectory)
         x = F.leaky_relu(self.conv1(x))
         x = F.leaky_relu(self.conv2(x))
         x = F.leaky_relu(self.conv3(x))
@@ -51,7 +53,6 @@ class TREX_Model(nn.Module):
         cum_r_i, abs_r_i = self.cum_return(traj_i)
         cum_r_j, abs_r_j = self.cum_return(traj_j)
         return torch.cat((cum_r_i.unsqueeze(0), cum_r_j.unsqueeze(0)), 0), abs_r_i + abs_r_j
-
 
 
 @REWARD_MODEL_REGISTRY.register('trex')
@@ -99,10 +100,10 @@ class TrexRewardModel(BaseRewardModel):
         self.learning_rewards = []
         self.training_obs = []
         self.training_labels = []
-        self.num_trajs = 0 # number of downsampled full trajectories
-        self.num_snippets = 6000 # number of short subtrajectories to sample
-        self.min_snippet_length = 50 # minimum number of short subtrajectories to sample
-        self.max_snippet_length = 100 # maximum number of short subtrajectories to sample
+        self.num_trajs = 0  # number of downsampled full trajectories
+        self.num_snippets = 6000  # number of short subtrajectories to sample
+        self.min_snippet_length = 50  # minimum number of short subtrajectories to sample
+        self.max_snippet_length = 100  # maximum number of short subtrajectories to sample
         self.l1_reg = 0
         self.load_expert_data()
 
@@ -113,12 +114,17 @@ class TrexRewardModel(BaseRewardModel):
         checkpoint_step = 10000
         checkpoints = []
         for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-                checkpoints.append(str(i))
+            checkpoints.append(str(i))
         print(checkpoints)
         for checkpoint in checkpoints:
-        
-            model_path = self.cfg.reward_model.expert_model_path + "/pong_sql/" + 'ckpt/iteration_' + checkpoint + '.pth.tar'
-            model = DQN(obs_shape=self.cfg.policy.model.obs_shape, action_shape = self.cfg.policy.model.action_shape, encoder_hidden_size_list=self.cfg.policy.model.encoder_hidden_size_list,)
+
+            model_path = self.cfg.reward_model.expert_model_path + \
+                "/pong_sql/" + 'ckpt/iteration_' + checkpoint + '.pth.tar'
+            model = DQN(
+                obs_shape=self.cfg.policy.model.obs_shape,
+                action_shape=self.cfg.policy.model.action_shape,
+                encoder_hidden_size_list=self.cfg.policy.model.encoder_hidden_size_list,
+            )
             model.load_state_dict(torch.load(model_path)['model'])
             episode_count = 1
             for i in range(episode_count):
@@ -134,19 +140,19 @@ class TrexRewardModel(BaseRewardModel):
                     obs_tensor = torch.tensor(ob).unsqueeze(0)
                     logit = model.forward(obs_tensor.float())['logit']
                     dist = Categorical(logits=logit)
-                    action = logit.argmax(dim=-1) 
+                    action = logit.argmax(dim=-1)
                     ob, r, done, _ = env.step(action.numpy())
-                    ob_processed = torch.tensor(ob).permute(1,2,0).numpy()
+                    ob_processed = torch.tensor(ob).permute(1, 2, 0).numpy()
                     traj.append(ob_processed)
                     gt_rewards.append(r)
                     steps += 1
                     acc_reward += r
                     if done:
-                        print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps,acc_reward))
+                        print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
                         break
                 print("traj length", len(traj))
                 print("demo length", len(self.pre_expert_data))
-                self.pre_expert_data .append(traj)
+                self.pre_expert_data.append(traj)
                 self.learning_returns.append(acc_reward)
                 self.learning_rewards.append(gt_rewards)
 
@@ -165,7 +171,6 @@ class TrexRewardModel(BaseRewardModel):
         print("num_training_obs", len(self.training_obs))
         print("num_labels", len(self.training_labels))
 
-
     def create_training_data(self):
         demonstrations = self.pre_expert_data
         num_trajs = self.num_trajs
@@ -181,10 +186,9 @@ class TrexRewardModel(BaseRewardModel):
         print(len(self.learning_returns))
         print(len(demonstrations))
         print([a[0] for a in zip(self.learning_returns, demonstrations)])
-        demonstrations = [x for _, x in sorted(zip(self.learning_returns,demonstrations), key=lambda pair: pair[0])]
+        demonstrations = [x for _, x in sorted(zip(self.learning_returns, demonstrations), key=lambda pair: pair[0])]
         sorted_returns = sorted(self.learning_returns)
         print(sorted_returns)
-
 
         #collect training data
         max_traj_length = 0
@@ -195,51 +199,51 @@ class TrexRewardModel(BaseRewardModel):
             ti = 0
             tj = 0
             #only add trajectories that are different returns
-            while(ti == tj):
+            while (ti == tj):
                 #pick two random demonstrations
                 ti = np.random.randint(num_demos)
                 tj = np.random.randint(num_demos)
             #create random partial trajs by finding random start frame and random skip frame
             si = np.random.randint(6)
             sj = np.random.randint(6)
-            step = np.random.randint(3,7)
-            
-            traj_i = demonstrations[ti][si::step]  #slice(start,stop,step)
+            step = np.random.randint(3, 7)
+
+            traj_i = demonstrations[ti][si::step]  # slice(start,stop,step)
             traj_j = demonstrations[tj][sj::step]
-            
+
             if ti > tj:
                 label = 0
             else:
                 label = 1
-            
+
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-
 
         #fixed size snippets with progress prior
         for n in range(num_snippets):
             ti = 0
             tj = 0
             #only add trajectories that are different returns
-            while(ti == tj):
+            while (ti == tj):
                 #pick two random demonstrations
                 ti = np.random.randint(num_demos)
                 tj = np.random.randint(num_demos)
             #create random snippets
-            #find min length of both demos to ensure we can pick a demo no earlier than that chosen in worse preferred demo
+            #find min length of both demos to ensure we can pick a demo no earlier
+            #than that chosen in worse preferred demo
             min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
             rand_length = np.random.randint(min_snippet_length, max_snippet_length)
-            if ti < tj: #pick tj snippet to be later than ti
+            if ti < tj:  # pick tj snippet to be later than ti
                 ti_start = np.random.randint(min_length - rand_length + 1)
-                #print(ti_start, len(demonstrations[tj]))
+                # print(ti_start, len(demonstrations[tj]))
                 tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - rand_length + 1)
-            else: #ti is better so pick later snippet in ti
+            else:  # ti is better so pick later snippet in ti
                 tj_start = np.random.randint(min_length - rand_length + 1)
-                #print(tj_start, len(demonstrations[ti]))
+                # print(tj_start, len(demonstrations[ti]))
                 ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length + 1)
-            traj_i = demonstrations[ti][ti_start:ti_start+rand_length:2] #skip everyother framestack to reduce size
-            traj_j = demonstrations[tj][tj_start:tj_start+rand_length:2]
+            traj_i = demonstrations[ti][ti_start:ti_start + rand_length:2]  # skip everyother framestack to reduce size
+            traj_j = demonstrations[tj][tj_start:tj_start + rand_length:2]
 
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
             if ti > tj:
@@ -252,7 +256,6 @@ class TrexRewardModel(BaseRewardModel):
         print("maximum traj length", max_traj_length)
         return self.training_obs, self.training_labels
 
-
     def train(self):
         #check if gpu available
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -260,10 +263,10 @@ class TrexRewardModel(BaseRewardModel):
         print(device)
         training_inputs, training_outputs = self.training_obs, self.training_labels
         loss_criterion = nn.CrossEntropyLoss()
-        
+
         cum_loss = 0.0
         training_data = list(zip(training_inputs, training_outputs))
-        for epoch in range(self.cfg.reward_model.update_per_collect): #todo
+        for epoch in range(self.cfg.reward_model.update_per_collect):  # todo
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
             for i in range(len(training_labels)):
@@ -290,13 +293,12 @@ class TrexRewardModel(BaseRewardModel):
                 cum_loss += item_loss
                 if i % 100 == 99:
                     #print(i)
-                    print("epoch {}:{} loss {}".format(epoch,i, cum_loss))
+                    print("epoch {}:{} loss {}".format(epoch, i, cum_loss))
                     print(abs_rewards)
                     cum_loss = 0.0
                     print("check pointing")
                     torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
         print("finished training")
-
 
     def estimate(self, data: list) -> None:
         """
@@ -315,7 +317,7 @@ class TrexRewardModel(BaseRewardModel):
         with torch.no_grad():
             for i in range(res.shape[0]):
                 sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res)
-                reward.append(sum_rewards)   #cpu?
+                reward.append(sum_rewards)  # cpu?
         #sum_rewards = torch.chunk(reward, reward.shape[0], dim=0)
         sum_rewards = torch.stack(reward)
         for item, rew in zip(data, sum_rewards):
