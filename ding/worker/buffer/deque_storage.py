@@ -18,16 +18,24 @@ class DequeStorage(Storage):
 
     def sample(
             self,
-            size: int,
+            size: Optional[int] = None,
+            indices: Optional[List[str]] = None,
             replace: bool = False,
             range: Optional[slice] = None,
             return_index: bool = False,
             return_meta: bool = False
-    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, str, dict]]]:
+    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]:
         storage = self.storage
         if range:
             storage = list(itertools.islice(self.storage, range.start, range.stop, range.step))
-        sampled_data = random.choices(storage, k=size) if replace else random.sample(storage, k=size)
+        assert size or indices, "One of size and indices must not be empty."
+        if (size and indices) and (size != len(indices)):
+            raise AssertionError("Size and indices length must be equal.")
+
+        if indices:
+            sampled_data = filter(lambda item: item[1] in indices, self.storage)
+        else:
+            sampled_data = random.choices(storage, k=size) if replace else random.sample(storage, k=size)
 
         if return_index and not return_meta:
             sampled_data = list(map(lambda item: (item[0], item[1]), sampled_data))
