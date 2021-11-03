@@ -15,7 +15,7 @@ from dizoo.bsuite.config.serial.cartpole_swingup.cartpole_swingup_0_dqn_config i
 def main(cfg, seed=0):
 
     def cartpole_swingup_env():
-        return BSuiteEnv(cfg)
+        return BSuiteEnv(cfg.env)
 
     cfg = compile_config(
         cfg,
