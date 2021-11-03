@@ -1,5 +1,5 @@
 import enum
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import deque
 from ding.worker.buffer import Buffer
 import itertools
@@ -60,12 +60,14 @@ class DequeBuffer(Buffer):
         return False
 
     @apply_middleware("delete")
-    def delete(self, index: str) -> bool:
-        for i, (_, _index, _) in enumerate(self.storage):
-            if _index == index:
-                del self.storage[i]
-                return True
-        return False
+    def delete(self, indices: Union[str, Iterable[str]]) -> None:
+        if isinstance(indices, str):
+            indices = [indices]
+        for i in indices:
+            for index, item in enumerate(self.storage):
+                if item[1] == i:
+                    del self.storage[index]
+                    break
 
     def count(self) -> int:
         return len(self.storage)
