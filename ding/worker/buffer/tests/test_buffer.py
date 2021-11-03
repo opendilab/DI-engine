@@ -186,6 +186,5 @@ def test_update_delete():
 
     # Delete data
     [[_, index]] = buf.sample(1, return_index=True)
-    success = buf.delete(index)
-    assert success
+    buf.delete(index)
     assert buf.count() == 0
