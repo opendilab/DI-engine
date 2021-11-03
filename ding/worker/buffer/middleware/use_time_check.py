@@ -8,30 +8,21 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable: 
         greater than or equal to max_use, this data will be removed from buffer as soon as possible.
     """
 
-    def push(chain: Callable, data: Any, *args, **kwargs) -> None:
-        if 'meta' in kwargs:
-            kwargs['meta']['use_count'] = 0
+    def push(chain: Callable, data: Any, meta: dict = None, *args, **kwargs) -> None:
+        if meta:
+            meta["use_count"] = 0
         else:
-            kwargs['meta'] = {'use_count': 0}
-        return chain(data, *args, **kwargs)
+            meta = {"use_count": 0}
+        return chain(data, meta, *args, **kwargs)
 
     def sample(chain: Callable, *args, **kwargs) -> List[Any]:
-        data = chain(return_index=True, return_meta=True, *args, **kwargs)
+        data = chain(*args, **kwargs)
 
-        for i, (d, idx, meta) in enumerate(data):
+        for item in data:
+            meta, idx = item.meta, item.index
             meta['use_count'] += 1
             if meta['use_count'] >= max_use:
                 buffer_.delete(idx)
-
-        return_index = kwargs.get('return_index', False)
-        return_meta = kwargs.get('return_meta', False)
-        if return_index and not return_meta:
-            data = list(map(lambda item: (item[0], item[1]), data))
-        elif not return_index and return_meta:
-            data = list(map(lambda item: (item[0], item[2]), data))
-        elif not return_index and not return_meta:
-            data = list(map(lambda item: item[0], data))
-
         return data
 
     def _use_time_check(action: str, chain: Callable, *args, **kwargs) -> Any:

@@ -52,7 +52,7 @@ class PriorityExperienceReplay:
         mass *= self.sum_tree.reduce()
         indices = [self.sum_tree.find_prefixsum_idx(m) for m in mass]
         # TODO sample with indices
-        data = chain(size, return_index=True, return_meta=True, *args, **kwargs)
+        data = chain(size, *args, **kwargs)
         if self.IS_weight:
             # Calculate max weight for normalizing IS
             sum_tree_root = self.sum_tree.reduce()
@@ -60,7 +60,7 @@ class PriorityExperienceReplay:
             buffer_count = self.buffer.count()
             max_weight = (buffer_count * p_min) ** (-self.IS_weight_power_factor)
             for i in range(len(data)):
-                meta = data[i][-1]
+                meta = data[i].meta
                 priority_idx = meta['priority_idx']
                 p_sample = self.sum_tree[priority_idx] / sum_tree_root
                 weight = (buffer_count * p_sample) ** (-self.IS_weight_power_factor)
@@ -78,7 +78,8 @@ class PriorityExperienceReplay:
             self.max_priority = max(self.max_priority, new_priority)
 
     def delete(self, chain: Callable, index: str, *args, **kwargs) -> None:
-        for (_, _, meta) in self.buffer.storage:
+        for item in self.buffer.storage:
+            meta = item.meta
             priority_idx = meta['priority_idx']
             self.sum_tree[priority_idx] = self.sum_tree.neutral_element
             self.min_tree[priority_idx] = self.min_tree.neutral_element
