@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 
 
 class Storage:
@@ -22,24 +22,27 @@ class Storage:
     @abstractmethod
     def sample(
             self,
-            size: int,
+            size: Optional[int] = None,
+            indices: Optional[List[str]] = None,
             replace: bool = False,
             range: Optional[slice] = None,
             return_index: bool = False,
             return_meta: bool = False
-    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, str, dict]]]:
+    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]:
         """
         Overview:
             Sample data with length ``size``.
         Arguments:
-            - size (:obj:`int`): The number of the data that will be sampled.
+            - size (:obj:`Optional[int]`): The number of the data that will be sampled.
+            - indices (:obj:`Optional[List[str]]`): Sample with multiple indices.
             - replace (:obj:`bool`): If use replace is true, you may receive duplicated data from the buffer.
             - range (:obj:`slice`): Range slice.
             - return_index (:obj:`bool`): Transform the return value to (data, index),
             - return_meta (:obj:`bool`): Transform the return value to (data, meta),
                 or (data, index, meta) if return_index is true.
         Returns:
-            - sample_data (:obj:`list`): A list of data with length ``size``.
+            - sample_data (:obj:`List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]`):
+                A list of data with length ``size``.
         """
         raise NotImplementedError
 

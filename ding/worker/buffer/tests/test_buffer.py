@@ -1,6 +1,7 @@
 import pytest
 import time
-from typing import Callable, Deque
+import random
+from typing import Callable
 from ding.worker.buffer import Buffer
 from ding.worker.buffer import DequeStorage
 
@@ -148,6 +149,25 @@ def test_sample_index_meta():
         assert "data" in s
         assert isinstance(i, str)
         assert "meta" in m
+
+
+@pytest.mark.unittest
+def test_sample_with_index():
+    storage = DequeStorage(maxlen=10)
+    buf = Buffer(storage)
+    for i in range(10):
+        buf.push({"data": i}, {"meta": i})
+    # Random sample and get indices
+    indices = [item[1] for item in buf.sample(10, return_index=True)]
+    assert len(indices) == 10
+    random.shuffle(indices)
+    indices = indices[:5]
+
+    # Resample by indices
+    new_indices = [item[1] for item in buf.sample(indices=indices, return_index=True)]
+    assert len(new_indices) == len(indices)
+    for index in new_indices:
+        assert index in indices
 
 
 @pytest.mark.unittest
