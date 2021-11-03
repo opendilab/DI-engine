@@ -106,7 +106,7 @@ class BSuiteEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
-        self.env_id = cfg.env
+        self.env_id = cfg.env_id
         self.env_name = self.env_id.split('/')[0]
 
     def reset(self) -> np.ndarray:
