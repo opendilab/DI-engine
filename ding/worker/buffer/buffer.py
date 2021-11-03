@@ -1,5 +1,5 @@
-from typing import Any, Callable, List, Optional, Tuple, Union
-from ding.worker.buffer.storage import Storage
+from abc import abstractmethod
+from typing import Any, List, Optional, Tuple, Union, Callable
 import copy
 
 
@@ -35,18 +35,15 @@ def apply_middleware(func_name: str):
 
 
 class Buffer:
+    """
+    Buffer is an abstraction of device storage, third-party services or data structures,
+    For example, memory queue, sum-tree, redis, or di-store.
+    """
 
-    def __init__(self, storage: Storage) -> None:
-        """
-        Overview:
-            Initialize the buffer
-        Arguments:
-            - storage (:obj:`Storage`): The storage instance.
-        """
-        self.storage = storage
+    def __init__(self) -> None:
         self.middleware = []
 
-    @apply_middleware("push")
+    @abstractmethod
     def push(self, data: Any, meta: Optional[dict] = None) -> None:
         """
         Overview:
@@ -55,9 +52,9 @@ class Buffer:
             - data (:obj:`Any`): The data which will be pushed into buffer.
             - meta (:obj:`dict`): Meta information, e.g. priority, count, staleness.
         """
-        self.storage.append(data, meta)
+        raise NotImplementedError
 
-    @apply_middleware("sample")
+    @abstractmethod
     def sample(
             self,
             size: Optional[int] = None,
@@ -69,12 +66,12 @@ class Buffer:
     ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]:
         """
         Overview:
-            Sample data with length ``size``, this function may be wrapped by middleware.
+            Sample data with length ``size``.
         Arguments:
             - size (:obj:`Optional[int]`): The number of the data that will be sampled.
             - indices (:obj:`Optional[List[str]]`): Sample with multiple indices.
             - replace (:obj:`bool`): If use replace is true, you may receive duplicated data from the buffer.
-            - range (:obj:`Optional[slice]`): Range slice.
+            - range (:obj:`slice`): Range slice.
             - return_index (:obj:`bool`): Transform the return value to (data, index),
             - return_meta (:obj:`bool`): Transform the return value to (data, meta),
                 or (data, index, meta) if return_index is true.
@@ -82,25 +79,10 @@ class Buffer:
             - sample_data (:obj:`List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]`):
                 A list of data with length ``size``.
         """
-        return self.storage.sample(
-            size=size,
-            replace=replace,
-            range=range,
-            indices=indices,
-            return_index=return_index,
-            return_meta=return_meta
-        )
+        raise NotImplementedError
 
-    @apply_middleware("clear")
-    def clear(self) -> None:
-        """
-        Overview:
-            Clear the storage
-        """
-        self.storage.clear()
-
-    @apply_middleware("update")
-    def update(self, index: str, data: Any, meta: dict) -> bool:
+    @abstractmethod
+    def update(self, index: str, data: Any, meta: Optional[Any] = None) -> bool:
         """
         Overview:
             Update data and meta by index
@@ -111,9 +93,9 @@ class Buffer:
         Returns:
             - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
         """
-        return self.storage.update(index, data, meta)
+        raise NotImplementedError
 
-    @apply_middleware("delete")
+    @abstractmethod
     def delete(self, index: str) -> bool:
         """
         Overview:
@@ -123,7 +105,15 @@ class Buffer:
         Returns:
             - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
         """
-        return self.storage.delete(index)
+        raise NotImplementedError
+
+    @abstractmethod
+    def count(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear(self) -> None:
+        raise NotImplementedError
 
     def use(self, func: Callable) -> "Buffer":
         r"""
@@ -156,15 +146,7 @@ class Buffer:
         Returns:
             - buffer (:obj:`Buffer`): The instance self
         """
-        buffer = Buffer(self.storage)
-        buffer.middleware = copy.deepcopy(self.middleware)
-        return buffer
+        return copy.copy(self)
 
-    def count(self) -> int:
-        """
-        Overview:
-            Return the actual valid data count in buffer now
-        Returns:
-            - count (:obj:`int`): The actual valid data count
-        """
-        return self.storage.count()
+    def __copy__(self) -> "Buffer":
+        raise NotImplementedError

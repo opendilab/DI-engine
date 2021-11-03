@@ -1,12 +1,12 @@
 import pytest
 import torch
-from ding.worker.buffer import Buffer, DequeStorage
+from ding.worker.buffer import DequeBuffer
 from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, priority
 
 
 @pytest.mark.unittest
 def test_clone_object():
-    buffer = Buffer(DequeStorage(maxlen=10)).use(clone_object())
+    buffer = DequeBuffer(size=10).use(clone_object())
 
     # Store a dict, a list, a tensor
     arr = [{"key": "v1"}, ["a"], torch.Tensor([1, 2, 3])]
@@ -43,7 +43,7 @@ def get_data():
 @pytest.mark.unittest
 def test_use_time_check():
     N = 6
-    buffer = Buffer(DequeStorage(maxlen=10))
+    buffer = DequeBuffer(size=10)
     buffer.use(use_time_check(buffer, max_use=2))
 
     for _ in range(N):
@@ -59,7 +59,7 @@ def test_use_time_check():
 @pytest.mark.unittest
 def test_staleness_check():
     N = 6
-    buffer = Buffer(DequeStorage(maxlen=10))
+    buffer = DequeBuffer(size=10)
     buffer.use(staleness_check(buffer, max_staleness=10))
 
     with pytest.raises(AssertionError):
@@ -81,7 +81,7 @@ def test_staleness_check():
 @pytest.mark.unittest
 def test_priority():
     N = 5
-    buffer = Buffer(DequeStorage(maxlen=10))
+    buffer = DequeBuffer(size=10)
     buffer.use(priority(buffer, buffer_size=10, IS_weight=True))
     for _ in range(N):
         buffer.push(get_data())
