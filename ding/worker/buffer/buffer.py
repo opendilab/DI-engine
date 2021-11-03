@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Any, List, Optional, Tuple, Union, Callable
 import copy
+from dataclasses import dataclass
 
 
 def apply_middleware(func_name: str):
@@ -34,6 +35,13 @@ def apply_middleware(func_name: str):
     return wrap_func
 
 
+@dataclass
+class BufferedData:
+    data: Any
+    index: str
+    meta: dict
+
+
 class Buffer:
     """
     Buffer is an abstraction of device storage, third-party services or data structures,
@@ -60,10 +68,8 @@ class Buffer:
             size: Optional[int] = None,
             indices: Optional[List[str]] = None,
             replace: bool = False,
-            range: Optional[slice] = None,
-            return_index: bool = False,
-            return_meta: bool = False
-    ) -> List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]:
+            range: Optional[slice] = None
+    ) -> List[BufferedData]:
         """
         Overview:
             Sample data with length ``size``.
@@ -72,11 +78,8 @@ class Buffer:
             - indices (:obj:`Optional[List[str]]`): Sample with multiple indices.
             - replace (:obj:`bool`): If use replace is true, you may receive duplicated data from the buffer.
             - range (:obj:`slice`): Range slice.
-            - return_index (:obj:`bool`): Transform the return value to (data, index),
-            - return_meta (:obj:`bool`): Transform the return value to (data, meta),
-                or (data, index, meta) if return_index is true.
         Returns:
-            - sample_data (:obj:`List[Union[Any, Tuple[Any, str], Tuple[Any, dict], Tuple[Any, str, dict]]]`):
+            - sample_data (:obj:`List[BufferedData]`):
                 A list of data with length ``size``.
         """
         raise NotImplementedError

@@ -17,7 +17,7 @@ def staleness_check(buffer_: 'Buffer', max_staleness: int = float("inf")) -> Cal
     def sample(next: Callable, train_iter_sample_data: int, *args, **kwargs) -> List[Any]:
         delete_index = []
         for i, item in enumerate(buffer_.storage):
-            index, meta = item[1], item[2]
+            index, meta = item.index, item.meta
             staleness = train_iter_sample_data - meta['train_iter_data_collected']
             meta['staleness'] = staleness
             if staleness > max_staleness:
