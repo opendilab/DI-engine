@@ -70,8 +70,8 @@ pong_r2d3_config = dict(
             eps=dict(
                 type='exp',
                 start=0.95,
-                end=0.1,
-                decay=100000,
+                end=0.05,  # TODO(pu), 0.1
+                decay=1e5,
             ),
             replay_buffer=dict(
                 replay_buffer_size=20000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb

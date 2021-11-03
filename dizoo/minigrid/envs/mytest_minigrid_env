@@ -1,0 +1,17 @@
+from easydict import EasyDict
+import numpy as np
+from dizoo.minigrid.envs import MiniGridEnv
+env = MiniGridEnv(EasyDict({'env_id': 'MiniGrid-Empty-8x8-v0', 'flat_obs': True}))
+
+
+env.enable_save_replay(replay_path='./video')
+obs = env.reset()
+
+while True:
+    act_val = env.info().act_space.value
+    min_val, max_val = act_val['min'], act_val['max']
+    random_action = np.random.randint(min_val, max_val, size=(1,))
+    timestep = env.step(random_action)
+    if timestep.done:
+        print('Episode is over, final eval reward is: {}'.format(timestep.info['final_eval_reward']))
+        break
