@@ -237,7 +237,6 @@
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
             <span class="c1"># (float) additional discounting parameter</span>
             <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
-            <span class="n">load_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="c1"># (int) the trajectory length to calculate v-trace target</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="n">unroll_len</span><span class="p">,</span>
             <span class="c1"># (float) clip ratio of importance weights</span>
@@ -311,9 +310,6 @@
         <span class="c1"># Main model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">load_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">load_path</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_dict_learn</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_data_preprocess_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
         <span class="sd">&quot;&quot;&quot;</span>
