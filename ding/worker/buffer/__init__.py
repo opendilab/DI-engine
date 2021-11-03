@@ -1,3 +1,2 @@
-from .buffer import Buffer
-from .storage import Storage
-from .deque_storage import DequeStorage
+from .buffer import Buffer, apply_middleware
+from .deque_buffer import DequeBuffer

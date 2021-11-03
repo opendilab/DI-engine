@@ -1,21 +1,26 @@
 import enum
 from typing import Any, List, Optional, Tuple, Union
 from collections import deque
-from ding.worker.buffer import Storage
+from ding.worker.buffer import Buffer
 import itertools
 import random
 import uuid
 
+from ding.worker.buffer import apply_middleware
 
-class DequeStorage(Storage):
 
-    def __init__(self, maxlen: int) -> None:
-        self.storage = deque(maxlen=maxlen)
+class DequeBuffer(Buffer):
 
-    def append(self, data: Any, meta: Optional[dict] = None) -> None:
+    def __init__(self, size: int) -> None:
+        super().__init__()
+        self.storage = deque(maxlen=size)
+
+    @apply_middleware("push")
+    def push(self, data: Any, meta: Optional[dict] = None) -> None:
         index = uuid.uuid1().hex
         self.storage.append((data, index, meta))
 
+    @apply_middleware("sample")
     def sample(
             self,
             size: Optional[int] = None,
@@ -46,6 +51,7 @@ class DequeStorage(Storage):
 
         return sampled_data
 
+    @apply_middleware("update")
     def update(self, index: str, data: Any, meta: Optional[Any] = None) -> bool:
         for i, (_, _index, _) in enumerate(self.storage):
             if _index == index:
@@ -53,6 +59,7 @@ class DequeStorage(Storage):
                 return True
         return False
 
+    @apply_middleware("delete")
     def delete(self, index: str) -> bool:
         for i, (_, _index, _) in enumerate(self.storage):
             if _index == index:
@@ -63,8 +70,14 @@ class DequeStorage(Storage):
     def count(self) -> int:
         return len(self.storage)
 
+    @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
 
     def __iter__(self) -> deque:
         return iter(self.storage)
+
+    def __copy__(self) -> "DequeBuffer":
+        buffer = type(self)(size=self.storage.maxlen)
+        buffer.storage = self.storage
+        return buffer
