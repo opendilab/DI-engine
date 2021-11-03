@@ -2,8 +2,7 @@ import pytest
 import time
 import random
 from typing import Callable
-from ding.worker.buffer import Buffer
-from ding.worker.buffer import DequeStorage
+from ding.worker.buffer import DequeBuffer
 
 
 class RateLimit:
@@ -56,22 +55,21 @@ def add_10() -> Callable:
 @pytest.mark.unittest
 def test_naive_push_sample():
     # Push and sample
-    storage = DequeStorage(maxlen=10)
-    buffer = Buffer(storage)
+    buffer = DequeBuffer(size=10)
     for i in range(20):
         buffer.push(i)
-    assert storage.count() == 10
+    assert buffer.count() == 10
     assert len(set(buffer.sample(10))) == 10
     assert 0 not in buffer.sample(10)
 
     # Clear
     buffer.clear()
-    assert storage.count() == 0
+    assert buffer.count() == 0
 
     # Test replace sample
     for i in range(5):
         buffer.push(i)
-    assert storage.count() == 5
+    assert buffer.count() == 5
     assert len(buffer.sample(10, replace=True)) == 10
 
     # Test slicing
@@ -84,22 +82,20 @@ def test_naive_push_sample():
 
 @pytest.mark.unittest
 def test_rate_limit_push_sample():
-    storage = DequeStorage(maxlen=10)
     ratelimit = RateLimit(max_rate=5)
-    buffer = Buffer(storage).use(ratelimit.handler())
+    buffer = DequeBuffer(size=10).use(ratelimit.handler())
     for i in range(10):
         buffer.push(i)
-    assert storage.count() == 5
+    assert buffer.count() == 5
     assert 5 not in buffer.sample(5)
 
 
 @pytest.mark.unittest
 def test_buffer_view():
-    storage = DequeStorage(maxlen=10)
-    buf1 = Buffer(storage)
+    buf1 = DequeBuffer(size=10)
     for i in range(1):
         buf1.push(i)
-    assert storage.count() == 1
+    assert buf1.count() == 1
 
     ratelimit = RateLimit(max_rate=5)
     buf2 = buf1.view().use(ratelimit.handler()).use(add_10())
@@ -108,17 +104,16 @@ def test_buffer_view():
         buf2.push(i)
     # With 1 record written by buf1 and 5 records written by buf2
     assert len(buf1.middleware) == 0
-    assert storage.count() == 6
+    assert buf1.count() == 6
     # All data in buffer should bigger than 10 because of `add_10`
     assert all(d >= 10 for d in buf2.sample(5))
     # But data in storage is still less than 10
-    assert all(d < 10 for d in storage.sample(5))
+    assert all(d < 10 for d in buf1.sample(5))
 
 
 @pytest.mark.unittest
 def test_sample_index_meta():
-    storage = DequeStorage(maxlen=10)
-    buf = Buffer(storage)
+    buf = DequeBuffer(size=10)
     for i in range(10):
         buf.push({"data": i}, {"meta": i})
 
@@ -153,8 +148,7 @@ def test_sample_index_meta():
 
 @pytest.mark.unittest
 def test_sample_with_index():
-    storage = DequeStorage(maxlen=10)
-    buf = Buffer(storage)
+    buf = DequeBuffer(size=10)
     for i in range(10):
         buf.push({"data": i}, {"meta": i})
     # Random sample and get indices
@@ -172,8 +166,7 @@ def test_sample_with_index():
 
 @pytest.mark.unittest
 def test_update_delete():
-    storage = DequeStorage(maxlen=10)
-    buf = Buffer(storage)
+    buf = DequeBuffer(size=10)
     for i in range(1):
         buf.push({"data": i}, {"meta": i})
 
@@ -195,4 +188,4 @@ def test_update_delete():
     [[_, index]] = buf.sample(1, return_index=True)
     success = buf.delete(index)
     assert success
-    assert storage.count() == 0
+    assert buf.count() == 0
