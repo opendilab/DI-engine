@@ -96,14 +96,12 @@ class Buffer:
         raise NotImplementedError
 
     @abstractmethod
-    def delete(self, index: str) -> bool:
+    def delete(self, index: str):
         """
         Overview:
             Delete one data sample by index
         Arguments:
             - index (:obj:`str`): Index
-        Returns:
-            - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
         """
         raise NotImplementedError
 
