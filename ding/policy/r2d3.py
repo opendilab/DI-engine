@@ -148,7 +148,8 @@ class R2D3Policy(Policy):
 
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3, optim_type='adamw')
+        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3,
+                               optim_type='adamw')
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
