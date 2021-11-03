@@ -10,7 +10,7 @@ expert_replay_buffer_size=1000  #TODO 1000
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_rbs2e4_wd0',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_rbs2e4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -52,7 +52,7 @@ pong_r2d3_config = dict(
             # DQFD related parameters
             lambda1=1.0,  # n-step return
             lambda2=1.0,  # supervised loss
-            lambda3=0,  #1e-5,  # L2 very important
+            lambda3=1e-5,  # L2 very important
             lambda_one_step_td=1,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
             per_train_iter_k=0,  # TODO(pu)
