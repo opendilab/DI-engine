@@ -1,4 +1,5 @@
 from typing import Callable, Any, List
+from ding.worker.buffer import BufferedData
 import torch
 import numpy as np
 
@@ -17,6 +18,7 @@ class FastCopy:
         dispatch[dict] = self._copy_dict
         dispatch[torch.Tensor] = self._copy_tensor
         dispatch[np.ndarray] = self._copy_ndarray
+        dispatch[BufferedData] = self._copy_buffereddata
         self.dispatch = dispatch
 
     def _copy_list(self, l: List) -> dict:
@@ -41,6 +43,9 @@ class FastCopy:
 
     def _copy_ndarray(self, a: np.ndarray) -> np.ndarray:
         return np.copy(a)
+
+    def _copy_buffereddata(self, d: BufferedData) -> BufferedData:
+        return BufferedData(data=self.copy(d.data), index=d.index, meta=self.copy(d.meta))
 
     def copy(self, sth: Any) -> Any:
         cp = self.dispatch.get(type(sth))
