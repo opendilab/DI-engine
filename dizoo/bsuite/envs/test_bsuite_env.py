@@ -9,7 +9,7 @@ from dizoo.bsuite.envs import BSuiteEnv
 class TestBSuiteEnv:
 
     def test_memory_len(self):
-        cfg = {'env': 'memory_len/0'}
+        cfg = {'env_id': 'memory_len/0'}
         cfg = EasyDict(cfg)
         memory_len_env = BSuiteEnv(cfg)
         memory_len_env.seed(0)
@@ -29,7 +29,7 @@ class TestBSuiteEnv:
         memory_len_env.close()
 
     def test_cartpole_swingup(self):
-        cfg = {'env': 'cartpole_swingup/0'}
+        cfg = {'env_id': 'cartpole_swingup/0'}
         cfg = EasyDict(cfg)
         bandit_noise_env = BSuiteEnv(cfg)
         bandit_noise_env.seed(0)
@@ -49,7 +49,7 @@ class TestBSuiteEnv:
         bandit_noise_env.close()
 
     def test_info(self):
-        cfg = {'env': 'memory_len/0'}
+        cfg = {'env_id': 'memory_len/0'}
         cfg = EasyDict(cfg)
         memory_len_env = BSuiteEnv(cfg)
         info_dict = memory_len_env.info()
