@@ -78,8 +78,8 @@ class PDQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._dis_optimizer = Adam(self._model.dis_head.parameters()+self._model.encoder.parameters(), lr=self._cfg.learn.learning_rate)
-        self._cont_optimizer = Adam(self._model.cont_head.parameters()+self._model.encoder.parameters(), lr=self._cfg.learn.learning_rate)
+        self._dis_optimizer = Adam(list(self._model.dis_head.parameters())+list(self._model.dis_encoder.parameters()), lr=self._cfg.learn.learning_rate)
+        self._cont_optimizer = Adam(list(self._model.cont_head.parameters())+list(self._model.cont_encoder.parameters()), lr=self._cfg.learn.learning_rate)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -141,13 +141,16 @@ class PDQNPolicy(Policy):
         )
         value_gamma = data.get('value_gamma')
         dis_loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        cont_loss = -target_q_value.sum(dim=-1)
+        
         # ====================
         # Q-learning update
         # ====================
         self._dis_optimizer.zero_grad()
         dis_loss.backward()
         self._dis_optimizer.step()
+
+        q_value_ = self._learn_model.forward(data['obs'])['logit']
+        cont_loss = -q_value_.sum(dim=-1).mean(dim=0)
 
         # ==============================
         # Continuous args network update

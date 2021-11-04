@@ -52,9 +52,11 @@ class PDQN(nn.Module):
 
         # Obs Encoder Type
         if isinstance(obs_shape, int) or len(obs_shape) == 1:  # FC Encoder
-            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.dis_encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.cont_encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         elif len(obs_shape) == 3:  # Conv Encoder
-            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.dis_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.cont_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
@@ -84,6 +86,7 @@ class PDQN(nn.Module):
             )
         
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
+        self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
@@ -109,8 +112,9 @@ class PDQN(nn.Module):
             >>> assert outputs['logit'].shape == torch.Size([4, 3])
             >>> assert outputs['action_args'].shape == torch.Size([4,5])
         """
-        x = self.encoder(x)  # size (B, encoded_state_shape)
-        action_args = self.actor_head[1](x)  # size (B, action_args_shape)
-        state_action_cat = torch.cat((x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
+        dis_x = self.encoder[0](x)  # size (B, encoded_state_shape)
+        cont_x = self.encoder[1](x)
+        action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
+        state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
         logit = self.actor_head[0](state_action_cat)  # size (B, action_type_shape)
-        return {'logit':logit['logit'], 'action_args': action_args['pred']}
+        return {'logit':logit['logit'], 'action_args': action_args}
