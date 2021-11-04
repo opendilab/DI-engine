@@ -19,7 +19,7 @@ class PDQNPolicy(Policy):
     TODO
     """
     config = dict(
-        type='dqn',
+        type='pdqn',
         cuda=False,
         on_policy=False,
         priority=False,
@@ -78,7 +78,8 @@ class PDQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._dis_optimizer = Adam(self._model.dis_head.parameters()+self._model.encoder.parameters(), lr=self._cfg.learn.learning_rate)
+        self._cont_optimizer = Adam(self._model.cont_head.parameters()+self._model.encoder.parameters(), lr=self._cfg.learn.learning_rate)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -95,6 +96,82 @@ class PDQNPolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
     
+
+    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Overview:
+            Forward computation graph of learn mode(updating policy).
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: ``value_gamma``, ``IS``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_q_loss``, ``total_cont_network_loss``, ``priority``
+            - optional: ``action_distribution``
+        """
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
+        )
+        if self._cuda:
+            data = to_device(data, self._device)
+        # ====================
+        # Q-learning forward
+        # ====================
+        self._learn_model.train()
+        self._target_model.train()
+        # Current q value (main model)
+        q_value = self._learn_model.forward(data['obs'])['logit']
+        # Target q value
+        with torch.no_grad():
+            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            # Max q value action (main model)
+            target_q_discrete_action = self._learn_model.forward(data['next_obs'])['action']['action_type']
+
+        data_n = q_nstep_td_data(
+            q_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'], data['done'], data['weight']
+        )
+        value_gamma = data.get('value_gamma')
+        dis_loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        cont_loss = -target_q_value.sum(dim=-1)
+        # ====================
+        # Q-learning update
+        # ====================
+        self._dis_optimizer.zero_grad()
+        dis_loss.backward()
+        self._dis_optimizer.step()
+
+        # ==============================
+        # Continuous args network update
+        # ==============================
+        self._cont_optimizer.zero_grad()
+        cont_loss.backward()
+        self._cont_optimizer.step()
+
+        # =============
+        # after update
+        # =============
+        self._target_model.update(self._learn_model.state_dict())
+        return {
+            'cur_lr': self._dis_optimizer.defaults['lr'],
+            'total_q_loss': dis_loss.item(),
+            'total_cont_network_loss': cont_loss.item(),
+            'q_value': q_value.mean().item(),
+            'priority': td_error_per_sample.abs().tolist(),
+            # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
+            # '[histogram]action_distribution': data['action']['action_type'],
+        }
+
+
+
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
         Overview:
@@ -104,7 +181,8 @@ class PDQNPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
+            'dis_optimizer': self._dis_optimizer.state_dict(),
+            'cont_optimizer': self._cont_optimizer.state_dict()
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -120,7 +198,9 @@ class PDQNPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
+        self._dis_optimizer.load_state_dict(state_dict['dis_optimizer'])
+        self._cont_optimizer.load_state_dict(state_dict['cont_optimizer'])
+
 
     def _init_collect(self) -> None:
         """
@@ -258,4 +338,4 @@ class PDQNPolicy(Policy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return ['cur_lr', 'total_loss', 'q_value']
+        return ['cur_lr', 'total_q_loss', 'total_cont_network_loss', 'q_value']
