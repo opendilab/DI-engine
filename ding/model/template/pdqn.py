@@ -60,20 +60,8 @@ class PDQN(nn.Module):
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
             )
 
-        # Discrete Action Head Type
-        if dueling:
-            dis_head_cls = DuelingHead
-        else:
-            dis_head_cls = DiscreteHead
-        
-        self.dis_head = dis_head_cls(
-                head_hidden_size, action_shape.action_type_shape, head_layer_num, activation=activation, norm_type=norm_type
-            )
-        
         # Continuous Action Head Type
-        self.cont_head = nn.Sequential(
-                nn.Linear(obs_shape, head_hidden_size), activation,
-                RegressionHead(
+        self.cont_head = RegressionHead(
                     head_hidden_size,
                     action_shape.action_args_shape,
                     head_layer_num,
@@ -81,6 +69,18 @@ class PDQN(nn.Module):
                     activation=activation,
                     norm_type=norm_type
                 )
+
+        # Discrete Action Head Type
+        if dueling:
+            dis_head_cls = DuelingHead
+        else:
+            dis_head_cls = DiscreteHead
+        self.dis_head = dis_head_cls(
+                head_hidden_size + action_shape.action_args_shape, 
+                action_shape.action_type_shape, 
+                head_layer_num, 
+                activation=activation, 
+                norm_type=norm_type
             )
         
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
@@ -109,7 +109,8 @@ class PDQN(nn.Module):
             >>> assert outputs['logit'].shape == torch.Size([4, 3])
             >>> assert outputs['action_args'].shape == torch.Size([4,5])
         """
-        x = self.encoder(x)
-        logit = self.actor_head[0](x)
-        action_args = self.actor_head[1](x)
+        x = self.encoder(x)  # size (B, encoded_state_shape)
+        action_args = self.actor_head[1](x)  # size (B, action_args_shape)
+        state_action_cat = torch.cat((x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
+        logit = self.actor_head[0](state_action_cat)  # size (B, action_type_shape)
         return {'logit':logit['logit'], 'action_args': action_args['pred']}
