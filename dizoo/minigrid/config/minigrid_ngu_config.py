@@ -8,15 +8,15 @@ collector_env_num = 32  # TODO
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    exp_name='debug_minigrid_empty8_ngu_n5_bs2_ul98_erbm1',
-    # exp_name='debug_minigrid_fourrooms_ngu_er01_rbs5e4_n32',
-    # exp_name='debug_minigrid_doorkey_ngu_ul298_er01_rbs3e4_n32',
+    # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixeps',
+    exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixeps',
+    # exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs5e4_fixeps',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        env_id='MiniGrid-Empty-8x8-v0',
-        # env_id='MiniGrid-FourRooms-v0',
+        # env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-FourRooms-v0',
         # env_id='MiniGrid-DoorKey-16x16-v0',
         stop_value=0.96,
     ),
@@ -27,7 +27,7 @@ minigrid_ppo_rnd_config = dict(
         action_shape=7,
         batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
-        only_use_last_five_frames_for_icm_rnd=False,
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -82,7 +82,7 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=30000,
+            replay_buffer=dict(replay_buffer_size=int(5e4),
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.6,
                                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

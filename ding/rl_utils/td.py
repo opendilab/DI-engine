@@ -83,7 +83,6 @@ def nstep_return(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional
 #
 #     return return_
 
-
 dist_1step_td_data = namedtuple(
     'dist_1step_td_data', ['dist', 'next_dist', 'act', 'next_act', 'reward', 'done', 'weight']
 )

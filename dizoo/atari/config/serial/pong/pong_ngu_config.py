@@ -8,7 +8,7 @@ collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 pong_ppo_rnd_config = dict(
-    exp_name='debug_pong_ngu_ul98_er01_rlbs2e4_n32',
+    exp_name='debug_pong_ngu_ul98_er01_n32_rlbs2e4',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -24,10 +24,8 @@ pong_ppo_rnd_config = dict(
         action_shape=6,
         batch_size=320,
         update_per_collect=int(10),  # 32*100/64=50
-        only_use_last_five_frames_for_icm_rnd=False,
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd-ngu',
@@ -53,7 +51,7 @@ pong_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=10,
         nstep=nstep,
-        unroll_len=98,  # TODO(pu): 40
+        unroll_len=98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -99,7 +97,6 @@ pong_ppo_rnd_create_config = dict(
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    # reward_model=dict(type='rnd'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(type='sample_ngu',)
@@ -107,5 +104,19 @@ pong_ppo_rnd_create_config = dict(
 pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
 create_config = pong_ppo_rnd_create_config
 
+# if __name__ == "__main__":
+#     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+
+
+def train(args):
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=args.seed)
+
+
 if __name__ == "__main__":
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--seed', '-s', type=int, default=0)
+    args = parser.parse_args()
+
+    train(args)
