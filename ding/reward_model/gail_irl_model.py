@@ -169,7 +169,7 @@ class GailRewardModel(BaseRewardModel):
             reward = self.reward_model(res).squeeze(-1).cpu()
         reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
-            item['reward'] = -torch.log(rew)
+            item['reward'] = -torch.log(rew + 1e-8)
 
     def collect_data(self, data: list) -> None:
         """
