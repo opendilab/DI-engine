@@ -113,10 +113,13 @@ class RndRewardModel(BaseRewardModel):
             # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
 
             self._running_mean_std_rnd.update(reward.cpu().numpy())
-            # TODO(pu): reward normalization: transform to (mean 0, std 1),
+            # TODO(pu): reward normalization: transform to (mean 0, std 1), lm0std1
             # empirically we found this normalization way works well
             # than only dividing the self._running_mean_std_rnd.std
-            reward = (reward - self._running_mean_std_rnd.mean) / (self._running_mean_std_rnd.std + 1e-11)
+            # reward = (reward - self._running_mean_std_rnd.mean) / (self._running_mean_std_rnd.std + 1e-11)
+
+            # TODO(pu): transform to [0,1]: b01
+            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
 
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
