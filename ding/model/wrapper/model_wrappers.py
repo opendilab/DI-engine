@@ -264,9 +264,9 @@ class EpsGreedySampleWrapper(IModelWrapper):
                     action.append(l.argmax(dim=-1))
                 else:
                     if mask is not None:
-                        action.append(sample_action(prob=mask[i].float()))
+                        action.append(sample_action(prob=mask[i].float()).to(logit[0].device))
                     else:
-                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]).to(logit[0].device))
             action = torch.stack(action, dim=-1)  # shape torch.size([env_num])
         else:
             for i, l in enumerate(logit):

@@ -57,7 +57,7 @@ def nstep_return(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional
     else:  # if gamma is list. for NGU
         reward_factor = torch.ones([nstep + 1, done.shape[0]]).to(device)
         for i in range(1, nstep + 1):
-            reward_factor[i] = torch.stack(gamma, dim=0) * reward_factor[i - 1]
+            reward_factor[i] = torch.stack(gamma, dim=0).to(device) * reward_factor[i - 1]
         reward_factor = view_similar(reward_factor, reward)
         return_tmp = reward.mul(reward_factor[:nstep]).sum(0)
         return_ = return_tmp + reward_factor[nstep] * next_value * (1 - done)
