@@ -9,7 +9,7 @@ pitfall_r2d2_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=20,
+        stop_value=int(1e5),
         env_id='PitfallNoFrameskip-v4',
         frame_stack=4,
     ),

@@ -8,7 +8,7 @@ pitfall_ppo_config = dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20,
+        stop_value=int(1e5),
         env_id='PitfallNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )

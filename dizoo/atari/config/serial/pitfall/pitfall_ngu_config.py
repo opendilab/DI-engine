@@ -14,7 +14,7 @@ pitfall_ppo_rnd_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         env_id='PitfallNoFrameskip-v4',
-        stop_value=20,
+        stop_value=int(1e5),
         frame_stack=4,
     ),
     rnd_reward_model=dict(
