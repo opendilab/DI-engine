@@ -9,6 +9,8 @@ minigrid_ppo_rnd_config = dict(
         n_evaluator_episode=5,
         env_id='MiniGrid-FourRooms-v0',  #env_id='MiniGrid-Empty-8x8-v0', MiniGrid-FourRooms-v0, MiniGrid-DoorKey-16x16-v0
         stop_value=0.96,
+        #render = True,
+        replay_path = '/home/SENSETIME/zhoutong/di_env/DI-engine/MiniGrid-FourRooms-v0/vedio'
     ),
     reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
@@ -18,7 +20,7 @@ minigrid_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         model=dict(
             obs_shape=2739,
             action_shape=7,

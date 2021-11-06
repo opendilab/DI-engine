@@ -2,12 +2,12 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
 minigrid_ppo_rnd_config = dict(
-    exp_name='MiniGrid-FourRooms-v0',  #exp_name='minigrid_empty8_ppo_rnd',
+    exp_name='MiniGrid-DoorKey-8x8-v0-icm',  #exp_name='minigrid_empty8_ppo_rnd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        env_id='MiniGrid-FourRooms-v0',  #env_id='MiniGrid-Empty-8x8-v0', MiniGrid-FourRooms-v0, MiniGrid-DoorKey-16x16-v0
+        env_id='MiniGrid-DoorKey-8x8-v0',  #env_id='MiniGrid-Empty-8x8-v0', MiniGrid-FourRooms-v0, MiniGrid-DoorKey-16x16-v0
         stop_value=0.96,
     ),
     reward_model=dict(
@@ -18,7 +18,7 @@ minigrid_ppo_rnd_config = dict(
         update_per_collect=10,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         model=dict(
             obs_shape=2739,
             action_shape=7,
