@@ -90,7 +90,10 @@ def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> B
     cfg = copy.deepcopy(cfg)
     if 'import_names' in cfg:
         import_module(cfg.pop('import_names'))
-    reward_model_type = cfg.reward_model.pop('type')
+    if hasattr(cfg, 'reward_model'):
+        reward_model_type = cfg.reward_model.pop('type')
+    else:
+        reward_model_type = cfg.pop('type')
     return REWARD_MODEL_REGISTRY.build(reward_model_type, cfg, device=device, tb_logger=tb_logger)
 
 

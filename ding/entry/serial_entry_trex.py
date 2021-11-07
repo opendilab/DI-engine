@@ -12,7 +12,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-from dizoo.atari.config.serial.pong.pong_trex_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_trex_sql_config import main_config, create_config
 
 
 def serial_pipeline_reward_model_trex(
