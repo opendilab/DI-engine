@@ -1,5 +1,3 @@
-import pickle
-import random
 from collections.abc import Iterable
 from easydict import EasyDict
 
@@ -15,12 +13,10 @@ from ding.model.template.vac import VAC
 from torch.distributions.categorical import Categorical
 import gym
 import numpy as np
-from typing import Optional
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind
 from .rnd_reward_model import collect_states
 from ding.utils import SequenceType
 from ding.model.common import FCEncoder
-import ipdb
 
 
 class ConvEncoder(nn.Module):
@@ -404,7 +400,7 @@ class TrexRewardModel(BaseRewardModel):
         with torch.no_grad():
             pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in self.pre_expert_data]
         for i, p in enumerate(pred_returns):
-            print(i,p,sorted_returns[i])
+            print(i, p, sorted_returns[i])
         print("accuracy", self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels))
 
     def predict_reward_sequence(self, net, traj):
@@ -434,11 +430,11 @@ class TrexRewardModel(BaseRewardModel):
 
                 #forward to get logits
                 outputs, abs_return = reward_network.forward(traj_i, traj_j)
-                _, pred_label = torch.max(outputs,0)
+                _, pred_label = torch.max(outputs, 0)
                 if pred_label.item() == label:
                     num_correct += 1.
         return num_correct / len(training_inputs)
-    
+
     def estimate(self, data: list) -> None:
         """
         Overview:
