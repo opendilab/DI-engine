@@ -63,7 +63,7 @@ def clone_object():
     """
     fastcopy = FastCopy()
 
-    def push(chain: Callable, data: Any, *args, **kwargs) -> None:
+    def push(chain: Callable, data: Any, *args, **kwargs) -> Any:
         data = fastcopy.copy(data)
         return chain(data, *args, **kwargs)
 

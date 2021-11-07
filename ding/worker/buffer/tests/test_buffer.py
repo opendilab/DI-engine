@@ -76,8 +76,8 @@ def test_naive_push_sample():
     buffer.clear()
     for i in range(10):
         buffer.push(i)
-    assert len(buffer.sample(5, range=slice(5, 10))) == 5
-    assert 0 not in [item.data for item in buffer.sample(5, range=slice(5, 10))]
+    assert len(buffer.sample(5, sample_range=slice(5, 10))) == 5
+    assert 0 not in [item.data for item in buffer.sample(5, sample_range=slice(5, 10))]
 
 
 @pytest.mark.unittest
@@ -162,6 +162,6 @@ def test_ignore_insufficient():
         buffer.push(i)
 
     with pytest.raises(ValueError):
-        buffer.sample(3)
+        buffer.sample(3, ignore_insufficient=False)
     data = buffer.sample(3, ignore_insufficient=True)
     assert len(data) == 0

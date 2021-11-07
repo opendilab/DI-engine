@@ -9,7 +9,7 @@ def staleness_check(buffer_: 'Buffer', max_staleness: int = float("inf")) -> Cal
         If data's staleness is greater(>) than max_staleness, this data will be removed from buffer as soon as possible.
     """
 
-    def push(next: Callable, data: Any, *args, **kwargs) -> None:
+    def push(next: Callable, data: Any, *args, **kwargs) -> Any:
         assert 'meta' in kwargs and 'train_iter_data_collected' in kwargs[
             'meta'], "staleness_check middleware must push data with meta={'train_iter_data_collected': <iter>}"
         return next(data, *args, **kwargs)
