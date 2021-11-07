@@ -397,8 +397,48 @@ class TrexRewardModel(BaseRewardModel):
                     cum_loss = 0.0
                     print("check pointing")
                     torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
+        torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
         print("finished training")
+        # print out predicted cumulative returns and actual returns
+        sorted_returns = sorted(self.learning_returns)
+        with torch.no_grad():
+            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in self.pre_expert_data]
+        for i, p in enumerate(pred_returns):
+            print(i,p,sorted_returns[i])
+        print("accuracy", self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels))
 
+    def predict_reward_sequence(self, net, traj):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        rewards_from_obs = []
+        with torch.no_grad():
+            for s in traj:
+                r = net.cum_return(torch.from_numpy(np.array([s])).float().to(device))[0].item()
+                rewards_from_obs.append(r)
+        return rewards_from_obs
+
+    def predict_traj_return(self, net, traj):
+        return sum(self.predict_reward_sequence(net, traj))
+
+    def calc_accuracy(self, reward_network, training_inputs, training_outputs):
+        device = self.device
+        loss_criterion = nn.CrossEntropyLoss()
+        num_correct = 0.
+        with torch.no_grad():
+            for i in range(len(training_inputs)):
+                label = training_outputs[i]
+                traj_i, traj_j = training_inputs[i]
+                traj_i = np.array(traj_i)
+                traj_j = np.array(traj_j)
+                traj_i = torch.from_numpy(traj_i).float().to(device)
+                traj_j = torch.from_numpy(traj_j).float().to(device)
+
+                #forward to get logits
+                outputs, abs_return = reward_network.forward(traj_i, traj_j)
+                _, pred_label = torch.max(outputs,0)
+                if pred_label.item() == label:
+                    num_correct += 1.
+        return num_correct / len(training_inputs)
+    
     def estimate(self, data: list) -> None:
         """
         Overview:
