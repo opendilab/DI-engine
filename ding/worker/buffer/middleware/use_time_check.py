@@ -8,7 +8,7 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable: 
         greater than or equal to max_use, this data will be removed from buffer as soon as possible.
     """
 
-    def push(chain: Callable, data: Any, meta: dict = None, *args, **kwargs) -> None:
+    def push(chain: Callable, data: Any, meta: dict = None, *args, **kwargs) -> Any:
         if meta:
             meta["use_count"] = 0
         else:

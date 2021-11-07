@@ -16,6 +16,7 @@ class PriorityExperienceReplay:
             IS_weight_anneal_train_iter: int = int(1e5)
     ) -> None:
         self.buffer = buffer
+        self.buffer_idx = {}
         self.buffer_size = buffer_size
         self.IS_weight = IS_weight
         self.priority_power_factor = priority_power_factor
@@ -32,7 +33,7 @@ class PriorityExperienceReplay:
             self.delta_anneal = (1 - self.IS_weight_power_factor) / self.IS_weight_anneal_train_iter
         self.pivot = 0
 
-    def push(self, chain: Callable, data: Any, meta: Optional[dict] = None, *args, **kwargs) -> None:
+    def push(self, chain: Callable, data: Any, meta: Optional[dict] = None, *args, **kwargs) -> Any:
         if meta is None:
             meta = {'priority': self.max_priority}
         else:
@@ -40,8 +41,10 @@ class PriorityExperienceReplay:
                 meta['priority'] = self.max_priority
         meta['priority_idx'] = self.pivot
         self._update_tree(meta['priority'], self.pivot)
+        index = chain(data, meta=meta, *args, **kwargs)
+        self.buffer_idx[self.pivot] = index
         self.pivot = (self.pivot + 1) % self.buffer_size
-        return chain(data, meta=meta, *args, **kwargs)
+        return index
 
     def sample(self, chain: Callable, size: int, *args, **kwargs) -> List[Any]:
         # Divide [0, 1) into size intervals on average
@@ -51,8 +54,9 @@ class PriorityExperienceReplay:
         # Rescale to [0, S), where S is the sum of all datas' priority (root value of sum tree)
         mass *= self.sum_tree.reduce()
         indices = [self.sum_tree.find_prefixsum_idx(m) for m in mass]
-        # TODO sample with indices
-        data = chain(size, *args, **kwargs)
+        indices = [self.buffer_idx[i] for i in indices]
+        # sample with indices
+        data = chain(indices=indices, *args, **kwargs)
         if self.IS_weight:
             # Calculate max weight for normalizing IS
             sum_tree_root = self.sum_tree.reduce()
@@ -83,6 +87,7 @@ class PriorityExperienceReplay:
             priority_idx = meta['priority_idx']
             self.sum_tree[priority_idx] = self.sum_tree.neutral_element
             self.min_tree[priority_idx] = self.min_tree.neutral_element
+            self.buffer_idx.pop(priority_idx)
         return chain(index, *args, **kwargs)
 
     def clear(self, chain: Callable) -> None:
@@ -91,6 +96,7 @@ class PriorityExperienceReplay:
         self.sum_tree = SumSegmentTree(capacity)
         if self.IS_weight:
             self.min_tree = MinSegmentTree(capacity)
+        self.buffer_idx = {}
         self.pivot = 0
         chain()
 
@@ -105,14 +111,15 @@ class PriorityExperienceReplay:
             'IS_weight_power_factor': self.IS_weight_power_factor,
             'sumtree': self.sumtree,
             'mintree': self.mintree,
+            'buffer_idx': self.buffer_idx,
         }
 
     def load_state_dict(self, _state_dict: Dict, deepcopy: bool = False) -> None:
         for k, v in _state_dict.items():
             if deepcopy:
-                setattr(self, '_{}'.format(k), copy.deepcopy(v))
+                setattr(self, '{}'.format(k), copy.deepcopy(v))
             else:
-                setattr(self, '_{}'.format(k), v)
+                setattr(self, '{}'.format(k), v)
 
 
 def priority(*per_args, **per_kwargs):

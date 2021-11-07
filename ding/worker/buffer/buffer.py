@@ -52,13 +52,15 @@ class Buffer:
         self.middleware = []
 
     @abstractmethod
-    def push(self, data: Any, meta: Optional[dict] = None) -> None:
+    def push(self, data: Any, meta: Optional[dict] = None) -> Any:
         """
         Overview:
             Push data and it's meta information in buffer.
         Arguments:
             - data (:obj:`Any`): The data which will be pushed into buffer.
             - meta (:obj:`dict`): Meta information, e.g. priority, count, staleness.
+        Returns:
+            - index (:obj:`Any`): The index of pushed data.
         """
         raise NotImplementedError
 
@@ -68,7 +70,7 @@ class Buffer:
             size: Optional[int] = None,
             indices: Optional[List[str]] = None,
             replace: bool = False,
-            range: Optional[slice] = None,
+            sample_range: Optional[slice] = None,
             ignore_insufficient: bool = False
     ) -> List[BufferedData]:
         """
@@ -78,7 +80,7 @@ class Buffer:
             - size (:obj:`Optional[int]`): The number of the data that will be sampled.
             - indices (:obj:`Optional[List[str]]`): Sample with multiple indices.
             - replace (:obj:`bool`): If use replace is true, you may receive duplicated data from the buffer.
-            - range (:obj:`slice`): Range slice.
+            - sample_range (:obj:`slice`): Sample range slice.
             - ignore_insufficient (:obj:`bool`): If ignore_insufficient is true, sampling more than buffer size
                 with no repetition will not cause an exception.
         Returns:
