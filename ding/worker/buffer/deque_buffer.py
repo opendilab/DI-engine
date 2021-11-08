@@ -1,10 +1,10 @@
 from typing import Any, Iterable, List, Optional, Union
 from collections import deque
+from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 import itertools
 import random
 import uuid
 import logging
-from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 
 
 class DequeBuffer(Buffer):
@@ -14,10 +14,11 @@ class DequeBuffer(Buffer):
         self.storage = deque(maxlen=size)
 
     @apply_middleware("push")
-    def push(self, data: Any, meta: Optional[dict] = None) -> str:
+    def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
         index = uuid.uuid1().hex
-        self.storage.append(BufferedData(data=data, index=index, meta=meta))
-        return index
+        buffered = BufferedData(data=data, index=index, meta=meta)
+        self.storage.append(buffered)
+        return buffered
 
     @apply_middleware("sample")
     def sample(
@@ -40,18 +41,12 @@ class DequeBuffer(Buffer):
         value_error = None
         sampled_data = []
         if indices:
-            sampled_data = list(filter(lambda item: item.index in indices, self.storage))
-            # for the same indices
-            if len(indices) != len(set(indices)):
-                sampled_data_no_same = sampled_data
-                sampled_data = [sampled_data_no_same[0]]
-                j = 0
-                for i in range(1, len(indices)):
-                    if indices[i - 1] == indices[i]:
-                        sampled_data.append(copy.deepcopy(sampled_data_no_same[j]))
-                    else:
-                        sampled_data.append(sampled_data_no_same[j])
-                        j += 1
+            indices_set = set(indices)
+            hashed_data = filter(lambda item: item.index in indices_set, self.storage)
+            hashed_data = map(lambda item: (item.index, item), hashed_data)
+            hashed_data = dict(hashed_data)
+            # Re-sample and return in indices order
+            sampled_data = [hashed_data[index] for index in indices]
         else:
             if replace:
                 sampled_data = random.choices(storage, k=size)
@@ -68,10 +63,7 @@ class DequeBuffer(Buffer):
                     .format(self.count(), size)
                 )
             else:
-                if value_error:
-                    raise ValueError("Some errors in sample operation") from value_error
-                else:
-                    raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
+                raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
 
         return sampled_data
 
