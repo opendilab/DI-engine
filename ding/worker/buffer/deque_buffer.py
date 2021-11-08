@@ -1,5 +1,6 @@
 from typing import Any, Iterable, List, Optional, Union
 from collections import defaultdict, deque
+
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 from ding.worker.buffer.utils import fastcopy
 import itertools
@@ -13,12 +14,20 @@ class DequeBuffer(Buffer):
     def __init__(self, size: int) -> None:
         super().__init__()
         self.storage = deque(maxlen=size)
+        # Meta index is a dict which use deque as values
+        self.meta_index = {}
 
     @apply_middleware("push")
     def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
         index = uuid.uuid1().hex
+        if meta is None:
+            meta = {}
         buffered = BufferedData(data=data, index=index, meta=meta)
         self.storage.append(buffered)
+        # Add meta index
+        for key in self.meta_index:
+            self.meta_index[key].append(meta[key] if key in meta else None)
+
         return buffered
 
     @apply_middleware("sample")
@@ -29,25 +38,33 @@ class DequeBuffer(Buffer):
             replace: bool = False,
             sample_range: Optional[slice] = None,
             ignore_insufficient: bool = False,
+            groupby: str = None,
+            rolling_window: int = None
     ) -> List[BufferedData]:
         storage = self.storage
         if sample_range:
             storage = list(itertools.islice(self.storage, sample_range.start, sample_range.stop, sample_range.step))
+
+        # Size and indices
         assert size or indices, "One of size and indices must not be empty."
         if (size and indices) and (size != len(indices)):
             raise AssertionError("Size and indices length must be equal.")
         if not size:
             size = len(indices)
+        # Indices and groupby
+        assert not (indices and groupby), "Cannot use groupby and indicex at the same time."
 
         value_error = None
         sampled_data = []
         if indices:
             indices_set = set(indices)
-            hashed_data = filter(lambda item: item.index in indices_set, self.storage)
+            hashed_data = filter(lambda item: item.index in indices_set, storage)
             hashed_data = map(lambda item: (item.index, item), hashed_data)
             hashed_data = dict(hashed_data)
             # Re-sample and return in indices order
             sampled_data = [hashed_data[index] for index in indices]
+        elif groupby:
+            sampled_data = self._sample_by_group(size=size, groupby=groupby, storage=storage, replace=replace)
         else:
             if replace:
                 sampled_data = random.choices(storage, k=size)
@@ -66,7 +83,10 @@ class DequeBuffer(Buffer):
             else:
                 raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
 
-        sampled_data = self._independence(sampled_data)
+        if groupby:
+            sampled_data = [self._independence(data) for data in sampled_data]
+        else:
+            sampled_data = self._independence(sampled_data)
 
         return sampled_data
 
@@ -108,6 +128,34 @@ class DequeBuffer(Buffer):
             if occurred[buffered.index] > 1:
                 buffered_samples[i] = fastcopy.copy(buffered)
         return buffered_samples
+
+    def _sample_by_group(self,
+                         size: int,
+                         groupby: str,
+                         storage: deque,
+                         replace: bool = False) -> List[List[BufferedData]]:
+        if groupby not in self.meta_index:
+            self._create_index(groupby)
+        meta_indices = list(set(self.meta_index[groupby]))
+        sampled_groups = []
+        if replace:
+            sampled_groups = random.choices(meta_indices, k=size)
+        else:
+            try:
+                sampled_groups = random.sample(meta_indices, k=size)
+            except ValueError as e:
+                pass
+        sampled_data = defaultdict(list)
+        for buffered in storage:
+            meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
+            if meta_value in sampled_groups:
+                sampled_data[buffered.meta[groupby]].append(buffered)
+        return sampled_data.values()
+
+    def _create_index(self, meta_key: str):
+        self.meta_index[meta_key] = deque(maxlen=self.storage.maxlen)
+        for data in self.storage:
+            self.meta_index[meta_key].append(data.meta[meta_key] if meta_key in data.meta else None)
 
     def __iter__(self) -> deque:
         return iter(self.storage)
