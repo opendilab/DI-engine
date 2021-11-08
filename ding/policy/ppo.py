@@ -186,7 +186,7 @@ class PPOPolicy(Policy):
                     else:
                         data['value'] = value
                         data['return'] = unnormalized_returns
-
+            data.pop('replay_unique_id',None)
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']

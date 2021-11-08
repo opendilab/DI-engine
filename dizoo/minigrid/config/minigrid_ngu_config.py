@@ -4,13 +4,13 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32  # TODO
+collector_env_num = 32  # TODO 32 5
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
-    # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixeps',
-    exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixeps',
-    # exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs5e4_fixeps',
+    # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixepseval',
+    exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixepseval',
+    # exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,

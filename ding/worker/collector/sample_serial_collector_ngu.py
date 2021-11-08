@@ -240,13 +240,14 @@ class SampleCollectorNGU(ISerialCollector):
                 self._beta_pool.update(beta_index)
                 policy_output = self._policy.forward(
                     beta_index, obs, prev_action, prev_reward_e, **policy_kwargs
-                )  # TODO reward embeding
+                )  # TODO(pu): r_i, reward embeding
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
-                prev_reward_e = {env_id: timestep.reward.astype('float32') for env_id, timestep in timesteps.items()}
+                timesteps = to_tensor(timesteps, dtype=torch.float32)
+                prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
                 prev_reward_e = to_ndarray(prev_reward_e)
                 prev_action = actions
 
