@@ -292,7 +292,9 @@ class PPOPolicy(Policy):
                     # NOTE: processed_data have less transition than data, because we throw away the last timestep
                     # transition in each traj in fun dict_data_split_traj_and_compute_adv() to compute the adv
                     # 64*8 -> 63*8
-                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value.to(self._device), self._cfg)  # TODO
+                    processed_data = dict_data_split_traj_and_compute_adv(
+                        data, next_value.to(self._device), self._cfg
+                    )  # TODO
                     processed_data = lists_to_dicts(processed_data)
                     for k, v in processed_data.items():
                         if isinstance(v[0], torch.Tensor):
