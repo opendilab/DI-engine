@@ -52,7 +52,7 @@ class Buffer:
         self.middleware = []
 
     @abstractmethod
-    def push(self, data: Any, meta: Optional[dict] = None) -> Any:
+    def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
         """
         Overview:
             Push data and it's meta information in buffer.
@@ -60,7 +60,7 @@ class Buffer:
             - data (:obj:`Any`): The data which will be pushed into buffer.
             - meta (:obj:`dict`): Meta information, e.g. priority, count, staleness.
         Returns:
-            - index (:obj:`Any`): The index of pushed data.
+            - buffered_data (:obj:`BufferedData`): The pushed data.
         """
         raise NotImplementedError
 
