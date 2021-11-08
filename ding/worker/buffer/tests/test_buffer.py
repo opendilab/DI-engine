@@ -187,3 +187,30 @@ def test_independence():
     assert len(sampled_data) == 2
     sampled_data[0].data["key"] = "new"
     assert sampled_data[1].data["key"] == "origin"
+
+
+@pytest.mark.unittest
+def test_groupby():
+    buffer = DequeBuffer(size=3)
+    buffer.push("a", {"group": 1})
+    buffer.push("b", {"group": 2})
+    buffer.push("c", {"group": 2})
+
+    sampled_data = buffer.sample(2, groupby="group")
+    assert len(sampled_data) == 2
+    group1 = sampled_data[0] if len(sampled_data[0]) == 1 else sampled_data[1]
+    group2 = sampled_data[0] if len(sampled_data[0]) == 2 else sampled_data[1]
+    # Group1 should contain a
+    assert "a" == group1[0].data
+    # Group2 should contain b and c
+    data = [buffered.data for buffered in group2]  # ["b", "c"]
+    assert "b" in data
+    assert "c" in data
+
+    # Push new data and swap out a
+    buffer.push("d", {"group": 2})
+    sampled_data = buffer.sample(1, groupby="group")
+    assert len(sampled_data) == 1
+    assert len(sampled_data[0]) == 3
+    data = [buffered.data for buffered in sampled_data[0]]
+    assert "d" in data
