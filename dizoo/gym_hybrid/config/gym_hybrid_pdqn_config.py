@@ -10,15 +10,15 @@ gym_hybrid_pdqn_config = dict(
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
-        stop_value=2,  # 1.85 for hybrid_pdqn
+        stop_value=1.5,  # 1.85 for hybrid_pdqn
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        discount_factor=0.97,
+        discount_factor=0.99,
         nstep=1,
         model=dict(
             obs_shape=10,
@@ -33,9 +33,9 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=3,
-            batch_size=64,
-            learning_rate=0.001,
+            update_per_collect=10,
+            batch_size=32,
+            learning_rate=1e-4,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -47,7 +47,7 @@ gym_hybrid_pdqn_config = dict(
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=8,
+            n_sample=32,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -61,9 +61,9 @@ gym_hybrid_pdqn_config = dict(
                 start=0.95,
                 end=0.1,
                 # (int) Decay length(env step)
-                decay=10000,
+                decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(replay_buffer_size=100000, ),
         ),
     )
 )
