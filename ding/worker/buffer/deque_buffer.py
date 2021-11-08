@@ -40,7 +40,7 @@ class DequeBuffer(Buffer):
             ignore_insufficient: bool = False,
             groupby: str = None,
             rolling_window: int = None
-    ) -> List[BufferedData]:
+    ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         storage = self.storage
         if sample_range:
             storage = list(itertools.islice(self.storage, sample_range.start, sample_range.stop, sample_range.step))
@@ -53,6 +53,9 @@ class DequeBuffer(Buffer):
             size = len(indices)
         # Indices and groupby
         assert not (indices and groupby), "Cannot use groupby and indicex at the same time."
+        # Groupby and rolling_window
+        assert not (groupby and rolling_window), "Cannot use groupby and rolling_window at the same time."
+        assert not (indices and rolling_window), "Cannot use indices and rolling_window at the same time."
 
         value_error = None
         sampled_data = []
@@ -64,7 +67,11 @@ class DequeBuffer(Buffer):
             # Re-sample and return in indices order
             sampled_data = [hashed_data[index] for index in indices]
         elif groupby:
-            sampled_data = self._sample_by_group(size=size, groupby=groupby, storage=storage, replace=replace)
+            sampled_data = self._sample_by_group(size=size, groupby=groupby, replace=replace, storage=storage)
+        elif rolling_window:
+            sampled_data = self._sample_by_rolling_window(
+                size=size, replace=replace, rolling_window=rolling_window, storage=storage
+            )
         else:
             if replace:
                 sampled_data = random.choices(storage, k=size)
@@ -83,10 +90,7 @@ class DequeBuffer(Buffer):
             else:
                 raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
 
-        if groupby:
-            sampled_data = [self._independence(data) for data in sampled_data]
-        else:
-            sampled_data = self._independence(sampled_data)
+        sampled_data = self._independence(sampled_data)
 
         return sampled_data
 
@@ -116,24 +120,44 @@ class DequeBuffer(Buffer):
     def clear(self) -> None:
         self.storage.clear()
 
-    def _independence(self, buffered_samples: List[BufferedData]) -> List[BufferedData]:
+    def _independence(
+        self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
+    ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         """
         Overview:
             Make sure that each record is different from each other, but remember that this function
             is different from clone_object. You may change the data in the buffer by modifying a record.
+        Arguments:
+            - buffered_samples (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`) Sampled data,
+                can be nested if groupby or rolling_window has been set.
         """
+        if len(buffered_samples) == 0:
+            return buffered_samples
         occurred = defaultdict(int)
+
         for i, buffered in enumerate(buffered_samples):
-            occurred[buffered.index] += 1
-            if occurred[buffered.index] > 1:
-                buffered_samples[i] = fastcopy.copy(buffered)
+            if isinstance(buffered, list):
+                sampled_list = buffered
+                # Loop over nested samples
+                for j, buffered in enumerate(sampled_list):
+                    occurred[buffered.index] += 1
+                    if occurred[buffered.index] > 1:
+                        sampled_list[j] = fastcopy.copy(buffered)
+            elif isinstance(buffered, BufferedData):
+                occurred[buffered.index] += 1
+                if occurred[buffered.index] > 1:
+                    buffered_samples[i] = fastcopy.copy(buffered)
+            else:
+                raise Exception("Get unexpected buffered type {}".format(type(buffered)))
         return buffered_samples
 
     def _sample_by_group(self,
                          size: int,
                          groupby: str,
-                         storage: deque,
-                         replace: bool = False) -> List[List[BufferedData]]:
+                         replace: bool = False,
+                         storage: deque = None) -> List[List[BufferedData]]:
+        if storage is None:
+            storage = self.storage
         if groupby not in self.meta_index:
             self._create_index(groupby)
         meta_indices = list(set(self.meta_index[groupby]))
@@ -150,7 +174,29 @@ class DequeBuffer(Buffer):
             meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
             if meta_value in sampled_groups:
                 sampled_data[buffered.meta[groupby]].append(buffered)
-        return sampled_data.values()
+        return list(sampled_data.values())
+
+    def _sample_by_rolling_window(
+            self,
+            size: Optional[int] = None,
+            replace: bool = False,
+            rolling_window: int = None,
+            storage: deque = None
+    ) -> List[List[BufferedData]]:
+        if storage is None:
+            storage = self.storage
+        if replace:
+            sampled_indices = random.choices(range(len(storage)), k=size)
+        else:
+            try:
+                sampled_indices = random.sample(range(len(storage)), k=size)
+            except ValueError as e:
+                pass
+        sampled_data = []
+        for idx in sampled_indices:
+            slice_ = list(itertools.islice(storage, idx, idx + rolling_window))
+            sampled_data.append(slice_)
+        return sampled_data
 
     def _create_index(self, meta_key: str):
         self.meta_index[meta_key] = deque(maxlen=self.storage.maxlen)
