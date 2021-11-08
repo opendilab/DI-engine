@@ -71,7 +71,9 @@ class Buffer:
             indices: Optional[List[str]] = None,
             replace: bool = False,
             sample_range: Optional[slice] = None,
-            ignore_insufficient: bool = False
+            ignore_insufficient: bool = False,
+            groupby: str = None,
+            rolling_window: int = None
     ) -> List[BufferedData]:
         """
         Overview:
@@ -83,6 +85,8 @@ class Buffer:
             - sample_range (:obj:`slice`): Sample range slice.
             - ignore_insufficient (:obj:`bool`): If ignore_insufficient is true, sampling more than buffer size
                 with no repetition will not cause an exception.
+            - groupby (:obj:`str`): Groupby key in meta.
+            - rolling_window (:obj:`int`): Return batches of window size.
         Returns:
             - sample_data (:obj:`List[BufferedData]`):
                 A list of data with length ``size``.
