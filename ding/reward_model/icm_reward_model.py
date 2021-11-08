@@ -40,7 +40,7 @@ class ICMNetwork(nn.Module):
     3) Predicting the next embedded obs, given the embeded former observation and action
     """
 
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, action_shape: int, device: str) -> None:
+    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, action_shape: int) -> None:
         super(ICMNetwork, self).__init__()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.feature = FCEncoder(obs_shape, hidden_size_list)
@@ -54,13 +54,13 @@ class ICMNetwork(nn.Module):
         self.action_shape = action_shape
         feature_output = hidden_size_list[-1]
         self.inverse_net = nn.Sequential(nn.Linear(feature_output * 2, 512), nn.ReLU(), nn.Linear(512, action_shape))
-        self.residual = [
+        self.residual = nn.ModuleList([
             nn.Sequential(
                 nn.Linear(action_shape + 512, 512),
                 nn.LeakyReLU(),
                 nn.Linear(512, 512),
-            ).to(device) for _ in range(8)
-        ]
+            ) for _ in range(8)
+        ])
         self.forward_net_1 = nn.Sequential(nn.Linear(action_shape + feature_output, 512), nn.LeakyReLU())
         self.forward_net_2 = nn.Sequential(nn.Linear(action_shape + 512, feature_output), )
 
@@ -131,7 +131,7 @@ class ICMRewardModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = ICMNetwork(config.obs_shape, config.hidden_size_list, config.action_shape, device)
+        self.reward_model = ICMNetwork(config.obs_shape, config.hidden_size_list, config.action_shape)
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
