@@ -165,3 +165,25 @@ def test_ignore_insufficient():
         buffer.sample(3, ignore_insufficient=False)
     data = buffer.sample(3, ignore_insufficient=True)
     assert len(data) == 0
+
+
+@pytest.mark.unittest
+def test_independence():
+    # By replace
+    buffer = DequeBuffer(size=1)
+    data = {"key": "origin"}
+    buffer.push(data)
+    sampled_data = buffer.sample(2, replace=True)
+    assert len(sampled_data) == 2
+    sampled_data[0].data["key"] = "new"
+    assert sampled_data[1].data["key"] == "origin"
+
+    # By indices
+    buffer = DequeBuffer(size=1)
+    data = {"key": "origin"}
+    buffered = buffer.push(data)
+    indices = [buffered.index, buffered.index]
+    sampled_data = buffer.sample(indices=indices)
+    assert len(sampled_data) == 2
+    sampled_data[0].data["key"] = "new"
+    assert sampled_data[1].data["key"] == "origin"
