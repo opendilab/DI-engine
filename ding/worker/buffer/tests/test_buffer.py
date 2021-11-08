@@ -214,3 +214,25 @@ def test_groupby():
     assert len(sampled_data[0]) == 3
     data = [buffered.data for buffered in sampled_data[0]]
     assert "d" in data
+
+
+@pytest.mark.unittest
+def test_rolling_window():
+    buffer = DequeBuffer(size=10)
+    for i in range(10):
+        buffer.push(i)
+    sampled_data = buffer.sample(10, rolling_window=3)
+    assert len(sampled_data) == 10
+
+    # Test data independence
+    buffer = DequeBuffer(size=2)
+    for i in range(2):
+        buffer.push({"key": i})
+    sampled_data = buffer.sample(2, rolling_window=3)
+    assert len(sampled_data) == 2
+    group_long = sampled_data[0] if len(sampled_data[0]) == 2 else sampled_data[1]
+    group_short = sampled_data[0] if len(sampled_data[0]) == 1 else sampled_data[1]
+
+    # Modify the second value
+    group_long[1].data["key"] = 10
+    assert group_short[0].data["key"] == 1
