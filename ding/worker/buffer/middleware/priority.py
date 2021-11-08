@@ -1,7 +1,9 @@
+from collections import defaultdict
 from typing import Callable, Any, List, Dict, Optional
 import copy
 import numpy as np
 from ding.utils import SumSegmentTree, MinSegmentTree
+from ding.worker.buffer.buffer import BufferedData
 
 
 class PriorityExperienceReplay:
@@ -33,7 +35,7 @@ class PriorityExperienceReplay:
             self.delta_anneal = (1 - self.IS_weight_power_factor) / self.IS_weight_anneal_train_iter
         self.pivot = 0
 
-    def push(self, chain: Callable, data: Any, meta: Optional[dict] = None, *args, **kwargs) -> Any:
+    def push(self, chain: Callable, data: Any, meta: Optional[dict] = None, *args, **kwargs) -> BufferedData:
         if meta is None:
             meta = {'priority': self.max_priority}
         else:
@@ -41,12 +43,13 @@ class PriorityExperienceReplay:
                 meta['priority'] = self.max_priority
         meta['priority_idx'] = self.pivot
         self._update_tree(meta['priority'], self.pivot)
-        index = chain(data, meta=meta, *args, **kwargs)
+        buffered = chain(data, meta=meta, *args, **kwargs)
+        index = buffered.index
         self.buffer_idx[self.pivot] = index
         self.pivot = (self.pivot + 1) % self.buffer_size
-        return index
+        return buffered
 
-    def sample(self, chain: Callable, size: int, *args, **kwargs) -> List[Any]:
+    def sample(self, chain: Callable, size: int, *args, **kwargs) -> List[BufferedData]:
         # Divide [0, 1) into size intervals on average
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # Uniformly sample within each interval
@@ -55,7 +58,7 @@ class PriorityExperienceReplay:
         mass *= self.sum_tree.reduce()
         indices = [self.sum_tree.find_prefixsum_idx(m) for m in mass]
         indices = [self.buffer_idx[i] for i in indices]
-        # sample with indices
+        # Sample with indices
         data = chain(indices=indices, *args, **kwargs)
         if self.IS_weight:
             # Calculate max weight for normalizing IS
