@@ -3,12 +3,12 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pitfall_ppo_config = dict(
-    exp_name='ppo_offpolicy_pitfall',
+    exp_name='ppo_offpolicy_pitfall_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20,
+        stop_value=int(1e5),
         env_id='PitfallNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
