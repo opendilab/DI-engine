@@ -23,7 +23,6 @@ walker2d_ddpg_gail_default_config = dict(
         load_path='walker2d_ddpg_gail/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
 
         collect_count=100000,
-        target_new_data_count=1,
     ),
     policy=dict(
         load_path='walker2d_ddpg_gail/ckpt/ckpt_best.pth.tar',  # state_dict of the policy
