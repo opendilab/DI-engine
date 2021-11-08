@@ -157,7 +157,7 @@ class TrexRewardModel(BaseRewardModel):
                     traj = []
                     gt_rewards = []
                     r = 0
-
+                    env.seed(self.cfg.seed + (int(checkpoint)-int(checkpoint_min))//int(checkpoint_step)) # in trex official implementation, they use the same initialisation.
                     ob = env.reset()
                     steps = 0
                     acc_reward = 0
@@ -219,7 +219,7 @@ class TrexRewardModel(BaseRewardModel):
                     traj = []
                     gt_rewards = []
                     r = 0
-
+                    env.seed(self.cfg.seed + (int(checkpoint)-int(checkpoint_min))//int(checkpoint_step))
                     ob = env.reset()
                     steps = 0
                     acc_reward = 0
