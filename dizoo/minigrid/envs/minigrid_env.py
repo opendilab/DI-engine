@@ -220,6 +220,7 @@ class MiniGridEnv(BaseEnv):
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
+        # self._env.render() # TODO(pu)
         rew = float(rew)
         self._final_eval_reward += rew
         self._current_step += 1

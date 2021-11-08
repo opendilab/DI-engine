@@ -60,3 +60,8 @@ bipedalwalker_td3_create_config = dict(
 )
 bipedalwalker_td3_create_config = EasyDict(bipedalwalker_td3_create_config)
 create_config = bipedalwalker_td3_create_config
+
+from ding.entry import serial_pipeline
+
+if __name__ == "__main__":
+    serial_pipeline([main_config, create_config], seed=0)
