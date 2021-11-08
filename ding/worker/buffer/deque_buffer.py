@@ -1,6 +1,7 @@
 from typing import Any, Iterable, List, Optional, Union
-from collections import deque
+from collections import defaultdict, deque
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
+from ding.worker.buffer.utils import fastcopy
 import itertools
 import random
 import uuid
@@ -65,6 +66,8 @@ class DequeBuffer(Buffer):
             else:
                 raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
 
+        sampled_data = self._independence(sampled_data)
+
         return sampled_data
 
     @apply_middleware("update")
@@ -92,6 +95,19 @@ class DequeBuffer(Buffer):
     @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
+
+    def _independence(self, buffered_samples: List[BufferedData]) -> List[BufferedData]:
+        """
+        Overview:
+            Make sure that each record is different from each other, but remember that this function
+            is different from clone_object. You may change the data in the buffer by modifying a record.
+        """
+        occurred = defaultdict(int)
+        for i, buffered in enumerate(buffered_samples):
+            occurred[buffered.index] += 1
+            if occurred[buffered.index] > 1:
+                buffered_samples[i] = fastcopy.copy(buffered)
+        return buffered_samples
 
     def __iter__(self) -> deque:
         return iter(self.storage)
