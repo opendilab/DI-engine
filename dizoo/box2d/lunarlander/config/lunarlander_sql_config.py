@@ -1,5 +1,5 @@
 from easydict import EasyDict
-
+from ding.entry import serial_pipeline
 lunarlander_sql_config = dict(
     exp_name='lunarlander_sql',
     env=dict(
@@ -44,3 +44,6 @@ lunarlander_sql_create_config = dict(
 )
 lunarlander_sql_create_config = EasyDict(lunarlander_sql_create_config)
 create_config = lunarlander_sql_create_config
+
+if __name__ == "__main__":
+    serial_pipeline([main_config, create_config], seed=0)
