@@ -10,7 +10,6 @@ cartpole_discrete_cql_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         priority=True,
         model=dict(
             obs_shape=4,
@@ -41,8 +40,7 @@ cartpole_discrete_cql_config = dict(
                 start=0.95,
                 end=0.1,
                 decay=10000,
-            ),
-            replay_buffer=dict(replay_buffer_size=20000, )
+            ), replay_buffer=dict(replay_buffer_size=20000, )
         ),
     ),
 )

@@ -40,8 +40,10 @@ setup(
         *find_packages(include=('dizoo'
                                 'dizoo.*')),
     ],
-    package_data={package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
-                  for package_name in find_packages(include=('ding.*'))},
+    package_data={
+        package_name: ['*.yaml', '*.xml', '*cfg', '*SC2Map']
+        for package_name in find_packages(include=('ding.*'))
+    },
     python_requires=">=3.6",
     install_requires=[
         'numpy>=1.10',
@@ -49,7 +51,7 @@ setup(
         'six',
         'gym==0.20.0',  # pypy incompatible
         'torch>=1.3.1,<=1.9.0',  # PyTorch 1.9.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
-        'pyyaml',
+        'pyyaml<6.0',
         'easydict==1.9',
         'tensorboardX>=2.1,<=2.2',
         'matplotlib',  # pypy incompatible
@@ -95,7 +97,7 @@ setup(
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
-            'ale-py',  # atari
+            'ale-py==0.7.0',  # atari
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
@@ -123,6 +125,17 @@ setup(
         # 'pybulletgym_env': [
         #     'pybulletgym @ git+https://github.com/benelot/pybullet-gym@master#egg=pybulletgym',
         # ],
+        # 'gym_hybrid_env': [
+        #     'gym-hybrid @ git+https://github.com/thomashirtz/gym-hybrid@master#egg=gym-hybrid',
+        # ],
+
+        # 'gobigger_env': [
+        #     'gobigger @ git+https://github.com/opendilab/GoBigger@main#egg=gobigger',
+        # ],
+        # 'gym_soccer_env': [
+        #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
+        # ],
+
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',
@@ -136,7 +149,6 @@ setup(
             'whichcraft',
             'joblib',
         ],
-
         'slimevolleygym_env': [
             'slimevolleygym',
         ],

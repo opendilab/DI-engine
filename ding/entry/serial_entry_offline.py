@@ -56,6 +56,10 @@ def serial_pipeline_offline(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
 
+    # Normalization for state in offlineRL dataset.
+    if cfg.policy.collect.get('normalize_states', None):
+        policy.set_norm_statistics(dataset.mean, dataset.std)
+
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)

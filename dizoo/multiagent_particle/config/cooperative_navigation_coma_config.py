@@ -16,7 +16,6 @@ cooperative_navigation_coma_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=True,
         model=dict(
             agent_num=n_agent,
             obs_shape=dict(

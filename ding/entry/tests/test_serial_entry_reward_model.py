@@ -58,6 +58,7 @@ def test_irl(reward_model_config):
     cp_cartpole_dqn_create_config.reward_model = dict(type=reward_model_config.type)
     reward_model_config['expert_data_path'] = expert_data_path
     cp_cartpole_dqn_config.reward_model = reward_model_config
+    cp_cartpole_dqn_config.policy.collect.n_sample = 128
     serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0, max_iterations=2)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")

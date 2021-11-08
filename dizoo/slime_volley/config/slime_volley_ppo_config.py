@@ -13,7 +13,6 @@ slime_volley_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=True,
         continuous=False,
         model=dict(
             obs_shape=12,

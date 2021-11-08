@@ -224,10 +224,10 @@ class Policy(ABC):
         return ['cur_lr', 'total_loss']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._learn_model.state_dict()}
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._learn_model.load_state_dict(state_dict['model'], strict=True)
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
         return self._cfg.learn.batch_size
@@ -251,10 +251,10 @@ class Policy(ABC):
         pass
 
     def _state_dict_collect(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._collect_model.state_dict()}
 
     def _load_state_dict_collect(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._collect_model.load_state_dict(state_dict['model'], strict=True)
 
     # *************************************** eval function ************************************
 
@@ -267,10 +267,10 @@ class Policy(ABC):
         pass
 
     def _state_dict_eval(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._eval_model.state_dict()}
 
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._eval_model.load_state_dict(state_dict['model'], strict=True)
 
 
 class CommandModePolicy(Policy):

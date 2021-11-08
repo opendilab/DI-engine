@@ -1,6 +1,5 @@
 from typing import Any, List, Union, Sequence
 import copy
-import torch
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -187,6 +186,7 @@ class AtariEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         action = action.item()
         obs, rew, done, info = self._env.step(action)
+        # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
