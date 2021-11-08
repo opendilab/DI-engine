@@ -74,7 +74,7 @@ class Buffer:
             ignore_insufficient: bool = False,
             groupby: str = None,
             rolling_window: int = None
-    ) -> List[BufferedData]:
+    ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         """
         Overview:
             Sample data with length ``size``.
@@ -88,8 +88,8 @@ class Buffer:
             - groupby (:obj:`str`): Groupby key in meta.
             - rolling_window (:obj:`int`): Return batches of window size.
         Returns:
-            - sample_data (:obj:`List[BufferedData]`):
-                A list of data with length ``size``.
+            - sample_data (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`):
+                A list of data with length ``size``, may be nested if groupby or rolling_window is set.
         """
         raise NotImplementedError
 
