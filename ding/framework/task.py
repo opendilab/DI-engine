@@ -69,17 +69,7 @@ class Task:
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
-        self.ctx = self._renew_ctx(self.ctx)
-
-    def _renew_ctx(self, ctx: Context) -> None:
-        """
-        Overview:
-            Renew the context instance, add total_step and shift kept properties to the new instance.
-        """
-        new_ctx = Context(total_step=ctx.total_step + 1)
-        for k in ctx._kept:
-            new_ctx[k] = ctx[k]
-        return new_ctx
+        self.ctx = self.ctx.renew()
 
     @property
     def finish(self) -> bool:
