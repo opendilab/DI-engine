@@ -52,7 +52,8 @@ class DQNPipeline:
     def act(self, env):
 
         def _act(ctx):
-            ctx.set_default("collect_env_step", 0, keep=True)
+            ctx.setdefault("collect_env_step", 0)
+            ctx.keep("collect_env_step")
             eps = self.epsilon_greedy(ctx.collect_env_step)
             ctx.obs = env.ready_obs
             policy_output = self.policy.collect_mode.forward(ctx.obs, eps=eps)
@@ -80,7 +81,8 @@ class DQNPipeline:
     def learn(self, buffer_):
 
         def _learn(ctx):
-            ctx.set_default("train_iter", 0, keep=True)
+            ctx.setdefault("train_iter", 0)
+            ctx.keep("train_iter")
             for i in range(self.cfg.policy.learn.update_per_collect):
                 data = buffer_.sample(self.policy.learn_mode.get_attribute('batch_size'))
                 if data is None:
@@ -100,8 +102,9 @@ class DQNPipeline:
     def evaluate(self, env):
 
         def _eval(ctx):
-            ctx.set_default("train_iter", 0, keep=True)
-            ctx.set_default("last_eval_iter", -1, keep=True)
+            ctx.setdefault("train_iter", 0)
+            ctx.setdefault("last_eval_iter", -1)
+            ctx.keep("train_iter", "last_eval_iter")
             if ctx.train_iter == ctx.last_eval_iter or (
                 (ctx.train_iter - ctx.last_eval_iter) < self.cfg.policy.eval.evaluator.eval_freq
                     and ctx.train_iter != 0):
@@ -127,7 +130,7 @@ class DQNPipeline:
             print('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
             ctx.last_eval_iter = ctx.train_iter
             if stop_flag:
-                ctx._finish = True
+                ctx.finish()
             yield
 
         return _eval

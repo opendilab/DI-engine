@@ -1,4 +1,5 @@
-from typing import Any
+from typing import Callable, List, Union
+import pydash
 
 
 class Context(dict):
@@ -24,19 +25,39 @@ class Context(dict):
         # Reserved properties
         self._backward_stack = []
         self._finish = False
-        self._kept = {"_finish": True}
+        self._hooks_after_renew = [lambda new_, old: new_.update({"_finish": old._finish})]
 
-    def set_default(self, key: str, value: Any, keep=False) -> None:
+    def renew(self) -> 'Context':  # noqa
         """
         Overview:
-            Set default value of a property, if you want to keep this property to the next iteration,
-            set keep=True.
-        Arguments:
-            - key (:obj:`str`): The key.
-            - value (:obj:`Any`): The value.
-            - keep (:obj:`bool`): Whether to keep this attribute until the next iteration.
+            Renew context from self, add total_step and shift kept properties to the new instance.
         """
-        if key not in self:
-            self[key] = value
-        if keep:
-            self._kept[key] = True
+        ctx = Context(total_step=self.total_step + 1)
+        for hook in self._hooks_after_renew:
+            hook(ctx, self)
+        return ctx
+
+    def keep(self, *keys: str) -> None:
+        """
+        Overview:
+            Keep this key/keys until next iteration.
+        """
+        self.after_renew(lambda new_, old: new_.update(pydash.pick(old, keys)))
+
+    def after_renew(self, fn: Callable) -> None:
+        """
+        Overview:
+            Hook after renew, the function should look like (lambda new_, old: ...)
+        Arguments:
+            - fn (:obj:`Callable`): Hook after renew
+        """
+        self._hooks_after_renew.append(fn)
+
+    def finish(self, finish: bool = True) -> None:
+        """
+        Overview:
+            Set finish flag on context
+        Arguments:
+            - finish (:obj:`bool`): Finish or not
+        """
+        self._finish = finish

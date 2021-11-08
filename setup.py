@@ -73,6 +73,8 @@ setup(
         'scipy',
         'trueskill',
         'h5py',
+        'rich',
+        'pydash'
     ],
     extras_require={
         'test': [
