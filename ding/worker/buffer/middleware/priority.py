@@ -1,5 +1,4 @@
-from collections import defaultdict
-from typing import Callable, Any, List, Dict, Optional
+from typing import Callable, Any, List, Dict, Optional, Union
 import copy
 import numpy as np
 from ding.utils import SumSegmentTree, MinSegmentTree
@@ -49,7 +48,8 @@ class PriorityExperienceReplay:
         self.pivot = (self.pivot + 1) % self.buffer_size
         return buffered
 
-    def sample(self, chain: Callable, size: int, *args, **kwargs) -> List[BufferedData]:
+    def sample(self, chain: Callable, size: int, *args,
+               **kwargs) -> Union[List[BufferedData], List[List[BufferedData]]]:
         # Divide [0, 1) into size intervals on average
         intervals = np.array([i * 1.0 / size for i in range(size)])
         # Uniformly sample within each interval
