@@ -1,4 +1,4 @@
-from typing import Callable, Any, List
+from typing import Callable, Any, List, Union
 from ding.worker.buffer import BufferedData
 from ding.worker.buffer.utils import fastcopy
 
@@ -14,15 +14,15 @@ def clone_object():
         data = fastcopy.copy(data)
         return chain(data, *args, **kwargs)
 
-    def sample(chain: Callable, *args, **kwargs) -> List[BufferedData]:
+    def sample(chain: Callable, *args, **kwargs) -> Union[List[BufferedData], List[List[BufferedData]]]:
         data = chain(*args, **kwargs)
         return fastcopy.copy(data)
 
-    def _immutable_object(action: str, chain: Callable, *args, **kwargs):
+    def _clone_object(action: str, chain: Callable, *args, **kwargs):
         if action == "push":
             return push(chain, *args, **kwargs)
         elif action == "sample":
             return sample(chain, *args, **kwargs)
         return chain(*args, **kwargs)
 
-    return _immutable_object
+    return _clone_object
