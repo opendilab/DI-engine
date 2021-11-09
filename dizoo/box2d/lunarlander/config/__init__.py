@@ -1,3 +1,4 @@
-from .lunarlander_dqn_config import lunarlander_dqn_default_config
+from .lunarlander_dqn_config import lunarlander_dqn_default_config, lunarlander_dqn_create_config
+from .lunarlander_dqn_gail_config import lunarlander_dqn_gail_create_config, lunarlander_dqn_gail_default_config
 from .lunarlander_ppo_config import lunarlander_ppo_config
 from .lunarlander_qrdqn_config import lunarlander_qrdqn_config, lunarlander_qrdqn_create_config

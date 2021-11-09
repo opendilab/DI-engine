@@ -1,9 +1,9 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline
 
-nstep = 3
-lunarlander_dqn_default_config = dict(
-    exp_name='lunarlander_dqn',
+nstep = 1
+lunarlander_dqn_gail_default_config = dict(
+    exp_name='lunarlander_dqn_gail',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
@@ -13,10 +13,23 @@ lunarlander_dqn_default_config = dict(
         n_evaluator_episode=5,
         stop_value=200,
     ),
+    reward_model=dict(
+        type='gail',
+        input_size=9,
+        hidden_size=64,
+        batch_size=64,
+        learning_rate=1e-3,
+        update_per_collect=100,
+        expert_data_path='lunarlander_dqn/expert_data_test.pkl',
+        collect_count=100000,
+        load_path='lunarlander_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',
+    ),
     policy=dict(
-        load_path='lunarlander_dqn/ckpt/ckpt_best.pth.tar',
+        load_path='lunarlander_dqn_gail/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
+        # Whether the RL algorithm is on-policy or off-policy.
+        on_policy=False,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -58,10 +71,10 @@ lunarlander_dqn_default_config = dict(
         ),
     ),
 )
-lunarlander_dqn_default_config = EasyDict(lunarlander_dqn_default_config)
-main_config = lunarlander_dqn_default_config
+lunarlander_dqn_gail_default_config = EasyDict(lunarlander_dqn_gail_default_config)
+main_config = lunarlander_dqn_gail_default_config
 
-lunarlander_dqn_create_config = dict(
+lunarlander_dqn_gail_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
@@ -69,8 +82,5 @@ lunarlander_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
-create_config = lunarlander_dqn_create_config
-
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+lunarlander_dqn_gail_create_config = EasyDict(lunarlander_dqn_gail_create_config)
+create_config = lunarlander_dqn_gail_create_config
