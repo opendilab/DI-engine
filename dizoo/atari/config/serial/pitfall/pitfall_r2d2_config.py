@@ -20,7 +20,7 @@ pitfall_r2d2_config = dict(
         priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=6,
+            action_shape=18,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,

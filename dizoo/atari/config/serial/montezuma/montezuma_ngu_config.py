@@ -14,14 +14,14 @@ montezuma_ppo_rnd_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         env_id='MontezumaRevengeNoFrameskip-v4',
-        stop_value=20000,
+        stop_value=int(1e5),
         frame_stack=4,
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
         learning_rate=0.001,
         obs_shape=[4, 84, 84],
-        action_shape=6,
+        action_shape=18,
         batch_size=128,
         update_per_collect=int(75),  # 32*300/128=75
         only_use_last_five_frames_for_icm_rnd=False,
@@ -37,7 +37,7 @@ montezuma_ppo_rnd_config = dict(
         intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=[4, 84, 84],
-        action_shape=6,
+        action_shape=18,
         batch_size=128,
         update_per_collect=int(75),  # 32*300/128=75
         only_use_last_five_frames_for_icm_rnd=False,
@@ -61,7 +61,7 @@ montezuma_ppo_rnd_config = dict(
         unroll_len=298,
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=6,
+            action_shape=18,
             encoder_hidden_size_list=[128, 128, 512],
             collector_env_num=collector_env_num,
         ),
