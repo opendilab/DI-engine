@@ -227,6 +227,7 @@ class MiniGridEnv(BaseEnv):
         if self._current_step >= self._max_step:
             done = True
         if done:
+            # self._save_replay_count = self._seed  # TODO(pu)
             info['final_eval_reward'] = self._final_eval_reward
             info['current_step'] = self._current_step
             info['max_step'] = self._max_step

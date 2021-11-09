@@ -61,6 +61,7 @@ def eval(
     prev_action = {i: torch.tensor(-1) for i in range(1)}
     prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(1)}
 
+
     while True:
         # TODO(pu): r_i, reward embeding
         policy_output = policy.forward(beta_index ,obs , prev_action, prev_reward_e)
@@ -91,7 +92,6 @@ def eval(
         if timestep.done:
             print(timestep.info)
             break
-
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
 
 
@@ -100,4 +100,5 @@ if __name__ == "__main__":
     cfg = '../config/minigrid_ngu_config.py'
 
     state_dict = torch.load(path, map_location='cpu')
-    eval(cfg, seed=2, state_dict=state_dict)
+    for i in range(5):
+        eval(cfg, seed=i, state_dict=state_dict)
