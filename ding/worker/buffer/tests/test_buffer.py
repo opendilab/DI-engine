@@ -236,3 +236,14 @@ def test_rolling_window():
     # Modify the second value
     group_long[1].data["key"] = 10
     assert group_short[0].data["key"] == 1
+
+
+@pytest.mark.unittest
+def test_import_export():
+    buffer = DequeBuffer(size=10)
+    data_with_meta = [(i, {}) for i in range(10)]
+    buffer.import_data(data_with_meta)
+    assert buffer.count() == 10
+
+    sampled_data = buffer.export_data()
+    assert len(sampled_data) == 10
