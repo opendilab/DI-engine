@@ -1,4 +1,4 @@
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import defaultdict, deque
 
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
@@ -19,16 +19,7 @@ class DequeBuffer(Buffer):
 
     @apply_middleware("push")
     def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
-        index = uuid.uuid1().hex
-        if meta is None:
-            meta = {}
-        buffered = BufferedData(data=data, index=index, meta=meta)
-        self.storage.append(buffered)
-        # Add meta index
-        for key in self.meta_index:
-            self.meta_index[key].append(meta[key] if key in meta else None)
-
-        return buffered
+        return self._push(data, meta)
 
     @apply_middleware("sample")
     def sample(
@@ -119,6 +110,25 @@ class DequeBuffer(Buffer):
     @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
+
+    def import_data(self, data_with_meta: List[Tuple[Any, dict]]) -> None:
+        for data, meta in data_with_meta:
+            self._push(data, meta)
+
+    def export_data(self) -> List[BufferedData]:
+        return list(self.storage)
+
+    def _push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
+        index = uuid.uuid1().hex
+        if meta is None:
+            meta = {}
+        buffered = BufferedData(data=data, index=index, meta=meta)
+        self.storage.append(buffered)
+        # Add meta index
+        for key in self.meta_index:
+            self.meta_index[key].append(meta[key] if key in meta else None)
+
+        return buffered
 
     def _independence(
         self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
