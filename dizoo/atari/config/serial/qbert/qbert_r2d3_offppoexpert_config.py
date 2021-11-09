@@ -6,18 +6,18 @@ module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
-expert_replay_buffer_size=1  #TODO 1000
+expert_replay_buffer_size=1000  #TODO 1000
 """agent config"""
-pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_ppoexpert_k100_pho1-4_rbs2e4_nol2',
+qbert_r2d3_config = dict(
+    exp_name='debug_qbert_r2d3_offppoexpert_k0_pho1-256_rbs2e4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        stop_value=int(1e5),
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
     ),
     policy=dict(
@@ -51,10 +51,10 @@ pong_r2d3_config = dict(
             # DQFD related parameters
             lambda1=1.0,  # n-step return
             lambda2=1,  # 1.0,  # supervised loss
-            lambda3=0,  # 1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
+            lambda3=1e-5,  # 1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
             lambda_one_step_td=1,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=100,  # TODO(pu)
+            per_train_iter_k=0,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -62,7 +62,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,  # 1/256,  #TODO(pu), 0.25,
+            pho=1/256,  # 1/256,  #TODO(pu), 0.25,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -82,9 +82,9 @@ pong_r2d3_config = dict(
         ),
     ),
 )
-pong_r2d3_config = EasyDict(pong_r2d3_config)
-main_config = pong_r2d3_config
-pong_r2d3_create_config = dict(
+qbert_r2d3_config = EasyDict(qbert_r2d3_config)
+main_config = qbert_r2d3_config
+qbert_r2d3_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -92,13 +92,13 @@ pong_r2d3_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d3'),
 )
-pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
-create_config = pong_r2d3_create_config
+qbert_r2d3_create_config = EasyDict(qbert_r2d3_create_config)
+create_config = qbert_r2d3_create_config
 
 
 """export config"""
-expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_ppoexpert_k100_pho1-4_rbs2e4_nol2',
+expert_qbert_r2d3_config = dict(
+    exp_name='expert_qbert_r2d3_offppoexpert_k0_pho1-256_rbs2e4',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -106,7 +106,7 @@ expert_pong_r2d3_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
     ),
     policy=dict(
@@ -131,7 +131,7 @@ expert_pong_r2d3_config = dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
             # Users should add their own path here (path should lead to a well-trained model)
-            # demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
+            # demonstration_info_path='dizoo/atari/config/serial/qbert/demo_path/ppo-off_iteration_16127.pth.tar',
             demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
             # demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
@@ -150,9 +150,9 @@ expert_pong_r2d3_config = dict(
         ),
     ),
 )
-expert_pong_r2d3_config = EasyDict(expert_pong_r2d3_config)
-expert_main_config = expert_pong_r2d3_config
-expert_pong_r2d3_create_config = dict(
+expert_qbert_r2d3_config = EasyDict(expert_qbert_r2d3_config)
+expert_main_config = expert_qbert_r2d3_config
+expert_qbert_r2d3_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -160,8 +160,8 @@ expert_pong_r2d3_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy_collect_traj'),
 )
-expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
-expert_create_config = expert_pong_r2d3_create_config
+expert_qbert_r2d3_create_config = EasyDict(expert_qbert_r2d3_create_config)
+expert_create_config = expert_qbert_r2d3_create_config
 
 if __name__ == "__main__":
     serial_pipeline_r2d3([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
