@@ -130,7 +130,9 @@ local.properties
 
 # Portable Network Graphics
 *.png
-
+*.mp4
+*.json
+*.rtf
 # Animated Portable Network Graphics
 *.apng
 
