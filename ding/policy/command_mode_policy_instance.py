@@ -8,15 +8,20 @@ from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
+from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
+from .ppo_offpolicy_collect_traj import PPOOffCollectTrajPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
+from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy
 from .qmix import QMIXPolicy
+from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
 from .coma import COMAPolicy
 from .atoc import ATOCPolicy
@@ -24,7 +29,11 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .diayn import DIAYNPolicy
-from .cql import CQLPolicy
+from .dqfd import DQFDPolicy
+from .r2d3 import R2D3Policy
+
+from .d4pg import D4PGPolicy
+from .cql import CQLPolicy, CQLDiscretePolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -43,7 +52,7 @@ class EpsCommandModePolicy(CommandModePolicy):
         Overview:
             Collect mode setting information including eps
         Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step']
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
@@ -80,6 +89,11 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('dqfd_command')
+class DQFDCommandModePolicy(DQFDPolicy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('c51_command')
 class C51CommandModePolicy(C51Policy, EpsCommandModePolicy):
     pass
@@ -105,6 +119,16 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('r2d2_collect_traj_command')
+class R2D2CollectTrajCommandModePolicy(R2D2CollectTrajPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('r2d3_command')
+class R2D3CommandModePolicy(R2D3Policy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('sqn_command')
 class SQNCommandModePolicy(SQNPolicy, DummyCommandModePolicy):
     pass
@@ -125,6 +149,11 @@ class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
+class PPOOffCollectTrajCommandModePolicy(PPOOffCollectTrajPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('a2c_command')
 class A2CCommandModePolicy(A2CPolicy, DummyCommandModePolicy):
     pass
@@ -141,12 +170,51 @@ class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('ddpg_command')
-class DDPGCommandModePolicy(DDPGPolicy, DummyCommandModePolicy):
-    pass
+class DDPGCommandModePolicy(DDPGPolicy, CommandModePolicy):
+
+    def _init_command(self) -> None:
+        r"""
+        Overview:
+            Command mode init method. Called by ``self.__init__``.
+            If hybrid action space, set the eps_greedy rule according to the config for command,
+            otherwise, just a empty method
+        """
+        if self._cfg.action_space == 'hybrid':
+            eps_cfg = self._cfg.other.eps
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
+
+    def _get_setting_collect(self, command_info: dict) -> dict:
+        r"""
+        Overview:
+            Collect mode setting information including eps when hybrid action space
+        Arguments:
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
+        Returns:
+           - collect_setting (:obj:`dict`): Including eps in collect mode.
+        """
+        if self._cfg.action_space == 'hybrid':
+            # Decay according to `learner_step`
+            # step = command_info['learner_step']
+            # Decay according to `envstep`
+            step = command_info['envstep']
+            return {'eps': self.epsilon_greedy(step)}
+        else:
+            return {}
+
+    def _get_setting_learn(self, command_info: dict) -> dict:
+        return {}
+
+    def _get_setting_eval(self, command_info: dict) -> dict:
+        return {}
 
 
 @POLICY_REGISTRY.register('td3_command')
 class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_bc_command')
+class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
     pass
 
 
@@ -165,8 +233,18 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('cql_discrete_command')
+class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('qmix_command')
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('wqmix_command')
+class WQMIXCommandModePolicy(WQMIXPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -192,4 +270,14 @@ class ACERCommandModePolisy(ACERPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('qtran_command')
 class QTRANCommandModePolicy(QTRANPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ngu_command')
+class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('d4pg_command')
+class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
     pass

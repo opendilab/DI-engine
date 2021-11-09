@@ -37,6 +37,7 @@ class EvalPolicy1:
 
 
 class EvalPolicy2:
+
     def forward(self, data: dict) -> dict:
         return {
             env_id: {
@@ -120,7 +121,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     main_player = league.get_player_by_id(main_key)
     main_learner = learners[main_key]
     main_collector = collectors[main_key]
-    # collect_mode ppo use multimonial sample for selecting action
+    # collect_mode ppo use multinomial sample for selecting action
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
     evaluator1 = BattleInteractionSerialEvaluator(

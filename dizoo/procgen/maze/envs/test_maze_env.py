@@ -4,7 +4,7 @@ from easydict import EasyDict
 from dizoo.procgen.maze.envs import MazeEnv
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestMazeEnv:
 
     def test_naive(self):

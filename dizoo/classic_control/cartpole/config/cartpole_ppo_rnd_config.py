@@ -17,7 +17,6 @@ cartpole_ppo_rnd_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         model=dict(
             obs_shape=4,
             action_shape=2,

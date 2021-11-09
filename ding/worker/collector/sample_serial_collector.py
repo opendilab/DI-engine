@@ -361,7 +361,7 @@ class SampleSerialCollector(ISerialCollector):
                     )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)
+                    self._traj_buffer[env_id].append(transition)  # NOTE
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data

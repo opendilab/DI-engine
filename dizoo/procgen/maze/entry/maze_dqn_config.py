@@ -9,9 +9,8 @@ maze_dqn_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         model=dict(
-            obs_shape=[3,64,64],
+            obs_shape=[3, 64, 64],
             action_shape=15,
             encoder_hidden_size_list=[128, 128, 512],
             dueling=False,
@@ -24,9 +23,7 @@ maze_dqn_default_config = dict(
             target_update_freq=500,
             discount_factor=0.99,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             eps=dict(
@@ -37,7 +34,7 @@ maze_dqn_default_config = dict(
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),
-        cuda = True,
+        cuda=True,
     ),
 )
 maze_dqn_default_config = EasyDict(maze_dqn_default_config)
@@ -48,7 +45,7 @@ maze_dqn_create_config = dict(
         type='maze',
         import_names=['dizoo.procgen.maze.envs.maze_env'],
     ),
-    env_manager=dict(type='subprocess',),
+    env_manager=dict(type='subprocess', ),
     policy=dict(type='dqn'),
 )
 maze_dqn_create_config = EasyDict(maze_dqn_create_config)

@@ -10,7 +10,6 @@ pendulum_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=True,
         continuous=True,
         recompute_adv=False,
         model=dict(

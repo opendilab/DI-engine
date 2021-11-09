@@ -11,7 +11,6 @@ pendulum_cql_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         model=dict(
             obs_shape=3,
             action_shape=1,
@@ -21,8 +20,6 @@ pendulum_cql_default_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            data_type='naive',
-            data_path='./default_experiment/expert.pkl',
             train_epoch=30000,
             batch_size=128,
             learning_rate_q=3e-4,
@@ -39,6 +36,8 @@ pendulum_cql_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            data_type='hdf5',
+            data_path='./sac/expert_demos.hdf5',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),

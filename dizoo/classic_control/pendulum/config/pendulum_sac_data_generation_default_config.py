@@ -12,7 +12,6 @@ pendulum_sac_data_genearation_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=3,
@@ -33,11 +32,10 @@ pendulum_sac_data_genearation_default_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             auto_alpha=False,
-            save_path='./default_experiment/expert.pkl',
-            learner = dict(
-                load_path='./default_experiment/ckpt/ckpt_best.pth.tar',
+            learner=dict(
+                load_path='./sac/ckpt/ckpt_best.pth.tar',
                 hook=dict(
-                    load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='./sac/ckpt/ckpt_best.pth.tar',
                     save_ckpt_after_run=False,
                 )
             ),
@@ -45,6 +43,8 @@ pendulum_sac_data_genearation_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            save_path='./sac/expert.pkl',
+            data_type='hdf5',
         ),
         command=dict(),
         eval=dict(),

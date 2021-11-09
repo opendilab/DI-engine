@@ -33,6 +33,7 @@ src/
 *.fatbin
 
 ### Eclipse template
+*.bin
 .metadata
 bin/
 tmp/
@@ -983,7 +984,6 @@ dist
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
 

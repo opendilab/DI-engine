@@ -13,7 +13,6 @@ hopper_medium_cql_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         model=dict(
             obs_shape=11,
             action_shape=3,
@@ -23,7 +22,6 @@ hopper_medium_cql_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            data_type='d4rl',
             data_path=None,
             train_epoch=30000,
             batch_size=256,
@@ -42,6 +40,7 @@ hopper_medium_cql_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            data_type='d4rl',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=500, )),

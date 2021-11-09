@@ -10,7 +10,6 @@ coinrun_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         model=dict(
             obs_shape=[3, 64, 64],
             action_shape=15,
@@ -24,9 +23,7 @@ coinrun_ppo_default_config = dict(
             entropy_weight=0.01,
             clip_ratio=0.2,
         ),
-        collect=dict(
-            n_sample=100,
-        ),
+        collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             eps=dict(
@@ -48,7 +45,7 @@ coinrun_ppo_create_config = dict(
         type='coinrun',
         import_names=['dizoo.procgen.coinrun.envs.coinrun_env'],
     ),
-    env_manager=dict(type='subprocess',),
+    env_manager=dict(type='subprocess', ),
     policy=dict(type='ppo'),
 )
 coinrun_ppo_create_config = EasyDict(coinrun_ppo_create_config)

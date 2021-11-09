@@ -17,6 +17,9 @@ class DDPGPolicy(Policy):
     r"""
     Overview:
         Policy class of DDPG algorithm.
+
+        https://arxiv.org/pdf/1509.02971.pdf
+
     Property:
         learn_mode, collect_mode, eval_mode
 
@@ -79,10 +82,14 @@ class DDPGPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (str) Action space type
+        action_space='continuous',  # ['continuous', 'hybrid']
+        # (bool) Whether use batch normalization for reward
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
-            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper.
-            # Default False for DDPG, True for TD3.
+            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
+            # Default True for TD3, False for DDPG.
             twin_critic=False,
         ),
         learn=dict(
@@ -94,14 +101,14 @@ class DDPGPolicy(Policy):
             update_per_collect=1,
             # (int) Minibatch size for gradient descent.
             batch_size=256,
-            # Learning rates for actor network(aka. policy).
+            # (float) Learning rates for actor network(aka. policy).
             learning_rate_actor=1e-3,
-            # Learning rates for critic network(aka. Q-network).
+            # (float) Learning rates for critic network(aka. Q-network).
             learning_rate_critic=1e-3,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
             # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with done is False,
+            # However, interaction with HalfCheetah always gets done with False,
             # Since we inplace done==True with done==False to keep
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
@@ -113,12 +120,12 @@ class DDPGPolicy(Policy):
             # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
             # (int) When critic network updates once, how many times will actor network update.
-            # Delayed Policy Updates in original TD3 paper.
+            # Delayed Policy Updates in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
             # Default 1 for DDPG, 2 for TD3.
             actor_update_freq=1,
             # (bool) Whether to add noise on target network's action.
-            # Target Policy Smoothing Regularization in original TD3 paper.
-            # Default False for DDPG, True for TD3.
+            # Target Policy Smoothing Regularization in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
+            # Default True for TD3, False for DDPG.
             noise=False,
         ),
         collect=dict(
@@ -126,14 +133,19 @@ class DDPGPolicy(Policy):
             n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
+            # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
         ),
-        eval=dict(evaluator=dict(eval_freq=1000, ), ),
+        eval=dict(
+            evaluator=dict(
+                # (int) Evaluate every "eval_freq" training iterations.
+                eval_freq=5000,
+            ),
+        ),
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
-                replay_buffer_size=1000000,
+                replay_buffer_size=100000,
             ),
         ),
     )
@@ -155,7 +167,7 @@ class DDPGPolicy(Policy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
         )
-        self._use_reward_batch_norm = self._cfg.get('use_reward_batch_norm', False)
+        self._reward_batch_norm = self._cfg.reward_batch_norm
 
         self._gamma = self._cfg.learn.discount_factor
         self._actor_update_freq = self._cfg.learn.actor_update_freq
@@ -163,6 +175,8 @@ class DDPGPolicy(Policy):
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
+        if self._cfg.action_space == 'hybrid':
+            self._target_model = model_wrap(self._target_model, wrapper_name='hybrid_argmax_sample')
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
@@ -181,6 +195,8 @@ class DDPGPolicy(Policy):
                 noise_range=self._cfg.learn.noise_range
             )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
+        if self._cfg.action_space == 'hybrid':
+            self._learn_model = model_wrap(self._learn_model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
 
@@ -210,9 +226,9 @@ class DDPGPolicy(Policy):
         # ====================
         self._learn_model.train()
         self._target_model.train()
-        next_obs = data.get('next_obs')
-        reward = data.get('reward')
-        if self._use_reward_batch_norm:
+        next_obs = data['next_obs']
+        reward = data['reward']
+        if self._reward_batch_norm:
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
@@ -222,19 +238,19 @@ class DDPGPolicy(Policy):
             q_value_dict['q_value_twin'] = q_value[1].mean()
         else:
             q_value_dict['q_value'] = q_value.mean()
-        # target q value. SARSA: first predict next action, then calculate next q value
+        # target q value.
         with torch.no_grad():
-            next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
-            next_data = {'obs': next_obs, 'action': next_action}
-            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
+            next_actor_data['obs'] = next_obs
+            target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
-            # network1
+            # critic network1
             td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
             critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
             loss_dict['critic_loss'] = critic_loss
-            # network2(twin network)
+            # critic network2(twin network)
             td_data_twin = v_1step_td_data(q_value[1], target_q_value, reward, data['done'], data['weight'])
             critic_twin_loss, td_error_per_sample2 = v_1step_td_error(td_data_twin, self._gamma)
             loss_dict['critic_twin_loss'] = critic_twin_loss
@@ -275,12 +291,17 @@ class DDPGPolicy(Policy):
         loss_dict['total_loss'] = sum(loss_dict.values())
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
+        if self._cfg.action_space == 'hybrid':
+            action_log_value = -1.  # TODO(nyz) better way to viz hybrid action
+        else:
+            action_log_value = data['action'].mean()
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
             # 'q_value': np.array(q_value).mean(),
-            'action': data.get('action').mean(),
+            'action': action_log_value,
             'priority': td_error_per_sample.abs().tolist(),
+            'td_error': td_error_per_sample.abs().mean(),
             **loss_dict,
             **q_value_dict,
         }
@@ -288,12 +309,14 @@ class DDPGPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
@@ -315,16 +338,22 @@ class DDPGPolicy(Policy):
             },
             noise_range=None
         )
+        if self._cfg.action_space == 'hybrid':
+            self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -332,7 +361,7 @@ class DDPGPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor')
+            output = self._collect_model.forward(data, mode='compute_actor', **kwargs)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -357,6 +386,8 @@ class DDPGPolicy(Policy):
             'reward': timestep.reward,
             'done': timestep.done,
         }
+        if self._cfg.action_space == 'hybrid':
+            transition['logit'] = model_output['logit']
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
@@ -369,16 +400,22 @@ class DDPGPolicy(Policy):
             Init eval model. Unlike learn and collect model, eval model does not need noise.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
+        if self._cfg.action_space == 'hybrid':
+            self._eval_model = model_wrap(self._eval_model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function of collect mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -404,7 +441,7 @@ class DDPGPolicy(Policy):
         """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
-            'action'
+            'action', 'td_error'
         ]
         if self._twin_critic:
             ret += ['critic_twin_loss']

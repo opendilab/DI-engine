@@ -6,9 +6,9 @@ from operator import attrgetter
 import numpy as np
 import math
 from easydict import EasyDict
-import pysc2.env.sc2_env as sc2_env
-from pysc2.env.sc2_env import SC2Env
-from pysc2.lib import protocol
+import ctools.pysc2.env.sc2_env as sc2_env
+from ctools.pysc2.env.sc2_env import SC2Env
+from ctools.pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb

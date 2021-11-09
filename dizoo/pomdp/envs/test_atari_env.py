@@ -1,11 +1,11 @@
 import pytest
+import gym
 import numpy as np
 from easydict import EasyDict
 from dizoo.pomdp.envs import PomdpAtariEnv
-import gym
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 def test_env():
     cfg = {
         'env_id': 'Pong-ramNoFrameskip-v4',

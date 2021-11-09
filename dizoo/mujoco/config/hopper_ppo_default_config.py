@@ -13,7 +13,6 @@ hopper_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=True,
         recompute_adv=True,
         model=dict(
             obs_shape=11,
@@ -38,10 +37,6 @@ hopper_ppo_default_config = dict(
             gae_lambda=0.97,
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=10000,
-            replay_buffer_start_size=0,
-        ), ),
     ),
 )
 hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)
@@ -53,11 +48,7 @@ hopper_ppo_create_default_config = dict(
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='ppo',
-        import_names=['ding.policy.ppo'],
-    ),
-    replay_buffer=dict(type='naive', ),
+    policy=dict(type='ppo', ),
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
 create_config = hopper_ppo_create_default_config

@@ -52,7 +52,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-m',
     '--mode',
-    type=click.Choice(['serial', 'serial_onpolicy', 'serial_sqil', 'serial_diayn', 'parallel', 'dist', 'eval']),
+    type=click.Choice(['serial', 'serial_onpolicy', 'serial_sqil', 'serial_diayn', 'serial_dqfd', 'parallel', 'dist', 'eval']),
     help='serial-train or parallel-train or dist-train or eval'
 )
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')
@@ -162,6 +162,15 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline_diayn(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_dqfd':
+        from .serial_entry_dqfd import serial_pipeline_dqfd
+        if config is None:
+            config = get_predefined_config(env, policy)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
+        + "the models used in q learning now; However, one should still type the DQFD config in this "\
+        + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
+        serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)

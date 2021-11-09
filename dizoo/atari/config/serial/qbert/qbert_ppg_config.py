@@ -14,8 +14,6 @@ qbert_ppg_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -49,14 +47,14 @@ qbert_ppg_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             replay_buffer=dict(
-                buffer_name=['policy', 'value'],
+                multi_buffer=True,
                 policy=dict(
                     replay_buffer_size=100000,
                     max_use=3,
                 ),
                 value=dict(
                     replay_buffer_size=100000,
-                    max_use=3,
+                    max_use=10,
                 ),
             ),
         ),

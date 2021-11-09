@@ -100,6 +100,11 @@ class TestDefaultCollate:
         with pytest.raises(TypeError):
             default_collate([object() for _ in range(4)])
 
+        data = [{'collate_ignore_data': random.random()} for _ in range(4)]
+        data = default_collate(data)
+        assert isinstance(data, dict)
+        assert len(data['collate_ignore_data']) == 4
+
 
 @pytest.mark.unittest
 class TestDefaultDecollate:

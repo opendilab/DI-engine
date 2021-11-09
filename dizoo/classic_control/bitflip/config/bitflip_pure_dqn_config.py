@@ -14,7 +14,6 @@ bitflip_pure_dqn_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         model=dict(
             obs_shape=2 * n_bits,
             action_shape=n_bits,

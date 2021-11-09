@@ -13,7 +13,6 @@ hopper_cql_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         model=dict(
             obs_shape=11,
             action_shape=3,
@@ -23,8 +22,6 @@ hopper_cql_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            data_type='naive',
-            data_path='./default_experiment/expert_iteration_200000.pkl',
             train_epoch=30000,
             batch_size=256,
             learning_rate_q=3e-4,
@@ -35,12 +32,15 @@ hopper_cql_default_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             auto_alpha=False,
+            with_lagrange=False,
             lagrange_thresh=-1.0,
             min_q_weight=5.0,
         ),
         collect=dict(
             n_sample=1,
             unroll_len=1,
+            data_type='naive',
+            data_path='./default_experiment/expert_iteration_200000.pkl',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=500, )),

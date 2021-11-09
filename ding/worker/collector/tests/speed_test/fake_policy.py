@@ -14,9 +14,19 @@ from ding.worker.collector.tests.speed_test.utils import random_change
 
 
 class FakePolicy(Policy):
-
-    def default_config(cls: type) -> EasyDict:
-        return EasyDict({})
+    config = dict(
+        cuda=False,
+        on_policy=False,
+        forward_time=0.002,
+        learn=dict(),
+        collect=dict(
+            n_sample=80,
+            unroll_len=1,
+            collector=dict(collect_print_freq=1000000),
+        ),
+        eval=dict(),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
+    )
 
     def __init__(
             self,
@@ -25,7 +35,7 @@ class FakePolicy(Policy):
             enable_field: Optional[List[str]] = None
     ) -> None:
         self._cfg = cfg
-        self._use_cuda = cfg.use_cuda and torch.cuda.is_available()
+        self._cuda = cfg.cuda and torch.cuda.is_available()
         self._init_collect()
         self._forward_time = cfg.forward_time
         self._on_policy = cfg.on_policy

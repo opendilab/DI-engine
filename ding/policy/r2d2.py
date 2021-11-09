@@ -1,12 +1,13 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
-from collections import namedtuple
-import torch
 import copy
+from collections import namedtuple
+from typing import List, Dict, Any, Tuple, Union, Optional
 
-from ding.torch_utils import Adam, to_device
+import torch
+
+from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
-from ding.model import model_wrap
+from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
@@ -69,9 +70,9 @@ class R2D2Policy(Policy):
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=False,
+        priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
+        priority_IS_weight=True,
         # ==============================================================
         # The following configs are algorithm-specific
         # ==============================================================
@@ -95,14 +96,15 @@ class R2D2Policy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            # target_update_freq=100,
+            target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=64,
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -148,12 +150,20 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
+        # here we should not adopt the 'assign' mode of target network here because the reset bug
+        # self._target_model = model_wrap(
+        #     self._target_model,
+        #     wrapper_name='target',
+        #     update_type='assign',
+        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
+        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
+
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='hidden_state',
@@ -185,24 +195,39 @@ class R2D2Policy(Policy):
         data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
+
+        if self._priority_IS_weight:
+            assert self._priority, "Use IS Weight correction, but Priority is not used."
+        if self._priority and self._priority_IS_weight:
+            data['weight'] = data['IS']
+        else:
+            data['weight'] = data.get('weight', None)
+
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep]
+        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['done'] = data['done'][bs + self._nstep:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
+            # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step-self._nstep],
+        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs + self._nstep:]
-        data['weight'] = data.get('weight', [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)])
+            data['value_gamma'] = data['value_gamma'][bs:]
+
+        if 'weight' not in data or data['weight'] is None:
+            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+        else:
+            data['weight'] = data['weight'] * torch.ones_like(data['done'])
+            # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
         data['action'] = data['action'][bs:-self._nstep]
         data['reward'] = data['reward'][bs:-self._nstep]
@@ -237,7 +262,8 @@ class R2D2Policy(Policy):
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         self._target_model.train()
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])  # take out timestep=0
+        # use the hidden state in timestep=0
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
         if len(data['burnin_nstep_obs']) != 0:
@@ -263,12 +289,14 @@ class R2D2Policy(Policy):
             target_q_action = self._learn_model.forward(next_inputs)['action']
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
+        value_gamma = data['value_gamma']
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        value_gamma = data['value_gamma']
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+            # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
+            # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
@@ -281,17 +309,34 @@ class R2D2Policy(Policy):
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
-        td_error_per_sample = sum(td_error) / (len(td_error) + 1e-8)
+
+        # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
+        td_error_per_sample = 0.9 * torch.max(
+            torch.stack(td_error), dim=0
+        )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
+        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
+
         # update
         self._optimizer.zero_grad()
         loss.backward()
         self._optimizer.step()
         # after update
         self._target_model.update(self._learn_model.state_dict())
+
+        # the information for debug
+        batch_range = torch.arange(action[0].shape[0])
+        q_s_a_t0 = q_value[0][batch_range, action[0]]
+        target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
+
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
+            # the first timestep in the sequence, may not be the start of episode
+            'q_s_taken-a_t0': q_s_a_t0.mean().item(),
+            'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
+            'q_s_a-mean_t0': q_value[0].mean().item(),
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -329,13 +374,15 @@ class R2D2Policy(Policy):
     def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
-            Collect output according to eps_greedy plugin
-
+            Forward function for collect mode with eps_greedy
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -403,13 +450,14 @@ class R2D2Policy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function of collect mode, similar to ``self._forward_collect``.
-
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -429,3 +477,8 @@ class R2D2Policy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'drqn', ['ding.model.template.q_learning']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return super()._monitor_vars_learn() + [
+            'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
+        ]
