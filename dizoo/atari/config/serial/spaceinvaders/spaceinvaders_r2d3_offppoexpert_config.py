@@ -117,9 +117,10 @@ expert_spaceinvaders_r2d3_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[64, 64, 128],  # ppo expert policy
+            encoder_hidden_size_list=[32, 64, 64, 128],  # ppo expert policy
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
+            critic_head_layer_num=2,
         ),
         discount_factor=0.997,
         burnin_step=20,
