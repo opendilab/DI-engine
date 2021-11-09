@@ -2,6 +2,7 @@ import pytest
 import torch
 from ding.worker.buffer import DequeBuffer
 from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, priority
+from ding.worker.buffer.middleware.padding import padding
 
 
 @pytest.mark.unittest
@@ -106,3 +107,15 @@ def test_priority():
     assert buffer.count() == N + N - 1
     buffer.clear()
     assert buffer.count() == 0
+
+
+@pytest.mark.unittest
+def test_padding():
+    buffer = DequeBuffer(size=10)
+    buffer.use(padding(method="group"))
+    for i in range(10):
+        buffer.push(i, {"group": i & 5})  # [3,3,2,2]
+    sampled_data = buffer.sample(4, groupby="group")
+    assert len(sampled_data) == 4
+    for grouped_data in sampled_data:
+        assert len(grouped_data) == 3
