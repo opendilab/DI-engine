@@ -4,11 +4,12 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 8
+collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 montezuma_ppo_rnd_config = dict(
-    exp_name='debug_montezuma_ngu_n5_bs2_ul298',
+    # exp_name='debug_montezuma_ngu_ul298_er01_n32_rlbs1e4_fixepseval',
+    exp_name='debug_montezuma_ngu_ul40_er01_n32_rlbs1e4_fixepseval',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -22,30 +23,23 @@ montezuma_ppo_rnd_config = dict(
         learning_rate=0.001,
         obs_shape=[4, 84, 84],
         action_shape=18,
-        batch_size=128,
-        update_per_collect=int(75),  # 32*300/128=75
-        only_use_last_five_frames_for_icm_rnd=False,
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
-
+        batch_size=320,
+        update_per_collect=int(10),  # 32*100/64=50
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
-        type='rnd',
+        type='rnd-ngu',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=[4, 84, 84],
         action_shape=18,
-        batch_size=128,
-        update_per_collect=int(75),  # 32*300/128=75
-        only_use_last_five_frames_for_icm_rnd=False,
+        batch_size=320,
+        update_per_collect=int(10),  # 32*100/64=50
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
-
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
-
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
@@ -58,7 +52,7 @@ montezuma_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=298,
+        unroll_len=40,#298,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=18,
@@ -85,7 +79,7 @@ montezuma_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000,
+                replay_buffer_size=int(1e4),
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -105,7 +99,7 @@ montezuma_ppo_rnd_create_config = dict(
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     # reward_model=dict(type='rnd'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(
         type='sample_ngu',
