@@ -8,7 +8,7 @@ montezuma_r2d2_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=10000,
+        stop_value=int(1e5),
         env_id='MontezumaRevengeNoFrameskip-v4',
         frame_stack=4,
     ),
@@ -19,7 +19,7 @@ montezuma_r2d2_config = dict(
         priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=6,
+            action_shape=18,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,

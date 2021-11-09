@@ -6,9 +6,13 @@ from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+from collections import namedtuple
 
+AtariEnvInfo = namedtuple(
+    'AtariEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'max_step', 'use_wrappers']
+)
 ATARIENV_INFO_DICT = {
-    'PongNoFrameskip-v4': BaseEnvInfo(
+    'PongNoFrameskip-v4': AtariEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
@@ -34,9 +38,10 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
-    'QbertNoFrameskip-v4': BaseEnvInfo(
+    'QbertNoFrameskip-v4': AtariEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
@@ -62,9 +67,10 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
-    'SpaceInvadersNoFrameskip-v4': BaseEnvInfo(
+    'SpaceInvadersNoFrameskip-v4': AtariEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
@@ -90,9 +96,10 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
-    'EnduroNoFrameskip-v4': BaseEnvInfo(
+    'EnduroNoFrameskip-v4': AtariEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
@@ -118,9 +125,10 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
-    'MontezumaRevengeDeterministic-v4': BaseEnvInfo(
+    'MontezumaRevengeDeterministic-v4': AtariEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(210, 160, 3),
@@ -146,6 +154,65 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
+        max_step=int(1e6),
+        use_wrappers=None,
+    ),
+    'MontezumaRevengeNoFrameskip-v4': AtariEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(210, 160, 3),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1,),
+            value={
+                'min': 0,
+                'max': 18,
+                'dtype': np.int64,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
+        ),
+        max_step=int(1e6),
+        use_wrappers=None,
+    ),
+    'PitfallNoFrameskip-v4': AtariEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(210, 160, 3),
+            value={
+                'min': 0,
+                'max': 255,
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(1,),
+            value={
+                'min': 0,
+                'max': 18,
+                'dtype': np.int64,
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': -1,
+                'max': 1,
+                'dtype': np.float32
+            },
+        ),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
 }
@@ -157,6 +224,7 @@ class AtariEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
+        self._max_step = ATARIENV_INFO_DICT[self._cfg.env_id].max_step
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -170,6 +238,9 @@ class AtariEnv(BaseEnv):
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
+
+        # TODO(pu)
+        self._current_step = 0
         return obs
 
     def close(self) -> None:
@@ -186,10 +257,15 @@ class AtariEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         action = action.item()
         obs, rew, done, info = self._env.step(action)
-        # self._env.render()
+        self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+
+        # TODO(pu)
+        self._current_step += 1
+        if self._current_step >= self._max_step:
+            done = True
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
