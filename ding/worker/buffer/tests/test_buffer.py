@@ -255,6 +255,6 @@ def test_dataset():
     buffer = DequeBuffer(size=10)
     for i in range(10):
         buffer.push(i)
-    dataloader = DataLoader(buffer, batch_size=6, shuffle=True)
+    dataloader = DataLoader(buffer, batch_size=6, shuffle=True, collate_fn=lambda batch: batch)
     for batch in dataloader:
-        assert len(batch["index"]) in [4, 6]
+        assert len(batch) in [4, 6]
