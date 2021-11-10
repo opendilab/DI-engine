@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List, Optional, Tuple, Union, Callable
+from typing import Any, List, Optional, Union, Callable
 import copy
 from dataclasses import dataclass
 
@@ -125,6 +125,18 @@ class Buffer:
     def clear(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def get(self, idx: int) -> BufferedData:
+        """
+        Overview:
+            Get item by subscript index
+        Arguments:
+            - idx (:obj:`int`): Subscript index
+        Returns:
+            - buffered_data (:obj:`BufferedData`): Item from buffer
+        """
+        raise NotImplementedError
+
     def use(self, func: Callable) -> "Buffer":
         r"""
         Overview:
@@ -160,3 +172,9 @@ class Buffer:
 
     def __copy__(self) -> "Buffer":
         raise NotImplementedError
+
+    def __len__(self) -> int:
+        return self.count()
+
+    def __getitem__(self, idx: int) -> dict:
+        return self.get(idx).__dict__
