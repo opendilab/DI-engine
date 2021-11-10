@@ -121,25 +121,26 @@ class RndRewardModel(BaseRewardModel):
             # reward = (reward - self._running_mean_std_rnd.mean) / (self._running_mean_std_rnd.std + 1e-11)
 
             # TODO(pu): transform to [0,1]: b01
-            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
+            rnd_reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
 
             self.estimate_cnt_rnd += 1
-            self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', reward.max(), self.estimate_cnt_rnd)
-            self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', reward.mean(), self.estimate_cnt_rnd)
-            self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', reward.min(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', rnd_reward.mean(), self.estimate_cnt_rnd)
+            self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', rnd_reward.min(), self.estimate_cnt_rnd)
 
-            reward = reward.to(data[0]['reward'].device)
-            reward = torch.chunk(reward, reward.shape[0], dim=0)
-        for item, rew in zip(data, reward):
+            rnd_reward = rnd_reward.to(data[0]['reward'].device)
+            rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
+        for item, rnd_rew in zip(data, rnd_reward):
             if self.intrinsic_reward_type == 'add':
-                if item['reward'] >= 0 and item['reward'] <= 1:
-                    item['reward'] = 100 * item['reward']  # TODO(pu) avarage episode length
+                if item['reward'] > 0 and item['reward'] <= 1:
+                    item['reward'] = 1000 * item['reward'] + rnd_rew # TODO(pu) avarage episode length
+                    # item['reward'] = item['reward'] + rnd_rew # TODO(pu) avarage episode length
                 else:
-                    item['reward'] += rew
+                    item['reward'] += rnd_rew
             elif self.intrinsic_reward_type == 'new':
-                item['intrinsic_reward'] = rew
+                item['intrinsic_reward'] = rnd_rew
             elif self.intrinsic_reward_type == 'assign':
-                item['reward'] = rew
+                item['reward'] = rnd_rew
 
     def collect_data(self, data: list) -> None:
         self.train_data.extend(collect_states(data))
