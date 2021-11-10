@@ -5,22 +5,15 @@ import pydash
 class Context(dict):
     """
     Overview:
-        Context is an object that pass contextual data between middlewares, whose life cycle is only one step.
-        It is a dict that reflect itself, so you can set any properties as you wish.
+        Context is an object that pass contextual data between middlewares, whose life cycle
+        is only one training iteration. It is a dict that reflect itself, so you can set
+        any properties as you wish.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, total_step: int = 0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
-        self.total_step = 0  # Total steps
-        self.step = 0  # Step in current episode
-        self.episode = 0  # Total episodes
-        self.state = None  # State received from env
-        self.next_state = None  # Next state from env
-        self.action = None  # Action
-        self.reward = None  # Reward
-        self.done = False  # Whether current step is the last step of current episode
-        self.policy_output = None  # Policy output
+        self.total_step = total_step  # Total steps
 
         # Reserved properties
         self._finish = False
