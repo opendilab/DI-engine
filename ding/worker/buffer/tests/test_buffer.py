@@ -4,6 +4,7 @@ import random
 from typing import Callable
 from ding.worker.buffer import DequeBuffer
 from ding.worker.buffer.buffer import BufferedData
+from torch.utils.data import DataLoader, Dataset
 
 
 class RateLimit:
@@ -247,3 +248,13 @@ def test_import_export():
 
     sampled_data = buffer.export_data()
     assert len(sampled_data) == 10
+
+
+@pytest.mark.unittest
+def test_dataset():
+    buffer = DequeBuffer(size=10)
+    for i in range(10):
+        buffer.push(i)
+    dataloader = DataLoader(buffer, batch_size=6, shuffle=True)
+    for batch in dataloader:
+        assert len(batch["index"]) in [4, 6]
