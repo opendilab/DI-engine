@@ -5,6 +5,7 @@ from collections import deque
 import gym
 import torch
 import numpy as np
+import time
 from rich import print
 from ding.model import DQN
 from ding.utils import set_pkg_seed
@@ -25,9 +26,11 @@ class DequeBuffer:
 
     def __init__(self, maxlen=20000) -> None:
         self.memory = deque(maxlen=maxlen)
+        self.n_counter = 0
 
     def push(self, data):
         self.memory.append(data)
+        self.n_counter += 1
 
     def sample(self, size):
         if size > len(self.memory):
@@ -136,6 +139,31 @@ class DQNPipeline:
         return _eval
 
 
+def sample_profile(buffer):
+    start_time = None
+    start_counter = 0
+    records = deque(maxlen=10)
+
+    def _sample_profile(ctx):
+        nonlocal start_time, start_counter
+        if not start_time:
+            start_time = time.time()
+            start_counter = buffer.n_counter
+        elif ctx.total_step % 99 == 0:
+            end_time = time.time()
+            end_counter = buffer.n_counter
+            record = (end_counter - start_counter) / (end_time - start_time)
+            records.append(record)
+            print(
+                ">>>>>>>>> Samples/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}".format(
+                    record, np.mean(records), end_counter
+                )
+            )
+            start_time, start_counter = end_time, end_counter
+
+    return _sample_profile
+
+
 def main(cfg, create_cfg, seed=0):
 
     def wrapped_cartpole_env():
@@ -158,12 +186,13 @@ def main(cfg, create_cfg, seed=0):
     task = Task()
     dqn = DQNPipeline(cfg, model)
 
+    task.use(sample_profile(replay_buffer))
     task.use(dqn.evaluate(evaluator_env))
     task.use(dqn.act(collector_env))
     task.use(dqn.collect(collector_env, replay_buffer))
     task.use(dqn.learn(replay_buffer))
 
-    task.run(max_step=1000)
+    task.run(max_step=10000)
 
 
 def main_eager(cfg, create_cfg, seed=0):
