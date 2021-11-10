@@ -12,6 +12,7 @@ class Task:
     def __init__(self) -> None:
         self.middleware = []
         self.ctx = Context()
+        self._backward_stack = []
 
     def use(self, fn: Callable) -> None:
         """
@@ -53,14 +54,16 @@ class Task:
         g = fn(self.ctx)
         if isinstance(g, GeneratorType):
             next(g)
-            self.ctx._backward_stack.append(g)
+            self._backward_stack.append(g)
 
     def backward(self) -> None:
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         """
-        for g in reversed(self.ctx._backward_stack):
+        stack = self._backward_stack
+        while stack:
+            g = stack.pop()
             for _ in g:
                 pass
 
@@ -70,6 +73,7 @@ class Task:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
         self.ctx = self.ctx.renew()
+        self._backward_stack = []
 
     @property
     def finish(self) -> bool:

@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Callable
 import pydash
 
 
@@ -23,9 +23,9 @@ class Context(dict):
         self.policy_output = None  # Policy output
 
         # Reserved properties
-        self._backward_stack = []
         self._finish = False
-        self._hooks_after_renew = [lambda new_, old: new_.update({"_finish": old._finish})]
+        self._hooks_after_renew = []
+        self.keep("_finish")
 
     def renew(self) -> 'Context':  # noqa
         """
