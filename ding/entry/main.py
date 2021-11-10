@@ -142,22 +142,25 @@ class DQNPipeline:
 def sample_profile(buffer):
     start_time = None
     start_counter = 0
+    start_step = 0
     records = deque(maxlen=10)
+    step_records = deque(maxlen=10)
 
     def _sample_profile(ctx):
-        nonlocal start_time, start_counter
+        nonlocal start_time, start_counter, start_step
         if not start_time:
             start_time = time.time()
-            start_counter = buffer.n_counter
-        elif ctx.total_step % 99 == 0:
+        elif ctx.total_step % 30 == 0:
             end_time = time.time()
             end_counter = buffer.n_counter
+            end_step = ctx.total_step
             record = (end_counter - start_counter) / (end_time - start_time)
+            step_record = (end_step - start_step) / (end_time - start_time)
             records.append(record)
+            step_records.append(step_record)
             print(
-                ">>>>>>>>> Samples/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}".format(
-                    record, np.mean(records), end_counter
-                )
+                ">>>>>>>>> Samples/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}; Steps/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}"
+                .format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
             )
             start_time, start_counter = end_time, end_counter
 
@@ -230,19 +233,20 @@ def main_eager(cfg, create_cfg, seed=0):
     act = dqn.act(collector_env)
     collect = dqn.collect(collector_env, replay_buffer)
     learn = dqn.learn(replay_buffer)
+    profile = sample_profile(replay_buffer)
 
-    for _ in range(1000):
+    for i in range(1000):
+        task.forward(profile)
         task.forward(evaluate)
         if task.finish:
             break
         task.forward(act)
         task.forward(collect)
         task.forward(learn)
-        # Run rest logic and re init context
         task.backward()
         task.renew()
 
 
 if __name__ == "__main__":
-    main(main_config, create_config)
-    # main_eager(main_config, create_config)
+    # main(main_config, create_config)
+    main_eager(main_config, create_config)
