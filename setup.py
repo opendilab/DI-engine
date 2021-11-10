@@ -73,8 +73,7 @@ setup(
         'scipy',
         'trueskill',
         'h5py',
-        'rich',
-        'pydash'
+        'rich'
     ],
     extras_require={
         'test': [
@@ -137,7 +136,6 @@ setup(
         # 'gym_soccer_env': [
         #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
         # ],
-
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',

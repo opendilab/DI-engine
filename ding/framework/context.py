@@ -1,5 +1,4 @@
 from typing import Callable
-import pydash
 
 
 class Context(dict):
@@ -35,7 +34,12 @@ class Context(dict):
         Overview:
             Keep this key/keys until next iteration.
         """
-        self.after_renew(lambda new_, old: new_.update(pydash.pick(old, keys)))
+
+        def _keep(new_, old):
+            for key in keys:
+                new_[key] = old[key]
+
+        self.after_renew(_keep)
 
     def after_renew(self, fn: Callable) -> None:
         """
