@@ -4,8 +4,8 @@ import torch
 print(torch.__version__,torch.cuda.is_available())
 collector_env_num=8
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_rnd_onppo_b01',
-    exp_name='minigrid_fourrooms_rnd_onppo_b01',
+    exp_name='minigrid_empty8_rnd_onppo_b01',
+    # exp_name='minigrid_fourrooms_rnd_onppo_b01',
     # exp_name='minigrid_doorkey_rnd_onppo_b01',
     # exp_name='minigrid_kcs3r3_rnd_onppo_b01',
     # exp_name='minigrid_om2dlh_rnd_onppo_b01',
@@ -14,12 +14,11 @@ minigrid_ppo_rnd_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-FourRooms-v0',
         # env_id='MiniGrid-DoorKey-16x16-v0',
         # env_id='MiniGrid-KeyCorridorS3R3-v0',
         # env_id='MiniGrid-ObstructedMaze-2Dlh-v0',
-
         stop_value=0.96,
     ),
     reward_model=dict(
@@ -29,7 +28,7 @@ minigrid_ppo_rnd_config = dict(
         # batch_size=64,
         # update_per_collect=10,
         batch_size=320,
-        update_per_collect=4,   # TODO(pu):2
+        update_per_collect=10,   # TODO(pu):2
         clear_buffer_per_iters=10,
     ),
     policy=dict(
@@ -47,7 +46,7 @@ minigrid_ppo_rnd_config = dict(
         learn=dict(
             epoch_per_collect=10,  # TODO(pu)
             update_per_collect=1,  # 4
-            batch_size=64,
+            batch_size=320,  # 64,
             learning_rate=3e-4,
             value_weight=0.5,
             entropy_weight=0.001, 
@@ -57,14 +56,16 @@ minigrid_ppo_rnd_config = dict(
         ),
         collect=dict(
             collector_env_num=collector_env_num,
-            n_sample=int(64*collector_env_num), 
+            # n_sample=int(64*collector_env_num), 
+            n_sample=int(3200), 
+
             #  self._traj_len  = max(1,64*8//8)=64 
             #    self._traj_len = max(
             #      self._unroll_len,
             #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
             #  )
             unroll_len=1,
-            discount_factor=0.999,
+            discount_factor=0.99,
             gae_lambda=0.95,
         ),
     ),
