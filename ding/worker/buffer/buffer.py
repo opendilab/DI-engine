@@ -176,5 +176,5 @@ class Buffer:
     def __len__(self) -> int:
         return self.count()
 
-    def __getitem__(self, idx: int) -> dict:
-        return self.get(idx).__dict__
+    def __getitem__(self, idx: int) -> BufferedData:
+        return self.get(idx)
