@@ -164,6 +164,14 @@ def sample_profile(buffer):
     return _sample_profile
 
 
+def mock_pipeline(buffer):
+
+    def _mock_pipeline(ctx):
+        buffer.push(0)
+
+    return _mock_pipeline
+
+
 def main(cfg, create_cfg, seed=0):
 
     def wrapped_cartpole_env():
@@ -187,6 +195,7 @@ def main(cfg, create_cfg, seed=0):
     dqn = DQNPipeline(cfg, model)
 
     task.use(sample_profile(replay_buffer))
+    # task.use(mock_pipeline(replay_buffer))
     task.use(dqn.evaluate(evaluator_env))
     task.use(dqn.act(collector_env))
     task.use(dqn.collect(collector_env, replay_buffer))
