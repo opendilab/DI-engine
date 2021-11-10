@@ -107,6 +107,9 @@ class DequeBuffer(Buffer):
     def count(self) -> int:
         return len(self.storage)
 
+    def get(self, idx: int) -> BufferedData:
+        return self.storage[idx]
+
     @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
