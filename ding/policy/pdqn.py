@@ -50,6 +50,8 @@ class PDQNPolicy(Policy):
             # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
+            noise_sigma=0.1,
         ),
         eval=dict(),
         # other config
@@ -130,6 +132,7 @@ class PDQNPolicy(Policy):
         self._target_model.train()
         # Current q value (main model)
         q_value = self._learn_model.forward(data['obs'])['logit']
+        
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
@@ -148,7 +151,7 @@ class PDQNPolicy(Policy):
         self._dis_optimizer.zero_grad()
         dis_loss.backward()
         self._dis_optimizer.step()
-
+    
         q_value_ = self._learn_model.forward(data['obs'])['logit']
         cont_loss = -q_value_.sum(dim=-1).mean(dim=0)
 
@@ -214,7 +217,18 @@ class PDQNPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
         self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
+        self._collect_model = model_wrap(
+            self._model,
+            wrapper_name='action_noise',
+            noise_type='gauss',
+            noise_kwargs={
+                'mu': 0.0,
+                'sigma': self._cfg.collect.noise_sigma
+            },
+            noise_range=None
+        )
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
+        
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
