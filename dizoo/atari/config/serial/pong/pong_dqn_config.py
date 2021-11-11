@@ -21,7 +21,7 @@ pong_dqn_config = dict(
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
-        nstep=3,
+        nstep=1,
         discount_factor=0.99,
         learn=dict(
             update_per_collect=10,
