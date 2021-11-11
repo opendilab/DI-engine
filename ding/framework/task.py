@@ -1,6 +1,37 @@
 from types import GeneratorType
-from typing import Callable
+from typing import Any, Awaitable, Callable, List, Union
 from ding.framework import Context
+import asyncio
+
+
+def enable_async(func: Callable) -> Callable:
+    """
+    Overview:
+        Empower the function with async ability.
+    Arguments:
+        - func (:obj:`Callable`): The original function.
+    Returns:
+        - runtime_handler (:obj:`Callable`): The wrap function.
+    """
+
+    def runtime_handler(task, *args, **kwargs) -> Union[Any, Awaitable]:
+        """
+        Overview:
+            If task's async mode is enabled, execute the step in current loop executor asyncly,
+            or execute the task sync.
+        Arguments:
+            - task (:obj:`Task`): The task instance.
+        Returns:
+            - result (:obj:`Union[Any, Awaitable]`): The result or future object of middleware.
+        """
+        if task._loop:
+            t = task._loop.run_in_executor(None, func, task, *args, **kwargs)
+            task._async_stack.append(t)
+            return t
+        else:
+            return func(task, *args, **kwargs)
+
+    return runtime_handler
 
 
 class Task:
@@ -9,10 +40,20 @@ class Task:
     and generate new context objects.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, async_mode: bool = False) -> None:
         self.middleware = []
         self.ctx = Context()
         self._backward_stack = []
+
+        # Async workarounds
+        self.async_mode = async_mode
+        self._async_stack = []
+        self._loop = None
+        if async_mode:
+            try:
+                self._loop = asyncio.get_running_loop()
+            except RuntimeError:
+                self._loop = asyncio.new_event_loop()
 
     def use(self, fn: Callable) -> None:
         """
@@ -41,6 +82,7 @@ class Task:
                 break
             self.renew()
 
+    @enable_async
     def forward(self, fn: Callable) -> None:
         """
         Overview:
@@ -56,6 +98,7 @@ class Task:
             next(g)
             self._backward_stack.append(g)
 
+    @enable_async
     def backward(self) -> None:
         """
         Overview:
@@ -63,9 +106,39 @@ class Task:
         """
         stack = self._backward_stack
         while stack:
+            # FILO
             g = stack.pop()
-            for _ in g:
-                pass
+            try:
+                next(g)
+            except StopIteration:
+                continue
+
+    def sequence(self, *fns: List[Callable]) -> Callable:
+        """
+        Overview:
+            Wrap functions and keep them run in sequence, Usually in order to avoid the confusion
+            of dependencies in async mode.
+        Arguments:
+            - fn (:obj:`Callable`): Chain a sequence of middleware, wrap them into one middleware function.
+        """
+
+        def _sequence(ctx):
+            backward_stack = []
+            for fn in fns:
+                g = fn(ctx)
+                if isinstance(g, GeneratorType):
+                    next(g)
+                    backward_stack.append(g)
+            yield
+            while backward_stack:
+                # FILO
+                g = backward_stack.pop()
+                try:
+                    next(g)
+                except StopIteration:
+                    continue
+
+        return _sequence
 
     def renew(self) -> None:
         """
@@ -74,6 +147,15 @@ class Task:
         """
         self.ctx = self.ctx.renew()
         self._backward_stack = []
+        if self._loop:
+            # Blocking
+            self._loop.run_until_complete(self.async_renew())
+
+    async def async_renew(self) -> Awaitable[None]:
+        while self._async_stack:
+            # FIFO
+            t = self._async_stack.pop(0)
+            await t
 
     @property
     def finish(self) -> bool:

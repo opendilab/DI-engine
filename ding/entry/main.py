@@ -77,6 +77,7 @@ class DQNPipeline:
                     ctx.obs[env_id], ctx.policy_output[env_id], timestep
                 )
                 buffer_.push(transition)
+            time.sleep(0.1)
             yield
 
         return _collect
@@ -98,6 +99,7 @@ class DQNPipeline:
                         )
                     )
                 ctx.train_iter += 1
+            time.sleep(0.1)
             yield
 
         return _learn
@@ -198,13 +200,11 @@ def main(cfg, create_cfg, seed=0):
     dqn = DQNPipeline(cfg, model)
 
     task.use(sample_profile(replay_buffer))
-    # task.use(mock_pipeline(replay_buffer))
     task.use(dqn.evaluate(evaluator_env))
-    task.use(dqn.act(collector_env))
-    task.use(dqn.collect(collector_env, replay_buffer))
+    task.use(task.sequence(dqn.act(collector_env), dqn.collect(collector_env, replay_buffer)))
     task.use(dqn.learn(replay_buffer))
 
-    task.run(max_step=10000)
+    task.run(max_step=1000)
 
 
 def main_eager(cfg, create_cfg, seed=0):
@@ -226,7 +226,7 @@ def main_eager(cfg, create_cfg, seed=0):
     model = DQN(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task()
+    task = Task(async_mode=True)
     dqn = DQNPipeline(cfg, model)
 
     evaluate = dqn.evaluate(evaluator_env)
@@ -240,8 +240,7 @@ def main_eager(cfg, create_cfg, seed=0):
         task.forward(evaluate)
         if task.finish:
             break
-        task.forward(act)
-        task.forward(collect)
+        task.forward(task.sequence(act, collect))
         task.forward(learn)
         task.backward()
         task.renew()
