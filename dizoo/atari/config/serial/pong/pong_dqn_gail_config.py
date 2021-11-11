@@ -1,9 +1,7 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-pong_dqn_config = dict(
-    exp_name='pong_dqn',
+pong_dqn_gail_config = dict(
+    exp_name='pong_dqn_gail',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -13,7 +11,19 @@ pong_dqn_config = dict(
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
+    reward_model=dict(
+        type='gail',
+        input_size=[4, 84, 84],
+        hidden_size=128,
+        batch_size=64,
+        learning_rate=1e-3,
+        update_per_collect=100,
+        expert_data_path='pong_dqn/expert_data_train.pkl',
+        load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
+        collect_count=1000,
+    ),
     policy=dict(
+        load_path='pong_dqn_gail/ckpt/ckpt_best.pth.tar',
         cuda=True,
         priority=False,
         model=dict(
@@ -21,7 +31,7 @@ pong_dqn_config = dict(
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
-        nstep=3,
+        nstep=1,
         discount_factor=0.99,
         learn=dict(
             update_per_collect=10,
@@ -42,9 +52,9 @@ pong_dqn_config = dict(
         ),
     ),
 )
-pong_dqn_config = EasyDict(pong_dqn_config)
-main_config = pong_dqn_config
-pong_dqn_create_config = dict(
+pong_dqn_gail_config = EasyDict(pong_dqn_gail_config)
+main_config = pong_dqn_gail_config
+pong_dqn_gail_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -52,8 +62,5 @@ pong_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-pong_dqn_create_config = EasyDict(pong_dqn_create_config)
-create_config = pong_dqn_create_config
-
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+pong_dqn_gail_create_config = EasyDict(pong_dqn_gail_create_config)
+create_config = pong_dqn_gail_create_config
