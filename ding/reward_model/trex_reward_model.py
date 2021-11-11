@@ -62,11 +62,9 @@ class TREX_Model(nn.Module):
 
     def cum_return(self, traj):
         '''calculate cumulative return of trajectory'''
-        sum_rewards = 0
-        sum_abs_rewards = 0
         r = self.encoder(traj)
-        sum_rewards += torch.sum(r)
-        sum_abs_rewards += torch.sum(torch.abs(r))
+        sum_rewards = torch.sum(r)
+        sum_abs_rewards = torch.sum(torch.abs(r))
         return sum_rewards, sum_abs_rewards
 
     def forward(self, traj_i, traj_j):
