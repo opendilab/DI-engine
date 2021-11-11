@@ -53,7 +53,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '-m',
     '--mode',
     type=click.Choice(
-        ['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'serial_trex_onpolicy', 'parallel', 'dist', 'eval']
+        [
+            'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'serial_trex_onpolicy',
+            'parallel', 'dist', 'eval'
+        ]
     ),
     help='serial-train or parallel-train or dist-train or eval'
 )

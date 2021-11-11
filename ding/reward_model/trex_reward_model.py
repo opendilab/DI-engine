@@ -20,6 +20,7 @@ from ding.utils import SequenceType
 from ding.model.common import FCEncoder
 from torch.distributions import Normal, Independent
 
+
 class ConvEncoder(nn.Module):
     r"""
     Overview:
@@ -156,7 +157,9 @@ class TrexRewardModel(BaseRewardModel):
                     traj = []
                     gt_rewards = []
                     r = 0
-                    env.seed(self.cfg.seed + (int(checkpoint)-int(checkpoint_min))//int(checkpoint_step)) # in trex official implementation, they use the same initialisation.
+                    env.seed(
+                        self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
+                    )  # in trex official implementation, they use the same initialisation.
                     ob = env.reset()
                     steps = 0
                     acc_reward = 0
@@ -218,7 +221,7 @@ class TrexRewardModel(BaseRewardModel):
                     traj = []
                     gt_rewards = []
                     r = 0
-                    env.seed(self.cfg.seed + (int(checkpoint)-int(checkpoint_min))//int(checkpoint_step))
+                    env.seed(self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step))
                     ob = env.reset()
                     steps = 0
                     acc_reward = 0
@@ -252,7 +255,6 @@ class TrexRewardModel(BaseRewardModel):
 
         return self.pre_expert_data, self.learning_returns, self.learning_rewards
 
-
     def generate_novice_demos_continuous_action_space(self):
         env = wrap_mujoco(
             self.cfg.env.env_id,
@@ -275,7 +277,7 @@ class TrexRewardModel(BaseRewardModel):
                 model = VAC(
                     obs_shape=self.cfg.policy.model.obs_shape,
                     action_shape=self.cfg.policy.model.action_shape,
-                    continuous = True,
+                    continuous=True,
                 )
                 model.load_state_dict(torch.load(model_path)['model'])
                 episode_count = 1
@@ -284,7 +286,9 @@ class TrexRewardModel(BaseRewardModel):
                     traj = []
                     gt_rewards = []
                     r = 0
-                    env.seed(self.cfg.seed + (int(checkpoint)-int(checkpoint_min))//int(checkpoint_step)) # in trex official implementation, they use the same initialisation.
+                    env.seed(
+                        self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
+                    )  # in trex official implementation, they use the same initialisation.
                     ob = env.reset()
                     steps = 0
                     acc_reward = 0
@@ -293,7 +297,7 @@ class TrexRewardModel(BaseRewardModel):
                         (mu, sigma) = model.compute_actor(obs_tensor.float())['logit']
                         dist = Independent(Normal(mu, sigma), 1)
                         action = torch.tanh(dist.rsample())
-                        action = action.detach().numpy()             # Why does mujoco need to be detached ?
+                        action = action.detach().numpy()  # Why does mujoco need to be detached ?
                         ob, r, done, _ = env.step(action)
                         ob_processed = ob
                         traj.append(ob_processed)
@@ -319,8 +323,10 @@ class TrexRewardModel(BaseRewardModel):
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
         if hasattr(self.cfg.reward_model, 'continuous'):
-            if self.cfg.reward_model.continuous == True:
-                self.pre_expert_data, self.learning_returns, self.learning_rewards = self.generate_novice_demos_continuous_action_space()
+            if self.cfg.reward_model.continuous is True:
+                self.pre_expert_data, self.learning_returns, self.learning_rewards \
+                = self.generate_novice_demos_continuous_action_space(
+                )
         else:
             self.pre_expert_data, self.learning_returns, self.learning_rewards = self.generate_novice_demos()
         self.training_obs, self.training_labels = self.create_training_data()

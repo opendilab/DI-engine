@@ -14,6 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from dizoo.mujoco.config.hopper_trex_onppo_default_config import main_config, create_config
 
+
 def serial_pipeline_reward_model_trex_onpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -93,6 +94,7 @@ def serial_pipeline_reward_model_trex_onpolicy(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
+
 
 if __name__ == '__main__':
     serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])
