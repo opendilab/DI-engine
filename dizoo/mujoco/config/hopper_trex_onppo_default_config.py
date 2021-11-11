@@ -1,8 +1,9 @@
 from easydict import EasyDict
 
 hopper_ppo_default_config = dict(
-    exp_name = 'hopper_onppo',
+    exp_name = 'hopper_trex_onppo',
     env=dict(
+        manager=dict(shared_memory=True, force_reproducibility=True),
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
@@ -11,6 +12,17 @@ hopper_ppo_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=3000,
+    ),
+    reward_model=dict(
+    type='trex',
+    algo_for_model = 'ppo',
+    env_id='Hopper-v3',
+    learning_rate=1e-5,
+    update_per_collect=1,
+    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/hopper_onppo',
+    reward_model_path='./hopper.params',
+    continuous = True,
+    load_path='',
     ),
     policy=dict(
         cuda=True,

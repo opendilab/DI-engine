@@ -1,9 +1,10 @@
 from easydict import EasyDict
 
-hopper_ppo_default_config = dict(
-    exp_name = 'hopper_onppo',
+HalfCheetah_ppo_default_config = dict(
+    exp_name='HalfCheetah_onppo',
     env=dict(
-        env_id='Hopper-v3',
+        manager=dict(shared_memory=True, force_reproducibility=True),
+        env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
@@ -16,8 +17,8 @@ hopper_ppo_default_config = dict(
         cuda=True,
         recompute_adv=True,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=17,
+            action_shape=6,
             continuous=True,
         ),
         continuous=True,
@@ -40,18 +41,16 @@ hopper_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)
-main_config = hopper_ppo_default_config
+HalfCheetah_ppo_default_config = EasyDict(HalfCheetah_ppo_default_config)
+main_config = HalfCheetah_ppo_default_config
 
-hopper_ppo_create_default_config = dict(
+HalfCheetah_ppo_create_default_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='ppo',
-    ),
+    policy=dict(type='ppo', ),
 )
-hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
-create_config = hopper_ppo_create_default_config
+HalfCheetah_ppo_create_default_config = EasyDict(HalfCheetah_ppo_create_default_config)
+create_config = HalfCheetah_ppo_create_default_config

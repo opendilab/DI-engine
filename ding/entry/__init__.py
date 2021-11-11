@@ -10,5 +10,6 @@ from .serial_entry_dqfd import serial_pipeline_dqfd
 from .serial_entry_r2d3 import serial_pipeline_r2d3
 from .serial_entry_sqil import serial_pipeline_sqil
 from .serial_entry_trex import serial_pipeline_reward_model_trex
+from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
 from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data
