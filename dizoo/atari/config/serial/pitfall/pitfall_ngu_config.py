@@ -4,8 +4,8 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32
-# collector_env_num = 2
+# collector_env_num = 32
+collector_env_num = 3
 evaluator_env_num = 5
 nstep = 5
 pitfall_ppo_rnd_config = dict(
