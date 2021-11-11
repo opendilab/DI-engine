@@ -127,22 +127,44 @@ class PDQNPolicy(Policy):
         )
         if self._cuda:
             data = to_device(data, self._device)
+
+        # ================================
+        # Continuous args network forward
+        # ================================
+        action_args = self._learn_model.forward(data['obs'], mode='compute_continuous')['action_args']
+        action_args_cp = action_args.clone().detach()
+        # Current q value (main model) for cont loss
+        discrete_inputs = {'state':data['obs'], 'action_args':action_args_cp}
+        q_value1 = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
+        cont_loss = -q_value1.sum(dim=-1).mean()
+
+        # ================================
+        # Continuous args network update
+        # ================================
+        self._cont_optimizer.zero_grad()
+        cont_loss.backward()
+        self._cont_optimizer.step()
+
         # ====================
         # Q-learning forward
         # ====================
         self._learn_model.train()
         self._target_model.train()
         # Current q value (main model)
-        q_value = self._learn_model.forward(data['obs'])['logit']
+        q_value2 = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
+        
 
         # Target q value
         with torch.no_grad():
-            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            next_action_args = self._learn_model.forward(data['next_obs'], mode='compute_continuous')['action_args']
+            next_action_args_cp = next_action_args.clone().detach()
+            next_discrete_inputs = {'state':data['next_obs'], 'action_args':next_action_args_cp}
+            target_q_value = self._target_model.forward(next_discrete_inputs, mode='compute_discrete')['logit']
             # Max q value action (main model)
-            target_q_discrete_action = self._learn_model.forward(data['next_obs'])['action']['action_type']
+            target_q_discrete_action = self._learn_model.forward(next_discrete_inputs, mode='compute_discrete')['action']['action_type']
 
         data_n = q_nstep_td_data(
-            q_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
+            q_value2, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
             data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
@@ -157,16 +179,6 @@ class PDQNPolicy(Policy):
         dis_loss.backward()
         self._dis_optimizer.step()
 
-        q_value_ = self._learn_model.forward(data['obs'])['logit']
-        cont_loss = -q_value_.mean()
-
-        # ==============================
-        # Continuous args network update
-        # ==============================
-        self._cont_optimizer.zero_grad()
-        cont_loss.backward()
-        self._cont_optimizer.step()
-
         # =============
         # after update
         # =============
@@ -175,7 +187,7 @@ class PDQNPolicy(Policy):
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
             'continuous_loss': cont_loss.item(),
-            'q_value': q_value.mean().item(),
+            'q_value': q_value1.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             'reward': data['reward'].mean().item(),
             'target_q_value': target_q_value.mean().item(),
@@ -256,7 +268,9 @@ class PDQNPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps)
+            action_args = self._collect_model.forward(data, 'compute_continuous', eps=eps)['action_args']
+            inputs = {'state':data, 'action_args':action_args.clone().detach()}
+            output = self._collect_model.forward(inputs,'compute_discrete', eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -332,7 +346,9 @@ class PDQNPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data)
+            action_args = self._eval_model.forward(data, mode='compute_continuous')['action_args']
+            inputs = {'state':data, 'action_args':action_args.clone().detach()}
+            output = self._eval_model.forward(inputs, mode='compute_discrete')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

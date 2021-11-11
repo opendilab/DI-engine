@@ -11,6 +11,7 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, Regressi
 
 @MODEL_REGISTRY.register('pdqn')
 class PDQN(nn.Module):
+    mode = ['compute_discrete', 'compute_continuous']
 
     def __init__(
             self,
@@ -96,7 +97,7 @@ class PDQN(nn.Module):
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
         self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
 
-    def forward(self, x: torch.Tensor) -> Dict:
+    def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
         r"""
         Overview:
             PDQN forward computation graph, input observation tensor to predict q_value for discrete actions and values for continuous action_args
@@ -111,18 +112,18 @@ class PDQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_type_shape``
             - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape
-        Examples:
-            >>> action_shape = {'action_type_shape':3, 'action_args_type':5}
-            >>> model = PDQN(32, action_shape)  # arguments: 'obs_shape' and 'action_shape'
-            >>> inputs = torch.randn(4, 32)
-            >>> outputs = model(inputs)
-            >>> assert isinstance(outputs, dict) 
-            >>> assert outputs['logit'].shape == torch.Size([4, 3])
-            >>> assert outputs['action_args'].shape == torch.Size([4,5])
         """
-        dis_x = self.encoder[0](x)  # size (B, encoded_state_shape)
-        cont_x = self.encoder[1](x)
+        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
+        return getattr(self, mode)(inputs)
+
+    def compute_continuous(self, inputs: torch.Tensor) -> Dict:
+        cont_x = self.encoder[1](inputs)  # size (B, encoded_state_shape)
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
+        return {'action_args': action_args, 'logit':{}}
+
+    def compute_discrete(self, inputs: Union[Dict, EasyDict]) -> Dict:
+        dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
+        action_args = inputs['action_args']  # size (B, action_args_shape
         state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
-        logit = self.actor_head[0](state_action_cat)  # size (B, action_type_shape)
-        return {'logit': logit['logit'], 'action_args': action_args}
+        logit = self.actor_head[0](state_action_cat)['logit']  # size (B, action_type_shape)
+        return {'logit': logit, 'action_args':{}}
