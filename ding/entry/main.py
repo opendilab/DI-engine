@@ -17,6 +17,7 @@ from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+# from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -164,7 +165,7 @@ def sample_profile(buffer, async_mode=False):
                 ">>>>>>>>> Samples/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}; Steps/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}"
                 .format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
             )
-            start_time, start_counter = end_time, end_counter
+            start_time, start_counter, start_step = end_time, end_counter, end_step
 
     async def async_sample_profile(ctx):
         _sample_profile(ctx)
@@ -229,7 +230,7 @@ def main_eager(cfg, create_cfg, seed=0):
     model = DQN(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task(async_mode=True)
+    task = Task(async_mode=False)
     dqn = DQNPipeline(cfg, model)
 
     evaluate = dqn.evaluate(evaluator_env)
