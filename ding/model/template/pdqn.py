@@ -1,5 +1,5 @@
 from typing import Union, Optional, Dict
-from easydict import EasyDict 
+from easydict import EasyDict
 
 import torch
 import torch.nn as nn
@@ -40,7 +40,7 @@ class PDQN(nn.Module):
                 ``ding.torch_utils.fc_block`` for more details.
         """
         super(PDQN, self).__init__()
-        
+
         # squeeze obs input for compatibility: 1, (1, ), [4, 32, 32]
         obs_shape = squeeze(obs_shape)
         # squeeze action shape input like (3,) to 3
@@ -52,11 +52,19 @@ class PDQN(nn.Module):
 
         # Obs Encoder Type
         if isinstance(obs_shape, int) or len(obs_shape) == 1:  # FC Encoder
-            self.dis_encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
-            self.cont_encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.dis_encoder = FCEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+            )
+            self.cont_encoder = FCEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+            )
         elif len(obs_shape) == 3:  # Conv Encoder
-            self.dis_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
-            self.cont_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.dis_encoder = ConvEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+            )
+            self.cont_encoder = ConvEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+            )
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
@@ -64,13 +72,13 @@ class PDQN(nn.Module):
 
         # Continuous Action Head Type
         self.cont_head = RegressionHead(
-                    head_hidden_size,
-                    action_shape.action_args_shape,
-                    head_layer_num,
-                    final_tanh=True,
-                    activation=activation,
-                    norm_type=norm_type
-                )
+            head_hidden_size,
+            action_shape.action_args_shape,
+            head_layer_num,
+            final_tanh=True,
+            activation=activation,
+            norm_type=norm_type
+        )
 
         # Discrete Action Head Type
         if dueling:
@@ -78,13 +86,13 @@ class PDQN(nn.Module):
         else:
             dis_head_cls = DiscreteHead
         self.dis_head = dis_head_cls(
-                head_hidden_size + action_shape.action_args_shape, 
-                action_shape.action_type_shape, 
-                head_layer_num, 
-                activation=activation, 
-                norm_type=norm_type
-            )
-        
+            head_hidden_size + action_shape.action_args_shape,
+            action_shape.action_type_shape,
+            head_layer_num,
+            activation=activation,
+            norm_type=norm_type
+        )
+
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
         self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
 
@@ -117,4 +125,4 @@ class PDQN(nn.Module):
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
         state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
         logit = self.actor_head[0](state_action_cat)  # size (B, action_type_shape)
-        return {'logit':logit['logit'], 'action_args': action_args}
+        return {'logit': logit['logit'], 'action_args': action_args}

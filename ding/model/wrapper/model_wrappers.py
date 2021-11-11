@@ -431,11 +431,12 @@ class ActionNoiseWrapper(IModelWrapper):
     def forward(self, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        if 'action_args' in output:
-            action = output['action_args']
+        if 'action' in output or 'action_args' in output:
+            key = 'action' if 'action' in output else 'action_args'
+            action = output[key]
             assert isinstance(action, torch.Tensor)
             action = self.add_noise(action)
-            output['action_args'] = action
+            output[key] = action
         return output
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:
@@ -496,7 +497,7 @@ class TargetNetworkWrapper(IModelWrapper):
         if direct:
             self._model.load_state_dict(state_dict, strict=True)
             self._update_count = 0
-        else: 
+        else:
             if self._update_type == 'assign':
                 if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
                     self._model.load_state_dict(state_dict, strict=True)

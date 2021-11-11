@@ -14,7 +14,6 @@ gym_hybrid_pdqn_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -33,23 +32,17 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=10,
+            update_per_collect=3,
             batch_size=32,
             learning_rate=1e-4,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
-            # (int) Frequence of target network update.
-            target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env)
-            ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=32,
+            n_sample=128,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            noise_sigma=0.05,
         ),
         eval=dict(),
         # other config
@@ -61,7 +54,7 @@ gym_hybrid_pdqn_config = dict(
                 start=0.95,
                 end=0.1,
                 # (int) Decay length(env step)
-                decay=100000,
+                decay=50000,
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),
@@ -76,7 +69,7 @@ gym_hybrid_pdqn_create_config = dict(
         type='gym_hybrid',
         import_names=['dizoo.gym_hybrid.envs.gym_hybrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='pdqn'),
 )
 gym_hybrid_pdqn_create_config = EasyDict(gym_hybrid_pdqn_create_config)

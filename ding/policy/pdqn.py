@@ -1,4 +1,3 @@
-
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
@@ -40,7 +39,7 @@ class PDQNPolicy(Policy):
             # The following configs are algorithm-specific
             # ==============================================================
             # (int) Frequence of target network update.
-            target_update_freq=100,
+            target_theta=0.005,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
         ),
@@ -69,9 +68,7 @@ class PDQNPolicy(Policy):
         ),
     )
 
-
     def _init_learn(self) -> None:
-        
         """
         Overview:
             Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \
@@ -80,8 +77,14 @@ class PDQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._dis_optimizer = Adam(list(self._model.dis_head.parameters())+list(self._model.dis_encoder.parameters()), lr=self._cfg.learn.learning_rate)
-        self._cont_optimizer = Adam(list(self._model.cont_head.parameters())+list(self._model.cont_encoder.parameters()), lr=self._cfg.learn.learning_rate)
+        self._dis_optimizer = Adam(
+            list(self._model.dis_head.parameters()) + list(self._model.dis_encoder.parameters()),
+            lr=self._cfg.learn.learning_rate
+        )
+        self._cont_optimizer = Adam(
+            list(self._model.cont_head.parameters()) + list(self._model.cont_encoder.parameters()),
+            lr=self._cfg.learn.learning_rate
+        )
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -91,13 +94,12 @@ class PDQNPolicy(Policy):
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
         self._learn_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
-    
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -132,7 +134,7 @@ class PDQNPolicy(Policy):
         self._target_model.train()
         # Current q value (main model)
         q_value = self._learn_model.forward(data['obs'])['logit']
-        
+
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['logit']
@@ -140,20 +142,23 @@ class PDQNPolicy(Policy):
             target_q_discrete_action = self._learn_model.forward(data['next_obs'])['action']['action_type']
 
         data_n = q_nstep_td_data(
-            q_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'], data['done'], data['weight']
+            q_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
+            data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        dis_loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        
+        dis_loss, td_error_per_sample = q_nstep_td_error(
+            data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+        )
+
         # ====================
         # Q-learning update
         # ====================
         self._dis_optimizer.zero_grad()
         dis_loss.backward()
         self._dis_optimizer.step()
-    
+
         q_value_ = self._learn_model.forward(data['obs'])['logit']
-        cont_loss = -q_value_.sum(dim=-1).mean(dim=0)
+        cont_loss = -q_value_.mean()
 
         # ==============================
         # Continuous args network update
@@ -168,15 +173,13 @@ class PDQNPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._dis_optimizer.defaults['lr'],
-            'total_q_loss': dis_loss.item(),
-            'total_cont_network_loss': cont_loss.item(),
+            'q_loss': dis_loss.item(),
+            'continuous_loss': cont_loss.item(),
             'q_value': q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
-            # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
-            # '[histogram]action_distribution': data['action']['action_type'],
+            'reward': data['reward'].mean().item(),
+            'target_q_value': target_q_value.mean().item(),
         }
-
-
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
@@ -187,6 +190,7 @@ class PDQNPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'dis_optimizer': self._dis_optimizer.state_dict(),
             'cont_optimizer': self._cont_optimizer.state_dict()
         }
@@ -204,9 +208,9 @@ class PDQNPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._dis_optimizer.load_state_dict(state_dict['dis_optimizer'])
         self._cont_optimizer.load_state_dict(state_dict['cont_optimizer'])
-
 
     def _init_collect(self) -> None:
         """
@@ -228,7 +232,6 @@ class PDQNPolicy(Policy):
             noise_range=None
         )
         self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
-        
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
@@ -278,7 +281,7 @@ class PDQNPolicy(Policy):
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
-    
+
     def _process_transition(self, obs: Any, model_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
         """
         Overview:
@@ -309,7 +312,7 @@ class PDQNPolicy(Policy):
         """
         self._eval_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
-    
+
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
@@ -334,7 +337,7 @@ class PDQNPolicy(Policy):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-    
+
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
@@ -347,7 +350,7 @@ class PDQNPolicy(Policy):
             by import_names path. For PDQN, ``ding.model.template.pdqn.PDQN``
         """
         return 'pdqn', ['ding.model.template.pdqn']
-    
+
     def _monitor_vars_learn(self) -> List[str]:  # TODO
         r"""
         Overview:
@@ -355,4 +358,4 @@ class PDQNPolicy(Policy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-        return ['cur_lr', 'total_q_loss', 'total_cont_network_loss', 'q_value']
+        return ['cur_lr', 'q_loss', 'continuous_loss', 'q_value', 'reward', 'target_q_value']
