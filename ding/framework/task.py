@@ -1,3 +1,4 @@
+import concurrent.futures
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, List, Union
 from ding.framework import Context
@@ -24,7 +25,12 @@ def enable_async(func: Callable) -> Callable:
         Returns:
             - result (:obj:`Union[Any, Awaitable]`): The result or future object of middleware.
         """
-        if task._loop:
+        if "async_mode" in kwargs:
+            async_mode = kwargs.pop("async_mode")
+        else:
+            async_mode = task.async_mode
+        if async_mode:
+            # with concurrent.futures.ProcessPoolExecutor() as pool:
             t = task._loop.run_in_executor(None, func, task, *args, **kwargs)
             task._async_stack.append(t)
             return t
@@ -83,7 +89,7 @@ class Task:
             self.renew()
 
     @enable_async
-    def forward(self, fn: Callable) -> None:
+    def forward(self, fn: Callable, ctx: Context = None, backward_stack: List = None) -> None:
         """
         Overview:
             This function will execute the middleware until the first yield statment,
@@ -93,18 +99,20 @@ class Task:
         """
         # TODO how to treat multiple yield
         # TODO how to use return value or send value to generator
-        g = fn(self.ctx)
+        stack = backward_stack or self._backward_stack
+        ctx = ctx or self.ctx
+        g = fn(ctx)
         if isinstance(g, GeneratorType):
             next(g)
-            self._backward_stack.append(g)
+            stack.append(g)
 
     @enable_async
-    def backward(self) -> None:
+    def backward(self, backward_stack: List = None) -> None:
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         """
-        stack = self._backward_stack
+        stack = backward_stack or self._backward_stack
         while stack:
             # FILO
             g = stack.pop()
@@ -125,18 +133,9 @@ class Task:
         def _sequence(ctx):
             backward_stack = []
             for fn in fns:
-                g = fn(ctx)
-                if isinstance(g, GeneratorType):
-                    next(g)
-                    backward_stack.append(g)
+                self.forward(fn, ctx=ctx, backward_stack=backward_stack, async_mode=False)
             yield
-            while backward_stack:
-                # FILO
-                g = backward_stack.pop()
-                try:
-                    next(g)
-                except StopIteration:
-                    continue
+            self.backward(backward_stack=backward_stack, async_mode=False)
 
         return _sequence
 

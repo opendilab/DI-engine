@@ -141,7 +141,7 @@ class DQNPipeline:
         return _eval
 
 
-def sample_profile(buffer):
+def sample_profile(buffer, async_mode=False):
     start_time = None
     start_counter = 0
     start_step = 0
@@ -166,7 +166,10 @@ def sample_profile(buffer):
             )
             start_time, start_counter = end_time, end_counter
 
-    return _sample_profile
+    async def async_sample_profile(ctx):
+        _sample_profile(ctx)
+
+    return async_sample_profile if async_mode else _sample_profile
 
 
 def mock_pipeline(buffer):
