@@ -1,6 +1,6 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_onpolicy
-collector_env_num=8
+collector_env_num = 8
 minigrid_ppo_config = dict(
     # exp_name="minigrid_empty8_onppo",
     # exp_name="minigrid_fourrooms_onppo",
@@ -29,8 +29,8 @@ minigrid_ppo_config = dict(
         ),
         learn=dict(
             epoch_per_collect=10,
-            update_per_collect=1,  # 4,
-            batch_size=320,  # 64,
+            update_per_collect=1,
+            batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
             entropy_weight=0.001,

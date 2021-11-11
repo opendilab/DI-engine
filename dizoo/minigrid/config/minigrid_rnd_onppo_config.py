@@ -7,9 +7,9 @@ minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_empty8_rnd_onppo_b01_noweight',
     # exp_name='minigrid_fourrooms_rnd_onppo_b01_weight1000',
     # exp_name='minigrid_doorkey88_rnd_onppo_b01_seed2',
-    exp_name='minigrid_doorkey88_rnd_onppo_b01_weight1000',
+    exp_name='minigrid_doorkey88_rnd_onppo_b01_weight1000_maxlen300',
 
-    # exp_name='minigrid_doorkey_rnd_onppo_b01',
+    # exp_name='minigrid_doorkey_rnd_onppo_b01_weight1000',
     # exp_name='minigrid_kcs3r3_rnd_onppo_b01',
     # exp_name='minigrid_om2dlh_rnd_onppo_b01',
 
