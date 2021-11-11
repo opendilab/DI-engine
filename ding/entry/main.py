@@ -7,17 +7,18 @@ import torch
 import numpy as np
 import time
 from rich import print
+from functools import partial
 from ding.model import DQN
 from ding.utils import set_pkg_seed
-from ding.envs import DingEnvWrapper, BaseEnvManager
+from ding.envs import DingEnvWrapper, BaseEnvManager, get_vec_env_setting
 from ding.config import compile_config
 from ding.policy import DQNPolicy
 from ding.rl_utils import get_epsilon_greedy_fn
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task
-from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
-# from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
+# from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -213,13 +214,10 @@ def main(cfg, create_cfg, seed=0):
 
 def main_eager(cfg, create_cfg, seed=0):
 
-    def wrapped_cartpole_env():
-        return DingEnvWrapper(gym.make('CartPole-v0'))
-
     cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
-    collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
+    evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
 
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
