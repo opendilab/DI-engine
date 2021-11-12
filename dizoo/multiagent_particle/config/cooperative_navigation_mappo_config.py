@@ -54,7 +54,6 @@ main_config = dict(
             unroll_len=1,
             env_num=collector_env_num,
         ),
-        on_policy=True,
         eval=dict(
             env_num=evaluator_env_num,
             evaluator=dict(eval_freq=50, ),

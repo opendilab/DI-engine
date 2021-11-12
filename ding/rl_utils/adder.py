@@ -36,6 +36,7 @@ class Adder(object):
         reward = torch.stack([d['reward'] for d in data])
         if cuda:
             value = value.cuda()
+            next_value = next_value.cuda()
             reward = reward.cuda()
         adv = gae(gae_data(value, next_value, reward, None), gamma, gae_lambda)
         if cuda:
@@ -151,6 +152,10 @@ class Adder(object):
 
             def null_padding():
                 template = copy.deepcopy(residual[0])
+                template['null'] = True  # TODO(pu)
+                template['obs'] = torch.zeros_like(template['obs'])
+                # template['action'] = -1 * torch.ones_like(template['action']) # TODO(pu)
+                template['action'] = torch.zeros_like(template['action'])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
                 if 'value_gamma' in template:

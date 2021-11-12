@@ -3,7 +3,7 @@
 
 name: platform_test
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   test_unittest:

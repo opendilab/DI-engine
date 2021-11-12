@@ -14,8 +14,6 @@ qbert_a2c_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=True,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -25,7 +23,6 @@ qbert_a2c_config = dict(
             critic_head_layer_num=2,
         ),
         learn=dict(
-            update_per_collect=1,
             batch_size=160,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
@@ -38,17 +35,13 @@ qbert_a2c_config = dict(
             betas=(0.0, 0.99),
         ),
         collect=dict(
-            # (int) collect n_sample data, train model n_iteration times
+            # (int) collect n_sample data, train model 1 times
             n_sample=160,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.99,
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=500, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=160,
-            max_use=1,
-        ), ),
     ),
 )
 main_config = EasyDict(qbert_a2c_config)
