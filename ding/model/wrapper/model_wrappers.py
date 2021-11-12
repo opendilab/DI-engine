@@ -368,6 +368,9 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         eps = kwargs.pop('eps')
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        if 'logit' not in output:
+            return output
+        
         logit = output['logit']
         assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
         if isinstance(logit, torch.Tensor):

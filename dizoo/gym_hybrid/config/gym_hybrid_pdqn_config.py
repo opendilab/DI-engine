@@ -32,7 +32,8 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=3,
+            update_per_collect=100,
+            
             batch_size=32,
             learning_rate=1e-4,
         ),
@@ -56,7 +57,7 @@ gym_hybrid_pdqn_config = dict(
                 # (int) Decay length(env step)
                 decay=50000,
             ),
-            replay_buffer=dict(replay_buffer_size=100000, ),
+            replay_buffer=dict(replay_buffer_size=50000, ),
         ),
     )
 )

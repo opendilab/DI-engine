@@ -119,11 +119,11 @@ class PDQN(nn.Module):
     def compute_continuous(self, inputs: torch.Tensor) -> Dict:
         cont_x = self.encoder[1](inputs)  # size (B, encoded_state_shape)
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
-        return {'action_args': action_args, 'logit':{}}
+        return {'action_args': action_args}
 
     def compute_discrete(self, inputs: Union[Dict, EasyDict]) -> Dict:
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
         action_args = inputs['action_args']  # size (B, action_args_shape
         state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
         logit = self.actor_head[0](state_action_cat)['logit']  # size (B, action_type_shape)
-        return {'logit': logit, 'action_args':{}}
+        return {'logit': logit, 'action_args':action_args}
