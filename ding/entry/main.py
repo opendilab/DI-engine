@@ -2,6 +2,7 @@
 Main entry
 """
 from collections import deque
+from types import GeneratorType
 import gym
 import torch
 import numpy as np
@@ -17,8 +18,8 @@ from ding.rl_utils import get_epsilon_greedy_fn
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task
-# from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
-from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
+from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+# from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -64,7 +65,6 @@ class DQNPipeline:
             policy_output = self.policy.collect_mode.forward(ctx.obs, eps=eps)
             ctx.action = to_ndarray({env_id: output['action'] for env_id, output in policy_output.items()})
             ctx.policy_output = policy_output
-            yield
 
         return _act
 
@@ -79,8 +79,7 @@ class DQNPipeline:
                     ctx.obs[env_id], ctx.policy_output[env_id], timestep
                 )
                 buffer_.push(transition)
-            time.sleep(0.1)
-            yield
+            # time.sleep(0.1)
 
         return _collect
 
@@ -101,8 +100,7 @@ class DQNPipeline:
                         )
                     )
                 ctx.train_iter += 1
-            time.sleep(0.1)
-            yield
+            # time.sleep(0.1)
 
         return _learn
 
@@ -115,7 +113,6 @@ class DQNPipeline:
             if ctx.train_iter == ctx.last_eval_iter or (
                 (ctx.train_iter - ctx.last_eval_iter) < self.cfg.policy.eval.evaluator.eval_freq
                     and ctx.train_iter != 0):
-                yield
                 return
             env.reset()
             eval_monitor = VectorEvalMonitor(env.env_num, self.cfg.env.n_evaluator_episode)
@@ -138,23 +135,22 @@ class DQNPipeline:
             ctx.last_eval_iter = ctx.train_iter
             if stop_flag:
                 ctx.finish()
-            yield
 
         return _eval
 
 
-def sample_profile(buffer, async_mode=False):
+def sample_profiler(buffer, async_mode=False):
     start_time = None
     start_counter = 0
     start_step = 0
     records = deque(maxlen=10)
     step_records = deque(maxlen=10)
 
-    def _sample_profile(ctx):
+    def _sample_profiler(ctx):
         nonlocal start_time, start_counter, start_step
         if not start_time:
             start_time = time.time()
-        elif ctx.total_step % 30 == 0:
+        elif ctx.total_step % 1 == 0:
             end_time = time.time()
             end_counter = buffer.n_counter
             end_step = ctx.total_step
@@ -163,15 +159,49 @@ def sample_profile(buffer, async_mode=False):
             records.append(record)
             step_records.append(step_record)
             print(
-                ">>>>>>>>> Samples/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}; Steps/s: {:.1f}, Mean: {:.1f}, Total: {:.0f}"
-                .format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
+                "        Samples/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}".
+                format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
             )
             start_time, start_counter, start_step = end_time, end_counter, end_step
 
-    async def async_sample_profile(ctx):
-        _sample_profile(ctx)
+    async def async_sample_profiler(ctx):
+        _sample_profiler(ctx)
 
-    return async_sample_profile if async_mode else _sample_profile
+    return async_sample_profiler if async_mode else _sample_profiler
+
+
+def step_profiler(step_name):
+    records = deque(maxlen=10)
+
+    def _step_wrapper(fn):
+        # Wrap step function
+        def _step_executor(ctx):
+            # Execute step
+            start_time = time.time()
+            time_cost = 0
+            g = fn(ctx)
+            if isinstance(g, GeneratorType):
+                next(g)
+                time_cost = time.time() - start_time
+                yield
+                start_time = time.time()
+                try:
+                    next(g)
+                except StopIteration:
+                    pass
+                time_cost += time.time() - start_time
+            else:
+                time_cost = time.time() - start_time
+            records.append(time_cost * 1000)
+            print(
+                "    Step Profiler {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
+                    step_name, time_cost * 1000, np.mean(records)
+                )
+            )
+
+        return _step_executor
+
+    return _step_wrapper
 
 
 def mock_pipeline(buffer):
@@ -204,7 +234,7 @@ def main(cfg, create_cfg, seed=0):
     task = Task()
     dqn = DQNPipeline(cfg, model)
 
-    task.use(sample_profile(replay_buffer))
+    task.use(sample_profiler(replay_buffer))
     task.use(dqn.evaluate(evaluator_env))
     task.use(task.sequence(dqn.act(collector_env), dqn.collect(collector_env, replay_buffer)))
     task.use(dqn.learn(replay_buffer))
@@ -228,22 +258,25 @@ def main_eager(cfg, create_cfg, seed=0):
     model = DQN(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task(async_mode=False)
+    task = Task(async_mode=True)
     dqn = DQNPipeline(cfg, model)
 
     evaluate = dqn.evaluate(evaluator_env)
     act = dqn.act(collector_env)
     collect = dqn.collect(collector_env, replay_buffer)
     learn = dqn.learn(replay_buffer)
-    profile = sample_profile(replay_buffer)
+    profiler = sample_profiler(replay_buffer)
+    evaluate_profiler = step_profiler("Evaluate")
+    collect_profiler = step_profiler("Collect")
+    learn_profiler = step_profiler("Learn")
 
-    for i in range(1000):
-        task.forward(profile)
-        task.forward(evaluate)
+    for i in range(2):
+        task.forward(profiler)
+        task.forward(evaluate_profiler(evaluate))
         if task.finish:
             break
-        task.forward(task.sequence(act, collect))
-        task.forward(learn)
+        task.forward(collect_profiler(task.sequence(act, collect)))
+        task.forward(learn_profiler(learn))
         task.backward()
         task.renew()
 
