@@ -269,8 +269,8 @@ class VAC(nn.Module):
 
 
         .. note::
-            ``compute_actor_critic`` interface aims to save computation when shares encoder.
-            Returning the combination dictionry.
+            ``compute_actor_critic`` interface aims to save computation when sharing encoder.
+            Return the combination dictionry.
 
         """
         if self.share_encoder:
