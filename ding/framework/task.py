@@ -1,5 +1,5 @@
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, List, Union
+from typing import Any, Awaitable, Callable, Generator, List, Union
 from ding.framework import Context
 import asyncio
 
@@ -14,7 +14,7 @@ def enable_async(func: Callable) -> Callable:
         - runtime_handler (:obj:`Callable`): The wrap function.
     """
 
-    def runtime_handler(task, *args, **kwargs) -> Union[Any, Awaitable]:
+    def runtime_handler(task, *args, **kwargs) -> 'Task':
         """
         Overview:
             If task's async mode is enabled, execute the step in current loop executor asyncly,
@@ -29,10 +29,9 @@ def enable_async(func: Callable) -> Callable:
         else:
             async_mode = task.async_mode
         if async_mode:
-            # with concurrent.futures.ProcessPoolExecutor() as pool:
             t = task._loop.run_in_executor(None, func, task, *args, **kwargs)
             task._async_stack.append(t)
-            return t
+            return task
         else:
             return func(task, *args, **kwargs)
 
@@ -60,7 +59,7 @@ class Task:
             except RuntimeError:
                 self._loop = asyncio.new_event_loop()
 
-    def use(self, fn: Callable) -> None:
+    def use(self, fn: Callable) -> 'Task':
         """
         Overview:
             Register middleware to task. The middleware will be executed by it's registry order.
@@ -68,6 +67,7 @@ class Task:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
         self.middleware.append(fn)
+        return self
 
     def run(self, max_step: int = 1e10) -> None:
         """
@@ -88,7 +88,7 @@ class Task:
             self.renew()
 
     @enable_async
-    def forward(self, fn: Callable, ctx: Context = None, backward_stack: List = None) -> None:
+    def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
         """
         Overview:
             This function will execute the middleware until the first yield statment,
@@ -96,32 +96,43 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): Function with contain the ctx argument in middleware.
         """
-        # TODO how to treat multiple yield
-        # TODO how to use return value or send value to generator
-        stack = backward_stack or self._backward_stack
-        ctx = ctx or self.ctx
+        if not backward_stack:
+            backward_stack = self._backward_stack
+        if not ctx:
+            ctx = self.ctx
         g = fn(ctx)
         if isinstance(g, GeneratorType):
             try:
                 next(g)
-                stack.append(g)
+                backward_stack.append(g)
             except StopIteration:
                 pass
+        return self
+
+    def backward(self, *args, **kwargs) -> 'Task':
+        """
+        Sync should be called before backward, otherwise it is possible
+        that some generators have not been pushed to backward_stack.
+        """
+        self.sync()
+        return self._backward(*args, **kwargs)
 
     @enable_async
-    def backward(self, backward_stack: List = None) -> None:
+    def _backward(self, backward_stack: List[Generator] = None) -> 'Task':
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         """
-        stack = backward_stack or self._backward_stack
-        while stack:
+        if not backward_stack:
+            backward_stack = self._backward_stack
+        while backward_stack:
             # FILO
-            g = stack.pop()
+            g = backward_stack.pop()
             try:
                 next(g)
             except StopIteration:
                 continue
+        return self
 
     def sequence(self, *fns: List[Callable]) -> Callable:
         """
@@ -141,16 +152,20 @@ class Task:
 
         return _sequence
 
-    def renew(self) -> None:
+    def renew(self) -> 'Task':
         """
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
+        self.backward()
+        self.sync()
         self.ctx = self.ctx.renew()
-        self._backward_stack = []
+        return self
+
+    def sync(self) -> 'Task':
         if self._loop:
-            # Blocking
             self._loop.run_until_complete(self.async_renew())
+        return self
 
     async def async_renew(self) -> Awaitable[None]:
         while self._async_stack:

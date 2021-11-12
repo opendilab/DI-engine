@@ -270,14 +270,13 @@ def main_eager(cfg, create_cfg, seed=0):
     collect_profiler = step_profiler("Collect")
     learn_profiler = step_profiler("Learn")
 
-    for i in range(2):
+    for i in range(100):
         task.forward(profiler)
         task.forward(evaluate_profiler(evaluate))
         if task.finish:
             break
         task.forward(collect_profiler(task.sequence(act, collect)))
         task.forward(learn_profiler(learn))
-        task.backward()
         task.renew()
 
 
