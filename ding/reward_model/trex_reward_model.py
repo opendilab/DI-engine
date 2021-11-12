@@ -10,6 +10,7 @@ from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from ding.model.template.q_learning import DQN
 from ding.model.template.vac import VAC
+from ding.model.template.qac import QAC
 from torch.distributions.categorical import Categorical
 import gym
 import numpy as np
@@ -279,39 +280,48 @@ class TrexRewardModel(BaseRewardModel):
                     action_shape=self.cfg.policy.model.action_shape,
                     continuous=True,
                 )
-                model.load_state_dict(torch.load(model_path)['model'])
-                episode_count = 1
-                for i in range(episode_count):
-                    done = False
-                    traj = []
-                    gt_rewards = []
-                    r = 0
-                    env.seed(
-                        self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
-                    )  # in trex official implementation, they use the same initialisation.
-                    ob = env.reset()
-                    steps = 0
-                    acc_reward = 0
-                    while True:
-                        obs_tensor = torch.tensor(ob).unsqueeze(0)
-                        (mu, sigma) = model.compute_actor(obs_tensor.float())['logit']
-                        dist = Independent(Normal(mu, sigma), 1)
-                        action = torch.tanh(dist.rsample())
-                        action = action.detach().numpy()  # Why does mujoco need to be detached ?
-                        ob, r, done, _ = env.step(action)
-                        ob_processed = ob
-                        traj.append(ob_processed)
-                        gt_rewards.append(r)
-                        steps += 1
-                        acc_reward += r
-                        if done:
-                            print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
-                            break
-                    print("traj length", len(traj))
-                    print("demo length", len(self.pre_expert_data))
-                    self.pre_expert_data.append(traj)
-                    self.learning_returns.append(acc_reward)
-                    self.learning_rewards.append(gt_rewards)
+            elif self.cfg.reward_model.algo_for_model == 'sac':
+                model = QAC(
+                    obs_shape=self.cfg.policy.model.obs_shape,
+                    action_shape=self.cfg.policy.model.action_shape,
+                    twin_critic=self.cfg.policy.model.twin_critic,
+                    actor_head_type=self.cfg.policy.model.actor_head_type,
+                    actor_head_hidden_size=self.cfg.policy.model.actor_head_hidden_size,
+                    critic_head_hidden_size=self.cfg.policy.model.critic_head_hidden_size,
+                )
+            model.load_state_dict(torch.load(model_path)['model'])
+            episode_count = 1
+            for i in range(episode_count):
+                done = False
+                traj = []
+                gt_rewards = []
+                r = 0
+                env.seed(
+                    self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
+                )  # in trex official implementation, they use the same initialisation.
+                ob = env.reset()
+                steps = 0
+                acc_reward = 0
+                while True:
+                    obs_tensor = torch.tensor(ob).unsqueeze(0)
+                    (mu, sigma) = model.compute_actor(obs_tensor.float())['logit']
+                    dist = Independent(Normal(mu, sigma), 1)
+                    action = torch.tanh(dist.rsample())
+                    action = action.detach().numpy()  # Why does mujoco need to be detached ?
+                    ob, r, done, _ = env.step(action)
+                    ob_processed = ob
+                    traj.append(ob_processed)
+                    gt_rewards.append(r)
+                    steps += 1
+                    acc_reward += r
+                    if done:
+                        print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                        break
+                print("traj length", len(traj))
+                print("demo length", len(self.pre_expert_data))
+                self.pre_expert_data.append(traj)
+                self.learning_returns.append(acc_reward)
+                self.learning_rewards.append(gt_rewards)
         return self.pre_expert_data, self.learning_returns, self.learning_rewards
 
     def load_expert_data(self) -> None:
