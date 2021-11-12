@@ -1,4 +1,3 @@
-import concurrent.futures
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, List, Union
 from ding.framework import Context
@@ -103,8 +102,11 @@ class Task:
         ctx = ctx or self.ctx
         g = fn(ctx)
         if isinstance(g, GeneratorType):
-            next(g)
-            stack.append(g)
+            try:
+                next(g)
+                stack.append(g)
+            except StopIteration:
+                pass
 
     @enable_async
     def backward(self, backward_stack: List = None) -> None:
