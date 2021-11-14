@@ -1,5 +1,5 @@
 from easydict import EasyDict
-
+from ding.entry import serial_pipeline
 hopper_sac_default_config = dict(
     env=dict(
         env_id='Hopper-v3',
@@ -62,3 +62,6 @@ hopper_sac_default_create_config = dict(
 )
 hopper_sac_default_create_config = EasyDict(hopper_sac_default_create_config)
 create_config = hopper_sac_default_create_config
+
+if __name__ == "__main__":
+    serial_pipeline([main_config, create_config], seed=0)
