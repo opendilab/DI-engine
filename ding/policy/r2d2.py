@@ -263,7 +263,7 @@ class R2D2Policy(Policy):
         self._learn_model.train()
         self._target_model.train()
         # use the hidden state in timestep=0
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
+        self._learn_model.reset(data_id=None, state=data['prev_state'][0]) # 42,64,(2,(1,1,512))
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
         if len(data['burnin_nstep_obs']) != 0:
