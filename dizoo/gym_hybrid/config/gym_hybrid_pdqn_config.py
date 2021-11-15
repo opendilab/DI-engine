@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 gym_hybrid_pdqn_config = dict(
-    exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc1e-3_upc100_seed0',
+    exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc1e-3_upc10_auf100_seed0',
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd1e-5_lrc1e-3_upc100_seed0',
 
     env=dict(
@@ -39,7 +39,7 @@ gym_hybrid_pdqn_config = dict(
             learning_rate_dis=3e-4,#1e-5,#3e-4,  # alpha
             learning_rate_cont=1e-3,  # beta
             target_theta=0.001,#0.005,
-            # actor_update_freq=1,
+            actor_update_freq=10,
         ),
         # collect_mode config
         collect=dict(

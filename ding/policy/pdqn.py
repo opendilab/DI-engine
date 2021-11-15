@@ -105,6 +105,7 @@ class PDQNPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
+        self.actor_train_cnt=0
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -150,10 +151,11 @@ class PDQNPolicy(Policy):
         # ================================
         # Continuous args network update
         # ================================
-        # if % actor_update_freq==0:
-        self._cont_optimizer.zero_grad()
-        cont_loss.backward()
-        self._cont_optimizer.step()
+        self.actor_train_cnt+=1
+        if self.actor_train_cnt % self._cfg.learn.actor_update_freq==0:
+            self._cont_optimizer.zero_grad()
+            cont_loss.backward()
+            self._cont_optimizer.step()
 
         # ====================
         # Q-learning forward
