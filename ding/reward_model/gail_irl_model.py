@@ -10,6 +10,7 @@ import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+import torch.nn.functional as F
 
 
 def concat_state_action_pairs(iterator):
@@ -24,7 +25,7 @@ def concat_state_action_pairs(iterator):
     assert isinstance(iterator, Iterable)
     res = []
     for item in iterator:
-        state = item['obs']
+        state = item['obs'].flatten()  # to allow 3d obs and actions concatenation
         action = item['action']
         s_a = torch.cat([state, action.float()], dim=-1)
         res.append(s_a)
@@ -47,6 +48,36 @@ class RewardModelNetwork(nn.Module):
         out = self.l2(out)
         out = self.a2(out)
         return out
+
+
+class AtariRewardModelNetwork(nn.Module):
+
+    def __init__(self, input_size: int) -> None:
+        super(AtariRewardModelNetwork, self).__init__()
+        self.input_size = input_size
+        self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
+        self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
+        self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
+        self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
+        self.fc1 = nn.Linear(784, 64)
+        self.fc2 = nn.Linear(64 + 1, 1)  # here we add 1 to take consideration of the action concat
+        self.a = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor, ) -> torch.Tensor:
+        # input: x = [B, 4 x 84 x 84 + 1], last element is action
+        actions = torch.unsqueeze(x[:, -1], -1)  # [B, 1]
+        x = x[:, :-1]
+        x = x.reshape([-1] + self.input_size)  # [B, 4, 84, 84]
+        x = F.leaky_relu(self.conv1(x))
+        x = F.leaky_relu(self.conv2(x))
+        x = F.leaky_relu(self.conv3(x))
+        x = F.leaky_relu(self.conv4(x))
+        x = x.reshape(-1, 784)
+        x = F.leaky_relu(self.fc1(x))
+        x = torch.cat([x, actions], dim=-1)
+        x = self.fc2(x)
+        r = self.a(x)
+        return r
 
 
 @REWARD_MODEL_REGISTRY.register('gail')
@@ -83,7 +114,11 @@ class GailRewardModel(BaseRewardModel):
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = RewardModelNetwork(config.input_size, config.hidden_size, 1)
+        obs_shape = config.input_size
+        if type(obs_shape) is int or len(obs_shape) == 1:
+            self.reward_model = RewardModelNetwork(config.input_size, config.hidden_size, 1)
+        elif len(obs_shape) == 3:
+            self.reward_model = AtariRewardModelNetwork(config.input_size)
         self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []
@@ -128,7 +163,7 @@ class GailRewardModel(BaseRewardModel):
         loss_1: torch.Tensor = torch.log(out_1 + 1e-8).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
         loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-8).mean()
-        loss: torch.Tensor = - loss_1 - loss_2
+        loss: torch.Tensor = (loss_1 + loss_2)
 
         self.opt.zero_grad()
         loss.backward()
@@ -169,7 +204,8 @@ class GailRewardModel(BaseRewardModel):
             reward = self.reward_model(res).squeeze(-1).cpu()
         reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
-            item['reward'] = -torch.log(rew + 1e-8)
+            #item['reward'] = -torch.log(rew)
+            item['reward'] = rew
 
     def collect_data(self, data: list) -> None:
         """
