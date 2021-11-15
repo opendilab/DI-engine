@@ -163,7 +163,7 @@ class GailRewardModel(BaseRewardModel):
         loss_1: torch.Tensor = torch.log(out_1 + 1e-8).mean()
         out_2: torch.Tensor = self.reward_model(expert_data)
         loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-8).mean()
-        loss: torch.Tensor = (loss_1 + loss_2)
+        loss: torch.Tensor = - (loss_1 + loss_2)
 
         self.opt.zero_grad()
         loss.backward()
@@ -204,8 +204,7 @@ class GailRewardModel(BaseRewardModel):
             reward = self.reward_model(res).squeeze(-1).cpu()
         reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(data, reward):
-            #item['reward'] = -torch.log(rew)
-            item['reward'] = rew
+            item['reward'] = -torch.log(rew)
 
     def collect_data(self, data: list) -> None:
         """
