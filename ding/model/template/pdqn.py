@@ -95,7 +95,9 @@ class PDQN(nn.Module):
         )
 
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
-        self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
+        # self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
+        self.encoder = nn.ModuleList([self.cont_encoder, self.cont_encoder])
+
 
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
         r"""
