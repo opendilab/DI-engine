@@ -183,7 +183,7 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
-        max_step=int(1e4),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
     'PitfallNoFrameskip-v4': AtariEnvInfo(
@@ -212,7 +212,7 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
-        max_step=int(1e4),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
 }
@@ -257,7 +257,7 @@ class AtariEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         action = action.item()
         obs, rew, done, info = self._env.step(action)
-        self._env.render()
+        # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)

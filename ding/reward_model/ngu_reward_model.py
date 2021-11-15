@@ -248,8 +248,8 @@ class EpisodicNGURewardModel(BaseRewardModel):
                                                                 cur_obs_embedding[i][j]).to(self.device)
                         episodic_reward[i].append(reward)
 
+                # if have null padding, the episodic_reward should be 0
                 if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:
-                    # TODO if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
                     # add the number of null transitions in i'th sequence in batch
@@ -260,6 +260,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
                         # for i in range(seq_length-null_start_index)]
 
             # list(list(tensor)) - > tensor
+            # stack episode dim
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # TODO image
