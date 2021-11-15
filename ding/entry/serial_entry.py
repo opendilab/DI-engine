@@ -97,10 +97,18 @@ def serial_pipeline(
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        #print(learner.train_iter)
+        #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+        #print(learner.train_iter)
+        #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(

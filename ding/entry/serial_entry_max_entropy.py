@@ -67,7 +67,7 @@ def serial_pipeline_max_entropy(
     expert_collector_env.seed(cfg.seed)
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['collect'])
+    expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['learn', 'collect'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(

@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union
+from typing import List, Dict, Any, Tuple, Union, Optional
 from easydict import EasyDict
 
 import random
@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.distributions import Independent, Normal
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -37,6 +38,8 @@ class MaxEntropyModel(BaseRewardModel):
     config = dict(
         type='max_entropy',
         learning_rate=1e-3,
+        action_shape=1,
+        continuous = True,
         # obs_shape=6,
         batch_size = 64,
         hidden_size = 128,
@@ -48,6 +51,7 @@ class MaxEntropyModel(BaseRewardModel):
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(MaxEntropyModel, self).__init__()
         self.cfg = config
+        self.action_shape=self.cfg.action_shape
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
@@ -63,12 +67,20 @@ class MaxEntropyModel(BaseRewardModel):
         device_1 = samp[0]['obs'].device
         for i in range(len(expert_demo)):
             expert_demo[i]['prob'] = torch.FloatTensor([1]).to(device_0)
-        for i in range(len(samp)):
-            probs = F.softmax(samp[i]['logit'], dim = -1)
-            #new_data[i]['prob'] = torch.tensor(probs[new_data[i]['action']]).to(device_1)
-            prob = probs[samp[i]['action']]
-            #print(new_data[i]['prob'])
-            samp[i]['prob'] = prob.to(device_1)
+        if self.cfg.continuous:
+            for i in range(len(samp)):
+                (mu, sigma) = samp[i]['logit']
+                dist = Independent(Normal(mu, sigma), 1)
+                next_action = samp[i]['action']
+                log_prob = dist.log_prob(next_action)
+                samp[i]['prob'] = torch.exp(log_prob).unsqueeze(0).to(device_1)
+        else:
+            for i in range(len(samp)):
+                probs = F.softmax(samp[i]['logit'], dim = -1)
+                #new_data[i]['prob'] = torch.tensor(probs[new_data[i]['action']]).to(device_1)
+                prob = probs[samp[i]['action']]
+                #print(new_data[i]['prob'])
+                samp[i]['prob'] = prob.to(device_1)
 
         samp.extend(expert_demo)
         #print(samp[0])
@@ -77,8 +89,8 @@ class MaxEntropyModel(BaseRewardModel):
         #print(samp)
         samp = default_collate(samp)
         #print(expert_demo['obs'],expert_demo['action'])
-        cost_demo = self.reward_model(torch.cat([expert_demo['obs'],expert_demo['action'].float().reshape(-1,1)],dim=-1))
-        cost_samp = self.reward_model(torch.cat([samp['obs'],samp['action'].float().reshape(-1,1)],dim=-1))
+        cost_demo = self.reward_model(torch.cat([expert_demo['obs'],expert_demo['action'].float().reshape(-1,self.action_shape)],dim=-1))
+        cost_samp = self.reward_model(torch.cat([samp['obs'],samp['action'].float().reshape(-1,self.action_shape)],dim=-1))
 
         prob = samp['prob'].unsqueeze(-1)
         #print(len(cost_samp))
