@@ -85,6 +85,7 @@ def test_async_yield_pipeline():
     task = Task(async_mode=True)
     task.forward(step0)
     task.forward(step1)
+    time.sleep(0.3)
     task.backward().sync()
     assert task.ctx.pipeline == [0, 1, 0]
     assert len(task._backward_stack) == 0

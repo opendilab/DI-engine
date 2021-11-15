@@ -18,8 +18,8 @@ from ding.rl_utils import get_epsilon_greedy_fn
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task
-from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
-# from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
+# from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -139,7 +139,7 @@ class DQNPipeline:
         return _eval
 
 
-def sample_profiler(buffer, async_mode=False):
+def sample_profiler(buffer, print_per_step=1, async_mode=False):
     start_time = None
     start_counter = 0
     start_step = 0
@@ -150,7 +150,7 @@ def sample_profiler(buffer, async_mode=False):
         nonlocal start_time, start_counter, start_step
         if not start_time:
             start_time = time.time()
-        elif ctx.total_step % 1 == 0:
+        elif ctx.total_step % print_per_step == 0:
             end_time = time.time()
             end_counter = buffer.n_counter
             end_step = ctx.total_step
@@ -265,17 +265,21 @@ def main_eager(cfg, create_cfg, seed=0):
     act = dqn.act(collector_env)
     collect = dqn.collect(collector_env, replay_buffer)
     learn = dqn.learn(replay_buffer)
-    profiler = sample_profiler(replay_buffer)
+    profiler = sample_profiler(replay_buffer, print_per_step=1)
     evaluate_profiler = step_profiler("Evaluate")
     collect_profiler = step_profiler("Collect")
     learn_profiler = step_profiler("Learn")
 
-    for i in range(100):
+    for i in range(1000):
         task.forward(profiler)
+
         task.forward(evaluate_profiler(evaluate))
         if task.finish:
             break
-        task.forward(collect_profiler(task.sequence(act, collect)))
+
+        for _ in range(120):
+            task.forward(collect_profiler(task.sequence(act, collect)))
+
         task.forward(learn_profiler(learn))
         task.renew()
 

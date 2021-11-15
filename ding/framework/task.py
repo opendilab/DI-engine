@@ -109,16 +109,8 @@ class Task:
                 pass
         return self
 
-    def backward(self, *args, **kwargs) -> 'Task':
-        """
-        Sync should be called before backward, otherwise it is possible
-        that some generators have not been pushed to backward_stack.
-        """
-        self.sync()
-        return self._backward(*args, **kwargs)
-
     @enable_async
-    def _backward(self, backward_stack: List[Generator] = None) -> 'Task':
+    def backward(self, backward_stack: List[Generator] = None) -> 'Task':
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
@@ -157,6 +149,9 @@ class Task:
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
+        # Sync should be called before backward, otherwise it is possible
+        # that some generators have not been pushed to backward_stack.
+        self.sync()
         self.backward()
         self.sync()
         self.ctx = self.ctx.renew()
