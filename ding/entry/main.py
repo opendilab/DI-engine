@@ -18,8 +18,8 @@ from ding.rl_utils import get_epsilon_greedy_fn
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task
-# from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
-from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
+from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
+# from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -170,7 +170,7 @@ def sample_profiler(buffer, print_per_step=1, async_mode=False):
     return async_sample_profiler if async_mode else _sample_profiler
 
 
-def step_profiler(step_name):
+def step_profiler(step_name, silent=False):
     records = deque(maxlen=10)
 
     def _step_wrapper(fn):
@@ -193,11 +193,12 @@ def step_profiler(step_name):
             else:
                 time_cost = time.time() - start_time
             records.append(time_cost * 1000)
-            print(
-                "    Step Profiler {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
-                    step_name, time_cost * 1000, np.mean(records)
+            if not silent:
+                print(
+                    "    Step Profiler {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
+                        step_name, time_cost * 1000, np.mean(records)
+                    )
                 )
-            )
 
         return _step_executor
 
@@ -258,26 +259,26 @@ def main_eager(cfg, create_cfg, seed=0):
     model = DQN(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task(async_mode=True)
+    task = Task(async_mode=False)
     dqn = DQNPipeline(cfg, model)
 
     evaluate = dqn.evaluate(evaluator_env)
     act = dqn.act(collector_env)
     collect = dqn.collect(collector_env, replay_buffer)
     learn = dqn.learn(replay_buffer)
-    profiler = sample_profiler(replay_buffer, print_per_step=1)
-    evaluate_profiler = step_profiler("Evaluate")
-    collect_profiler = step_profiler("Collect")
-    learn_profiler = step_profiler("Learn")
+    profiler = sample_profiler(replay_buffer, print_per_step=50)
+    evaluate_profiler = step_profiler("Evaluate", silent=True)
+    collect_profiler = step_profiler("Collect", silent=True)
+    learn_profiler = step_profiler("Learn", silent=True)
 
-    for i in range(1000):
+    for _ in range(300):
         task.forward(profiler)
 
         task.forward(evaluate_profiler(evaluate))
         if task.finish:
             break
 
-        for _ in range(120):
+        for _ in range(1):
             task.forward(collect_profiler(task.sequence(act, collect)))
 
         task.forward(learn_profiler(learn))
