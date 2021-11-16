@@ -79,7 +79,6 @@ class DQNPipeline:
                     ctx.obs[env_id], ctx.policy_output[env_id], timestep
                 )
                 buffer_.push(transition)
-            # time.sleep(0.1)
 
         return _collect
 
@@ -100,7 +99,6 @@ class DQNPipeline:
                         )
                     )
                 ctx.train_iter += 1
-            # time.sleep(0.1)
 
         return _learn
 
@@ -259,7 +257,7 @@ def main_eager(cfg, create_cfg, seed=0):
     model = DQN(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task(async_mode=False)
+    task = Task(async_mode=True, n_async_workers=3, parallel_mode=True, n_parallel_workers=3)
     dqn = DQNPipeline(cfg, model)
 
     evaluate = dqn.evaluate(evaluator_env)
