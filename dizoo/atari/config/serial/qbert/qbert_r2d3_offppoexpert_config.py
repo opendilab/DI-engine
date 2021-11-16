@@ -133,8 +133,8 @@ expert_qbert_r2d3_config = dict(
             each_iter_n_sample=32,
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/atari/config/serial/qbert/demo_path/ppo-off_iteration_16127.pth.tar',
-            demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
-            # demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
+            # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
+            demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=42,  # TODO(pu) should equals self._unroll_len_add_burnin_step in r2d2 policy
             env_num=collector_env_num,
