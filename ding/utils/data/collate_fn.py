@@ -15,6 +15,10 @@ default_collate_err_msg_format = (
 )
 
 
+def torch_gt_131():
+    return int("".join(list(filter(str.isdigit, torch.__version__)))) >= 131
+
+
 def default_collate(batch: Sequence,
                     cat_1dim: bool = True,
                     ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
@@ -50,7 +54,7 @@ def default_collate(batch: Sequence,
     elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
-        if torch.utils.data.get_worker_info() is not None:
+        if torch_gt_131() and torch.utils.data.get_worker_info() is not None:
             # If we're in a background process, directly concatenate into a
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
