@@ -5,6 +5,7 @@ import torch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
+from ding import torch_gt_131
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -13,10 +14,6 @@ default_collate_err_msg_format = (
     "default_collate: batch must contain tensors, numpy arrays, numbers, "
     "dicts or lists; found {}"
 )
-
-
-def torch_gt_131():
-    return int("".join(list(filter(str.isdigit, torch.__version__)))) >= 131
 
 
 def default_collate(batch: Sequence,
