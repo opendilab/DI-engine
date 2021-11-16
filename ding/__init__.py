@@ -1,5 +1,4 @@
 import os
-import torch
 
 __TITLE__ = 'DI-engine'
 __VERSION__ = 'v0.2.0'
@@ -11,7 +10,3 @@ __version__ = __VERSION__
 enable_hpc_rl = False
 enable_linklink = os.environ.get('ENABLE_LINKLINK', 'false').lower() == 'true'
 enable_numba = True
-
-
-def torch_gt_131():
-    return int("".join(list(filter(str.isdigit, torch.__version__)))) >= 131

@@ -5,7 +5,7 @@ import torch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
-from ding import torch_gt_131
+from ding.compatibility import torch_gt_131
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
