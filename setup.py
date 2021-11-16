@@ -73,7 +73,9 @@ setup(
         'scipy',
         'trueskill',
         'h5py',
-        'rich'
+        'rich',
+        'mpire',
+        'pynng'
     ],
     extras_require={
         'test': [
