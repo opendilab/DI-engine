@@ -1,7 +1,8 @@
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, Generator, List, Union
+from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
 from ding.framework import Context
 import asyncio
+import concurrent.futures
 
 
 def enable_async(func: Callable) -> Callable:
@@ -14,7 +15,7 @@ def enable_async(func: Callable) -> Callable:
         - runtime_handler (:obj:`Callable`): The wrap function.
     """
 
-    def runtime_handler(task, *args, **kwargs) -> 'Task':
+    def runtime_handler(task: "Task", *args, **kwargs) -> "Task":
         """
         Overview:
             If task's async mode is enabled, execute the step in current loop executor asyncly,
@@ -29,7 +30,7 @@ def enable_async(func: Callable) -> Callable:
         else:
             async_mode = task.async_mode
         if async_mode:
-            t = task._loop.run_in_executor(None, func, task, *args, **kwargs)
+            t = task._loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
             task._async_stack.append(t)
             return task
         else:
@@ -44,20 +45,33 @@ class Task:
     and generate new context objects.
     """
 
-    def __init__(self, async_mode: bool = False) -> None:
+    def __init__(
+            self,
+            async_mode: bool = False,
+            n_async_workers: Optional[int] = None,
+            parallel_mode: bool = False,
+            n_parallel_workers: Optional[int] = None
+    ) -> None:
         self.middleware = []
         self.ctx = Context()
         self._backward_stack = []
 
-        # Async workarounds
+        # Async segment
         self.async_mode = async_mode
+        self.n_async_workers = n_async_workers
         self._async_stack = []
         self._loop = None
+        self._thread_pool = None
         if async_mode:
+            self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             try:
                 self._loop = asyncio.get_running_loop()
             except RuntimeError:
                 self._loop = asyncio.new_event_loop()
+
+        # Parallel segment
+        self.parallel_mode = parallel_mode
+        self.n_parallel_workers = n_parallel_workers
 
     def use(self, fn: Callable) -> 'Task':
         """
