@@ -438,18 +438,19 @@ class DIAYNPolicy(SACPolicy):
             logits = self._learn_model.forward(next_obs, mode='compute_discriminator')['q_discriminator']
         else:
         '''
-        loss_discriminator = torch.nn.CrossEntropyLoss(reduction='mean')
-        logits = self._learn_model.forward(next_obs_without_skills, mode='compute_discriminator')['q_discriminator']
-        discriminator_loss = loss_discriminator(
-            logits,
-            torch.nonzero(sklls_batch)[:, 1]
-        )  # z_one_hot_reduce is z_one_hot without one hot (N, C) --> (N)
-        loss_dict['discriminator_loss'] = discriminator_loss
+        for _ in range(self.cfg.discriminator_over_learning):
+            loss_discriminator = torch.nn.CrossEntropyLoss(reduction='mean')
+            logits = self._learn_model.forward(next_obs_without_skills, mode='compute_discriminator')['q_discriminator']
+            discriminator_loss = loss_discriminator(
+                logits,
+                torch.nonzero(sklls_batch)[:, 1]
+            )  # z_one_hot_reduce is z_one_hot without one hot (N, C) --> (N)
+            loss_dict['discriminator_loss'] = discriminator_loss
 
-        # update discriminator network
-        self._optimizer_discriminator.zero_grad()
-        loss_dict['discriminator_loss'].backward()
-        self._optimizer_discriminator.step()
+            # update discriminator network
+            self._optimizer_discriminator.zero_grad()
+            loss_dict['discriminator_loss'].backward()
+            self._optimizer_discriminator.step()
 
         # =============
         # after update
