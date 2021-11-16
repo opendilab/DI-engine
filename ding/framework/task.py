@@ -1,8 +1,13 @@
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
+
+import pynng
 from ding.framework import Context
+from mpire import WorkerPool
 import asyncio
 import concurrent.futures
+import random
+import time
 
 
 def enable_async(func: Callable) -> Callable:
@@ -45,13 +50,7 @@ class Task:
     and generate new context objects.
     """
 
-    def __init__(
-            self,
-            async_mode: bool = False,
-            n_async_workers: Optional[int] = None,
-            parallel_mode: bool = False,
-            n_parallel_workers: Optional[int] = None
-    ) -> None:
+    def __init__(self, async_mode: bool = False, n_async_workers: Optional[int] = None) -> None:
         self.middleware = []
         self.ctx = Context()
         self._backward_stack = []
@@ -64,14 +63,7 @@ class Task:
         self._thread_pool = None
         if async_mode:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
-            try:
-                self._loop = asyncio.get_running_loop()
-            except RuntimeError:
-                self._loop = asyncio.new_event_loop()
-
-        # Parallel segment
-        self.parallel_mode = parallel_mode
-        self.n_parallel_workers = n_parallel_workers
+            self._loop = asyncio.new_event_loop()
 
     def use(self, fn: Callable) -> 'Task':
         """
@@ -181,6 +173,27 @@ class Task:
             # FIFO
             t = self._async_stack.pop(0)
             await t
+
+    def parallel(self, main_process: Callable, n_workers: int):
+        node_name = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=4))
+        nodes = ["ipc:///tmp/ditask_{}_{}.ipc".format(node_name, i) for i in range(n_workers)]
+
+        async def _parallel_async(i):
+            # listen_address = nodes.pop(i)
+            # with pynng.Bus0() as sock:
+            #     sock.listen(listen_address)
+            #     for contact in nodes:
+            #         sock.dial(contact)
+            task = Task(async_mode=self.async_mode, n_async_workers=self.n_async_workers)
+            print(nodes)
+            main_process(task)
+
+        def _parallel(i):
+            asyncio.run(_parallel_async(i))
+
+        with WorkerPool(n_jobs=n_workers) as pool:
+            results = pool.map(_parallel, range(n_workers))
+        return results
 
     @property
     def finish(self) -> bool:
