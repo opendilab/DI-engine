@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 nstep = 1
 lunarlander_dqn_default_config = dict(
@@ -24,7 +23,7 @@ lunarlander_dqn_default_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_dqn',
     reward_model_path='./lunarlander.params',
-    load_path='',
+    offline_data_path='lunarlander_trex_dqn/suboptimal_data.pkl',
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -84,5 +83,3 @@ lunarlander_dqn_create_config = dict(
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
 create_config = lunarlander_dqn_create_config
 
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)

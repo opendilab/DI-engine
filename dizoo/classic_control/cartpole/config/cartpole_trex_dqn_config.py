@@ -20,7 +20,7 @@ cartpole_dqn_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/classic_control/cartpole/config/cartpole_dqn',
     reward_model_path='./cartpole.params',
-    load_path='',
+    offline_data_path='cartpole_trex_dqn/suboptimal_data.pkl',
     ),
     policy=dict(
         load_path='',

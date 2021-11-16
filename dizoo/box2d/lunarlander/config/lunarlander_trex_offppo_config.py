@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 lunarlander_ppo_config = dict(
     exp_name='lunarlander_trex_offppo',
@@ -21,7 +20,7 @@ lunarlander_ppo_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_ppo',
     reward_model_path='./lunarlander.params',
-    load_path='',
+    offline_data_path='lunarlander_trex_offppo/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -60,6 +59,3 @@ lunarlander_ppo_create_config = dict(
 )
 lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
-
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)

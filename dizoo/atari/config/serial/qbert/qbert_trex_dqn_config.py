@@ -1,5 +1,4 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 qbert_dqn_config = dict(
@@ -24,7 +23,7 @@ qbert_dqn_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/qbert/qbert_dqn',
     reward_model_path='./qbert.params',
-    load_path='',
+    offline_data_path='qbert_trex_dqn/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -68,5 +67,3 @@ qbert_dqn_create_config = dict(
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
 create_config = qbert_dqn_create_config
 
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)

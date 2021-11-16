@@ -1,5 +1,4 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_ppo_config = dict(
@@ -24,7 +23,7 @@ space_invaders_ppo_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/spaceinvaders/space_invaders_ppo_offpolcy',
     reward_model_path='./spaceinvaders.params',
-    load_path='',
+    offline_data_path='space_invaders_trex_offppo/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -74,5 +73,3 @@ space_invaders_ppo_create_config = dict(
 )
 create_config = EasyDict(space_invaders_ppo_create_config)
 
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)

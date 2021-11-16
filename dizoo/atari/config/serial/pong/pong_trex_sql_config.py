@@ -23,7 +23,7 @@ pong_sql_config = dict(
     update_per_collect=1,
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/pong_sql',
     reward_model_path='./pong.params',
-    load_path='',
+    offline_data_path='pong_trex_sql/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=False,

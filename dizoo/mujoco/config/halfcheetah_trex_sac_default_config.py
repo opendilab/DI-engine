@@ -22,7 +22,7 @@ halfcheetah_sac_default_config = dict(
     expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/halfcheetah_sac',
     reward_model_path='./halfcheetah.params',
     continuous = True,
-    load_path='',
+    offline_data_path='halfcheetah_trex_sac/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
