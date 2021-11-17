@@ -269,8 +269,8 @@ def main_eager(cfg, create_cfg, seed=0):
     collect_profiler = step_profiler("Collect", silent=True)
     learn_profiler = step_profiler("Learn", silent=True)
 
-    def _execute_task(task):
-        for _ in range(300):
+    def _execute_task(task: Task):
+        while task.ctx.total_step < 1000:
             task.forward(profiler)
             task.forward(evaluate_profiler(evaluate))
             if task.finish:
@@ -280,9 +280,13 @@ def main_eager(cfg, create_cfg, seed=0):
                 task.forward(task.sequence(act, collect))
 
             task.forward(learn_profiler(learn))
-            task.renew()
 
-    task.parallel(_execute_task, n_workers=2)
+            import random
+            time.sleep(random.random() + 1)
+            task.renew()
+            print("Current task step on {}".format(task._router and task._router._bind_addr), task.ctx.total_step)
+
+    task.parallel(_execute_task, n_workers=2, attach_to=[])
     # _execute_task(task)
 
 
